@@ -55,7 +55,7 @@ public class Company extends AuditEntity {
     @Column(length = 100)
     private String city;
 
-    @Column(name = "state_code", length = 2, columnDefinition = "char(2)")
+    @Column(name = "state_code", length = 2)
     private String stateCode;
 
     @Column(name = "zip_code", length = 10)

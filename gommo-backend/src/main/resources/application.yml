@@ -9,11 +9,17 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
+        default_schema: public
         jdbc:
           time_zone: America/Sao_Paulo
   flyway:
     enabled: true
     locations: classpath:db/migration
+    # Histórico e DDL do HR ficam no schema public (independente do admin).
+    schemas: public
+    default-schema: public
+    create-schemas: false
+    table: flyway_schema_history
 
 server:
   port: ${SERVER_PORT:8081}

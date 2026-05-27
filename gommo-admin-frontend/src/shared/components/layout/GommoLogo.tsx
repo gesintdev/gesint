@@ -1,0 +1,47 @@
+﻿import clsx from "clsx";
+
+type GommoLogoProps = {
+    /** Logo completo (sidebar expandido) ou apenas ícone (sidebar recolhido). */
+    variant?: "full" | "icon";
+    className?: string;
+    iconClassName?: string;
+    /** Sobre fundo brand (ex.: login). */
+    onBrand?: boolean;
+};
+
+/**
+ * Logotipo Gommo centralizado em assets de /public/brand.
+ */
+export function GommoLogo({
+    variant = "full",
+    className,
+    iconClassName,
+    onBrand = false,
+}: GommoLogoProps) {
+    if (variant === "icon") {
+        return (
+            <img
+                src="/brand/gommo-logo-icon.png"
+                alt="Gommo"
+                width={32}
+                height={32}
+                className={clsx("h-8 w-8 shrink-0 rounded-lg object-contain", iconClassName, className)}
+            />
+        );
+    }
+
+    return (
+        <img
+            src="/brand/gommo-logo-full.png"
+            alt="Gommo"
+            width={onBrand ? 180 : 160}
+            height={onBrand ? 48 : 44}
+            className={clsx(
+                onBrand
+                    ? "gommo-logo-on-brand h-9 w-auto max-w-[180px] shrink-0 object-contain object-left"
+                    : "h-9 w-auto max-w-[160px] shrink-0 object-contain object-left",
+                className,
+            )}
+        />
+    );
+}

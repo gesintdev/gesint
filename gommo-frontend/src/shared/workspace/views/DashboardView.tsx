@@ -24,6 +24,7 @@ import type {
 } from "@/modules/dashboard/dto/dashboard.dto";
 import {DASHBOARD_CLIENT_MESSAGES} from "@/modules/dashboard/exceptions/dashboard.messages";
 import {dashboardService} from "@/modules/dashboard/services/dashboard.service";
+import {motion} from "framer-motion";
 import {PageTransition} from "@/shared/components/layout/PageTransition";
 import {Button} from "@/shared/components/ui/Button";
 import {Card} from "@/shared/components/ui/Card";
@@ -69,23 +70,28 @@ function MetricCard({metric, index}: {metric: DashboardMetric; index: number}) {
     const Icon = METRIC_ICONS[metric.key] ?? ClipboardList;
 
     return (
-        <Card delay={index * 0.05} animate={false} bodyClassName="!p-5">
+        <motion.div
+            initial={{opacity: 0, y: 8}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.35, delay: index * 0.05, ease: [0.22, 1, 0.36, 1]}}
+            className="gommo-metric-card p-5 md:p-6"
+        >
             <div className="flex items-start justify-between gap-3">
                 <div>
-                    <p className="text-xs font-semibold text-base-content/45">{metric.label}</p>
-                    <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums">
+                    <p className="text-xs font-medium tracking-wide text-base-content/45">{metric.label}</p>
+                    <p className="mt-2 text-[1.75rem] font-semibold tracking-tight tabular-nums text-base-content">
                         {formatMetricValue(metric.value)}
                     </p>
-                    <p className={clsx("mt-2 inline-flex items-center gap-1 text-xs font-semibold", toneClass(metric.tone))}>
+                    <p className={clsx("mt-2 inline-flex items-center gap-1 text-xs font-medium", toneClass(metric.tone))}>
                         {metric.tone === "success" && <TrendingUp className="size-3.5"/>}
                         {metric.hint}
                     </p>
                 </div>
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-[10px] bg-primary/10 text-primary">
+                <span className="gommo-metric-card__icon shrink-0">
                     <Icon className="size-5" strokeWidth={1.75}/>
                 </span>
             </div>
-        </Card>
+        </motion.div>
     );
 }
 
@@ -102,7 +108,7 @@ function MovementChart({points}: {points: DashboardMovementPoint[]}) {
                             {point.total > 0 ? formatMetricValue(point.total) : "—"}
                         </span>
                         <div
-                            className="w-full max-w-10 rounded-t-[10px] bg-primary transition-all duration-500"
+                            className="gommo-chart-bar w-full max-w-10 transition-all duration-500"
                             style={{height: `${height}%`}}
                             title={`${point.label}: ${formatMetricValue(point.total)}`}
                         />

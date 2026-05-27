@@ -1,18 +1,31 @@
 # Gommo
 
-Monorepo RH / Departamento Pessoal — backend (Spring Boot), frontend (Next.js) e infra (Docker).
+Monorepo RH / Departamento Pessoal — backends (Spring Boot), frontends (Next.js), painel admin da plataforma e infra (Docker).
 
-| Projeto | Pasta | Documentação |
-|---------|-------|----------------|
-| API | `gommo-backend/` | [README do backend](gommo-backend/README.md) |
-| Web | `gommo-frontend/` | [README do frontend](gommo-frontend/README.md) |
+| Projeto | Pasta | Porta | Documentação |
+|---------|-------|-------|----------------|
+| API HR | `gommo-backend/` | 8081 | [README do backend](gommo-backend/README.md) |
+| Web HR | `gommo-frontend/` | 3000 | [README do frontend](gommo-frontend/README.md) |
+| API Admin | `gommo-admin-backend/` | 8082 | [README do admin backend](gommo-admin-backend/README.md) |
+| Web Admin | `gommo-admin-frontend/` | 3001 | [README do admin frontend](gommo-admin-frontend/README.md) |
 
 ## Início rápido
 
 1. Copie `.env.example` para `.env` na raiz e defina as variáveis (senha do Postgres, JWT, admin dev).
 2. `docker compose up -d`
-3. Backend: `cd gommo-backend && mvn spring-boot:run` → http://localhost:8081
-4. Frontend: `cd gommo-frontend && npm install && npm run dev` → http://localhost:3000
+3. HR: `cd gommo-backend && mvn spring-boot:run` → http://localhost:8081 e `cd gommo-frontend && npm install && npm run dev` → http://localhost:3000
+4. Admin: `cd gommo-admin-backend && mvn spring-boot:run` → http://localhost:8082 e `cd gommo-admin-frontend && npm install && npm run dev` → http://localhost:3001
+
+## Migrations Flyway (por schema)
+
+Cada backend aplica migrations **no seu schema PostgreSQL**, com histórico Flyway **separado**. Admin e HR podem ter `V1`, `V2`… ao mesmo tempo sem conflito de versionamento.
+
+| Backend | Schema | Histórico | Pasta |
+|---------|--------|----------|-------|
+| `gommo-backend` | `public` | `public.flyway_schema_history` | `gommo-backend/src/main/resources/db/migration/` |
+| `gommo-admin-backend` | `admin` | `admin.flyway_schema_history` | `gommo-admin-backend/src/main/resources/db/migration/` |
+
+Ao criar migration: use o próximo `V{n}` **apenas** do backend/schema correspondente. Alterações em tabelas do HR (`public`) vão no HR; alterações da plataforma admin vão no admin. Escrita cross-schema no código (integração) não substitui migration no backend dono do schema.
 
 ---
 

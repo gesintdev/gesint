@@ -14,9 +14,6 @@ import {AttendanceRecordFormClient} from "@/modules/attendance/components/Attend
 import {AttendanceRecordListClient} from "@/modules/attendance/components/AttendanceRecordListClient";
 import {BenefitPlanFormClient} from "@/modules/benefit/components/BenefitPlanFormClient";
 import {BenefitPlanListClient} from "@/modules/benefit/components/BenefitPlanListClient";
-import {CompanyFormClient} from "@/modules/company/components/CompanyFormClient";
-import {CompanyListClient} from "@/modules/company/components/CompanyListClient";
-import type {Company} from "@/modules/company/dto/company.dto";
 import {EmploymentContractFormClient} from "@/modules/contract/components/EmploymentContractFormClient";
 import {EmploymentContractListClient} from "@/modules/contract/components/EmploymentContractListClient";
 import {DepartmentFormClient} from "@/modules/department/components/DepartmentFormClient";
@@ -37,6 +34,7 @@ import {TabbedCrudPage} from "@/shared/components/layout/TabbedCrudPage";
 import {WorkspacePage} from "@/shared/components/layout/WorkspacePage";
 import {PageTransition} from "@/shared/components/layout/PageTransition";
 import {DashboardView} from "@/shared/workspace/views/DashboardView";
+import {ComingSoonView} from "@/shared/workspace/views/ComingSoonView";
 
 export type WorkspacePageEntry = {
     href: string;
@@ -88,20 +86,6 @@ function CollaboratorHistoryPage() {
     );
 }
 
-function CompanyPage() {
-    return (
-        <TabbedCrudPage<Company>
-            routeId="company"
-            href="/company"
-            routeLabel="Empresa"
-            tabShortLabel="Emp"
-            fieldTabName="tradeName"
-            list={<CompanyListClient/>}
-            form={<CompanyFormClient/>}
-        />
-    );
-}
-
 function DevInputsPage() {
     return (
         <PageTransition>
@@ -113,7 +97,6 @@ function DevInputsPage() {
 export const WORKSPACE_PAGE_REGISTRY: WorkspacePageEntry[] = [
     {href: "/dashboard", Component: DashboardView},
     {href: "/dev/inputs", Component: DevInputsPage},
-    {href: "/company", Component: CompanyPage},
     {href: "/organization/departments", Component: () => (
         <TabbedCrudPage
             routeId="departments"
@@ -134,6 +117,24 @@ export const WORKSPACE_PAGE_REGISTRY: WorkspacePageEntry[] = [
             fieldTabName="title"
             list={<JobPositionListClient/>}
             form={<JobPositionFormClient/>}
+        />
+    )},
+    {href: "/organization/users", Component: () => (
+        <ComingSoonView
+            title="Usuários internos"
+            description="Cadastro de usuários da empresa com acesso ao sistema de RH."
+        />
+    )},
+    {href: "/organization/roles", Component: () => (
+        <ComingSoonView
+            title="Perfis de acesso"
+            description="Agrupamento de permissões por função (ex.: RH, gestor, colaborador)."
+        />
+    )},
+    {href: "/organization/permissions", Component: () => (
+        <ComingSoonView
+            title="Permissões"
+            description="Controle fino de ações permitidas por módulo dentro do tenant."
         />
     )},
     {href: "/collaborator/people", Component: CollaboratorPeoplePage},

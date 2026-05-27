@@ -10,7 +10,7 @@ spring:
 
 gommo:
   cors:
-    allowed-origins: http://localhost:3000
+    allowed-origins: http://localhost:3000,http://localhost:3001
   storage:
     local-base-path: ${STORAGE_LOCAL_PATH:./data/storage}
     bucket: gommo-local

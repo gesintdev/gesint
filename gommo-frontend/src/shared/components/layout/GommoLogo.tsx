@@ -1,20 +1,16 @@
-import clsx from "clsx";
+﻿import clsx from "clsx";
 
 type GommoLogoProps = {
     /** Logo completo (sidebar expandido) ou apenas ícone (sidebar recolhido). */
     variant?: "full" | "icon";
     className?: string;
     iconClassName?: string;
-    /**
-     * Sobre fundo brand (ex.: hero roxo do login).
-     * Usa o PNG full com tratamento claro — mesma arte do sidebar.
-     */
+    /** Sobre fundo brand (ex.: login). */
     onBrand?: boolean;
 };
 
 /**
- * Logotipo Gommo — mesma alternância claro/escuro do sidebar
- * (`sidebar-logo-light` / `sidebar-logo-dark`).
+ * Logotipo Gommo centralizado em assets de /public/brand.
  */
 export function GommoLogo({
     variant = "full",
@@ -34,43 +30,18 @@ export function GommoLogo({
         );
     }
 
-    if (onBrand) {
-        return (
-            <img
-                src="/brand/gommo-logo-full.png"
-                alt="Gommo"
-                width={180}
-                height={48}
-                className={clsx(
-                    "gommo-logo-on-brand h-9 w-auto max-w-[180px] shrink-0 object-contain object-left",
-                    className,
-                )}
-            />
-        );
-    }
-
     return (
-        <>
-            <img
-                src="/brand/gommo-logo-full.png"
-                alt="Gommo"
-                width={160}
-                height={44}
-                className={clsx(
-                    "sidebar-logo-light h-9 w-auto max-w-[160px] shrink-0 object-contain object-left",
-                    className,
-                )}
-            />
-            <img
-                src="/brand/gommo-logo-white.png"
-                alt="Gommo"
-                width={160}
-                height={44}
-                className={clsx(
-                    "sidebar-logo-dark h-9 w-auto max-w-[160px] shrink-0 object-contain object-left",
-                    className,
-                )}
-            />
-        </>
+        <img
+            src="/brand/gommo-logo-full.png"
+            alt="Gommo"
+            width={onBrand ? 180 : 160}
+            height={onBrand ? 48 : 44}
+            className={clsx(
+                onBrand
+                    ? "gommo-logo-on-brand h-9 w-auto max-w-[180px] shrink-0 object-contain object-left"
+                    : "h-9 w-auto max-w-[160px] shrink-0 object-contain object-left",
+                className,
+            )}
+        />
     );
 }

@@ -38,17 +38,17 @@
     --gommo-info: #3385ff;
     --gommo-info-content: #ffffff;
 
-    /* Superfícies light (estrutura atual) */
-    --gommo-page: #f6f8fb;
-    --gommo-header-border: #e5e7eb;
+    /* Superfícies light */
+    --gommo-page: #f5f7fb;
+    --gommo-header-border: #ececf3;
     --gommo-surface: #ffffff;
-    --gommo-surface-muted: #edf2fb;
+    --gommo-surface-muted: #f0f2f8;
     --gommo-surface-accent: var(--gommo-primary-50);
-    --gommo-content: #0a1628;
+    --gommo-content: #0f172a;
 
     /* Bordas — neutras suaves (accent só no focus) */
-    --gommo-border: #e4e7ec;
-    --gommo-border-subtle: #eef1f5;
+    --gommo-border: #ececf3;
+    --gommo-border-subtle: #f1f2f6;
     --gommo-border-strong: #d1d5db;
     --gommo-border-focus: var(--gommo-primary);
 
@@ -96,9 +96,9 @@
 
     --color-page: var(--gommo-page);
 
-    --radius-gommo-control: 10px;
-    --radius-gommo-card: 16px;
-    --radius-gommo-card-lg: 10px;
+    --radius-gommo-control: 12px;
+    --radius-gommo-card: 18px;
+    --radius-gommo-card-lg: 18px;
 }
 
 /* ──────────────────────────────────────────────
@@ -166,16 +166,16 @@
    Layout tokens
 ────────────────────────────────────────────── */
 :root {
-    --sidebar-width: 16.25rem;
-    --sidebar-collapsed: 4.5rem;
-    --workspace-content-padding: 0.75rem;
-    --header-height: 4rem;
+    --sidebar-width: 15rem;
+    --sidebar-collapsed: 4.25rem;
+    --workspace-content-padding: 1rem;
+    --header-height: 3.75rem;
     --sidebar-transition-duration: 500ms;
 
-    /* Controls — espelha .btn--m da referência */
-    --gommo-control-h: 40px;
-    --gommo-control-px: 14px;
-    --gommo-control-radius: 8px;
+    /* Controls — confortáveis e premium */
+    --gommo-control-h: 44px;
+    --gommo-control-px: 16px;
+    --gommo-control-radius: 12px;
     --gommo-control-font-size: 14px;
     --gommo-autofill-bg: var(--color-base-100);
 
@@ -266,7 +266,9 @@ body {
     border-radius: var(--radius-gommo-card-lg);
     border: 1px solid var(--gommo-border);
     background: var(--color-base-100);
-    box-shadow: var(--gommo-shadow-sm);
+    box-shadow:
+        var(--gommo-shadow-sm),
+        0 0 0 1px color-mix(in srgb, white 80%, transparent);
     transition: box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.22s ease,
     transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
@@ -553,23 +555,43 @@ body {
 
 /* ─── Primary ─── */
 .gommo-btn--primary {
-    background: var(--gommo-primary);
+    background: linear-gradient(
+        135deg,
+        var(--gommo-primary-light) 0%,
+        var(--gommo-primary) 52%,
+        var(--gommo-primary-dark) 100%
+    );
     color: #fff;
     border-color: transparent;
-    box-shadow: var(--gommo-shadow-xs);
+    box-shadow:
+        0 1px 2px color-mix(in srgb, var(--gommo-primary-darker) 18%, transparent),
+        0 6px 18px color-mix(in srgb, var(--gommo-primary) 24%, transparent);
 }
 
 .gommo-btn--primary:hover:not(:disabled) {
-    background: var(--gommo-primary-dark);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--gommo-primary-light) 92%, white) 0%,
+        var(--gommo-primary) 48%,
+        var(--gommo-primary-darker) 100%
+    );
     border-color: transparent;
-    box-shadow: var(--gommo-shadow-sm);
+    box-shadow:
+        0 2px 4px color-mix(in srgb, var(--gommo-primary-darker) 16%, transparent),
+        0 10px 24px color-mix(in srgb, var(--gommo-primary) 28%, transparent);
+    transform: translateY(-1px);
 }
 
 .gommo-btn--primary:active:not(:disabled) {
-    background: var(--gommo-primary-darker);
+    background: linear-gradient(
+        135deg,
+        var(--gommo-primary) 0%,
+        var(--gommo-primary-dark) 55%,
+        var(--gommo-primary-darker) 100%
+    );
     border-color: transparent;
     transform: translateY(1px) scale(0.995);
-    box-shadow: none;
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--gommo-primary) 18%, transparent);
 }
 
 .gommo-btn--primary:focus-visible {
@@ -728,8 +750,8 @@ body {
     width: 100%;
     grid-template-columns: 1.1rem minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.875rem;
+    gap: 0.625rem;
+    padding: 0.4375rem 0.75rem;
     border: 0;
     margin: 0;
     appearance: none;
@@ -973,9 +995,16 @@ aside[data-collapsed="true"] .sidebar-copy,
 }
 
 .nav-item-active {
-    background: color-mix(in srgb, var(--gommo-primary) 8%, transparent);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--gommo-primary) 9%, var(--color-base-100)) 0%,
+        var(--gommo-primary-50) 100%
+    );
     color: var(--gommo-primary);
     font-variation-settings: "wght" 620;
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--gommo-primary) 14%, transparent),
+        0 4px 14px color-mix(in srgb, var(--gommo-primary) 12%, transparent);
 }
 
 [data-theme="dark"] .nav-item:hover {
@@ -1637,4 +1666,393 @@ button:disabled,
 
 .system-alert-modal[open] .gommo-modal-panel {
     animation: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ──────────────────────────────────────────────
+   Login — fundo 3D + painel glass à esquerda
+────────────────────────────────────────────── */
+html:has(.login-page),
+html:has(.login-page) body {
+    height: 100%;
+    overflow: hidden;
+}
+
+.login-page {
+    --login-glass-inset: clamp(0.75rem, 2.2vh, 1.25rem);
+
+    position: relative;
+    display: flex;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    background: var(--gommo-primary-950);
+}
+
+.login-page__visual {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.login-page__visual-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center right;
+}
+
+.login-page__visual-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        105deg,
+        color-mix(in srgb, var(--gommo-primary-950) 20%, transparent) 0%,
+        color-mix(in srgb, var(--gommo-primary-950) 8%, transparent) 46%,
+        transparent 52%
+    );
+    pointer-events: none;
+}
+
+.login-page__form {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    align-items: stretch;
+    justify-content: center;
+    padding: var(--login-glass-inset);
+}
+
+@media (min-width: 1024px) {
+    .login-page__form {
+        flex: 0 0 50%;
+        width: 50%;
+        max-width: 50%;
+    }
+}
+
+.login-page__glass {
+    position: relative;
+    isolation: isolate;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    flex: 1;
+    border-radius: 1.25rem;
+    border: 1px solid color-mix(in srgb, white 14%, transparent);
+    overflow: hidden;
+    /* base frost — deixa o blur “ler” o fundo */
+    background:
+        linear-gradient(
+            165deg,
+            color-mix(in srgb, white 14%, transparent) 0%,
+            color-mix(in srgb, white 6%, transparent) 38%,
+            color-mix(in srgb, var(--gommo-primary-100) 8%, transparent) 100%
+        );
+    -webkit-backdrop-filter: blur(72px) saturate(1.85) brightness(1.1) contrast(1.02);
+    backdrop-filter: blur(72px) saturate(1.85) brightness(1.1) contrast(1.02);
+    box-shadow:
+        inset 0 1px 1px color-mix(in srgb, white 28%, transparent),
+        inset 0 -1px 0 color-mix(in srgb, white 6%, transparent),
+        0 8px 32px color-mix(in srgb, black 20%, transparent),
+        0 20px 56px color-mix(in srgb, var(--gommo-primary-darker) 16%, transparent);
+}
+
+.login-page__glass::before,
+.login-page__glass::after {
+    border-radius: inherit;
+}
+
+/* Tint brand leve — não pode cobrir o vidro */
+.login-page__glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(
+            ellipse 100% 65% at 0% 0%,
+            color-mix(in srgb, var(--gommo-primary-light) 32%, transparent) 0%,
+            transparent 58%
+        ),
+        radial-gradient(
+            ellipse 80% 60% at 100% 100%,
+            color-mix(in srgb, var(--gommo-primary) 24%, transparent) 0%,
+            transparent 52%
+        ),
+        linear-gradient(
+            148deg,
+            color-mix(in srgb, var(--gommo-primary-darker) 26%, transparent) 0%,
+            color-mix(in srgb, var(--gommo-primary) 14%, transparent) 45%,
+            color-mix(in srgb, var(--gommo-primary-950) 22%, transparent) 100%
+        );
+}
+
+/* Brilho specular + textura sutil de vidro */
+.login-page__glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, white 22%, transparent) 0%,
+            color-mix(in srgb, white 8%, transparent) 18%,
+            transparent 42%
+        ),
+        radial-gradient(color-mix(in srgb, white 16%, transparent) 0.5px, transparent 0.5px);
+    background-size:
+        100% 100%,
+        20px 20px;
+    mask-image: linear-gradient(180deg, black 0%, black 35%, transparent 72%);
+}
+
+.login-page__glass-body {
+    position: relative;
+    z-index: 2;
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.login-page__brand,
+.login-page__copy,
+.login-form,
+.login-page__legal {
+    position: relative;
+    z-index: 1;
+}
+
+.login-page__brand {
+    margin-bottom: 1.75rem;
+}
+
+.login-page__tagline {
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    font-variation-settings: "wght" 500;
+    letter-spacing: 0.02em;
+    color: color-mix(in srgb, white 58%, transparent);
+}
+
+.login-page__copy {
+    margin-bottom: 1.75rem;
+}
+
+.login-page__title {
+    font-size: clamp(1.625rem, 3vw, 2rem);
+    font-variation-settings: "wght" 650;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: #fff;
+}
+
+.login-page__subtitle {
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, white 62%, transparent);
+}
+
+.login-page__legal {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, white 42%, transparent);
+}
+
+.login-page__theme {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 20;
+}
+
+.login-form {
+    display: grid;
+    width: 100%;
+    gap: 1rem;
+    text-align: left;
+}
+
+.login-field .gommo-label {
+    margin-bottom: 0.375rem;
+    font-size: 0.8125rem;
+    color: color-mix(in srgb, white 72%, transparent);
+}
+
+.gommo-field--login {
+    height: 3rem;
+    min-height: 3rem;
+    border-radius: 12px;
+    border-color: color-mix(in srgb, white 22%, transparent);
+    background: color-mix(in srgb, white 10%, transparent);
+    color: #fff;
+    backdrop-filter: blur(16px) saturate(1.4) brightness(1.05);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4) brightness(1.05);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 12%, transparent);
+}
+
+.gommo-field--login:hover {
+    border-color: color-mix(in srgb, white 30%, transparent);
+    background: color-mix(in srgb, white 14%, transparent);
+}
+
+.gommo-field--login:focus-within {
+    border-color: color-mix(in srgb, var(--gommo-primary-light) 70%, white);
+    background: color-mix(in srgb, white 16%, transparent);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 18%, transparent),
+        0 0 0 3px color-mix(in srgb, var(--gommo-primary-light) 32%, transparent);
+}
+
+.gommo-field--login input {
+    color: #fff;
+}
+
+.gommo-field--login input::placeholder {
+    color: color-mix(in srgb, white 38%, transparent);
+}
+
+.login-password-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: color-mix(in srgb, white 55%, transparent);
+    transition: color 0.15s ease;
+}
+
+.login-password-toggle:hover {
+    color: #fff;
+}
+
+.login-form__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-top: 0.125rem;
+    padding-top: 0.125rem;
+}
+
+.login-remember {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: color-mix(in srgb, white 68%, transparent);
+    cursor: pointer;
+}
+
+.login-remember__input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--gommo-primary-light);
+    border-radius: 4px;
+}
+
+.login-forgot {
+    font-size: 0.8125rem;
+    font-variation-settings: "wght" 550;
+    color: var(--gommo-primary-300);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.login-forgot:hover {
+    color: #fff;
+}
+
+.login-submit.gommo-btn {
+    height: 3rem;
+    min-height: 3rem;
+    border-radius: 12px;
+    font-size: 0.9375rem;
+}
+
+.login-dev-hint {
+    text-align: center;
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, white 38%, transparent);
+}
+
+@media (max-width: 1023px) {
+    .login-page {
+        flex-direction: column;
+    }
+
+    .login-page__visual-scrim {
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--gommo-primary-950) 78%, transparent) 0%,
+            color-mix(in srgb, var(--gommo-primary-950) 50%, transparent) 50%,
+            color-mix(in srgb, var(--gommo-primary-950) 35%, transparent) 100%
+        );
+    }
+
+    .login-page__glass {
+        -webkit-backdrop-filter: blur(56px) saturate(1.75) brightness(1.08);
+        backdrop-filter: blur(56px) saturate(1.75) brightness(1.08);
+        box-shadow:
+            inset 0 1px 1px color-mix(in srgb, white 22%, transparent),
+            0 16px 48px color-mix(in srgb, var(--gommo-primary-950) 30%, transparent);
+    }
+}
+
+/* Métricas dashboard — cards premium */
+.gommo-metric-card {
+    border-radius: var(--radius-gommo-card-lg);
+    border: 1px solid var(--gommo-border);
+    background: var(--color-base-100);
+    box-shadow: var(--gommo-shadow-sm);
+    transition:
+        box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gommo-metric-card:hover {
+    box-shadow: var(--gommo-shadow-md);
+    transform: translateY(-1px);
+}
+
+.gommo-metric-card__icon {
+    display: flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--gommo-primary) 14%, var(--color-base-100)) 0%,
+        var(--gommo-primary-50) 100%
+    );
+    color: var(--gommo-primary);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--gommo-primary) 10%, transparent);
+}
+
+.gommo-chart-bar {
+    border-radius: 10px 10px 4px 4px;
+    background: linear-gradient(
+        180deg,
+        var(--gommo-primary-light) 0%,
+        var(--gommo-primary) 100%
+    );
+    box-shadow: 0 -2px 12px color-mix(in srgb, var(--gommo-primary) 18%, transparent);
 }

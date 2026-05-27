@@ -41,7 +41,7 @@ export function SystemShell({children}: { children: ReactNode }) {
             <div
                 className="flex h-dvh min-h-0 flex-1 flex-col overflow-hidden transition-[margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:ms-(--sidebar-current,var(--sidebar-width))">
                 <header
-                    className="surface-header sticky top-0 z-30 flex h-(--header-height) shrink-0 items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6">
+                    className="surface-header sticky top-0 z-30 flex h-(--header-height) shrink-0 items-center justify-between gap-3 px-4 sm:gap-5 sm:px-6 lg:px-8">
 
                     {/* Mobile nav toggle */}
                     <button
@@ -54,12 +54,12 @@ export function SystemShell({children}: { children: ReactNode }) {
                     </button>
 
                     {/* Search bar */}
-                    <label className="gommo-field relative min-w-0 flex-1 cursor-text sm:max-w-xs lg:max-w-sm">
-                        <Search className="size-4 shrink-0 text-primary/60" strokeWidth={2}/>
+                    <label className="gommo-field relative min-w-0 flex-1 cursor-text rounded-xl! sm:max-w-xs lg:max-w-md">
+                        <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2}/>
                         <input
                             type="search"
                             placeholder="Buscar no sistema…"
-                            className="pe-2 placeholder:text-base-content/35"
+                            className="pe-2 placeholder:text-base-content/32"
                         />
                         <kbd className="ms-auto hidden shrink-0 sm:flex">
                             <Command className="size-2.5" strokeWidth={2.5}/>K

@@ -9,8 +9,10 @@ Monolito modular (bounded contexts), preparado para microserviços. **Nunca** de
 
 ## Repositórios
 
-- Frontend: `gommo-frontend/` (Next.js App Router, `src/`)
-- Backend: `gommo-backend/` (Spring Boot, pacote `br.com.gommo`)
+- HR Frontend: `gommo-frontend/` (Next.js App Router, `src/`, `:3000`)
+- HR Backend: `gommo-backend/` (Spring Boot, pacote `br.com.gommo`, `:8081`)
+- Admin Frontend: `gommo-admin-frontend/` (Next.js, `:3001`)
+- Admin Backend: `gommo-admin-backend/` (Spring Boot, pacote `br.com.gommo.admin`, `:8082`)
 
 ## Stack (versões do repo)
 
@@ -27,7 +29,7 @@ Monolito modular (bounded contexts), preparado para microserviços. **Nunca** de
 - CRUD via `BaseController` / `BaseService` / `IBaseRepository` — controllers filhos **não** redeclaram endpoints; RBAC com `@PreAuthorize` no service do módulo
 - Entidades: `BaseEntity` (id UUID, status) + `AuditEntity` (created/updated by/at)
 - Soft delete: `status = DELETED` — sem DELETE físico
-- Flyway para **toda** alteração de schema (`V{n}__descricao_snake_case.sql`)
+- Flyway para **toda** alteração de schema (`V{n}__descricao_snake_case.sql`) — ver **Migrations por schema** abaixo
 - API versionada: `/api/v1/...`
 - DTOs sempre **classes** (não records) com Lombok `@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor`
 - Em entidades JPA: **sem @Data** — `@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor`
@@ -59,6 +61,22 @@ Monolito modular (bounded contexts), preparado para microserviços. **Nunca** de
 | BE service | `CollaboratorService.java` / `ICollaboratorService.java` |
 | BE DTO | `CollaboratorRequestDto.java` / `CollaboratorResponseDto.java` |
 | BE use case | `CreateCollaboratorUseCase.java` |
+
+## Migrations por schema (Flyway)
+
+Dois backends, **um PostgreSQL**, históricos Flyway **independentes** — numeração `V1`, `V2`… **não** precisa ser coordenada entre apps.
+
+| App | Pasta migrations | Schema PG | Histórico Flyway |
+|-----|------------------|-----------|------------------|
+| `gommo-backend` | `gommo-backend/src/main/resources/db/migration/` | `public` | `public.flyway_schema_history` |
+| `gommo-admin-backend` | `gommo-admin-backend/src/main/resources/db/migration/` | `admin` | `admin.flyway_schema_history` |
+
+Regras:
+
+- Próximo `V{n}` de cada app: consultar **somente** o histórico daquele schema (ou as migrations da pasta daquele backend).
+- DDL do HR → **sempre** via `gommo-backend`; DDL da plataforma admin → **sempre** via `gommo-admin-backend`.
+- Cross-schema no código (ex.: admin escreve em `public.app_user`) é integração JPA — **não** criar migration Flyway no app errado.
+- Config explícita em `application.yml`: `flyway.schemas`, `default-schema`, `table: flyway_schema_history`.
 
 ## Ao gerar código
 

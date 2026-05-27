@@ -42,6 +42,15 @@ Perfil `dev`: cria usuário admin se `DEV_ADMIN_PASSWORD` estiver definido (veja
 
 API local: http://localhost:8081
 
+## Migrations (Flyway)
+
+- Schema PostgreSQL: **`public`**
+- Histórico: **`public.flyway_schema_history`**
+- Arquivos: `src/main/resources/db/migration/V{n}__descricao_snake_case.sql`
+- Próximo `V{n}`: olhar **somente** este backend (independente do `gommo-admin-backend`)
+
+Detalhes: [README do monorepo — Migrations Flyway](../README.md#migrations-flyway-por-schema)
+
 ## Exceções
 
 Catálogo de códigos, mapa de caracteres Unicode e conversor: **[README do monorepo](../README.md#exceções-e-mensagens)**.

@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="GommoAdminApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="gommo-admin-backend" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="br.com.gommo.admin.GommoAdminApplication" />
+    <option name="ACTIVE_PROFILES" value="dev" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

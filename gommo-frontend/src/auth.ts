@@ -15,7 +15,41 @@ class TokenResponse {
   email?: string;
 }
 
+const secureCookies = process.env.NODE_ENV === "production";
+const cookiePrefix = secureCookies ? "__Secure-gommo-hr" : "gommo-hr";
+
+const hrAuthCookies = {
+  sessionToken: {
+    name: `${cookiePrefix}.authjs.session-token`,
+    options: {
+      httpOnly: true,
+      sameSite: "lax" as const,
+      path: "/",
+      secure: secureCookies,
+    },
+  },
+  callbackUrl: {
+    name: `${cookiePrefix}.authjs.callback-url`,
+    options: {
+      httpOnly: true,
+      sameSite: "lax" as const,
+      path: "/",
+      secure: secureCookies,
+    },
+  },
+  csrfToken: {
+    name: `${cookiePrefix}.authjs.csrf-token`,
+    options: {
+      httpOnly: true,
+      sameSite: "lax" as const,
+      path: "/",
+      secure: secureCookies,
+    },
+  },
+};
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  cookies: hrAuthCookies,
   providers: [
     Credentials({
       credentials: {
