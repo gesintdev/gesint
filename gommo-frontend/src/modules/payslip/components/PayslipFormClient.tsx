@@ -1,18 +1,21 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { PAYSLIP_CLIENT_MESSAGES } from "@/modules/payslip/exceptions/payslip.messages";
 import type { PayslipCreateDto } from "@/modules/payslip/dto/payslip.dto";
 import { emptyPayslipForm, payslipToFormDto } from "@/modules/payslip/lib/payslip.mapper";
 import { payslipKeys } from "@/modules/payslip/payslip.query";
 import { payslipService } from "@/modules/payslip/services/payslip.service";
+import { payrollrunService } from "@/modules/payroll/services/payroll-run.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
+import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
-import { InputString, InputCurrency } from "@/shared/components/ui/input/index";
+import { InputCurrency } from "@/shared/components/ui/input/index";
 
 export function PayslipFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -38,11 +41,22 @@ export function PayslipFormClient() {
     }
   }, [isEditing, detailQuery.data]);
 
+  const searchPayrollRuns = useCallback(
+    (query: string, page: number) => payrollrunService.searchForAutocomplete(query, page),
+    [],
+  );
+
+  const resolvePayrollRunLabel = useCallback(async (id: string) => {
+    const run = await payrollrunService.getById(id);
+    return `Competência ${String(run.referenceMonth).padStart(2, "0")}/${run.referenceYear}`;
+  }, []);
+
   const saveMutation = useMutation({
     mutationFn: async (dto: PayslipCreateDto) => {
       const payload = {
         ...dto,
         grossAmount: dto.grossAmount ? Number(dto.grossAmount) : undefined,
+        deductionsAmount: dto.deductionsAmount ? Number(dto.deductionsAmount) : undefined,
         netAmount: dto.netAmount ? Number(dto.netAmount) : undefined,
       };
       if (isEditing && editingId) return payslipService.update(editingId, payload as PayslipCreateDto);
@@ -51,7 +65,7 @@ export function PayslipFormClient() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: payslipKeys.all });
       if (editingId) await queryClient.invalidateQueries({ queryKey: payslipKeys.detail(editingId) });
-      toast.success(isEditing ? "Holerite atualizado(a)" : "Holerite cadastrado(a)");
+      toast.success(isEditing ? "Holerite atualizado" : "Holerite cadastrado");
       setForm(emptyPayslipForm());
       goToList();
     },
@@ -95,16 +109,24 @@ export function PayslipFormClient() {
         </>
       }
     >
-    <div className="grid gap-3 p-4 sm:grid-cols-2">
-      <div className="sm:col-span-2">
-        <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar holerite" : "Novo(a) holerite"}</p>
+      <div className="grid gap-3 p-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar holerite" : "Novo holerite"}</p>
+        </div>
+        <EntityPickerField
+          label="Processamento de folha"
+          value={form.payrollRunId ?? ""}
+          onValueChange={(v) => update("payrollRunId", v)}
+          onSearch={searchPayrollRuns}
+          resolveLabel={resolvePayrollRunLabel}
+          required
+        />
+        <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
+        <InputCurrency label="Valor bruto" value={form.grossAmount ?? ""} onValueChange={(v) => update("grossAmount", v)} emitAsDecimal />
+        <InputCurrency label="Descontos" value={form.deductionsAmount ?? ""} onValueChange={(v) => update("deductionsAmount", v)} emitAsDecimal />
+        <InputCurrency label="Valor líquido" value={form.netAmount ?? ""} onValueChange={(v) => update("netAmount", v)} emitAsDecimal />
+        {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
       </div>
-      <InputString label="Payroll Run  I D" value={form.payrollRunId ?? ""} onValueChange={(v) => update("payrollRunId", v)} required />
-      <InputString label="Collaborator  I D" value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
-      <InputCurrency label="Valor bruto" value={form.grossAmount ?? ""} onValueChange={(v) => update("grossAmount", v)} emitAsDecimal />
-      <InputCurrency label="Valor líquido" value={form.netAmount ?? ""} onValueChange={(v) => update("netAmount", v)} emitAsDecimal />
-      {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-    </div>
     </CrudFormShell>
   );
 }

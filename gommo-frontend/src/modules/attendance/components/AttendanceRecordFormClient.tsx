@@ -10,6 +10,7 @@ import { attendancerecordKeys } from "@/modules/attendance/attendance.query";
 import { attendancerecordService } from "@/modules/attendance/services/attendance-record.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString, InputDate } from "@/shared/components/ui/input/index";
@@ -46,7 +47,7 @@ export function AttendanceRecordFormClient() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: attendancerecordKeys.all });
       if (editingId) await queryClient.invalidateQueries({ queryKey: attendancerecordKeys.detail(editingId) });
-      toast.success(isEditing ? "Registro de ponto atualizado(a)" : "Registro de ponto cadastrado(a)");
+      toast.success(isEditing ? "Registro de ponto atualizado" : "Registro de ponto cadastrado");
       setForm(emptyAttendanceRecordForm());
       goToList();
     },
@@ -90,16 +91,18 @@ export function AttendanceRecordFormClient() {
         </>
       }
     >
-    <div className="grid gap-3 p-4 sm:grid-cols-2">
-      <div className="sm:col-span-2">
-        <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar registro de ponto" : "Novo(a) registro de ponto"}</p>
+      <div className="grid gap-3 p-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar registro de ponto" : "Novo registro de ponto"}</p>
+        </div>
+        <div className="sm:col-span-2">
+          <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
+        </div>
+        <InputDate label="Data de trabalho" value={form.workDate ?? ""} onValueChange={(v) => update("workDate", v)} required />
+        <InputString label="Entrada" value={form.clockIn ?? ""} onValueChange={(v) => update("clockIn", v)} hint="HH:mm" />
+        <InputString label="Saída" value={form.clockOut ?? ""} onValueChange={(v) => update("clockOut", v)} hint="HH:mm" />
+        {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
       </div>
-      <InputString label="Collaborator  I D" value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
-      <InputDate label="Work Date" value={form.workDate ?? ""} onValueChange={(v) => update("workDate", v)} required />
-      <InputString label="Clock In" value={form.clockIn ?? ""} onValueChange={(v) => update("clockIn", v)} hint="HH:mm" />
-      <InputString label="Clock Out" value={form.clockOut ?? ""} onValueChange={(v) => update("clockOut", v)} hint="HH:mm" />
-      {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-    </div>
     </CrudFormShell>
   );
 }

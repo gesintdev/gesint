@@ -5,6 +5,7 @@ export function employmentcontractToFormDto(entity: EmploymentContract): Employm
         collaboratorId: entity.collaboratorId ?? "",
         contractType: entity.contractType,
         startDate: entity.startDate?.slice(0, 10) ?? "",
+        endDate: entity.endDate?.slice(0, 10) ?? "",
         baseSalary: entity.baseSalary != null ? String(entity.baseSalary) : "",
     };
 }

@@ -12,6 +12,7 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { InputString, InputDate } from "@/shared/components/ui/input/index";
 
 export function ExitInterviewFormClient() {
@@ -94,9 +95,11 @@ export function ExitInterviewFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar entrevista de desligamento" : "Novo(a) entrevista de desligamento"}</p>
       </div>
-      <InputString label="Collaborator  I D" value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
-      <InputDate label="Interview Date" value={form.interviewDate ?? ""} onValueChange={(v) => update("interviewDate", v)} required />
-      <InputString label="Departure Reason" value={form.departureReason ?? ""} onValueChange={(v) => update("departureReason", v)}  />
+      <div className="sm:col-span-2">
+        <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
+      </div>
+      <InputDate label="Data da entrevista" value={form.interviewDate ?? ""} onValueChange={(v) => update("interviewDate", v)} required />
+      <InputString label="Motivo da saída" value={form.departureReason ?? ""} onValueChange={(v) => update("departureReason", v)} />
       <InputString label="Feedback" value={form.feedback ?? ""} onValueChange={(v) => update("feedback", v)} wrapperClassName="sm:col-span-2" />
       {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
     </div>

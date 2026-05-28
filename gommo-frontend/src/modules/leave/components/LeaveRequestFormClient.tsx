@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { collaboratorService } from "@/modules/collaborator/services/collaborator.service";
+import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import type { LeaveRequestCreateDto } from "@/modules/leave/dto/leave-request.dto";
 import { LEAVE_CLIENT_MESSAGES } from "@/modules/leave/exceptions/leave-request.messages";
 import { emptyLeaveRequestForm, leaverequestToFormDto } from "@/modules/leave/lib/leave-request.mapper";
@@ -13,7 +13,7 @@ import { leaverequestService } from "@/modules/leave/services/leave-request.serv
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { Button } from "@/shared/components/ui/Button";
-import { InputAutocomplete, InputDate, InputSelect } from "@/shared/components/ui/input/index";
+import { InputDate, InputSelect } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { mapZodFieldErrors } from "@/shared/lib/zod-field-errors";
@@ -40,8 +40,6 @@ export function LeaveRequestFormClient() {
   const [form, setForm] = useState<LeaveRequestCreateDto>(emptyLeaveRequestForm);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<LeaveFormField, string>>>({});
-  const [collaboratorLabel, setCollaboratorLabel] = useState("");
-
   const detailQuery = useQuery({
     queryKey: leaverequestKeys.detail(editingId ?? ""),
     queryFn: () => leaverequestService.getById(editingId!),
@@ -53,7 +51,6 @@ export function LeaveRequestFormClient() {
       setForm(emptyLeaveRequestForm());
       setError(null);
       setFieldErrors({});
-      setCollaboratorLabel("");
       return;
     }
     if (detailQuery.data) {
@@ -62,33 +59,6 @@ export function LeaveRequestFormClient() {
       setFieldErrors({});
     }
   }, [isEditing, detailQuery.data]);
-
-  useEffect(() => {
-    const id = form.collaboratorId?.trim();
-    if (!id) {
-      setCollaboratorLabel("");
-      return;
-    }
-
-    let cancelled = false;
-    void collaboratorService
-      .getById(id)
-      .then((c) => {
-        if (!cancelled) setCollaboratorLabel(c.fullName);
-      })
-      .catch(() => {
-        if (!cancelled) setCollaboratorLabel("");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [form.collaboratorId]);
-
-  const searchCollaborators = useCallback(
-    (query: string, page: number) => collaboratorService.searchForAutocomplete(query, page),
-    [],
-  );
 
   const saveMutation = useMutation({
     mutationFn: async (dto: LeaveRequestCreateDto) => {
@@ -100,7 +70,6 @@ export function LeaveRequestFormClient() {
       if (editingId) await queryClient.invalidateQueries({ queryKey: leaverequestKeys.detail(editingId) });
       toast.success(isEditing ? "Afastamento atualizado" : "Afastamento cadastrado");
       setForm(emptyLeaveRequestForm());
-      setCollaboratorLabel("");
       goToList();
     },
     onError: (err: unknown) => {
@@ -184,17 +153,9 @@ export function LeaveRequestFormClient() {
       </div>
 
       <div className="sm:col-span-2">
-        <InputAutocomplete
-          label="Colaborador"
-          hint="Somente colaboradores com admissão concluída"
+        <CollaboratorPickerField
           value={form.collaboratorId ?? ""}
-          selectedLabel={collaboratorLabel}
-          onValueChange={(v, item) => {
-            update("collaboratorId", v);
-            setCollaboratorLabel(item?.label ?? "");
-          }}
-          onSearch={searchCollaborators}
-          placeholder="Digite nome ou CPF…"
+          onValueChange={(v) => update("collaboratorId", v)}
           required
           error={fieldErrors.collaboratorId}
         />

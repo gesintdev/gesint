@@ -12,7 +12,7 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
-import { InputString, InputCurrency } from "@/shared/components/ui/input/index";
+import { InputString, InputCurrency, InputDate } from "@/shared/components/ui/input/index";
 
 export function BenefitPlanFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -43,6 +43,7 @@ export function BenefitPlanFormClient() {
       const payload = {
         ...dto,
         monthlyValue: dto.monthlyValue ? Number(dto.monthlyValue) : undefined,
+        benefitType: dto.benefitType || "OUTRO",
       };
       if (isEditing && editingId) return benefitplanService.update(editingId, payload as BenefitPlanCreateDto);
       return benefitplanService.create(payload as BenefitPlanCreateDto);
@@ -50,7 +51,7 @@ export function BenefitPlanFormClient() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: benefitplanKeys.all });
       if (editingId) await queryClient.invalidateQueries({ queryKey: benefitplanKeys.detail(editingId) });
-      toast.success(isEditing ? "Benefício atualizado(a)" : "Benefício cadastrado(a)");
+      toast.success(isEditing ? "Plano de benefício atualizado" : "Plano de benefício cadastrado");
       setForm(emptyBenefitPlanForm());
       goToList();
     },
@@ -94,15 +95,18 @@ export function BenefitPlanFormClient() {
         </>
       }
     >
-    <div className="grid gap-3 p-4 sm:grid-cols-2">
-      <div className="sm:col-span-2">
-        <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar benefício" : "Novo(a) benefício"}</p>
+      <div className="grid gap-3 p-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar plano de benefício" : "Novo plano de benefício"}</p>
+        </div>
+        <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
+        <InputString label="Tipo de benefício" value={form.benefitType ?? ""} onValueChange={(v) => update("benefitType", v)} required hint="Ex.: SAUDE, VR, VT" />
+        <InputCurrency label="Valor mensal" value={form.monthlyValue ?? ""} onValueChange={(v) => update("monthlyValue", v)} emitAsDecimal />
+        <InputDate label="Vigência — início" value={form.startDate ?? ""} onValueChange={(v) => update("startDate", v)} />
+        <InputDate label="Vigência — fim" value={form.endDate ?? ""} onValueChange={(v) => update("endDate", v)} />
+        <InputString label="Descrição" value={form.description ?? ""} onValueChange={(v) => update("description", v)} wrapperClassName="sm:col-span-2" />
+        {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
       </div>
-      <InputString label="Name" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
-      <InputString label="Benefit Type" value={form.benefitType ?? ""} onValueChange={(v) => update("benefitType", v)} required />
-      <InputCurrency label="Valor mensal" value={form.monthlyValue ?? ""} onValueChange={(v) => update("monthlyValue", v)} emitAsDecimal />
-      {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-    </div>
     </CrudFormShell>
   );
 }

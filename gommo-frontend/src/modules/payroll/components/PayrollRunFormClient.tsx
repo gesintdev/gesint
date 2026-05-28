@@ -94,10 +94,10 @@ export function PayrollRunFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar folha" : "Novo(a) folha"}</p>
       </div>
-      <InputDecimal label="Reference Year" value={String(form.referenceYear ?? "")} onValueChange={(v) => update("referenceYear", Number(v) || 0)} required />
-      <InputDecimal label="Reference Month" value={String(form.referenceMonth ?? "")} onValueChange={(v) => update("referenceMonth", Number(v) || 0)} required />
+      <InputDecimal label="Ano de referência" value={String(form.referenceYear ?? "")} onValueChange={(v) => update("referenceYear", Number(v) || 0)} required />
+      <InputDecimal label="Mês de referência" value={String(form.referenceMonth ?? "")} onValueChange={(v) => update("referenceMonth", Number(v) || 0)} required />
       <InputSelect
-        label="Payroll Status"
+        label="Status da folha"
         items={[  { value: "DRAFT", label: "Rascunho" },
   { value: "PROCESSING", label: "Processando" },
   { value: "CLOSED", label: "Fechado" },

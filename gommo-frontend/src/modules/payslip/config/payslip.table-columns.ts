@@ -3,7 +3,7 @@ import { TableDataType, type TableColumnConfig } from "@/shared/types/table.type
 export const PAYSLIP_TABLE_COLUMNS: TableColumnConfig[] = [
     {
         id: "payrollRunId",
-        columnName: "Folha ID",
+        columnName: "Processamento",
         fieldValue: "payrollRunId",
         dataType: TableDataType.UUID,
     },

@@ -94,9 +94,9 @@ export function JobPositionFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar cargo" : "Novo(a) cargo"}</p>
       </div>
-      <InputString label="Title" value={form.title ?? ""} onValueChange={(v) => update("title", v)} required />
-      <InputString label="Cbo Code" value={form.cboCode ?? ""} onValueChange={(v) => update("cboCode", v)}  />
-      <InputString label="Department  I D" value={form.departmentId ?? ""} onValueChange={(v) => update("departmentId", v)}  />
+      <InputString label="Título do cargo" value={form.title ?? ""} onValueChange={(v) => update("title", v)} required />
+      <InputString label="Código CBO" value={form.cboCode ?? ""} onValueChange={(v) => update("cboCode", v)} />
+      <InputString label="Departamento" value={form.departmentId ?? ""} onValueChange={(v) => update("departmentId", v)} hint="ID do departamento" />
       {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
     </div>
     </CrudFormShell>

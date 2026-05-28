@@ -4,13 +4,13 @@ import {FlaskConical, LayoutDashboard} from "lucide-react";
 export const dashboardRoutes: AppRoute[] = [
     {
         id: "dashboard",
-        label: "Dashboard",
+        label: "Painel",
         href: "/dashboard",
         icon: LayoutDashboard
     },
     {
         id: "dev-inputs",
-        label: "Inputs (dev)",
+        label: "Componentes (dev)",
         href: "/dev/inputs",
         icon: FlaskConical
     },

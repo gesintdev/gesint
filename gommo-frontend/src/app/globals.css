@@ -1460,7 +1460,7 @@ html.gommo-workspace-active body {
 }
 
 .gommo-workspace-tab--active {
-    border-color: var(--gommo-border-subtle);
+    border-color: var(--gommo-primary-300);
     background: var(--color-base-100);
     color: var(--color-base-content);
     font-variation-settings: "wght" 600;

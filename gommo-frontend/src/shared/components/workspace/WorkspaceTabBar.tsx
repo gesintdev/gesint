@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import {LayoutGrid, X} from "lucide-react";
-import {useRef} from "react";
+import {Fragment, useRef} from "react";
 import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
 import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
 import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
@@ -28,58 +28,63 @@ export function WorkspaceTabBar({tabs, activeTabId, onSelect, onClose}: Workspac
                 aria-label="Módulos abertos"
             >
                 <div role="tablist" className="gommo-workspace-tabs">
-                    {tabs.map((tab) => {
+                    {tabs.map((tab, idex) => {
                         const active = tab.id === activeTabId;
                         const title = formatWorkspaceTabTitle(tab);
                         const isDashboard = tab.routeId === "dashboard" && tab.entityKey === "list";
+                        const isLast = idex === tabs.length - 1;
 
                         return (
-                            <button
-                                key={tab.id}
-                                type="button"
-                                role="tab"
-                                aria-selected={active}
-                                title={title}
-                                onClick={() => onSelect(tab.id)}
-                                className={clsx(
-                                    "gommo-workspace-tab group/tab max-w-[240px] min-w-[120px]",
-                                    active && "gommo-workspace-tab--active",
-                                )}
-                            >
-                                <WorkspaceTabIcon
-                                    tab={tab}
+                            <Fragment key={tab.id}>
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={active}
+                                    title={title}
+                                    onClick={() => onSelect(tab.id)}
                                     className={clsx(
-                                        "size-3.5 shrink-0 transition-colors",
-                                        active
-                                            ? "text-primary"
-                                            : "text-base-content/40 group-hover/tab:text-base-content/60",
+                                        "gommo-workspace-tab group/tab max-w-60 min-w-30",
+                                        active && "gommo-workspace-tab--active",
                                     )}
-                                />
-                                <span className="min-w-0 flex-1 truncate text-left tracking-tight">
+                                >
+                                    <WorkspaceTabIcon
+                                        tab={tab}
+                                        className={clsx(
+                                            "size-3.5 shrink-0 transition-colors",
+                                            active
+                                                ? "text-primary"
+                                                : "text-base-content/40 group-hover/tab:text-base-content/60",
+                                        )}
+                                    />
+                                    <span className="min-w-0 flex-1 truncate text-left tracking-tight">
                                     {title}
                                 </span>
-                                {!isDashboard ? (
-                                    <span
-                                        role="button"
-                                        tabIndex={0}
-                                        aria-label={`Fechar ${title}`}
-                                        className="workspace-tab-close flex size-5 shrink-0 items-center justify-center rounded-md"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onClose(tab.id);
-                                        }}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter" || e.key === " ") {
-                                                e.preventDefault();
+                                    {!isDashboard ? (
+                                        <span
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-label={`Fechar ${title}`}
+                                            className="workspace-tab-close flex size-5 shrink-0 items-center justify-center rounded-md"
+                                            onClick={(e) => {
                                                 e.stopPropagation();
                                                 onClose(tab.id);
-                                            }
-                                        }}
-                                    >
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter" || e.key === " ") {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    onClose(tab.id);
+                                                }
+                                            }}
+                                        >
                                         <X className="size-3" strokeWidth={2.25}/>
                                     </span>
-                                ) : null}
-                            </button>
+                                    ) : null}
+                                </button>
+                                {!isLast && (
+                                    <label className={'text-base-300'}>|</label>
+                                )}
+                            </Fragment>
                         );
                     })}
                 </div>

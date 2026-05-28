@@ -5,6 +5,9 @@ export function benefitplanToFormDto(entity: BenefitPlan): BenefitPlanCreateDto 
         name: entity.name ?? "",
         benefitType: entity.benefitType ?? "",
         monthlyValue: entity.monthlyValue != null ? String(entity.monthlyValue) : "",
+        description: entity.description ?? "",
+        startDate: entity.startDate ?? "",
+        endDate: entity.endDate ?? "",
     };
 }
 
@@ -12,4 +15,7 @@ export const emptyBenefitPlanForm = (): BenefitPlanCreateDto => ({
     name: "",
     benefitType: "",
     monthlyValue: "",
+    description: "",
+    startDate: "",
+    endDate: "",
 });

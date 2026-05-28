@@ -20,6 +20,18 @@ export const BENEFIT_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.CURRENCY,
     },
     {
+        id: "startDate",
+        columnName: "Início",
+        fieldValue: "startDate",
+        dataType: TableDataType.DATE,
+    },
+    {
+        id: "endDate",
+        columnName: "Fim",
+        fieldValue: "endDate",
+        dataType: TableDataType.DATE,
+    },
+    {
         id: "status",
         columnName: "Status",
         fieldValue: "status",

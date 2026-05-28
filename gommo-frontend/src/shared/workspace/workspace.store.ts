@@ -28,8 +28,8 @@ function createDashboardTab(): WorkspaceTab {
         id: DASHBOARD_TAB_ID,
         routeId: DASHBOARD_ROUTE_ID,
         href: "/dashboard",
-        routeLabel: "Dashboard",
-        shortLabel: defaultShortLabel("Dashboard"),
+        routeLabel: "Painel",
+        shortLabel: defaultShortLabel("Painel"),
         entityKey: "list",
     };
 }

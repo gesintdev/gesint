@@ -15,7 +15,7 @@ export const JOBPOSITION_TABLE_COLUMNS: TableColumnConfig[] = [
     },
     {
         id: "departmentId",
-        columnName: "Dept. ID",
+        columnName: "Departamento",
         fieldValue: "departmentId",
         dataType: TableDataType.UUID,
     },

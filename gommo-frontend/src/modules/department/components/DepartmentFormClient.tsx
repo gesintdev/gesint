@@ -94,8 +94,8 @@ export function DepartmentFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar departamento" : "Novo(a) departamento"}</p>
       </div>
-      <InputString label="Name" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
-      <InputString label="Cost Center" value={form.costCenter ?? ""} onValueChange={(v) => update("costCenter", v)}  />
+      <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
+      <InputString label="Centro de custo" value={form.costCenter ?? ""} onValueChange={(v) => update("costCenter", v)} />
       {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
     </div>
     </CrudFormShell>

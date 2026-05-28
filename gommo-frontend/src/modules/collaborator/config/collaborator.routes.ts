@@ -6,6 +6,7 @@ import {
     MessageSquare,
     UserMinus,
     UserPlus,
+    Target,
     UserRound,
     Users,
 } from "lucide-react";
@@ -33,4 +34,5 @@ export const collaboratorRoutes: AppRoute[] = [
     { id: "leave", label: "Férias e afastamentos", href: "/leave", icon: CalendarDays },
     { id: "offboarding", label: "Desligamento", href: "/offboarding", icon: UserMinus },
     { id: "exit-interview", label: "Entrevista de desligamento", href: "/exit-interview", icon: MessageSquare },
+    { id: "performance", label: "Desempenho", href: "/performance", icon: Target, permission: "performance:read" },
 ];

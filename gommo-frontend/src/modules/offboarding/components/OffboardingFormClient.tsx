@@ -13,6 +13,7 @@ import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { EntityAttachments } from "@/shared/components/storage/EntityAttachments";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
 
 const DISMISSAL_ITEMS = [
@@ -100,7 +101,9 @@ export function OffboardingFormClient() {
                         {isEditing ? "Editar desligamento" : "Novo desligamento"}
                     </p>
                 </div>
-                <InputString label="Colaborador ID" value={form.collaboratorId} onValueChange={(v) => update("collaboratorId", v)} required />
+                <div className="sm:col-span-2">
+                    <CollaboratorPickerField value={form.collaboratorId} onValueChange={(v) => update("collaboratorId", v)} required />
+                </div>
                 <InputDate label="Data do desligamento" value={form.dismissalDate} onValueChange={(v) => update("dismissalDate", v)} required />
                 <InputSelect
                     label="Tipo de desligamento"

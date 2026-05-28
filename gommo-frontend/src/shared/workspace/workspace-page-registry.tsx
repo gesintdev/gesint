@@ -30,6 +30,12 @@ import {PayrollRunFormClient} from "@/modules/payroll/components/PayrollRunFormC
 import {PayrollRunListClient} from "@/modules/payroll/components/PayrollRunListClient";
 import {PayslipFormClient} from "@/modules/payslip/components/PayslipFormClient";
 import {PayslipListClient} from "@/modules/payslip/components/PayslipListClient";
+import {TaxObligationFormClient} from "@/modules/tax/components/TaxObligationFormClient";
+import {TaxObligationListClient} from "@/modules/tax/components/TaxObligationListClient";
+import {PerformanceReviewFormClient} from "@/modules/performance/components/PerformanceReviewFormClient";
+import {PerformanceReviewListClient} from "@/modules/performance/components/PerformanceReviewListClient";
+import {BenefitEnrollmentFormClient} from "@/modules/benefitenrollment/components/BenefitEnrollmentFormClient";
+import {BenefitEnrollmentListClient} from "@/modules/benefitenrollment/components/BenefitEnrollmentListClient";
 import {TabbedCrudPage} from "@/shared/components/layout/TabbedCrudPage";
 import {WorkspacePage} from "@/shared/components/layout/WorkspacePage";
 import {PageTransition} from "@/shared/components/layout/PageTransition";
@@ -212,12 +218,43 @@ export const WORKSPACE_PAGE_REGISTRY: WorkspacePageEntry[] = [
     )},
     {href: "/benefit", Component: () => (
         <TabbedCrudPage
-            routeId="benefit"
+            routeId="benefit-plan"
             href="/benefit"
-            routeLabel="Benefícios"
-            tabShortLabel="Ben"
+            routeLabel="Planos de benefício"
+            tabShortLabel="Plano"
+            fieldTabName="name"
             list={<BenefitPlanListClient/>}
             form={<BenefitPlanFormClient/>}
+        />
+    )},
+    {href: "/benefit/enrollments", Component: () => (
+        <TabbedCrudPage
+            routeId="benefit-enrollment"
+            href="/benefit/enrollments"
+            routeLabel="Vínculos de benefício"
+            tabShortLabel="Vínc"
+            list={<BenefitEnrollmentListClient/>}
+            form={<BenefitEnrollmentFormClient/>}
+        />
+    )},
+    {href: "/tax", Component: () => (
+        <TabbedCrudPage
+            routeId="tax"
+            href="/tax"
+            routeLabel="Obrigações fiscais"
+            tabShortLabel="Fiscal"
+            list={<TaxObligationListClient/>}
+            form={<TaxObligationFormClient/>}
+        />
+    )},
+    {href: "/performance", Component: () => (
+        <TabbedCrudPage
+            routeId="performance"
+            href="/performance"
+            routeLabel="Desempenho"
+            tabShortLabel="Desemp"
+            list={<PerformanceReviewListClient/>}
+            form={<PerformanceReviewFormClient/>}
         />
     )},
     {href: "/report", Component: () => (
