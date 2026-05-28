@@ -2,7 +2,7 @@
 
 import {Bell, Command, Menu, Search} from "lucide-react";
 import {useSession} from "next-auth/react";
-import {type ReactNode, useEffect, useState} from "react";
+import {type ReactNode, useCallback, useEffect, useState} from "react";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
 import {SidebarEdgeToggle} from "@/shared/components/layout/SidebarEdgeToggle";
@@ -13,6 +13,9 @@ export function SystemShell({children}: { children: ReactNode }) {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileNav, setMobileNav] = useState(false);
     const {data: session} = useSession();
+
+    const closeMobileNav = useCallback(() => setMobileNav(false), []);
+    const toggleMobileNav = useCallback(() => setMobileNav((open) => !open), []);
 
     useEffect(() => {
         setAuthToken(session?.accessToken ?? null);
@@ -35,7 +38,7 @@ export function SystemShell({children}: { children: ReactNode }) {
             <Sidebar
                 collapsed={collapsed}
                 mobileOpen={mobileNav}
-                onMobileCloseAction={() => setMobileNav(false)}
+                onMobileCloseAction={closeMobileNav}
             />
 
             <div
@@ -46,8 +49,9 @@ export function SystemShell({children}: { children: ReactNode }) {
                     {/* Mobile nav toggle */}
                     <button
                         type="button"
-                        aria-label="Abrir menu"
-                        onClick={() => setMobileNav(true)}
+                        aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
+                        aria-expanded={mobileNav}
+                        onClick={toggleMobileNav}
                         className="gommo-btn gommo-btn--ghost gommo-btn--icon-only shrink-0 text-base-content/50 lg:hidden!"
                     >
                         <Menu className="size-4.5" strokeWidth={2}/>

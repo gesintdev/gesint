@@ -64,9 +64,12 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
         })).filter((s) => s.routes.length > 0);
     }, [query, flat, isSearching]);
 
+    const onMobileCloseRef = useRef(onMobileCloseAction);
+    onMobileCloseRef.current = onMobileCloseAction;
+
     useEffect(() => {
-        onMobileCloseAction?.();
-    }, [pathname, onMobileCloseAction]);
+        onMobileCloseRef.current?.();
+    }, [pathname]);
 
     useEffect(() => {
         if (!searchFlyoutVisible) return;
@@ -316,6 +319,7 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
                             transition={{duration: 0.28, ease: [0.22, 1, 0.36, 1]}}
                             className="fixed top-0 z-50 flex h-screen w-(--sidebar-width) flex-col border-r lg:hidden"
                             style={{background: "var(--sidebar-bg)", borderColor: "var(--sidebar-border)"}}
+                            onClick={(e) => e.stopPropagation()}
                         >
                             {sidebarPanel({desktop: false})}
                         </motion.aside>
