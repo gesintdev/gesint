@@ -14,10 +14,10 @@ type SidebarFlyoutProps = {
 
 export function SidebarFlyout({route, anchorTop, onClose}: SidebarFlyoutProps) {
     const {openRouteModule} = useWorkspaceNavigation();
-    const activeWorkspaceTab = useWorkspaceStore((s) =>
-        s.tabs.find((t) => t.id === s.activeTabId),
-    );
-    const navActiveHref = activeWorkspaceTab?.href;
+    const activeRouteId = useWorkspaceStore((s) => {
+        if (!s.activeTabId) return null;
+        return s.tabs.find((t) => t.id === s.activeTabId)?.routeId ?? null;
+    });
 
     return (
         <AnimatePresence>
@@ -36,7 +36,7 @@ export function SidebarFlyout({route, anchorTop, onClose}: SidebarFlyoutProps) {
                 <ul className="nav-group-children space-y-0.5">
                     {route.children?.map((child) => {
                         const ChildIcon = child.icon;
-                        const active = child.href === navActiveHref;
+                        const active = child.id === activeRouteId;
                         return (
                             <li key={child.id}>
                                 <button

@@ -6,6 +6,7 @@ import {ChevronRight, Search} from "lucide-react";
 import {usePathname} from "next/navigation";
 import {useEffect, useMemo, useRef, useState, type MouseEvent} from "react";
 import {APP_ROUTES, type AppRoute, flattenRoutes, NAV_SECTIONS} from "@/config/routes";
+import {findRouteByHref} from "@/shared/workspace/workspace-routes";
 import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
 import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
@@ -17,18 +18,22 @@ type SidebarProps = {
     onMobileCloseAction?: () => void;
 };
 
-function routeIsActive(route: AppRoute, pathname: string): boolean {
-    if (route.href === pathname) return true;
-    return route.children?.some((c) => c.href === pathname) ?? false;
+function routeIsActive(route: AppRoute, highlightRouteId: string | null): boolean {
+    if (!highlightRouteId) return false;
+    if (route.id === highlightRouteId) return true;
+    return route.children?.some((c) => c.id === highlightRouteId) ?? false;
 }
 
 export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: SidebarProps) {
     const pathname = usePathname();
     const {openRouteModule} = useWorkspaceNavigation();
-    const activeWorkspaceTab = useWorkspaceStore((s) =>
-        s.tabs.find((t) => t.id === s.activeTabId),
-    );
-    const navActiveHref = activeWorkspaceTab?.href ?? pathname;
+    const activeRouteId = useWorkspaceStore((s) => {
+        if (!s.activeTabId) return null;
+        return s.tabs.find((t) => t.id === s.activeTabId)?.routeId ?? null;
+    });
+    const [highlightRouteId, setHighlightRouteId] = useState<string | null>(null);
+    const pathnameRouteId = useMemo(() => findRouteByHref(pathname)?.id ?? null, [pathname]);
+    const navHighlightRouteId = highlightRouteId ?? activeRouteId ?? pathnameRouteId;
     const [query, setQuery] = useState("");
     const [openIds, setOpenIds] = useState<Set<string>>(new Set());
     const [flyout, setFlyout] = useState<{ route: AppRoute; top: number } | null>(null);
@@ -44,9 +49,16 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
     const openRouteFromMenu = (route: AppRoute, event?: MouseEvent) => {
         event?.preventDefault();
         if (!route.href) return;
+        setHighlightRouteId(route.id);
         openRouteModule(route);
         onMobileCloseAction?.();
     };
+
+    useEffect(() => {
+        if (highlightRouteId && highlightRouteId === activeRouteId) {
+            setHighlightRouteId(null);
+        }
+    }, [activeRouteId, highlightRouteId]);
 
     const filteredSections = useMemo(() => {
         if (!isSearching) return NAV_SECTIONS;
@@ -115,7 +127,7 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
 
     const NavLink = ({route, nested}: { route: AppRoute; nested?: boolean }) => {
         const Icon = route.icon;
-        const active = route.href === navActiveHref;
+        const active = route.id === navHighlightRouteId;
 
         return (
             <button
@@ -146,7 +158,7 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
     const renderRoute = (route: AppRoute) => {
         const Icon = route.icon;
         const hasChildren = Boolean(route.children?.length);
-        const active = routeIsActive(route, navActiveHref);
+        const active = routeIsActive(route, navHighlightRouteId);
         const expanded = isOpen(route.id);
 
         if (panelCollapsed && hasChildren) {
