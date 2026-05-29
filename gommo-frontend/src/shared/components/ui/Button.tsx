@@ -24,9 +24,8 @@ const variantClass: Record<ButtonVariant, string> = {
 };
 
 /**
- * sm  — h-36px, px-14, r-8px, 13px  (toolbar / compact actions)
- * md  — h-46px, px-21, r-10px, 15px (default — mirrors .btn--m reference)
- * lg  — h-46px, px-24, r-10px, 16px (hero / page-level CTAs)
+ * sm/md/lg — altura unificada via --gommo-control-h (40px).
+ * lg só aumenta padding e fonte.
  */
 const sizeClass: Record<ButtonSize, string> = {
   sm: "gommo-btn--sm",

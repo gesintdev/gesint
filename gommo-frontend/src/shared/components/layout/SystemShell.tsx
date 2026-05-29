@@ -5,7 +5,6 @@ import {useSession} from "next-auth/react";
 import {type ReactNode, useCallback, useEffect, useState} from "react";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
-import {SidebarEdgeToggle} from "@/shared/components/layout/SidebarEdgeToggle";
 import {ThemeToggle} from "@/shared/components/layout/ThemeToggle";
 import {setAuthToken} from "@/shared/lib/api.client";
 
@@ -37,6 +36,7 @@ export function SystemShell({children}: { children: ReactNode }) {
         <div className="flex h-dvh flex-col overflow-hidden">
             <Sidebar
                 collapsed={collapsed}
+                onCollapsedToggle={() => setCollapsed((v) => !v)}
                 mobileOpen={mobileNav}
                 onMobileCloseAction={closeMobileNav}
             />
@@ -59,7 +59,7 @@ export function SystemShell({children}: { children: ReactNode }) {
 
                     {/* Search bar */}
                     <label
-                        className="gommo-field relative min-w-0 flex-1 cursor-text rounded-xl! sm:max-w-xs lg:max-w-md">
+                        className="gommo-field sidebar-shell-control relative min-w-0 flex-1 cursor-text sm:max-w-xs lg:max-w-md">
                         <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2}/>
                         <input
                             type="search"
@@ -96,10 +96,6 @@ export function SystemShell({children}: { children: ReactNode }) {
                     id="main-content"
                     className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
                 >
-                    <SidebarEdgeToggle
-                        collapsed={collapsed}
-                        onToggle={() => setCollapsed((v) => !v)}
-                    />
                     {children}
                 </main>
             </div>

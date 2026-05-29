@@ -50,7 +50,7 @@ export function WorkspaceTabOverflowMenu({
             {open && (
                 <div
                     role="menu"
-                    className="surface-card absolute end-0 top-full z-50 mt-1 max-h-80 min-w-[16rem] overflow-y-auto rounded-[10px] border border-base-content/10 py-1 shadow-lg"
+                    className="surface-card absolute end-0 top-full z-50 mt-1 max-h-80 min-w-[16rem] overflow-y-auto border border-base-content/10 py-1 shadow-lg"
                 >
                     <ul className="py-1">
                         {tabs.map((tab) => {

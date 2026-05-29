@@ -24,7 +24,7 @@ import type {
 } from "@/modules/dashboard/dto/dashboard.dto";
 import {DASHBOARD_CLIENT_MESSAGES} from "@/modules/dashboard/exceptions/dashboard.messages";
 import {dashboardService} from "@/modules/dashboard/services/dashboard.service";
-import {PageTransition} from "@/shared/components/layout/PageTransition";
+import {CrudPageCard, CrudPageLayout} from "@/shared/components/layout/CrudPageLayout";
 import {Button} from "@/shared/components/ui/Button";
 import {Card} from "@/shared/components/ui/Card";
 import {ExceptionCapture} from "@/shared/exceptions";
@@ -259,44 +259,48 @@ export function DashboardView() {
     });
 
     return (
-        <PageTransition animate={false}>
-            <div className="flex items-center justify-end gap-2 border-b border-[var(--gommo-border-subtle)] px-4 py-2.5">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    aria-label="Atualizar dashboard"
-                    leftIcon={
-                        <RefreshCw
-                            className={clsx("size-3.5", summaryQuery.isFetching && "animate-spin")}
-                            strokeWidth={2.25}
-                        />
-                    }
-                    disabled={summaryQuery.isFetching}
-                    onClick={() => summaryQuery.refetch()}
-                >
-                    Atualizar
-                </Button>
-            </div>
+        <CrudPageLayout>
+            <CrudPageCard>
+                <div className="flex min-h-0 flex-1 flex-col">
+                    <div className="flex shrink-0 items-center justify-end gap-2 border-b border-[var(--gommo-border-subtle)] px-4 py-2.5">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label="Atualizar dashboard"
+                        leftIcon={
+                            <RefreshCw
+                                className={clsx("size-3.5", summaryQuery.isFetching && "animate-spin")}
+                                strokeWidth={2.25}
+                            />
+                        }
+                        disabled={summaryQuery.isFetching}
+                        onClick={() => summaryQuery.refetch()}
+                    >
+                        Atualizar
+                    </Button>
+                </div>
 
-            <div className="overflow-y-auto p-4 sm:p-5">
-                {summaryQuery.isLoading && <MetricsSkeleton/>}
+                <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+                    {summaryQuery.isLoading && <MetricsSkeleton/>}
 
-                {summaryQuery.isError && (
-                    <Card animate={false} bodyClassName="!p-6">
-                        <p className="text-sm font-medium text-error">
-                            {ExceptionCapture.displayMessage(
-                                summaryQuery.error,
-                                DASHBOARD_CLIENT_MESSAGES.DASHBOARD_LOAD_FAILED,
-                            )}
-                        </p>
-                        <Button variant="outline" size="sm" className="mt-4" onClick={() => summaryQuery.refetch()}>
-                            Tentar novamente
-                        </Button>
-                    </Card>
-                )}
+                    {summaryQuery.isError && (
+                        <Card animate={false} bodyClassName="!p-6">
+                            <p className="text-sm font-medium text-error">
+                                {ExceptionCapture.displayMessage(
+                                    summaryQuery.error,
+                                    DASHBOARD_CLIENT_MESSAGES.DASHBOARD_LOAD_FAILED,
+                                )}
+                            </p>
+                            <Button variant="outline" size="sm" className="mt-4" onClick={() => summaryQuery.refetch()}>
+                                Tentar novamente
+                            </Button>
+                        </Card>
+                    )}
 
-                {summaryQuery.data && <DashboardContent data={summaryQuery.data}/>}
-            </div>
-        </PageTransition>
+                    {summaryQuery.data && <DashboardContent data={summaryQuery.data}/>}
+                </div>
+                </div>
+            </CrudPageCard>
+        </CrudPageLayout>
     );
 }

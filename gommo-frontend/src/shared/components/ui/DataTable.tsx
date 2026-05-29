@@ -191,7 +191,11 @@ export function DataTable<T extends object>({
                                 })}
                                 {hasActions && (
                                     <td className={clsx("text-right", actionsClassName)}>
-                                        <div className="flex justify-end gap-1" onClick={stopRowClick} onDoubleClick={stopRowClick}>
+                                        <div
+                                            className="gommo-table-actions"
+                                            onClick={stopRowClick}
+                                            onDoubleClick={stopRowClick}
+                                        >
                                             {renderActions?.(row)}
                                         </div>
                                     </td>
