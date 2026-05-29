@@ -992,7 +992,7 @@ aside[data-collapsed="true"] .sidebar-copy,
     background: var(--color-base-100);
     box-shadow: var(--gommo-shadow-md);
 }
-
+.nav-item-expanded,
 .nav-item:hover {
     background: color-mix(in srgb, var(--color-base-content) 4%, transparent);
     color: color-mix(in srgb, var(--color-base-content) 88%, transparent);
@@ -1029,6 +1029,42 @@ aside[data-collapsed="true"] .sidebar-copy,
     );
     color: var(--gommo-primary);
     border-color: color-mix(in srgb, var(--gommo-primary) 26%, transparent);
+}
+
+/*
+ * Submenu — revela para baixo (conteúdo já “existe” embaixo; só abre a janela).
+ * grid 0fr→1fr reserva espaço; clip-path desliza a máscara de cima para baixo.
+ */
+.sidebar-submenu {
+    display: grid;
+    grid-template-rows: 0fr;
+    contain: layout style;
+    transition: grid-template-rows 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-submenu[data-open="true"] {
+    grid-template-rows: 1fr;
+}
+
+.sidebar-submenu__viewport {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.sidebar-submenu__reveal {
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-submenu[data-open="true"] .sidebar-submenu__reveal {
+    clip-path: inset(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-submenu,
+    .sidebar-submenu__reveal {
+        transition-duration: 0.01ms;
+    }
 }
 
 .nav-group-children {
@@ -1265,6 +1301,11 @@ kbd {
     border-radius: var(--radius-gommo-card-lg);
     border: 1px solid var(--gommo-border-subtle);
     background: color-mix(in srgb, var(--color-base-content) 2%, var(--color-base-100));
+
+    box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+            0 2px 6px rgba(0, 0, 0, 0.04),
+            0 12px 24px rgba(0, 0, 0, 0.03);
 }
 
 [data-theme="dark"] .gommo-form-section {
@@ -1276,6 +1317,7 @@ kbd {
     padding: 0.875rem 1.25rem;
     border-bottom: 1px solid color-mix(in srgb, var(--gommo-primary) 14%, var(--gommo-border-subtle));
     background: color-mix(in srgb, var(--gommo-primary) 9%, var(--color-base-100));
+    border-radius: var(--radius-gommo-card-lg) var(--radius-gommo-card-lg) 0 0;
 }
 
 [data-theme="dark"] .gommo-form-section__header {
@@ -1373,6 +1415,7 @@ html.gommo-workspace-active body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    padding: 0 .5rem;
 }
 
 .workspace-tabbar,
@@ -1380,7 +1423,6 @@ html.gommo-workspace-active body {
     flex-shrink: 0;
     min-height: 2.5rem;
     background: var(--color-page);
-    border-bottom: 1px solid var(--gommo-border-subtle);
 }
 
 .workspace-tabbar-empty {

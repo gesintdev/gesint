@@ -1,5 +1,11 @@
 /**
  * routes.ts — navegação do painel administrativo (gestão de clientes / plataforma).
+ *
+ * Novo módulo:
+ *   1. config/<name>.routes.ts — UNICO arquivo: menu + tela (tabbedCrudRoute / customWorkspaceRoute)
+ *   2. <name>.module.ts — infos + routes
+ *   3. ModuleEnum + registry
+ *   4. Incluir em `modules` abaixo
  */
 
 export type { AppRoute, NavSection, TModule, TModuleInfos } from "@/modules/root/enum/ModuleEnum";

@@ -1,11 +1,32 @@
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import {BarChart3} from "lucide-react";
+import { customWorkspaceRoute } from "@/shared/routing";
+import { BarChart3 } from "lucide-react";
+import { createElement } from "react";
 
 export const insightsRoutes: AppRoute[] = [
-    {
+    customWorkspaceRoute({
         id: "report",
-        label: "Relatórios",
         href: "/report",
-        icon: BarChart3
-    },
-]
+        label: "Relatórios",
+        icon: BarChart3,
+        load: async () => {
+            const { WorkspacePage } = await import("@/shared/components/layout/WorkspacePage");
+            return {
+                default: function ReportPage() {
+                    return createElement(
+                        WorkspacePage,
+                        null,
+                        createElement(
+                            "div",
+                            {
+                                className:
+                                    "flex min-h-[12rem] items-center justify-center p-8 text-sm text-base-content/50",
+                            },
+                            "Relatórios — em breve.",
+                        ),
+                    );
+                },
+            };
+        },
+    }),
+];

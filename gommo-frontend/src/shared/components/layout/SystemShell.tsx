@@ -58,7 +58,8 @@ export function SystemShell({children}: { children: ReactNode }) {
                     </button>
 
                     {/* Search bar */}
-                    <label className="gommo-field relative min-w-0 flex-1 cursor-text rounded-xl! sm:max-w-xs lg:max-w-md">
+                    <label
+                        className="gommo-field relative min-w-0 flex-1 cursor-text rounded-xl! sm:max-w-xs lg:max-w-md">
                         <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2}/>
                         <input
                             type="search"

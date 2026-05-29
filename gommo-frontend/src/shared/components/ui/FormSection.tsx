@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import type { ReactNode } from "react";
+import type {ReactNode} from "react";
 
 type FormSectionProps = {
     title: string;
@@ -13,12 +13,12 @@ type FormSectionProps = {
 
 /** Bloco de formulário com fundo e borda suaves (estilo Stripe/Linear). */
 export function FormSection({
-    title,
-    description,
-    children,
-    className,
-    bodyClassName,
-}: FormSectionProps) {
+                                title,
+                                description,
+                                children,
+                                className,
+                                bodyClassName,
+                            }: FormSectionProps) {
     return (
         <section className={clsx("gommo-form-section sm:col-span-2", className)}>
             <header className="gommo-form-section__header">

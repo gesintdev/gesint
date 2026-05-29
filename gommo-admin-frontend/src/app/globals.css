@@ -997,6 +997,42 @@ aside[data-collapsed="true"] .sidebar-copy,
     color: var(--gommo-primary);
 }
 
+/*
+ * Submenu — revela para baixo (conteúdo já “existe” embaixo; só abre a janela).
+ * grid 0fr→1fr reserva espaço; clip-path desliza a máscara de cima para baixo.
+ */
+.sidebar-submenu {
+    display: grid;
+    grid-template-rows: 0fr;
+    contain: layout style;
+    transition: grid-template-rows 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-submenu[data-open="true"] {
+    grid-template-rows: 1fr;
+}
+
+.sidebar-submenu__viewport {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.sidebar-submenu__reveal {
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-submenu[data-open="true"] .sidebar-submenu__reveal {
+    clip-path: inset(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-submenu,
+    .sidebar-submenu__reveal {
+        transition-duration: 0.01ms;
+    }
+}
+
 .nav-group-children {
     margin: 0.125rem 0 0.25rem 0.625rem;
     padding: 0.125rem 0 0.125rem 0.625rem;

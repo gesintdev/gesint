@@ -6,10 +6,10 @@
  *   routes.ts importa dos module files, nunca o contrario.
  *
  * Para adicionar um novo modulo:
- *   1. Crie src/modules/<name>/config/<name>.routes.ts
- *   2. Crie src/modules/<name>/<name>.module.ts
- *   3. Adicione o valor ao ModuleEnum e ao registry em ModuleEnum.ts
- *   4. Inclua o module no array `modules` abaixo
+ *   1. config/<name>.routes.ts — UNICO arquivo: menu + tela (tabbedCrudRoute / customWorkspaceRoute)
+ *   2. <name>.module.ts — infos + routes
+ *   3. ModuleEnum + registry
+ *   4. Inclua em `modules` abaixo
  */
 
 // Re-exporta tipos centrais (mantem compatibilidade com imports existentes)

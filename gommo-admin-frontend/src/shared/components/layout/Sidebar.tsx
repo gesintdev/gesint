@@ -201,23 +201,23 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
                         )}
                     />
                 </button>
-                <AnimatePresence initial={false}>
-                    {expanded && (
-                        <motion.ul
-                            initial={{height: 0, opacity: 0}}
-                            animate={{height: "auto", opacity: 1}}
-                            exit={{height: 0, opacity: 0}}
-                            transition={{duration: 0.2, ease: [0.22, 1, 0.36, 1]}}
-                            className="nav-group-children flex flex-col gap-0.5 overflow-hidden"
-                        >
-                            {route.children?.map((child) => (
-                                <li key={child.id}>
-                                    <NavLink route={child} nested/>
-                                </li>
-                            ))}
-                        </motion.ul>
-                    )}
-                </AnimatePresence>
+                <div
+                    aria-hidden={!expanded}
+                    data-open={expanded ? "true" : "false"}
+                    className="sidebar-submenu"
+                >
+                    <div className="sidebar-submenu__viewport">
+                        <div className="sidebar-submenu__reveal">
+                            <ul className="nav-group-children flex flex-col gap-0.5">
+                                {route.children?.map((child) => (
+                                    <li key={child.id}>
+                                        <NavLink route={child} nested/>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </li>
         );
     };

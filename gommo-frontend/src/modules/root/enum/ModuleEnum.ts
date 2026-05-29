@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { WorkspacePageLoader } from "@/shared/workspace/workspace-page.types";
 
 // ─────────────────────────────────────────────
 // Core navigation types (source-of-truth here,
@@ -12,6 +13,8 @@ export type AppRoute = {
     icon: LucideIcon;
     permission?: string;
     children?: AppRoute[];
+    /** Chunk da tela no workspace (import dinâmico — não carrega no sidebar). */
+    workspaceLoader?: WorkspacePageLoader;
 };
 
 export type NavSection = {

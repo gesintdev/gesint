@@ -1,6 +1,6 @@
 "use client";
 
-import {createContext, useContext, useMemo, type ReactNode} from "react";
+import {createContext, type ReactNode, useContext, useMemo} from "react";
 import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
 import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
 
@@ -12,9 +12,9 @@ type WorkspaceTabContextValue = {
 const WorkspaceTabContext = createContext<WorkspaceTabContextValue | null>(null);
 
 export function WorkspaceTabProvider({
-    tab,
-    children,
-}: {
+                                         tab,
+                                         children,
+                                     }: {
     tab: WorkspaceTab;
     children: ReactNode;
 }) {

@@ -4,7 +4,7 @@ import clsx from "clsx";
 import {AnimatePresence, motion} from "framer-motion";
 import {ChevronRight, Search} from "lucide-react";
 import {usePathname} from "next/navigation";
-import {useEffect, useMemo, useRef, useState, type MouseEvent} from "react";
+import {type MouseEvent, useEffect, useMemo, useRef, useState} from "react";
 import {APP_ROUTES, type AppRoute, flattenRoutes, NAV_SECTIONS} from "@/config/routes";
 import {findRouteByHref} from "@/shared/workspace/workspace-routes";
 import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
@@ -194,14 +194,15 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
         }
 
         return (
-            <li key={route.id} className="grid gap-1">
+            <li key={route.id} className="grid gap-1 ">
                 <button
                     type="button"
                     onClick={() => toggleGroup(route.id)}
                     aria-expanded={expanded}
                     className={clsx(
-                        "nav-item",
+                        "nav-item ",
                         active && !expanded && "font-semibold text-base-content/80",
+                        expanded && "nav-item-expanded",
                     )}
                 >
                     <Icon className="size-4.25 shrink-0 text-base-content/38" strokeWidth={2}/>
@@ -213,23 +214,23 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
                         )}
                     />
                 </button>
-                <AnimatePresence initial={false}>
-                    {expanded && (
-                        <motion.ul
-                            initial={{height: 0, opacity: 0}}
-                            animate={{height: "auto", opacity: 1}}
-                            exit={{height: 0, opacity: 0}}
-                            transition={{duration: 0.2, ease: [0.22, 1, 0.36, 1]}}
-                            className="nav-group-children flex flex-col gap-0.5 overflow-hidden"
-                        >
-                            {route.children?.map((child) => (
-                                <li key={child.id}>
-                                    <NavLink route={child} nested/>
-                                </li>
-                            ))}
-                        </motion.ul>
-                    )}
-                </AnimatePresence>
+                <div
+                    aria-hidden={!expanded}
+                    data-open={expanded ? "true" : "false"}
+                    className="sidebar-submenu"
+                >
+                    <div className="sidebar-submenu__viewport">
+                        <div className="sidebar-submenu__reveal">
+                            <ul className="nav-group-children flex flex-col gap-0.5">
+                                {route.children?.map((child) => (
+                                    <li key={child.id}>
+                                        <NavLink route={child} nested/>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </li>
         );
     };
@@ -242,9 +243,9 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
                 style={{borderColor: "var(--sidebar-border)", background: "var(--sidebar-bg)"}}
             >
                 {panelCollapsed ? (
-                    <GommoLogo variant="icon" />
+                    <GommoLogo variant="icon"/>
                 ) : (
-                    <GommoLogo />
+                    <GommoLogo/>
                 )}
             </div>
 
@@ -281,7 +282,6 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
                         </label>
                     )}
                 </div>
-
             </div>
 
             {/* Nav */}
@@ -297,7 +297,7 @@ export function Sidebar({collapsed, mobileOpen = false, onMobileCloseAction}: Si
                                         <p className="nav-section-label">{section.label}</p>
                                     )}
                                 </div>
-                                <ul className="space-y-0.5">
+                                <ul className="space-y-1 px-2">
                                     {section.routes.map(renderRoute)}
                                 </ul>
                             </div>
