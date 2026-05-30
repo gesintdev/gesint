@@ -1,0 +1,2 @@
+/** Conteúdo injetado por ThemeInitScript (useServerInsertedHTML) — evita flash de tema. */
+export const GOMMO_THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"gommo";if(t!=="gommo"&&t!=="dark")t="gommo";document.documentElement.setAttribute("data-theme",t)}catch(e){document.documentElement.setAttribute("data-theme","gommo")}})();`;

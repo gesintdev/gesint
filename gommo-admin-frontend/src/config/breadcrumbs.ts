@@ -1,6 +1,6 @@
-import type { LucideIcon } from "lucide-react";
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { APP_ROUTES, NAV_SECTIONS } from "@/config/routes";
+import type {LucideIcon} from "lucide-react";
+import type {AppRoute} from "@/modules/root/enum/ModuleEnum";
+import {APP_ROUTES, NAV_SECTIONS} from "@/config/routes";
 
 export type BreadcrumbItem = {
     label: string;
@@ -91,5 +91,5 @@ export function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
         ];
     }
 
-    return [{ label: "Página", isActive: true }];
+    return [{label: "Página", isActive: true}];
 }

@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { APP_ROUTES, NAV_SECTIONS } from "@/config/routes";
+import { APP_ROUTES, ALL_NAV_SECTIONS } from "@/config/routes";
 
 export type BreadcrumbItem = {
     label: string;
@@ -62,7 +62,7 @@ function chainToItems(chain: AppRoute[]): BreadcrumbItem[] {
 export function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
     const normalized = pathname.split("?")[0].replace(/\/$/, "") || "/";
 
-    for (const section of NAV_SECTIONS) {
+    for (const section of ALL_NAV_SECTIONS) {
         const chain = findRouteChain(normalized, section.routes);
         if (!chain) continue;
 

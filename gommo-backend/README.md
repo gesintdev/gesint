@@ -17,7 +17,7 @@ docker compose up -d
 
 ## Testes
 
-Requer PostgreSQL rodando e variáveis de teste (senha padrão de integração apenas em `application-test.yml`):
+Requer PostgreSQL. Com **Docker** rodando, os testes sobem um Postgres via Testcontainers; sem Docker, use `docker compose up -d postgres` e o `.env` da raiz (`DB_*` / `DEV_ADMIN_PASSWORD`).
 
 ```bash
 cd gommo-backend

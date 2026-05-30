@@ -16,6 +16,8 @@ type WorkspaceState = {
     focusTab: (tabId: string) => void;
     closeTab: (tabId: string) => void;
     closeAllTabs: () => void;
+    /** Troca de domínio — substitui abas pela rota inicial do sistema (sem injetar dashboard). */
+    replaceWorkspaceModule: (input: OpenWorkspaceTabInput) => void;
     setTitleSuffix: (tabId: string, titleSuffix: string) => void;
     clearTitleSuffix: (tabId: string) => void;
 };
@@ -138,6 +140,11 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             },
 
             closeAllTabs: () => set({tabs: [createDashboardTab()], activeTabId: DASHBOARD_TAB_ID}),
+
+            replaceWorkspaceModule: (input) => {
+                const tab = buildTab({...input, entityKey: "list"});
+                set({tabs: [tab], activeTabId: tab.id});
+            },
 
             setTitleSuffix: (tabId, titleSuffix) => {
                 const tabs = get().tabs;

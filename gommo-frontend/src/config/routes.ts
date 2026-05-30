@@ -3,46 +3,63 @@
  *
  * Arquitetura (sem dependencia circular):
  *   *.routes.ts -> *.module.ts -> ModuleEnum.ts
- *   routes.ts importa dos module files, nunca o contrario.
+ *   routes.ts importa dos module files, agrupa por SystemEnum, nunca o contrario.
  *
  * Para adicionar um novo modulo:
  *   1. config/<name>.routes.ts — UNICO arquivo: menu + tela (tabbedCrudRoute / customWorkspaceRoute)
  *   2. <name>.module.ts — infos + routes
  *   3. ModuleEnum + registry
- *   4. Inclua em `modules` abaixo
+ *   4. Inclua em `systemModuleGroups` no domínio correto (DP / RH)
  */
 
 // Re-exporta tipos centrais (mantem compatibilidade com imports existentes)
 export type { AppRoute, NavSection, TModule, TModuleInfos } from "@/modules/root/enum/ModuleEnum";
 export { ModuleEnum, ModuleEnumHelper } from "@/modules/root/enum/ModuleEnum";
+export type { TSystemModuleGroup } from "@/modules/root/enum/SystemEnum";
+export { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
+import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
-import { dashboardModule }      from "@/modules/dashboard/dashboard.module";
-import { organizationModule }   from "@/modules/organization/organization.module";
-import { collaboratorModule }   from "@/modules/collaborator/collaborator.module";
-import { payrollModule }        from "@/modules/payroll/payroll.module";
-import { insightsModule }       from "@/modules/insights/insights.module";
+import { SystemEnum, type TSystemModuleGroup } from "@/modules/root/enum/SystemEnum";
+import { dashboardModule } from "@/modules/dashboard/dashboard.module";
+import { organizationModule } from "@/modules/organization/organization.module";
+import { personModule } from "@/modules/person/person.module";
+import { payrollModule } from "@/modules/payroll/payroll.module";
+import { insightsModule } from "@/modules/insights/insights.module";
 
 // -------------------------------------------------------
-// Fonte de verdade: registre todos os modulos aqui.
-// A ordem de exibicao no sidebar e controlada por
-// TModuleInfos.order definido no registry de ModuleEnum.ts
+// Domínios (rail esquerdo) — ordem alfabética pela sigla
 // -------------------------------------------------------
 
-export const modules: TModule[] = [
-    dashboardModule,
-    organizationModule,
-    collaboratorModule,
-    payrollModule,
-    insightsModule,
+export const systemModuleGroups: TSystemModuleGroup[] = [
+    {
+        system: SystemEnum.DP,
+        modules: [organizationModule, payrollModule],
+    },
+    {
+        system: SystemEnum.RH,
+        modules: [dashboardModule, personModule, insightsModule],
+    },
 ];
 
-/** Secoes do sidebar — derivadas automaticamente dos modules */
-export const NAV_SECTIONS = ModuleEnumHelper.toNavSections(modules);
+/** Todos os módulos registrados (workspace, permissões, etc.) */
+export const modules: TModule[] = systemModuleGroups.flatMap((g) => g.modules);
 
-/** Lista plana de todas as rotas (busca, breadcrumbs, etc.) */
-export const APP_ROUTES = NAV_SECTIONS.flatMap((s) => s.routes);
+/** Seções de todos os domínios (breadcrumbs, busca global) */
+export const ALL_NAV_SECTIONS: NavSection[] = ModuleEnumHelper.toNavSections(modules);
+
+/** Seções do domínio selecionado — use via `useActiveSystem().navSections` no sidebar */
+export function getNavSectionsForSystem(system: SystemEnum): NavSection[] {
+    const group = systemModuleGroups.find((g) => g.system === system);
+    if (!group) return [];
+    return ModuleEnumHelper.toNavSections(group.modules);
+}
+
+/** @deprecated Preferir `useActiveSystem().navSections` — mantido para compatibilidade estática */
+export const NAV_SECTIONS = getNavSectionsForSystem(SystemEnum.DP);
+
+/** Lista plana de todas as rotas (busca global, breadcrumbs, etc.) */
+export const APP_ROUTES = ALL_NAV_SECTIONS.flatMap((s) => s.routes);
 
 // -------------------------------------------------------
 // Utilitarios

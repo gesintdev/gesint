@@ -2,34 +2,34 @@ import { AUTH_CLIENT_MESSAGES, AUTH_MESSAGES } from "@/modules/root/exceptions/a
 import {
   COLLABORATOR_CLIENT_MESSAGES,
   COLLABORATOR_MESSAGES,
-} from "@/modules/collaborator/exceptions/collaborator.messages";
+} from "@/modules/person/collaborators/people/exceptions/collaborator.messages";
 import { COMPANY_CLIENT_MESSAGES, COMPANY_MESSAGES } from "@/modules/company/exceptions/company.messages";
-import { DEPARTMENT_CLIENT_MESSAGES, DEPARTMENT_MESSAGES } from "@/modules/department/exceptions/department.messages";
-import { JOBPOSITION_CLIENT_MESSAGES, JOBPOSITION_MESSAGES } from "@/modules/jobposition/exceptions/jobposition.messages";
+import { DEPARTMENT_CLIENT_MESSAGES, DEPARTMENT_MESSAGES } from "@/modules/organization/department/exceptions/department.messages";
+import { JOBPOSITION_CLIENT_MESSAGES, JOBPOSITION_MESSAGES } from "@/modules/organization/jobposition/exceptions/jobposition.messages";
 import {
   CONTRACT_CLIENT_MESSAGES,
   CONTRACT_MESSAGES,
-} from "@/modules/contract/exceptions/employment-contract.messages";
+} from "@/modules/person/contract/exceptions/employment-contract.messages";
 import {
   ATTENDANCE_CLIENT_MESSAGES,
   ATTENDANCE_MESSAGES,
-} from "@/modules/attendance/exceptions/attendance-record.messages";
-import { LEAVE_CLIENT_MESSAGES, LEAVE_MESSAGES } from "@/modules/leave/exceptions/leave-request.messages";
+} from "@/modules/person/attendance/exceptions/attendance-record.messages";
+import { LEAVE_CLIENT_MESSAGES, LEAVE_MESSAGES } from "@/modules/person/leave/exceptions/leave-request.messages";
 import { PAYROLL_CLIENT_MESSAGES, PAYROLL_MESSAGES } from "@/modules/payroll/exceptions/payroll-run.messages";
-import { PAYSLIP_CLIENT_MESSAGES, PAYSLIP_MESSAGES } from "@/modules/payslip/exceptions/payslip.messages";
-import { BENEFIT_CLIENT_MESSAGES, BENEFIT_MESSAGES } from "@/modules/benefit/exceptions/benefit-plan.messages";
+import { PAYSLIP_CLIENT_MESSAGES, PAYSLIP_MESSAGES } from "@/modules/payroll/payslip/exceptions/payslip.messages";
+import { BENEFIT_CLIENT_MESSAGES, BENEFIT_MESSAGES } from "@/modules/payroll/benefit/exceptions/benefit-plan.messages";
 import {
   ADMISSION_CLIENT_MESSAGES,
   ADMISSION_MESSAGES,
-} from "@/modules/admission/exceptions/admission-process.messages";
+} from "@/modules/person/collaborators/admission/exceptions/admission-process.messages";
 import {
   OFFBOARDING_CLIENT_MESSAGES,
   OFFBOARDING_MESSAGES,
-} from "@/modules/offboarding/exceptions/offboarding.messages";
+} from "@/modules/person/offboarding/exceptions/offboarding.messages";
 import {
   EXITINTERVIEW_CLIENT_MESSAGES,
   EXITINTERVIEW_MESSAGES,
-} from "@/modules/exitinterview/exceptions/exit-interview.messages";
+} from "@/modules/person/exitinterview/exceptions/exit-interview.messages";
 import { CORE_MESSAGES } from "@/shared/exceptions/core.messages";
 
 const REGISTRY: Record<string, string> = {

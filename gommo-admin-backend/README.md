@@ -16,6 +16,17 @@ API do painel administrativo da plataforma Gommo.
 
 Detalhes: [README do monorepo — Migrations Flyway](../README.md#migrations-flyway-por-schema)
 
+## Testes
+
+Requer PostgreSQL. Com **Docker** rodando, os testes sobem um Postgres via Testcontainers; sem Docker, use `docker compose up -d postgres` na raiz do monorepo.
+
+```bash
+cd gommo-admin-backend
+mvn test
+```
+
+O perfil `test` migra o schema `public` (migrations do `gommo-backend`) e em seguida o schema `admin`.
+
 ## Executar localmente
 
 ```bash

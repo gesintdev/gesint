@@ -1,5 +1,5 @@
-import type { Company, CompanyCreateDto } from "@/modules/company/dto/company.dto";
-import { digitsOnly } from "@/shared/lib/input/digits";
+import type {Company, CompanyCreateDto} from "@/modules/company/dto/company.dto";
+import {digitsOnly} from "@/shared/lib/input/digits";
 
 export function companyToFormDto(entity: Company): CompanyCreateDto {
     return {

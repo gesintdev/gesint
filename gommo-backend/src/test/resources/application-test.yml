@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:gommo}
     username: ${DB_USER:gommo}
-    password: ${DB_PASSWORD:gommo_dev}
+    password: ${DB_PASSWORD:gommo_test}
   flyway:
     enabled: true
   jpa:

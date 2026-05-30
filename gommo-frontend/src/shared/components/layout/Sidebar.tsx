@@ -5,11 +5,12 @@ import {AnimatePresence, motion} from "framer-motion";
 import {ChevronRight, Search} from "lucide-react";
 import {usePathname} from "next/navigation";
 import {type MouseEvent, useEffect, useMemo, useRef, useState} from "react";
-import {APP_ROUTES, type AppRoute, flattenRoutes, NAV_SECTIONS} from "@/config/routes";
+import {type AppRoute, flattenRoutes} from "@/config/routes";
+import {useActiveSystem, useActiveSystemRoutes} from "@/shared/context/ActiveSystemContext";
 import {findRouteByHref} from "@/shared/workspace/workspace-routes";
 import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
 import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
-import {GommoLogo} from "@/shared/components/layout/GommoLogo";
+import {SystemRail} from "@/shared/components/layout/SystemRail";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
 
@@ -28,6 +29,8 @@ function routeIsActive(route: AppRoute, highlightRouteId: string | null): boolea
 
 export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMobileCloseAction}: SidebarProps) {
     const pathname = usePathname();
+    const {navSections} = useActiveSystem();
+    const activeSystemRoutes = useActiveSystemRoutes();
     const {openRouteModule} = useWorkspaceNavigation();
     const activeRouteId = useWorkspaceStore((s) => {
         if (!s.activeTabId) return null;
@@ -40,7 +43,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     const [openIds, setOpenIds] = useState<Set<string>>(new Set());
     const [flyout, setFlyout] = useState<{ route: AppRoute; top: number } | null>(null);
 
-    const flat = useMemo(() => flattenRoutes(APP_ROUTES), []);
+    const flat = useMemo(() => flattenRoutes(activeSystemRoutes), [activeSystemRoutes]);
     const isSearching = query.trim().length > 0;
     const panelCollapsed = collapsed && !mobileOpen;
     const openRouteFromMenu = (route: AppRoute, event?: MouseEvent) => {
@@ -58,11 +61,11 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     }, [activeRouteId, highlightRouteId]);
 
     const filteredSections = useMemo(() => {
-        if (!isSearching) return NAV_SECTIONS;
+        if (!isSearching) return navSections;
         const q = query.toLowerCase();
         const matches = flat.filter((r) => r.searchLabel.toLowerCase().includes(q));
         const ids = new Set(matches.map((m) => m.id));
-        return NAV_SECTIONS.map((section) => ({
+        return navSections.map((section) => ({
             ...section,
             routes: section.routes.filter(
                 (r) =>
@@ -71,10 +74,13 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                     r.label.toLowerCase().includes(q),
             ),
         })).filter((s) => s.routes.length > 0);
-    }, [query, flat, isSearching]);
+    }, [query, flat, isSearching, navSections]);
 
     const onMobileCloseRef = useRef(onMobileCloseAction);
-    onMobileCloseRef.current = onMobileCloseAction;
+
+    useEffect(() => {
+        onMobileCloseRef.current = onMobileCloseAction;
+    }, [onMobileCloseAction]);
 
     useEffect(() => {
         onMobileCloseRef.current?.();
@@ -210,18 +216,6 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
 
     const sidebarPanel = (opts: { desktop: boolean }) => (
         <>
-            {/* Logo area */}
-            <div
-                className="flex h-(--header-height) shrink-0 items-center gap-3 border-b px-4"
-                style={{borderColor: "var(--sidebar-border)", background: "var(--sidebar-bg)"}}
-            >
-                {panelCollapsed ? (
-                    <GommoLogo variant="icon"/>
-                ) : (
-                    <GommoLogo/>
-                )}
-            </div>
-
             {/* Search (expandido) ou expandir (colapsado) */}
             <div
                 className={clsx(
@@ -281,6 +275,30 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         </>
     );
 
+    const sidebarShell = (opts: { desktop: boolean }) => (
+        <div className="flex h-full min-w-0">
+            <SystemRail />
+            <div
+                className={clsx(
+                    "sidebar-routes-panel flex min-w-0 shrink-0 flex-col overflow-hidden border-r transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                    opts.desktop && collapsed ? "w-(--sidebar-collapsed)" : "w-(--sidebar-width)",
+                )}
+                style={{
+                    background: "var(--sidebar-bg)",
+                    borderColor: "var(--sidebar-border)",
+                }}
+            >
+                {sidebarPanel(opts)}
+            </div>
+        </div>
+    );
+
+    const sidebarTotalWidth = "calc(var(--system-rail-width) + var(--sidebar-width))";
+    const sidebarBodyStyle = {
+        top: "var(--header-height)",
+        height: "calc(100dvh - var(--header-height))",
+    } as const;
+
     return (
         <>
             {/* Mobile overlay + drawer */}
@@ -295,6 +313,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                             exit={{opacity: 0}}
                             transition={{duration: 0.2}}
                             className="fixed inset-0 z-40 bg-base-content/20 backdrop-blur-[3px] lg:hidden"
+                            style={{top: "var(--header-height)"}}
                             onClick={onMobileCloseAction}
                         />
                         <motion.aside
@@ -302,26 +321,33 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                             animate={{x: 0}}
                             exit={{x: "-100%"}}
                             transition={{duration: 0.28, ease: [0.22, 1, 0.36, 1]}}
-                            className="fixed top-0 z-50 flex h-screen w-(--sidebar-width) flex-col border-r lg:hidden"
-                            style={{background: "var(--sidebar-bg)", borderColor: "var(--sidebar-border)"}}
+                            className="fixed left-0 z-50 flex overflow-hidden border-r lg:hidden"
+                            style={{
+                                ...sidebarBodyStyle,
+                                width: sidebarTotalWidth,
+                                background: "var(--sidebar-bg)",
+                                borderColor: "var(--sidebar-border)",
+                            }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {sidebarPanel({desktop: false})}
+                            {sidebarShell({desktop: false})}
                         </motion.aside>
                     </>
                 )}
             </AnimatePresence>
 
-            {/* Desktop sidebar */}
+            {/* Desktop — abaixo do header: coluna sistemas | coluna rotas */}
             <aside
                 data-collapsed={collapsed ? "true" : undefined}
-                className={clsx(
-                    "fixed top-0 z-40 hidden h-screen flex-col overflow-hidden border-r transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex",
-                    collapsed ? "w-(--sidebar-collapsed)" : "w-(--sidebar-width)",
-                )}
-                style={{background: "var(--sidebar-bg)", borderColor: "var(--sidebar-border)"}}
+                className="fixed left-0 z-40 hidden overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
+                style={{
+                    ...sidebarBodyStyle,
+                    width: collapsed
+                        ? "calc(var(--system-rail-width) + var(--sidebar-collapsed))"
+                        : sidebarTotalWidth,
+                }}
             >
-                {sidebarPanel({desktop: true})}
+                {sidebarShell({desktop: true})}
             </aside>
 
             {collapsed && flyout && (

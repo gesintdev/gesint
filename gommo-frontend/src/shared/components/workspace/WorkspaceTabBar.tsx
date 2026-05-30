@@ -6,6 +6,7 @@ import {Fragment, useRef} from "react";
 import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
 import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
 import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
+import {WorkspaceTabSystemBadge} from "@/shared/components/workspace/WorkspaceTabSystemBadge";
 import {WorkspaceTabOverflowMenu} from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
 
 type WorkspaceTabBarProps = {
@@ -56,6 +57,7 @@ export function WorkspaceTabBar({tabs, activeTabId, onSelect, onClose}: Workspac
                                                 : "text-base-content/40 group-hover/tab:text-base-content/60",
                                         )}
                                     />
+                                    <WorkspaceTabSystemBadge href={tab.href} />
                                     <span className="min-w-0 flex-1 truncate text-left tracking-tight">
                                     {title}
                                 </span>

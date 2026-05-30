@@ -19,8 +19,8 @@ export function comingSoonRoute(config: ComingSoonRouteConfig): AppRoute {
         icon: config.icon,
         permission: config.permission,
         workspaceLoader: () =>
-            import("@/shared/routing/coming-soon-workspace").then((module) => ({
-                default: module.createComingSoonWorkspacePage(config.title, config.description),
+            import("@/shared/routing/coming-soon-workspace").then((loaded) => ({
+                default: loaded.createComingSoonWorkspacePage(config.title, config.description),
             })),
     };
 }

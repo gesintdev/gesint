@@ -10,8 +10,8 @@ export const dashboardRoutes: AppRoute[] = [
         label: "Painel",
         icon: LayoutDashboard,
         load: () =>
-            import("@/shared/workspace/views/DashboardView").then((module) => ({
-                default: module.DashboardView,
+            import("@/shared/workspace/views/DashboardView").then((loaded) => ({
+                default: loaded.DashboardView,
             })),
     }),
     customWorkspaceRoute({

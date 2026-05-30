@@ -51,7 +51,7 @@ export enum ModuleEnum {
     ROOT         = "root",
     DASHBOARD    = "dashboard",
     ORGANIZATION = "organization",
-    COLLABORATOR = "collaborator",
+    PERSON = "person",
     PAYROLL      = "payroll",
     INSIGHTS     = "insights",
 }
@@ -101,7 +101,7 @@ export class ModuleEnumHelper implements IModuleHelper {
             name: "Organização",
             order: 2,
         },
-        [ModuleEnum.COLLABORATOR]: {
+        [ModuleEnum.PERSON]: {
             id: "people",
             name: "Colaboradores e vínculos",
             order: 3,

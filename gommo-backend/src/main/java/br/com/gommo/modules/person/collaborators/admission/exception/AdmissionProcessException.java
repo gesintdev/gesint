@@ -1,0 +1,16 @@
+package br.com.gommo.modules.person.collaborators.admission.exception;
+import br.com.gommo.core.exception.BusinessException;
+import org.springframework.http.HttpStatus;
+public final class AdmissionProcessException {
+    private AdmissionProcessException() {}
+    public static BusinessException notFound() {
+        return new BusinessException(AdmissionProcessExceptions.NOT_FOUND_CODE, AdmissionProcessExceptions.NOT_FOUND_MSG, HttpStatus.NOT_FOUND);
+    }
+
+    public static BusinessException cpfAlreadyExists() {
+        return new BusinessException(
+                AdmissionProcessExceptions.CPF_ALREADY_EXISTS_CODE,
+                AdmissionProcessExceptions.CPF_ALREADY_EXISTS_MSG,
+                HttpStatus.CONFLICT);
+    }
+}

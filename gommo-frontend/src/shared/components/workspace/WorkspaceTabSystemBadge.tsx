@@ -1,0 +1,32 @@
+"use client";
+
+import clsx from "clsx";
+import { systemModuleGroups } from "@/config/routes";
+import { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
+
+type WorkspaceTabSystemBadgeProps = {
+    href: string;
+    className?: string;
+};
+
+export function WorkspaceTabSystemBadge({ href, className }: WorkspaceTabSystemBadgeProps) {
+    const system = SystemEnumHelper.getSystemForHref(href, systemModuleGroups);
+    if (!system) return null;
+
+    const { acronym, name } = SystemEnumHelper.getById(system);
+
+    return (
+        <span
+            className={clsx(
+                "workspace-tab-system-badge",
+                system === SystemEnum.DP && "workspace-tab-system-badge--dp",
+                system === SystemEnum.RH && "workspace-tab-system-badge--rh",
+                className,
+            )}
+            title={name}
+            aria-label={`Domínio ${name}`}
+        >
+            {acronym}
+        </span>
+    );
+}

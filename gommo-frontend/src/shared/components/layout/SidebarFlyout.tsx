@@ -26,7 +26,7 @@ export function SidebarFlyout({route, anchorTop, onClose}: SidebarFlyoutProps) {
                 animate={{opacity: 1, x: 0}}
                 exit={{opacity: 0, x: -6}}
                 transition={{duration: 0.18, ease: [0.22, 1, 0.36, 1]}}
-                className="surface-card fixed z-50 ml-[calc(var(--sidebar-collapsed)+0.5rem)] min-w-[11rem] p-2 shadow-lg"
+                className="surface-card fixed z-50 ml-[calc(var(--system-rail-width)+var(--sidebar-collapsed)+0.5rem)] min-w-[11rem] p-2 shadow-lg"
                 style={{top: anchorTop}}
                 onMouseLeave={onClose}
             >

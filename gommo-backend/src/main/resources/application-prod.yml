@@ -10,3 +10,6 @@ gommo:
       secret: ${JWT_SECRET}
   cors:
     allowed-origins: ${CORS_ORIGINS}
+  storage:
+    local-base-path: ${STORAGE_LOCAL_PATH:/data/storage}
+    bucket: ${STORAGE_BUCKET:gommo-prod}

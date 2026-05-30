@@ -1,0 +1,33 @@
+spring:
+  config:
+    import: optional:file:../.env[.properties],optional:file:.env[.properties]
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:gommo}
+    username: ${DB_USER:gommo}
+    password: ${DB_PASSWORD:gommo_test}
+  flyway:
+    enabled: true
+    schemas: admin
+    default-schema: admin
+    create-schemas: true
+    table: flyway_schema_history
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: admin
+
+gommo-admin:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:test-jwt-secret-only-for-ci-min-32-chars}
+      access-token-minutes: 15
+      refresh-token-days: 7
+  cors:
+    allowed-origins: http://localhost:3001
+  dev:
+    admin-username: admin
+    admin-password: ${DEV_ADMIN_PASSWORD:${TEST_ADMIN_PASSWORD:test-integration-password}}
+  tenant-db:
+    fallback-password: gommo_test

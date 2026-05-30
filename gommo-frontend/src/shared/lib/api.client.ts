@@ -108,7 +108,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
 
 async function handleErrorResponse(
     response: Response,
-    options: RequestOptions,
+    _options: RequestOptions,
 ): Promise<never> {
     let payload: ErrorResponseDto = {
         code: "UNKNOWN",

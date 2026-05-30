@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/shared/components/providers/AppProviders";
+import { ThemeInitScript } from "@/shared/components/providers/ThemeInitScript";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${inter.variable} ${jakarta.variable} surface-page min-h-full antialiased`}>
+        <ThemeInitScript />
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

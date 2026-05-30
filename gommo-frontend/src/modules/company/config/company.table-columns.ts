@@ -1,4 +1,4 @@
-import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
+import {TableDataType, type TableColumnConfig} from "@/shared/types/table.types";
 
 export const COMPANY_TABLE_COLUMNS: TableColumnConfig[] = [
     {

@@ -187,19 +187,19 @@ function ModuleHealthPanel({moduleHealth}: {moduleHealth: DashboardSummary["modu
                         </span>
                     </div>
                     <div className="max-h-40 space-y-2 overflow-y-auto pr-1">
-                        {moduleHealth.modules.map((module) => (
+                        {moduleHealth.modules.map((healthModule) => (
                             <div
-                                key={module.key}
+                                key={healthModule.key}
                                 className="flex items-center justify-between rounded-[10px] border border-[var(--gommo-border-subtle)] px-3 py-2 text-xs"
                             >
-                                <span className="font-medium text-base-content/65">{module.label}</span>
+                                <span className="font-medium text-base-content/65">{healthModule.label}</span>
                                 <span
                                     className={clsx(
                                         "font-bold tabular-nums",
-                                        module.active ? "text-primary" : "text-base-content/35",
+                                        healthModule.active ? "text-primary" : "text-base-content/35",
                                     )}
                                 >
-                                    {module.active ? formatMetricValue(module.records) : "—"}
+                                    {healthModule.active ? formatMetricValue(healthModule.records) : "—"}
                                 </span>
                             </div>
                         ))}

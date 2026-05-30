@@ -42,6 +42,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim("type", "refresh")
+                .claim("jti", UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
                 .signWith(secretKey)
@@ -61,6 +62,10 @@ public class JwtService {
     }
 
     public boolean isRefreshToken(String token) {
-        return "refresh".equals(parseClaims(token).get("type", String.class));
+        try {
+            return "refresh".equals(parseClaims(token).get("type", String.class));
+        } catch (io.jsonwebtoken.JwtException ex) {
+            return false;
+        }
     }
 }

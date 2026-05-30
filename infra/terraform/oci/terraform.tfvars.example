@@ -1,0 +1,26 @@
+# Copie para terraform.tfvars (nao commitar) e preencha com seus dados OCI.
+# Guia completo: infra/terraform/oci/README.md
+
+tenancy_ocid        = "ocid1.tenancy.oc1..aaaa..."
+user_ocid           = "ocid1.user.oc1..aaaa..."
+compartment_id      = "ocid1.compartment.oc1..aaaa..."
+api_key_fingerprint = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+api_private_key_path = "C:/Users/SEU_USUARIO/.oci/oci_api_key.pem"
+
+region = "sa-saopaulo-1"
+
+# Cole o conteudo de sua chave publica SSH (uma linha)
+ssh_public_key = "ssh-ed25519 AAAA... seu-email@example.com"
+
+# Seu IP publico com /32 — descubra em https://ifconfig.me
+allowed_ssh_cidr = "203.0.113.10/32"
+
+# Oracle Cloud Free Tier — Ampere (recomendado para Coolify + stack completa)
+shape                   = "VM.Standard.A1.Flex"
+instance_ocpus          = 2
+instance_memory_in_gbs  = 12
+boot_volume_size_in_gbs = 100
+
+# true = instala Coolify no primeiro boot (demora ~5 min)
+install_coolify_on_boot = false
+install_docker_on_boot  = true

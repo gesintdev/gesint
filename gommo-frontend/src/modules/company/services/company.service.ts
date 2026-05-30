@@ -1,5 +1,5 @@
-import type { Company, CompanyCreateDto } from "@/modules/company/dto/company.dto";
-import { BaseService } from "@/modules/root/services/base.service";
+import type {Company, CompanyCreateDto} from "@/modules/company/dto/company.dto";
+import {BaseService} from "@/modules/root/services/base.service";
 
 class CompanyService extends BaseService<Company, CompanyCreateDto, CompanyCreateDto> {
     constructor() {

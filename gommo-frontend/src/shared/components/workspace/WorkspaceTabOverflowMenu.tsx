@@ -7,6 +7,7 @@ import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
 import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
 import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
 import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
+import {WorkspaceTabSystemBadge} from "@/shared/components/workspace/WorkspaceTabSystemBadge";
 
 type WorkspaceTabOverflowMenuProps = {
     tabs: WorkspaceTab[];
@@ -75,6 +76,7 @@ export function WorkspaceTabOverflowMenu({
                                             }}
                                         >
                                             <WorkspaceTabIcon tab={tab} className="size-3.5 shrink-0 text-base-content/50"/>
+                                            <WorkspaceTabSystemBadge href={tab.href} />
                                             <span className="truncate">{title}</span>
                                         </button>
                                         {!isDashboard ? (

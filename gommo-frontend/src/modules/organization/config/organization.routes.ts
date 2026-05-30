@@ -17,11 +17,11 @@ export const organizationRoutes: AppRoute[] = [
                 tabShortLabel: "Depto",
                 fieldTabName: "name",
                 list: lazyNamed(
-                    () => import("@/modules/department/components/DepartmentListClient"),
+                    () => import("@/modules/organization/department/components/DepartmentListClient"),
                     "DepartmentListClient",
                 ),
                 form: lazyNamed(
-                    () => import("@/modules/department/components/DepartmentFormClient"),
+                    () => import("@/modules/organization/department/components/DepartmentFormClient"),
                     "DepartmentFormClient",
                 ),
             }),
@@ -34,11 +34,11 @@ export const organizationRoutes: AppRoute[] = [
                 tabShortLabel: "Cargo",
                 fieldTabName: "title",
                 list: lazyNamed(
-                    () => import("@/modules/jobposition/components/JobPositionListClient"),
+                    () => import("@/modules/organization/jobposition/components/JobPositionListClient"),
                     "JobPositionListClient",
                 ),
                 form: lazyNamed(
-                    () => import("@/modules/jobposition/components/JobPositionFormClient"),
+                    () => import("@/modules/organization/jobposition/components/JobPositionFormClient"),
                     "JobPositionFormClient",
                 ),
             }),

@@ -1,0 +1,140 @@
+# Stack Gommo para Coolify (Docker Compose).
+# No Coolify: Base Directory = raiz do repositorio, Compose path = infra/coolify/docker-compose.yml
+# Documentacao: infra/coolify/README.md
+
+name: gommo
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: America/Sao_Paulo
+    volumes:
+      - gommo_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+  gommo-backend:
+    build:
+      context: ./gommo-backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      SERVER_PORT: "8081"
+      STORAGE_LOCAL_PATH: /data/storage
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-gommo-prod}
+    volumes:
+      - gommo_storage:/data/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+
+  gommo-admin-backend:
+    build:
+      context: ./gommo-admin-backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_CORS_ORIGINS: ${ADMIN_CORS_ORIGINS}
+      ADMIN_SERVER_PORT: "8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gommo-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+
+  gommo-frontend:
+    build:
+      context: ./gommo-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      NEXTAUTH_URL: ${HR_NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      AUTH_SECRET: ${NEXTAUTH_SECRET}
+    depends_on:
+      gommo-backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  gommo-admin-frontend:
+    build:
+      context: ./gommo-admin-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_ADMIN_API_URL: ${NEXT_PUBLIC_ADMIN_API_URL}
+        NEXT_PUBLIC_HR_API_URL: ${NEXT_PUBLIC_HR_API_URL}
+    restart: unless-stopped
+    environment:
+      PORT: "3001"
+      HOSTNAME: 0.0.0.0
+      AUTH_URL: ${ADMIN_AUTH_URL}
+      NEXTAUTH_URL: ${ADMIN_NEXTAUTH_URL}
+      AUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+    depends_on:
+      gommo-admin-backend:
+        condition: service_healthy
+      gommo-backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+volumes:
+  gommo_pg_data:
+  gommo_storage:

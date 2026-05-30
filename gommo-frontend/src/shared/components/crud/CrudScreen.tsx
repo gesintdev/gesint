@@ -155,7 +155,7 @@ export function CrudScreen({
         titleSuffix: titleSuffix || undefined,
       });
     },
-    [crudConfig?.fieldTabName, syncWorkspace],
+    [crudConfig, syncWorkspace],
   );
 
   const goToTab = useCallback((tabId: string) => setActiveTab(tabId), []);
@@ -169,7 +169,7 @@ export function CrudScreen({
     activeTab === CRUD_TAB_LIST
       ? list
       : activeTab === CRUD_TAB_FORM
-        ? form
+        ? <div key={editingId ?? "new"} className="flex min-h-0 flex-1 flex-col">{form}</div>
         : extraTabs.find((t) => t.id === activeTab)?.content ?? null;
 
   const queryRefresh = useQueryRefresh();

@@ -1,7 +1,7 @@
 package br.com.gommo.modules.report.service;
 
-import br.com.gommo.modules.admission.entity.AdmissionStatusEnum;
-import br.com.gommo.modules.leave.entity.LeaveTypeEnum;
+import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.report.dto.DashboardDistributionItemResponseDto;
 import br.com.gommo.modules.report.dto.DashboardMetricResponseDto;
 import br.com.gommo.modules.report.dto.DashboardModuleHealthResponseDto;

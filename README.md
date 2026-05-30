@@ -9,12 +9,22 @@ Monorepo RH / Departamento Pessoal — backends (Spring Boot), frontends (Next.j
 | API Admin | `gommo-admin-backend/` | 8082 | [README do admin backend](gommo-admin-backend/README.md) |
 | Web Admin | `gommo-admin-frontend/` | 3001 | [README do admin frontend](gommo-admin-frontend/README.md) |
 
-## Início rápido
+## Início rápido (local)
 
 1. Copie `.env.example` para `.env` na raiz e defina as variáveis (senha do Postgres, JWT, admin dev).
 2. `docker compose up -d`
 3. HR: `cd gommo-backend && mvn spring-boot:run` → http://localhost:8081 e `cd gommo-frontend && npm install && npm run dev` → http://localhost:3000
 4. Admin: `cd gommo-admin-backend && mvn spring-boot:run` → http://localhost:8082 e `cd gommo-admin-frontend && npm install && npm run dev` → http://localhost:3001
+
+## Deploy — Oracle Cloud + Coolify
+
+Produção na VPS Oracle (Free Tier) com Terraform e painel Coolify:
+
+| Etapa | Documentação |
+|-------|----------------|
+| Criar VPS (Terraform) | [infra/terraform/oci/README.md](infra/terraform/oci/README.md) |
+| Subir stack no Coolify | [infra/coolify/README.md](infra/coolify/README.md) |
+| Visão geral da infra | [infra/README.md](infra/README.md) |
 
 ## Migrations Flyway (por schema)
 

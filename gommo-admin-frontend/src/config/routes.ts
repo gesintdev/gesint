@@ -8,14 +8,14 @@
  *   4. Incluir em `modules` abaixo
  */
 
-export type { AppRoute, NavSection, TModule, TModuleInfos } from "@/modules/root/enum/ModuleEnum";
-export { ModuleEnum, ModuleEnumHelper } from "@/modules/root/enum/ModuleEnum";
+export type {AppRoute, NavSection, TModule, TModuleInfos} from "@/modules/root/enum/ModuleEnum";
+export {ModuleEnum, ModuleEnumHelper} from "@/modules/root/enum/ModuleEnum";
 
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
-import { dashboardModule } from "@/modules/dashboard/dashboard.module";
-import { clientsModule } from "@/modules/clients/clients.module";
-import { platformModule } from "@/modules/platform/platform.module";
+import type {AppRoute} from "@/modules/root/enum/ModuleEnum";
+import {ModuleEnumHelper, type TModule} from "@/modules/root/enum/ModuleEnum";
+import {dashboardModule} from "@/modules/dashboard/dashboard.module";
+import {clientsModule} from "@/modules/clients/clients.module";
+import {platformModule} from "@/modules/platform/platform.module";
 
 export const modules: TModule[] = [
     dashboardModule,
@@ -26,7 +26,7 @@ export const modules: TModule[] = [
 export const NAV_SECTIONS = ModuleEnumHelper.toNavSections(modules);
 export const APP_ROUTES = NAV_SECTIONS.flatMap((s) => s.routes);
 
-export { getBreadcrumbs, type BreadcrumbItem } from "@/config/breadcrumbs";
+export {getBreadcrumbs, type BreadcrumbItem} from "@/config/breadcrumbs";
 
 export function flattenRoutes(
     routes: AppRoute[],
@@ -37,7 +37,7 @@ export function flattenRoutes(
         const searchLabel = parentLabel
             ? `${parentLabel} > ${route.label}`
             : route.label;
-        result.push({ ...route, searchLabel });
+        result.push({...route, searchLabel});
         if (route.children) {
             result.push(...flattenRoutes(route.children, route.label));
         }

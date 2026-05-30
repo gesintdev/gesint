@@ -32,11 +32,11 @@ export const payrollRoutes: AppRoute[] = [
                 routeId: "payslip",
                 tabShortLabel: "Hol",
                 list: lazyNamed(
-                    () => import("@/modules/payslip/components/PayslipListClient"),
+                    () => import("@/modules/payroll/payslip/components/PayslipListClient"),
                     "PayslipListClient",
                 ),
                 form: lazyNamed(
-                    () => import("@/modules/payslip/components/PayslipFormClient"),
+                    () => import("@/modules/payroll/payslip/components/PayslipFormClient"),
                     "PayslipFormClient",
                 ),
             }),
@@ -56,11 +56,11 @@ export const payrollRoutes: AppRoute[] = [
                 tabShortLabel: "Plano",
                 fieldTabName: "name",
                 list: lazyNamed(
-                    () => import("@/modules/benefit/components/BenefitPlanListClient"),
+                    () => import("@/modules/payroll/benefit/components/BenefitPlanListClient"),
                     "BenefitPlanListClient",
                 ),
                 form: lazyNamed(
-                    () => import("@/modules/benefit/components/BenefitPlanFormClient"),
+                    () => import("@/modules/payroll/benefit/components/BenefitPlanFormClient"),
                     "BenefitPlanFormClient",
                 ),
             }),
@@ -72,11 +72,11 @@ export const payrollRoutes: AppRoute[] = [
                 routeId: "benefit-enrollment",
                 tabShortLabel: "Vínc",
                 list: lazyNamed(
-                    () => import("@/modules/benefitenrollment/components/BenefitEnrollmentListClient"),
+                    () => import("@/modules/payroll/benefitenrollment/components/BenefitEnrollmentListClient"),
                     "BenefitEnrollmentListClient",
                 ),
                 form: lazyNamed(
-                    () => import("@/modules/benefitenrollment/components/BenefitEnrollmentFormClient"),
+                    () => import("@/modules/payroll/benefitenrollment/components/BenefitEnrollmentFormClient"),
                     "BenefitEnrollmentFormClient",
                 ),
             }),
@@ -90,11 +90,11 @@ export const payrollRoutes: AppRoute[] = [
         routeId: "tax",
         tabShortLabel: "Fiscal",
         list: lazyNamed(
-            () => import("@/modules/tax/components/TaxObligationListClient"),
+            () => import("@/modules/payroll/tax/components/TaxObligationListClient"),
             "TaxObligationListClient",
         ),
         form: lazyNamed(
-            () => import("@/modules/tax/components/TaxObligationFormClient"),
+            () => import("@/modules/payroll/tax/components/TaxObligationFormClient"),
             "TaxObligationFormClient",
         ),
     }),

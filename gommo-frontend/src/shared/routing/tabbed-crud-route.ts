@@ -9,8 +9,8 @@ export function tabbedCrudRoute(config: TabbedCrudRouteConfig): AppRoute {
         icon: config.icon,
         permission: config.permission,
         workspaceLoader: () =>
-            import("@/shared/routing/tabbed-crud-workspace").then((module) => ({
-                default: module.createTabbedCrudWorkspacePage(config),
+            import("@/shared/routing/tabbed-crud-workspace").then((loaded) => ({
+                default: loaded.createTabbedCrudWorkspacePage(config),
             })),
     };
 }
