@@ -30,6 +30,7 @@ public class JwtService {
                 .claim("username", username)
                 .claim("permissions", permissions)
                 .claim("type", "access")
+                .claim("jti", UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
                 .signWith(secretKey)
