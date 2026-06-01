@@ -10,6 +10,7 @@ import { clientKeys } from "@/modules/client/client.query";
 import { clientService } from "@/modules/client/services/client.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
@@ -147,6 +148,7 @@ export function ClientFormClient() {
                     <p className="text-sm font-semibold text-base-content">Cliente</p>
                     <p className="text-xs text-base-content/55">Dados comerciais e contato principal.</p>
                 </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <InputString label="Nome" value={form.name} onValueChange={(v) => update("name", v)} required />
                 <InputString label="Slug" value={form.slug} onValueChange={(v) => update("slug", v)} required />
                 <InputString label="Documento (CNPJ)" value={form.document ?? ""} onValueChange={(v) => update("document", v)} />

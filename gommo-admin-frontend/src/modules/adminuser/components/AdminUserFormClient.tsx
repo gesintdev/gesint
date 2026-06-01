@@ -10,6 +10,7 @@ import {adminUserKeys} from "@/modules/adminuser/adminuser.query";
 import {adminUserService} from "@/modules/adminuser/services/adminuser.service";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {Button} from "@/shared/components/ui/Button";
@@ -75,6 +76,7 @@ export function AdminUserFormClient() {
             }
         >
             <div className="grid gap-4">
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <InputString label="Nome completo" value={form.fullName}
                              onValueChange={(v) => setForm((p) => ({...p, fullName: v}))} required/>
                 <InputString label="Usuário" value={form.username}

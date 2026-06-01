@@ -1,5 +1,6 @@
 export class BenefitPlan {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     name!: string;
     benefitType!: string;

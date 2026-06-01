@@ -1,14 +1,12 @@
 "use client";
 
-import { Pencil } from "lucide-react";
 import { COLLABORATOR_TABLE_COLUMNS } from "@/modules/person/collaborators/people/config/people.table-columns";
 import type { Collaborator } from "@/modules/person/collaborators/people/dto/collaborator.dto";
 import { collaboratorKeys } from "@/modules/person/collaborators/people/collaborator.query";
 import { collaboratorService } from "@/modules/person/collaborators/people/services/collaborator.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
-import { Button } from "@/shared/components/ui/Button";
 
 export function CollaboratorListClient() {
     const { startEdit } = useCrudScreen();
@@ -22,16 +20,11 @@ export function CollaboratorListClient() {
             emptyMessage="Nenhum colaborador cadastrado. Utilize Nova Admissão para incluir pessoas no sistema."
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (
-                <>
-                    <OpenInWorkspaceTabButton row={row} />
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label="Editar dados pessoais"
-                        leftIcon={<Pencil className="size-3.5" />}
-                        onClick={() => startEdit(row.id, row)}
-                    />
-                </>
+                <CrudTableActions
+                    row={row}
+                    onEdit={() => startEdit(row.id, row)}
+                    editAriaLabel="Editar dados pessoais"
+                />
             )}
         />
     );

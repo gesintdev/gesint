@@ -1,5 +1,6 @@
 package br.com.gommo.modules.root.entity;
 
+import br.com.gommo.core.entity.CodedEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -18,13 +19,16 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Permission {
+public class Permission implements CodedEntity {
 
     @Id
     private UUID id;
 
+    @Column(nullable = false, updatable = false, unique = true)
+    private Integer code;
+
     @Column(nullable = false, unique = true, length = 100)
-    private String code;
+    private String authority;
 
     @Column(nullable = false, length = 50)
     private String module;

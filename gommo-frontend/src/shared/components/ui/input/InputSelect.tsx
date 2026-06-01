@@ -73,6 +73,7 @@ export function InputSelect({
                 <button
                     type="button"
                     id={id}
+                    role="combobox"
                     disabled={disabled}
                     aria-haspopup="listbox"
                     aria-expanded={open}

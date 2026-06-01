@@ -11,6 +11,7 @@ import lombok.Getter;
 public class CompanyResponseDto {
 
     private final UUID id;
+    private final Integer code;
     private final StatusEnum status;
     private final String legalName;
     private final String tradeName;

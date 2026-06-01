@@ -1,6 +1,5 @@
 "use client";
 
-import type {ReactNode} from "react";
 import {useMemo} from "react";
 import {
     CRUD_TAB_FORM,

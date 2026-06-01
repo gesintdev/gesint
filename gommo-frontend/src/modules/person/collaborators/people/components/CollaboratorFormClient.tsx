@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type FormEvent, useEffect, useState} from "react";
+import {type FormEvent, useEffect, useMemo, useState} from "react";
 import {toast} from "sonner";
 import {COLLABORATOR_CLIENT_MESSAGES} from "@/modules/person/collaborators/people/exceptions/collaborator.messages";
 import type {CollaboratorCreateDto} from "@/modules/person/collaborators/people/dto/collaborator.dto";
@@ -18,7 +18,9 @@ import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTi
 import {ExceptionCapture} from "@/shared/exceptions";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {InputCPF, InputDate, InputRG, InputSelect, InputString,} from "@/shared/components/ui/input/index";
+import {FormStepper, type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {sectionHasChanges} from "@/shared/lib/form-step.util";
+import {InputCPF, InputDate, InputRG, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 
 const GENDER_ITEMS: SelectItem[] = [
@@ -36,11 +38,17 @@ const MARITAL_ITEMS: SelectItem[] = [
     {value: "OTHER", label: "Outro"},
 ];
 
+const COLLABORATOR_FORM_STEPS: FormStepNavItem[] = [
+    {id: "identificacao", label: "Identificação"},
+    {id: "filiacao", label: "Filiação"},
+];
+
 export function CollaboratorFormClient() {
     const {editingId, isEditing, goToList} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CollaboratorCreateDto>(emptyCollaboratorForm);
     const [error, setError] = useState<string | null>(null);
+    const emptyDefaults = useMemo(() => emptyCollaboratorForm(), []);
 
     const detailQuery = useQuery({
         queryKey: collaboratorKeys.detail(editingId ?? ""),
@@ -60,7 +68,7 @@ export function CollaboratorFormClient() {
             setForm(collaboratorToFormDto(detailQuery.data));
             setError(null);
         }
-    }, [isEditing, detailQuery.data]);
+    }, [isEditing, detailQuery.data, editingId]);
 
     const saveMutation = useMutation({
         mutationFn: async (dto: CollaboratorCreateDto) => {
@@ -90,6 +98,21 @@ export function CollaboratorFormClient() {
         setError(null);
         saveMutation.mutate(form);
     };
+
+    const filledStepIds = useMemo(() => {
+        const empty = emptyDefaults;
+        const filled: string[] = [];
+
+        if (sectionHasChanges(form, empty, ["fullName", "socialName", "cpf", "rg", "birthDate", "gender", "maritalStatus"])) {
+            filled.push("identificacao");
+        }
+
+        if (sectionHasChanges(form, empty, ["nationality", "pisPasep", "motherName", "fatherName"])) {
+            filled.push("filiacao");
+        }
+
+        return filled;
+    }, [form, emptyDefaults]);
 
     if (!isEditing) {
         return (
@@ -129,6 +152,7 @@ export function CollaboratorFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
+            bodyClassName="!overflow-hidden !p-0"
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -140,15 +164,13 @@ export function CollaboratorFormClient() {
                 </>
             }
         >
-            <div className="flex flex-col gap-4 p-4">
-                <div className="sm:col-span-2">
-                    <p className="text-sm font-semibold text-base-content">Editar dados pessoais</p>
-                    <p className="text-xs text-base-content/45">
-                        Alterações aqui não substituem o fluxo de admissão para novos colaboradores.
-                    </p>
-                </div>
-
-                <FormSection title="Identificação" description="Dados pessoais do colaborador.">
+            <FormStepper
+                key={editingId ?? "new"}
+                steps={COLLABORATOR_FORM_STEPS}
+                filledStepIds={filledStepIds}
+                entityCode={detailQuery.data?.code}
+            >
+                <FormSection id="identificacao" title="Identificação" description="Dados pessoais do colaborador.">
                     <InputString
                         label="Nome completo"
                         value={form.fullName}
@@ -195,6 +217,9 @@ export function CollaboratorFormClient() {
                         placeholder="Não informado"
                         clearable
                     />
+                </FormSection>
+
+                <FormSection id="filiacao" title="Filiação" description="Nacionalidade, documentos e filiação.">
                     <InputString
                         label="Nacionalidade"
                         value={form.nationality ?? ""}
@@ -219,8 +244,8 @@ export function CollaboratorFormClient() {
                     />
                 </FormSection>
 
-                {error && <p className="text-sm font-medium text-error">{error}</p>}
-            </div>
+                {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
+            </FormStepper>
         </CrudFormShell>
     );
 }

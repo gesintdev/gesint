@@ -11,7 +11,7 @@ import br.com.gommo.modules.person.attendance.dto.*; import br.com.gommo.modules
         entity.setBreakMinutes(dto.getBreakMinutes()); entity.setNotes(dto.getNotes());
     }
     public AttendanceRecordResponseDto toResponse(AttendanceRecord entity) {
-        return AttendanceRecordResponseDto.builder().id(entity.getId()).status(entity.getStatus())
+        return AttendanceRecordResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus())
             .collaboratorId(entity.getCollaboratorId()).workDate(entity.getWorkDate()).clockIn(entity.getClockIn())
             .clockOut(entity.getClockOut()).breakMinutes(entity.getBreakMinutes()).notes(entity.getNotes())
             .createdAt(entity.getCreatedAt()).updatedAt(entity.getUpdatedAt()).build();

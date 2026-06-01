@@ -12,6 +12,7 @@ import { leaveRequestFormSchema } from "@/modules/person/leave/schemas/leave-req
 import { leaverequestService } from "@/modules/person/leave/services/leave-request.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { Button } from "@/shared/components/ui/Button";
 import { InputDate, InputSelect } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
@@ -146,12 +147,7 @@ export function LeaveRequestFormClient() {
       }
     >
     <div className="grid gap-3 p-4 sm:grid-cols-2">
-      <div className="sm:col-span-2">
-        <p className="text-sm font-semibold text-base-content">
-          {isEditing ? "Editar afastamento" : "Novo afastamento"}
-        </p>
-      </div>
-
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <div className="sm:col-span-2">
         <CollaboratorPickerField
           value={form.collaboratorId ?? ""}

@@ -1,5 +1,6 @@
 export class StorageObject {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     bucket!: string;
     objectKey!: string;
@@ -17,6 +18,7 @@ export class StorageObject {
 
 export class StorageObjectLink {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     storageObjectId!: string;
     entityType!: string;

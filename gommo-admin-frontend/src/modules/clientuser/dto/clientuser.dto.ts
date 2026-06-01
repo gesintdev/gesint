@@ -1,5 +1,6 @@
 export class ClientUser {
     id!: string;
+    code!: number;
     status!: string;
     clientId!: string;
     clientName?: string;

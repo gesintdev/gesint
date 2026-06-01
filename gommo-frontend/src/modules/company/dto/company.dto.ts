@@ -1,5 +1,6 @@
 export class Company {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     legalName!: string;
     tradeName!: string;

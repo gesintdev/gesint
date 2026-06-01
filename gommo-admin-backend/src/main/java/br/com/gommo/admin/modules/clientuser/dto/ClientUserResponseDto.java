@@ -17,6 +17,7 @@ import lombok.Setter;
 public class ClientUserResponseDto {
 
     private UUID id;
+    private Integer code;
     private StatusEnum status;
     private UUID clientId;
     private String clientName;

@@ -2,10 +2,6 @@
 
 import {use, type ReactElement} from "react";
 
-type DataResultProps<T> = {
-    promise: Promise<T>;
-};
-
 /**
  * Client Component para streaming com `use()`.
  * Passe como filho um componente que lê o contexto ou use o wrapper específico do módulo.

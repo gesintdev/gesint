@@ -8,6 +8,7 @@ import lombok.*;
 @Getter @Builder
 public class BenefitEnrollmentResponseDto {
     private final UUID id;
+    private final Integer code;
     private final StatusEnum status;
     private final UUID collaboratorId;
     private final UUID benefitPlanId;

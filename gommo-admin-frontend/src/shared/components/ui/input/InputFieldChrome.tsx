@@ -8,7 +8,6 @@ export function InputFieldChrome({
                                      hint,
                                      error,
                                      required,
-                                     disabled,
                                      id,
                                      wrapperClassName,
                                      children,

@@ -60,8 +60,6 @@ export function InputDatetime({
           disabled={disabled || readOnly}
           aria-haspopup="dialog"
           aria-expanded={open}
-          aria-invalid={Boolean(error)}
-          aria-required={required}
           className={clsx(
             "gommo-field w-full cursor-pointer text-left",
             fieldClass(disabled, readOnly, Boolean(error)),

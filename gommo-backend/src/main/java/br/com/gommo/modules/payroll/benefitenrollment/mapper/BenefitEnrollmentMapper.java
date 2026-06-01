@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
         entity.setNotes(dto.getNotes());
     }
     public BenefitEnrollmentResponseDto toResponse(BenefitEnrollment entity) {
-        return BenefitEnrollmentResponseDto.builder().id(entity.getId()).status(entity.getStatus())
+        return BenefitEnrollmentResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus())
             .collaboratorId(entity.getCollaboratorId()).benefitPlanId(entity.getBenefitPlanId())
             .startDate(entity.getStartDate()).endDate(entity.getEndDate()).monthlyValue(entity.getMonthlyValue())
             .notes(entity.getNotes()).createdAt(entity.getCreatedAt()).updatedAt(entity.getUpdatedAt()).build();

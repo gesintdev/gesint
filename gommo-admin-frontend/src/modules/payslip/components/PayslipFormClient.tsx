@@ -10,6 +10,7 @@ import { payslipKeys } from "@/modules/payslip/payslip.query";
 import { payslipService } from "@/modules/payslip/services/payslip.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString, InputCurrency } from "@/shared/components/ui/input/index";
@@ -99,6 +100,7 @@ export function PayslipFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar holerite" : "Novo(a) holerite"}</p>
       </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <InputString label="Payroll Run  I D" value={form.payrollRunId ?? ""} onValueChange={(v) => update("payrollRunId", v)} required />
       <InputString label="Collaborator  I D" value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
       <InputCurrency label="Valor bruto" value={form.grossAmount ?? ""} onValueChange={(v) => update("grossAmount", v)} emitAsDecimal />

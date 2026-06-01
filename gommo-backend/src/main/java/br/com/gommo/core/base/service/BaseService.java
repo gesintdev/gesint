@@ -11,6 +11,7 @@ import java.util.function.Function;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +47,9 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
     @Override
     @Transactional(readOnly = true)
     public List<ResponseDto> findAll() {
-        return repository.findAllByStatusNot(StatusEnum.DELETED).stream().map(toResponse).toList();
+        return repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+                .map(toResponse)
+                .toList();
     }
 
     @Override
@@ -82,12 +85,9 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
     @Override
     @Transactional(readOnly = true)
     public PageableResponseDto<ResponseDto> findPage(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<T> result = repository.findAll(pageable);
-        List<ResponseDto> content = result.getContent().stream()
-                .filter(e -> e.getStatus() != StatusEnum.DELETED)
-                .map(toResponse)
-                .toList();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<T> result = repository.findAllByStatusNot(StatusEnum.DELETED, pageable);
+        List<ResponseDto> content = result.getContent().stream().map(toResponse).toList();
         return PageableResponseDto.<ResponseDto>builder()
                 .content(content)
                 .page(page)

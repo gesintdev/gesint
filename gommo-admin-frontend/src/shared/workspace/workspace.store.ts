@@ -161,7 +161,10 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             name: "gommo-workspace-tabs",
             storage: createJSONStorage(() => sessionStorage),
             partialize: (state) => ({
-                tabs: state.tabs.map(({icon: _icon, ...rest}) => rest),
+                tabs: state.tabs.map(({icon, ...rest}) => {
+                    void icon;
+                    return rest;
+                }),
                 activeTabId: state.activeTabId,
             }),
             onRehydrateStorage: () => (state) => {

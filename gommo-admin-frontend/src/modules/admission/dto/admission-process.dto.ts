@@ -5,6 +5,7 @@ export type ContractType = "CLT" | "PJ" | "INTERMITTENT" | "APPRENTICE" | "INTER
 
 export class AdmissionProcess {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId?: string;
     admissionStatus!: AdmissionStatus;

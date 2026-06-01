@@ -11,6 +11,7 @@ import { benefitEnrollmentKeys } from "@/modules/payroll/benefitenrollment/benef
 import { benefitEnrollmentService } from "@/modules/payroll/benefitenrollment/services/benefit-enrollment.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -108,9 +109,7 @@ export function BenefitEnrollmentFormClient() {
       }
     >
       <div className="grid gap-3 p-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar vínculo de benefício" : "Novo vínculo de benefício"}</p>
-        </div>
+        <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
         <CollaboratorPickerField value={form.collaboratorId} onValueChange={(v) => update("collaboratorId", v)} required />
         <EntityPickerField
           label="Plano de benefício"

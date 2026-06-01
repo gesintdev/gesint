@@ -1,5 +1,6 @@
 package br.com.gommo.modules.root.entity;
 
+import br.com.gommo.core.entity.CodedEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,11 +22,14 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RefreshToken {
+public class RefreshToken implements CodedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(nullable = false, updatable = false, unique = true)
+    private Integer code;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;

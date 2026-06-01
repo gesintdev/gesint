@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import get from "lodash/get";
 import type {MouseEvent, ReactNode} from "react";
+import {ProfileAvatar} from "@/shared/components/ui/ProfileAvatar";
 import {badgeClassForStatus, formatCellValue} from "@/shared/lib/table/format-cell-value";
 import {TableDataType, type TableColumnConfig} from "@/shared/types/table.types";
 
@@ -47,7 +48,34 @@ function alignClass(align?: TableColumnConfig["align"]) {
     return "text-left";
 }
 
-function renderCellContent(value: unknown, dataType?: TableDataType): ReactNode {
+function renderCellContent(
+    value: unknown,
+    dataType: TableDataType | undefined,
+    row: object,
+    col: TableColumnConfig,
+): ReactNode {
+    if (dataType === TableDataType.AVATAR_PROFILE) {
+        const name = value != null && value !== "" ? String(value) : "—";
+        const photoObjectId = col.avatarImageField
+            ? (get(row, col.avatarImageField) as string | undefined)
+            : undefined;
+        const subtitle = col.avatarSubtitleField ? get(row, col.avatarSubtitleField) : undefined;
+
+        return (
+            <div className="flex items-center gap-3">
+                <ProfileAvatar name={name} photoObjectId={photoObjectId} size="lg" shape="squircle" />
+                <div className="min-w-0">
+                    <div className="truncate font-bold text-base-content">{name}</div>
+                    {subtitle != null && subtitle !== "" ? (
+                        <div className="truncate text-sm opacity-50 tabular-nums">
+                            {formatCellValue(subtitle, TableDataType.CPF)}
+                        </div>
+                    ) : null}
+                </div>
+            </div>
+        );
+    }
+
     if (dataType === TableDataType.EMAIL && value) {
         const email = String(value);
         return (
@@ -180,12 +208,16 @@ export function DataTable<T extends object>({
                                             key={col.id}
                                             className={clsx(
                                                 alignClass(col.align),
-                                                isPrimary && "font-semibold text-base-content",
-                                                !isPrimary && "text-base-content/70",
+                                                col.dataType !== TableDataType.AVATAR_PROFILE &&
+                                                    isPrimary &&
+                                                    "font-semibold text-base-content",
+                                                col.dataType !== TableDataType.AVATAR_PROFILE &&
+                                                    !isPrimary &&
+                                                    "text-base-content/70",
                                                 col.className,
                                             )}
                                         >
-                                            {renderCellContent(raw, col.dataType)}
+                                            {renderCellContent(raw, col.dataType, row, col)}
                                         </td>
                                     );
                                 })}

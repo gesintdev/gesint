@@ -27,6 +27,7 @@ public class JobPositionMapper {
     public JobPositionResponseDto toResponse(JobPosition entity) {
         return JobPositionResponseDto.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .status(entity.getStatus())
                 .departmentId(entity.getDepartmentId())
                 .title(entity.getTitle())

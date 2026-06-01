@@ -26,6 +26,7 @@ import { organizationModule } from "@/modules/organization/organization.module";
 import { personModule } from "@/modules/person/person.module";
 import { payrollModule } from "@/modules/payroll/payroll.module";
 import { insightsModule } from "@/modules/insights/insights.module";
+import { settingsModule } from "@/modules/settings/settings.module";
 
 // -------------------------------------------------------
 // Domínios (rail esquerdo) — ordem alfabética pela sigla
@@ -42,8 +43,11 @@ export const systemModuleGroups: TSystemModuleGroup[] = [
     },
 ];
 
+/** Módulo de configurações (rail inferior — perfis e usuários). */
+export const SETTINGS_NAV_SECTIONS = ModuleEnumHelper.toNavSections([settingsModule]);
+
 /** Todos os módulos registrados (workspace, permissões, etc.) */
-export const modules: TModule[] = systemModuleGroups.flatMap((g) => g.modules);
+export const modules: TModule[] = [...systemModuleGroups.flatMap((g) => g.modules), settingsModule];
 
 /** Seções de todos os domínios (breadcrumbs, busca global) */
 export const ALL_NAV_SECTIONS: NavSection[] = ModuleEnumHelper.toNavSections(modules);

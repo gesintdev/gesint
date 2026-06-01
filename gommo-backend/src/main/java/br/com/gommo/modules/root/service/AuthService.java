@@ -12,7 +12,9 @@ import br.com.gommo.modules.root.entity.Permission;
 import br.com.gommo.modules.root.entity.RefreshToken;
 import br.com.gommo.modules.root.entity.RefreshTokenBlacklist;
 import br.com.gommo.modules.root.entity.Role;
+import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.root.repository.AppUserRepository;
+import br.com.gommo.modules.root.repository.PermissionRepository;
 import br.com.gommo.modules.root.repository.RefreshTokenBlacklistRepository;
 import br.com.gommo.modules.root.repository.RefreshTokenRepository;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService implements IAuthService {
 
     private final AppUserRepository appUserRepository;
+    private final PermissionRepository permissionRepository;
+    private final CollaboratorRepository collaboratorRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenBlacklistRepository blacklistRepository;
     private final PasswordEncoder passwordEncoder;
@@ -39,12 +43,16 @@ public class AuthService implements IAuthService {
 
     public AuthService(
             AppUserRepository appUserRepository,
+            PermissionRepository permissionRepository,
+            CollaboratorRepository collaboratorRepository,
             RefreshTokenRepository refreshTokenRepository,
             RefreshTokenBlacklistRepository blacklistRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
             JwtProperties jwtProperties) {
         this.appUserRepository = appUserRepository;
+        this.permissionRepository = permissionRepository;
+        this.collaboratorRepository = collaboratorRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.blacklistRepository = blacklistRepository;
         this.passwordEncoder = passwordEncoder;
@@ -106,12 +114,7 @@ public class AuthService implements IAuthService {
     }
 
     private TokenResponseDto buildTokenResponse(AppUser user) {
-        List<String> permissions = user.getRoles().stream()
-                .map(Role::getPermissions)
-                .flatMap(java.util.Set::stream)
-                .map(Permission::getCode)
-                .distinct()
-                .toList();
+        List<String> permissions = resolvePermissions(user);
 
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getUsername(), permissions);
         String refreshToken = jwtService.generateRefreshToken(user.getId());
@@ -124,7 +127,37 @@ public class AuthService implements IAuthService {
                 .expiresInSeconds(jwtProperties.accessTokenMinutes() * 60)
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .photoObjectId(resolvePhotoObjectId(user))
                 .build();
+    }
+
+    private List<String> resolvePermissions(AppUser user) {
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> role.isSystemRole() && "ADMIN".equalsIgnoreCase(role.getName()));
+        if (isAdmin) {
+            return permissionRepository.findAll().stream()
+                    .map(Permission::getAuthority)
+                    .distinct()
+                    .sorted()
+                    .toList();
+        }
+        return user.getRoles().stream()
+                .map(Role::getPermissions)
+                .flatMap(java.util.Set::stream)
+                .map(Permission::getAuthority)
+                .distinct()
+                .toList();
+    }
+
+    private UUID resolvePhotoObjectId(AppUser user) {
+        if (user.getCollaboratorId() == null) {
+            return null;
+        }
+        return collaboratorRepository
+                .findById(user.getCollaboratorId())
+                .filter(c -> c.getStatus() != StatusEnum.DELETED)
+                .map(c -> c.getPhotoObjectId())
+                .orElse(null);
     }
 
     private void persistRefreshToken(UUID userId, String rawToken) {

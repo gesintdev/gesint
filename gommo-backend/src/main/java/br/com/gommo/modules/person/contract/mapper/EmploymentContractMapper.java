@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
         entity.setBaseSalary(dto.getBaseSalary()); entity.setWorkloadHours(dto.getWorkloadHours()); entity.setNotes(dto.getNotes());
     }
     public EmploymentContractResponseDto toResponse(EmploymentContract entity) {
-        return EmploymentContractResponseDto.builder().id(entity.getId()).status(entity.getStatus())
+        return EmploymentContractResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus())
             .collaboratorId(entity.getCollaboratorId()).companyId(entity.getCompanyId()).jobPositionId(entity.getJobPositionId())
             .contractType(entity.getContractType()).startDate(entity.getStartDate()).endDate(entity.getEndDate())
             .baseSalary(entity.getBaseSalary()).workloadHours(entity.getWorkloadHours()).notes(entity.getNotes())

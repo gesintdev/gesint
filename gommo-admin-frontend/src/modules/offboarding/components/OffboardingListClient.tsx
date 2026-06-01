@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { OFFBOARDING_CLIENT_MESSAGES } from "@/modules/offboarding/exceptions/offboarding.messages";
 import { OFFBOARDING_TABLE_COLUMNS } from "@/modules/offboarding/config/offboarding.table-columns";
@@ -9,9 +8,8 @@ import type { Offboarding } from "@/modules/offboarding/dto/offboarding.dto";
 import { offboardingKeys } from "@/modules/offboarding/offboarding.query";
 import { offboardingService } from "@/modules/offboarding/services/offboarding.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
-import { Button } from "@/shared/components/ui/Button";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -43,18 +41,12 @@ export function OffboardingListClient() {
             emptyMessage="Nenhum desligamento cadastrado."
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (
-                <>
-                    <OpenInWorkspaceTabButton row={row} />
-                    <Button variant="ghost" size="sm" leftIcon={<Pencil className="size-3.5" />} onClick={() => startEdit(row.id, row)} />
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-error hover:bg-error/10"
-                        leftIcon={<Trash2 className="size-3.5" />}
-                        loading={deleteMutation.isPending && deleteMutation.variables === row.id}
-                        onClick={() => void handleDelete(row)}
-                    />
-                </>
+                <CrudTableActions
+                    row={row}
+                    onEdit={() => startEdit(row.id, row)}
+                    onDelete={() => void handleDelete(row)}
+                    deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                />
             )}
         />
     );

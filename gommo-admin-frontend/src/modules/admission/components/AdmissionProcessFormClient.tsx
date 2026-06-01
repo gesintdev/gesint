@@ -14,6 +14,7 @@ import { admissionprocessKeys } from "@/modules/admission/admission.query";
 import { admissionprocessService } from "@/modules/admission/services/admission-process.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import { EntityAttachments } from "@/shared/components/storage/EntityAttachments";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -177,6 +178,7 @@ export function AdmissionProcessFormClient() {
                     )}
                 </div>
 
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <FormSection title="Processo" description="Status e datas do fluxo de admissão.">
                     <InputSelect
                         label="Status do processo"

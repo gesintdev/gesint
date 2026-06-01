@@ -1,5 +1,6 @@
 export class Payslip {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     payrollRunId!: string;
     collaboratorId!: string;

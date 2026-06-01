@@ -38,7 +38,9 @@ public abstract class BaseController<RequestDto, ResponseDto> {
         return ResponseEntity.ok(service.findPage(page, size));
     }
 
-    @GetMapping("/{id}")
+    private static final String UUID_PATH = "/{id:[0-9a-fA-F\\-]{36}}";
+
+    @GetMapping(UUID_PATH)
     public ResponseEntity<ResponseDto> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -48,12 +50,12 @@ public abstract class BaseController<RequestDto, ResponseDto> {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(UUID_PATH)
     public ResponseEntity<ResponseDto> update(@PathVariable UUID id, @Valid @RequestBody RequestDto request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(UUID_PATH)
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

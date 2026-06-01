@@ -18,6 +18,7 @@ import lombok.Setter;
 public class ClientSubscriptionResponseDto {
 
     private UUID id;
+    private Integer code;
     private StatusEnum status;
     private UUID clientId;
     private String planCode;

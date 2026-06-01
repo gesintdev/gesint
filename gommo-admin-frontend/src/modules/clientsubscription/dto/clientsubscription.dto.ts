@@ -1,5 +1,6 @@
 export class ClientSubscription {
     id!: string;
+    code!: number;
     status!: string;
     clientId!: string;
     planCode!: string;

@@ -54,6 +54,7 @@ export enum ModuleEnum {
     PERSON = "person",
     PAYROLL      = "payroll",
     INSIGHTS     = "insights",
+    SETTINGS     = "settings",
 }
 
 // ─────────────────────────────────────────────
@@ -115,6 +116,11 @@ export class ModuleEnumHelper implements IModuleHelper {
             id: "insights",
             name: "Insights",
             order: 5,
+        },
+        [ModuleEnum.SETTINGS]: {
+            id: "settings",
+            name: "Configurações",
+            order: 99,
         },
     };
 

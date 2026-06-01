@@ -11,6 +11,7 @@ public class AdminUserMapper {
     public AdminUserResponseDto toResponse(AdminUser entity) {
         return AdminUserResponseDto.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .status(entity.getStatus())
                 .username(entity.getUsername())
                 .email(entity.getEmail())

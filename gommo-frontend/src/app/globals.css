@@ -161,6 +161,14 @@
     --color-base-content: oklch(95% 0.008 260);
     --color-primary: var(--gommo-primary-light);
     --color-primary-content: #ffffff;
+    --color-info: var(--gommo-info);
+    --color-info-content: var(--gommo-info-content);
+    --color-success: var(--gommo-success);
+    --color-success-content: var(--gommo-success-content);
+    --color-warning: var(--gommo-warning);
+    --color-warning-content: var(--gommo-warning-content);
+    --color-error: var(--gommo-error);
+    --color-error-content: var(--gommo-error-content);
     --radius-field: var(--gommo-control-radius);
     --radius-box: var(--radius-gommo-card-lg);
 }
@@ -982,7 +990,8 @@ aside[data-collapsed="true"] .sidebar-copy,
     overflow-y: hidden;
     border-bottom: 1px solid var(--gommo-border-subtle);
     background: var(--color-base-100);
-    padding: 0 1rem;
+    padding: 0 0.75rem;
+    min-height: 2.125rem;
 }
 
 [data-theme="dark"] .gommo-crud-tablist {
@@ -995,9 +1004,9 @@ aside[data-collapsed="true"] .sidebar-copy,
     cursor: pointer;
     border: 0;
     background: transparent;
-    padding: 0.625rem 0.75rem;
+    padding: 0.375rem 0.625rem;
     font: inherit;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     letter-spacing: -0.01em;
     font-variation-settings: "wght" 500;
     color: color-mix(in srgb, var(--color-base-content) 45%, transparent);
@@ -1029,6 +1038,214 @@ aside[data-collapsed="true"] .sidebar-copy,
 
 [data-theme="dark"] .gommo-crud-tab--active::after {
     background: var(--color-primary);
+}
+
+/* Form stepper (cadastros multi-etapa) */
+.form-stepper__toolbar-shell {
+    flex-shrink: 0;
+    padding: 1rem 1rem 0;
+}
+
+.form-stepper__toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem 1rem;
+    padding: 0.75rem 1.25rem;
+}
+
+.form-stepper__toolbar--no-code {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.form-stepper__code {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding-right: 1rem;
+    margin-right: 0.25rem;
+    border-right: 1px solid color-mix(in srgb, var(--gommo-primary) 14%, var(--gommo-border-subtle));
+    min-height: 2.75rem;
+}
+
+[data-theme="dark"] .form-stepper__code {
+    border-right-color: color-mix(in srgb, var(--gommo-primary-light) 16%, transparent);
+}
+
+.form-stepper__code-value {
+    font-size: 1.0625rem;
+    font-variation-settings: "wght" 650;
+    letter-spacing: -0.02em;
+    color: color-mix(in srgb, var(--color-secondary) 88%, var(--color-base-content));
+}
+
+.gommo-form-stepper {
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+[data-theme="dark"] .gommo-form-stepper {
+    background: transparent;
+}
+
+.gommo-form-stepper__list {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0;
+    width: max-content;
+    min-width: min-content;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gommo-form-stepper__item {
+    position: relative;
+    display: flex;
+    flex: 0 0 auto;
+    min-width: 5.5rem;
+    flex-direction: column;
+    align-items: center;
+}
+
+.gommo-form-stepper__item--has-line {
+    padding-right: 0.25rem;
+}
+
+.gommo-form-stepper__line {
+    position: absolute;
+    top: 0.875rem;
+    left: calc(50% + 0.875rem);
+    right: calc(-50% + 0.875rem);
+    height: 2px;
+    border-radius: 1px;
+    background: color-mix(in srgb, var(--color-base-content) 12%, transparent);
+    pointer-events: none;
+}
+
+.gommo-form-stepper__line--active {
+    background: color-mix(in srgb, var(--gommo-primary) 55%, transparent);
+}
+
+.gommo-form-stepper__step {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    border: 0;
+    background: transparent;
+    padding: 0 0.25rem 0.125rem;
+    font: inherit;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.gommo-form-stepper__step:not(:disabled):hover .gommo-form-stepper__label {
+    color: color-mix(in srgb, var(--color-base-content) 78%, transparent);
+}
+
+.form-stepper__scroll {
+    scroll-behavior: smooth;
+}
+
+.gommo-form-stepper__badge {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    border: 1.5px solid color-mix(in srgb, var(--color-base-content) 18%, transparent);
+    font-size: 0.6875rem;
+    font-variation-settings: "wght" 600;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    background: var(--color-base-100);
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.gommo-form-stepper__step--active .gommo-form-stepper__badge,
+.gommo-form-stepper__step--done .gommo-form-stepper__badge {
+    border-color: var(--gommo-primary);
+    color: var(--color-primary-content);
+    background: var(--gommo-primary);
+}
+
+.gommo-form-stepper__label {
+    max-width: 5.75rem;
+    text-align: center;
+    font-size: 0.6875rem;
+    line-height: 1.25;
+    font-variation-settings: "wght" 500;
+    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
+    transition: color 0.15s ease;
+}
+
+.gommo-form-stepper__step--active .gommo-form-stepper__label {
+    font-variation-settings: "wght" 650;
+    color: var(--gommo-primary);
+}
+
+.gommo-form-stepper__step--done .gommo-form-stepper__label {
+    color: color-mix(in srgb, var(--color-base-content) 72%, transparent);
+}
+
+.gommo-form-stepper__step--filled .gommo-form-stepper__badge {
+    border-color: var(--color-success);
+    color: var(--color-success-content);
+    background: var(--color-success);
+}
+
+.gommo-form-stepper__step--filled .gommo-form-stepper__label {
+    color: color-mix(in srgb, var(--color-success) 88%, var(--color-base-content));
+}
+
+.gommo-form-stepper__step--filled.gommo-form-stepper__step--active .gommo-form-stepper__badge {
+    border-color: var(--gommo-primary);
+    color: var(--color-primary-content);
+    background: var(--gommo-primary);
+}
+
+.gommo-form-stepper__step--filled.gommo-form-stepper__step--active .gommo-form-stepper__label {
+    color: var(--gommo-primary);
+}
+
+.gommo-form-stepper__line--filled {
+    background: color-mix(in srgb, var(--color-success) 45%, transparent);
+}
+
+.form-stepper__panel-header {
+    margin-bottom: 1rem;
+}
+
+.form-stepper__panel-title {
+    font-size: 0.9375rem;
+    font-variation-settings: "wght" 650;
+    letter-spacing: -0.015em;
+    color: var(--gommo-primary);
+}
+
+[data-theme="dark"] .form-stepper__panel-title {
+    color: var(--color-primary);
+}
+
+.form-stepper__panel-description {
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
+}
+
+.form-stepper__panel-body {
+    display: grid;
+    gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+    .form-stepper__panel-body {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 .crud-tablist {
@@ -1167,6 +1384,37 @@ aside[data-collapsed="true"] .sidebar-copy,
     font-size: 0.8125rem;
 }
 
+.nav-route-tree--embedded .nav-section-label {
+    font-size: 0.6875rem;
+}
+
+.nav-route-tree--embedded .nav-item {
+    height: auto;
+    min-height: 1.9375rem;
+    font-size: 0.875rem;
+    padding: 0.3125rem 0.625rem;
+}
+
+.nav-route-tree--embedded .nav-item-child {
+    font-size: 0.8125rem;
+}
+
+.nav-route-tree--embedded .nav-group-children {
+    margin-left: 0.375rem;
+    padding-left: 0.375rem;
+}
+
+.nav-item-marked:not(.nav-item-active) {
+    background: color-mix(in srgb, var(--gommo-success) 12%, transparent);
+    color: color-mix(in srgb, var(--gommo-success) 88%, var(--color-base-content));
+    font-variation-settings: "wght" 560;
+}
+
+[data-theme="dark"] .nav-item-marked:not(.nav-item-active) {
+    background: color-mix(in srgb, var(--gommo-success) 18%, transparent);
+    color: color-mix(in srgb, var(--gommo-success) 55%, #86efac);
+}
+
 /* ──────────────────────────────────────────────
    Skeleton shimmer
 ────────────────────────────────────────────── */
@@ -1245,7 +1493,77 @@ aside[data-collapsed="true"] .sidebar-copy,
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 0.125rem;
+    gap: 0.375rem;
+}
+
+.gommo-table .gommo-table-action--open,
+.gommo-table .gommo-table-action--edit,
+.gommo-table .gommo-table-action--delete,
+.gommo-table .gommo-table-action--download {
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.gommo-table .gommo-btn.gommo-table-action--open {
+    color: var(--gommo-info);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--open:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--gommo-info) 14%, transparent);
+    color: var(--gommo-info);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--open svg {
+    stroke: var(--gommo-info);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--edit {
+    color: var(--gommo-primary-light);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--edit:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--gommo-primary-light) 14%, transparent);
+    color: var(--gommo-primary-light);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--edit svg {
+    stroke: var(--gommo-primary-light);
+}
+
+[data-theme="gommo"] .gommo-table .gommo-btn.gommo-table-action--edit,
+[data-theme="gommo"] .gommo-table .gommo-btn.gommo-table-action--edit svg {
+    color: var(--gommo-primary);
+    stroke: var(--gommo-primary);
+}
+
+[data-theme="gommo"] .gommo-table .gommo-btn.gommo-table-action--edit:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--gommo-primary) 12%, transparent);
+    color: var(--gommo-primary);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--delete {
+    color: var(--gommo-error);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--delete:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--gommo-error) 14%, transparent);
+    color: var(--gommo-error);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--delete svg {
+    stroke: var(--gommo-error);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--download {
+    color: var(--gommo-success);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--download:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--gommo-success) 14%, transparent);
+    color: var(--gommo-success);
+}
+
+.gommo-table .gommo-btn.gommo-table-action--download svg {
+    stroke: var(--gommo-success);
 }
 
 .gommo-table tbody tr {
@@ -1416,6 +1734,7 @@ kbd {
     border-radius: var(--gommo-tab-radius);
     border: 1px solid var(--gommo-border-subtle);
     background: color-mix(in srgb, var(--color-base-content) 2%, var(--color-base-100));
+    scroll-margin-top: 0.5rem;
 
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02) inset,
     0 2px 6px rgba(0, 0, 0, 0.04),
@@ -1489,6 +1808,14 @@ kbd {
     overflow-y: auto;
 }
 
+.crud-form-shell__body:has(.form-stepper) {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 .crud-form-shell__footer {
     flex-shrink: 0;
     border-top: 1px solid var(--gommo-border-subtle);
@@ -1507,6 +1834,7 @@ kbd {
     justify-content: flex-end;
     align-items: center;
     gap: 0.5rem;
+    width: 100%;
 }
 
 /* ──────────────────────────────────────────────

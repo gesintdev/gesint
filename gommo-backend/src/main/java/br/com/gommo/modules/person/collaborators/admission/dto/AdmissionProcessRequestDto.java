@@ -27,6 +27,7 @@ public class AdmissionProcessRequestDto {
     private AdmissionStatusEnum admissionStatus;
     private LocalDate startedAt;
     private String notes;
+    private UUID photoObjectId;
 
     @NotBlank
     @Size(max = 200)

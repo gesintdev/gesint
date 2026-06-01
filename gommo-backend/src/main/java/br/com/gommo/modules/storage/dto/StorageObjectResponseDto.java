@@ -12,6 +12,7 @@ import lombok.Getter;
 public class StorageObjectResponseDto {
 
     private final UUID id;
+    private final Integer code;
     private final StatusEnum status;
     private final String bucket;
     private final String objectKey;

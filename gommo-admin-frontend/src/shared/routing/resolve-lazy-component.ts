@@ -13,8 +13,8 @@ export function lazyNamed<T extends ComponentType>(
     exportName: string,
 ): LazyComponent {
     return async () => {
-        const module = await factory();
-        const component = module[exportName];
+        const loadedModule = await factory();
+        const component = loadedModule[exportName];
         if (!component) {
             throw new Error(`Export "${exportName}" não encontrado no módulo lazy.`);
         }

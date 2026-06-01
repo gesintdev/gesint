@@ -20,6 +20,7 @@ import lombok.Setter;
 public class ClientResponseDto {
 
     private UUID id;
+    private Integer code;
     private StatusEnum status;
     private String name;
     private String slug;

@@ -14,12 +14,17 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
     const Form = toLazy(config.form);
     const PrimaryAction = config.listPrimaryAction ? toLazy(config.listPrimaryAction) : null;
 
-    const {
+    const tabbedCrudProps = (({
         list: _list,
         form: _form,
         listPrimaryAction: _listPrimaryAction,
-        ...tabbedCrudProps
-    } = config;
+        ...rest
+    }: TabbedCrudRouteConfig) => {
+        void _list;
+        void _form;
+        void _listPrimaryAction;
+        return rest;
+    })(config);
 
     return function TabbedCrudWorkspacePage() {
         const list = (

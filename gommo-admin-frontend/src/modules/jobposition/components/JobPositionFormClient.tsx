@@ -10,6 +10,7 @@ import { jobpositionKeys } from "@/modules/jobposition/jobposition.query";
 import { jobpositionService } from "@/modules/jobposition/services/jobposition.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString } from "@/shared/components/ui/input/index";
@@ -94,6 +95,7 @@ export function JobPositionFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar cargo" : "Novo(a) cargo"}</p>
       </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <InputString label="Title" value={form.title ?? ""} onValueChange={(v) => update("title", v)} required />
       <InputString label="Cbo Code" value={form.cboCode ?? ""} onValueChange={(v) => update("cboCode", v)}  />
       <InputString label="Department  I D" value={form.departmentId ?? ""} onValueChange={(v) => update("departmentId", v)}  />

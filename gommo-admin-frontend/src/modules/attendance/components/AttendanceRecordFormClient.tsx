@@ -10,6 +10,7 @@ import { attendancerecordKeys } from "@/modules/attendance/attendance.query";
 import { attendancerecordService } from "@/modules/attendance/services/attendance-record.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString, InputDate } from "@/shared/components/ui/input/index";
@@ -94,6 +95,7 @@ export function AttendanceRecordFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar registro de ponto" : "Novo(a) registro de ponto"}</p>
       </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <InputString label="Collaborator  I D" value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
       <InputDate label="Work Date" value={form.workDate ?? ""} onValueChange={(v) => update("workDate", v)} required />
       <InputString label="Clock In" value={form.clockIn ?? ""} onValueChange={(v) => update("clockIn", v)} hint="HH:mm" />

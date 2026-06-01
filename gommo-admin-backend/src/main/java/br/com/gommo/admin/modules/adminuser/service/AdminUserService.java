@@ -34,7 +34,7 @@ public class AdminUserService implements IAdminUserService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('platform:admin')")
     public List<AdminUserResponseDto> findAll() {
-        return repository.findAllByStatusNot(StatusEnum.DELETED).stream()
+        return repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
                 .map(mapper::toResponse)
                 .toList();
     }

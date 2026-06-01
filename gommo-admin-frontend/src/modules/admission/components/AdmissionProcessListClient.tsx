@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ADMISSION_CLIENT_MESSAGES } from "@/modules/admission/exceptions/admission-process.messages";
 import { ADMISSION_TABLE_COLUMNS } from "@/modules/admission/config/admission-process.table-columns";
@@ -9,9 +8,8 @@ import type { AdmissionProcess } from "@/modules/admission/dto/admission-process
 import { admissionprocessKeys } from "@/modules/admission/admission.query";
 import { admissionprocessService } from "@/modules/admission/services/admission-process.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
-import { Button } from "@/shared/components/ui/Button";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -43,11 +41,12 @@ export function AdmissionProcessListClient() {
             emptyMessage="Nenhum(a) admissão cadastrado(a)."
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (
-                <>
-                    <OpenInWorkspaceTabButton row={row} />
-                    <Button variant="ghost" size="sm" aria-label="Editar" leftIcon={<Pencil className="size-3.5" />} onClick={() => startEdit(row.id, row)} />
-                    <Button variant="ghost" size="sm" aria-label="Excluir" className="text-error hover:bg-error/10" leftIcon={<Trash2 className="size-3.5" />} loading={deleteMutation.isPending && deleteMutation.variables === row.id} onClick={() => handleDelete(row)} />
-                </>
+                <CrudTableActions
+                    row={row}
+                    onEdit={() => startEdit(row.id, row)}
+                    onDelete={() => void handleDelete(row)}
+                    deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                />
             )}
         />
     );

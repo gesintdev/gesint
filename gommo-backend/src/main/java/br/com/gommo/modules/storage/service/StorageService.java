@@ -68,7 +68,8 @@ public class StorageService implements IStorageService {
                 Files.copy(din, targetFile, StandardCopyOption.REPLACE_EXISTING);
             }
             String sha256Hex = HexFormat.of().formatHex(digest.digest());
-            String etag = "\"" + sha256Hex + "\"";
+            // etag VARCHAR(64): hash hex cabe exatamente; aspas estourariam o limite
+            String etag = sha256Hex;
 
             StorageObject entity = StorageObject.builder()
                     .bucket(properties.bucket() != null ? properties.bucket() : "gommo-local")

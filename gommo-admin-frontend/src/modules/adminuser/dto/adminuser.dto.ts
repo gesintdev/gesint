@@ -1,5 +1,6 @@
 export class AdminUser {
     id!: string;
+    code!: number;
     status!: string;
     username!: string;
     email!: string;

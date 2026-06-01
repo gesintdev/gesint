@@ -11,6 +11,7 @@ import lombok.Getter;
 public class JobPositionResponseDto {
 
     private final UUID id;
+    private final Integer code;
     private final StatusEnum status;
     private final UUID departmentId;
     private final String title;

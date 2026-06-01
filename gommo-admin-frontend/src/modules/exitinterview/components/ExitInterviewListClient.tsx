@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EXITINTERVIEW_CLIENT_MESSAGES } from "@/modules/exitinterview/exceptions/exit-interview.messages";
 import { EXITINTERVIEW_TABLE_COLUMNS } from "@/modules/exitinterview/config/exit-interview.table-columns";
@@ -9,9 +8,8 @@ import type { ExitInterview } from "@/modules/exitinterview/dto/exit-interview.d
 import { exitinterviewKeys } from "@/modules/exitinterview/exitinterview.query";
 import { exitinterviewService } from "@/modules/exitinterview/services/exit-interview.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
-import { Button } from "@/shared/components/ui/Button";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -43,11 +41,12 @@ export function ExitInterviewListClient() {
             emptyMessage="Nenhum(a) entrevista de desligamento cadastrado(a)."
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (
-                <>
-                    <OpenInWorkspaceTabButton row={row} />
-                    <Button variant="ghost" size="sm" aria-label="Editar" leftIcon={<Pencil className="size-3.5" />} onClick={() => startEdit(row.id, row)} />
-                    <Button variant="ghost" size="sm" aria-label="Excluir" className="text-error hover:bg-error/10" leftIcon={<Trash2 className="size-3.5" />} loading={deleteMutation.isPending && deleteMutation.variables === row.id} onClick={() => handleDelete(row)} />
-                </>
+                <CrudTableActions
+                    row={row}
+                    onEdit={() => startEdit(row.id, row)}
+                    onDelete={() => void handleDelete(row)}
+                    deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                />
             )}
         />
     );

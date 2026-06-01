@@ -53,6 +53,7 @@ public class CompanyMapper {
     public CompanyResponseDto toResponse(Company entity) {
         return CompanyResponseDto.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .status(entity.getStatus())
                 .legalName(entity.getLegalName())
                 .tradeName(entity.getTradeName())

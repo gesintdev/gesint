@@ -13,6 +13,7 @@ class TokenResponse {
   expiresInSeconds!: number;
   username?: string;
   email?: string;
+  photoObjectId?: string;
 }
 
 const secureCookies = process.env.NODE_ENV === "production";
@@ -73,6 +74,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             id: credentials.username as string,
             name: data.username ?? (credentials.username as string),
             email: data.email,
+            photoObjectId: data.photoObjectId,
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
             accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
@@ -100,6 +102,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           sub: user.id,
           name: user.name,
           email: user.email,
+          photoObjectId: user.photoObjectId,
           accessToken: user.accessToken,
           refreshToken: user.refreshToken,
           accessTokenExpires: user.accessTokenExpires,
@@ -121,6 +124,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.name = (token.name as string | undefined) ?? session.user.name;
         session.user.email = (token.email as string | undefined) ?? session.user.email;
+        session.user.photoObjectId = token.photoObjectId as string | undefined;
       }
 
       if (token.error) {

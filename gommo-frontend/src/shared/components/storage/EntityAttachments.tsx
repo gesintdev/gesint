@@ -6,10 +6,12 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import type { StorageObjectLink } from "@/modules/storage/dto/storage.dto";
 import { storageService } from "@/modules/storage/services/storage.service";
+import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { Button } from "@/shared/components/ui/Button";
 import { DataTable } from "@/shared/components/ui/DataTable";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
+import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
 import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
 
 const ATTACHMENT_COLUMNS: TableColumnConfig[] = [
@@ -80,7 +82,7 @@ export function EntityAttachments({ entityType, entityId, linkRole = "DOCUMENT" 
         );
     }
 
-    const rows = linksQuery.data ?? [];
+    const rows = sortRowsByCreatedAtDesc(linksQuery.data ?? []);
 
     return (
         <div className="grid gap-3">
@@ -117,9 +119,8 @@ export function EntityAttachments({ entityType, entityId, linkRole = "DOCUMENT" 
                     emptyMessage="Nenhum documento anexado."
                     renderActions={(row) => (
                         <>
-                            <Button
-                                variant="ghost"
-                                size="sm"
+                            <TableActionButton
+                                actionVariant="download"
                                 aria-label="Download"
                                 leftIcon={<Download className="size-3.5" />}
                                 onClick={() => {
@@ -127,11 +128,9 @@ export function EntityAttachments({ entityType, entityId, linkRole = "DOCUMENT" 
                                     window.open(url, "_blank");
                                 }}
                             />
-                            <Button
-                                variant="ghost"
-                                size="sm"
+                            <TableActionButton
+                                actionVariant="delete"
                                 aria-label="Excluir"
-                                className="text-error hover:bg-error/10"
                                 leftIcon={<Trash2 className="size-3.5" />}
                                 loading={deleteMutation.isPending}
                                 onClick={async () => {

@@ -10,6 +10,7 @@ import { benefitplanKeys } from "@/modules/benefit/benefit.query";
 import { benefitplanService } from "@/modules/benefit/services/benefit-plan.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString, InputCurrency } from "@/shared/components/ui/input/index";
@@ -98,6 +99,7 @@ export function BenefitPlanFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar benefício" : "Novo(a) benefício"}</p>
       </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <InputString label="Name" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
       <InputString label="Benefit Type" value={form.benefitType ?? ""} onValueChange={(v) => update("benefitType", v)} required />
       <InputCurrency label="Valor mensal" value={form.monthlyValue ?? ""} onValueChange={(v) => update("monthlyValue", v)} emitAsDecimal />

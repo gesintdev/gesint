@@ -10,6 +10,7 @@ import { employmentcontractKeys } from "@/modules/contract/contract.query";
 import { employmentcontractService } from "@/modules/contract/services/employment-contract.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString, InputDate, InputCurrency, InputSelect } from "@/shared/components/ui/input/index";
@@ -98,6 +99,7 @@ export function EmploymentContractFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar contrato" : "Novo(a) contrato"}</p>
       </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <InputString label="Collaborator  I D" value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
       <InputSelect
         label="Contract Type"

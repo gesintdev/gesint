@@ -62,7 +62,10 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     }, [query, flat, isSearching]);
 
     const onMobileCloseRef = useRef(onMobileCloseAction);
-    onMobileCloseRef.current = onMobileCloseAction;
+
+    useEffect(() => {
+        onMobileCloseRef.current = onMobileCloseAction;
+    }, [onMobileCloseAction]);
 
     useEffect(() => {
         onMobileCloseRef.current?.();

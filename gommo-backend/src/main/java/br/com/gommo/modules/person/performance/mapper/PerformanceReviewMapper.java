@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
         entity.setReviewerName(dto.getReviewerName());
     }
     public PerformanceReviewResponseDto toResponse(PerformanceReview entity) {
-        return PerformanceReviewResponseDto.builder().id(entity.getId()).status(entity.getStatus())
+        return PerformanceReviewResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus())
             .collaboratorId(entity.getCollaboratorId()).periodStart(entity.getPeriodStart())
             .periodEnd(entity.getPeriodEnd()).rating(entity.getRating()).goalsSummary(entity.getGoalsSummary())
             .feedback(entity.getFeedback()).reviewerName(entity.getReviewerName())

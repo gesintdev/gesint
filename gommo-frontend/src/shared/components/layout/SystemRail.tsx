@@ -1,16 +1,29 @@
 "use client";
 
 import clsx from "clsx";
+import { Settings } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { settingsRoutes } from "@/modules/settings/config/settings.routes";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
 import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
+import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 
-/** Coluna esquerda do sidebar — domínios (DP / RH). Largura fixa; não retrai. */
 export function SystemRail() {
-    const { activeSystem, systems, selectSystem } = useActiveSystem();
+    const pathname = usePathname();
+    const { activeSystem, systems, selectSystem, isSettingsMode, openSettings } = useActiveSystem();
+    const { openRouteModule } = useWorkspaceNavigation();
 
     const handleSelect = (system: SystemEnum) => {
-        if (system === activeSystem) return;
+        if (system === activeSystem && !isSettingsMode) return;
         selectSystem(system);
+    };
+
+    const handleOpenSettings = () => {
+        openSettings();
+        const firstRoute = settingsRoutes[0];
+        if (firstRoute?.href && !pathname.startsWith("/settings")) {
+            openRouteModule(firstRoute);
+        }
     };
 
     return (
@@ -25,7 +38,7 @@ export function SystemRail() {
             <div className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto px-1 py-3">
                 {systems.map((system) => {
                     const Icon = system.icon;
-                    const selected = system.id === activeSystem;
+                    const selected = !isSettingsMode && system.id === activeSystem;
 
                     return (
                         <button
@@ -45,6 +58,23 @@ export function SystemRail() {
                         </button>
                     );
                 })}
+            </div>
+
+            <div
+                className="mt-auto flex flex-col items-center border-t px-1 pb-3 pt-2"
+                style={{ borderColor: "var(--system-rail-border)" }}
+            >
+                <button
+                    type="button"
+                    title="Configurações do sistema"
+                    aria-label="Configurações do sistema"
+                    aria-current={isSettingsMode ? "true" : undefined}
+                    onClick={handleOpenSettings}
+                    className={clsx("system-rail-item", isSettingsMode && "system-rail-item--active")}
+                >
+                    <Settings className="size-4 shrink-0" strokeWidth={isSettingsMode ? 2.25 : 2} />
+                    <span className="system-rail-acronym">CFG</span>
+                </button>
             </div>
         </nav>
     );

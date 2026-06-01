@@ -1,5 +1,6 @@
 export class BenefitEnrollment {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
     benefitPlanId!: string;

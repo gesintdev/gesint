@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { TAX_TABLE_COLUMNS } from "@/modules/payroll/tax/config/tax-obligation.table-columns";
 import type { TaxObligation } from "@/modules/payroll/tax/dto/tax-obligation.dto";
@@ -9,9 +8,8 @@ import { TAX_CLIENT_MESSAGES } from "@/modules/payroll/tax/exceptions/tax-obliga
 import { taxObligationKeys } from "@/modules/payroll/tax/tax.query";
 import { taxObligationService } from "@/modules/payroll/tax/services/tax-obligation.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
-import { Button } from "@/shared/components/ui/Button";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -43,11 +41,12 @@ export function TaxObligationListClient() {
             emptyMessage="Nenhuma obrigação fiscal cadastrada."
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (
-                <>
-                    <OpenInWorkspaceTabButton row={row} />
-                    <Button variant="ghost" size="sm" aria-label="Editar" leftIcon={<Pencil className="size-3.5" />} onClick={() => startEdit(row.id, row)} />
-                    <Button variant="ghost" size="sm" aria-label="Excluir" className="text-error hover:bg-error/10" leftIcon={<Trash2 className="size-3.5" />} loading={deleteMutation.isPending && deleteMutation.variables === row.id} onClick={() => handleDelete(row)} />
-                </>
+                <CrudTableActions
+                    row={row}
+                    onEdit={() => startEdit(row.id, row)}
+                    onDelete={() => void handleDelete(row)}
+                    deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                />
             )}
         />
     );

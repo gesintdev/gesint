@@ -1,5 +1,6 @@
 package br.com.gommo.modules.root.entity;
 
+import br.com.gommo.core.entity.CodedEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,11 +22,14 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RefreshTokenBlacklist {
+public class RefreshTokenBlacklist implements CodedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(nullable = false, updatable = false, unique = true)
+    private Integer code;
 
     @Column(name = "token_hash", nullable = false, unique = true)
     private String tokenHash;

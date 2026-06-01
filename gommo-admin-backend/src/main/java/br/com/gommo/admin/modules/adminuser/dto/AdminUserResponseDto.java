@@ -17,6 +17,7 @@ import lombok.Setter;
 public class AdminUserResponseDto {
 
     private UUID id;
+    private Integer code;
     private StatusEnum status;
     private String username;
     private String email;

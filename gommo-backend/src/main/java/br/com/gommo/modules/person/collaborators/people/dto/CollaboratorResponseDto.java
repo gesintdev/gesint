@@ -14,6 +14,7 @@ import lombok.Getter;
 public class CollaboratorResponseDto {
 
     private final UUID id;
+    private final Integer code;
     private final StatusEnum status;
     private final String fullName;
     private final String socialName;
@@ -26,6 +27,9 @@ public class CollaboratorResponseDto {
     private final String fatherName;
     private final String nationality;
     private final String pisPasep;
+    private final String email;
+    private final String phone;
+    private final UUID photoObjectId;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

@@ -86,6 +86,7 @@ public class CollaboratorProfileService {
         collaborator.setFatherName(dto.getFatherName());
         collaborator.setNationality(dto.getNationality());
         collaborator.setPisPasep(dto.getPisPasep());
+        collaborator.setPhotoObjectId(dto.getPhotoObjectId());
         collaboratorRepository.save(collaborator);
         return collaboratorId;
     }
@@ -136,6 +137,7 @@ public class CollaboratorProfileService {
                 .fatherName(request.getFatherName())
                 .nationality(request.getNationality())
                 .pisPasep(request.getPisPasep())
+                .photoObjectId(request.getPhotoObjectId())
                 .build();
     }
 }

@@ -7,9 +7,11 @@ import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/organization/jobposition/
 import type { JobPositionCreateDto } from "@/modules/organization/jobposition/dto/jobposition.dto";
 import { emptyJobPositionForm, jobpositionToFormDto } from "@/modules/organization/jobposition/lib/jobposition.mapper";
 import { jobpositionKeys } from "@/modules/organization/jobposition/jobposition.query";
+import { DepartmentPickerField } from "@/modules/organization/department/components/DepartmentPickerField";
 import { jobpositionService } from "@/modules/organization/jobposition/services/jobposition.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString } from "@/shared/components/ui/input/index";
@@ -91,12 +93,14 @@ export function JobPositionFormClient() {
       }
     >
     <div className="grid gap-3 p-4 sm:grid-cols-2">
-      <div className="sm:col-span-2">
-        <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar cargo" : "Novo(a) cargo"}</p>
-      </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <InputString label="Título do cargo" value={form.title ?? ""} onValueChange={(v) => update("title", v)} required />
       <InputString label="Código CBO" value={form.cboCode ?? ""} onValueChange={(v) => update("cboCode", v)} />
-      <InputString label="Departamento" value={form.departmentId ?? ""} onValueChange={(v) => update("departmentId", v)} hint="ID do departamento" />
+      <DepartmentPickerField
+        value={form.departmentId ?? ""}
+        onValueChange={(v) => update("departmentId", v || undefined)}
+        wrapperClassName="sm:col-span-2"
+      />
       {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
     </div>
     </CrudFormShell>

@@ -15,7 +15,7 @@ import java.math.BigDecimal;
         if (dto.getNetAmount() != null) entity.setNetAmount(dto.getNetAmount());
     }
     public PayslipResponseDto toResponse(Payslip entity) {
-        return PayslipResponseDto.builder().id(entity.getId()).status(entity.getStatus())
+        return PayslipResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus())
             .payrollRunId(entity.getPayrollRunId()).collaboratorId(entity.getCollaboratorId())
             .grossAmount(entity.getGrossAmount()).deductionsAmount(entity.getDeductionsAmount()).netAmount(entity.getNetAmount())
             .createdAt(entity.getCreatedAt()).updatedAt(entity.getUpdatedAt()).build();

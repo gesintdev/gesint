@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
         entity.setNotes(dto.getNotes());
     }
     public TaxObligationResponseDto toResponse(TaxObligation entity) {
-        return TaxObligationResponseDto.builder().id(entity.getId()).status(entity.getStatus())
+        return TaxObligationResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus())
             .collaboratorId(entity.getCollaboratorId()).obligationType(entity.getObligationType())
             .referenceCode(entity.getReferenceCode()).startDate(entity.getStartDate()).endDate(entity.getEndDate())
             .baseAmount(entity.getBaseAmount()).ratePercent(entity.getRatePercent()).notes(entity.getNotes())

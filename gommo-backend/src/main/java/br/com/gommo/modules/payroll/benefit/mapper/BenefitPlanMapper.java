@@ -12,7 +12,7 @@ import br.com.gommo.modules.payroll.benefit.dto.*; import br.com.gommo.modules.p
         entity.setStartDate(dto.getStartDate()); entity.setEndDate(dto.getEndDate());
     }
     public BenefitPlanResponseDto toResponse(BenefitPlan entity) {
-        return BenefitPlanResponseDto.builder().id(entity.getId()).status(entity.getStatus()).name(entity.getName())
+        return BenefitPlanResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus()).name(entity.getName())
             .benefitType(entity.getBenefitType()).monthlyValue(entity.getMonthlyValue()).description(entity.getDescription())
             .startDate(entity.getStartDate()).endDate(entity.getEndDate())
             .createdAt(entity.getCreatedAt()).updatedAt(entity.getUpdatedAt()).build();

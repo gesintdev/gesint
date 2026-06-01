@@ -2,6 +2,7 @@ export type TaxObligationType = "IRRF" | "INSS" | "FGTS" | "OTHER";
 
 export class TaxObligation {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
     obligationType!: TaxObligationType;

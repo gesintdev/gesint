@@ -1,5 +1,6 @@
 export class ClientPayment {
     id!: string;
+    code!: number;
     status!: string;
     clientId!: string;
     referenceCode?: string;

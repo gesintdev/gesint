@@ -1,6 +1,6 @@
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { comingSoonRoute, lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
-import { Briefcase, KeyRound, Network, Shield, Users } from "lucide-react";
+import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
+import { Briefcase, Network } from "lucide-react";
 
 export const organizationRoutes: AppRoute[] = [
     routeGroup({
@@ -41,30 +41,6 @@ export const organizationRoutes: AppRoute[] = [
                     () => import("@/modules/organization/jobposition/components/JobPositionFormClient"),
                     "JobPositionFormClient",
                 ),
-            }),
-            comingSoonRoute({
-                id: "users",
-                href: "/organization/users",
-                label: "Usuários",
-                icon: Users,
-                title: "Usuários internos",
-                description: "Cadastro de usuários da empresa com acesso ao sistema de RH.",
-            }),
-            comingSoonRoute({
-                id: "roles",
-                href: "/organization/roles",
-                label: "Perfis",
-                icon: Shield,
-                title: "Perfis de acesso",
-                description: "Agrupamento de permissões por função (ex.: RH, gestor, colaborador).",
-            }),
-            comingSoonRoute({
-                id: "permissions",
-                href: "/organization/permissions",
-                label: "Permissões",
-                icon: KeyRound,
-                title: "Permissões",
-                description: "Controle fino de ações permitidas por módulo dentro do tenant.",
             }),
         ],
     }),

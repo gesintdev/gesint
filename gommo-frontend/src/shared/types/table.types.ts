@@ -11,6 +11,8 @@ export enum TableDataType {
     PERCENT = "PERCENT",
     BADGE = "BADGE",
     BOOLEAN = "BOOLEAN",
+    /** Avatar + nome (estilo DaisyUI) */
+    AVATAR_PROFILE = "AVATAR_PROFILE",
 }
 
 export type TableColumnConfig = {
@@ -26,4 +28,8 @@ export type TableColumnConfig = {
     className?: string;
     /** Classes Tailwind extras no `<th>` */
     headerClassName?: string;
+    /** Campo UUID do storage para avatar (AVATAR_PROFILE) */
+    avatarImageField?: string;
+    /** Subtítulo abaixo do nome (AVATAR_PROFILE) */
+    avatarSubtitleField?: string;
 };

@@ -5,8 +5,10 @@ export type ContractType = "CLT" | "PJ" | "INTERMITTENT" | "APPRENTICE" | "INTER
 
 export class AdmissionProcess {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId?: string;
+    photoObjectId?: string;
     admissionStatus!: AdmissionStatus;
     startedAt?: string;
     completedAt?: string;
@@ -49,6 +51,7 @@ export class AdmissionProcessCreateDto {
     admissionStatus?: AdmissionStatus;
     startedAt?: string;
     notes?: string;
+    photoObjectId?: string;
 
     fullName!: string;
     socialName?: string;

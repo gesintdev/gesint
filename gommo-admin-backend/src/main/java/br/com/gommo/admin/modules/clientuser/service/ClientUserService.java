@@ -51,7 +51,7 @@ public class ClientUserService implements IClientUserService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('platform:admin')")
     public List<ClientUserResponseDto> findAll() {
-        return clientUserRepository.findAllByStatusNot(StatusEnum.DELETED).stream()
+        return clientUserRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -185,6 +185,7 @@ public class ClientUserService implements IClientUserService {
     private ClientUserResponseDto toResponse(ClientUser link, Client client, PublicAppUser appUser) {
         return ClientUserResponseDto.builder()
                 .id(link.getId())
+                .code(link.getCode())
                 .status(link.getStatus())
                 .clientId(link.getClientId())
                 .clientName(client != null ? client.getName() : null)

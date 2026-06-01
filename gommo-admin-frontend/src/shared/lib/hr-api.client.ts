@@ -88,11 +88,11 @@ export async function hrApiFetch<T>(path: string, options: RequestOptions = {}):
                 return parseResponse<T>(response);
             }
         }
-        return handleErrorResponse(response, {...options, _retry: true});
+        return handleErrorResponse(response);
     }
 
     if (!response.ok) {
-        return handleErrorResponse(response, options);
+        return handleErrorResponse(response);
     }
 
     return parseResponse<T>(response);
@@ -105,10 +105,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
     return (await response.json()) as T;
 }
 
-async function handleErrorResponse(
-    response: Response,
-    options: RequestOptions,
-): Promise<never> {
+async function handleErrorResponse(response: Response): Promise<never> {
     let payload: ErrorResponseDto = {
         code: "UNKNOWN",
         message: response.statusText,

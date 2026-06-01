@@ -113,7 +113,7 @@ public class AuthService implements IAuthService {
     private TokenResponseDto buildTokenResponse(AdminUser user) {
         List<String> permissions = new ArrayList<>();
         permissions.add(PLATFORM_ADMIN_PERMISSION);
-        permissionRepository.findAll().forEach(p -> permissions.add(p.getCode()));
+        permissionRepository.findAll().forEach(p -> permissions.add(p.getAuthority()));
 
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getUsername(), permissions);
         String refreshToken = jwtService.generateRefreshToken(user.getId());

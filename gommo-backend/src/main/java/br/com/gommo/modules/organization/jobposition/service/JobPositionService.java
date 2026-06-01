@@ -6,11 +6,15 @@ import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.organization.jobposition.dto.JobPositionRequestDto;
 import br.com.gommo.modules.organization.jobposition.dto.JobPositionResponseDto;
 import br.com.gommo.modules.organization.jobposition.entity.JobPosition;
+import br.com.gommo.core.util.TextSearchUtils;
 import br.com.gommo.modules.organization.jobposition.exception.JobPositionException;
 import br.com.gommo.modules.organization.jobposition.mapper.JobPositionMapper;
 import br.com.gommo.modules.organization.jobposition.repository.JobPositionRepository;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +51,29 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
     @PreAuthorize("hasAuthority('jobposition:read')")
     public PageableResponseDto<JobPositionResponseDto> findPage(int page, int size) {
         return super.findPage(page, size);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('jobposition:read')")
+    public PageableResponseDto<JobPositionResponseDto> search(
+            int page, int size, String title, String cboCode, UUID departmentId) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<JobPosition> result = repository.search(
+                StatusEnum.DELETED,
+                TextSearchUtils.toLikePattern(title),
+                TextSearchUtils.toLikePattern(cboCode),
+                departmentId,
+                pageable);
+        List<JobPositionResponseDto> content =
+                result.getContent().stream().map(mapper::toResponse).toList();
+        return PageableResponseDto.<JobPositionResponseDto>builder()
+                .content(content)
+                .page(page)
+                .size(size)
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .build();
     }
 
     @Override

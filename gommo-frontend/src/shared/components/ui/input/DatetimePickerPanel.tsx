@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { DayPicker } from "react-day-picker";
 import { ptBR } from "react-day-picker/locale";
-import { forwardRef, useEffect, useLayoutEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { dateToIso, joinDatetime, joinTime, parseIsoToDate, splitDatetime, splitTime } from "@/shared/lib/input/date";
 import { DATETIME_HOUR_ITEMS, DATETIME_MINUTE_ITEMS } from "@/shared/lib/input/datetime-options";
@@ -43,7 +43,7 @@ export const DatetimePickerPanel = forwardRef<HTMLDivElement, DatetimePickerPane
       onChange(joinDatetime(nextDate, nextTime));
     };
 
-    const updatePosition = () => {
+    const updatePosition = useCallback(() => {
       const anchor = anchorRef.current;
       if (!anchor) return;
       const rect = anchor.getBoundingClientRect();
@@ -52,11 +52,11 @@ export const DatetimePickerPanel = forwardRef<HTMLDivElement, DatetimePickerPane
         left: rect.left,
         width: Math.max(rect.width, 320),
       });
-    };
+    }, [anchorRef]);
 
     useLayoutEffect(() => {
       updatePosition();
-    }, [anchorRef]);
+    }, [updatePosition]);
 
     useEffect(() => {
       updatePosition();
@@ -66,7 +66,7 @@ export const DatetimePickerPanel = forwardRef<HTMLDivElement, DatetimePickerPane
         window.removeEventListener("resize", updatePosition);
         window.removeEventListener("scroll", updatePosition, true);
       };
-    }, [anchorRef]);
+    }, [updatePosition]);
 
     if (typeof document === "undefined") return null;
 

@@ -10,6 +10,7 @@ export function admissionprocessToFormDto(entity: AdmissionProcess): AdmissionPr
         admissionStatus: entity.admissionStatus,
         startedAt: toDateInput(entity.startedAt),
         notes: entity.notes ?? "",
+        photoObjectId: entity.photoObjectId ?? "",
         fullName: entity.fullName ?? "",
         socialName: entity.socialName ?? "",
         cpf: entity.cpf ?? "",
@@ -74,6 +75,7 @@ export function admissionFormToPayload(form: AdmissionProcessCreateDto): Admissi
         pisPasep: form.pisPasep?.trim() || undefined,
         email: form.email?.trim() || undefined,
         notes: form.notes?.trim() || undefined,
+        photoObjectId: form.photoObjectId?.trim() || undefined,
         baseSalary: form.baseSalary != null ? Number(form.baseSalary) : undefined,
         workloadHours: form.workloadHours != null ? Number(form.workloadHours) : undefined,
     };

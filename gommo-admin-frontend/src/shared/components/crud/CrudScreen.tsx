@@ -155,7 +155,7 @@ export function CrudScreen({
         titleSuffix: titleSuffix || undefined,
       });
     },
-    [crudConfig?.fieldTabName, syncWorkspace],
+    [crudConfig, syncWorkspace],
   );
 
   const goToTab = useCallback((tabId: string) => setActiveTab(tabId), []);

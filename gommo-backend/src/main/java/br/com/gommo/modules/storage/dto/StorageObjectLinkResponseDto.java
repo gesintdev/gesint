@@ -11,6 +11,7 @@ import lombok.Getter;
 public class StorageObjectLinkResponseDto {
 
     private final UUID id;
+    private final Integer code;
     private final StatusEnum status;
     private final UUID storageObjectId;
     private final String entityType;

@@ -58,6 +58,7 @@ public class ClientMapper {
     public ClientResponseDto toResponse(Client entity) {
         return ClientResponseDto.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .status(entity.getStatus())
                 .name(entity.getName())
                 .slug(entity.getSlug())

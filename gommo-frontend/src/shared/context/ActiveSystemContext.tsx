@@ -19,6 +19,7 @@ import {
 } from "@/modules/root/enum/SystemEnum";
 import {
     getNavSectionsForSystem,
+    SETTINGS_NAV_SECTIONS,
     systemModuleGroups,
 } from "@/config/routes";
 
@@ -26,11 +27,17 @@ type ActiveSystemContextValue = {
     activeSystem: SystemEnum;
     systems: TSystemInfos[];
     navSections: NavSection[];
-    /** Seleciona o domínio do sidebar — abas abertas e rota atual permanecem. */
+    isSettingsMode: boolean;
     selectSystem: (system: SystemEnum) => void;
+    openSettings: () => void;
+    closeSettings: () => void;
 };
 
 const ActiveSystemContext = createContext<ActiveSystemContextValue | null>(null);
+
+function isSettingsPath(pathname: string): boolean {
+    return pathname.startsWith("/settings");
+}
 
 function resolveSystemFromPath(pathname: string): SystemEnum {
     return (
@@ -44,18 +51,15 @@ export function ActiveSystemProvider({ children }: { children: ReactNode }) {
     const [activeSystem, setActiveSystem] = useState<SystemEnum>(
         () => resolveSystemFromPath(pathname),
     );
+    const [isSettingsMode, setIsSettingsMode] = useState(() => isSettingsPath(pathname));
     const prevPathnameRef = useRef(pathname);
 
-    /**
-     * Preferência manual do rail (localStorage) só após hidratação —
-     * evita mismatch SSR/client no aria-current do SystemRail.
-     */
     useEffect(() => {
         const stored = SystemEnumHelper.readStoredSystem();
-        if (stored) {
+        if (stored && !isSettingsPath(pathname)) {
             setActiveSystem(stored);
         }
-    }, []);
+    }, [pathname]);
 
     const systems = useMemo(
         () => SystemEnumHelper.getSortedSystems().map((id) => SystemEnumHelper.getById(id)),
@@ -63,25 +67,34 @@ export function ActiveSystemProvider({ children }: { children: ReactNode }) {
     );
 
     const navSections = useMemo(
-        () => getNavSectionsForSystem(activeSystem),
-        [activeSystem],
+        () => (isSettingsMode ? SETTINGS_NAV_SECTIONS : getNavSectionsForSystem(activeSystem)),
+        [activeSystem, isSettingsMode],
     );
 
-    /** Troca só o menu lateral; workspace (abas + conteúdo) não é alterado. */
     const selectSystem = useCallback((system: SystemEnum) => {
-        if (system === activeSystem) return;
+        setIsSettingsMode(false);
         setActiveSystem(system);
         SystemEnumHelper.persistSystem(system);
-    }, [activeSystem]);
+    }, []);
 
-    /**
-     * Ao navegar (aba, link, voltar/avançar), alinha o domínio do sidebar com a rota atual.
-     * Não sobrescreve escolha manual do rail enquanto a URL não mudar.
-     */
+    const openSettings = useCallback(() => {
+        setIsSettingsMode(true);
+    }, []);
+
+    const closeSettings = useCallback(() => {
+        setIsSettingsMode(false);
+    }, []);
+
     useEffect(() => {
         if (pathname === prevPathnameRef.current) return;
         prevPathnameRef.current = pathname;
 
+        if (isSettingsPath(pathname)) {
+            setIsSettingsMode(true);
+            return;
+        }
+
+        setIsSettingsMode(false);
         const fromPath = SystemEnumHelper.findSystemForHref(pathname, systemModuleGroups);
         if (!fromPath) return;
 
@@ -90,8 +103,16 @@ export function ActiveSystemProvider({ children }: { children: ReactNode }) {
     }, [pathname]);
 
     const value = useMemo(
-        () => ({ activeSystem, systems, navSections, selectSystem }),
-        [activeSystem, systems, navSections, selectSystem],
+        () => ({
+            activeSystem,
+            systems,
+            navSections,
+            isSettingsMode,
+            selectSystem,
+            openSettings,
+            closeSettings,
+        }),
+        [activeSystem, systems, navSections, isSettingsMode, selectSystem, openSettings, closeSettings],
     );
 
     return (
@@ -107,7 +128,6 @@ export function useActiveSystem(): ActiveSystemContextValue {
     return ctx;
 }
 
-/** Rotas planas do domínio ativo (busca no sidebar). */
 export function useActiveSystemRoutes(): AppRoute[] {
     const { navSections } = useActiveSystem();
     return useMemo(() => navSections.flatMap((s) => s.routes), [navSections]);

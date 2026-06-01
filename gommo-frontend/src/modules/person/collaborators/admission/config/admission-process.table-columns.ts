@@ -1,17 +1,15 @@
 import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
+import { ENTITY_CODE_TABLE_COLUMN } from "@/shared/config/entity-code.table-column";
 
 export const ADMISSION_TABLE_COLUMNS: TableColumnConfig[] = [
+    ENTITY_CODE_TABLE_COLUMN,
     {
         id: "fullName",
-        columnName: "Nome",
+        columnName: "Colaborador",
         fieldValue: "fullName",
-        dataType: TableDataType.TEXT,
-    },
-    {
-        id: "cpf",
-        columnName: "CPF",
-        fieldValue: "cpf",
-        dataType: TableDataType.CPF,
+        dataType: TableDataType.AVATAR_PROFILE,
+        avatarImageField: "photoObjectId",
+        avatarSubtitleField: "cpf",
     },
     {
         id: "admissionStatus",

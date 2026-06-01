@@ -42,6 +42,7 @@ public class AdmissionProcessMapper {
                 .contractType(dto.getContractType() != null ? dto.getContractType() : ContractTypeEnum.CLT)
                 .baseSalary(dto.getBaseSalary())
                 .workloadHours(dto.getWorkloadHours())
+                .photoObjectId(dto.getPhotoObjectId())
                 .build();
     }
 
@@ -82,13 +83,16 @@ public class AdmissionProcessMapper {
         }
         entity.setBaseSalary(dto.getBaseSalary());
         entity.setWorkloadHours(dto.getWorkloadHours());
+        entity.setPhotoObjectId(dto.getPhotoObjectId());
     }
 
     public AdmissionProcessResponseDto toResponse(AdmissionProcess entity) {
         return AdmissionProcessResponseDto.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .status(entity.getStatus())
                 .collaboratorId(entity.getCollaboratorId())
+                .photoObjectId(entity.getPhotoObjectId())
                 .admissionStatus(entity.getAdmissionStatus())
                 .startedAt(entity.getStartedAt())
                 .completedAt(entity.getCompletedAt())

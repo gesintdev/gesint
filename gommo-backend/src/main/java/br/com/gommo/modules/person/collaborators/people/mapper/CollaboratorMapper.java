@@ -21,6 +21,7 @@ public class CollaboratorMapper {
                 .fatherName(dto.getFatherName())
                 .nationality(dto.getNationality() != null ? dto.getNationality() : "Brasileiro")
                 .pisPasep(dto.getPisPasep())
+                .photoObjectId(dto.getPhotoObjectId())
                 .build();
     }
 
@@ -38,11 +39,17 @@ public class CollaboratorMapper {
             entity.setNationality(dto.getNationality());
         }
         entity.setPisPasep(dto.getPisPasep());
+        entity.setPhotoObjectId(dto.getPhotoObjectId());
     }
 
     public CollaboratorResponseDto toResponse(Collaborator entity) {
+        return toResponse(entity, null, null);
+    }
+
+    public CollaboratorResponseDto toResponse(Collaborator entity, String email, String phone) {
         return CollaboratorResponseDto.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .status(entity.getStatus())
                 .fullName(entity.getFullName())
                 .socialName(entity.getSocialName())
@@ -55,6 +62,9 @@ public class CollaboratorMapper {
                 .fatherName(entity.getFatherName())
                 .nationality(entity.getNationality())
                 .pisPasep(entity.getPisPasep())
+                .email(email)
+                .phone(phone)
+                .photoObjectId(entity.getPhotoObjectId())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

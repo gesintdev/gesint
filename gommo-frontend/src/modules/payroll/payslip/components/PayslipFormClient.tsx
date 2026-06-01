@@ -11,6 +11,7 @@ import { payslipService } from "@/modules/payroll/payslip/services/payslip.servi
 import { payrollrunService } from "@/modules/payroll/services/payroll-run.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -110,9 +111,7 @@ export function PayslipFormClient() {
       }
     >
       <div className="grid gap-3 p-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar holerite" : "Novo holerite"}</p>
-        </div>
+        <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
         <EntityPickerField
           label="Processamento de folha"
           value={form.payrollRunId ?? ""}

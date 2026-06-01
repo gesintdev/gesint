@@ -1,4 +1,5 @@
 ﻿import clsx from "clsx";
+import Image from "next/image";
 
 type GommoLogoProps = {
     /** Logo completo (sidebar expandido) ou apenas ícone (sidebar recolhido). */
@@ -20,7 +21,7 @@ export function GommoLogo({
 }: GommoLogoProps) {
     if (variant === "icon") {
         return (
-            <img
+            <Image
                 src="/brand/gommo-logo-icon.png"
                 alt="Gommo"
                 width={32}
@@ -31,7 +32,7 @@ export function GommoLogo({
     }
 
     return (
-        <img
+        <Image
             src="/brand/gommo-logo-full.png"
             alt="Gommo"
             width={onBrand ? 180 : 160}

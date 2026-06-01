@@ -17,8 +17,10 @@ import lombok.Getter;
 public class AdmissionProcessResponseDto {
 
     private final UUID id;
+    private final Integer code;
     private final StatusEnum status;
     private final UUID collaboratorId;
+    private final UUID photoObjectId;
     private final AdmissionStatusEnum admissionStatus;
     private final LocalDate startedAt;
     private final LocalDate completedAt;

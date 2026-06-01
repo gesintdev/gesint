@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
         entity.setProcessedAt(dto.getProcessedAt()); entity.setNotes(dto.getNotes());
     }
     public PayrollRunResponseDto toResponse(PayrollRun entity) {
-        return PayrollRunResponseDto.builder().id(entity.getId()).status(entity.getStatus()).companyId(entity.getCompanyId())
+        return PayrollRunResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus()).companyId(entity.getCompanyId())
             .referenceYear(entity.getReferenceYear()).referenceMonth(entity.getReferenceMonth()).payrollStatus(entity.getPayrollStatus())
             .processedAt(entity.getProcessedAt()).notes(entity.getNotes()).createdAt(entity.getCreatedAt()).updatedAt(entity.getUpdatedAt()).build();
     }

@@ -12,6 +12,7 @@ import { leaveRequestFormSchema } from "@/modules/leave/schemas/leave-request.sc
 import { leaverequestService } from "@/modules/leave/services/leave-request.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { Button } from "@/shared/components/ui/Button";
 import { InputAutocomplete, InputDate, InputSelect } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
@@ -183,6 +184,7 @@ export function LeaveRequestFormClient() {
         </p>
       </div>
 
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <div className="sm:col-span-2">
         <InputAutocomplete
           label="Colaborador"

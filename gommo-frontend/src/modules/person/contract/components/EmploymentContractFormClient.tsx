@@ -10,6 +10,7 @@ import { employmentcontractKeys } from "@/modules/person/contract/contract.query
 import { employmentcontractService } from "@/modules/person/contract/services/employment-contract.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
@@ -104,9 +105,7 @@ export function EmploymentContractFormClient() {
       }
     >
       <div className="grid gap-3 p-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar contrato" : "Novo contrato"}</p>
-        </div>
+        <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
         <div className="sm:col-span-2">
           <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
         </div>

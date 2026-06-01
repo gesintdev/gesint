@@ -216,7 +216,7 @@ export function CrudScreen({
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           {activeTab === CRUD_TAB_LIST && (
-            <div className="crud-list-toolbar flex flex-wrap items-center justify-between gap-3 border-b px-4 py-2.5">
+            <div className="crud-list-toolbar flex flex-wrap items-center justify-between gap-2 border-b px-4 py-1.5">
               <div className="text-[13px] text-base-content/50">
                 {listToolbar ?? "Consulte os registros ou inicie um novo cadastro."}
               </div>

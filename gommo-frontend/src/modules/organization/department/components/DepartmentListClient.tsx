@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DEPARTMENT_CLIENT_MESSAGES } from "@/modules/organization/department/exceptions/department.messages";
 import { DEPARTMENT_TABLE_COLUMNS } from "@/modules/organization/department/config/department.table-columns";
@@ -9,9 +8,8 @@ import type { Department } from "@/modules/organization/department/dto/departmen
 import { departmentKeys } from "@/modules/organization/department/department.query";
 import { departmentService } from "@/modules/organization/department/services/department.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
-import { Button } from "@/shared/components/ui/Button";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -43,11 +41,12 @@ export function DepartmentListClient() {
             emptyMessage="Nenhum(a) departamento cadastrado(a)."
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (
-                <>
-                    <OpenInWorkspaceTabButton row={row} />
-                    <Button variant="ghost" size="sm" aria-label="Editar" leftIcon={<Pencil className="size-3.5" />} onClick={() => startEdit(row.id, row)} />
-                    <Button variant="ghost" size="sm" aria-label="Excluir" className="text-error hover:bg-error/10" leftIcon={<Trash2 className="size-3.5" />} loading={deleteMutation.isPending && deleteMutation.variables === row.id} onClick={() => handleDelete(row)} />
-                </>
+                <CrudTableActions
+                    row={row}
+                    onEdit={() => startEdit(row.id, row)}
+                    onDelete={() => void handleDelete(row)}
+                    deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                />
             )}
         />
     );

@@ -19,6 +19,7 @@ import lombok.Setter;
 public class ClientPaymentResponseDto {
 
     private UUID id;
+    private Integer code;
     private StatusEnum status;
     private UUID clientId;
     private String referenceCode;

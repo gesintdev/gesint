@@ -2,6 +2,7 @@ export type DismissalType = "WITHOUT_CAUSE" | "WITH_CAUSE" | "RESIGNATION" | "AG
 
 export class Offboarding {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
     dismissalDate!: string;

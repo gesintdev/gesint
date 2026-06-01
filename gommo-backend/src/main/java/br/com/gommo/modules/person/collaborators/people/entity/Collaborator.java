@@ -7,6 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -60,4 +61,7 @@ public class Collaborator extends AuditEntity {
 
     @Column(name = "pis_pasep", length = 20)
     private String pisPasep;
+
+    @Column(name = "photo_object_id")
+    private UUID photoObjectId;
 }

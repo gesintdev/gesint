@@ -10,6 +10,7 @@ import { performanceReviewKeys } from "@/modules/person/performance/performance.
 import { performanceReviewService } from "@/modules/person/performance/services/performance-review.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
@@ -99,9 +100,7 @@ export function PerformanceReviewFormClient() {
       }
     >
       <div className="grid gap-3 p-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar avaliação de desempenho" : "Nova avaliação de desempenho"}</p>
-        </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
         <div className="sm:col-span-2">
           <CollaboratorPickerField value={form.collaboratorId} onValueChange={(v) => update("collaboratorId", v)} required />
         </div>

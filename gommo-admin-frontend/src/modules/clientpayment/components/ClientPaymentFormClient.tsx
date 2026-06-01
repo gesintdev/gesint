@@ -12,6 +12,7 @@ import { clientPaymentToFormDto, emptyClientPaymentForm } from "@/modules/client
 import { clientPaymentService } from "@/modules/clientpayment/services/clientpayment.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { Button } from "@/shared/components/ui/Button";
 import { InputCurrency, InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -94,6 +95,7 @@ export function ClientPaymentFormClient() {
             }
         >
             <div className="grid gap-4">
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <InputSelect
                     label="Cliente"
                     value={form.clientId}

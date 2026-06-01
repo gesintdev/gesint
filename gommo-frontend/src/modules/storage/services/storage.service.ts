@@ -53,6 +53,17 @@ class StorageService {
         return `${API_BASE_URL}/api/v1/storage/objects/${id}/download`;
     }
 
+    async fetchBlobUrl(id: string): Promise<string> {
+        const response = await fetch(this.downloadUrl(id), {
+            headers: await authHeaders(),
+        });
+        if (!response.ok) {
+            throw new Error("Falha ao carregar imagem");
+        }
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+    }
+
     deleteObject(id: string): Promise<void> {
         return import("@/shared/lib/api.client").then(({ apiFetch }) =>
             apiFetch<void>(`/api/v1/storage/objects/${id}`, { method: "DELETE" }),

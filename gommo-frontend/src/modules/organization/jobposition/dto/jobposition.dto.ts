@@ -1,5 +1,6 @@
 export class JobPosition {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     title!: string;
     cboCode!: string;

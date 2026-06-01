@@ -32,7 +32,7 @@ async function resolveAuthToken(explicit?: string | null): Promise<string | null
     return token;
 }
 
-async function refreshSessionTokens(): Promise<string | null> {
+async function refreshSessionTokens(options?: { forceBackendRefresh?: boolean }): Promise<string | null> {
     authToken = null;
     if (typeof window === "undefined") return null;
 
@@ -44,9 +44,37 @@ async function refreshSessionTokens(): Promise<string | null> {
         return null;
     }
 
+    if (session?.refreshToken) {
+        const refreshed = await refreshAccessTokenFromBackend(session.refreshToken);
+        if (refreshed) {
+            setAuthToken(refreshed);
+            return refreshed;
+        }
+    }
+
+    if (options?.forceBackendRefresh) {
+        return null;
+    }
+
     const token = session?.accessToken ?? null;
     if (token) setAuthToken(token);
     return token;
+}
+
+async function refreshAccessTokenFromBackend(refreshToken: string): Promise<string | null> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({refreshToken}),
+            cache: "no-store",
+        });
+        if (!response.ok) return null;
+        const data = (await response.json()) as {accessToken: string};
+        return data.accessToken ?? null;
+    } catch {
+        return null;
+    }
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -75,7 +103,9 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
         typeof window !== "undefined" &&
         !path.startsWith("/api/v1/auth/")
     ) {
-        const newToken = await refreshSessionTokens();
+        const newToken = await refreshSessionTokens({
+            forceBackendRefresh: response.status === 403,
+        });
         if (!newToken) {
             throw AppException.client(
                 "AUTH_SESSION_EXPIRED",
@@ -89,11 +119,11 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
                 return parseResponse<T>(response);
             }
         }
-        return handleErrorResponse(response, {...options, _retry: true});
+        return handleErrorResponse(response);
     }
 
     if (!response.ok) {
-        return handleErrorResponse(response, options);
+        return handleErrorResponse(response);
     }
 
     return parseResponse<T>(response);
@@ -106,10 +136,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
     return (await response.json()) as T;
 }
 
-async function handleErrorResponse(
-    response: Response,
-    _options: RequestOptions,
-): Promise<never> {
+async function handleErrorResponse(response: Response): Promise<never> {
     let payload: ErrorResponseDto = {
         code: "UNKNOWN",
         message: response.statusText,

@@ -14,6 +14,7 @@ import { collaboratorKeys } from "@/modules/collaborator/collaborator.query";
 import { collaboratorService } from "@/modules/collaborator/services/collaborator.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
@@ -153,6 +154,7 @@ export function CollaboratorFormClient() {
                     </p>
                 </div>
 
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <FormSection title="Identificação" description="Dados pessoais do colaborador.">
                     <InputString
                         label="Nome completo"

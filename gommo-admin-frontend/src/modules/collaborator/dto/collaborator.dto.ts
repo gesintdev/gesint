@@ -1,5 +1,6 @@
 export class Collaborator {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     fullName!: string;
     socialName?: string;

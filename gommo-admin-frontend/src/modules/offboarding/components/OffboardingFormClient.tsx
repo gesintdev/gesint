@@ -10,6 +10,7 @@ import { offboardingKeys } from "@/modules/offboarding/offboarding.query";
 import { offboardingService } from "@/modules/offboarding/services/offboarding.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { EntityAttachments } from "@/shared/components/storage/EntityAttachments";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
@@ -100,6 +101,7 @@ export function OffboardingFormClient() {
                         {isEditing ? "Editar desligamento" : "Novo desligamento"}
                     </p>
                 </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <InputString label="Colaborador ID" value={form.collaboratorId} onValueChange={(v) => update("collaboratorId", v)} required />
                 <InputDate label="Data do desligamento" value={form.dismissalDate} onValueChange={(v) => update("dismissalDate", v)} required />
                 <InputSelect

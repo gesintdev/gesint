@@ -10,6 +10,7 @@ type TokenResponse = {
   refreshToken: string;
   tokenType: string;
   expiresInSeconds: number;
+  photoObjectId?: string;
 };
 
 export type AuthTokenError = "RefreshAccessTokenError" | "RefreshTokenMissing";
@@ -44,6 +45,7 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
       accessToken: data.accessToken,
       refreshToken: data.refreshToken,
       accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
+      photoObjectId: data.photoObjectId,
       error: undefined,
     };
   } catch {

@@ -12,6 +12,7 @@ import { clientKeys } from "@/modules/client/client.query";
 import { clientService } from "@/modules/client/services/client.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
@@ -84,6 +85,7 @@ export function ClientUserFormClient() {
             }
         >
             <div className="grid gap-4">
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <InputSelect label="Cliente" value={form.clientId} onValueChange={(v) => setForm((p) => ({ ...p, clientId: v }))} items={clientOptions} required />
                 <InputString label="Nome de exibição" value={form.displayName ?? ""} onValueChange={(v) => setForm((p) => ({ ...p, displayName: v }))} />
                 <InputString label="Usuário" value={form.username} onValueChange={(v) => setForm((p) => ({ ...p, username: v }))} required />

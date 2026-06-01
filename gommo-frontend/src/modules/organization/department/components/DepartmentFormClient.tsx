@@ -10,6 +10,7 @@ import { departmentKeys } from "@/modules/organization/department/department.que
 import { departmentService } from "@/modules/organization/department/services/department.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString } from "@/shared/components/ui/input/index";
@@ -91,9 +92,7 @@ export function DepartmentFormClient() {
       }
     >
     <div className="grid gap-3 p-4 sm:grid-cols-2">
-      <div className="sm:col-span-2">
-        <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar departamento" : "Novo(a) departamento"}</p>
-      </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
       <InputString label="Centro de custo" value={form.costCenter ?? ""} onValueChange={(v) => update("costCenter", v)} />
       {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}

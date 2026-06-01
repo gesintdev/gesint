@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
-import { userInitials } from "@/shared/lib/user-display";
+import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 
 function UserIdentity({
     name,
@@ -37,7 +37,7 @@ export function HeaderUserMenu() {
 
     const name = session?.user?.name ?? "Usuário";
     const email = session?.user?.email;
-    const initials = userInitials(name);
+    const photoObjectId = session?.user?.photoObjectId;
 
     useEffect(() => {
         if (!open) return;
@@ -72,15 +72,7 @@ export function HeaderUserMenu() {
                     open ? "bg-primary/8" : "hover:bg-base-200/70 dark:hover:bg-base-300/40",
                 )}
             >
-                <span
-                    className="flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                    style={{
-                        background:
-                            "linear-gradient(135deg, var(--gommo-primary-light) 0%, var(--gommo-primary-dark) 100%)",
-                    }}
-                >
-                    {initials}
-                </span>
+                <ProfileAvatar name={name} photoObjectId={photoObjectId} size="sm" shape="circle" />
                 <UserIdentity name={name} email={email} compact />
                 <ChevronDown
                     className={clsx(
@@ -102,16 +94,7 @@ export function HeaderUserMenu() {
                         className="surface-popover absolute right-0 z-50 mt-2 min-w-[14rem] origin-top-right p-1.5"
                     >
                         <div className="flex items-center gap-3 rounded-[10px] px-3 py-2.5">
-                            <span
-                                className="flex size-9 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
-                                style={{
-                                    background:
-                                        "linear-gradient(135deg, var(--gommo-primary-light) 0%, var(--gommo-primary-darker) 100%)",
-                                    boxShadow: "var(--gommo-shadow-sm)",
-                                }}
-                            >
-                                {initials}
-                            </span>
+                            <ProfileAvatar name={name} photoObjectId={photoObjectId} size="md" shape="circle" />
                             <UserIdentity name={name} email={email} />
                         </div>
 

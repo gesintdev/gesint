@@ -10,6 +10,7 @@ import { exitinterviewKeys } from "@/modules/exitinterview/exitinterview.query";
 import { exitinterviewService } from "@/modules/exitinterview/services/exit-interview.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString, InputDate } from "@/shared/components/ui/input/index";
@@ -94,6 +95,7 @@ export function ExitInterviewFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar entrevista de desligamento" : "Novo(a) entrevista de desligamento"}</p>
       </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <InputString label="Collaborator  I D" value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
       <InputDate label="Interview Date" value={form.interviewDate ?? ""} onValueChange={(v) => update("interviewDate", v)} required />
       <InputString label="Departure Reason" value={form.departureReason ?? ""} onValueChange={(v) => update("departureReason", v)}  />

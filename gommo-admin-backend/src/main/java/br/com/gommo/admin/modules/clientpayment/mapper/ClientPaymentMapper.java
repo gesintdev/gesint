@@ -34,6 +34,7 @@ public class ClientPaymentMapper {
     public ClientPaymentResponseDto toResponse(ClientPayment entity) {
         return ClientPaymentResponseDto.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .status(entity.getStatus())
                 .clientId(entity.getClientId())
                 .referenceCode(entity.getReferenceCode())

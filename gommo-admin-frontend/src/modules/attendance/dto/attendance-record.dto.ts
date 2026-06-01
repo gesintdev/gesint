@@ -1,5 +1,6 @@
 export class AttendanceRecord {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
     workDate!: string;

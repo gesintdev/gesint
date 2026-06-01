@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import {Loader2, Search, X} from "lucide-react";
-import {useCallback, useEffect, useId, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode} from "react";
 import type {InputFieldChromeProps} from "@/shared/components/ui/input/input-field.types";
 import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
 import {InputSelectPanel} from "@/shared/components/ui/input/InputSelectPanel";
@@ -22,6 +22,8 @@ export type InputAutocompleteProps = InputFieldChromeProps & {
     minChars?: number;
     clearable?: boolean;
     className?: string;
+    /** Ação integrada à direita do campo (ex.: botão de busca detalhada) */
+    trailingAction?: ReactNode;
 };
 
 export function InputAutocomplete({
@@ -40,6 +42,7 @@ export function InputAutocomplete({
                                       id: idProp,
                                       wrapperClassName,
                                       className,
+                                      trailingAction,
                                   }: InputAutocompleteProps) {
     const autoId = useId();
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
@@ -207,6 +210,7 @@ export function InputAutocomplete({
                             <X className="size-3.5"/>
                         </button>
                     )}
+                    {trailingAction}
                 </div>
 
                 {open && (

@@ -27,6 +27,7 @@ public class DepartmentMapper {
     public DepartmentResponseDto toResponse(Department entity) {
         return DepartmentResponseDto.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .status(entity.getStatus())
                 .companyId(entity.getCompanyId())
                 .parentId(entity.getParentId())

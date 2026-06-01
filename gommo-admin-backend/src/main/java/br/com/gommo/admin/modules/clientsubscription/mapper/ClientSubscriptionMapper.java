@@ -34,6 +34,7 @@ public class ClientSubscriptionMapper {
     public ClientSubscriptionResponseDto toResponse(ClientSubscription entity) {
         return ClientSubscriptionResponseDto.builder()
                 .id(entity.getId())
+                .code(entity.getCode())
                 .status(entity.getStatus())
                 .clientId(entity.getClientId())
                 .planCode(entity.getPlanCode())

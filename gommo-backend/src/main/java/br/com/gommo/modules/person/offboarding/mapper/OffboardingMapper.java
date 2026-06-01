@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
         entity.setDismissalNotes(dto.getDismissalNotes()); entity.setHomologationNotes(dto.getHomologationNotes());
     }
     public OffboardingResponseDto toResponse(Offboarding entity) {
-        return OffboardingResponseDto.builder().id(entity.getId()).status(entity.getStatus())
+        return OffboardingResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus())
             .collaboratorId(entity.getCollaboratorId()).dismissalDate(entity.getDismissalDate()).dismissalType(entity.getDismissalType())
             .dismissalNotes(entity.getDismissalNotes()).homologationNotes(entity.getHomologationNotes())
             .createdAt(entity.getCreatedAt()).updatedAt(entity.getUpdatedAt()).build();

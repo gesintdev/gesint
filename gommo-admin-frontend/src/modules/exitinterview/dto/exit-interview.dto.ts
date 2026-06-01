@@ -1,5 +1,6 @@
 export class ExitInterview {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
     interviewDate!: string;

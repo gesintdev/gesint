@@ -1,5 +1,6 @@
 export class Department {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     name!: string;
     costCenter!: string;

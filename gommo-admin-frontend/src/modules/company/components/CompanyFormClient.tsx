@@ -10,6 +10,7 @@ import { companyKeys } from "@/modules/company/company.query";
 import { companyService } from "@/modules/company/services/company.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
@@ -98,6 +99,7 @@ export function CompanyFormClient() {
       <div className="sm:col-span-2">
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar empresa" : "Novo(a) empresa"}</p>
       </div>
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
       <InputString label="Legal Name" value={form.legalName ?? ""} onValueChange={(v) => update("legalName", v)} required />
       <InputString label="Trade Name" value={form.tradeName ?? ""} onValueChange={(v) => update("tradeName", v)}  />
       <InputCNPJ label="Cnpj" value={form.cnpj} onValueChange={(v) => update("cnpj", v)} required />

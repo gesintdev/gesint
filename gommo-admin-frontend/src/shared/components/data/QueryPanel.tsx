@@ -7,6 +7,7 @@ import { Button } from "@/shared/components/ui/Button";
 import { DataTable, type DataTableRowActivateOn } from "@/shared/components/ui/DataTable";
 import type { TableColumnConfig } from "@/shared/types/table.types";
 import { QueryRefreshProvider } from "@/shared/components/data/QueryRefreshContext";
+import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
 
 /** Props do render prop de {@link QueryPanel} (lista: `data` é sempre `TRow[]`). */
 export type QueryPanelRenderProps<TRow> = {
@@ -68,7 +69,6 @@ export function QueryPanel<TRow extends object>({
   children,
   fallback,
   errorFallback,
-  showRefresh = false,
 }: QueryPanelProps<TRow>) {
   const query = useQuery({ queryKey, queryFn: request });
 
@@ -80,7 +80,7 @@ export function QueryPanel<TRow extends object>({
             isFetching: query.isFetching,
           }
         : null,
-    [query.data, query.isError, query.isFetching, query.isLoading, query.refetch],
+    [query],
   );
 
   if (query.isLoading) {
@@ -137,7 +137,7 @@ export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps
       {({ data }) => (
         <div className="gommo-crud-panel-inset flex min-h-0 flex-1 flex-col">
           <DataTable<TRow>
-            data={data}
+            data={sortRowsByCreatedAtDesc(data)}
             columns={columns}
             rowActivateOn={rowActivateOn}
             {...tableProps}

@@ -1,5 +1,6 @@
 package br.com.gommo.modules.root.dto;
 
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,4 +14,5 @@ public class TokenResponseDto {
     private final long expiresInSeconds;
     private final String username;
     private final String email;
+    private final UUID photoObjectId;
 }

@@ -11,7 +11,7 @@ import br.com.gommo.modules.person.exitinterview.dto.*; import br.com.gommo.modu
         entity.setWouldRecommend(dto.getWouldRecommend());
     }
     public ExitInterviewResponseDto toResponse(ExitInterview entity) {
-        return ExitInterviewResponseDto.builder().id(entity.getId()).status(entity.getStatus())
+        return ExitInterviewResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus())
             .collaboratorId(entity.getCollaboratorId()).interviewDate(entity.getInterviewDate())
             .departureReason(entity.getDepartureReason()).feedback(entity.getFeedback()).wouldRecommend(entity.getWouldRecommend())
             .createdAt(entity.getCreatedAt()).updatedAt(entity.getUpdatedAt()).build();

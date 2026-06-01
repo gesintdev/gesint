@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
         entity.setNotes(dto.getNotes());
     }
     public LeaveRequestResponseDto toResponse(LeaveRequest entity) {
-        return LeaveRequestResponseDto.builder().id(entity.getId()).status(entity.getStatus())
+        return LeaveRequestResponseDto.builder().id(entity.getId()).code(entity.getCode()).status(entity.getStatus())
             .collaboratorId(entity.getCollaboratorId()).leaveType(entity.getLeaveType())
             .startDate(entity.getStartDate()).endDate(entity.getEndDate()).approved(entity.getApproved()).notes(entity.getNotes())
             .createdAt(entity.getCreatedAt()).updatedAt(entity.getUpdatedAt()).build();

@@ -2,6 +2,7 @@ export type PerformanceRating = "NEEDS_IMPROVEMENT" | "MEETS" | "EXCEEDS" | "OUT
 
 export class PerformanceReview {
     id!: string;
+    code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
     periodStart!: string;

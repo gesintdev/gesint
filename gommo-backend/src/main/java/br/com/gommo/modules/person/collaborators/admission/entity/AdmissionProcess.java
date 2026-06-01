@@ -32,6 +32,9 @@ public class AdmissionProcess extends AuditEntity {
     @Column(name = "collaborator_id")
     private UUID collaboratorId;
 
+    @Column(name = "photo_object_id")
+    private UUID photoObjectId;
+
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "admission_status", nullable = false, columnDefinition = "admission_status_enum")

@@ -9,11 +9,18 @@ export function useListboxKeyboard(
   onSelect: (item: SelectItem) => void,
   onClose: () => void,
 ) {
+  const itemsSignature = items.map((item) => item.value).join("|");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [listSync, setListSync] = useState({ open: false, itemsSignature: "" });
 
-  useEffect(() => {
-    if (open) setActiveIndex(0);
-  }, [open, items]);
+  if (open) {
+    if (!listSync.open || listSync.itemsSignature !== itemsSignature) {
+      setListSync({ open: true, itemsSignature });
+      setActiveIndex(0);
+    }
+  } else if (listSync.open) {
+    setListSync({ open: false, itemsSignature: listSync.itemsSignature });
+  }
 
   const move = useCallback(
     (delta: number) => {
@@ -91,10 +98,10 @@ export function useClickOutside(
   onOutside: () => void,
   enabled: boolean,
 ) {
-  const refList = Array.isArray(refs) ? refs : [refs];
-
   useEffect(() => {
     if (!enabled) return;
+
+    const refList = Array.isArray(refs) ? refs : [refs];
     const handler = (e: MouseEvent) => {
       const target = e.target as Node;
       const inside = refList.some((ref) => ref.current?.contains(target));
@@ -102,5 +109,5 @@ export function useClickOutside(
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [enabled, onOutside]);
+  }, [enabled, onOutside, refs]);
 }
