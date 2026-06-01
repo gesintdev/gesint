@@ -1,6 +1,6 @@
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
-import { FileText, Gift, Receipt, Scale, UserCheck } from "lucide-react";
+import { FileText, Gift, Receipt, Scale, UserCheck, CalendarDays } from "lucide-react";
 
 export const payrollRoutes: AppRoute[] = [
     routeGroup({
@@ -11,10 +11,10 @@ export const payrollRoutes: AppRoute[] = [
             tabbedCrudRoute({
                 id: "payroll-run",
                 href: "/payroll",
-                label: "Processamento",
+                label: "Folha de pagamento",
                 icon: Receipt,
                 routeId: "payroll-run",
-                tabShortLabel: "Folha",
+                tabShortLabel: "Folha de pagamento",
                 list: lazyNamed(
                     () => import("@/modules/payroll/components/PayrollRunListClient"),
                     "PayrollRunListClient",
@@ -97,5 +97,31 @@ export const payrollRoutes: AppRoute[] = [
             () => import("@/modules/payroll/tax/components/TaxObligationFormClient"),
             "TaxObligationFormClient",
         ),
+    }),
+    tabbedCrudRoute({
+        id: "leave",
+        href: "/leave",
+        label: "Férias e afastamentos",
+        icon: CalendarDays,
+        routeId: "leave",
+        tabShortLabel: "Férias",
+        list: lazyNamed(
+            () => import("@/modules/person/leave/components/LeaveRequestListClient"),
+            "LeaveRequestListClient",
+        ),
+        form: lazyNamed(
+            () => import("@/modules/person/leave/components/LeaveRequestFormClient"),
+            "LeaveRequestFormClient",
+        ),
+        extraTabs: [
+            {
+                id: "pending-requests",
+                label: "Solicitações de férias",
+                content: lazyNamed(
+                    () => import("@/modules/person/leave/components/LeavePendingRequestsClient"),
+                    "LeavePendingRequestsClient",
+                ),
+            },
+        ],
     }),
 ];

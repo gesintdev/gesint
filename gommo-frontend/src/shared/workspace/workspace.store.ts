@@ -42,6 +42,7 @@ function isDashboardTab(tabId: string): boolean {
 
 function buildTab(input: OpenWorkspaceRecordInput, existing?: WorkspaceTab): WorkspaceTab {
     const shortLabel = input.shortLabel ?? defaultShortLabel(input.routeLabel);
+    const titleSuffix = "titleSuffix" in input ? input.titleSuffix : existing?.titleSuffix;
     return {
         id: buildWorkspaceTabId(input.routeId, input.entityKey),
         routeId: input.routeId,
@@ -49,7 +50,7 @@ function buildTab(input: OpenWorkspaceRecordInput, existing?: WorkspaceTab): Wor
         routeLabel: input.routeLabel,
         shortLabel,
         entityKey: input.entityKey,
-        titleSuffix: input.titleSuffix ?? existing?.titleSuffix,
+        titleSuffix,
         icon: input.icon,
     };
 }
@@ -105,7 +106,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             },
 
             openModuleTab: (input) => {
-                const tab = buildTab({...input, entityKey: "list"});
+                const tab = buildTab({...input, entityKey: "list", titleSuffix: undefined});
                 set({
                     tabs: ensureDashboardFirst(upsertTab(get().tabs, tab)),
                     activeTabId: tab.id,

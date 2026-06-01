@@ -2,7 +2,8 @@
 
 import clsx from "clsx";
 import {ChevronDown, X} from "lucide-react";
-import {useCallback, useId, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState} from "react";
+import {createPortal} from "react-dom";
 import type {InputFieldChromeProps} from "@/shared/components/ui/input/input-field.types";
 import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
 import {InputSelectPanel} from "@/shared/components/ui/input/InputSelectPanel";
@@ -37,12 +38,42 @@ export function InputSelect({
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const listId = `${id}-listbox`;
     const rootRef = useRef<HTMLDivElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState(false);
+    const [panelPosition, setPanelPosition] = useState({top: 0, left: 0, width: 0});
 
     const selected = useMemo(() => items.find((i) => i.value === value), [items, value]);
 
     const close = useCallback(() => setOpen(false), []);
-    useClickOutside(rootRef, close, open);
+
+    const updatePanelPosition = useCallback(() => {
+        const anchor = rootRef.current;
+        if (!anchor) return;
+        const rect = anchor.getBoundingClientRect();
+        setPanelPosition({
+            top: rect.bottom + 4,
+            left: rect.left,
+            width: rect.width,
+        });
+    }, []);
+
+    useLayoutEffect(() => {
+        if (!open) return;
+        updatePanelPosition();
+    }, [open, updatePanelPosition]);
+
+    useEffect(() => {
+        if (!open) return;
+        updatePanelPosition();
+        window.addEventListener("resize", updatePanelPosition);
+        window.addEventListener("scroll", updatePanelPosition, true);
+        return () => {
+            window.removeEventListener("resize", updatePanelPosition);
+            window.removeEventListener("scroll", updatePanelPosition, true);
+        };
+    }, [open, updatePanelPosition]);
+
+    useClickOutside([rootRef, panelRef], close, open);
 
     const pick = useCallback(
         (item: SelectItem) => {
@@ -104,16 +135,27 @@ export function InputSelect({
           </span>
                 </button>
 
-                {open && (
-                    <InputSelectPanel
-                        listId={listId}
-                        items={items}
-                        activeIndex={activeIndex}
-                        selectedValue={value}
-                        onPick={pick}
-                        onHighlight={setActiveIndex}
-                    />
-                )}
+                {open && typeof document !== "undefined"
+                    ? createPortal(
+                        <InputSelectPanel
+                            ref={panelRef}
+                            listId={listId}
+                            items={items}
+                            activeIndex={activeIndex}
+                            selectedValue={value}
+                            onPick={pick}
+                            onHighlight={setActiveIndex}
+                            className="fixed z-[200]"
+                            style={{
+                                top: panelPosition.top,
+                                left: panelPosition.left,
+                                width: panelPosition.width,
+                                minWidth: panelPosition.width,
+                            }}
+                        />,
+                        document.body,
+                    )
+                    : null}
             </div>
         </InputFieldChrome>
     );

@@ -4,6 +4,8 @@ export { InputString } from "./InputString";
 export type { InputStringProps } from "./InputString";
 export { InputCPF } from "./InputCPF";
 export type { InputCPFProps } from "./InputCPF";
+export { InputPhone } from "./InputPhone";
+export type { InputPhoneProps } from "./InputPhone";
 export { InputCNPJ } from "./InputCNPJ";
 export type { InputCNPJProps } from "./InputCNPJ";
 export { InputCEP } from "./InputCEP";

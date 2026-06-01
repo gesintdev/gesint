@@ -1,6 +1,7 @@
 package br.com.gommo.modules.person.collaborators.admission.entity;
 
 import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
 import br.com.gommo.modules.person.collaborators.people.entity.GenderEnum;
 import br.com.gommo.modules.person.collaborators.people.entity.MaritalStatusEnum;
 import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
@@ -11,6 +12,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -133,6 +136,16 @@ public class AdmissionProcess extends AuditEntity {
     @Column(name = "base_salary", precision = 14, scale = 2)
     private BigDecimal baseSalary;
 
-    @Column(name = "workload_hours", precision = 5, scale = 2)
-    private BigDecimal workloadHours;
+    @Column(name = "workload_schedule", length = 32)
+    private String workloadSchedule;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "emergency_contacts", columnDefinition = "jsonb", nullable = false)
+    private List<AdmissionEmergencyContactDto> emergencyContacts = new ArrayList<>();
+
+    @Column(name = "contract_start_date")
+    private LocalDate contractStartDate;
+
+    @Column(name = "contract_end_date")
+    private LocalDate contractEndDate;
 }

@@ -46,7 +46,7 @@ export function InputDatetime({
   return (
     <InputFieldChrome
       label={label}
-      hint={hint ?? "Um único menu: calendário + hora e minuto. Enviado como YYYY-MM-DDTHH:mm"}
+      hint={hint}
       error={error}
       required={required}
       disabled={disabled}

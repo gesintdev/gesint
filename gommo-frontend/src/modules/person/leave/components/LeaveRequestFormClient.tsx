@@ -69,7 +69,7 @@ export function LeaveRequestFormClient() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: leaverequestKeys.all });
       if (editingId) await queryClient.invalidateQueries({ queryKey: leaverequestKeys.detail(editingId) });
-      toast.success(isEditing ? "Afastamento atualizado" : "Afastamento cadastrado");
+      toast.success(isEditing ? "Registro salvo" : "Afastamento cadastrado");
       setForm(emptyLeaveRequestForm());
       goToList();
     },
@@ -148,6 +148,11 @@ export function LeaveRequestFormClient() {
     >
     <div className="grid gap-3 p-4 sm:grid-cols-2">
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
+      {isEditing && detailQuery.data?.approved !== true ? (
+        <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75 sm:col-span-2">
+          Solicitação de férias vinda do RH. Revise os dados, marque como aprovado e salve para concluir o cadastro.
+        </p>
+      ) : null}
       <div className="sm:col-span-2">
         <CollaboratorPickerField
           value={form.collaboratorId ?? ""}

@@ -5,7 +5,6 @@ import type {InputFieldChromeProps} from "@/shared/components/ui/input/input-fie
 
 export function InputFieldChrome({
                                      label,
-                                     hint,
                                      error,
                                      required,
                                      id,
@@ -22,7 +21,6 @@ export function InputFieldChrome({
             )}
             {children}
             {error && <p className="mt-1.5 text-[11px] font-medium text-error">{error}</p>}
-            {!error && hint && <p className="mt-1.5 text-[11px] text-base-content/45">{hint}</p>}
         </div>
     );
 }

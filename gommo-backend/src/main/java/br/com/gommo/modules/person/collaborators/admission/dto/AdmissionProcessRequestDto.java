@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -100,5 +101,10 @@ public class AdmissionProcessRequestDto {
     private ContractTypeEnum contractType;
 
     private BigDecimal baseSalary;
-    private BigDecimal workloadHours;
+    private String workloadSchedule;
+
+    private List<AdmissionEmergencyContactDto> emergencyContacts;
+
+    private LocalDate contractStartDate;
+    private LocalDate contractEndDate;
 }

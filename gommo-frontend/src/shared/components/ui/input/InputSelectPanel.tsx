@@ -2,6 +2,7 @@
 
 import clsx from "clsx";
 import {Check} from "lucide-react";
+import {forwardRef} from "react";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 
 type InputSelectPanelProps = {
@@ -14,25 +15,33 @@ type InputSelectPanelProps = {
     emptyMessage?: string;
     footer?: React.ReactNode;
     className?: string;
+    style?: React.CSSProperties;
 };
 
-export function InputSelectPanel({
-                                     listId,
-                                     items,
-                                     activeIndex,
-                                     selectedValue,
-                                     onPick,
-                                     onHighlight,
-                                     emptyMessage = "Nenhum item encontrado",
-                                     footer,
-                                     className,
-                                 }: InputSelectPanelProps) {
+export const InputSelectPanel = forwardRef<HTMLDivElement, InputSelectPanelProps>(
+    function InputSelectPanel(
+        {
+            listId,
+            items,
+            activeIndex,
+            selectedValue,
+            onPick,
+            onHighlight,
+            emptyMessage = "Nenhum item encontrado",
+            footer,
+            className,
+            style,
+        },
+        ref,
+    ) {
     return (
         <div
+            ref={ref}
             className={clsx(
                 "surface-popover absolute z-50 mt-1 w-full overflow-hidden",
                 className,
             )}
+            style={style}
         >
             {items.length === 0 ? (
                 <p className="px-3 py-2.5 text-xs text-base-content/50">{emptyMessage}</p>
@@ -80,4 +89,5 @@ export function InputSelectPanel({
             {footer}
         </div>
     );
-}
+    },
+);

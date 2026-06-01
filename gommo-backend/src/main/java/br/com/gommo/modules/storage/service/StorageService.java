@@ -53,6 +53,9 @@ public class StorageService implements IStorageService {
         if (file == null || file.isEmpty()) {
             throw StorageException.uploadFailed();
         }
+        if (file.getSize() > properties.maxFileSizeBytes()) {
+            throw StorageException.fileTooLarge(properties.maxFileSizeBytes());
+        }
         try {
             UUID objectId = UUID.randomUUID();
             String safeName = sanitizeFilename(file.getOriginalFilename());
@@ -95,14 +98,15 @@ public class StorageService implements IStorageService {
     @Transactional
     @PreAuthorize("hasAuthority('storage:write')")
     public StorageObjectLinkResponseDto linkToEntity(
-            String entityType, UUID entityId, UUID objectId, String linkRole, String displayName) {
+            String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType) {
         StorageObject object = findActiveObject(objectId);
         StorageObjectLink link = StorageObjectLink.builder()
                 .storageObjectId(object.getId())
                 .entityType(entityType)
                 .entityId(entityId)
-                .linkRole(linkRole != null ? linkRole : "attachment")
+                .linkRole(linkRole != null ? linkRole : "DOCUMENT")
                 .displayName(displayName)
+                .documentType(documentType)
                 .build();
         link.setStatus(StatusEnum.ACTIVE);
         link = linkRepository.save(link);
@@ -122,6 +126,21 @@ public class StorageService implements IStorageService {
                     return mapper.toLinkResponse(link, object);
                 })
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('storage:write')")
+    public StorageObjectLinkResponseDto updateLinkDocumentType(UUID linkId, String documentType) {
+        StorageObjectLink link = linkRepository
+                .findByIdAndStatusNot(linkId, StatusEnum.DELETED)
+                .orElseThrow(StorageException::linkNotFound);
+        link.setDocumentType(documentType);
+        link = linkRepository.save(link);
+        StorageObject object = objectRepository
+                .findByIdAndStatusNot(link.getStorageObjectId(), StatusEnum.DELETED)
+                .orElse(null);
+        return mapper.toLinkResponse(link, object);
     }
 
     @Override

@@ -51,9 +51,9 @@ export function WorkspaceTabOverflowMenu({
             {open && (
                 <div
                     role="menu"
-                    className="surface-card absolute end-0 top-full z-50 mt-1 max-h-80 min-w-[16rem] overflow-y-auto border border-base-content/10 py-1 shadow-lg"
+                    className="surface-card absolute end-0 top-full z-50 mt-1 flex max-h-80 min-w-[16rem] flex-col border border-base-content/10 shadow-lg"
                 >
-                    <ul className="py-1">
+                    <ul className="min-h-0 flex-1 overflow-y-auto py-1">
                         {tabs.map((tab) => {
                             const title = formatWorkspaceTabTitle(tab);
                             const active = tab.id === activeTabId;
@@ -94,7 +94,7 @@ export function WorkspaceTabOverflowMenu({
                             );
                         })}
                     </ul>
-                    <div className="border-t border-base-content/10 p-1">
+                    <div className="shrink-0 border-t border-base-content/10 p-1">
                         <button
                             type="button"
                             role="menuitem"

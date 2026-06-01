@@ -1,6 +1,7 @@
 package br.com.gommo.modules.storage.controller;
 
 import br.com.gommo.modules.storage.dto.StorageLinkRequestDto;
+import br.com.gommo.modules.storage.dto.StorageLinkUpdateRequestDto;
 import br.com.gommo.modules.storage.dto.StorageObjectLinkResponseDto;
 import br.com.gommo.modules.storage.dto.StorageObjectResponseDto;
 import br.com.gommo.modules.storage.service.IStorageService;
@@ -16,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,7 +48,8 @@ public class StorageController {
                 request.getEntityId(),
                 request.getObjectId(),
                 request.getLinkRole(),
-                request.getDisplayName());
+                request.getDisplayName(),
+                request.getDocumentType());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -54,6 +57,12 @@ public class StorageController {
     public ResponseEntity<List<StorageObjectLinkResponseDto>> listLinks(
             @RequestParam String entityType, @RequestParam UUID entityId) {
         return ResponseEntity.ok(storageService.listByEntity(entityType, entityId));
+    }
+
+    @PatchMapping("/links/{linkId}")
+    public ResponseEntity<StorageObjectLinkResponseDto> updateLink(
+            @PathVariable UUID linkId, @Valid @RequestBody StorageLinkUpdateRequestDto request) {
+        return ResponseEntity.ok(storageService.updateLinkDocumentType(linkId, request.getDocumentType()));
     }
 
     @GetMapping("/objects/{id}/download")

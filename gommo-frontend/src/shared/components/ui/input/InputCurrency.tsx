@@ -32,7 +32,6 @@ export function InputCurrency({
         const cents = parseCurrencyToCents(next);
         onValueChange(emitAsDecimal ? centsToDecimal(cents) : cents);
       }}
-      hint={chrome.hint ?? (emitAsDecimal ? "Retorno: decimal" : "Retorno: centavos (string)")}
     />
   );
 }

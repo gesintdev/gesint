@@ -39,6 +39,7 @@ public class StorageMapper {
                 .entityId(link.getEntityId())
                 .linkRole(link.getLinkRole())
                 .displayName(link.getDisplayName())
+                .documentType(link.getDocumentType())
                 .storageObject(object != null ? toObjectResponse(object) : null)
                 .createdAt(link.getCreatedAt())
                 .updatedAt(link.getUpdatedAt())

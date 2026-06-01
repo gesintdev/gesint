@@ -4,7 +4,7 @@ import clsx from "clsx";
 import get from "lodash/get";
 import type {MouseEvent, ReactNode} from "react";
 import {ProfileAvatar} from "@/shared/components/ui/ProfileAvatar";
-import {badgeClassForStatus, formatCellValue} from "@/shared/lib/table/format-cell-value";
+import {badgeClassForStatus, formatBadgeCellValue, formatCellValue} from "@/shared/lib/table/format-cell-value";
 import {TableDataType, type TableColumnConfig} from "@/shared/types/table.types";
 
 export type DataTableRowActivateOn = "click" | "doubleclick";
@@ -90,8 +90,8 @@ function renderCellContent(
 
     if (dataType === TableDataType.BADGE && value != null && value !== "") {
         return (
-            <span className={clsx("gommo-badge", badgeClassForStatus(value))}>
-        {formatCellValue(value, TableDataType.BADGE)}
+            <span className={clsx("gommo-badge", badgeClassForStatus(value, col.badgeLabels))}>
+        {formatBadgeCellValue(value, col.badgeLabels)}
       </span>
         );
     }

@@ -1,7 +1,6 @@
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { customWorkspaceRoute, lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
 import {
-    Briefcase,
     CalendarDays,
     ClipboardList,
     MessageSquare,
@@ -99,20 +98,24 @@ export const personRoutes: AppRoute[] = [
         ],
     }),
     tabbedCrudRoute({
-        id: "contract",
-        href: "/contract",
-        label: "Contratos",
-        icon: Briefcase,
-        routeId: "contract",
-        tabShortLabel: "Cont",
+        id: "leave-vacation",
+        href: "/leave/vacation",
+        label: "Férias",
+        icon: CalendarDays,
+        routeId: "leave-vacation",
+        tabShortLabel: "Férias",
+        listToolbar: "Histórico de férias cadastradas pelo Departamento Pessoal.",
         list: lazyNamed(
-            () => import("@/modules/person/contract/components/EmploymentContractListClient"),
-            "EmploymentContractListClient",
+            () => import("@/modules/person/leave/components/LeaveRequestRhListClient"),
+            "LeaveRequestRhListClient",
         ),
         form: lazyNamed(
-            () => import("@/modules/person/contract/components/EmploymentContractFormClient"),
-            "EmploymentContractFormClient",
+            () => import("@/modules/person/leave/components/LeaveVacationRequestFormClient"),
+            "LeaveVacationRequestFormClient",
         ),
+        formTabLabel: "Solicitação de férias",
+        listToFormLabel: "Nova solicitação de férias",
+        showListToFormButton: true,
     }),
     tabbedCrudRoute({
         id: "attendance",
@@ -128,22 +131,6 @@ export const personRoutes: AppRoute[] = [
         form: lazyNamed(
             () => import("@/modules/person/attendance/components/AttendanceRecordFormClient"),
             "AttendanceRecordFormClient",
-        ),
-    }),
-    tabbedCrudRoute({
-        id: "leave",
-        href: "/leave",
-        label: "Férias e afastamentos",
-        icon: CalendarDays,
-        routeId: "leave",
-        tabShortLabel: "Férias",
-        list: lazyNamed(
-            () => import("@/modules/person/leave/components/LeaveRequestListClient"),
-            "LeaveRequestListClient",
-        ),
-        form: lazyNamed(
-            () => import("@/modules/person/leave/components/LeaveRequestFormClient"),
-            "LeaveRequestFormClient",
         ),
     }),
     tabbedCrudRoute({

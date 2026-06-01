@@ -64,6 +64,32 @@ class StorageService {
         return URL.createObjectURL(blob);
     }
 
+    async downloadFile(id: string, filename: string): Promise<void> {
+        const response = await fetch(this.downloadUrl(id), {
+            headers: await authHeaders(),
+        });
+        if (!response.ok) {
+            const { AppException } = await import("@/shared/exceptions/app.exception");
+            let payload = { code: "STORAGE_DOWNLOAD_FAILED", message: response.statusText };
+            try {
+                payload = await response.json();
+            } catch {
+                /* empty */
+            }
+            throw AppException.fromApiResponse(payload, response.status);
+        }
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = objectUrl;
+        anchor.download = filename || "download";
+        anchor.rel = "noopener";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    }
+
     deleteObject(id: string): Promise<void> {
         return import("@/shared/lib/api.client").then(({ apiFetch }) =>
             apiFetch<void>(`/api/v1/storage/objects/${id}`, { method: "DELETE" }),
@@ -73,6 +99,15 @@ class StorageService {
     linkObject(request: StorageLinkRequest): Promise<StorageObjectLink> {
         return import("@/shared/lib/api.client").then(({ apiFetch }) =>
             apiFetch<StorageObjectLink>("/api/v1/storage/links", { method: "POST", body: request }),
+        );
+    }
+
+    updateLinkDocumentType(linkId: string, documentType: string): Promise<StorageObjectLink> {
+        return import("@/shared/lib/api.client").then(({ apiFetch }) =>
+            apiFetch<StorageObjectLink>(`/api/v1/storage/links/${linkId}`, {
+                method: "PATCH",
+                body: { documentType },
+            }),
         );
     }
 }

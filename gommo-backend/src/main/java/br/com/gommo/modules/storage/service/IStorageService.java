@@ -12,9 +12,11 @@ public interface IStorageService {
     StorageObjectResponseDto upload(MultipartFile file);
 
     StorageObjectLinkResponseDto linkToEntity(
-            String entityType, UUID entityId, UUID objectId, String linkRole, String displayName);
+            String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType);
 
     List<StorageObjectLinkResponseDto> listByEntity(String entityType, UUID entityId);
+
+    StorageObjectLinkResponseDto updateLinkDocumentType(UUID linkId, String documentType);
 
     InputStream download(UUID objectId);
 

@@ -164,7 +164,7 @@ export function InputAutocomplete({
     return (
         <InputFieldChrome
             label={label}
-            hint={hint ?? `Até ${PAGE_SIZE} registros por página`}
+            hint={hint}
             error={error}
             required={required}
             disabled={disabled}

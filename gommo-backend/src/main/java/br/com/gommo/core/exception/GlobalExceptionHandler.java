@@ -15,6 +15,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import br.com.gommo.modules.storage.exception.StorageException;
+import br.com.gommo.modules.storage.exception.StorageExceptions;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -50,6 +53,15 @@ public class GlobalExceptionHandler {
             AccessDeniedException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(error(CoreExceptions.FORBIDDEN_CODE, CoreExceptions.FORBIDDEN_MSG, request));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponseDto> handleMaxUploadSize(
+            MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        BusinessException mapped = StorageException.fileTooLarge(
+                ex.getMaxUploadSize() > 0 ? ex.getMaxUploadSize() : 25L * 1024 * 1024);
+        return ResponseEntity.status(mapped.getStatus())
+                .body(error(mapped.getCode(), mapped.getMessage(), request));
     }
 
     @ExceptionHandler(Exception.class)

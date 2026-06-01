@@ -108,18 +108,29 @@ const BADGE_LABELS: Record<string, string> = {
   OTHER: "Outro",
 };
 
-function formatBadgeLabel(value: unknown): string {
+function formatBadgeLabel(value: unknown, labels?: Record<string, string>): string {
   const key = String(value).toUpperCase();
-  return BADGE_LABELS[key] ?? String(value);
+  const map = labels ?? BADGE_LABELS;
+  return map[key] ?? BADGE_LABELS[key] ?? String(value);
 }
 
-export function badgeClassForStatus(value: unknown): string {
+export function formatBadgeCellValue(value: unknown, labels?: Record<string, string>): string {
+  if (value == null || value === "") return "—";
+  return formatBadgeLabel(value, labels);
+}
+
+export function badgeClassForStatus(value: unknown, labels?: Record<string, string>): string {
   const normalized = String(value).toUpperCase();
+  if (labels && labels !== BADGE_LABELS) {
+    if (normalized === "COMPLETED") return "gommo-badge--success";
+    if (normalized === "CANCELLED" || normalized === "DELETED") return "gommo-badge--error";
+    if (normalized === "DRAFT" || normalized === "IN_PROGRESS") return "gommo-badge--info";
+    return "gommo-badge--neutral";
+  }
   if (normalized === "ACTIVE") return "gommo-badge--success";
   if (normalized === "INACTIVE") return "gommo-badge--warning";
   if (normalized === "DELETED") return "gommo-badge--error";
-  if (normalized === "DRAFT") return "gommo-badge--neutral";
-  if (normalized === "IN_PROGRESS") return "gommo-badge--info";
+  if (normalized === "DRAFT" || normalized === "IN_PROGRESS") return "gommo-badge--info";
   if (normalized === "COMPLETED") return "gommo-badge--success";
   if (normalized === "CANCELLED") return "gommo-badge--error";
   return "gommo-badge--neutral";

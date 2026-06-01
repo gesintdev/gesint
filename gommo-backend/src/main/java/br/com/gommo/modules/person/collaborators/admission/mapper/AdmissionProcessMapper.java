@@ -1,18 +1,23 @@
 package br.com.gommo.modules.person.collaborators.admission.mapper;
 
+import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProcessResponseDto;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class AdmissionProcessMapper {
 
     public AdmissionProcess toEntity(AdmissionProcessRequestDto dto) {
         return AdmissionProcess.builder()
-                .admissionStatus(dto.getAdmissionStatus() != null ? dto.getAdmissionStatus() : AdmissionStatusEnum.DRAFT)
+                .admissionStatus(dto.getAdmissionStatus() != null ? dto.getAdmissionStatus() : AdmissionStatusEnum.IN_PROGRESS)
                 .startedAt(dto.getStartedAt())
                 .notes(dto.getNotes())
                 .fullName(dto.getFullName())
@@ -41,15 +46,15 @@ public class AdmissionProcessMapper {
                 .jobPositionId(dto.getJobPositionId())
                 .contractType(dto.getContractType() != null ? dto.getContractType() : ContractTypeEnum.CLT)
                 .baseSalary(dto.getBaseSalary())
-                .workloadHours(dto.getWorkloadHours())
+                .workloadSchedule(dto.getWorkloadSchedule())
+                .emergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()))
+                .contractStartDate(dto.getContractStartDate())
+                .contractEndDate(dto.getContractEndDate())
                 .photoObjectId(dto.getPhotoObjectId())
                 .build();
     }
 
     public void updateEntity(AdmissionProcess entity, AdmissionProcessRequestDto dto) {
-        if (dto.getAdmissionStatus() != null) {
-            entity.setAdmissionStatus(dto.getAdmissionStatus());
-        }
         entity.setStartedAt(dto.getStartedAt());
         entity.setNotes(dto.getNotes());
         entity.setFullName(dto.getFullName());
@@ -82,20 +87,27 @@ public class AdmissionProcessMapper {
             entity.setContractType(dto.getContractType());
         }
         entity.setBaseSalary(dto.getBaseSalary());
-        entity.setWorkloadHours(dto.getWorkloadHours());
+        entity.setWorkloadSchedule(dto.getWorkloadSchedule());
+        entity.setEmergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()));
+        entity.setContractStartDate(dto.getContractStartDate());
+        entity.setContractEndDate(dto.getContractEndDate());
         entity.setPhotoObjectId(dto.getPhotoObjectId());
     }
 
     public AdmissionProcessResponseDto toResponse(AdmissionProcess entity) {
+        return toResponse(entity, entity.getAdmissionStatus());
+    }
+
+    public AdmissionProcessResponseDto toResponse(AdmissionProcess entity, AdmissionStatusEnum admissionStatus) {
         return AdmissionProcessResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
                 .collaboratorId(entity.getCollaboratorId())
                 .photoObjectId(entity.getPhotoObjectId())
-                .admissionStatus(entity.getAdmissionStatus())
+                .admissionStatus(admissionStatus)
                 .startedAt(entity.getStartedAt())
-                .completedAt(entity.getCompletedAt())
+                .completedAt(admissionStatus == AdmissionStatusEnum.COMPLETED ? entity.getCompletedAt() : null)
                 .notes(entity.getNotes())
                 .fullName(entity.getFullName())
                 .socialName(entity.getSocialName())
@@ -123,9 +135,25 @@ public class AdmissionProcessMapper {
                 .jobPositionId(entity.getJobPositionId())
                 .contractType(entity.getContractType())
                 .baseSalary(entity.getBaseSalary())
-                .workloadHours(entity.getWorkloadHours())
+                .workloadSchedule(entity.getWorkloadSchedule())
+                .emergencyContacts(copyEmergencyContacts(entity.getEmergencyContacts()))
+                .contractStartDate(entity.getContractStartDate())
+                .contractEndDate(entity.getContractEndDate())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
+    }
+
+    private static List<AdmissionEmergencyContactDto> copyEmergencyContacts(List<AdmissionEmergencyContactDto> contacts) {
+        if (CollectionUtils.isEmpty(contacts)) {
+            return new ArrayList<>();
+        }
+        return contacts.stream()
+                .map(contact -> AdmissionEmergencyContactDto.builder()
+                        .name(contact.getName())
+                        .phone(contact.getPhone())
+                        .relationship(contact.getRelationship())
+                        .build())
+                .toList();
     }
 }

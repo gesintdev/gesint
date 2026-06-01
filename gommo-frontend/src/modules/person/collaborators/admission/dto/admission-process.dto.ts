@@ -3,6 +3,12 @@ export type Gender = "MALE" | "FEMALE" | "OTHER" | "NOT_INFORMED";
 export type MaritalStatus = "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "OTHER";
 export type ContractType = "CLT" | "PJ" | "INTERMITTENT" | "APPRENTICE" | "INTERN";
 
+export type AdmissionEmergencyContact = {
+    name: string;
+    phone: string;
+    relationship?: string;
+};
+
 export class AdmissionProcess {
     id!: string;
     code!: number;
@@ -41,7 +47,12 @@ export class AdmissionProcess {
     jobPositionId?: string;
     contractType!: ContractType;
     baseSalary?: number;
-    workloadHours?: number;
+    workloadSchedule?: string;
+
+    emergencyContacts?: AdmissionEmergencyContact[];
+
+    contractStartDate?: string;
+    contractEndDate?: string;
 
     createdAt?: string;
     updatedAt?: string;
@@ -81,5 +92,10 @@ export class AdmissionProcessCreateDto {
     contractType!: ContractType;
     /** Formulário: string (moeda/decimal); API: number */
     baseSalary?: string | number;
-    workloadHours?: string | number;
+    workloadSchedule?: string;
+
+    emergencyContacts?: AdmissionEmergencyContact[];
+
+    contractStartDate?: string;
+    contractEndDate?: string;
 }

@@ -22,7 +22,7 @@ export function DepartmentPickerField({
     value,
     onValueChange,
     label = "Departamento",
-    hint = "Busque pelo nome ou use a busca detalhada",
+    hint,
     required,
     error,
     disabled,

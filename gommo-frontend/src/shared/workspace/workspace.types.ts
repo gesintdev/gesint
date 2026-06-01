@@ -25,11 +25,25 @@ export type OpenWorkspaceRecordInput = OpenWorkspaceTabInput & {
     entityKey: WorkspaceEntityKey;
 };
 
+function tabBaseLabel(tab: WorkspaceTab): string {
+    return (tab.shortLabel || tab.routeLabel).trim();
+}
+
+function appendTabTitleSuffix(base: string, suffix?: string): string {
+    const normalizedBase = base.trim();
+    const normalizedSuffix = suffix?.trim();
+    if (!normalizedSuffix) return normalizedBase;
+    if (normalizedSuffix.toLowerCase() === normalizedBase.toLowerCase()) return normalizedBase;
+    return `${normalizedBase} - ${normalizedSuffix}`;
+}
+
 export function formatWorkspaceTabTitle(tab: WorkspaceTab): string {
-    if (tab.entityKey === "list") return tab.shortLabel || tab.routeLabel;
-    if (tab.entityKey === "new") {
-        return tab.titleSuffix ? `${tab.shortLabel} - ${tab.titleSuffix}` : `${tab.shortLabel} - Novo`;
+    const base = tabBaseLabel(tab);
+    if (tab.entityKey === "list") {
+        return appendTabTitleSuffix(base, tab.titleSuffix);
     }
-    if (tab.titleSuffix) return `${tab.shortLabel} - ${tab.titleSuffix}`;
-    return tab.shortLabel;
+    if (tab.entityKey === "new") {
+        return appendTabTitleSuffix(base, tab.titleSuffix ?? "Novo");
+    }
+    return appendTabTitleSuffix(base, tab.titleSuffix);
 }

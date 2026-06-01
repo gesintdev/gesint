@@ -12,6 +12,8 @@ export type AppRoute = {
     href?: string;
     icon: LucideIcon;
     permission?: string;
+    /** Título curto da aba no workspace (gerado por `tabbedCrudRoute`). */
+    tabShortLabel?: string;
     children?: AppRoute[];
     /** Chunk da tela no workspace (import dinâmico — não carrega no sidebar). */
     workspaceLoader?: WorkspacePageLoader;

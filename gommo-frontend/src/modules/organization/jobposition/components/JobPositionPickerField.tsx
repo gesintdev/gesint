@@ -31,12 +31,6 @@ export function JobPositionPickerField({
     disabled,
     wrapperClassName,
 }: JobPositionPickerFieldProps) {
-    const resolvedHint =
-        hint ??
-        (departmentId
-            ? "Digitação rápida filtra pelo departamento; a busca detalhada lista todos os cargos"
-            : "Busque pelo título ou use a busca detalhada");
-
     const onSearch = useCallback(
         (query: string, page: number) =>
             jobpositionService.searchForAutocomplete(query, page, departmentId?.trim() || undefined),
@@ -51,7 +45,7 @@ export function JobPositionPickerField({
     return (
         <EntityPickerField
             label={label}
-            hint={resolvedHint}
+            hint={hint}
             value={value ?? ""}
             onValueChange={(id) => onValueChange(id)}
             onSearch={onSearch}

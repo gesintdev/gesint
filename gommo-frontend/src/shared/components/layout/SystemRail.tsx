@@ -28,14 +28,14 @@ export function SystemRail() {
 
     return (
         <nav
-            className="system-rail flex h-full w-(--system-rail-width) shrink-0 flex-col border-r"
+            className="system-rail flex h-full w-(--system-rail-width) shrink-0 flex-col overflow-x-hidden border-r"
             style={{
                 background: "var(--system-rail-bg)",
                 borderColor: "var(--system-rail-border)",
             }}
             aria-label="Domínios do sistema"
         >
-            <div className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto px-1 py-3">
+            <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-1.5 overflow-x-hidden overflow-y-auto px-1 py-3">
                 {systems.map((system) => {
                     const Icon = system.icon;
                     const selected = !isSettingsMode && system.id === activeSystem;
@@ -61,7 +61,7 @@ export function SystemRail() {
             </div>
 
             <div
-                className="mt-auto flex flex-col items-center border-t px-1 pb-3 pt-2"
+                className="mt-auto flex w-full flex-col items-stretch border-t px-1 pb-3 pt-2"
                 style={{ borderColor: "var(--system-rail-border)" }}
             >
                 <button

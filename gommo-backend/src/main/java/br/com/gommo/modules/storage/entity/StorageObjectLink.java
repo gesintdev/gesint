@@ -34,4 +34,7 @@ public class StorageObjectLink extends AuditEntity {
 
     @Column(name = "display_name", length = 255)
     private String displayName;
+
+    @Column(name = "document_type", length = 64)
+    private String documentType;
 }

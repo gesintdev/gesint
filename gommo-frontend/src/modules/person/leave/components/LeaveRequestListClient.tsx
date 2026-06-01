@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { LEAVE_CLIENT_MESSAGES } from "@/modules/person/leave/exceptions/leave-request.messages";
 import { LEAVE_TABLE_COLUMNS } from "@/modules/person/leave/config/leave-request.table-columns";
 import type { LeaveRequest } from "@/modules/person/leave/dto/leave-request.dto";
+import { isRegisteredLeave } from "@/modules/person/leave/lib/leave-request.filters";
 import { leaverequestKeys } from "@/modules/person/leave/leave.query";
 import { leaverequestService } from "@/modules/person/leave/services/leave-request.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -34,8 +35,11 @@ export function LeaveRequestListClient() {
 
     return (
         <QueryTablePanel<LeaveRequest>
-            queryKey={leaverequestKeys.all}
-            request={() => leaverequestService.getAll()}
+            queryKey={[...leaverequestKeys.all, "registered"]}
+            request={async () => {
+                const rows = await leaverequestService.getAll();
+                return rows.filter(isRegisteredLeave);
+            }}
             columns={LEAVE_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum(a) afastamento cadastrado(a)."

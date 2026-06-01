@@ -3,15 +3,23 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {type FormEvent, useCallback, useEffect, useMemo, useState} from "react";
 import {toast} from "sonner";
-import {
-    ADMISSION_CLIENT_MESSAGES
-} from "@/modules/person/collaborators/admission/exceptions/admission-process.messages";
+import {ADMISSION_CLIENT_MESSAGES} from "@/modules/person/collaborators/admission/exceptions/admission-process.messages";
 import type {AdmissionProcessCreateDto} from "@/modules/person/collaborators/admission/dto/admission-process.dto";
+import {AdmissionSummary} from "@/modules/person/collaborators/admission/components/AdmissionSummary";
+import {AdmissionEmergencyContactsField} from "@/modules/person/collaborators/admission/components/AdmissionEmergencyContactsField";
 import {
+    ADMISSION_DOCUMENT_TYPE_ITEMS,
+    CONTRACT_DOCUMENT_TYPE_ITEMS,
+    CONTRACT_TYPE_ITEMS,
+    WORKLOAD_SCHEDULE_ITEMS,
+} from "@/modules/person/collaborators/admission/lib/admission-form.constants";
+import {
+    ADMISSION_STEP_IDS,
     admissionFormToPayload,
     admissionprocessToFormDto,
     emptyAdmissionProcessForm,
 } from "@/modules/person/collaborators/admission/lib/admission-process.mapper";
+import {computeAdmissionStatus, computeFilledAdmissionSteps} from "@/modules/person/collaborators/admission/lib/admission-status.util";
 import {admissionprocessKeys} from "@/modules/person/collaborators/admission/admission.query";
 import {admissionprocessService} from "@/modules/person/collaborators/admission/services/admission-process.service";
 import {storageService} from "@/modules/storage/services/storage.service";
@@ -19,32 +27,23 @@ import {DepartmentPickerField} from "@/modules/organization/department/component
 import {JobPositionPickerField} from "@/modules/organization/jobposition/components/JobPositionPickerField";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
-import {EntityAttachments} from "@/shared/components/storage/EntityAttachments";
+import {EntityAttachments, flushPendingAttachments, type PendingAttachment} from "@/shared/components/storage/EntityAttachments";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {FormStepper, type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {ProfilePhotoField} from "@/shared/components/ui/ProfilePhotoField";
-import {isStepFilled, sectionHasChanges} from "@/shared/lib/form-step.util";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import {
     InputCEP,
     InputCPF,
     InputCurrency,
     InputDate,
-    InputDecimal,
     InputRG,
     InputSelect,
     InputString,
 } from "@/shared/components/ui/input/index";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
-
-const ADMISSION_STATUS_ITEMS: SelectItem[] = [
-    {value: "DRAFT", label: "Rascunho"},
-    {value: "IN_PROGRESS", label: "Em andamento"},
-    {value: "COMPLETED", label: "Concluída"},
-    {value: "CANCELLED", label: "Cancelada"},
-];
 
 const GENDER_ITEMS: SelectItem[] = [
     {value: "MALE", label: "Masculino"},
@@ -61,20 +60,13 @@ const MARITAL_ITEMS: SelectItem[] = [
     {value: "OTHER", label: "Outro"},
 ];
 
-const CONTRACT_TYPE_ITEMS: SelectItem[] = [
-    {value: "CLT", label: "CLT"},
-    {value: "PJ", label: "PJ"},
-    {value: "INTERMITTENT", label: "Intermitente"},
-    {value: "APPRENTICE", label: "Aprendiz"},
-    {value: "INTERN", label: "Estágio"},
-];
-
 const ADMISSION_FORM_STEPS: FormStepNavItem[] = [
     {id: "dados-basicos", label: "Dados básicos"},
-    {id: "processo", label: "Processo"},
+    {id: "contatos-emergencia", label: "Contatos de emergência"},
     {id: "endereco", label: "Endereço"},
     {id: "documentos", label: "Documentos"},
     {id: "vinculo", label: "Vínculo"},
+    {id: "contrato", label: "Contrato"},
     {id: "observacoes", label: "Observações"},
 ];
 
@@ -85,7 +77,8 @@ export function AdmissionProcessFormClient() {
     const [error, setError] = useState<string | null>(null);
     const [pendingPhotoBlob, setPendingPhotoBlob] = useState<Blob | null>(null);
     const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
-    const emptyDefaults = useMemo(() => emptyAdmissionProcessForm(), []);
+    const [pendingDocumentAttachments, setPendingDocumentAttachments] = useState<PendingAttachment[]>([]);
+    const [pendingContractAttachments, setPendingContractAttachments] = useState<PendingAttachment[]>([]);
 
     const detailQuery = useQuery({
         queryKey: admissionprocessKeys.detail(editingId ?? ""),
@@ -94,6 +87,33 @@ export function AdmissionProcessFormClient() {
     });
 
     useSyncWorkspaceTabTitle(detailQuery.data ?? null);
+
+    const attachmentsQuery = useQuery({
+        queryKey: ["storage-links", "admission_process", editingId],
+        queryFn: () => storageService.listLinks("admission_process", editingId!),
+        enabled: Boolean(editingId),
+    });
+
+    const clearPendingAttachments = useCallback(() => {
+        setPendingDocumentAttachments([]);
+        setPendingContractAttachments([]);
+    }, []);
+
+    const stepContext = useMemo(() => ({
+        documentCount:
+            (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "DOCUMENT").length
+            + pendingDocumentAttachments.length,
+        contractDocumentCount:
+            (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "CONTRACT").length
+            + pendingContractAttachments.length,
+        hasPhoto: Boolean(form.photoObjectId || pendingPreviewUrl),
+    }), [
+        attachmentsQuery.data,
+        form.photoObjectId,
+        pendingContractAttachments.length,
+        pendingDocumentAttachments.length,
+        pendingPreviewUrl,
+    ]);
 
     const clearPendingPhoto = useCallback(() => {
         setPendingPreviewUrl((current) => {
@@ -112,14 +132,16 @@ export function AdmissionProcessFormClient() {
             setForm(emptyAdmissionProcessForm());
             setError(null);
             clearPendingPhoto();
+            clearPendingAttachments();
             return;
         }
         if (detailQuery.data) {
             setForm(admissionprocessToFormDto(detailQuery.data));
             setError(null);
             clearPendingPhoto();
+            clearPendingAttachments();
         }
-    }, [isEditing, detailQuery.data, clearPendingPhoto, editingId]);
+    }, [isEditing, detailQuery.data, clearPendingAttachments, clearPendingPhoto, editingId]);
 
     const handlePhotoCropComplete = useCallback((blob: Blob) => {
         setPendingPreviewUrl((current) => {
@@ -136,7 +158,7 @@ export function AdmissionProcessFormClient() {
 
     const saveMutation = useMutation({
         mutationFn: async (dto: AdmissionProcessCreateDto) => {
-            let payload = admissionFormToPayload(dto);
+            let payload = admissionFormToPayload(dto, stepContext);
 
             if (pendingPhotoBlob) {
                 const file = new File([pendingPhotoBlob], "profile-photo.jpg", {type: "image/jpeg"});
@@ -144,13 +166,39 @@ export function AdmissionProcessFormClient() {
                 payload = {...payload, photoObjectId: object.id};
             }
 
-            if (isEditing && editingId) return admissionprocessService.update(editingId, payload);
-            return admissionprocessService.create(payload);
+            let savedId = editingId ?? null;
+            if (isEditing && editingId) {
+                await admissionprocessService.update(editingId, payload);
+            } else {
+                const created = await admissionprocessService.create(payload);
+                savedId = created.id;
+            }
+
+            if (!savedId) {
+                throw new Error("Não foi possível identificar o registro salvo.");
+            }
+
+            await flushPendingAttachments({
+                entityType: "admission_process",
+                entityId: savedId,
+                linkRole: "DOCUMENT",
+                items: pendingDocumentAttachments,
+            });
+            await flushPendingAttachments({
+                entityType: "admission_process",
+                entityId: savedId,
+                linkRole: "CONTRACT",
+                items: pendingContractAttachments,
+            });
+
+            return savedId;
         },
-        onSuccess: async () => {
+        onSuccess: async (savedId) => {
             clearPendingPhoto();
+            clearPendingAttachments();
             await queryClient.invalidateQueries({queryKey: admissionprocessKeys.all});
-            if (editingId) await queryClient.invalidateQueries({queryKey: admissionprocessKeys.detail(editingId)});
+            await queryClient.invalidateQueries({queryKey: admissionprocessKeys.detail(savedId)});
+            await queryClient.invalidateQueries({queryKey: ["storage-links", "admission_process", savedId]});
             toast.success(isEditing ? "Admissão atualizada" : "Admissão registrada");
             setForm(emptyAdmissionProcessForm());
             goToList();
@@ -167,68 +215,24 @@ export function AdmissionProcessFormClient() {
         saveMutation.mutate(form);
     };
 
-    const attachmentsQuery = useQuery({
-        queryKey: ["storage-links", "admission_process", editingId],
-        queryFn: () => storageService.listLinks("admission_process", editingId!),
-        enabled: Boolean(editingId),
-    });
+    const filledStepIds = useMemo(
+        () => computeFilledAdmissionSteps(form, stepContext, ADMISSION_STEP_IDS),
+        [form, stepContext],
+    );
 
-    const filledStepIds = useMemo(() => {
-        const empty = emptyDefaults;
-        const filled: string[] = [];
-
-        const dadosKeys = [
-            "fullName", "socialName", "cpf", "rg", "birthDate", "gender", "maritalStatus",
-            "nationality", "pisPasep", "motherName", "fatherName", "email", "phone",
-        ] as const;
-
-        if (
-            sectionHasChanges(form, empty, [...dadosKeys])
-            || isStepFilled([{value: form.photoObjectId}, {value: pendingPreviewUrl}])
-        ) {
-            filled.push("dados-basicos");
+    const summaryStatus = useMemo(() => {
+        if (isEditing && (detailQuery.isLoading || attachmentsQuery.isLoading)) {
+            return detailQuery.data?.admissionStatus ?? "IN_PROGRESS";
         }
-
-        if (
-            sectionHasChanges(form, empty, ["admissionStatus", "startedAt"])
-            || (form.admissionStatus != null && form.admissionStatus !== "DRAFT")
-        ) {
-            filled.push("processo");
-        }
-
-        if (
-            isStepFilled([
-                {value: form.zipCode},
-                {value: form.stateCode},
-                {value: form.street},
-                {value: form.number},
-                {value: form.complement},
-                {value: form.district},
-                {value: form.city},
-            ])
-        ) {
-            filled.push("endereco");
-        }
-
-        if ((attachmentsQuery.data?.length ?? 0) > 0) {
-            filled.push("documentos");
-        }
-
-        if (
-            sectionHasChanges(form, empty, [
-                "expectedStartDate", "contractType", "baseSalary", "workloadHours",
-                "companyId", "departmentId", "jobPositionId",
-            ])
-        ) {
-            filled.push("vinculo");
-        }
-
-        if (isStepFilled([{value: form.notes}])) {
-            filled.push("observacoes");
-        }
-
-        return filled;
-    }, [form, emptyDefaults, pendingPreviewUrl, attachmentsQuery.data]);
+        return computeAdmissionStatus(form, stepContext, ADMISSION_STEP_IDS);
+    }, [
+        attachmentsQuery.isLoading,
+        detailQuery.data?.admissionStatus,
+        detailQuery.isLoading,
+        form,
+        isEditing,
+        stepContext,
+    ]);
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -285,14 +289,25 @@ export function AdmissionProcessFormClient() {
                     description="Identificação pessoal e contato do colaborador."
                     bodyClassName="!block"
                 >
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                        <ProfilePhotoField
-                            photoObjectId={form.photoObjectId || undefined}
-                            pendingPreviewUrl={pendingPreviewUrl}
-                            onCropComplete={handlePhotoCropComplete}
-                            onClear={handlePhotoClear}
-                            displayName={form.fullName || "Colaborador"}
-                        />
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+                    <div className="flex flex-col gap-4 lg:h-full lg:max-w-[15rem] lg:shrink-0">
+                            <ProfilePhotoField
+                                photoObjectId={form.photoObjectId || undefined}
+                                pendingPreviewUrl={pendingPreviewUrl}
+                                onCropComplete={handlePhotoCropComplete}
+                                onClear={handlePhotoClear}
+                                displayName={form.fullName || "Colaborador"}
+                            />
+                            <div className="min-h-0 flex-1">
+                                <AdmissionSummary
+                                    form={form}
+                                    stepIds={ADMISSION_STEP_IDS}
+                                    context={stepContext}
+                                    entityCode={isEditing ? detailQuery.data?.code : undefined}
+                                    status={summaryStatus}
+                                />
+                            </div>
+                        </div>
                         <div className="grid min-w-0 flex-1 gap-4 sm:grid-cols-2">
                             <InputString
                                 label="Nome completo"
@@ -311,7 +326,6 @@ export function AdmissionProcessFormClient() {
                                 value={form.cpf}
                                 onValueChange={(v) => update("cpf", v)}
                                 required
-                                hint="Salvo apenas com dígitos"
                             />
                             <InputRG label="RG" value={form.rg ?? ""} onValueChange={(v) => update("rg", v)}/>
                             <InputDate
@@ -368,26 +382,13 @@ export function AdmissionProcessFormClient() {
                 </FormSection>
 
                 <FormSection
-                    id="processo"
-                    title="Processo"
-                    description="Status e datas do fluxo de admissão."
+                    id="contatos-emergencia"
+                    title="Contatos de emergência"
+                    description="Pessoas de referência em caso de urgência."
                 >
-                    <InputSelect
-                        label="Status do processo"
-                        items={ADMISSION_STATUS_ITEMS}
-                        value={form.admissionStatus ?? "DRAFT"}
-                        onValueChange={(v) =>
-                            update(
-                                "admissionStatus",
-                                (v || "DRAFT") as AdmissionProcessCreateDto["admissionStatus"],
-                            )
-                        }
-                        required
-                    />
-                    <InputDate
-                        label="Data de abertura"
-                        value={form.startedAt ?? ""}
-                        onValueChange={(v) => update("startedAt", v)}
+                    <AdmissionEmergencyContactsField
+                        contacts={form.emergencyContacts ?? []}
+                        onChange={(emergencyContacts) => update("emergencyContacts", emergencyContacts)}
                     />
                 </FormSection>
 
@@ -424,10 +425,18 @@ export function AdmissionProcessFormClient() {
                 <FormSection
                     id="documentos"
                     title="Documentos"
-                    description="Anexos vinculados ao processo de admissão."
+                    description="Anexos pessoais vinculados ao processo de admissão."
                     bodyClassName="!block"
                 >
-                    <EntityAttachments entityType="admission_process" entityId={editingId}/>
+                    <EntityAttachments
+                        entityType="admission_process"
+                        entityId={editingId}
+                        linkRole="DOCUMENT"
+                        documentTypeItems={ADMISSION_DOCUMENT_TYPE_ITEMS}
+                        deferUpload
+                        pendingAttachments={pendingDocumentAttachments}
+                        onPendingAttachmentsChange={setPendingDocumentAttachments}
+                    />
                 </FormSection>
 
                 <FormSection
@@ -456,16 +465,18 @@ export function AdmissionProcessFormClient() {
                         onValueChange={(v) => update("baseSalary", v)}
                         emitAsDecimal
                     />
-                    <InputDecimal
-                        label="Carga horária semanal"
-                        value={form.workloadHours != null ? String(form.workloadHours) : ""}
-                        onValueChange={(v) => update("workloadHours", v)}
+                    <InputSelect
+                        label="Carga horária"
+                        items={WORKLOAD_SCHEDULE_ITEMS}
+                        value={form.workloadSchedule ?? ""}
+                        onValueChange={(v) => update("workloadSchedule", v)}
+                        placeholder="Selecione"
+                        required
                     />
                     <InputString
                         label="ID empresa (opcional)"
                         value={form.companyId ?? ""}
                         onValueChange={(v) => update("companyId", v)}
-                        hint="UUID da empresa"
                     />
                     <DepartmentPickerField
                         value={form.departmentId ?? ""}
@@ -479,6 +490,37 @@ export function AdmissionProcessFormClient() {
                         departmentId={form.departmentId}
                         onValueChange={(v) => update("jobPositionId", v)}
                         wrapperClassName="sm:col-span-2"
+                    />
+                </FormSection>
+
+                <FormSection
+                    id="contrato"
+                    title="Contrato"
+                    description="Datas do contrato e documentos assinados."
+                    bodyClassName="!block"
+                >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <InputDate
+                            label="Início do contrato"
+                            value={form.contractStartDate ?? ""}
+                            onValueChange={(v) => update("contractStartDate", v)}
+                            required
+                        />
+                        <InputDate
+                            label="Fim do contrato"
+                            value={form.contractEndDate ?? ""}
+                            onValueChange={(v) => update("contractEndDate", v)}
+                        />
+                    </div>
+                    <EntityAttachments
+                        entityType="admission_process"
+                        entityId={editingId}
+                        linkRole="CONTRACT"
+                        documentTypeItems={CONTRACT_DOCUMENT_TYPE_ITEMS}
+                        emptyMessage="Nenhum documento de contrato anexado."
+                        deferUpload
+                        pendingAttachments={pendingContractAttachments}
+                        onPendingAttachmentsChange={setPendingContractAttachments}
                     />
                 </FormSection>
 

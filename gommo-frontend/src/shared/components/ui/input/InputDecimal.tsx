@@ -23,7 +23,6 @@ export function InputDecimal({
       inputMode="decimal"
       placeholder="0,00"
       onDisplayChange={(next) => onValueChange(unmaskDecimal(maskDecimal(next, maxDecimals)))}
-      hint={chrome.hint ?? "Retorno sem máscara (ponto decimal)"}
     />
   );
 }

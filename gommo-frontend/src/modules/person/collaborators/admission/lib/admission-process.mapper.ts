@@ -1,5 +1,17 @@
-import type { AdmissionProcess, AdmissionProcessCreateDto } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
+import type { AdmissionProcess, AdmissionProcessCreateDto, AdmissionEmergencyContact } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
+import { computeAdmissionStatus, type AdmissionStepContext } from "@/modules/person/collaborators/admission/lib/admission-status.util";
+import { normalizeEmergencyContacts } from "@/modules/person/collaborators/admission/lib/admission-emergency-contacts.util";
 import { digitsOnly } from "@/shared/lib/input/digits";
+
+const ADMISSION_STEP_IDS = [
+    "dados-basicos",
+    "contatos-emergencia",
+    "endereco",
+    "documentos",
+    "vinculo",
+    "contrato",
+    "observacoes",
+];
 
 function toDateInput(value?: string): string {
     return value?.slice(0, 10) ?? "";
@@ -37,12 +49,15 @@ export function admissionprocessToFormDto(entity: AdmissionProcess): AdmissionPr
         jobPositionId: entity.jobPositionId ?? "",
         contractType: entity.contractType ?? "CLT",
         baseSalary: entity.baseSalary != null ? String(entity.baseSalary) : "",
-        workloadHours: entity.workloadHours != null ? String(entity.workloadHours) : "",
+        workloadSchedule: entity.workloadSchedule ?? "",
+        emergencyContacts: normalizeEmergencyContacts(entity.emergencyContacts),
+        contractStartDate: toDateInput(entity.contractStartDate),
+        contractEndDate: toDateInput(entity.contractEndDate),
     };
 }
 
 export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
-    admissionStatus: "DRAFT",
+    admissionStatus: "IN_PROGRESS",
     startedAt: new Date().toISOString().slice(0, 10),
     notes: "",
     fullName: "",
@@ -56,14 +71,27 @@ export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
     companyId: "",
     departmentId: "",
     jobPositionId: "",
+    workloadSchedule: "",
+    emergencyContacts: normalizeEmergencyContacts(),
+    contractStartDate: "",
+    contractEndDate: "",
 });
 
-export function admissionFormToPayload(form: AdmissionProcessCreateDto): AdmissionProcessCreateDto {
+export function admissionFormToPayload(
+    form: AdmissionProcessCreateDto,
+    context: AdmissionStepContext,
+): AdmissionProcessCreateDto {
+    const admissionStatus = computeAdmissionStatus(form, context, ADMISSION_STEP_IDS);
+
+    const emergencyContacts = sanitizeEmergencyContacts(form.emergencyContacts);
+
     return {
         ...form,
+        admissionStatus,
         cpf: digitsOnly(form.cpf),
         phone: form.phone ? digitsOnly(form.phone) : undefined,
         zipCode: form.zipCode ? digitsOnly(form.zipCode) : undefined,
+        emergencyContacts,
         stateCode: form.stateCode?.trim().toUpperCase() || undefined,
         companyId: form.companyId?.trim() || undefined,
         departmentId: form.departmentId?.trim() || undefined,
@@ -76,7 +104,21 @@ export function admissionFormToPayload(form: AdmissionProcessCreateDto): Admissi
         email: form.email?.trim() || undefined,
         notes: form.notes?.trim() || undefined,
         photoObjectId: form.photoObjectId?.trim() || undefined,
-        baseSalary: form.baseSalary != null ? Number(form.baseSalary) : undefined,
-        workloadHours: form.workloadHours != null ? Number(form.workloadHours) : undefined,
+        workloadSchedule: form.workloadSchedule?.trim() || undefined,
+        contractStartDate: form.contractStartDate || undefined,
+        contractEndDate: form.contractEndDate || undefined,
+        baseSalary: form.baseSalary != null && form.baseSalary !== "" ? Number(form.baseSalary) : undefined,
     };
 }
+
+function sanitizeEmergencyContacts(contacts?: AdmissionEmergencyContact[]): AdmissionEmergencyContact[] {
+    return (contacts ?? [])
+        .map((contact) => ({
+            name: contact.name?.trim() ?? "",
+            phone: contact.phone ? digitsOnly(contact.phone) : "",
+            relationship: contact.relationship?.trim() || undefined,
+        }))
+        .filter((contact) => contact.name || contact.phone || contact.relationship);
+}
+
+export { ADMISSION_STEP_IDS };

@@ -13,7 +13,7 @@ function routeToInput(route: AppRoute, shortLabel?: string) {
         routeId: route.id,
         href: route.href,
         routeLabel: route.label,
-        shortLabel: shortLabel ?? defaultShortLabel(route.label),
+        shortLabel: shortLabel ?? route.tabShortLabel ?? defaultShortLabel(route.label),
         icon: route.icon,
     };
 }

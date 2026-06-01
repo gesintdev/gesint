@@ -8,6 +8,7 @@ export function tabbedCrudRoute(config: TabbedCrudRouteConfig): AppRoute {
         label: config.label,
         icon: config.icon,
         permission: config.permission,
+        tabShortLabel: config.tabShortLabel,
         workspaceLoader: () =>
             import("@/shared/routing/tabbed-crud-workspace").then((loaded) => ({
                 default: loaded.createTabbedCrudWorkspacePage(config),

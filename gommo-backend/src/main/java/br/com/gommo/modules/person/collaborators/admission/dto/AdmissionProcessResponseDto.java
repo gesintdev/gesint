@@ -8,6 +8,7 @@ import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -53,7 +54,10 @@ public class AdmissionProcessResponseDto {
     private final UUID jobPositionId;
     private final ContractTypeEnum contractType;
     private final BigDecimal baseSalary;
-    private final BigDecimal workloadHours;
+    private final String workloadSchedule;
+    private final List<AdmissionEmergencyContactDto> emergencyContacts;
+    private final LocalDate contractStartDate;
+    private final LocalDate contractEndDate;
 
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;

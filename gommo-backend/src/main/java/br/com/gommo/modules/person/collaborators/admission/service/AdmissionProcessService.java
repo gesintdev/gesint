@@ -12,9 +12,14 @@ import br.com.gommo.modules.person.collaborators.admission.mapper.AdmissionProce
 import br.com.gommo.modules.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.person.collaborators.people.service.CollaboratorProfileService;
+import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,38 +33,50 @@ public class AdmissionProcessService
     private final AdmissionProcessMapper mapper;
     private final CollaboratorRepository collaboratorRepository;
     private final CollaboratorProfileService collaboratorProfileService;
+    private final StorageObjectLinkRepository storageObjectLinkRepository;
 
     public AdmissionProcessService(
             AdmissionProcessRepository repository,
             AdmissionProcessMapper mapper,
             CollaboratorRepository collaboratorRepository,
-            CollaboratorProfileService collaboratorProfileService) {
+            CollaboratorProfileService collaboratorProfileService,
+            StorageObjectLinkRepository storageObjectLinkRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.collaboratorRepository = collaboratorRepository;
         this.collaboratorProfileService = collaboratorProfileService;
+        this.storageObjectLinkRepository = storageObjectLinkRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('admission:read')")
     public List<AdmissionProcessResponseDto> findAll() {
-        return super.findAll();
+        List<AdmissionProcess> entities = repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED);
+        return mapToResponses(entities);
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('admission:read')")
     public AdmissionProcessResponseDto findById(UUID id) {
-        return super.findById(id);
+        return toEnrichedResponse(findEntity(id));
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('admission:read')")
     public PageableResponseDto<AdmissionProcessResponseDto> findPage(int page, int size) {
-        return super.findPage(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<AdmissionProcess> result = repository.findAllByStatusNot(StatusEnum.DELETED, pageable);
+        return PageableResponseDto.<AdmissionProcessResponseDto>builder()
+                .content(mapToResponses(result.getContent()))
+                .page(page)
+                .size(size)
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .build();
     }
 
     @Override
@@ -71,10 +88,12 @@ public class AdmissionProcessService
         AdmissionProcess entity = mapper.toEntity(request);
         entity.setStatus(StatusEnum.ACTIVE);
         applyDefaults(entity);
+        applyComputedStatus(entity, null);
         UUID collaboratorId = collaboratorProfileService.syncFromAdmission(request, null);
         entity.setCollaboratorId(collaboratorId);
         applyCompletionDates(entity);
-        return mapper.toResponse(repository.save(entity));
+        AdmissionProcess saved = repository.save(entity);
+        return toEnrichedResponse(saved);
     }
 
     @Override
@@ -86,10 +105,12 @@ public class AdmissionProcessService
         AdmissionProcess entity = findEntity(id);
         mapper.updateEntity(entity, request);
         applyDefaults(entity);
+        applyComputedStatus(entity, id);
         UUID collaboratorId = collaboratorProfileService.syncFromAdmission(request, entity.getCollaboratorId());
         entity.setCollaboratorId(collaboratorId);
         applyCompletionDates(entity);
-        return mapper.toResponse(repository.save(entity));
+        AdmissionProcess saved = repository.save(entity);
+        return toEnrichedResponse(saved);
     }
 
     @Override
@@ -148,9 +169,6 @@ public class AdmissionProcessService
     }
 
     private void applyDefaults(AdmissionProcess entity) {
-        if (entity.getAdmissionStatus() == null) {
-            entity.setAdmissionStatus(AdmissionStatusEnum.DRAFT);
-        }
         if (entity.getStartedAt() == null) {
             entity.setStartedAt(LocalDate.now());
         }
@@ -166,5 +184,50 @@ public class AdmissionProcessService
         if (entity.getAdmissionStatus() != AdmissionStatusEnum.COMPLETED) {
             entity.setCompletedAt(null);
         }
+    }
+
+    private void applyComputedStatus(AdmissionProcess entity, UUID admissionId) {
+        long documentCount = 0;
+        long contractDocumentCount = 0;
+        if (admissionId != null) {
+            var links = storageObjectLinkRepository.findAllByEntityTypeAndEntityIdAndStatusNot(
+                    "admission_process", admissionId, StatusEnum.DELETED);
+            documentCount = links.stream().filter(l -> "DOCUMENT".equalsIgnoreCase(l.getLinkRole())).count();
+            contractDocumentCount = links.stream().filter(l -> "CONTRACT".equalsIgnoreCase(l.getLinkRole())).count();
+        }
+        entity.setAdmissionStatus(AdmissionProgressEvaluator.resolveStatus(entity, documentCount, contractDocumentCount));
+    }
+
+    private List<AdmissionProcessResponseDto> mapToResponses(List<AdmissionProcess> entities) {
+        if (entities.isEmpty()) {
+            return List.of();
+        }
+        List<UUID> ids = entities.stream().map(AdmissionProcess::getId).toList();
+        var links = storageObjectLinkRepository.findAllByEntityTypeAndEntityIdInAndStatusNot(
+                "admission_process", ids, StatusEnum.DELETED);
+        return entities.stream()
+                .map(entity -> {
+                    AdmissionAttachmentCounts counts = AdmissionAttachmentCounts.fromLinks(links, entity.getId());
+                    AdmissionStatusEnum status = AdmissionProgressEvaluator.resolveStatus(
+                            entity, counts.documentCount(), counts.contractDocumentCount());
+                    return mapper.toResponse(entity, status);
+                })
+                .toList();
+    }
+
+    private AdmissionProcessResponseDto toEnrichedResponse(AdmissionProcess entity) {
+        AdmissionAttachmentCounts counts = loadAttachmentCounts(entity.getId());
+        AdmissionStatusEnum status = AdmissionProgressEvaluator.resolveStatus(
+                entity, counts.documentCount(), counts.contractDocumentCount());
+        return mapper.toResponse(entity, status);
+    }
+
+    private AdmissionAttachmentCounts loadAttachmentCounts(UUID admissionId) {
+        if (admissionId == null) {
+            return AdmissionAttachmentCounts.ZERO;
+        }
+        var links = storageObjectLinkRepository.findAllByEntityTypeAndEntityIdAndStatusNot(
+                "admission_process", admissionId, StatusEnum.DELETED);
+        return AdmissionAttachmentCounts.fromLinks(links, admissionId);
     }
 }

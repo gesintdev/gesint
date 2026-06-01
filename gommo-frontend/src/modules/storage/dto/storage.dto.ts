@@ -25,6 +25,7 @@ export class StorageObjectLink {
     entityId!: string;
     linkRole?: string;
     displayName?: string;
+    documentType?: string;
     storageObject?: StorageObject;
     createdAt?: string;
     updatedAt?: string;
@@ -36,4 +37,5 @@ export class StorageLinkRequest {
     entityId!: string;
     linkRole?: string;
     displayName?: string;
+    documentType?: string;
 }

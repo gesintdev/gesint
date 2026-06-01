@@ -32,4 +32,7 @@ public class StorageLinkRequestDto {
 
     @Size(max = 255)
     private String displayName;
+
+    @Size(max = 64)
+    private String documentType;
 }

@@ -1,6 +1,10 @@
 spring:
   application:
     name: gommo-backend
+  servlet:
+    multipart:
+      max-file-size: ${GOMMO_STORAGE_MAX_FILE_SIZE:25MB}
+      max-request-size: ${GOMMO_STORAGE_MAX_REQUEST_SIZE:30MB}
   jackson:
     time-zone: America/Sao_Paulo
   jpa:

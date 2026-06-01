@@ -45,7 +45,7 @@ export function InputDate({
   return (
     <InputFieldChrome
       label={label}
-      hint={hint ?? "Digite DD/MM/AAAA ou abra o calendário. Enviado como YYYY-MM-DD"}
+      hint={hint}
       error={error ?? field.localError}
       required={required}
       disabled={disabled}

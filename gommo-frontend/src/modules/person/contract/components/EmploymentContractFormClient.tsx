@@ -18,7 +18,7 @@ import { InputDate, InputCurrency, InputSelect } from "@/shared/components/ui/in
 
 const CONTRACT_TYPE_ITEMS = [
   { value: "CLT", label: "CLT" },
-  { value: "PJ", label: "PJ" },
+  { value: "PJ", label: "Prestador de Serviço" },
   { value: "INTERMITTENT", label: "Intermitente" },
   { value: "APPRENTICE", label: "Aprendiz" },
   { value: "INTERN", label: "Estágio" },

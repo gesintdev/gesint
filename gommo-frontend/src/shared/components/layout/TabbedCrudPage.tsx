@@ -5,6 +5,7 @@ import {
     CRUD_TAB_FORM,
     CRUD_TAB_LIST,
     CrudScreen,
+    type CrudExtraTab,
     type CrudScreenProps,
 } from "@/shared/components/crud/CrudScreen";
 import {CrudPageCard, CrudPageLayout} from "@/shared/components/layout/CrudPageLayout";
@@ -24,6 +25,7 @@ export type TabbedCrudPageProps<TEntity extends object> = Omit<
     fieldTabName?: keyof TEntity & string;
     /** Apenas listagem e edição — sem cadastro novo na aba de formulário. */
     editOnly?: boolean;
+    extraTabs?: CrudExtraTab[];
 };
 
 function crudInitialState(
@@ -54,6 +56,7 @@ export function TabbedCrudPage<TEntity extends object>({
     list,
     form,
     editOnly,
+    extraTabs,
     ...crudProps
 }: TabbedCrudPageProps<TEntity>) {
     const {tab} = useWorkspaceTab();
@@ -77,6 +80,7 @@ export function TabbedCrudPage<TEntity extends object>({
                     <CrudScreen
                         list={list}
                         form={form}
+                        extraTabs={extraTabs}
                         defaultTab={defaultTab}
                         initialEditingId={initialEditingId}
                         workspaceEnabled

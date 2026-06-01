@@ -189,7 +189,7 @@ export function InputSelectAutocomplete({
   return (
     <InputFieldChrome
       label={label}
-      hint={hint ?? "Filtra a lista local; com 2+ caracteres inclui busca remota"}
+      hint={hint}
       error={error}
       required={required}
       disabled={disabled}
