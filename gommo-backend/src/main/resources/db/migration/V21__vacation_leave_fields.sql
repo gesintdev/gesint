@@ -7,7 +7,7 @@ ALTER TABLE leave_request
     ADD COLUMN IF NOT EXISTS acquisition_period_start DATE,
     ADD COLUMN IF NOT EXISTS acquisition_period_end DATE,
     ADD COLUMN IF NOT EXISTS split_group_id UUID,
-    ADD COLUMN IF NOT EXISTS split_sequence INT,
+    ADD COLUMN IF NOT EXISTS split_sequence SMALLINT,
     ADD COLUMN IF NOT EXISTS base_salary_snapshot NUMERIC(14, 2);
 
 CREATE INDEX IF NOT EXISTS idx_leave_split_group ON leave_request (split_group_id)
