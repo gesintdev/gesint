@@ -98,30 +98,54 @@ export const payrollRoutes: AppRoute[] = [
             "TaxObligationFormClient",
         ),
     }),
-    tabbedCrudRoute({
-        id: "leave",
-        href: "/leave",
+    routeGroup({
+        id: "leave-menu",
         label: "Férias e afastamentos",
         icon: CalendarDays,
-        routeId: "leave",
-        tabShortLabel: "Férias",
-        list: lazyNamed(
-            () => import("@/modules/person/leave/components/LeaveRequestListClient"),
-            "LeaveRequestListClient",
-        ),
-        form: lazyNamed(
-            () => import("@/modules/person/leave/components/LeaveRequestFormClient"),
-            "LeaveRequestFormClient",
-        ),
-        extraTabs: [
-            {
-                id: "pending-requests",
-                label: "Solicitações de férias",
-                content: lazyNamed(
-                    () => import("@/modules/person/leave/components/LeavePendingRequestsClient"),
-                    "LeavePendingRequestsClient",
+        children: [
+            tabbedCrudRoute({
+                id: "leave",
+                href: "/leave",
+                label: "Férias",
+                icon: CalendarDays,
+                routeId: "leave",
+                tabShortLabel: "Férias",
+                listToolbar: "Férias concedidas e histórico (CLT). Períodos aquisitivo e concessivo calculados pelo contrato.",
+                list: lazyNamed(
+                    () => import("@/modules/person/vacation/components/VacationListClient"),
+                    "VacationListClient",
                 ),
-            },
+                form: lazyNamed(
+                    () => import("@/modules/person/vacation/components/VacationRequestFormClient"),
+                    "VacationRequestFormClient",
+                ),
+                extraTabs: [
+                    {
+                        id: "pending-requests",
+                        label: "Solicitações do RH",
+                        content: lazyNamed(
+                            () => import("@/modules/person/leave/components/LeavePendingRequestsClient"),
+                            "LeavePendingRequestsClient",
+                        ),
+                    },
+                ],
+            }),
+            tabbedCrudRoute({
+                id: "leave-absence",
+                href: "/leave/absence",
+                label: "Afastamento",
+                icon: CalendarDays,
+                routeId: "leave-absence",
+                tabShortLabel: "Afast.",
+                list: lazyNamed(
+                    () => import("@/modules/person/leave/components/LeaveAbsenceListClient"),
+                    "LeaveAbsenceListClient",
+                ),
+                form: lazyNamed(
+                    () => import("@/modules/person/leave/components/LeaveAbsenceFormClient"),
+                    "LeaveAbsenceFormClient",
+                ),
+            }),
         ],
     }),
 ];

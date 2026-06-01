@@ -16,6 +16,7 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
     "exit-interview": "exitinterview",
     attendance: "attendance",
     leave: "leave",
+    "leave-absence": "leave",
     "leave-vacation": "leave",
     "payroll-run": "payroll",
     payslip: "payslip",

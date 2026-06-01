@@ -15,3 +15,11 @@ export function isVacationHistory(row: LeaveRequest): boolean {
 export function isRegisteredLeave(row: LeaveRequest): boolean {
     return row.approved === true;
 }
+
+export function isApprovedVacation(row: LeaveRequest): boolean {
+    return row.leaveType === "VACATION" && row.approved === true;
+}
+
+export function isAbsenceLeave(row: LeaveRequest): boolean {
+    return row.leaveType !== "VACATION" && row.approved === true;
+}

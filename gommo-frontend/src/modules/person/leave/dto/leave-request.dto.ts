@@ -7,6 +7,15 @@ export class LeaveRequest {
     startDate!: string;
     endDate!: string;
     approved?: boolean;
+    notes?: string;
+    pecuniaryAllowanceDays?: number;
+    unjustifiedAbsences?: number;
+    vacationDaysEntitled?: number;
+    acquisitionPeriodStart?: string;
+    acquisitionPeriodEnd?: string;
+    splitGroupId?: string;
+    splitSequence?: number;
+    baseSalarySnapshot?: number;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -17,4 +26,13 @@ export class LeaveRequestCreateDto {
     startDate!: string;
     endDate!: string;
     approved?: boolean;
+    notes?: string;
+    pecuniaryAllowanceDays?: number;
+    unjustifiedAbsences?: number;
+    vacationDaysEntitled?: number;
+    acquisitionPeriodStart?: string;
+    acquisitionPeriodEnd?: string;
+    splitGroupId?: string;
+    splitSequence?: number;
+    baseSalarySnapshot?: number;
 }
