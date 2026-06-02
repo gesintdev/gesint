@@ -8,13 +8,17 @@ import java.util.UUID;
 
 public interface IProfileService {
 
-    List<ProfileResponseDto> findAll(SystemScopeEnum system);
+    List<ProfileResponseDto> findAll(SystemScopeEnum system, boolean includeInactive);
 
     ProfileResponseDto findById(UUID id);
 
     ProfileResponseDto create(ProfileRequestDto request);
 
     ProfileResponseDto update(UUID id, ProfileRequestDto request);
+
+    void activate(UUID id);
+
+    void deactivate(UUID id);
 
     void delete(UUID id);
 }

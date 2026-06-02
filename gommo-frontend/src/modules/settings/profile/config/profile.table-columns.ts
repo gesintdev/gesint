@@ -16,6 +16,12 @@ export const PROFILE_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.TEXT,
     },
     {
+        id: "status",
+        columnName: "Status",
+        fieldValue: "status",
+        dataType: TableDataType.TEXT,
+    },
+    {
         id: "description",
         columnName: "Descrição",
         fieldValue: "description",

@@ -9,6 +9,7 @@ declare module "next-auth" {
         refreshToken?: string;
         accessTokenExpires?: number;
         photoObjectId?: string;
+        permissions?: string[];
     }
 
     interface Session {
@@ -17,6 +18,7 @@ declare module "next-auth" {
         error?: AuthTokenError;
         user: DefaultSession["user"] & {
             photoObjectId?: string;
+            permissions?: string[];
         };
     }
 }
@@ -29,5 +31,6 @@ declare module "next-auth/jwt" {
         error?: AuthTokenError;
         email?: string | null;
         photoObjectId?: string;
+        permissions?: string[];
     }
 }

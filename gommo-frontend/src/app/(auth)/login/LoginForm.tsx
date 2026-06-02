@@ -21,8 +21,9 @@ export function LoginForm() {
     async function handleSubmit(e: React.SubmitEvent) {
         e.preventDefault();
         setLoading(true);
+        const login = username.trim();
         const result = await signIn("credentials", {
-            username,
+            username: login,
             password,
             redirect: false,
         });

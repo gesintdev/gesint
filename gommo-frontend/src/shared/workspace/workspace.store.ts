@@ -16,6 +16,7 @@ type WorkspaceState = {
     focusTab: (tabId: string) => void;
     closeTab: (tabId: string) => void;
     closeAllTabs: () => void;
+    retainTabsByRouteIds: (allowedRouteIds: ReadonlySet<string>) => void;
     /** Troca de domínio — substitui abas pela rota inicial do sistema (sem injetar dashboard). */
     replaceWorkspaceModule: (input: OpenWorkspaceTabInput) => void;
     setTitleSuffix: (tabId: string, titleSuffix: string) => void;
@@ -141,6 +142,18 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             },
 
             closeAllTabs: () => set({tabs: [createDashboardTab()], activeTabId: DASHBOARD_TAB_ID}),
+
+            retainTabsByRouteIds: (allowedRouteIds) => {
+                const { tabs, activeTabId } = get();
+                const nextTabs = ensureDashboardFirst(
+                    tabs.filter((tab) => isDashboardTab(tab.id) || allowedRouteIds.has(tab.routeId)),
+                );
+                const nextActive =
+                    activeTabId && nextTabs.some((tab) => tab.id === activeTabId)
+                        ? activeTabId
+                        : nextTabs[0]?.id ?? DASHBOARD_TAB_ID;
+                set({ tabs: nextTabs, activeTabId: nextActive });
+            },
 
             replaceWorkspaceModule: (input) => {
                 const tab = buildTab({...input, entityKey: "list"});

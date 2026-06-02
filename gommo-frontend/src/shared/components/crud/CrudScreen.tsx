@@ -6,10 +6,18 @@ import {
     createContext,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
     useState,
     type ReactNode,
 } from "react";
+import {
+    canAccessExtraTab,
+    canWriteRoute,
+    type RoutePublicAccess,
+} from "@/shared/auth/route-access";
+import { useSessionPermissions } from "@/shared/auth/permissions";
+import { findRouteById } from "@/shared/workspace/workspace-routes";
 import {useQueryRefresh} from "@/shared/components/data/QueryRefreshContext";
 import {Button} from "@/shared/components/ui/Button";
 import {useTabbedCrudConfigOptional} from "@/shared/workspace/TabbedCrudConfigContext";
@@ -25,6 +33,8 @@ export type CrudExtraTab = {
     id: string;
     label: string;
     content: ReactNode;
+    permission?: string;
+    publicAccess?: RoutePublicAccess;
 };
 
 type CrudScreenContextValue = {
@@ -60,6 +70,7 @@ export type CrudScreenProps = {
     listToolbar?: ReactNode;
     showListToFormButton?: boolean;
     listToFormLabel?: string;
+    writePermission?: string;
     defaultTab?: string;
     initialEditingId?: string | null;
     /** Sincroniza título da aba do módulo e URL ao alternar listagem/cadastro. */
@@ -78,12 +89,14 @@ export function CrudScreen({
                                editOnly = false,
                                listPrimaryAction,
                                listToFormLabel = "Novo cadastro",
+                               writePermission,
                                defaultTab = CRUD_TAB_LIST,
                                initialEditingId = null,
                                workspaceEnabled = false,
                            }: CrudScreenProps) {
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [editingId, setEditingId] = useState<string | null>(initialEditingId);
+    const permissions = useSessionPermissions();
     const crudConfig = useTabbedCrudConfigOptional();
     const workspaceTabCtx = useWorkspaceTabOptional();
     const {syncCrudUrl} = useWorkspaceNavigation();
@@ -91,7 +104,11 @@ export function CrudScreen({
     const setTitleSuffix = useWorkspaceStore((s) => s.setTitleSuffix);
 
     const isEditing = editingId != null;
-    const formSessionActive = isEditing || activeTab === CRUD_TAB_FORM;
+    const workspaceRoute = workspaceTabCtx
+        ? findRouteById(workspaceTabCtx.tab.routeId)
+        : undefined;
+    const canWrite = canWriteRoute(workspaceRoute, permissions, writePermission);
+    const formSessionActive = canWrite && (isEditing || activeTab === CRUD_TAB_FORM);
     const isListInstance =
         workspaceTabCtx == null || isModuleListTab(workspaceTabCtx.tab.entityKey);
 
@@ -115,18 +132,23 @@ export function CrudScreen({
         ],
     );
 
+    const visibleExtraTabs = useMemo(
+        () => extraTabs.filter((tab) => canAccessExtraTab(tab, permissions)),
+        [extraTabs, permissions],
+    );
+
     const tabs = useMemo(() => {
         const items: { id: string; label: string }[] = [{id: CRUD_TAB_LIST, label: listTabLabel}];
-        const showFormTab = !editOnly || isEditing || activeTab === CRUD_TAB_FORM;
+        const showFormTab = canWrite && (!editOnly || isEditing || activeTab === CRUD_TAB_FORM);
         if (showFormTab) {
             items.push({
                 id: CRUD_TAB_FORM,
                 label: isEditing ? formTabLabelEdit : formTabLabel,
             });
         }
-        items.push(...extraTabs.map((t) => ({id: t.id, label: t.label})));
+        items.push(...visibleExtraTabs.map((t) => ({id: t.id, label: t.label})));
         return items;
-    }, [editOnly, extraTabs, formTabLabel, formTabLabelEdit, isEditing, listTabLabel, activeTab]);
+    }, [activeTab, canWrite, editOnly, formTabLabel, formTabLabelEdit, isEditing, listTabLabel, visibleExtraTabs]);
 
     const goToList = useCallback(() => {
         setEditingId(null);
@@ -137,14 +159,15 @@ export function CrudScreen({
     const goToForm = useCallback(() => setActiveTab(CRUD_TAB_FORM), []);
 
     const startCreate = useCallback(() => {
-        if (editOnly) return;
+        if (editOnly || !canWrite) return;
         setEditingId(null);
         setActiveTab(CRUD_TAB_FORM);
         syncWorkspace({isNew: true});
-    }, [editOnly, syncWorkspace]);
+    }, [canWrite, editOnly, syncWorkspace]);
 
     const startEdit = useCallback(
         (id: string, record?: object) => {
+            if (!canWrite) return;
             const titleSuffix =
                 crudConfig?.fieldTabName && record
                     ? String((record as Record<string, unknown>)[crudConfig.fieldTabName] ?? "")
@@ -156,17 +179,23 @@ export function CrudScreen({
                 titleSuffix: titleSuffix || undefined,
             });
         },
-        [crudConfig, syncWorkspace],
+        [canWrite, crudConfig, syncWorkspace],
     );
 
     const goToTab = useCallback((tabId: string) => setActiveTab(tabId), []);
+
+    useEffect(() => {
+        if (!canWrite && activeTab === CRUD_TAB_FORM) {
+            setActiveTab(CRUD_TAB_LIST);
+        }
+    }, [activeTab, canWrite]);
 
     const ctx = useMemo(
         () => ({activeTab, editingId, isEditing, goToList, goToForm, startCreate, startEdit, goToTab}),
         [activeTab, editingId, goToForm, goToList, goToTab, isEditing, startCreate, startEdit],
     );
 
-    const extraTabPanel = extraTabs.find((t) => t.id === activeTab)?.content ?? null;
+    const extraTabPanel = visibleExtraTabs.find((t) => t.id === activeTab)?.content ?? null;
 
     const queryRefresh = useQueryRefresh();
 
@@ -193,6 +222,7 @@ export function CrudScreen({
                                     if (tab.id === CRUD_TAB_LIST) {
                                         setActiveTab(CRUD_TAB_LIST);
                                     } else if (tab.id === CRUD_TAB_FORM) {
+                                        if (!canWrite) return;
                                         if (editOnly && !editingId) return;
                                         setActiveTab(CRUD_TAB_FORM);
                                         if (workspaceEnabled && !editingId && !editOnly) syncWorkspace({isNew: true});
@@ -235,7 +265,7 @@ export function CrudScreen({
                                         }
                                     />
                                 )}
-                                {showListToFormButton ? (
+                                {showListToFormButton && canWrite ? (
                                     <Button
                                         size="sm"
                                         leftIcon={<Plus className="size-3.5" strokeWidth={2.5}/>}

@@ -1,11 +1,14 @@
 import type { LucideIcon } from "lucide-react";
 import type { CrudScreenProps } from "@/shared/components/crud/CrudScreen";
+import type { RoutePublicAccess } from "@/shared/auth/route-access";
 import type { LazyComponent } from "@/shared/routing/resolve-lazy-component";
 
 export type TabbedCrudExtraTabConfig = {
     id: string;
     label: string;
     content: LazyComponent;
+    permission?: string;
+    publicAccess?: RoutePublicAccess;
 };
 
 export type TabbedCrudRouteConfig = {
@@ -14,6 +17,8 @@ export type TabbedCrudRouteConfig = {
     label: string;
     icon: LucideIcon;
     permission?: string;
+    publicAccess?: RoutePublicAccess;
+    writePermission?: string;
     routeId: string;
     tabShortLabel: string;
     fieldTabName?: string;

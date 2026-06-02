@@ -44,10 +44,13 @@ public class ProfileService implements IProfileService {
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('role:read')")
-    public List<ProfileResponseDto> findAll(SystemScopeEnum system) {
+    public List<ProfileResponseDto> findAll(SystemScopeEnum system, boolean includeInactive) {
         List<Role> roles = system == null
                 ? roleRepository.findAllCustomProfilesWithPermissions(StatusEnum.DELETED)
                 : roleRepository.findAllCustomProfilesWithPermissionsBySystem(system, StatusEnum.DELETED);
+        if (!includeInactive) {
+            roles = roles.stream().filter(role -> role.getStatus() == StatusEnum.ACTIVE).toList();
+        }
         return roles.stream().map(mapper::toResponse).toList();
     }
 
@@ -89,6 +92,24 @@ public class ProfileService implements IProfileService {
         role.setSystem(request.getSystem());
         role.setPermissions(resolvePermissions(request));
         return mapper.toResponse(roleRepository.save(role));
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('role:write')")
+    public void activate(UUID id) {
+        Role role = findProfile(id);
+        role.setStatus(StatusEnum.ACTIVE);
+        roleRepository.save(role);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('role:write')")
+    public void deactivate(UUID id) {
+        Role role = findProfile(id);
+        role.setStatus(StatusEnum.INACTIVE);
+        roleRepository.save(role);
     }
 
     @Override

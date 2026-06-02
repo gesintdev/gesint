@@ -22,6 +22,8 @@ import {
     SETTINGS_NAV_SECTIONS,
     systemModuleGroups,
 } from "@/config/routes";
+import { canAccessRoute } from "@/shared/auth/route-access";
+import { useSessionPermissions } from "@/shared/auth/permissions";
 
 type ActiveSystemContextValue = {
     activeSystem: SystemEnum;
@@ -46,8 +48,37 @@ function resolveSystemFromPath(pathname: string): SystemEnum {
     );
 }
 
+function filterRoutesByPermissions(routes: AppRoute[], permissions: readonly string[]): AppRoute[] {
+    const filtered: AppRoute[] = [];
+    for (const route of routes) {
+        const children = route.children
+            ? filterRoutesByPermissions(route.children, permissions)
+            : undefined;
+        const hasDirectAccess = canAccessRoute(route, permissions);
+        const hasVisibleChildren = Boolean(children?.length);
+        if (!hasDirectAccess && !hasVisibleChildren) {
+            continue;
+        }
+        filtered.push(children ? { ...route, children } : route);
+    }
+    return filtered;
+}
+
+function filterSectionsByPermissions(
+    sections: NavSection[],
+    permissions: readonly string[],
+): NavSection[] {
+    return sections
+        .map((section) => ({
+            ...section,
+            routes: filterRoutesByPermissions(section.routes, permissions),
+        }))
+        .filter((section) => section.routes.length > 0);
+}
+
 export function ActiveSystemProvider({children}: { children: ReactNode }) {
     const pathname = usePathname();
+    const permissions = useSessionPermissions();
     const [activeSystem, setActiveSystem] = useState<SystemEnum>(
         () => resolveSystemFromPath(pathname),
     );
@@ -61,14 +92,30 @@ export function ActiveSystemProvider({children}: { children: ReactNode }) {
         }
     }, [pathname]);
 
-    const systems = useMemo(
-        () => SystemEnumHelper.getSortedSystems().map((id) => SystemEnumHelper.getById(id)),
-        [],
-    );
+    const systems = useMemo(() => {
+        return SystemEnumHelper.getSortedSystems()
+            .filter((systemId) => {
+                const sections = getNavSectionsForSystem(systemId);
+                return filterSectionsByPermissions(sections, permissions).length > 0;
+            })
+            .map((id) => SystemEnumHelper.getById(id));
+    }, [permissions]);
+
+    useEffect(() => {
+        if (isSettingsMode || systems.length === 0) return;
+        const exists = systems.some((system) => system.id === activeSystem);
+        if (!exists) {
+            setActiveSystem(systems[0].id);
+        }
+    }, [activeSystem, isSettingsMode, systems]);
 
     const navSections = useMemo(
-        () => (isSettingsMode ? SETTINGS_NAV_SECTIONS : getNavSectionsForSystem(activeSystem)),
-        [activeSystem, isSettingsMode],
+        () =>
+            filterSectionsByPermissions(
+                isSettingsMode ? SETTINGS_NAV_SECTIONS : getNavSectionsForSystem(activeSystem),
+                permissions,
+            ),
+        [activeSystem, isSettingsMode, permissions],
     );
 
     const selectSystem = useCallback((system: SystemEnum) => {

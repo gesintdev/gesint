@@ -185,7 +185,7 @@ public class TenantAppUserService implements ITenantAppUserService {
     private Role loadAssignableRole(UUID roleId, SystemScopeEnum expectedSystem) {
         Role role = roleRepository
                 .findByIdWithPermissions(roleId, StatusEnum.DELETED)
-                .filter(r -> !r.isSystemRole())
+                .filter(r -> !r.isSystemRole() && r.getStatus() == StatusEnum.ACTIVE)
                 .orElseThrow(TenantAppUserException::invalidRoleForSystem);
         if (role.getSystem() != expectedSystem) {
             throw TenantAppUserException.invalidRoleForSystem();

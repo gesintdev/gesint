@@ -12,6 +12,16 @@ public interface AppUserRepository extends IBaseRepository<AppUser> {
     @Query("SELECT u FROM AppUser u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = :username AND u.status <> :deleted")
     Optional<AppUser> findActiveByUsername(String username, StatusEnum deleted);
 
+    @Query("""
+            SELECT u
+            FROM AppUser u
+            LEFT JOIN FETCH u.roles r
+            LEFT JOIN FETCH r.permissions
+            WHERE u.status <> :deleted
+              AND (LOWER(u.username) = LOWER(:login) OR LOWER(u.email) = LOWER(:login))
+            """)
+    Optional<AppUser> findActiveByLogin(String login, StatusEnum deleted);
+
     @Query("SELECT u FROM AppUser u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.id = :id AND u.status <> :deleted")
     Optional<AppUser> findActiveByIdWithRoles(UUID id, StatusEnum deleted);
 

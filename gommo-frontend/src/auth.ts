@@ -4,6 +4,7 @@ import {
   isAccessTokenExpired,
   refreshAccessToken,
 } from "@/auth/refresh-token";
+import { isPathAccessible } from "@/shared/auth/route-permissions";
 import { apiFetch, setAuthToken } from "@/shared/lib/api.client";
 
 class TokenResponse {
@@ -14,6 +15,7 @@ class TokenResponse {
   username?: string;
   email?: string;
   photoObjectId?: string;
+  permissions?: string[];
 }
 
 const secureCookies = process.env.NODE_ENV === "production";
@@ -75,6 +77,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: data.username ?? (credentials.username as string),
             email: data.email,
             photoObjectId: data.photoObjectId,
+            permissions: data.permissions ?? [],
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
             accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
@@ -93,7 +96,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (isLogin) {
         return auth ? Response.redirect(new URL("/dashboard", nextUrl)) : true;
       }
-      return !!auth;
+      if (!auth) return false;
+
+      const granted = auth.user?.permissions ?? [];
+      if (!isPathAccessible(nextUrl.pathname, granted)) {
+        return Response.redirect(new URL("/dashboard", nextUrl));
+      }
+      return true;
     },
     async jwt({ token, user }) {
       if (user) {
@@ -103,6 +112,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           photoObjectId: user.photoObjectId,
+          permissions: user.permissions,
           accessToken: user.accessToken,
           refreshToken: user.refreshToken,
           accessTokenExpires: user.accessTokenExpires,
@@ -125,6 +135,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.name = (token.name as string | undefined) ?? session.user.name;
         session.user.email = (token.email as string | undefined) ?? session.user.email;
         session.user.photoObjectId = token.photoObjectId as string | undefined;
+        session.user.permissions = (token.permissions as string[] | undefined) ?? [];
       }
 
       if (token.error) {

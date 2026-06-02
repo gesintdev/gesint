@@ -70,6 +70,7 @@ export const personRoutes: AppRoute[] = [
         href: "/leave/vacation",
         label: "Férias",
         icon: CalendarDays,
+        permission: "leave:read",
         routeId: "leave-vacation",
         tabShortLabel: "Férias",
         listToolbar: "Solicitações enviadas ao DP e férias já concedidas.",
@@ -90,6 +91,7 @@ export const personRoutes: AppRoute[] = [
         href: "/attendance",
         label: "Ponto",
         icon: CalendarDays,
+        permission: "attendance:read",
         routeId: "attendance",
         tabShortLabel: "Ponto",
         list: lazyNamed(
@@ -106,6 +108,7 @@ export const personRoutes: AppRoute[] = [
         href: "/offboarding",
         label: "Desligamento",
         icon: UserMinus,
+        permission: "offboarding:read",
         routeId: "offboarding",
         tabShortLabel: "Desl",
         list: lazyNamed(
@@ -122,6 +125,7 @@ export const personRoutes: AppRoute[] = [
         href: "/exit-interview",
         label: "Entrevista de desligamento",
         icon: MessageSquare,
+        permission: "exitinterview:read",
         routeId: "exit-interview",
         tabShortLabel: "Entrev",
         list: lazyNamed(

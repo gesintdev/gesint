@@ -9,6 +9,7 @@ export const insightsRoutes: AppRoute[] = [
         href: "/report",
         label: "Relatórios",
         icon: BarChart3,
+        permission: "role:read",
         load: async () => {
             const { WorkspacePage } = await import("@/shared/components/layout/WorkspacePage");
             return {

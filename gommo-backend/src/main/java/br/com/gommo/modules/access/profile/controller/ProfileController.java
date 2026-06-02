@@ -30,8 +30,10 @@ public class ProfileController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProfileResponseDto>> findAll(@RequestParam(required = false) SystemScopeEnum system) {
-        return ResponseEntity.ok(profileService.findAll(system));
+    public ResponseEntity<List<ProfileResponseDto>> findAll(
+            @RequestParam(required = false) SystemScopeEnum system,
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return ResponseEntity.ok(profileService.findAll(system, includeInactive));
     }
 
     @GetMapping("/{id}")
@@ -48,6 +50,18 @@ public class ProfileController {
     public ResponseEntity<ProfileResponseDto> update(
             @PathVariable UUID id, @Valid @RequestBody ProfileRequestDto request) {
         return ResponseEntity.ok(profileService.update(id, request));
+    }
+
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<Void> activate(@PathVariable UUID id) {
+        profileService.activate(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
+        profileService.deactivate(id);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

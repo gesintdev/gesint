@@ -13,6 +13,7 @@ export const payrollRoutes: AppRoute[] = [
                 href: "/payroll",
                 label: "Folha de pagamento",
                 icon: Receipt,
+                permission: "payroll:read",
                 routeId: "payroll-run",
                 tabShortLabel: "Folha de pagamento",
                 list: lazyNamed(
@@ -29,6 +30,7 @@ export const payrollRoutes: AppRoute[] = [
                 href: "/payroll/payslips",
                 label: "Holerites",
                 icon: FileText,
+                permission: "payslip:read",
                 routeId: "payslip",
                 tabShortLabel: "Hol",
                 list: lazyNamed(
@@ -52,6 +54,7 @@ export const payrollRoutes: AppRoute[] = [
                 href: "/benefit",
                 label: "Planos",
                 icon: Gift,
+                permission: "benefit:read",
                 routeId: "benefit-plan",
                 tabShortLabel: "Plano",
                 fieldTabName: "name",
@@ -69,6 +72,7 @@ export const payrollRoutes: AppRoute[] = [
                 href: "/benefit/enrollments",
                 label: "Vínculos",
                 icon: UserCheck,
+                permission: "benefitenrollment:read",
                 routeId: "benefit-enrollment",
                 tabShortLabel: "Vínc",
                 list: lazyNamed(
@@ -87,6 +91,7 @@ export const payrollRoutes: AppRoute[] = [
         href: "/tax",
         label: "Fiscal",
         icon: Scale,
+        permission: "tax:read",
         routeId: "tax",
         tabShortLabel: "Fiscal",
         list: lazyNamed(
@@ -108,6 +113,7 @@ export const payrollRoutes: AppRoute[] = [
                 href: "/leave",
                 label: "Férias",
                 icon: CalendarDays,
+                permission: "leave:read",
                 routeId: "leave",
                 tabShortLabel: "Férias",
                 listToolbar: "Férias concedidas e histórico (CLT). Períodos aquisitivo e concessivo calculados pelo contrato.",
@@ -123,6 +129,7 @@ export const payrollRoutes: AppRoute[] = [
                     {
                         id: "pending-requests",
                         label: "Solicitações do RH",
+                        permission: "leave:write",
                         content: lazyNamed(
                             () => import("@/modules/person/leave/components/LeavePendingRequestsClient"),
                             "LeavePendingRequestsClient",
@@ -135,6 +142,7 @@ export const payrollRoutes: AppRoute[] = [
                 href: "/leave/absence",
                 label: "Afastamento",
                 icon: CalendarDays,
+                permission: "leave:read",
                 routeId: "leave-absence",
                 tabShortLabel: "Afast.",
                 list: lazyNamed(

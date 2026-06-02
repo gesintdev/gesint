@@ -1,4 +1,5 @@
 export type SystemScope = "DP" | "RH";
+export type ProfileStatus = "ACTIVE" | "INACTIVE" | "DELETED";
 
 export type PermissionSummary = {
     id: string;
@@ -14,7 +15,7 @@ export type Profile = {
     name: string;
     description?: string | null;
     system: SystemScope;
-    status?: string;
+    status?: ProfileStatus;
     permissions?: PermissionSummary[];
     createdAt?: string;
     updatedAt?: string;

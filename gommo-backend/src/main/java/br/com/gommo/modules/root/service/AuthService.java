@@ -28,6 +28,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class AuthService implements IAuthService {
@@ -63,8 +64,13 @@ public class AuthService implements IAuthService {
     @Override
     @Transactional
     public TokenResponseDto login(LoginRequestDto request) {
+        String login = request.getUsername() != null ? request.getUsername().trim() : "";
+        if (!StringUtils.hasText(login)) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
+
         AppUser user = appUserRepository
-                .findActiveByUsername(request.getUsername(), StatusEnum.DELETED)
+                .findActiveByLogin(login, StatusEnum.DELETED)
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
@@ -128,11 +134,13 @@ public class AuthService implements IAuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .photoObjectId(resolvePhotoObjectId(user))
+                .permissions(permissions)
                 .build();
     }
 
     private List<String> resolvePermissions(AppUser user) {
         boolean isAdmin = user.getRoles().stream()
+                .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
                 .anyMatch(role -> role.isSystemRole() && "ADMIN".equalsIgnoreCase(role.getName()));
         if (isAdmin) {
             return permissionRepository.findAll().stream()
@@ -142,6 +150,7 @@ public class AuthService implements IAuthService {
                     .toList();
         }
         return user.getRoles().stream()
+                .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
                 .map(Role::getPermissions)
                 .flatMap(java.util.Set::stream)
                 .map(Permission::getAuthority)

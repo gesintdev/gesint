@@ -1,4 +1,5 @@
 import type {LucideIcon} from "lucide-react";
+import type {RoutePublicAccess} from "@/shared/auth/route-access";
 import type {WorkspacePageLoader} from "@/shared/workspace/workspace-page.types";
 
 // ─────────────────────────────────────────────
@@ -11,11 +12,17 @@ export type AppRoute = {
     label: string;
     href?: string;
     icon: LucideIcon;
+    /** Required permission (`module:read`). Omit only with `publicAccess`. */
     permission?: string;
-    /** Título curto da aba no workspace (gerado por `tabbedCrudRoute`). */
+    /**
+     * Route open without profile permission.
+     * Without `permission` and `publicAccess`, route is denied by default.
+     */
+    publicAccess?: RoutePublicAccess;
+    /** Short workspace tab title (from `tabbedCrudRoute`). */
     tabShortLabel?: string;
     children?: AppRoute[];
-    /** Chunk da tela no workspace (import dinâmico — não carrega no sidebar). */
+    /** Workspace page chunk (dynamic import). */
     workspaceLoader?: WorkspacePageLoader;
 };
 

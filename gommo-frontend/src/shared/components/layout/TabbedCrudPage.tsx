@@ -23,6 +23,7 @@ export type TabbedCrudPageProps<TEntity extends object> = Omit<
     routeLabel: string;
     tabShortLabel: string;
     fieldTabName?: keyof TEntity & string;
+    writePermission?: string;
     /** Apenas listagem e edição — sem cadastro novo na aba de formulário. */
     editOnly?: boolean;
     extraTabs?: CrudExtraTab[];
@@ -53,6 +54,7 @@ export function TabbedCrudPage<TEntity extends object>({
     routeLabel,
     tabShortLabel,
     fieldTabName,
+    writePermission,
     list,
     form,
     editOnly,
@@ -81,6 +83,7 @@ export function TabbedCrudPage<TEntity extends object>({
                         list={list}
                         form={form}
                         extraTabs={extraTabs}
+                        writePermission={writePermission}
                         defaultTab={defaultTab}
                         initialEditingId={initialEditingId}
                         workspaceEnabled

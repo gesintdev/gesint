@@ -2,6 +2,7 @@
 
 import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import type { CrudExtraTab } from "@/shared/components/crud/CrudScreen";
+import { deriveWritePermission } from "@/shared/auth/permissions";
 import { TabbedCrudPage } from "@/shared/components/layout/TabbedCrudPage";
 import type { TabbedCrudRouteConfig } from "@/shared/routing/tabbed-crud-route.types";
 import { resolveLazyComponent } from "@/shared/routing/resolve-lazy-component";
@@ -17,6 +18,7 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
     const ExtraTabs = (config.extraTabs ?? []).map((tab) => ({
         id: tab.id,
         label: tab.label,
+        permission: tab.permission,
         Content: toLazy(tab.content),
     }));
 
@@ -46,15 +48,20 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
                 </Suspense>
             );
         }
-        const extraTabs: CrudExtraTab[] = ExtraTabs.map(({ id, label, Content }) => ({
+        const extraTabs: CrudExtraTab[] = ExtraTabs.map(({ id, label, Content }) => {
+            const tabConfig = config.extraTabs?.find((tab) => tab.id === id);
+            return {
             id,
             label,
+            permission: tabConfig?.permission,
+            publicAccess: tabConfig?.publicAccess,
             content: (
                 <Suspense fallback={null}>
                     <Content />
                 </Suspense>
             ),
-        }));
+        };
+        });
 
         return (
             <TabbedCrudPage
@@ -62,6 +69,7 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
                 routeLabel={config.label}
                 list={list}
                 form={form}
+                writePermission={config.writePermission ?? deriveWritePermission(config.permission)}
                 listPrimaryAction={listPrimaryAction}
                 extraTabs={extraTabs.length > 0 ? extraTabs : undefined}
             />

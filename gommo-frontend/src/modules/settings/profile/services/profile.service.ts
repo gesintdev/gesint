@@ -4,8 +4,11 @@ import {apiFetch} from "@/shared/lib/api.client";
 class ProfileService {
     private readonly basePath = "/api/v1/profiles";
 
-    getAll(system?: SystemScope): Promise<Profile[]> {
-        const query = system ? `?system=${system}` : "";
+    getAll(system?: SystemScope, includeInactive = false): Promise<Profile[]> {
+        const params = new URLSearchParams();
+        if (system) params.set("system", system);
+        if (includeInactive) params.set("includeInactive", "true");
+        const query = params.size ? `?${params.toString()}` : "";
         return apiFetch<Profile[]>(`${this.basePath}${query}`);
     }
 
@@ -23,6 +26,14 @@ class ProfileService {
 
     remove(id: string): Promise<void> {
         return apiFetch<void>(`${this.basePath}/${id}`, {method: "DELETE"});
+    }
+
+    activate(id: string): Promise<void> {
+        return apiFetch<void>(`${this.basePath}/${id}/activate`, {method: "PUT"});
+    }
+
+    deactivate(id: string): Promise<void> {
+        return apiFetch<void>(`${this.basePath}/${id}/deactivate`, {method: "PUT"});
     }
 }
 

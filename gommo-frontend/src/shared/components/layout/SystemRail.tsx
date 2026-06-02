@@ -2,6 +2,8 @@ import clsx from "clsx";
 import { Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { settingsRoutes } from "@/modules/settings/config/settings.routes";
+import { canAccessRoute } from "@/shared/auth/route-access";
+import { useSessionPermissions } from "@/shared/auth/permissions";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
 import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
@@ -10,6 +12,8 @@ export function SystemRail() {
     const pathname = usePathname();
     const { activeSystem, systems, selectSystem, isSettingsMode, openSettings } = useActiveSystem();
     const { openRouteModule } = useWorkspaceNavigation();
+    const permissions = useSessionPermissions();
+    const canOpenSettings = settingsRoutes.some((route) => canAccessRoute(route, permissions));
 
     const handleSelect = (system: SystemEnum) => {
         if (system === activeSystem && !isSettingsMode) return;
@@ -62,17 +66,19 @@ export function SystemRail() {
                 className="mt-auto flex w-full flex-col items-stretch border-t px-1 pb-3 pt-2"
                 style={{ borderColor: "var(--system-rail-border)" }}
             >
-                <button
-                    type="button"
-                    title="Configurações do sistema"
-                    aria-label="Configurações do sistema"
-                    aria-current={isSettingsMode ? "true" : undefined}
-                    onClick={handleOpenSettings}
-                    className={clsx("system-rail-item", isSettingsMode && "system-rail-item--active")}
-                >
-                    <Settings className="size-4 shrink-0" strokeWidth={isSettingsMode ? 2.25 : 2} />
-                    <span className="system-rail-acronym">CFG</span>
-                </button>
+                {canOpenSettings ? (
+                    <button
+                        type="button"
+                        title="Configurações do sistema"
+                        aria-label="Configurações do sistema"
+                        aria-current={isSettingsMode ? "true" : undefined}
+                        onClick={handleOpenSettings}
+                        className={clsx("system-rail-item", isSettingsMode && "system-rail-item--active")}
+                    >
+                        <Settings className="size-4 shrink-0" strokeWidth={isSettingsMode ? 2.25 : 2} />
+                        <span className="system-rail-acronym">CFG</span>
+                    </button>
+                ) : null}
             </div>
         </nav>
     );
