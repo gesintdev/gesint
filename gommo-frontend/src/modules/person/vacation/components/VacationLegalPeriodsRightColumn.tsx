@@ -1,5 +1,3 @@
-"use client";
-
 import { VacationBalanceSidePanel } from "@/modules/person/vacation/components/VacationBalanceSidePanel";
 import { VacationSplitPeriodsEditor } from "@/modules/person/vacation/components/VacationSplitPeriodsEditor";
 import type { VacationSplitPeriod } from "@/modules/person/vacation/types/vacation.types";

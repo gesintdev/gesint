@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {useEffect, useState, type FormEvent} from "react";
+import {useEffect, useState, type SubmitEvent} from "react";
 import {toast} from "sonner";
 import {ADMIN_USER_CLIENT_MESSAGES} from "@/modules/adminuser/exceptions/adminuser.messages";
 import type {AdminUserCreateDto} from "@/modules/adminuser/dto/adminuser.dto";
@@ -53,7 +53,7 @@ export function AdminUserFormClient() {
         },
     });
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);

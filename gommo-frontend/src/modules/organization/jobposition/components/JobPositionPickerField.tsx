@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback } from "react";
 import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { CLIENT_CLIENT_MESSAGES } from "@/modules/client/exceptions/client.messages";
 import type { ClientCreateDto } from "@/modules/client/dto/client.dto";
@@ -111,7 +111,7 @@ export function ClientFormClient() {
         { value: "SUSPENDED", label: "Suspenso" },
     ];
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);

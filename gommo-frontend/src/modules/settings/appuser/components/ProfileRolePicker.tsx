@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import { Eye, Pencil, Search } from "lucide-react";
 import { useMemo, useState } from "react";

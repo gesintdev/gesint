@@ -13,4 +13,11 @@ public final class AdmissionProcessException {
                 AdmissionProcessExceptions.CPF_ALREADY_EXISTS_MSG,
                 HttpStatus.CONFLICT);
     }
+
+    public static BusinessException pjProviderRequired() {
+        return new BusinessException(
+                AdmissionProcessExceptions.PJ_PROVIDER_REQUIRED_CODE,
+                AdmissionProcessExceptions.PJ_PROVIDER_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

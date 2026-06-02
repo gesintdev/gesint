@@ -27,6 +27,8 @@ export function admissionprocessToFormDto(entity: AdmissionProcess): AdmissionPr
         socialName: entity.socialName ?? "",
         cpf: entity.cpf ?? "",
         rg: entity.rg ?? "",
+        rgIssuer: entity.rgIssuer ?? "",
+        rgStateCode: entity.rgStateCode ?? "",
         birthDate: toDateInput(entity.birthDate),
         gender: entity.gender,
         maritalStatus: entity.maritalStatus,
@@ -53,6 +55,9 @@ export function admissionprocessToFormDto(entity: AdmissionProcess): AdmissionPr
         emergencyContacts: normalizeEmergencyContacts(entity.emergencyContacts),
         contractStartDate: toDateInput(entity.contractStartDate),
         contractEndDate: toDateInput(entity.contractEndDate),
+        providerCnpj: entity.providerCnpj ?? "",
+        providerLegalName: entity.providerLegalName ?? "",
+        providerTradeName: entity.providerTradeName ?? "",
     };
 }
 
@@ -64,6 +69,8 @@ export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
     socialName: "",
     cpf: "",
     rg: "",
+    rgIssuer: "",
+    rgStateCode: "",
     birthDate: "",
     nationality: "Brasileiro",
     expectedStartDate: "",
@@ -75,6 +82,9 @@ export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
     emergencyContacts: normalizeEmergencyContacts(),
     contractStartDate: "",
     contractEndDate: "",
+    providerCnpj: "",
+    providerLegalName: "",
+    providerTradeName: "",
 });
 
 export function admissionFormToPayload(
@@ -97,7 +107,9 @@ export function admissionFormToPayload(
         departmentId: form.departmentId?.trim() || undefined,
         jobPositionId: form.jobPositionId?.trim() || undefined,
         socialName: form.socialName?.trim() || undefined,
-        rg: form.rg?.trim() || undefined,
+        rg: form.rg?.trim() ? digitsOnly(form.rg).slice(0, 7) : undefined,
+        rgIssuer: form.rgIssuer?.trim() || undefined,
+        rgStateCode: form.rgStateCode?.trim().toUpperCase() || undefined,
         motherName: form.motherName?.trim() || undefined,
         fatherName: form.fatherName?.trim() || undefined,
         pisPasep: form.pisPasep?.trim() || undefined,
@@ -107,6 +119,9 @@ export function admissionFormToPayload(
         workloadSchedule: form.workloadSchedule?.trim() || undefined,
         contractStartDate: form.contractStartDate || undefined,
         contractEndDate: form.contractEndDate || undefined,
+        providerCnpj: form.providerCnpj ? digitsOnly(form.providerCnpj) : undefined,
+        providerLegalName: form.providerLegalName?.trim() || undefined,
+        providerTradeName: form.providerTradeName?.trim() || undefined,
         baseSalary: form.baseSalary != null && form.baseSalary !== "" ? Number(form.baseSalary) : undefined,
     };
 }

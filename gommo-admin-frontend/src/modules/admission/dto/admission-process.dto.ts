@@ -17,6 +17,8 @@ export class AdmissionProcess {
     socialName?: string;
     cpf!: string;
     rg?: string;
+    rgIssuer?: string;
+    rgStateCode?: string;
     birthDate!: string;
     gender?: Gender;
     maritalStatus?: MaritalStatus;
@@ -55,6 +57,8 @@ export class AdmissionProcessCreateDto {
     socialName?: string;
     cpf!: string;
     rg?: string;
+    rgIssuer?: string;
+    rgStateCode?: string;
     birthDate!: string;
     gender?: Gender;
     maritalStatus?: MaritalStatus;

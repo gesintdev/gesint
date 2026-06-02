@@ -16,6 +16,7 @@ public class LeaveRequestResponseDto {
     private final Integer code;
     private final StatusEnum status;
     private final UUID collaboratorId;
+    private final String collaboratorName;
     private final LeaveTypeEnum leaveType;
     private final LocalDate startDate;
     private final LocalDate endDate;

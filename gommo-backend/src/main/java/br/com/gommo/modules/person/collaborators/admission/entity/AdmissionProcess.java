@@ -64,6 +64,12 @@ public class AdmissionProcess extends AuditEntity {
     @Column(length = 20)
     private String rg;
 
+    @Column(name = "rg_issuer", length = 20)
+    private String rgIssuer;
+
+    @Column(name = "rg_state_code", length = 2)
+    private String rgStateCode;
+
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
@@ -148,4 +154,14 @@ public class AdmissionProcess extends AuditEntity {
 
     @Column(name = "contract_end_date")
     private LocalDate contractEndDate;
+
+    /** CNPJ da empresa prestadora (quando contract_type = PJ). */
+    @Column(name = "provider_cnpj", length = 14)
+    private String providerCnpj;
+
+    @Column(name = "provider_legal_name", length = 200)
+    private String providerLegalName;
+
+    @Column(name = "provider_trade_name", length = 200)
+    private String providerTradeName;
 }

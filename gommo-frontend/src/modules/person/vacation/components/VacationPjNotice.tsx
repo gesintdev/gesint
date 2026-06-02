@@ -1,5 +1,3 @@
-"use client";
-
 import { PJ_RECESS_GUIDANCE } from "@/modules/person/vacation/lib/pj-recess";
 
 export function VacationPjNotice() {

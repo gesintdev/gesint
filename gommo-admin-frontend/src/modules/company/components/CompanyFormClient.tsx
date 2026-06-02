@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { COMPANY_CLIENT_MESSAGES } from "@/modules/company/exceptions/company.messages";
 import type { CompanyCreateDto } from "@/modules/company/dto/company.dto";
@@ -65,7 +65,7 @@ export function CompanyFormClient() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     saveMutation.mutate(form);

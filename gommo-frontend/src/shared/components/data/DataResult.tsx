@@ -1,5 +1,3 @@
-"use client";
-
 import {use, type ReactElement} from "react";
 
 /**

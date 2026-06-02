@@ -24,6 +24,8 @@ export class AdmissionProcess {
     socialName?: string;
     cpf!: string;
     rg?: string;
+    rgIssuer?: string;
+    rgStateCode?: string;
     birthDate!: string;
     gender?: Gender;
     maritalStatus?: MaritalStatus;
@@ -54,6 +56,10 @@ export class AdmissionProcess {
     contractStartDate?: string;
     contractEndDate?: string;
 
+    providerCnpj?: string;
+    providerLegalName?: string;
+    providerTradeName?: string;
+
     createdAt?: string;
     updatedAt?: string;
 }
@@ -68,6 +74,8 @@ export class AdmissionProcessCreateDto {
     socialName?: string;
     cpf!: string;
     rg?: string;
+    rgIssuer?: string;
+    rgStateCode?: string;
     birthDate!: string;
     gender?: Gender;
     maritalStatus?: MaritalStatus;
@@ -98,4 +106,8 @@ export class AdmissionProcessCreateDto {
 
     contractStartDate?: string;
     contractEndDate?: string;
+
+    providerCnpj?: string;
+    providerLegalName?: string;
+    providerTradeName?: string;
 }

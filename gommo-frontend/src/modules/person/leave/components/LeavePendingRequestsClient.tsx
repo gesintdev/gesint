@@ -28,7 +28,7 @@ export function LeavePendingRequestsClient() {
             rowKey="id"
             emptyMessage="Nenhuma solicitação de férias pendente."
             renderActions={(row) => (
-                <Button type="button" size="sm" variant="primary" onClick={() => handleRegister(row)}>
+                <Button type="button" size="md" variant="primary" onClick={() => handleRegister(row)}>
                     Cadastrar
                 </Button>
             )}

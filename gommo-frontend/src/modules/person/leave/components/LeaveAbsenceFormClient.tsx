@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {useEffect, useState, type FormEvent} from "react";
+import {useEffect, useState, type SubmitEvent} from "react";
 import {toast} from "sonner";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 import type {LeaveRequestCreateDto} from "@/modules/person/leave/dto/leave-request.dto";
@@ -89,7 +89,7 @@ export function LeaveAbsenceFormClient() {
         });
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         const parsed = leaveAbsenceFormSchema.safeParse(form);

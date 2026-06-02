@@ -79,6 +79,8 @@ public class CollaboratorProfileService {
         collaborator.setSocialName(dto.getSocialName());
         collaborator.setCpf(dto.getCpf());
         collaborator.setRg(dto.getRg());
+        collaborator.setRgIssuer(dto.getRgIssuer());
+        collaborator.setRgStateCode(dto.getRgStateCode());
         collaborator.setBirthDate(dto.getBirthDate());
         collaborator.setGender(dto.getGender());
         collaborator.setMaritalStatus(dto.getMaritalStatus());
@@ -130,6 +132,8 @@ public class CollaboratorProfileService {
                 .socialName(request.getSocialName())
                 .cpf(request.getCpf())
                 .rg(request.getRg())
+                .rgIssuer(request.getRgIssuer())
+                .rgStateCode(request.getRgStateCode())
                 .birthDate(request.getBirthDate())
                 .gender(request.getGender())
                 .maritalStatus(request.getMaritalStatus())

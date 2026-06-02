@@ -31,6 +31,8 @@ public class AdmissionProcessResponseDto {
     private final String socialName;
     private final String cpf;
     private final String rg;
+    private final String rgIssuer;
+    private final String rgStateCode;
     private final LocalDate birthDate;
     private final GenderEnum gender;
     private final MaritalStatusEnum maritalStatus;
@@ -58,6 +60,9 @@ public class AdmissionProcessResponseDto {
     private final List<AdmissionEmergencyContactDto> emergencyContacts;
     private final LocalDate contractStartDate;
     private final LocalDate contractEndDate;
+    private final String providerCnpj;
+    private final String providerLegalName;
+    private final String providerTradeName;
 
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;

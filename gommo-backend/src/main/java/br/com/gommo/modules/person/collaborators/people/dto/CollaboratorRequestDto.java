@@ -34,6 +34,12 @@ public class CollaboratorRequestDto {
     @Size(max = 20)
     private String rg;
 
+    @Size(max = 20)
+    private String rgIssuer;
+
+    @Size(max = 2)
+    private String rgStateCode;
+
     @NotNull
     private LocalDate birthDate;
 

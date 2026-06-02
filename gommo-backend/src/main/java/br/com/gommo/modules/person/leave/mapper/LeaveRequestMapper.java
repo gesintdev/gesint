@@ -51,11 +51,16 @@ public class LeaveRequestMapper {
     }
 
     public LeaveRequestResponseDto toResponse(LeaveRequest entity) {
+        return toResponse(entity, null);
+    }
+
+    public LeaveRequestResponseDto toResponse(LeaveRequest entity, String collaboratorName) {
         return LeaveRequestResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
                 .collaboratorId(entity.getCollaboratorId())
+                .collaboratorName(collaboratorName)
                 .leaveType(entity.getLeaveType())
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())

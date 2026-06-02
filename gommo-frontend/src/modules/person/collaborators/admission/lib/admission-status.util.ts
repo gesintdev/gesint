@@ -1,4 +1,5 @@
 import type { AdmissionProcessCreateDto } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
+import { isAdmissionPj } from "@/modules/person/collaborators/admission/lib/admission-contract.util";
 import { isStepFilled } from "@/shared/lib/form-step.util";
 
 export type AdmissionStepContext = {
@@ -34,6 +35,14 @@ export function isAdmissionStepComplete(
         case "documentos":
             return context.documentCount > 0;
         case "vinculo":
+            if (isAdmissionPj(form.contractType)) {
+                return isStepFilled([
+                    {value: form.expectedStartDate},
+                    {value: form.contractType},
+                    {value: form.providerCnpj},
+                    {value: form.providerLegalName},
+                ]);
+            }
             return isStepFilled([
                 {value: form.expectedStartDate},
                 {value: form.contractType},

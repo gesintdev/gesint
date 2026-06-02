@@ -1,5 +1,3 @@
-"use client";
-
 import type {VacationPeriodContext} from "@/modules/person/vacation/types/vacation.types";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 

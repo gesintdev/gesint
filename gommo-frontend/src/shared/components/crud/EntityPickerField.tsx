@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import { PanelRightOpen } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";

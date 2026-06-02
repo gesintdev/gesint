@@ -37,6 +37,12 @@ public class Collaborator extends AuditEntity {
     @Column(length = 20)
     private String rg;
 
+    @Column(name = "rg_issuer", length = 20)
+    private String rgIssuer;
+
+    @Column(name = "rg_state_code", length = 2)
+    private String rgStateCode;
+
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 

@@ -1,5 +1,3 @@
-"use client";
-
 import {useQuery, type QueryKey, type UseQueryResult} from "@tanstack/react-query";
 import {useMemo, type ReactNode} from "react";
 import {ExceptionCapture} from "@/shared/exceptions";

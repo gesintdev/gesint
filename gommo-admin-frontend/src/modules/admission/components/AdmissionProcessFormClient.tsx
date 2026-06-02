@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { ADMISSION_CLIENT_MESSAGES } from "@/modules/admission/exceptions/admission-process.messages";
 import type { AdmissionProcessCreateDto } from "@/modules/admission/dto/admission-process.dto";
@@ -26,7 +26,7 @@ import {
     InputCurrency,
     InputDate,
     InputDecimal,
-    InputRG,
+    RgIdentityFields,
     InputSelect,
     InputString,
 } from "@/shared/components/ui/input/index";
@@ -111,7 +111,7 @@ export function AdmissionProcessFormClient() {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);
@@ -222,7 +222,14 @@ export function AdmissionProcessFormClient() {
                         required
                         hint="Salvo apenas com dígitos"
                     />
-                    <InputRG label="RG" value={form.rg ?? ""} onValueChange={(v) => update("rg", v)} />
+                    <RgIdentityFields
+                        rg={form.rg ?? ""}
+                        rgIssuer={form.rgIssuer}
+                        rgStateCode={form.rgStateCode}
+                        onRgChange={(v) => update("rg", v)}
+                        onRgIssuerChange={(v) => update("rgIssuer", v)}
+                        onRgStateCodeChange={(v) => update("rgStateCode", v)}
+                    />
                     <InputDate
                         label="Data de nascimento"
                         value={form.birthDate}

@@ -91,6 +91,7 @@ export function CrudScreen({
   const setTitleSuffix = useWorkspaceStore((s) => s.setTitleSuffix);
 
   const isEditing = editingId != null;
+  const formSessionActive = isEditing || activeTab === CRUD_TAB_FORM;
   const isListInstance =
     workspaceTabCtx == null || isModuleListTab(workspaceTabCtx.tab.entityKey);
 
@@ -120,7 +121,7 @@ export function CrudScreen({
     if (showFormTab) {
       items.push({
         id: CRUD_TAB_FORM,
-        label: isEditing && activeTab === CRUD_TAB_FORM ? formTabLabelEdit : formTabLabel,
+        label: isEditing ? formTabLabelEdit : formTabLabel,
       });
     }
     items.push(...extraTabs.map((t) => ({ id: t.id, label: t.label })));
@@ -165,12 +166,7 @@ export function CrudScreen({
     [activeTab, editingId, goToForm, goToList, goToTab, isEditing, startCreate, startEdit],
   );
 
-  const panel =
-    activeTab === CRUD_TAB_LIST
-      ? list
-      : activeTab === CRUD_TAB_FORM
-        ? form
-        : extraTabs.find((t) => t.id === activeTab)?.content ?? null;
+  const extraTabPanel = extraTabs.find((t) => t.id === activeTab)?.content ?? null;
 
   const queryRefresh = useQueryRefresh();
 
@@ -194,8 +190,9 @@ export function CrudScreen({
                 aria-controls={`crud-panel-${tab.id}`}
                 id={`crud-tab-${tab.id}`}
                 onClick={() => {
-                  if (tab.id === CRUD_TAB_LIST) goToList();
-                  else if (tab.id === CRUD_TAB_FORM) {
+                  if (tab.id === CRUD_TAB_LIST) {
+                    setActiveTab(CRUD_TAB_LIST);
+                  } else if (tab.id === CRUD_TAB_FORM) {
                     if (editOnly && !editingId) return;
                     setActiveTab(CRUD_TAB_FORM);
                     if (workspaceEnabled && !editingId && !editOnly) syncWorkspace({ isNew: true });
@@ -257,10 +254,26 @@ export function CrudScreen({
               "min-h-0 flex-1",
               activeTab === CRUD_TAB_LIST
                 ? "overflow-y-auto"
-                : "flex flex-col overflow-hidden",
+                : activeTab === CRUD_TAB_FORM
+                  ? "flex flex-col overflow-hidden"
+                  : "overflow-y-auto",
             )}
           >
-            {panel}
+            {activeTab === CRUD_TAB_LIST ? list : null}
+            {activeTab !== CRUD_TAB_LIST && activeTab !== CRUD_TAB_FORM ? extraTabPanel : null}
+            {formSessionActive ? (
+              <div
+                className={clsx(
+                  "min-h-0 flex-1 flex flex-col overflow-hidden",
+                  activeTab !== CRUD_TAB_FORM && "hidden",
+                )}
+                aria-hidden={activeTab !== CRUD_TAB_FORM}
+              >
+                <div key={editingId ?? "new"} className="flex min-h-0 flex-1 flex-col">
+                  {form}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

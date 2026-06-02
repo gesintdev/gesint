@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type FormEvent, useEffect, useMemo, useState} from "react";
+import {type SubmitEvent, useEffect, useMemo, useState} from "react";
 import {toast} from "sonner";
 import {COLLABORATOR_CLIENT_MESSAGES} from "@/modules/person/collaborators/people/exceptions/collaborator.messages";
 import type {CollaboratorCreateDto} from "@/modules/person/collaborators/people/dto/collaborator.dto";
@@ -20,7 +20,7 @@ import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {FormStepper, type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {sectionHasChanges} from "@/shared/lib/form-step.util";
-import {InputCPF, InputDate, InputRG, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import {InputCPF, InputDate, InputSelect, InputString, RgIdentityFields} from "@/shared/components/ui/input/index";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 
 const GENDER_ITEMS: SelectItem[] = [
@@ -93,7 +93,7 @@ export function CollaboratorFormClient() {
         setForm((prev) => ({...prev, [field]: value}));
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);
@@ -103,7 +103,7 @@ export function CollaboratorFormClient() {
         const empty = emptyDefaults;
         const filled: string[] = [];
 
-        if (sectionHasChanges(form, empty, ["fullName", "socialName", "cpf", "rg", "birthDate", "gender", "maritalStatus"])) {
+        if (sectionHasChanges(form, empty, ["fullName", "socialName", "cpf", "rg", "rgIssuer", "rgStateCode", "birthDate", "gender", "maritalStatus"])) {
             filled.push("identificacao");
         }
 
@@ -190,7 +190,14 @@ export function CollaboratorFormClient() {
                         required
                         hint="Salvo apenas com dígitos"
                     />
-                    <InputRG label="RG" value={form.rg ?? ""} onValueChange={(v) => update("rg", v)}/>
+                    <RgIdentityFields
+                        rg={form.rg ?? ""}
+                        rgIssuer={form.rgIssuer}
+                        rgStateCode={form.rgStateCode}
+                        onRgChange={(v) => update("rg", v)}
+                        onRgIssuerChange={(v) => update("rgIssuer", v)}
+                        onRgStateCodeChange={(v) => update("rgStateCode", v)}
+                    />
                     <InputDate
                         label="Data de nascimento"
                         value={form.birthDate}

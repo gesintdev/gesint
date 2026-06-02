@@ -1,5 +1,3 @@
-"use client";
-
 import { useQuery } from "@tanstack/react-query";
 import type { AdmissionProcessCreateDto, AdmissionStatus } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
 import {
@@ -12,7 +10,8 @@ import {
 } from "@/modules/person/collaborators/admission/lib/admission-status.util";
 import { departmentService } from "@/modules/organization/department/services/department.service";
 import { jobpositionService } from "@/modules/organization/jobposition/services/jobposition.service";
-import { formatCpf } from "@/shared/lib/table/format-cell-value";
+import { isAdmissionPj } from "@/modules/person/collaborators/admission/lib/admission-contract.util";
+import { formatCnpj, formatCpf } from "@/shared/lib/table/format-cell-value";
 
 type AdmissionSummaryProps = {
     form: AdmissionProcessCreateDto;
@@ -49,6 +48,7 @@ function SummaryRow({
 export function AdmissionSummary({ form, stepIds, context, entityCode, status }: AdmissionSummaryProps) {
     const filledSteps = computeFilledAdmissionSteps(form, context, stepIds);
     const requiredCount = stepIds.filter((id) => id !== "observacoes").length;
+    const isPj = isAdmissionPj(form.contractType);
 
     const departmentQuery = useQuery({
         queryKey: ["department-summary", form.departmentId],
@@ -88,6 +88,22 @@ export function AdmissionSummary({ form, stepIds, context, entityCode, status }:
                     label="Contrato"
                     value={contractTypeLabel(form.contractType)}
                 />
+                {isPj ? (
+                    <>
+                        <SummaryRow
+                            label="CNPJ"
+                            value={
+                                form.providerCnpj?.trim()
+                                    ? formatCnpj(form.providerCnpj)
+                                    : "—"
+                            }
+                        />
+                        <SummaryRow
+                            label="Razão social"
+                            value={form.providerLegalName?.trim() || "—"}
+                        />
+                    </>
+                ) : null}
                 <SummaryRow
                     label="Departamento"
                     value={departmentQuery.data?.name ?? "—"}

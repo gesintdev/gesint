@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import { Camera, Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";

@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import { Settings } from "lucide-react";
 import { usePathname } from "next/navigation";

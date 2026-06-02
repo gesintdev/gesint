@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {useEffect, useState, type FormEvent} from "react";
+import {useEffect, useState, type SubmitEvent} from "react";
 import {toast} from "sonner";
 import {CONTRACT_CLIENT_MESSAGES} from "@/modules/person/contract/exceptions/employment-contract.messages";
 import type {EmploymentContractCreateDto} from "@/modules/person/contract/dto/employment-contract.dto";
@@ -77,7 +77,7 @@ export function EmploymentContractFormClient() {
         setForm((prev) => ({...prev, [field]: value}));
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);

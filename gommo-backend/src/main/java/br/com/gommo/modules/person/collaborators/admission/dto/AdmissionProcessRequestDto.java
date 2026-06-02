@@ -44,6 +44,12 @@ public class AdmissionProcessRequestDto {
     @Size(max = 20)
     private String rg;
 
+    @Size(max = 20)
+    private String rgIssuer;
+
+    @Size(max = 2)
+    private String rgStateCode;
+
     @NotNull
     private LocalDate birthDate;
 
@@ -107,4 +113,13 @@ public class AdmissionProcessRequestDto {
 
     private LocalDate contractStartDate;
     private LocalDate contractEndDate;
+
+    @Size(max = 14)
+    private String providerCnpj;
+
+    @Size(max = 200)
+    private String providerLegalName;
+
+    @Size(max = 200)
+    private String providerTradeName;
 }

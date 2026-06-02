@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {useState, type FormEvent} from "react";
+import {useState, type SubmitEvent} from "react";
 import {toast} from "sonner";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 import type {LeaveRequestCreateDto} from "@/modules/person/leave/dto/leave-request.dto";
@@ -39,7 +39,7 @@ export function LeaveVacationRequestFormClient() {
         },
     });
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);

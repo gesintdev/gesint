@@ -20,6 +20,8 @@ public class CollaboratorResponseDto {
     private final String socialName;
     private final String cpf;
     private final String rg;
+    private final String rgIssuer;
+    private final String rgStateCode;
     private final LocalDate birthDate;
     private final GenderEnum gender;
     private final MaritalStatusEnum maritalStatus;

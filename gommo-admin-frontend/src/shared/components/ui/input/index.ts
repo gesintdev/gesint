@@ -10,6 +10,8 @@ export { InputCEP } from "./InputCEP";
 export type { InputCEPProps } from "./InputCEP";
 export { InputRG } from "./InputRG";
 export type { InputRGProps } from "./InputRG";
+export { RgIdentityFields } from "./RgIdentityFields";
+export type { RgIdentityFieldsProps } from "./RgIdentityFields";
 export { InputDate } from "./InputDate";
 export type { InputDateProps } from "./InputDate";
 export { InputDatetime } from "./InputDatetime";

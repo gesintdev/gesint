@@ -24,6 +24,8 @@ public class AdmissionProcessMapper {
                 .socialName(dto.getSocialName())
                 .cpf(dto.getCpf())
                 .rg(dto.getRg())
+                .rgIssuer(dto.getRgIssuer())
+                .rgStateCode(dto.getRgStateCode())
                 .birthDate(dto.getBirthDate())
                 .gender(dto.getGender())
                 .maritalStatus(dto.getMaritalStatus())
@@ -50,6 +52,9 @@ public class AdmissionProcessMapper {
                 .emergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()))
                 .contractStartDate(dto.getContractStartDate())
                 .contractEndDate(dto.getContractEndDate())
+                .providerCnpj(dto.getProviderCnpj())
+                .providerLegalName(dto.getProviderLegalName())
+                .providerTradeName(dto.getProviderTradeName())
                 .photoObjectId(dto.getPhotoObjectId())
                 .build();
     }
@@ -61,6 +66,8 @@ public class AdmissionProcessMapper {
         entity.setSocialName(dto.getSocialName());
         entity.setCpf(dto.getCpf());
         entity.setRg(dto.getRg());
+        entity.setRgIssuer(dto.getRgIssuer());
+        entity.setRgStateCode(dto.getRgStateCode());
         entity.setBirthDate(dto.getBirthDate());
         entity.setGender(dto.getGender());
         entity.setMaritalStatus(dto.getMaritalStatus());
@@ -91,6 +98,9 @@ public class AdmissionProcessMapper {
         entity.setEmergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()));
         entity.setContractStartDate(dto.getContractStartDate());
         entity.setContractEndDate(dto.getContractEndDate());
+        entity.setProviderCnpj(dto.getProviderCnpj());
+        entity.setProviderLegalName(dto.getProviderLegalName());
+        entity.setProviderTradeName(dto.getProviderTradeName());
         entity.setPhotoObjectId(dto.getPhotoObjectId());
     }
 
@@ -113,6 +123,8 @@ public class AdmissionProcessMapper {
                 .socialName(entity.getSocialName())
                 .cpf(entity.getCpf())
                 .rg(entity.getRg())
+                .rgIssuer(entity.getRgIssuer())
+                .rgStateCode(entity.getRgStateCode())
                 .birthDate(entity.getBirthDate())
                 .gender(entity.getGender())
                 .maritalStatus(entity.getMaritalStatus())
@@ -139,6 +151,9 @@ public class AdmissionProcessMapper {
                 .emergencyContacts(copyEmergencyContacts(entity.getEmergencyContacts()))
                 .contractStartDate(entity.getContractStartDate())
                 .contractEndDate(entity.getContractEndDate())
+                .providerCnpj(entity.getProviderCnpj())
+                .providerLegalName(entity.getProviderLegalName())
+                .providerTradeName(entity.getProviderTradeName())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

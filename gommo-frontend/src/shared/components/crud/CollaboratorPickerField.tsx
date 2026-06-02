@@ -1,5 +1,3 @@
-"use client";
-
 import {useCallback, useEffect, useState} from "react";
 import {collaboratorService} from "@/modules/person/collaborators/people/services/collaborator.service";
 import {InputAutocomplete} from "@/shared/components/ui/input/index";

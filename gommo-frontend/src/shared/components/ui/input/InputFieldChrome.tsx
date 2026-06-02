@@ -8,16 +8,32 @@ export function InputFieldChrome({
                                      error,
                                      required,
                                      id,
+                                     labelFor = true,
                                      wrapperClassName,
                                      children,
                                  }: InputFieldChromeProps & { children: React.ReactNode }) {
+    const labelId = id ? `${id}-label` : undefined;
+
     return (
         <div className={wrapperClassName}>
-            {label && (
-                <label htmlFor={id} className="gommo-label">
+            {label && labelId && (
+                labelFor ? (
+                    <label htmlFor={id} className="gommo-label">
+                        {label}
+                        {required && <span className="ms-0.5 text-error">*</span>}
+                    </label>
+                ) : (
+                    <span id={labelId} className="gommo-label">
+                        {label}
+                        {required && <span className="ms-0.5 text-error">*</span>}
+                    </span>
+                )
+            )}
+            {label && !labelId && (
+                <span className="gommo-label">
                     {label}
                     {required && <span className="ms-0.5 text-error">*</span>}
-                </label>
+                </span>
             )}
             {children}
             {error && <p className="mt-1.5 text-[11px] font-medium text-error">{error}</p>}

@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import type { PermissionSummary } from "@/modules/settings/profile/dto/profile.dto";
 

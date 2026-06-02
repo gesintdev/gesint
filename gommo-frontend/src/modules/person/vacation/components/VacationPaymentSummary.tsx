@@ -1,5 +1,3 @@
-"use client";
-
 import type { VacationPaymentEstimate } from "@/modules/person/vacation/types/vacation.types";
 
 type Props = {

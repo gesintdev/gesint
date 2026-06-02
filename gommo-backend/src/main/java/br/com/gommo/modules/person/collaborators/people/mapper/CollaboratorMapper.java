@@ -14,6 +14,8 @@ public class CollaboratorMapper {
                 .socialName(dto.getSocialName())
                 .cpf(dto.getCpf())
                 .rg(dto.getRg())
+                .rgIssuer(dto.getRgIssuer())
+                .rgStateCode(dto.getRgStateCode())
                 .birthDate(dto.getBirthDate())
                 .gender(dto.getGender())
                 .maritalStatus(dto.getMaritalStatus())
@@ -30,6 +32,8 @@ public class CollaboratorMapper {
         entity.setSocialName(dto.getSocialName());
         entity.setCpf(dto.getCpf());
         entity.setRg(dto.getRg());
+        entity.setRgIssuer(dto.getRgIssuer());
+        entity.setRgStateCode(dto.getRgStateCode());
         entity.setBirthDate(dto.getBirthDate());
         entity.setGender(dto.getGender());
         entity.setMaritalStatus(dto.getMaritalStatus());
@@ -55,6 +59,8 @@ public class CollaboratorMapper {
                 .socialName(entity.getSocialName())
                 .cpf(entity.getCpf())
                 .rg(entity.getRg())
+                .rgIssuer(entity.getRgIssuer())
+                .rgStateCode(entity.getRgStateCode())
                 .birthDate(entity.getBirthDate())
                 .gender(entity.getGender())
                 .maritalStatus(entity.getMaritalStatus())

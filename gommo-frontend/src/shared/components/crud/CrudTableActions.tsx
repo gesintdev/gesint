@@ -1,5 +1,3 @@
-"use client";
-
 import {Pencil, Trash2} from "lucide-react";
 import {OpenInWorkspaceTabButton} from "@/shared/components/workspace/OpenInWorkspaceTabButton";
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";

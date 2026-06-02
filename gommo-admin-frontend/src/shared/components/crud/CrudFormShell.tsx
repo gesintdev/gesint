@@ -1,13 +1,11 @@
-"use client";
-
 import clsx from "clsx";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode, SubmitEvent } from "react";
 
 export type CrudFormShellProps = {
     /** Campos do formulário (sem `<form>` interno — o shell é o único form). */
     children: ReactNode;
     footer: ReactNode;
-    onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+    onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
     /** Opcional — título acima da área rolável (evita título dentro do grid repetido). */
     title?: string;
     /** Erro de salvamento ou validação da API — exibido no corpo rolável. */

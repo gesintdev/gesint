@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/jobposition/exceptions/jobposition.messages";
 import type { JobPositionCreateDto } from "@/modules/jobposition/dto/jobposition.dto";
@@ -61,7 +61,7 @@ export function JobPositionFormClient() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     saveMutation.mutate(form);

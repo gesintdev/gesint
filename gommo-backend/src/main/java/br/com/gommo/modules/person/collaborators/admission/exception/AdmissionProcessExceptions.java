@@ -5,4 +5,6 @@ public final class AdmissionProcessExceptions {
     public static final String NOT_FOUND_MSG = "Processo de admissão não encontrado";
     public static final String CPF_ALREADY_EXISTS_CODE = "ADMISSION_CPF_ALREADY_EXISTS";
     public static final String CPF_ALREADY_EXISTS_MSG = "Já existe admissão ou colaborador com este CPF";
+    public static final String PJ_PROVIDER_REQUIRED_CODE = "ADMISSION_PJ_PROVIDER_REQUIRED";
+    public static final String PJ_PROVIDER_REQUIRED_MSG = "Para contrato PJ informe CNPJ e razão social da prestadora";
 }

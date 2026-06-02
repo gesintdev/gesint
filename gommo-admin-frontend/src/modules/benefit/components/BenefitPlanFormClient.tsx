@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { BENEFIT_CLIENT_MESSAGES } from "@/modules/benefit/exceptions/benefit-plan.messages";
 import type { BenefitPlanCreateDto } from "@/modules/benefit/dto/benefit-plan.dto";
@@ -65,7 +65,7 @@ export function BenefitPlanFormClient() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     saveMutation.mutate(form);

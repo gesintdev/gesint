@@ -6,6 +6,8 @@ export class Collaborator {
     socialName?: string;
     cpf!: string;
     rg?: string;
+    rgIssuer?: string;
+    rgStateCode?: string;
     birthDate!: string;
     gender?: "MALE" | "FEMALE" | "OTHER" | "NOT_INFORMED";
     maritalStatus?: "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "OTHER";
@@ -24,6 +26,8 @@ export class CollaboratorCreateDto {
     socialName?: string;
     cpf!: string;
     rg?: string;
+    rgIssuer?: string;
+    rgStateCode?: string;
     birthDate!: string;
     gender?: Collaborator["gender"];
     maritalStatus?: Collaborator["maritalStatus"];

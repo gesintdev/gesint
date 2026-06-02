@@ -1,17 +1,18 @@
 "use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type FormEvent, useCallback, useEffect, useMemo, useState} from "react";
+import {type SubmitEvent, useCallback, useEffect, useMemo, useState} from "react";
 import {toast} from "sonner";
 import {ADMISSION_CLIENT_MESSAGES} from "@/modules/person/collaborators/admission/exceptions/admission-process.messages";
 import type {AdmissionProcessCreateDto} from "@/modules/person/collaborators/admission/dto/admission-process.dto";
 import {AdmissionSummary} from "@/modules/person/collaborators/admission/components/AdmissionSummary";
 import {AdmissionEmergencyContactsField} from "@/modules/person/collaborators/admission/components/AdmissionEmergencyContactsField";
+import { isAdmissionPj } from "@/modules/person/collaborators/admission/lib/admission-contract.util";
 import {
     ADMISSION_DOCUMENT_TYPE_ITEMS,
-    CONTRACT_DOCUMENT_TYPE_ITEMS,
     CONTRACT_TYPE_ITEMS,
     WORKLOAD_SCHEDULE_ITEMS,
+    contractDocumentTypeItems,
 } from "@/modules/person/collaborators/admission/lib/admission-form.constants";
 import {
     ADMISSION_STEP_IDS,
@@ -36,10 +37,11 @@ import {ProfilePhotoField} from "@/shared/components/ui/ProfilePhotoField";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import {
     InputCEP,
+    InputCNPJ,
     InputCPF,
     InputCurrency,
     InputDate,
-    InputRG,
+    RgIdentityFields,
     InputSelect,
     InputString,
 } from "@/shared/components/ui/input/index";
@@ -209,7 +211,7 @@ export function AdmissionProcessFormClient() {
         },
     });
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);
@@ -218,6 +220,12 @@ export function AdmissionProcessFormClient() {
     const filledStepIds = useMemo(
         () => computeFilledAdmissionSteps(form, stepContext, ADMISSION_STEP_IDS),
         [form, stepContext],
+    );
+
+    const isPj = isAdmissionPj(form.contractType);
+    const contractDocTypeItems = useMemo(
+        () => contractDocumentTypeItems(form.contractType),
+        [form.contractType],
     );
 
     const summaryStatus = useMemo(() => {
@@ -327,7 +335,14 @@ export function AdmissionProcessFormClient() {
                                 onValueChange={(v) => update("cpf", v)}
                                 required
                             />
-                            <InputRG label="RG" value={form.rg ?? ""} onValueChange={(v) => update("rg", v)}/>
+                            <RgIdentityFields
+                                rg={form.rg ?? ""}
+                                rgIssuer={form.rgIssuer}
+                                rgStateCode={form.rgStateCode}
+                                onRgChange={(v) => update("rg", v)}
+                                onRgIssuerChange={(v) => update("rgIssuer", v)}
+                                onRgStateCodeChange={(v) => update("rgStateCode", v)}
+                            />
                             <InputDate
                                 label="Data de nascimento"
                                 value={form.birthDate}
@@ -357,8 +372,13 @@ export function AdmissionProcessFormClient() {
                                 value={form.nationality ?? ""}
                                 onValueChange={(v) => update("nationality", v)}
                             />
-                            <InputString label="PIS/PASEP" value={form.pisPasep ?? ""}
-                                         onValueChange={(v) => update("pisPasep", v)}/>
+                            {!isPj ? (
+                                <InputString
+                                    label="PIS/PASEP"
+                                    value={form.pisPasep ?? ""}
+                                    onValueChange={(v) => update("pisPasep", v)}
+                                />
+                            ) : null}
                             <InputString
                                 label="Nome da mãe"
                                 value={form.motherName ?? ""}
@@ -454,25 +474,65 @@ export function AdmissionProcessFormClient() {
                         label="Tipo de contrato"
                         items={CONTRACT_TYPE_ITEMS}
                         value={form.contractType ?? "CLT"}
-                        onValueChange={(v) =>
-                            update("contractType", (v || "CLT") as AdmissionProcessCreateDto["contractType"])
-                        }
+                        onValueChange={(v) => {
+                            const next = (v || "CLT") as AdmissionProcessCreateDto["contractType"];
+                            setForm((prev) =>
+                                next === "PJ"
+                                    ? {
+                                        ...prev,
+                                        contractType: next,
+                                        workloadSchedule: "",
+                                        pisPasep: "",
+                                    }
+                                    : {
+                                        ...prev,
+                                        contractType: next,
+                                        providerCnpj: "",
+                                        providerLegalName: "",
+                                        providerTradeName: "",
+                                    },
+                            );
+                        }}
                         required
                     />
+                    {isPj ? (
+                        <>
+                            <InputCNPJ
+                                label="CNPJ da prestadora"
+                                value={form.providerCnpj ?? ""}
+                                onValueChange={(v) => update("providerCnpj", v)}
+                                required
+                            />
+                            <InputString
+                                label="Razão social"
+                                value={form.providerLegalName ?? ""}
+                                onValueChange={(v) => update("providerLegalName", v)}
+                                required
+                            />
+                            <InputString
+                                label="Nome fantasia"
+                                value={form.providerTradeName ?? ""}
+                                onValueChange={(v) => update("providerTradeName", v)}
+                                wrapperClassName="sm:col-span-2"
+                            />
+                        </>
+                    ) : null}
                     <InputCurrency
-                        label="Salário base"
+                        label={isPj ? "Valor do contrato" : "Salário base"}
                         value={form.baseSalary != null ? String(form.baseSalary) : ""}
                         onValueChange={(v) => update("baseSalary", v)}
                         emitAsDecimal
                     />
-                    <InputSelect
-                        label="Carga horária"
-                        items={WORKLOAD_SCHEDULE_ITEMS}
-                        value={form.workloadSchedule ?? ""}
-                        onValueChange={(v) => update("workloadSchedule", v)}
-                        placeholder="Selecione"
-                        required
-                    />
+                    {!isPj ? (
+                        <InputSelect
+                            label="Carga horária"
+                            items={WORKLOAD_SCHEDULE_ITEMS}
+                            value={form.workloadSchedule ?? ""}
+                            onValueChange={(v) => update("workloadSchedule", v)}
+                            placeholder="Selecione"
+                            required
+                        />
+                    ) : null}
                     <InputString
                         label="ID empresa (opcional)"
                         value={form.companyId ?? ""}
@@ -516,7 +576,7 @@ export function AdmissionProcessFormClient() {
                         entityType="admission_process"
                         entityId={editingId}
                         linkRole="CONTRACT"
-                        documentTypeItems={CONTRACT_DOCUMENT_TYPE_ITEMS}
+                        documentTypeItems={contractDocTypeItems}
                         emptyMessage="Nenhum documento de contrato anexado."
                         deferUpload
                         pendingAttachments={pendingContractAttachments}

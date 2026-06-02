@@ -3,6 +3,7 @@ export class LeaveRequest {
     code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
+    collaboratorName?: string;
     leaveType?: "VACATION" | "MEDICAL" | "MATERNITY" | "PATERNITY" | "UNPAID" | "OTHER";
     startDate!: string;
     endDate!: string;

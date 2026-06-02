@@ -12,6 +12,7 @@ import br.com.gommo.modules.person.collaborators.admission.mapper.AdmissionProce
 import br.com.gommo.modules.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.person.collaborators.people.service.CollaboratorProfileService;
+import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -144,6 +146,35 @@ public class AdmissionProcessService
         if (request.getStateCode() != null) {
             request.setStateCode(request.getStateCode().trim().toUpperCase());
         }
+        if (request.getRgIssuer() != null) {
+            request.setRgIssuer(request.getRgIssuer().trim());
+        }
+        if (request.getRgStateCode() != null) {
+            request.setRgStateCode(request.getRgStateCode().trim().toUpperCase());
+        }
+        if (request.getProviderCnpj() != null) {
+            request.setProviderCnpj(request.getProviderCnpj().replaceAll("\\D", ""));
+        }
+        applyContractTypeRules(request);
+    }
+
+    private void applyContractTypeRules(AdmissionProcessRequestDto request) {
+        if (request.getContractType() == ContractTypeEnum.PJ) {
+            if (!StringUtils.hasText(request.getProviderCnpj()) || request.getProviderCnpj().length() != 14
+                    || !StringUtils.hasText(request.getProviderLegalName())) {
+                throw AdmissionProcessException.pjProviderRequired();
+            }
+            request.setProviderLegalName(request.getProviderLegalName().trim());
+            if (request.getProviderTradeName() != null) {
+                request.setProviderTradeName(request.getProviderTradeName().trim());
+            }
+            request.setWorkloadSchedule(null);
+            request.setPisPasep(null);
+            return;
+        }
+        request.setProviderCnpj(null);
+        request.setProviderLegalName(null);
+        request.setProviderTradeName(null);
     }
 
     private void assertCpfAvailable(String cpf, UUID excludeAdmissionId) {

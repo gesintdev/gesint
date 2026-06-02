@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import {Loader2, Search, X} from "lucide-react";
 import {type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState} from "react";

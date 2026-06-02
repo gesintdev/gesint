@@ -1,5 +1,3 @@
-"use client";
-
 import {Plus, Trash2} from "lucide-react";
 import {useMemo} from "react";
 import type {AdmissionEmergencyContact} from "@/modules/person/collaborators/admission/dto/admission-process.dto";

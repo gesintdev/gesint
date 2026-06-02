@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import {AnimatePresence, motion} from "framer-motion";
 import {ChevronRight, Search} from "lucide-react";
@@ -22,6 +20,72 @@ type SidebarProps = {
 function routeIsActive(route: AppRoute, pathname: string): boolean {
     if (route.href === pathname) return true;
     return route.children?.some((c) => c.href === pathname) ?? false;
+}
+
+function SidebarCollapseControl({
+    desktop,
+    collapsed,
+    onToggle,
+}: {
+    desktop: boolean;
+    collapsed: boolean;
+    onToggle?: () => void;
+}) {
+    if (!desktop || !onToggle) return null;
+    return <SidebarCollapseTrigger collapsed={collapsed} onToggle={onToggle} />;
+}
+
+function SidebarToolbar({
+    panelCollapsed,
+    desktop,
+    collapsed,
+    onCollapsedToggle,
+    query,
+    onQueryChange,
+}: {
+    panelCollapsed: boolean;
+    desktop: boolean;
+    collapsed: boolean;
+    onCollapsedToggle?: () => void;
+    query: string;
+    onQueryChange: (value: string) => void;
+}) {
+    return (
+        <div
+            className={clsx(
+                "sidebar-toolbar flex items-center px-3 py-3",
+                panelCollapsed ? "justify-center" : "gap-2.5",
+            )}
+        >
+            {panelCollapsed ? (
+                <SidebarCollapseControl
+                    desktop={desktop}
+                    collapsed={collapsed}
+                    onToggle={onCollapsedToggle}
+                />
+            ) : (
+                <>
+                    <div className="min-w-0 flex-1">
+                        <label className="gommo-field sidebar-shell-control w-full text-sm!">
+                            <Search className="size-3.5 shrink-0 text-primary/60" strokeWidth={2} />
+                            <input
+                                type="search"
+                                placeholder="Buscar no menu..."
+                                value={query}
+                                onChange={(e) => onQueryChange(e.target.value)}
+                                className="text-sm!"
+                            />
+                        </label>
+                    </div>
+                    <SidebarCollapseControl
+                        desktop={desktop}
+                        collapsed={collapsed}
+                        onToggle={onCollapsedToggle}
+                    />
+                </>
+            )}
+        </div>
+    );
 }
 
 export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMobileCloseAction}: SidebarProps) {
@@ -212,40 +276,14 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 )}
             </div>
 
-            {/* Search (expandido) ou expandir (colapsado) */}
-            <div
-                className={clsx(
-                    "sidebar-toolbar flex items-center px-3 py-3",
-                    panelCollapsed ? "justify-center" : "gap-2.5",
-                )}
-            >
-                {panelCollapsed ? (
-                    opts.desktop && onCollapsedToggle && (
-                        <SidebarCollapseTrigger
-                            collapsed={collapsed}
-                            onToggle={onCollapsedToggle}
-                        />
-                    )
-                ) : (
-                    <>
-                        <div className="min-w-0 flex-1">
-                            <label className="gommo-field sidebar-shell-control w-full text-sm!">
-                                <Search className="size-3.5 shrink-0 text-primary/60" strokeWidth={2}/>
-                                <input
-                                    type="search"
-                                    placeholder="Buscar no menu..."
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    className="text-sm!"
-                                />
-                            </label>
-                        </div>
-                        {opts.desktop && onCollapsedToggle && (
-                            <SidebarCollapseTrigger collapsed={collapsed} onToggle={onCollapsedToggle}/>
-                        )}
-                    </>
-                )}
-            </div>
+            <SidebarToolbar
+                panelCollapsed={panelCollapsed}
+                desktop={opts.desktop}
+                collapsed={collapsed}
+                onCollapsedToggle={onCollapsedToggle}
+                query={query}
+                onQueryChange={setQuery}
+            />
 
             {/* Nav */}
             <div className="sidebar-nav-wrap min-h-0 flex-1">

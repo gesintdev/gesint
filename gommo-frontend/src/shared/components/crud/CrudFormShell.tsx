@@ -1,12 +1,10 @@
-"use client";
-
 import clsx from "clsx";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode, SubmitEvent } from "react";
 
 type CrudFormShellProps = {
     children: ReactNode;
     footer: ReactNode;
-    onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+    onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
     className?: string;
     bodyClassName?: string;
     formId?: string;

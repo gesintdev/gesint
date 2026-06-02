@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { EXITINTERVIEW_CLIENT_MESSAGES } from "@/modules/person/exitinterview/exceptions/exit-interview.messages";
 import type { ExitInterviewCreateDto } from "@/modules/person/exitinterview/dto/exit-interview.dto";
@@ -62,7 +62,7 @@ export function ExitInterviewFormClient() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     saveMutation.mutate(form);

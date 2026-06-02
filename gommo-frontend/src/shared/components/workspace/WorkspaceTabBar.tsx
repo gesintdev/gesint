@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import {LayoutGrid, X} from "lucide-react";
 import {Fragment, useRef} from "react";

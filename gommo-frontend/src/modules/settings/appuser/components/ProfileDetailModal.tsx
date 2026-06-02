@@ -1,5 +1,3 @@
-"use client";
-
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Loader2, X } from "lucide-react";

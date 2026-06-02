@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { PAYSLIP_CLIENT_MESSAGES } from "@/modules/payroll/payslip/exceptions/payslip.messages";
 import type { PayslipCreateDto } from "@/modules/payroll/payslip/dto/payslip.dto";
@@ -80,7 +80,7 @@ export function PayslipFormClient() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     saveMutation.mutate(form);

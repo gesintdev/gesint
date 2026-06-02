@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { OFFBOARDING_CLIENT_MESSAGES } from "@/modules/person/offboarding/exceptions/offboarding.messages";
 import type { OffboardingCreateDto } from "@/modules/person/offboarding/dto/offboarding.dto";
@@ -86,7 +86,7 @@ export function OffboardingFormClient() {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);

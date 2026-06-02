@@ -12,6 +12,11 @@ export function isVacationHistory(row: LeaveRequest): boolean {
     return row.leaveType === "VACATION" && row.approved === true;
 }
 
+/** Férias visíveis no RH: solicitações enviadas ao DP (pendentes) e já concedidas. */
+export function isRhVacationListing(row: LeaveRequest): boolean {
+    return row.leaveType === "VACATION";
+}
+
 export function isRegisteredLeave(row: LeaveRequest): boolean {
     return row.approved === true;
 }

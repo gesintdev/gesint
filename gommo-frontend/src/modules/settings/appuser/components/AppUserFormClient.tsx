@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import type { AppUserCreateDto } from "@/modules/settings/appuser/dto/appuser.dto";
 import { appUserKeys } from "@/modules/settings/appuser/appuser.query";
@@ -113,7 +113,7 @@ export function AppUserFormClient() {
         },
     });
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);

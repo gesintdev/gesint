@@ -2,6 +2,7 @@ package br.com.gommo.modules.person.collaborators.admission.service;
 
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -30,10 +31,19 @@ final class AdmissionProgressEvaluator {
                 && hasText(entity.getStateCode())
                 && entity.getExpectedStartDate() != null
                 && entity.getContractType() != null
-                && hasText(entity.getWorkloadSchedule())
+                && isVinculoComplete(entity)
                 && entity.getContractStartDate() != null
                 && documentCount > 0
                 && contractDocumentCount > 0;
+    }
+
+    private static boolean isVinculoComplete(AdmissionProcess entity) {
+        if (entity.getContractType() == ContractTypeEnum.PJ) {
+            return hasText(entity.getProviderCnpj())
+                    && entity.getProviderCnpj().length() == 14
+                    && hasText(entity.getProviderLegalName());
+        }
+        return hasText(entity.getWorkloadSchedule());
     }
 
     private static boolean hasValidEmergencyContacts(AdmissionProcess entity) {

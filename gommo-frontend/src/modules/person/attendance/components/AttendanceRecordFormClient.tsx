@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {useEffect, useState, type FormEvent} from "react";
+import {useEffect, useState, type SubmitEvent} from "react";
 import {toast} from "sonner";
 import {ATTENDANCE_CLIENT_MESSAGES} from "@/modules/person/attendance/exceptions/attendance-record.messages";
 import type {AttendanceRecordCreateDto} from "@/modules/person/attendance/dto/attendance-record.dto";
@@ -65,7 +65,7 @@ export function AttendanceRecordFormClient() {
         setForm((prev) => ({...prev, [field]: value}));
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);

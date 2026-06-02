@@ -1,5 +1,3 @@
-"use client";
-
 import {ChevronLeft, ChevronRight, Loader2, Search, X} from "lucide-react";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";

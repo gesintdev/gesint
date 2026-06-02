@@ -37,6 +37,7 @@ export function InputSelect({
     const autoId = useId();
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const listId = `${id}-listbox`;
+    const labelId = `${id}-label`;
     const rootRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState(false);
@@ -98,6 +99,7 @@ export function InputSelect({
             required={required}
             disabled={disabled}
             id={id}
+            labelFor={false}
             wrapperClassName={wrapperClassName}
         >
             <div ref={rootRef} className="relative">
@@ -106,6 +108,7 @@ export function InputSelect({
                     id={id}
                     role="combobox"
                     disabled={disabled}
+                    aria-labelledby={label ? labelId : undefined}
                     aria-haspopup="listbox"
                     aria-expanded={open}
                     aria-controls={listId}

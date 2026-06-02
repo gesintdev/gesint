@@ -72,7 +72,7 @@ export const personRoutes: AppRoute[] = [
         icon: CalendarDays,
         routeId: "leave-vacation",
         tabShortLabel: "Férias",
-        listToolbar: "Histórico de férias cadastradas pelo Departamento Pessoal.",
+        listToolbar: "Solicitações enviadas ao DP e férias já concedidas.",
         list: lazyNamed(
             () => import("@/modules/person/leave/components/LeaveRequestRhListClient"),
             "LeaveRequestRhListClient",

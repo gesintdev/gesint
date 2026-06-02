@@ -1,5 +1,3 @@
-"use client";
-
 import clsx from "clsx";
 import { Plus, Trash2 } from "lucide-react";
 import type { VacationSplitPeriod } from "@/modules/person/vacation/types/vacation.types";

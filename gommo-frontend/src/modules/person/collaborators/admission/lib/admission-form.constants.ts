@@ -45,6 +45,18 @@ export const CONTRACT_DOCUMENT_TYPE_ITEMS: SelectItem[] = [
     {value: "OUTRO", label: "Outro"},
 ];
 
+export const CONTRACT_DOCUMENT_TYPE_ITEMS_PJ: SelectItem[] = [
+    {value: "CONTRATO_PRESTACAO", label: "Contrato de prestação de serviços"},
+    {value: "CARTAO_CNPJ", label: "Cartão CNPJ"},
+    {value: "CONTRATO_ASSINADO", label: "Contrato assinado"},
+    {value: "TERMO_CONFIDENCIALIDADE", label: "Termo de confidencialidade"},
+    {value: "OUTRO", label: "Outro"},
+];
+
+export function contractDocumentTypeItems(contractType?: string | null): SelectItem[] {
+    return contractType === "PJ" ? CONTRACT_DOCUMENT_TYPE_ITEMS_PJ : CONTRACT_DOCUMENT_TYPE_ITEMS;
+}
+
 export const ADMISSION_STATUS_LABELS: Record<string, string> = {
     DRAFT: "Em andamento",
     IN_PROGRESS: "Em andamento",

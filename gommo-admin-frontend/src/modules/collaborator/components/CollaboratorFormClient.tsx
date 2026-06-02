@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { COLLABORATOR_CLIENT_MESSAGES } from "@/modules/collaborator/exceptions/collaborator.messages";
 import type { CollaboratorCreateDto } from "@/modules/collaborator/dto/collaborator.dto";
@@ -22,7 +22,7 @@ import { FormSection } from "@/shared/components/ui/FormSection";
 import {
     InputCPF,
     InputDate,
-    InputRG,
+    RgIdentityFields,
     InputSelect,
     InputString,
 } from "@/shared/components/ui/input/index";
@@ -92,7 +92,7 @@ export function CollaboratorFormClient() {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);
@@ -175,7 +175,14 @@ export function CollaboratorFormClient() {
                         required
                         hint="Salvo apenas com dígitos"
                     />
-                    <InputRG label="RG" value={form.rg ?? ""} onValueChange={(v) => update("rg", v)} />
+                    <RgIdentityFields
+                        rg={form.rg ?? ""}
+                        rgIssuer={form.rgIssuer}
+                        rgStateCode={form.rgStateCode}
+                        onRgChange={(v) => update("rg", v)}
+                        onRgIssuerChange={(v) => update("rgIssuer", v)}
+                        onRgStateCodeChange={(v) => update("rgStateCode", v)}
+                    />
                     <InputDate
                         label="Data de nascimento"
                         value={form.birthDate}

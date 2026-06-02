@@ -1,14 +1,14 @@
 import {TableDataType, type TableColumnConfig} from "@/shared/types/table.types";
 import {ENTITY_CODE_TABLE_COLUMN} from "@/shared/config/entity-code.table-column";
 
-/** Histórico de férias (RH) — somente registros já cadastrados pelo DP. */
+/** Férias no RH — solicitações ao DP e histórico concedido. */
 export const LEAVE_HISTORY_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {
-        id: "collaboratorId",
+        id: "collaboratorName",
         columnName: "Colaborador",
-        fieldValue: "collaboratorId",
-        dataType: TableDataType.UUID,
+        fieldValue: "collaboratorName",
+        dataType: TableDataType.TEXT,
     },
     {
         id: "startDate",
@@ -21,5 +21,15 @@ export const LEAVE_HISTORY_TABLE_COLUMNS: TableColumnConfig[] = [
         columnName: "Fim",
         fieldValue: "endDate",
         dataType: TableDataType.DATE,
+    },
+    {
+        id: "rhVacationStatus",
+        columnName: "Situação",
+        fieldValue: "rhVacationStatus",
+        dataType: TableDataType.BADGE,
+        badgeLabels: {
+            PENDING: "Aguardando DP",
+            APPROVED: "Concedida",
+        },
     },
 ];

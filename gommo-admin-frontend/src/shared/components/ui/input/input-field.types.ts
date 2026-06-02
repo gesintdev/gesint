@@ -9,6 +9,8 @@ export type InputFieldChromeProps = {
     readOnly?: boolean;
     wrapperClassName?: string;
     id?: string;
+    /** Quando false, o rótulo não dispara o controle (ex.: select com botão). */
+    labelFor?: boolean;
 };
 
 export type InputBaseProps = InputFieldChromeProps & {
