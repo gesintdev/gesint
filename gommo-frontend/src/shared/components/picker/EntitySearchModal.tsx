@@ -1,18 +1,18 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Loader2, Search, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { Button } from "@/shared/components/ui/Button";
-import { InputString } from "@/shared/components/ui/input/InputString";
-import { DataTable } from "@/shared/components/ui/DataTable";
+import {ChevronLeft, ChevronRight, Loader2, Search, X} from "lucide-react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {createPortal} from "react-dom";
+import {Button} from "@/shared/components/ui/Button";
+import {InputString} from "@/shared/components/ui/input/InputString";
+import {DataTable} from "@/shared/components/ui/DataTable";
 import type {
     EntityPickerAdvancedSearch,
     EntityPickerFilterField,
     EntityPickerSearchParams,
 } from "@/shared/types/entity-picker.types";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
-import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
+import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+import {ExceptionCapture} from "@/shared/exceptions/exception-capture";
 
 type EntitySearchModalProps<T extends object> = {
     open: boolean;
@@ -28,12 +28,12 @@ function emptyFilters(fields: EntityPickerFilterField[]): Record<string, string>
 }
 
 export function EntitySearchModal<T extends object>({
-    open,
-    config,
-    onClose,
-    onSelect,
-    fixedFilters,
-}: EntitySearchModalProps<T>) {
+                                                        open,
+                                                        config,
+                                                        onClose,
+                                                        onSelect,
+                                                        fixedFilters,
+                                                    }: EntitySearchModalProps<T>) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const pageSize = config.pageSize ?? 10;
 
@@ -47,7 +47,7 @@ export function EntitySearchModal<T extends object>({
     const [loading, setLoading] = useState(false);
 
     const mergedFilters = useMemo(
-        () => ({ ...appliedFilters, ...fixedFilters }),
+        () => ({...appliedFilters, ...fixedFilters}),
         [appliedFilters, fixedFilters],
     );
 
@@ -69,7 +69,7 @@ export function EntitySearchModal<T extends object>({
                 const params: EntityPickerSearchParams = {
                     page: nextPage,
                     size: pageSize,
-                    filters: { ...nextFilters, ...fixedFilters },
+                    filters: {...nextFilters, ...fixedFilters},
                 };
                 const result = await config.search(params);
                 setRows(result.content);
@@ -100,7 +100,7 @@ export function EntitySearchModal<T extends object>({
     }, [open, config.filters, runSearch]);
 
     const handleApplyFilters = () => {
-        setAppliedFilters({ ...filters });
+        setAppliedFilters({...filters});
         void runSearch(0, filters);
     };
 
@@ -134,7 +134,7 @@ export function EntitySearchModal<T extends object>({
                         aria-label="Fechar"
                         onClick={onClose}
                     >
-                        <X className="size-4" />
+                        <X className="size-4"/>
                     </button>
                 </div>
 
@@ -156,7 +156,7 @@ export function EntitySearchModal<T extends object>({
                                 placeholder={field.placeholder}
                                 value={filters[field.id] ?? ""}
                                 onValueChange={(value) =>
-                                    setFilters((prev) => ({ ...prev, [field.id]: value }))
+                                    setFilters((prev) => ({...prev, [field.id]: value}))
                                 }
                             />
                         ))}
@@ -165,7 +165,7 @@ export function EntitySearchModal<T extends object>({
                         <Button
                             type="button"
                             size="sm"
-                            leftIcon={<Search className="size-3.5" />}
+                            leftIcon={<Search className="size-3.5"/>}
                             loading={loading}
                             onClick={handleApplyFilters}
                         >
@@ -177,7 +177,7 @@ export function EntitySearchModal<T extends object>({
                 <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
                     {loading && rows.length === 0 ? (
                         <div className="flex items-center justify-center py-16 text-sm text-base-content/45">
-                            <Loader2 className="me-2 size-4 animate-spin" />
+                            <Loader2 className="me-2 size-4 animate-spin"/>
                             Carregando...
                         </div>
                     ) : (
@@ -205,7 +205,7 @@ export function EntitySearchModal<T extends object>({
                             variant="ghost"
                             size="sm"
                             disabled={loading || page <= 0}
-                            leftIcon={<ChevronLeft className="size-3.5" />}
+                            leftIcon={<ChevronLeft className="size-3.5"/>}
                             onClick={() => void runSearch(page - 1, mergedFilters)}
                         >
                             Anterior
@@ -215,7 +215,7 @@ export function EntitySearchModal<T extends object>({
                             variant="ghost"
                             size="sm"
                             disabled={loading || page + 1 >= totalPages}
-                            leftIcon={<ChevronRight className="size-3.5" />}
+                            leftIcon={<ChevronRight className="size-3.5"/>}
                             onClick={() => void runSearch(page + 1, mergedFilters)}
                         >
                             Próxima

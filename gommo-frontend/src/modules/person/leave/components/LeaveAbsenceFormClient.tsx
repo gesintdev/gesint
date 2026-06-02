@@ -1,41 +1,41 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
-import { toast } from "sonner";
-import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import type { LeaveRequestCreateDto } from "@/modules/person/leave/dto/leave-request.dto";
-import { LEAVE_CLIENT_MESSAGES } from "@/modules/person/leave/exceptions/leave-request.messages";
-import { emptyLeaveRequestForm, leaverequestToFormDto } from "@/modules/person/leave/lib/leave-request.mapper";
-import { leaverequestKeys } from "@/modules/person/leave/leave.query";
-import { leaveAbsenceFormSchema } from "@/modules/person/leave/schemas/leave-absence.schema";
-import { leaverequestService } from "@/modules/person/leave/services/leave-request.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
-import { Button } from "@/shared/components/ui/Button";
-import { InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { mapZodFieldErrors } from "@/shared/lib/zod-field-errors";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useEffect, useState, type FormEvent} from "react";
+import {toast} from "sonner";
+import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
+import type {LeaveRequestCreateDto} from "@/modules/person/leave/dto/leave-request.dto";
+import {LEAVE_CLIENT_MESSAGES} from "@/modules/person/leave/exceptions/leave-request.messages";
+import {emptyLeaveRequestForm, leaverequestToFormDto} from "@/modules/person/leave/lib/leave-request.mapper";
+import {leaverequestKeys} from "@/modules/person/leave/leave.query";
+import {leaveAbsenceFormSchema} from "@/modules/person/leave/schemas/leave-absence.schema";
+import {leaverequestService} from "@/modules/person/leave/services/leave-request.service";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {EntityCodeField} from "@/shared/components/crud/EntityCodeField";
+import {Button} from "@/shared/components/ui/Button";
+import {InputDate, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {mapZodFieldErrors} from "@/shared/lib/zod-field-errors";
 
 const ABSENCE_TYPE_ITEMS: SelectItem[] = [
-    { value: "MEDICAL", label: "Afastamento médico" },
-    { value: "MATERNITY", label: "Maternidade" },
-    { value: "PATERNITY", label: "Paternidade" },
-    { value: "UNPAID", label: "Não remunerado" },
-    { value: "OTHER", label: "Outro" },
+    {value: "MEDICAL", label: "Afastamento médico"},
+    {value: "MATERNITY", label: "Maternidade"},
+    {value: "PATERNITY", label: "Paternidade"},
+    {value: "UNPAID", label: "Não remunerado"},
+    {value: "OTHER", label: "Outro"},
 ];
 
 const APPROVAL_ITEMS: SelectItem[] = [
-    { value: "true", label: "Aprovado" },
-    { value: "false", label: "Pendente" },
+    {value: "true", label: "Aprovado"},
+    {value: "false", label: "Pendente"},
 ];
 
 type LeaveFormField = keyof LeaveRequestCreateDto | "notes";
 
 export function LeaveAbsenceFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<LeaveRequestCreateDto & { notes?: string }>(emptyLeaveRequestForm);
     const [error, setError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export function LeaveAbsenceFormClient() {
 
     useEffect(() => {
         if (!isEditing) {
-            setForm({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL" });
+            setForm({...emptyLeaveRequestForm(), leaveType: "MEDICAL"});
             setError(null);
             setFieldErrors({});
             return;
@@ -67,23 +67,23 @@ export function LeaveAbsenceFormClient() {
             return leaverequestService.create(dto);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: leaverequestKeys.all });
-            if (editingId) await queryClient.invalidateQueries({ queryKey: leaverequestKeys.detail(editingId) });
+            await queryClient.invalidateQueries({queryKey: leaverequestKeys.all});
+            if (editingId) await queryClient.invalidateQueries({queryKey: leaverequestKeys.detail(editingId)});
             toast.success(isEditing ? "Afastamento salvo" : "Afastamento cadastrado");
-            setForm({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL" });
+            setForm({...emptyLeaveRequestForm(), leaveType: "MEDICAL"});
             goToList();
         },
         onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED });
+            const ex = ExceptionCapture.handle(err, {fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED});
             setError(ex.displayMessage);
         },
     });
 
     const update = <K extends LeaveFormField>(field: K, value: (LeaveRequestCreateDto & { notes?: string })[K]) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
+        setForm((prev) => ({...prev, [field]: value}));
         setFieldErrors((prev) => {
             if (!prev[field]) return prev;
-            const next = { ...prev };
+            const next = {...prev};
             delete next[field];
             return next;
         });
@@ -105,8 +105,8 @@ export function LeaveAbsenceFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                {Array.from({length: 4}).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
                 ))}
             </div>
         );
@@ -132,7 +132,7 @@ export function LeaveAbsenceFormClient() {
             }
         >
             <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
+                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined}/>
                 <div className="sm:col-span-2">
                     <CollaboratorPickerField
                         value={form.collaboratorId ?? ""}

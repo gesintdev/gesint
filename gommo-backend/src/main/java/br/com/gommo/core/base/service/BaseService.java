@@ -5,15 +5,16 @@ import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.AuditEntity;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.exception.BusinessException;
-import java.util.List;
-import java.util.UUID;
-import java.util.function.Function;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Function;
 
 public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto>
         implements IBaseService<RequestDto, ResponseDto> {

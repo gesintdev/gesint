@@ -10,7 +10,6 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
     permissions: "role",
     "collaborator-admission": "admission",
     "collaborator-people": "collaborator",
-    "collaborator-history": "admission",
     performance: "performance",
     offboarding: "offboarding",
     "exit-interview": "exitinterview",

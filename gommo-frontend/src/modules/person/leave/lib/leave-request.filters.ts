@@ -1,4 +1,4 @@
-import type { LeaveRequest } from "@/modules/person/leave/dto/leave-request.dto";
+import type {LeaveRequest} from "@/modules/person/leave/dto/leave-request.dto";
 
 export function isApprovedLeave(row: LeaveRequest): boolean {
     return row.approved === true;

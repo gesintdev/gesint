@@ -1,8 +1,7 @@
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { customWorkspaceRoute, lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
+import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
 import {
     CalendarDays,
-    ClipboardList,
     MessageSquare,
     Target,
     UserMinus,
@@ -10,7 +9,6 @@ import {
     UserRound,
     Users,
 } from "lucide-react";
-import { createElement } from "react";
 
 export const personRoutes: AppRoute[] = [
     routeGroup({
@@ -64,36 +62,6 @@ export const personRoutes: AppRoute[] = [
                     () => import("@/modules/person/collaborators/people/components/CollaboratorPeoplePrimaryAction"),
                     "CollaboratorPeoplePrimaryAction",
                 ),
-            }),
-            customWorkspaceRoute({
-                id: "collaborator-history",
-                href: "/collaborator/history",
-                label: "Histórico",
-                icon: ClipboardList,
-                permission: "admission:read",
-                load: async () => {
-                    const [{ WorkspacePage }, { AdmissionHistoryListClient }] = await Promise.all([
-                        import("@/shared/components/layout/WorkspacePage"),
-                        import("@/modules/person/collaborators/admission/components/AdmissionHistoryListClient"),
-                    ]);
-                    return {
-                        default: function CollaboratorHistoryPage() {
-                            return createElement(
-                                WorkspacePage,
-                                null,
-                                createElement(
-                                    "div",
-                                    {
-                                        className:
-                                            "border-b px-4 py-2.5 text-[13px] text-base-content/50",
-                                    },
-                                    "Admissões concluídas — cada uma gera um colaborador no sistema.",
-                                ),
-                                createElement(AdmissionHistoryListClient),
-                            );
-                        },
-                    };
-                },
             }),
         ],
     }),

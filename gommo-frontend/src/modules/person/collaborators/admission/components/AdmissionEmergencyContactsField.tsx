@@ -1,12 +1,16 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
-import { useMemo } from "react";
-import type { AdmissionEmergencyContact } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
-import { EMERGENCY_CONTACT_RELATIONSHIP_ITEMS } from "@/modules/person/collaborators/admission/lib/admission-form.constants";
-import { createEmptyEmergencyContact } from "@/modules/person/collaborators/admission/lib/admission-emergency-contacts.util";
-import { Button } from "@/shared/components/ui/Button";
-import { InputPhone, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import {Plus, Trash2} from "lucide-react";
+import {useMemo} from "react";
+import type {AdmissionEmergencyContact} from "@/modules/person/collaborators/admission/dto/admission-process.dto";
+import {
+    EMERGENCY_CONTACT_RELATIONSHIP_ITEMS
+} from "@/modules/person/collaborators/admission/lib/admission-form.constants";
+import {
+    createEmptyEmergencyContact
+} from "@/modules/person/collaborators/admission/lib/admission-emergency-contacts.util";
+import {Button} from "@/shared/components/ui/Button";
+import {InputPhone, InputSelect, InputString} from "@/shared/components/ui/input/index";
 
 type AdmissionEmergencyContactsFieldProps = {
     contacts: AdmissionEmergencyContact[];
@@ -14,22 +18,22 @@ type AdmissionEmergencyContactsFieldProps = {
 };
 
 export function AdmissionEmergencyContactsField({
-    contacts,
-    onChange,
-}: AdmissionEmergencyContactsFieldProps) {
+                                                    contacts,
+                                                    onChange,
+                                                }: AdmissionEmergencyContactsFieldProps) {
     const relationshipItems = useMemo(() => {
         const extras = contacts
             .map((contact) => contact.relationship?.trim())
             .filter((value): value is string => Boolean(value))
             .filter((value) => !EMERGENCY_CONTACT_RELATIONSHIP_ITEMS.some((item) => item.value === value))
-            .map((value) => ({ value, label: value }));
+            .map((value) => ({value, label: value}));
         return [...EMERGENCY_CONTACT_RELATIONSHIP_ITEMS, ...extras];
     }, [contacts]);
 
     const updateContact = (index: number, field: keyof AdmissionEmergencyContact, value: string) => {
         onChange(
             contacts.map((contact, contactIndex) =>
-                contactIndex === index ? { ...contact, [field]: value } : contact,
+                contactIndex === index ? {...contact, [field]: value} : contact,
             ),
         );
     };
@@ -87,7 +91,7 @@ export function AdmissionEmergencyContactsField({
                                     size="sm"
                                     aria-label="Adicionar contato de emergência"
                                     className="w-full lg:w-10 lg:px-0"
-                                    leftIcon={<Plus className="size-4" />}
+                                    leftIcon={<Plus className="size-4"/>}
                                     onClick={addContact}
                                 />
                             ) : (
@@ -97,7 +101,7 @@ export function AdmissionEmergencyContactsField({
                                     size="sm"
                                     aria-label={`Remover contato ${index + 1}`}
                                     className="w-full lg:w-10 lg:px-0"
-                                    leftIcon={<Trash2 className="size-4" />}
+                                    leftIcon={<Trash2 className="size-4"/>}
                                     onClick={() => removeContact(index)}
                                 />
                             )}

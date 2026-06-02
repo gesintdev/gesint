@@ -1,22 +1,22 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
-import { toast } from "sonner";
-import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import type { LeaveRequestCreateDto } from "@/modules/person/leave/dto/leave-request.dto";
-import { LEAVE_CLIENT_MESSAGES } from "@/modules/person/leave/exceptions/leave-request.messages";
-import { emptyLeaveRequestForm } from "@/modules/person/leave/lib/leave-request.mapper";
-import { leaverequestKeys } from "@/modules/person/leave/leave.query";
-import { leaverequestService } from "@/modules/person/leave/services/leave-request.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { Button } from "@/shared/components/ui/Button";
-import { InputDate } from "@/shared/components/ui/input/index";
-import { ExceptionCapture } from "@/shared/exceptions";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {useState, type FormEvent} from "react";
+import {toast} from "sonner";
+import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
+import type {LeaveRequestCreateDto} from "@/modules/person/leave/dto/leave-request.dto";
+import {LEAVE_CLIENT_MESSAGES} from "@/modules/person/leave/exceptions/leave-request.messages";
+import {emptyLeaveRequestForm} from "@/modules/person/leave/lib/leave-request.mapper";
+import {leaverequestKeys} from "@/modules/person/leave/leave.query";
+import {leaverequestService} from "@/modules/person/leave/services/leave-request.service";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {Button} from "@/shared/components/ui/Button";
+import {InputDate} from "@/shared/components/ui/input/index";
+import {ExceptionCapture} from "@/shared/exceptions";
 
 export function LeaveVacationRequestFormClient() {
-    const { goToList, isEditing } = useCrudScreen();
+    const {goToList, isEditing} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<LeaveRequestCreateDto>({
         ...emptyLeaveRequestForm(),
@@ -28,13 +28,13 @@ export function LeaveVacationRequestFormClient() {
     const saveMutation = useMutation({
         mutationFn: (dto: LeaveRequestCreateDto) => leaverequestService.create(dto),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: leaverequestKeys.all });
+            await queryClient.invalidateQueries({queryKey: leaverequestKeys.all});
             toast.success("Solicitação de férias enviada");
-            setForm({ ...emptyLeaveRequestForm(), leaveType: "VACATION", approved: false });
+            setForm({...emptyLeaveRequestForm(), leaveType: "VACATION", approved: false});
             goToList();
         },
         onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED });
+            const ex = ExceptionCapture.handle(err, {fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED});
             setError(ex.displayMessage);
         },
     });
@@ -79,20 +79,20 @@ export function LeaveVacationRequestFormClient() {
                 <div className="sm:col-span-2">
                     <CollaboratorPickerField
                         value={form.collaboratorId ?? ""}
-                        onValueChange={(v) => setForm((prev) => ({ ...prev, collaboratorId: v }))}
+                        onValueChange={(v) => setForm((prev) => ({...prev, collaboratorId: v}))}
                         required
                     />
                 </div>
                 <InputDate
                     label="Data de início"
                     value={form.startDate ?? ""}
-                    onValueChange={(v) => setForm((prev) => ({ ...prev, startDate: v }))}
+                    onValueChange={(v) => setForm((prev) => ({...prev, startDate: v}))}
                     required
                 />
                 <InputDate
                     label="Data de fim"
                     value={form.endDate ?? ""}
-                    onValueChange={(v) => setForm((prev) => ({ ...prev, endDate: v }))}
+                    onValueChange={(v) => setForm((prev) => ({...prev, endDate: v}))}
                     required
                 />
                 {error ? <p className="text-sm font-medium text-error sm:col-span-2">{error}</p> : null}

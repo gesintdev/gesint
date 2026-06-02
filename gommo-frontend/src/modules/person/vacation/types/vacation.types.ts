@@ -21,6 +21,8 @@ export type VacationPeriodContext = {
     status: VacationPeriodStatus;
     entitledDays: number;
     unjustifiedAbsences: number;
+    /** Período aquisitivo em foco (0 = primeiro ano de trabalho). */
+    periodIndex?: number;
 };
 
 export type VacationSplitPeriod = {

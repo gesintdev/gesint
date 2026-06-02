@@ -5,7 +5,8 @@ import org.springframework.http.HttpStatus;
 
 public final class CollaboratorException {
 
-    private CollaboratorException() {}
+    private CollaboratorException() {
+    }
 
     public static BusinessException notFound() {
         return new BusinessException(

@@ -10,8 +10,8 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import { usePathname } from "next/navigation";
-import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
+import {usePathname} from "next/navigation";
+import type {AppRoute, NavSection} from "@/modules/root/enum/ModuleEnum";
 import {
     SystemEnum,
     SystemEnumHelper,
@@ -46,7 +46,7 @@ function resolveSystemFromPath(pathname: string): SystemEnum {
     );
 }
 
-export function ActiveSystemProvider({ children }: { children: ReactNode }) {
+export function ActiveSystemProvider({children}: { children: ReactNode }) {
     const pathname = usePathname();
     const [activeSystem, setActiveSystem] = useState<SystemEnum>(
         () => resolveSystemFromPath(pathname),
@@ -129,6 +129,6 @@ export function useActiveSystem(): ActiveSystemContextValue {
 }
 
 export function useActiveSystemRoutes(): AppRoute[] {
-    const { navSections } = useActiveSystem();
+    const {navSections} = useActiveSystem();
     return useMemo(() => navSections.flatMap((s) => s.routes), [navSections]);
 }

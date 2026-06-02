@@ -1,26 +1,25 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { LEAVE_CLIENT_MESSAGES } from "@/modules/person/leave/exceptions/leave-request.messages";
 import { leaverequestKeys } from "@/modules/person/leave/leave.query";
 import { leaverequestService } from "@/modules/person/leave/services/leave-request.service";
 import { loadCollaboratorVacationContext } from "@/modules/person/vacation/lib/collaborator-vacation-context";
-import { estimateVacationPayment, maxPecuniaryDays, vacationDaysEntitled } from "@/modules/person/vacation/lib/vacation-rules";
+import { maxPecuniaryDays, vacationDaysEntitled } from "@/modules/person/vacation/lib/vacation-rules";
 import {
     emptyVacationForm,
     leaveToVacationForm,
-    summarizeGozoDays,
-    vacationFormToLeaveDtos,
     type VacationFormState,
+    vacationFormToLeaveDtos,
 } from "@/modules/person/vacation/lib/vacation-request.mapper";
 import {
     vacationRequestFormSchema,
     type VacationRequestFormSchema,
 } from "@/modules/person/vacation/schemas/vacation-request.schema";
-import { VacationPaymentSummary } from "@/modules/person/vacation/components/VacationPaymentSummary";
+import { VacationLegalPeriodsRightColumn } from "@/modules/person/vacation/components/VacationLegalPeriodsRightColumn";
 import { VacationPeriodSummary } from "@/modules/person/vacation/components/VacationPeriodSummary";
 import { VacationPjNotice } from "@/modules/person/vacation/components/VacationPjNotice";
 import { VacationSplitPeriodsEditor } from "@/modules/person/vacation/components/VacationSplitPeriodsEditor";
@@ -99,13 +98,6 @@ export function VacationRequestFormClient() {
         };
     }, [form.collaboratorId, form.unjustifiedAbsences]);
 
-    const paymentEstimate = useMemo(() => {
-        const salary = form.baseSalarySnapshot ?? periodContext?.baseSalary ?? 0;
-        const gozo = summarizeGozoDays(form);
-        const firstStart = form.periods[0]?.startDate;
-        return estimateVacationPayment(salary, gozo, form.pecuniaryAllowanceDays, firstStart || undefined);
-    }, [form, periodContext]);
-
     const saveMutation = useMutation({
         mutationFn: async (payload: { parsed: VacationRequestFormSchema; groupId: string }) => {
             const dtoList = vacationFormToLeaveDtos(payload.parsed, payload.groupId);
@@ -166,7 +158,7 @@ export function VacationRequestFormClient() {
     };
 
     const maxPecuniary = maxPecuniaryDays(form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences));
-    const isClt = periodContext?.contractType === "CLT";
+    const isClt = periodContext?.contractType !== "PJ";
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -216,64 +208,54 @@ export function VacationRequestFormClient() {
                 <FormSection
                     title="Colaborador e períodos legais"
                     description="Período aquisitivo (12 meses de trabalho) e concessivo (prazo para a empresa conceder as férias)."
+                    bodyClassName="!grid-cols-1 gap-4"
                 >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="sm:col-span-2">
+                    {periodContext?.contractType === "PJ" ? <VacationPjNotice /> : null}
+
+                    {isClt || !form.collaboratorId ? (
+                        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 sm:items-start">
+                            <div className="min-w-0">
+                                <VacationPeriodSummary
+                                    context={periodContext}
+                                    loading={contextLoading}
+                                    collaboratorId={form.collaboratorId ?? ""}
+                                    onCollaboratorChange={(v) => update("collaboratorId", v)}
+                                    collaboratorError={fieldErrors.collaboratorId}
+                                />
+                            </div>
+                            <div className="min-w-0">
+                                <VacationLegalPeriodsRightColumn
+                                    unjustifiedAbsences={form.unjustifiedAbsences}
+                                    pecuniaryAllowanceDays={form.pecuniaryAllowanceDays}
+                                    maxPecuniary={maxPecuniary}
+                                    onUnjustifiedAbsencesChange={(v) => update("unjustifiedAbsences", v)}
+                                    onPecuniaryChange={(v) => update("pecuniaryAllowanceDays", v)}
+                                    pecuniaryError={fieldErrors.pecuniaryAllowanceDays}
+                                    periods={form.periods}
+                                    onPeriodsChange={(periods) => update("periods", periods)}
+                                    periodsFieldError={fieldErrors.periods}
+                                />
+                            </div>
+                        </div>
+                    ) : (
+                        <>
                             <CollaboratorPickerField
                                 value={form.collaboratorId ?? ""}
                                 onValueChange={(v) => update("collaboratorId", v)}
                                 required
                                 error={fieldErrors.collaboratorId}
                             />
-                        </div>
-                        {periodContext?.contractType === "PJ" ? <VacationPjNotice /> : null}
-                        {isClt ? <VacationPeriodSummary context={periodContext} loading={contextLoading} /> : null}
-                    </div>
+                            <VacationSplitPeriodsEditor
+                                periods={form.periods}
+                                onChange={(periods) => update("periods", periods)}
+                                fieldError={fieldErrors.periods}
+                            />
+                        </>
+                    )}
                 </FormSection>
 
-                <FormSection
-                    title="Saldo e faltas"
-                    description="Faltas injustificadas no período aquisitivo reduzem os dias de férias (tabela CLT)."
-                >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <InputString
-                            label="Faltas injustificadas"
-                            value={String(form.unjustifiedAbsences)}
-                            onValueChange={(v) => update("unjustifiedAbsences", Number.parseInt(v, 10) || 0)}
-                        />
-                        <div>
-                            <p className="text-xs font-medium text-base-content/55">Dias de direito</p>
-                            <p className="mt-1 text-sm font-medium">
-                                {form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences)} dias
-                            </p>
-                        </div>
-                        <InputString
-                            label="Abono pecuniário (dias vendidos)"
-                            value={String(form.pecuniaryAllowanceDays)}
-                            onValueChange={(v) => update("pecuniaryAllowanceDays", Number.parseInt(v, 10) || 0)}
-                            hint={`Máximo ${maxPecuniary} dia(s) (até 1/3)`}
-                            error={fieldErrors.pecuniaryAllowanceDays}
-                        />
-                    </div>
-                </FormSection>
-
-                <FormSection
-                    title="Períodos de gozo"
-                    description="Até 3 períodos: um com mínimo de 14 dias e os demais com no mínimo 5 dias cada."
-                >
-                    <VacationSplitPeriodsEditor
-                        periods={form.periods}
-                        onChange={(periods) => update("periods", periods)}
-                        fieldError={fieldErrors.periods}
-                    />
-                </FormSection>
-
-                <FormSection title="Pagamento estimado" description="Salário das férias + 1/3 constitucional (antes de descontos).">
-                    <VacationPaymentSummary estimate={paymentEstimate} />
-                </FormSection>
-
-                <FormSection title="Registro">
-                    <div className="grid gap-3 sm:grid-cols-2">
+                <FormSection title="Registro" bodyClassName="!grid-cols-1">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                         <InputSelect
                             label="Situação"
                             items={APPROVAL_ITEMS}
@@ -281,14 +263,14 @@ export function VacationRequestFormClient() {
                             onValueChange={(v) => update("approved", v === "true")}
                             placeholder="Selecione"
                             clearable
+                            wrapperClassName="w-full sm:w-[11rem] sm:shrink-0"
                         />
-                        <div className="sm:col-span-2">
-                            <InputString
-                                label="Observações"
-                                value={form.notes ?? ""}
-                                onValueChange={(v) => update("notes", v)}
-                            />
-                        </div>
+                        <InputString
+                            label="Observações"
+                            value={form.notes ?? ""}
+                            onValueChange={(v) => update("notes", v)}
+                            wrapperClassName="min-w-0 flex-1"
+                        />
                     </div>
                 </FormSection>
 

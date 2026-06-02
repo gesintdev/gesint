@@ -13,20 +13,20 @@
  */
 
 // Re-exporta tipos centrais (mantem compatibilidade com imports existentes)
-export type { AppRoute, NavSection, TModule, TModuleInfos } from "@/modules/root/enum/ModuleEnum";
-export { ModuleEnum, ModuleEnumHelper } from "@/modules/root/enum/ModuleEnum";
-export type { TSystemModuleGroup } from "@/modules/root/enum/SystemEnum";
-export { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
+export type {AppRoute, NavSection, TModule, TModuleInfos} from "@/modules/root/enum/ModuleEnum";
+export {ModuleEnum, ModuleEnumHelper} from "@/modules/root/enum/ModuleEnum";
+export type {TSystemModuleGroup} from "@/modules/root/enum/SystemEnum";
+export {SystemEnum, SystemEnumHelper} from "@/modules/root/enum/SystemEnum";
 
-import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
-import { ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
-import { SystemEnum, type TSystemModuleGroup } from "@/modules/root/enum/SystemEnum";
-import { dashboardModule } from "@/modules/dashboard/dashboard.module";
-import { organizationModule } from "@/modules/organization/organization.module";
-import { personModule } from "@/modules/person/person.module";
-import { payrollModule } from "@/modules/payroll/payroll.module";
-import { insightsModule } from "@/modules/insights/insights.module";
-import { settingsModule } from "@/modules/settings/settings.module";
+import type {AppRoute, NavSection} from "@/modules/root/enum/ModuleEnum";
+import {ModuleEnumHelper, type TModule} from "@/modules/root/enum/ModuleEnum";
+import {SystemEnum, type TSystemModuleGroup} from "@/modules/root/enum/SystemEnum";
+import {dashboardModule} from "@/modules/dashboard/dashboard.module";
+import {organizationModule} from "@/modules/organization/organization.module";
+import {personModule} from "@/modules/person/person.module";
+import {payrollModule} from "@/modules/payroll/payroll.module";
+import {insightsModule} from "@/modules/insights/insights.module";
+import {settingsModule} from "@/modules/settings/settings.module";
 
 // -------------------------------------------------------
 // Domínios (rail esquerdo) — ordem alfabética pela sigla
@@ -69,7 +69,7 @@ export const APP_ROUTES = ALL_NAV_SECTIONS.flatMap((s) => s.routes);
 // Utilitarios
 // -------------------------------------------------------
 
-export { getBreadcrumbs, type BreadcrumbItem } from "@/config/breadcrumbs";
+export {getBreadcrumbs, type BreadcrumbItem} from "@/config/breadcrumbs";
 
 export function flattenRoutes(
     routes: AppRoute[],
@@ -80,7 +80,7 @@ export function flattenRoutes(
         const searchLabel = parentLabel
             ? `${parentLabel} > ${route.label}`
             : route.label;
-        result.push({ ...route, searchLabel });
+        result.push({...route, searchLabel});
         if (route.children) {
             result.push(...flattenRoutes(route.children, route.label));
         }

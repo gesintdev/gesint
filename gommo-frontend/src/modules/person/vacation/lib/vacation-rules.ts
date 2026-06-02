@@ -56,6 +56,21 @@ export function concessivePeriod(acquisitionEnd: string): { start: string; end: 
     return { start: formatIsoDate(start), end: formatIsoDate(end) };
 }
 
+/** Índice do período aquisitivo vigente (0 = primeiro ano de trabalho). */
+export function resolveActivePeriodIndex(hireDate: string, referenceDate = formatIsoDate(new Date())): number {
+    const ref = parseIsoDate(referenceDate);
+    let index = 0;
+    while (index < 40) {
+        const acquisition = acquisitionPeriod(hireDate, index);
+        const concessive = concessivePeriod(acquisition.end);
+        if (ref <= parseIsoDate(concessive.end)) {
+            return index;
+        }
+        index += 1;
+    }
+    return Math.max(0, index - 1);
+}
+
 export function resolvePeriodStatus(
     acquisition: { start: string; end: string },
     concessive: { start: string; end: string },

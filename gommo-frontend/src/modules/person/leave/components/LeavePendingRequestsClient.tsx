@@ -1,16 +1,16 @@
 "use client";
 
-import { LEAVE_PENDING_TABLE_COLUMNS } from "@/modules/person/leave/config/leave-pending.table-columns";
-import type { LeaveRequest } from "@/modules/person/leave/dto/leave-request.dto";
-import { isPendingVacationRequest } from "@/modules/person/leave/lib/leave-request.filters";
-import { leaverequestKeys } from "@/modules/person/leave/leave.query";
-import { leaverequestService } from "@/modules/person/leave/services/leave-request.service";
-import { CRUD_TAB_FORM, useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { Button } from "@/shared/components/ui/Button";
+import {LEAVE_PENDING_TABLE_COLUMNS} from "@/modules/person/leave/config/leave-pending.table-columns";
+import type {LeaveRequest} from "@/modules/person/leave/dto/leave-request.dto";
+import {isPendingVacationRequest} from "@/modules/person/leave/lib/leave-request.filters";
+import {leaverequestKeys} from "@/modules/person/leave/leave.query";
+import {leaverequestService} from "@/modules/person/leave/services/leave-request.service";
+import {CRUD_TAB_FORM, useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {QueryTablePanel} from "@/shared/components/data/DataPanel";
+import {Button} from "@/shared/components/ui/Button";
 
 export function LeavePendingRequestsClient() {
-    const { startEdit, goToTab } = useCrudScreen();
+    const {startEdit, goToTab} = useCrudScreen();
 
     const handleRegister = (row: LeaveRequest) => {
         startEdit(row.id, row);

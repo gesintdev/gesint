@@ -13,9 +13,6 @@ import br.com.gommo.modules.person.collaborators.admission.repository.AdmissionP
 import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.person.collaborators.people.service.CollaboratorProfileService;
 import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +20,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AdmissionProcessService
@@ -149,9 +150,9 @@ public class AdmissionProcessService
         UUID linkedCollaboratorId = excludeAdmissionId == null
                 ? null
                 : repository
-                        .findByIdAndStatusNot(excludeAdmissionId, StatusEnum.DELETED)
-                        .map(AdmissionProcess::getCollaboratorId)
-                        .orElse(null);
+                .findByIdAndStatusNot(excludeAdmissionId, StatusEnum.DELETED)
+                .map(AdmissionProcess::getCollaboratorId)
+                .orElse(null);
 
         collaboratorRepository.findByCpfAndStatusNot(cpf, StatusEnum.DELETED).ifPresent(c -> {
             if (linkedCollaboratorId != null && linkedCollaboratorId.equals(c.getId())) {

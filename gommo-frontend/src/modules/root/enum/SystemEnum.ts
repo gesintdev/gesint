@@ -1,6 +1,6 @@
-import type { LucideIcon } from "lucide-react";
-import { Users, Wallet } from "lucide-react";
-import type { AppRoute, TModule } from "@/modules/root/enum/ModuleEnum";
+import type {LucideIcon} from "lucide-react";
+import {Users, Wallet} from "lucide-react";
+import type {AppRoute, TModule} from "@/modules/root/enum/ModuleEnum";
 
 export enum SystemEnum {
     DP = "dp",

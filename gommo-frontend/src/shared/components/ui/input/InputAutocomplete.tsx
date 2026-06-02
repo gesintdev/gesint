@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import {Loader2, Search, X} from "lucide-react";
-import {useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode} from "react";
+import {type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState} from "react";
 import type {InputFieldChromeProps} from "@/shared/components/ui/input/input-field.types";
 import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
 import {InputSelectPanel} from "@/shared/components/ui/input/InputSelectPanel";
@@ -22,6 +22,8 @@ export type InputAutocompleteProps = InputFieldChromeProps & {
     minChars?: number;
     clearable?: boolean;
     className?: string;
+    /** Desliga sugestões do navegador (busca via API). */
+    autoComplete?: string;
     /** Ação integrada à direita do campo (ex.: botão de busca detalhada) */
     trailingAction?: ReactNode;
 };
@@ -42,6 +44,7 @@ export function InputAutocomplete({
                                       id: idProp,
                                       wrapperClassName,
                                       className,
+                                      autoComplete = "off",
                                       trailingAction,
                                   }: InputAutocompleteProps) {
     const autoId = useId();
@@ -187,6 +190,13 @@ export function InputAutocomplete({
                         aria-expanded={open}
                         aria-controls={listId}
                         aria-autocomplete="list"
+                        autoComplete={autoComplete}
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        data-1p-ignore
+                        data-lpignore="true"
+                        data-form-type="other"
                         disabled={disabled}
                         placeholder={placeholder}
                         value={displayText}

@@ -937,6 +937,7 @@ aside[data-collapsed="true"] .sidebar-copy,
 /* Itens de listbox (select / autocomplete) — mesmo hover do menu do usuário */
 .gommo-listbox-option {
     display: flex;
+    border-radius: var(--gommo-tab-radius);
     width: 100%;
     cursor: pointer;
     align-items: flex-start;

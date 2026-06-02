@@ -1,30 +1,30 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { CONTRACT_CLIENT_MESSAGES } from "@/modules/person/contract/exceptions/employment-contract.messages";
-import { CONTRACT_TABLE_COLUMNS } from "@/modules/person/contract/config/employment-contract.table-columns";
-import type { EmploymentContract } from "@/modules/person/contract/dto/employment-contract.dto";
-import { employmentcontractKeys } from "@/modules/person/contract/contract.query";
-import { employmentcontractService } from "@/modules/person/contract/services/employment-contract.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { SystemAlert } from "@/shared/system-alert";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {toast} from "sonner";
+import {CONTRACT_CLIENT_MESSAGES} from "@/modules/person/contract/exceptions/employment-contract.messages";
+import {CONTRACT_TABLE_COLUMNS} from "@/modules/person/contract/config/employment-contract.table-columns";
+import type {EmploymentContract} from "@/modules/person/contract/dto/employment-contract.dto";
+import {employmentcontractKeys} from "@/modules/person/contract/contract.query";
+import {employmentcontractService} from "@/modules/person/contract/services/employment-contract.service";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {CrudTableActions} from "@/shared/components/crud/CrudTableActions";
+import {QueryTablePanel} from "@/shared/components/data/DataPanel";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {SystemAlert} from "@/shared/system-alert";
 
 export function EmploymentContractListClient() {
-    const { startEdit } = useCrudScreen();
+    const {startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => employmentcontractService.remove(id),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: employmentcontractKeys.all });
+            await queryClient.invalidateQueries({queryKey: employmentcontractKeys.all});
             toast.success("Contrato excluído(a)");
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: CONTRACT_CLIENT_MESSAGES.CONTRACT_LOAD_FAILED }),
+            ExceptionCapture.handle(err, {fallbackMessage: CONTRACT_CLIENT_MESSAGES.CONTRACT_LOAD_FAILED}),
     });
 
     const handleDelete = async (row: EmploymentContract) => {

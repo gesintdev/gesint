@@ -2,7 +2,6 @@ import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import {
     Briefcase,
     CalendarDays,
-    ClipboardList,
     MessageSquare,
     UserMinus,
     UserPlus,
@@ -25,7 +24,6 @@ export const collaboratorRoutes: AppRoute[] = [
                 permission: "collaborator:read",
             },
             { id: "collaborator-admission", label: "Admissão", href: "/collaborator/admission", icon: UserPlus, permission: "admission:read" },
-            { id: "collaborator-history", label: "Histórico", href: "/collaborator/history", icon: ClipboardList, permission: "admission:read" },
         ],
     },
     { id: "contract", label: "Contratos", href: "/contract", icon: Briefcase },

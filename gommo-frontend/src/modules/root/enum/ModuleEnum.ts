@@ -1,5 +1,5 @@
-import type { LucideIcon } from "lucide-react";
-import type { WorkspacePageLoader } from "@/shared/workspace/workspace-page.types";
+import type {LucideIcon} from "lucide-react";
+import type {WorkspacePageLoader} from "@/shared/workspace/workspace-page.types";
 
 // ─────────────────────────────────────────────
 // Core navigation types (source-of-truth here,
@@ -50,13 +50,13 @@ export type TModule = {
 // ─────────────────────────────────────────────
 
 export enum ModuleEnum {
-    ROOT         = "root",
-    DASHBOARD    = "dashboard",
+    ROOT = "root",
+    DASHBOARD = "dashboard",
     ORGANIZATION = "organization",
     PERSON = "person",
-    PAYROLL      = "payroll",
-    INSIGHTS     = "insights",
-    SETTINGS     = "settings",
+    PAYROLL = "payroll",
+    INSIGHTS = "insights",
+    SETTINGS = "settings",
 }
 
 // ─────────────────────────────────────────────

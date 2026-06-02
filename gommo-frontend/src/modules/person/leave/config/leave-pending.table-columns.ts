@@ -1,5 +1,5 @@
-import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
-import { ENTITY_CODE_TABLE_COLUMN } from "@/shared/config/entity-code.table-column";
+import {TableDataType, type TableColumnConfig} from "@/shared/types/table.types";
+import {ENTITY_CODE_TABLE_COLUMN} from "@/shared/config/entity-code.table-column";
 
 /** Solicitações de férias pendentes (DP). */
 export const LEAVE_PENDING_TABLE_COLUMNS: TableColumnConfig[] = [
