@@ -35,3 +35,7 @@ Thumbs.db
 
 # --- Ferramentas locais com senha (não commitar) ---
 **/HashGen.java
+
+# --- Storage local de uploads (dev) ---
+data/
+**/data/
