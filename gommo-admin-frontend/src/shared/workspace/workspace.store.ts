@@ -5,6 +5,12 @@ import {createJSONStorage, persist} from "zustand/middleware";
 import type {OpenWorkspaceRecordInput, OpenWorkspaceTabInput, WorkspaceTab} from "@/shared/workspace/workspace.types";
 import {buildWorkspaceTabId, parseWorkspaceTabId} from "@/shared/workspace/workspace-tab-id";
 import {defaultShortLabel} from "@/shared/workspace/workspace-routes";
+import {
+    DASHBOARD_ROUTE_ID,
+    DASHBOARD_TAB_ID,
+    isDashboardTabId,
+    stripDashboardTabs,
+} from "@/shared/workspace/workspace-dashboard";
 
 type WorkspaceState = {
     tabs: WorkspaceTab[];
@@ -20,8 +26,7 @@ type WorkspaceState = {
     clearTitleSuffix: (tabId: string) => void;
 };
 
-const DASHBOARD_ROUTE_ID = "dashboard";
-const DASHBOARD_TAB_ID = buildWorkspaceTabId(DASHBOARD_ROUTE_ID, "list");
+export {DASHBOARD_TAB_ID};
 
 function createDashboardTab(): WorkspaceTab {
     return {
@@ -34,8 +39,8 @@ function createDashboardTab(): WorkspaceTab {
     };
 }
 
-function isDashboardTab(tabId: string): boolean {
-    return tabId === DASHBOARD_TAB_ID;
+export function getDashboardTab(): WorkspaceTab {
+    return createDashboardTab();
 }
 
 function buildTab(input: OpenWorkspaceRecordInput, existing?: WorkspaceTab): WorkspaceTab {
@@ -60,12 +65,10 @@ function upsertTab(tabs: WorkspaceTab[], tab: WorkspaceTab): WorkspaceTab[] {
     return next;
 }
 
-function ensureDashboardFirst(tabs: WorkspaceTab[]): WorkspaceTab[] {
-    const hasDashboard = tabs.some((tab) => isDashboardTab(tab.id));
-    const withDashboard = hasDashboard ? tabs : [createDashboardTab(), ...tabs];
-    const dashboard = withDashboard.find((tab) => isDashboardTab(tab.id));
-    const others = withDashboard.filter((tab) => !isDashboardTab(tab.id));
-    return dashboard ? [dashboard, ...others] : withDashboard;
+function resolveActiveTabId(activeRaw: string | null, moduleTabs: WorkspaceTab[]): string {
+    if (isDashboardTabId(activeRaw)) return DASHBOARD_TAB_ID;
+    if (activeRaw && moduleTabs.some((tab) => tab.id === activeRaw)) return activeRaw;
+    return DASHBOARD_TAB_ID;
 }
 
 /** Garante id estável routeId::entityKey após reidratação. */
@@ -92,20 +95,19 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     set({_hasHydrated: false});
                     return;
                 }
-                const tabs = normalizeTabs(get().tabs);
-                const orderedTabs = ensureDashboardFirst(tabs);
-                const activeRaw = get().activeTabId;
-                const activeId =
-                    activeRaw && orderedTabs.some((t) => t.id === activeRaw)
-                        ? activeRaw
-                        : DASHBOARD_TAB_ID;
-                set({_hasHydrated: true, tabs: orderedTabs, activeTabId: activeId});
+                const tabs = stripDashboardTabs(normalizeTabs(get().tabs));
+                const activeId = resolveActiveTabId(get().activeTabId, tabs);
+                set({_hasHydrated: true, tabs, activeTabId: activeId});
             },
 
             openModuleTab: (input) => {
+                if (input.routeId === DASHBOARD_ROUTE_ID) {
+                    set({activeTabId: DASHBOARD_TAB_ID});
+                    return;
+                }
                 const tab = buildTab({...input, entityKey: "list"});
                 set({
-                    tabs: ensureDashboardFirst(upsertTab(get().tabs, tab)),
+                    tabs: upsertTab(get().tabs, tab),
                     activeTabId: tab.id,
                 });
             },
@@ -113,21 +115,25 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             openRecordTab: (input) => {
                 const tab = buildTab(input);
                 set({
-                    tabs: ensureDashboardFirst(upsertTab(get().tabs, tab)),
+                    tabs: upsertTab(get().tabs, tab),
                     activeTabId: tab.id,
                 });
             },
 
             focusTab: (tabId) => {
+                if (isDashboardTabId(tabId)) {
+                    set({activeTabId: DASHBOARD_TAB_ID});
+                    return;
+                }
                 if (get().tabs.some((t) => t.id === tabId)) {
                     set({activeTabId: tabId});
                 }
             },
 
             closeTab: (tabId) => {
-                if (isDashboardTab(tabId)) return;
+                if (isDashboardTabId(tabId)) return;
                 const {tabs, activeTabId} = get();
-                const nextTabs = ensureDashboardFirst(tabs.filter((t) => t.id !== tabId));
+                const nextTabs = tabs.filter((t) => t.id !== tabId);
                 let nextActive = activeTabId;
                 if (activeTabId === tabId) {
                     const closedIndex = tabs.findIndex((t) => t.id === tabId);
@@ -137,7 +143,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                 set({tabs: nextTabs, activeTabId: nextActive});
             },
 
-            closeAllTabs: () => set({tabs: [createDashboardTab()], activeTabId: DASHBOARD_TAB_ID}),
+            closeAllTabs: () => set({tabs: [], activeTabId: DASHBOARD_TAB_ID}),
 
             setTitleSuffix: (tabId, titleSuffix) => {
                 const tabs = get().tabs;
@@ -161,7 +167,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             name: "gommo-workspace-tabs",
             storage: createJSONStorage(() => sessionStorage),
             partialize: (state) => ({
-                tabs: state.tabs.map(({icon, ...rest}) => {
+                tabs: stripDashboardTabs(state.tabs).map(({icon, ...rest}) => {
                     void icon;
                     return rest;
                 }),

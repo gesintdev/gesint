@@ -1923,10 +1923,45 @@ html.gommo-workspace-active body {
     color: var(--color-base-content);
 }
 
+.workspace-tabbar-home {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.workspace-tabbar-tabs {
+    min-width: 0;
+}
+
+.workspace-tabbar-divider {
+    align-self: stretch;
+    width: 1px;
+    margin-block: 0.5rem;
+    flex-shrink: 0;
+    background: var(--gommo-border-subtle);
+}
+
+[data-theme="dark"] .workspace-tabbar-divider {
+    background: color-mix(in srgb, var(--color-base-content) 8%, transparent);
+}
 
 .workspace-tabbar-scroll {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--color-base-content) 18%, transparent) transparent;
+}
+
+.workspace-tabbar-scroll-inner {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: min-content;
+    padding-inline-end: 0.25rem;
+}
+
+.workspace-tabbar-sep {
+    flex-shrink: 0;
+    user-select: none;
 }
 
 .workspace-tabbar-scroll::-webkit-scrollbar {

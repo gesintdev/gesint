@@ -20,12 +20,12 @@ import {
 import {
     getNavSectionsForSystem,
     SETTINGS_NAV_SECTIONS,
-    systemModuleGroups,
 } from "@/config/routes";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import { useSessionPermissions } from "@/shared/auth/permissions";
 
 type ActiveSystemContextValue = {
+    /** Domínio selecionado no rail — menu lateral e conteúdo do dashboard. */
     activeSystem: SystemEnum;
     systems: TSystemInfos[];
     navSections: NavSection[];
@@ -41,11 +41,8 @@ function isSettingsPath(pathname: string): boolean {
     return pathname.startsWith("/settings");
 }
 
-function resolveSystemFromPath(pathname: string): SystemEnum {
-    return (
-        SystemEnumHelper.findSystemForHref(pathname, systemModuleGroups)
-        ?? SystemEnumHelper.getDefaultSystem()
-    );
+function resolveInitialSystem(): SystemEnum {
+    return SystemEnumHelper.readStoredSystem() ?? SystemEnumHelper.getDefaultSystem();
 }
 
 function filterRoutesByPermissions(routes: AppRoute[], permissions: readonly string[]): AppRoute[] {
@@ -79,18 +76,9 @@ function filterSectionsByPermissions(
 export function ActiveSystemProvider({children}: { children: ReactNode }) {
     const pathname = usePathname();
     const permissions = useSessionPermissions();
-    const [activeSystem, setActiveSystem] = useState<SystemEnum>(
-        () => resolveSystemFromPath(pathname),
-    );
+    const [activeSystem, setActiveSystem] = useState<SystemEnum>(resolveInitialSystem);
     const [isSettingsMode, setIsSettingsMode] = useState(() => isSettingsPath(pathname));
     const prevPathnameRef = useRef(pathname);
-
-    useEffect(() => {
-        const stored = SystemEnumHelper.readStoredSystem();
-        if (stored && !isSettingsPath(pathname)) {
-            setActiveSystem(stored);
-        }
-    }, [pathname]);
 
     const systems = useMemo(() => {
         return SystemEnumHelper.getSortedSystems()
@@ -142,11 +130,6 @@ export function ActiveSystemProvider({children}: { children: ReactNode }) {
         }
 
         setIsSettingsMode(false);
-        const fromPath = SystemEnumHelper.findSystemForHref(pathname, systemModuleGroups);
-        if (!fromPath) return;
-
-        setActiveSystem(fromPath);
-        SystemEnumHelper.persistSystem(fromPath);
     }, [pathname]);
 
     const value = useMemo(

@@ -5,17 +5,13 @@ import { FlaskConical, LayoutDashboard } from "lucide-react";
 import { createElement } from "react";
 
 export const dashboardRoutes: AppRoute[] = [
-    customWorkspaceRoute({
+    {
         id: "dashboard",
         href: "/dashboard",
         label: "Painel",
         icon: LayoutDashboard,
         ...ROUTE_PUBLIC_FULL,
-        load: () =>
-            import("@/shared/workspace/views/DashboardView").then((loaded) => ({
-                default: loaded.DashboardView,
-            })),
-    }),
+    },
     customWorkspaceRoute({
         id: "dev-inputs",
         href: "/dev/inputs",

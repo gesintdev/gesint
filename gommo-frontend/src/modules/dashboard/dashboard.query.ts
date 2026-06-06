@@ -1,3 +1,3 @@
 export const dashboardKeys = {
-    summary: ["dashboard", "summary"] as const,
+    summary: (system: string) => ["dashboard", "summary", system] as const,
 };

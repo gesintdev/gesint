@@ -8,13 +8,13 @@ import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
 import {WorkspaceTabSystemBadge} from "@/shared/components/workspace/WorkspaceTabSystemBadge";
 
 type WorkspaceTabOverflowMenuProps = {
-    tabs: WorkspaceTab[];
+    moduleTabs: WorkspaceTab[];
     activeTabId: string | null;
     onSelect: (tabId: string) => void;
 };
 
 export function WorkspaceTabOverflowMenu({
-    tabs,
+    moduleTabs,
     activeTabId,
     onSelect,
 }: WorkspaceTabOverflowMenuProps) {
@@ -38,12 +38,12 @@ export function WorkspaceTabOverflowMenu({
                 type="button"
                 aria-expanded={open}
                 aria-haspopup="menu"
-                aria-label={`Listar abas abertas (${tabs.length})`}
+                aria-label={`Listar abas abertas (${moduleTabs.length})`}
                 onClick={() => setOpen((v) => !v)}
                 className="workspace-tabbar-menu-trigger flex cursor-pointer items-center gap-1.5 px-2.5"
             >
                 <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")}/>
-                <span className="tabular-nums text-[12px] font-semibold">{tabs.length}</span>
+                <span className="tabular-nums text-[12px] font-semibold">{moduleTabs.length}</span>
             </button>
 
             {open && (
@@ -52,10 +52,12 @@ export function WorkspaceTabOverflowMenu({
                     className="surface-card absolute end-0 top-full z-50 mt-1 flex max-h-80 min-w-[16rem] flex-col border border-base-content/10 shadow-lg"
                 >
                     <ul className="min-h-0 flex-1 overflow-y-auto py-1">
-                        {tabs.map((tab) => {
+                        {moduleTabs.length === 0 ? (
+                            <li className="px-3 py-2 text-[13px] text-base-content/50">Nenhum módulo aberto</li>
+                        ) : null}
+                        {moduleTabs.map((tab) => {
                             const title = formatWorkspaceTabTitle(tab);
                             const active = tab.id === activeTabId;
-                            const isDashboard = tab.routeId === "dashboard" && tab.entityKey === "list";
                             return (
                                 <li key={tab.id} role="none">
                                     <div
@@ -77,16 +79,14 @@ export function WorkspaceTabOverflowMenu({
                                             <WorkspaceTabSystemBadge href={tab.href} />
                                             <span className="truncate">{title}</span>
                                         </button>
-                                        {!isDashboard ? (
-                                            <button
-                                                type="button"
-                                                aria-label={`Fechar ${title}`}
-                                                className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-base-content/50 hover:bg-base-content/10"
-                                                onClick={() => closeTab(tab.id)}
-                                            >
-                                                <X className="size-3.5"/>
-                                            </button>
-                                        ) : null}
+                                        <button
+                                            type="button"
+                                            aria-label={`Fechar ${title}`}
+                                            className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-base-content/50 hover:bg-base-content/10"
+                                            onClick={() => closeTab(tab.id)}
+                                        >
+                                            <X className="size-3.5"/>
+                                        </button>
                                     </div>
                                 </li>
                             );

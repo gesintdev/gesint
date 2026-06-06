@@ -2,12 +2,13 @@
 
 import {Bell, Command, Menu, Search} from "lucide-react";
 import {useSession} from "next-auth/react";
-import {type ReactNode, useCallback, useEffect, useState} from "react";
+import {Suspense, useCallback, useEffect, useState, type ReactNode} from "react";
 import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
 import {ThemeToggle} from "@/shared/components/layout/ThemeToggle";
 import {ActiveSystemProvider} from "@/shared/context/ActiveSystemContext";
+import {WorkspaceNavigationProvider} from "@/shared/workspace/WorkspaceNavigationProvider";
 import {setAuthToken} from "@/shared/lib/api.client";
 
 export function SystemShell({children}: { children: ReactNode }) {
@@ -105,24 +106,34 @@ export function SystemShell({children}: { children: ReactNode }) {
                 </div>
 
                 {/* Corpo: sidebar (sistemas | rotas) + conteúdo */}
-                <div className="relative flex min-h-0 flex-1 overflow-hidden">
-                    <Sidebar
-                        collapsed={collapsed}
-                        onCollapsedToggle={() => setCollapsed((v) => !v)}
-                        mobileOpen={mobileNav}
-                        onMobileCloseAction={closeMobileNav}
-                    />
+                <Suspense
+                    fallback={
+                        <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-base-content/50">
+                            Carregando…
+                        </div>
+                    }
+                >
+                    <WorkspaceNavigationProvider>
+                        <div className="relative flex min-h-0 flex-1 overflow-hidden">
+                            <Sidebar
+                                collapsed={collapsed}
+                                onCollapsedToggle={() => setCollapsed((v) => !v)}
+                                mobileOpen={mobileNav}
+                                onMobileCloseAction={closeMobileNav}
+                            />
 
-                    <div
-                        className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:ms-(--layout-offset,var(--sidebar-width))">
-                        <main
-                            id="main-content"
-                            className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
-                        >
-                            {children}
-                        </main>
-                    </div>
-                </div>
+                            <div
+                                className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:ms-(--layout-offset,var(--sidebar-width))">
+                                <main
+                                    id="main-content"
+                                    className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
+                                >
+                                    {children}
+                                </main>
+                            </div>
+                        </div>
+                    </WorkspaceNavigationProvider>
+                </Suspense>
             </div>
         </ActiveSystemProvider>
     );

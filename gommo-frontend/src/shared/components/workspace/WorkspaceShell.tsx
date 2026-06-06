@@ -1,15 +1,21 @@
 "use client";
 
 import clsx from "clsx";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { WorkspaceTabBar, WorkspaceTabBarEmptyHint } from "@/shared/components/workspace/WorkspaceTabBar";
+import { useEffect, useMemo, useState } from "react";
+import { WorkspaceTabBar } from "@/shared/components/workspace/WorkspaceTabBar";
 import { DashboardView } from "@/shared/workspace/views/DashboardView";
 import { WorkspaceTabProvider } from "@/shared/workspace/WorkspaceTabContext";
 import { getWorkspacePageComponent } from "@/shared/workspace/workspace-page-registry";
-import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import { getDashboardTab, useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import { findRouteByHref } from "@/shared/workspace/workspace-routes";
 import { buildWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
+import {
+    DASHBOARD_HREF,
+    DASHBOARD_ROUTE_ID,
+    DASHBOARD_TAB_ID,
+    isDashboardTabId,
+    stripDashboardTabs,
+} from "@/shared/workspace/workspace-dashboard";
 import {
     buildLocationKey,
     readLastWorkspaceInitLocation,
@@ -18,24 +24,26 @@ import {
 } from "@/shared/workspace/workspace-location";
 import {
     parseWorkspaceLocation,
+    useWorkspaceLocation,
     useWorkspaceNavigation,
     workspaceUrlForTab,
     workspaceUrlWithCrud,
 } from "@/shared/workspace/useWorkspaceNavigation";
 
 export function WorkspaceShell() {
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-    const router = useRouter();
+    const { pathname, searchParams, router } = useWorkspaceLocation();
     const tabs = useWorkspaceStore((s) => s.tabs);
     const activeTabId = useWorkspaceStore((s) => s.activeTabId);
     const hasHydrated = useWorkspaceStore((s) => s._hasHydrated);
     const { focusTabById, openFromHref, openRouteRecord } = useWorkspaceNavigation();
     const closeTab = useWorkspaceStore((s) => s.closeTab);
     const [mountedTabIds, setMountedTabIds] = useState<Set<string>>(() => new Set());
+    const dashboardTab = useMemo(() => getDashboardTab(), []);
+    const moduleTabs = useMemo(() => stripDashboardTabs(tabs), [tabs]);
+    const showDashboard = isDashboardTabId(activeTabId);
 
     useEffect(() => {
-        if (activeTabId) {
+        if (activeTabId && !isDashboardTabId(activeTabId)) {
             setMountedTabIds((prev) => {
                 if (prev.has(activeTabId)) return prev;
                 const next = new Set(prev);
@@ -52,6 +60,11 @@ export function WorkspaceShell() {
         if (readLastWorkspaceInitLocation() === currentKey) return;
 
         const state = useWorkspaceStore.getState();
+        if (state.activeTabId && isDashboardTabId(state.activeTabId)) {
+            writeLastWorkspaceInitLocation(DASHBOARD_HREF);
+            return;
+        }
+
         if (state.tabs.length > 0 && state.activeTabId) {
             const active = state.tabs.find((t) => t.id === state.activeTabId);
             if (active) {
@@ -71,6 +84,12 @@ export function WorkspaceShell() {
         const route = findRouteByHref(parsed.href);
         if (!route) {
             writeLastWorkspaceInitLocation(currentKey);
+            return;
+        }
+
+        if (route.id === DASHBOARD_ROUTE_ID) {
+            focusTabById(DASHBOARD_TAB_ID);
+            writeLastWorkspaceInitLocation(DASHBOARD_HREF);
             return;
         }
 
@@ -102,29 +121,26 @@ export function WorkspaceShell() {
         writeLastWorkspaceInitLocation(targetUrl);
     }, [focusTabById, hasHydrated, openFromHref, openRouteRecord, pathname, router, searchParams]);
 
-    const showDashboard = tabs.length === 0;
-
     return (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            {tabs.length > 0 ? (
+            {hasHydrated ? (
                 <WorkspaceTabBar
-                    tabs={tabs}
+                    dashboardTab={dashboardTab}
+                    moduleTabs={moduleTabs}
                     activeTabId={activeTabId}
                     onSelect={focusTabById}
                     onClose={closeTab}
                 />
-            ) : (
-                <WorkspaceTabBarEmptyHint />
-            )}
+            ) : null}
 
             <div className="workspace-content relative min-h-0 flex-1 overflow-hidden">
-                {showDashboard && (
+                {showDashboard ? (
                     <div className="workspace-panel absolute inset-0">
                         <DashboardView />
                     </div>
-                )}
+                ) : null}
 
-                {tabs.map((tab) => {
+                {moduleTabs.map((tab) => {
                     if (!mountedTabIds.has(tab.id)) return null;
 
                     const Page = getWorkspacePageComponent(tab.href);

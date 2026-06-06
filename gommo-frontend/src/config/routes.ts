@@ -52,7 +52,7 @@ export const modules: TModule[] = [...systemModuleGroups.flatMap((g) => g.module
 /** Seções de todos os domínios (breadcrumbs, busca global) */
 export const ALL_NAV_SECTIONS: NavSection[] = ModuleEnumHelper.toNavSections(modules);
 
-/** Seções do domínio selecionado — use via `useActiveSystem().navSections` no sidebar */
+/** Seções do domínio selecionado */
 export function getNavSectionsForSystem(system: SystemEnum): NavSection[] {
     const group = systemModuleGroups.find((g) => g.system === system);
     if (!group) return [];

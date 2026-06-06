@@ -23,12 +23,18 @@ import type {
     DashboardSummary,
 } from "@/modules/dashboard/dto/dashboard.dto";
 import {DASHBOARD_CLIENT_MESSAGES} from "@/modules/dashboard/exceptions/dashboard.messages";
+import {
+    dashboardTitleForSystem,
+    filterDashboardSummaryForSystem,
+} from "@/modules/dashboard/lib/dashboard-system.util";
 import {dashboardService} from "@/modules/dashboard/services/dashboard.service";
+import type {DashboardSystemId} from "@/modules/dashboard/lib/dashboard-system.util";
 import {motion} from "framer-motion";
 import {CrudPageCard, CrudPageLayout} from "@/shared/components/layout/CrudPageLayout";
 import {Button} from "@/shared/components/ui/Button";
 import {Card} from "@/shared/components/ui/Card";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {useActiveSystem} from "@/shared/context/ActiveSystemContext";
 
 const METRIC_ICONS: Record<string, LucideIcon> = {
     collaborators: Users,
@@ -217,7 +223,7 @@ function ModuleHealthPanel({moduleHealth}: {moduleHealth: DashboardSummary["modu
     );
 }
 
-function DashboardContent({data}: {data: DashboardSummary}) {
+function DashboardContent({data, showPeopleCharts}: {data: DashboardSummary; showPeopleCharts: boolean}) {
     return (
         <>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -240,35 +246,44 @@ function DashboardContent({data}: {data: DashboardSummary}) {
                 <ModuleHealthPanel moduleHealth={data.moduleHealth}/>
             </div>
 
-            <div className="mt-5 grid gap-4 xl:grid-cols-2">
-                <DistributionChart
-                    title="Admissões por status"
-                    subtitle="Distribuição atual"
-                    items={data.admissionsByStatus}
-                    emptyMessage="Nenhuma admissão cadastrada ainda."
-                />
-                <DistributionChart
-                    title="Férias e afastamentos"
-                    subtitle="Solicitações por tipo"
-                    items={data.leaveByType}
-                    emptyMessage="Nenhuma solicitação de férias ou afastamento cadastrada."
-                />
-            </div>
+            {showPeopleCharts ? (
+                <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                    <DistributionChart
+                        title="Admissões por status"
+                        subtitle="Distribuição atual"
+                        items={data.admissionsByStatus}
+                        emptyMessage="Nenhuma admissão cadastrada ainda."
+                    />
+                    <DistributionChart
+                        title="Férias e afastamentos"
+                        subtitle="Solicitações por tipo"
+                        items={data.leaveByType}
+                        emptyMessage="Nenhuma solicitação de férias ou afastamento cadastrada."
+                    />
+                </div>
+            ) : null}
         </>
     );
 }
 
 export function DashboardView() {
+    const {activeSystem} = useActiveSystem();
     const summaryQuery = useQuery({
-        queryKey: dashboardKeys.summary,
+        queryKey: dashboardKeys.summary(activeSystem),
         queryFn: () => dashboardService.getSummary(),
     });
+    const dashboardData = summaryQuery.data
+        ? filterDashboardSummaryForSystem(summaryQuery.data, activeSystem as DashboardSystemId)
+        : null;
 
     return (
         <CrudPageLayout>
             <CrudPageCard>
                 <div className="flex min-h-0 flex-1 flex-col">
-                    <div className="flex shrink-0 items-center justify-end gap-2 border-b border-[var(--gommo-border-subtle)] px-4 py-2.5">
+                    <div className="flex shrink-0 items-center justify-between gap-2 border-b border-[var(--gommo-border-subtle)] px-4 py-2.5">
+                    <p className="text-sm font-semibold tracking-tight text-base-content">
+                        {dashboardTitleForSystem(activeSystem)}
+                    </p>
                     <Button
                         variant="ghost"
                         size="sm"
@@ -303,7 +318,12 @@ export function DashboardView() {
                         </Card>
                     )}
 
-                    {summaryQuery.data && <DashboardContent data={summaryQuery.data}/>}
+                    {dashboardData ? (
+                        <DashboardContent
+                            data={dashboardData}
+                            showPeopleCharts={activeSystem === "rh"}
+                        />
+                    ) : null}
                 </div>
                 </div>
             </CrudPageCard>

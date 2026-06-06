@@ -6,18 +6,23 @@ import { canAccessRoute } from "@/shared/auth/route-access";
 import { useSessionPermissions } from "@/shared/auth/permissions";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
 import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
+import { DASHBOARD_TAB_ID } from "@/shared/workspace/workspace-dashboard";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 
 export function SystemRail() {
     const pathname = usePathname();
     const { activeSystem, systems, selectSystem, isSettingsMode, openSettings } = useActiveSystem();
-    const { openRouteModule } = useWorkspaceNavigation();
+    const { openRouteModule, focusTabById } = useWorkspaceNavigation();
     const permissions = useSessionPermissions();
     const canOpenSettings = settingsRoutes.some((route) => canAccessRoute(route, permissions));
 
     const handleSelect = (system: SystemEnum) => {
-        if (system === activeSystem && !isSettingsMode) return;
+        if (system === activeSystem && !isSettingsMode) {
+            focusTabById(DASHBOARD_TAB_ID);
+            return;
+        }
         selectSystem(system);
+        focusTabById(DASHBOARD_TAB_ID);
     };
 
     const handleOpenSettings = () => {
