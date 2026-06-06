@@ -2,20 +2,17 @@ import {AnimatePresence, motion} from "framer-motion";
 import clsx from "clsx";
 import type {AppRoute} from "@/config/routes";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
 
 type SidebarFlyoutProps = {
     route: AppRoute;
     anchorTop: number;
+    highlightRouteId: string | null;
+    onSelectRoute: (route: AppRoute) => void;
     onClose: () => void;
 };
 
-export function SidebarFlyout({route, anchorTop, onClose}: SidebarFlyoutProps) {
+export function SidebarFlyout({route, anchorTop, highlightRouteId, onSelectRoute, onClose}: SidebarFlyoutProps) {
     const {openRouteModule} = useWorkspaceNavigation();
-    const activeRouteId = useWorkspaceStore((s) => {
-        if (!s.activeTabId) return null;
-        return s.tabs.find((t) => t.id === s.activeTabId)?.routeId ?? null;
-    });
 
     return (
         <AnimatePresence>
@@ -34,13 +31,16 @@ export function SidebarFlyout({route, anchorTop, onClose}: SidebarFlyoutProps) {
                 <ul className="nav-group-children space-y-0.5">
                     {route.children?.map((child) => {
                         const ChildIcon = child.icon;
-                        const active = child.id === activeRouteId;
+                        const active = child.id === highlightRouteId;
                         return (
                             <li key={child.id}>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        if (child.href) openRouteModule(child);
+                                        if (child.href) {
+                                            onSelectRoute(child);
+                                            openRouteModule(child);
+                                        }
                                         onClose();
                                     }}
                                     className={clsx(

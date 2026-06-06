@@ -10,11 +10,14 @@ import { exitinterviewKeys } from "@/modules/person/exitinterview/exitinterview.
 import { exitinterviewService } from "@/modules/person/exitinterview/services/exit-interview.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { InputString, InputDate } from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Entrevista" }];
 
 export function ExitInterviewFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -84,6 +87,11 @@ export function ExitInterviewFormClient() {
   return (
     <CrudFormShell
       onSubmit={handleSubmit}
+      stepper={{
+        steps: FORM_STEPS,
+        entityCode: isEditing ? detailQuery.data?.code : undefined,
+        resetKey: editingId ?? "new",
+      }}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -92,16 +100,15 @@ export function ExitInterviewFormClient() {
         </>
       }
     >
-    <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-      <div className="sm:col-span-2">
-        <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
-      </div>
-      <InputDate label="Data da entrevista" value={form.interviewDate ?? ""} onValueChange={(v) => update("interviewDate", v)} required />
-      <InputString label="Motivo da saída" value={form.departureReason ?? ""} onValueChange={(v) => update("departureReason", v)} />
-      <InputString label="Feedback" value={form.feedback ?? ""} onValueChange={(v) => update("feedback", v)} wrapperClassName="sm:col-span-2" />
-      {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-    </div>
+      <FormSection id="cadastro" title="Entrevista">
+        <div className="sm:col-span-2">
+          <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
+        </div>
+        <InputDate label="Data da entrevista" value={form.interviewDate ?? ""} onValueChange={(v) => update("interviewDate", v)} required />
+        <InputString label="Motivo da saída" value={form.departureReason ?? ""} onValueChange={(v) => update("departureReason", v)} />
+        <InputString label="Feedback" value={form.feedback ?? ""} onValueChange={(v) => update("feedback", v)} wrapperClassName="sm:col-span-2" />
+      </FormSection>
+      {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>
   );
 }

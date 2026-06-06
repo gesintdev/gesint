@@ -562,7 +562,7 @@ export function ${Pascal}ListClient() {
     `"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { ${KEY}_CLIENT_MESSAGES } from "@/modules/${m.key}/exceptions/${prefix}.messages";
 import type { ${Pascal}CreateDto } from "@/modules/${m.key}/dto/${prefix}.dto";
@@ -570,9 +570,14 @@ import { empty${Pascal}Form, ${prefix.replace(/-/g, "")}ToFormDto } from "@/modu
 import { ${keysVar} } from "@/modules/${m.key}/${m.key}.query";
 import { ${svcVar} } from "@/modules/${m.key}/services/${prefix}.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { ${imports} } from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "${m.label}" }];
 
 export function ${Pascal}FormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -620,7 +625,7 @@ export function ${Pascal}FormClient() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     saveMutation.mutate(form);
@@ -640,18 +645,26 @@ export function ${Pascal}FormClient() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-3 p-4 sm:grid-cols-2">
-      <div className="sm:col-span-2">
-        <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar ${m.label.toLowerCase()}" : "Novo(a) ${m.label.toLowerCase()}"}</p>
-      </div>
+    <CrudFormShell
+      onSubmit={handleSubmit}
+      stepper={{
+        steps: FORM_STEPS,
+        entityCode: isEditing ? detailQuery.data?.code : undefined,
+        resetKey: editingId ?? "new",
+      }}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
+          {isEditing && <Button type="button" variant="outline" onClick={startCreate}>Novo</Button>}
+          <Button type="submit" loading={saveMutation.isPending}>{isEditing ? "Salvar" : "Cadastrar"}</Button>
+        </>
+      }
+    >
+      <FormSection id="cadastro" title="${m.label}">
 ${formInputs}
-      {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-      <div className="flex flex-wrap gap-2 sm:col-span-2">
-        <Button type="submit" loading={saveMutation.isPending}>{isEditing ? "Salvar" : "Cadastrar"}</Button>
-        <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
-        {isEditing && <Button type="button" variant="outline" onClick={startCreate}>Novo</Button>}
-      </div>
-    </form>
+      </FormSection>
+      {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
+    </CrudFormShell>
   );
 }
 `,

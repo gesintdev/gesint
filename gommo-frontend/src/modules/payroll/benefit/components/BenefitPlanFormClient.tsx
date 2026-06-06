@@ -10,10 +10,13 @@ import { benefitplanKeys } from "@/modules/payroll/benefit/benefit.query";
 import { benefitplanService } from "@/modules/payroll/benefit/services/benefit-plan.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputString, InputCurrency, InputDate } from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Benefício" }];
 
 export function BenefitPlanFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -88,6 +91,11 @@ export function BenefitPlanFormClient() {
   return (
     <CrudFormShell
       onSubmit={handleSubmit}
+      stepper={{
+        steps: FORM_STEPS,
+        entityCode: isEditing ? detailQuery.data?.code : undefined,
+        resetKey: editingId ?? "new",
+      }}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -96,16 +104,15 @@ export function BenefitPlanFormClient() {
         </>
       }
     >
-      <div className="grid gap-3 p-4 sm:grid-cols-2">
-        <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
+      <FormSection id="cadastro" title="Benefício">
         <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
         <InputString label="Tipo de benefício" value={form.benefitType ?? ""} onValueChange={(v) => update("benefitType", v)} required hint="Ex.: SAUDE, VR, VT" />
         <InputCurrency label="Valor mensal" value={form.monthlyValue ?? ""} onValueChange={(v) => update("monthlyValue", v)} emitAsDecimal />
         <InputDate label="Vigência — início" value={form.startDate ?? ""} onValueChange={(v) => update("startDate", v)} />
         <InputDate label="Vigência — fim" value={form.endDate ?? ""} onValueChange={(v) => update("endDate", v)} />
         <InputString label="Descrição" value={form.description ?? ""} onValueChange={(v) => update("description", v)} wrapperClassName="sm:col-span-2" />
-        {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-      </div>
+      </FormSection>
+      {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>
   );
 }

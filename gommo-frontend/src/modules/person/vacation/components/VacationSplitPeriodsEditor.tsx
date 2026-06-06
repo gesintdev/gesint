@@ -55,7 +55,6 @@ export function VacationSplitPeriodsEditor({periods, onChange, fieldError}: Prop
 
     return (
         <div className="grid gap-2">
-            <p className="text-[10pt] font-medium text-base-content">Período de gozo</p>
             <div className="grid gap-2">
                 {periods.map((period, index) => {
                     const showLabels = index === 0;

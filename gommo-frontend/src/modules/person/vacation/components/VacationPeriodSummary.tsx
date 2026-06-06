@@ -1,8 +1,8 @@
 import clsx from "clsx";
-import type { ReactNode } from "react";
-import type { VacationPeriodContext } from "@/modules/person/vacation/types/vacation.types";
-import { daysUntilDate } from "@/modules/person/vacation/lib/vacation-rules";
-import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
+import type {ReactNode} from "react";
+import type {VacationPeriodContext} from "@/modules/person/vacation/types/vacation.types";
+import {daysUntilDate} from "@/modules/person/vacation/lib/vacation-rules";
+import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 
 const STATUS_LABEL: Record<VacationPeriodContext["status"], string> = {
     ACQUIRING: "Em aquisição",
@@ -20,7 +20,7 @@ type Props = {
     collaboratorError?: string;
 };
 
-function formatDate(iso: string | undefined): string {
+function formatDate(iso: string | undefined | null): string {
     if (!iso) return "—";
     return iso.split("-").reverse().join("/");
 }
@@ -30,23 +30,23 @@ function formatRange(start: string | undefined, end: string | undefined): string
     return `${formatDate(start)} → ${formatDate(end)}`;
 }
 
-function SummaryCard({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
+function SummaryCard({label, children, className}: { label: string; children: ReactNode; className?: string }) {
     return (
         <div
             className={clsx(
-                "flex h-full min-h-[4.75rem] flex-col rounded-lg border border-base-300/60 bg-base-200/30 p-3",
+                "flex h-full min-h-19 flex-col rounded-lg border border-base-300/60 bg-base-200/30 p-3",
                 className,
             )}
         >
             <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">{label}</p>
-            <div className="mt-1 min-h-[1.375rem] flex-1 text-sm font-medium leading-snug text-base-content">
+            <div className="mt-1 min-h-5.5 flex-1 text-sm font-medium leading-snug text-base-content">
                 {children}
             </div>
         </div>
     );
 }
 
-function SummaryAlert({ children, tone }: { children: ReactNode; tone: "warning" | "error" }) {
+function SummaryAlert({children, tone}: { children: ReactNode; tone: "warning" | "error" }) {
     return (
         <p
             className={clsx(
@@ -62,19 +62,19 @@ function SummaryAlert({ children, tone }: { children: ReactNode; tone: "warning"
 }
 
 export function VacationPeriodSummary({
-    context,
-    loading,
-    collaboratorId,
-    onCollaboratorChange,
-    collaboratorError,
-}: Props) {
+                                          context,
+                                          loading,
+                                          collaboratorId,
+                                          onCollaboratorChange,
+                                          collaboratorError,
+                                      }: Props) {
     if (loading) {
         return (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="skeleton-shimmer col-span-1 h-10 rounded-lg sm:col-span-2" />
-                <div className="skeleton-shimmer col-span-1 h-[4.75rem] rounded-lg sm:col-span-2" />
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-[4.75rem] rounded-lg" />
+                <div className="skeleton-shimmer col-span-1 h-10 rounded-lg sm:col-span-2"/>
+                <div className="skeleton-shimmer col-span-1 h-19 rounded-lg sm:col-span-2"/>
+                {Array.from({length: 4}).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-19 rounded-lg"/>
                 ))}
             </div>
         );
@@ -120,11 +120,13 @@ export function VacationPeriodSummary({
             </SummaryCard>
 
             <SummaryCard label="Período aquisitivo">
-                <span className="block break-words">{formatRange(context?.acquisition?.start, context?.acquisition?.end)}</span>
+                <span
+                    className="block wrap-break-word">{formatRange(context?.acquisition?.start, context?.acquisition?.end)}</span>
             </SummaryCard>
 
             <SummaryCard label="Período concessivo">
-                <span className="block break-words">{formatRange(context?.concessive?.start, context?.concessive?.end)}</span>
+                <span
+                    className="block wrap-break-word">{formatRange(context?.concessive?.start, context?.concessive?.end)}</span>
             </SummaryCard>
 
             {daysLeft != null && daysLeft >= 0 ? (

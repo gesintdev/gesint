@@ -12,8 +12,9 @@ import {leaveAbsenceFormSchema} from "@/modules/person/leave/schemas/leave-absen
 import {leaverequestService} from "@/modules/person/leave/services/leave-request.service";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
-import {EntityCodeField} from "@/shared/components/crud/EntityCodeField";
 import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputDate, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 import {ExceptionCapture} from "@/shared/exceptions";
@@ -31,6 +32,8 @@ const APPROVAL_ITEMS: SelectItem[] = [
     {value: "true", label: "Aprovado"},
     {value: "false", label: "Pendente"},
 ];
+
+const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Ausência"}];
 
 type LeaveFormField = keyof LeaveRequestCreateDto | "notes";
 
@@ -115,6 +118,11 @@ export function LeaveAbsenceFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
+            stepper={{
+                steps: FORM_STEPS,
+                entityCode: isEditing ? detailQuery.data?.code : undefined,
+                resetKey: editingId ?? "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -131,8 +139,7 @@ export function LeaveAbsenceFormClient() {
                 </>
             }
         >
-            <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined}/>
+            <FormSection id="cadastro" title="Ausência">
                 <div className="sm:col-span-2">
                     <CollaboratorPickerField
                         value={form.collaboratorId ?? ""}
@@ -179,8 +186,8 @@ export function LeaveAbsenceFormClient() {
                         onValueChange={(v) => update("notes", v)}
                     />
                 </div>
-                {error ? <p className="text-sm font-medium text-error sm:col-span-2">{error}</p> : null}
-            </div>
+            </FormSection>
+            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

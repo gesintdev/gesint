@@ -12,8 +12,9 @@ import {leaveRequestFormSchema} from "@/modules/person/leave/schemas/leave-reque
 import {leaverequestService} from "@/modules/person/leave/services/leave-request.service";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
-import {EntityCodeField} from "@/shared/components/crud/EntityCodeField";
 import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputDate, InputSelect} from "@/shared/components/ui/input/index";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 import {ExceptionCapture} from "@/shared/exceptions";
@@ -32,6 +33,8 @@ const APPROVAL_ITEMS: SelectItem[] = [
     {value: "true", label: "Aprovado"},
     {value: "false", label: "Pendente"},
 ];
+
+const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Afastamento"}];
 
 type LeaveFormField = keyof LeaveRequestCreateDto;
 
@@ -130,6 +133,11 @@ export function LeaveRequestFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
+            stepper={{
+                steps: FORM_STEPS,
+                entityCode: isEditing ? detailQuery.data?.code : undefined,
+                resetKey: editingId ?? "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -146,8 +154,7 @@ export function LeaveRequestFormClient() {
                 </>
             }
         >
-            <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined}/>
+            <FormSection id="cadastro" title="Afastamento">
                 {isEditing && detailQuery.data?.approved !== true ? (
                     <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75 sm:col-span-2">
                         Solicitação de férias vinda do RH. Revise os dados, marque como aprovado e salve para concluir o
@@ -197,9 +204,9 @@ export function LeaveRequestFormClient() {
                     required
                     error={fieldErrors.endDate}
                 />
+            </FormSection>
 
-                {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-            </div>
+            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

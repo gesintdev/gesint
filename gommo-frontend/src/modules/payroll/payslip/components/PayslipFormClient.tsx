@@ -11,12 +11,15 @@ import { payslipService } from "@/modules/payroll/payslip/services/payslip.servi
 import { payrollrunService } from "@/modules/payroll/services/payroll-run.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCurrency } from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contracheque" }];
 
 export function PayslipFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -102,6 +105,11 @@ export function PayslipFormClient() {
   return (
     <CrudFormShell
       onSubmit={handleSubmit}
+      stepper={{
+        steps: FORM_STEPS,
+        entityCode: isEditing ? detailQuery.data?.code : undefined,
+        resetKey: editingId ?? "new",
+      }}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -110,8 +118,7 @@ export function PayslipFormClient() {
         </>
       }
     >
-      <div className="grid gap-3 p-4 sm:grid-cols-2">
-        <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
+      <FormSection id="cadastro" title="Contracheque">
         <EntityPickerField
           label="Processamento de folha"
           value={form.payrollRunId ?? ""}
@@ -124,8 +131,8 @@ export function PayslipFormClient() {
         <InputCurrency label="Valor bruto" value={form.grossAmount ?? ""} onValueChange={(v) => update("grossAmount", v)} emitAsDecimal />
         <InputCurrency label="Descontos" value={form.deductionsAmount ?? ""} onValueChange={(v) => update("deductionsAmount", v)} emitAsDecimal />
         <InputCurrency label="Valor líquido" value={form.netAmount ?? ""} onValueChange={(v) => update("netAmount", v)} emitAsDecimal />
-        {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-      </div>
+      </FormSection>
+      {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>
   );
 }

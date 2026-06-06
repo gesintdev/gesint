@@ -32,7 +32,7 @@ import {EntityAttachments, flushPendingAttachments, type PendingAttachment} from
 import {ExceptionCapture} from "@/shared/exceptions";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {FormStepper, type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {ProfilePhotoField} from "@/shared/components/ui/ProfilePhotoField";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import {
@@ -268,7 +268,12 @@ export function AdmissionProcessFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            bodyClassName="!overflow-hidden !p-0"
+            stepper={{
+                steps: ADMISSION_FORM_STEPS,
+                filledStepIds,
+                entityCode: isEditing ? detailQuery.data?.code : undefined,
+                resetKey: editingId ?? "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -285,12 +290,6 @@ export function AdmissionProcessFormClient() {
                 </>
             }
         >
-            <FormStepper
-                key={editingId ?? "new"}
-                steps={ADMISSION_FORM_STEPS}
-                filledStepIds={filledStepIds}
-                entityCode={isEditing ? detailQuery.data?.code : undefined}
-            >
                 <FormSection
                     id="dados-basicos"
                     title="Dados básicos"
@@ -598,7 +597,6 @@ export function AdmissionProcessFormClient() {
                 </FormSection>
 
                 {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
-            </FormStepper>
         </CrudFormShell>
     );
 }

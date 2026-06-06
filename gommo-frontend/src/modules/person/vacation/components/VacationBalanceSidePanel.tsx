@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import type {VacationSplitPeriod} from "@/modules/person/vacation/types/vacation.types";
 import {summarizeVacationBalance} from "@/modules/person/vacation/lib/vacation-rules";
 import {InputNumber} from "@/shared/components/ui/input/index";
@@ -38,7 +37,7 @@ export function VacationBalanceSidePanel({
                 : "text-base-content";
 
     return (
-        <div className="grid gap-3">
+        <div className="grid gap-2">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <InputNumber
                     label="Faltas injustificadas"
@@ -67,7 +66,7 @@ export function VacationBalanceSidePanel({
                 />
             </div>
 
-            <div className="rounded-lg border border-base-300/60 bg-base-200/30 p-3">
+            <div className="rounded-lg min-h-19 border border-base-300/60 bg-base-200/30 p-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">Saldo de dias</p>
                 <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
                     <VacationBalanceDaysInfo

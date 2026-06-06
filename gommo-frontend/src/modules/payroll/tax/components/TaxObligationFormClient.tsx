@@ -10,11 +10,14 @@ import { taxObligationKeys } from "@/modules/payroll/tax/tax.query";
 import { taxObligationService } from "@/modules/payroll/tax/services/tax-obligation.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputString, InputDate, InputCurrency, InputSelect } from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Obrigação" }];
 
 const OBLIGATION_TYPE_ITEMS = [
   { value: "IRRF", label: "IRRF" },
@@ -96,6 +99,11 @@ export function TaxObligationFormClient() {
   return (
     <CrudFormShell
       onSubmit={handleSubmit}
+      stepper={{
+        steps: FORM_STEPS,
+        entityCode: isEditing ? detailQuery.data?.code : undefined,
+        resetKey: editingId ?? "new",
+      }}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -104,8 +112,7 @@ export function TaxObligationFormClient() {
         </>
       }
     >
-      <div className="grid gap-3 p-4 sm:grid-cols-2">
-        <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
+      <FormSection id="cadastro" title="Obrigação">
         <div className="sm:col-span-2">
           <CollaboratorPickerField value={form.collaboratorId} onValueChange={(v) => update("collaboratorId", v)} required />
         </div>
@@ -123,8 +130,8 @@ export function TaxObligationFormClient() {
         <InputCurrency label="Base de cálculo" value={form.baseAmount ?? ""} onValueChange={(v) => update("baseAmount", v)} emitAsDecimal />
         <InputString label="Alíquota (%)" value={form.ratePercent ?? ""} onValueChange={(v) => update("ratePercent", v)} hint="Ex.: 7.5" />
         <InputString label="Observações" value={form.notes ?? ""} onValueChange={(v) => update("notes", v)} wrapperClassName="sm:col-span-2" />
-        {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-      </div>
+      </FormSection>
+      {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>
   );
 }

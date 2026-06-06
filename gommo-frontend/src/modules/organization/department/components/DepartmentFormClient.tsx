@@ -10,10 +10,13 @@ import { departmentKeys } from "@/modules/organization/department/department.que
 import { departmentService } from "@/modules/organization/department/services/department.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputString } from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Departamento" }];
 
 export function DepartmentFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -83,6 +86,11 @@ export function DepartmentFormClient() {
   return (
     <CrudFormShell
       onSubmit={handleSubmit}
+      stepper={{
+        steps: FORM_STEPS,
+        entityCode: isEditing ? detailQuery.data?.code : undefined,
+        resetKey: editingId ?? "new",
+      }}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -91,12 +99,11 @@ export function DepartmentFormClient() {
         </>
       }
     >
-    <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-      <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
-      <InputString label="Centro de custo" value={form.costCenter ?? ""} onValueChange={(v) => update("costCenter", v)} />
-      {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-    </div>
+      <FormSection id="cadastro" title="Departamento">
+        <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
+        <InputString label="Centro de custo" value={form.costCenter ?? ""} onValueChange={(v) => update("costCenter", v)} />
+      </FormSection>
+      {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>
   );
 }

@@ -11,12 +11,15 @@ import { benefitEnrollmentKeys } from "@/modules/payroll/benefitenrollment/benef
 import { benefitEnrollmentService } from "@/modules/payroll/benefitenrollment/services/benefit-enrollment.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputString, InputDate, InputCurrency } from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Adesão" }];
 
 export function BenefitEnrollmentFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -100,6 +103,11 @@ export function BenefitEnrollmentFormClient() {
   return (
     <CrudFormShell
       onSubmit={handleSubmit}
+      stepper={{
+        steps: FORM_STEPS,
+        entityCode: isEditing ? detailQuery.data?.code : undefined,
+        resetKey: editingId ?? "new",
+      }}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -108,8 +116,7 @@ export function BenefitEnrollmentFormClient() {
         </>
       }
     >
-      <div className="grid gap-3 p-4 sm:grid-cols-2">
-        <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
+      <FormSection id="cadastro" title="Adesão">
         <CollaboratorPickerField value={form.collaboratorId} onValueChange={(v) => update("collaboratorId", v)} required />
         <EntityPickerField
           label="Plano de benefício"
@@ -123,8 +130,8 @@ export function BenefitEnrollmentFormClient() {
         <InputDate label="Vigência — fim" value={form.endDate ?? ""} onValueChange={(v) => update("endDate", v)} />
         <InputCurrency label="Valor mensal" value={form.monthlyValue ?? ""} onValueChange={(v) => update("monthlyValue", v)} emitAsDecimal hint="Opcional — sobrescreve o valor do plano" />
         <InputString label="Observações" value={form.notes ?? ""} onValueChange={(v) => update("notes", v)} wrapperClassName="sm:col-span-2" />
-        {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-      </div>
+      </FormSection>
+      {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>
   );
 }

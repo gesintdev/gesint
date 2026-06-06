@@ -18,7 +18,7 @@ import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTi
 import {ExceptionCapture} from "@/shared/exceptions";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {FormStepper, type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {sectionHasChanges} from "@/shared/lib/form-step.util";
 import {InputCPF, InputDate, InputSelect, InputString, RgIdentityFields} from "@/shared/components/ui/input/index";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
@@ -152,7 +152,12 @@ export function CollaboratorFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            bodyClassName="!overflow-hidden !p-0"
+            stepper={{
+                steps: COLLABORATOR_FORM_STEPS,
+                filledStepIds,
+                entityCode: detailQuery.data?.code,
+                resetKey: editingId ?? "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -164,12 +169,6 @@ export function CollaboratorFormClient() {
                 </>
             }
         >
-            <FormStepper
-                key={editingId ?? "new"}
-                steps={COLLABORATOR_FORM_STEPS}
-                filledStepIds={filledStepIds}
-                entityCode={detailQuery.data?.code}
-            >
                 <FormSection id="identificacao" title="Identificação" description="Dados pessoais do colaborador.">
                     <InputString
                         label="Nome completo"
@@ -252,7 +251,6 @@ export function CollaboratorFormClient() {
                 </FormSection>
 
                 {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
-            </FormStepper>
         </CrudFormShell>
     );
 }

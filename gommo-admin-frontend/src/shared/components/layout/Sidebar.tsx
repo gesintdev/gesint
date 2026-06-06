@@ -8,7 +8,6 @@ import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
 import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
 import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
 
 type SidebarProps = {
     collapsed: boolean;
@@ -91,10 +90,8 @@ function SidebarToolbar({
 export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMobileCloseAction}: SidebarProps) {
     const pathname = usePathname();
     const {openRouteModule} = useWorkspaceNavigation();
-    const activeWorkspaceTab = useWorkspaceStore((s) =>
-        s.tabs.find((t) => t.id === s.activeTabId),
-    );
-    const navActiveHref = activeWorkspaceTab?.href ?? pathname;
+    const [highlightHref, setHighlightHref] = useState<string | null>(null);
+    const navActiveHref = highlightHref ?? pathname;
     const [query, setQuery] = useState("");
     const [openIds, setOpenIds] = useState<Set<string>>(new Set());
     const [flyout, setFlyout] = useState<{ route: AppRoute; top: number } | null>(null);
@@ -105,6 +102,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     const openRouteFromMenu = (route: AppRoute, event?: MouseEvent) => {
         event?.preventDefault();
         if (!route.href) return;
+        setHighlightHref(route.href);
         openRouteModule(route);
         onMobileCloseAction?.();
     };
@@ -353,7 +351,13 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             </aside>
 
             {collapsed && flyout && (
-                <SidebarFlyout route={flyout.route} anchorTop={flyout.top} onClose={() => setFlyout(null)}/>
+                <SidebarFlyout
+                    route={flyout.route}
+                    anchorTop={flyout.top}
+                    highlightHref={navActiveHref}
+                    onSelectRoute={(route) => route.href && setHighlightHref(route.href)}
+                    onClose={() => setFlyout(null)}
+                />
             )}
         </>
     );

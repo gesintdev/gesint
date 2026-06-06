@@ -10,10 +10,13 @@ import { payrollrunKeys } from "@/modules/payroll/payroll.query";
 import { payrollrunService } from "@/modules/payroll/services/payroll-run.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputSelect, InputNumber } from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Folha" }];
 
 export function PayrollRunFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -83,6 +86,11 @@ export function PayrollRunFormClient() {
   return (
     <CrudFormShell
       onSubmit={handleSubmit}
+      stepper={{
+        steps: FORM_STEPS,
+        entityCode: isEditing ? detailQuery.data?.code : undefined,
+        resetKey: editingId ?? "new",
+      }}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -91,23 +99,22 @@ export function PayrollRunFormClient() {
         </>
       }
     >
-    <div className="grid gap-3 p-4 sm:grid-cols-2">
-      <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-      <InputNumber label="Ano de referência" integer align="left" value={form.referenceYear} onValueChange={(v) => update("referenceYear", v ?? 0)} required />
-      <InputNumber label="Mês de referência" integer align="left" value={form.referenceMonth} onValueChange={(v) => update("referenceMonth", v ?? 0)} required />
-      <InputSelect
-        label="Status da folha"
-        items={[  { value: "DRAFT", label: "Rascunho" },
+      <FormSection id="cadastro" title="Folha">
+        <InputNumber label="Ano de referência" integer align="left" value={form.referenceYear} onValueChange={(v) => update("referenceYear", v ?? 0)} required />
+        <InputNumber label="Mês de referência" integer align="left" value={form.referenceMonth} onValueChange={(v) => update("referenceMonth", v ?? 0)} required />
+        <InputSelect
+          label="Status da folha"
+          items={[  { value: "DRAFT", label: "Rascunho" },
   { value: "PROCESSING", label: "Processando" },
   { value: "CLOSED", label: "Fechado" },
   { value: "CANCELLED", label: "Cancelado" },]}
-        value={form.payrollStatus ?? ""}
-        onValueChange={(v) => update("payrollStatus", (v || undefined) as PayrollRunCreateDto["payrollStatus"])}
-        placeholder="Selecione"
-        clearable
-      />
-      {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-    </div>
+          value={form.payrollStatus ?? ""}
+          onValueChange={(v) => update("payrollStatus", (v || undefined) as PayrollRunCreateDto["payrollStatus"])}
+          placeholder="Selecione"
+          clearable
+        />
+      </FormSection>
+      {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>
   );
 }

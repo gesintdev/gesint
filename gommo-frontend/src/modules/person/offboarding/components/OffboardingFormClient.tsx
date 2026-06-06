@@ -15,7 +15,7 @@ import { EntityAttachments } from "@/shared/components/storage/EntityAttachments
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { FormStepper, type FormStepNavItem } from "@/shared/components/ui/FormStepper";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { sectionHasChanges } from "@/shared/lib/form-step.util";
 import { InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
@@ -122,7 +122,12 @@ export function OffboardingFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            bodyClassName="!overflow-hidden !p-0"
+            stepper={{
+                steps: OFFBOARDING_FORM_STEPS,
+                filledStepIds,
+                entityCode: isEditing ? detailQuery.data?.code : undefined,
+                resetKey: editingId ?? "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -134,12 +139,6 @@ export function OffboardingFormClient() {
                 </>
             }
         >
-            <FormStepper
-                key={editingId ?? "new"}
-                steps={OFFBOARDING_FORM_STEPS}
-                filledStepIds={filledStepIds}
-                entityCode={isEditing ? detailQuery.data?.code : undefined}
-            >
                 <FormSection
                     id="desligamento"
                     title="Desligamento"
@@ -181,7 +180,6 @@ export function OffboardingFormClient() {
                 </FormSection>
 
                 {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
-            </FormStepper>
         </CrudFormShell>
     );
 }

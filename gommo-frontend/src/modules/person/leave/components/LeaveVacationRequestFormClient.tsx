@@ -12,8 +12,12 @@ import {leaverequestService} from "@/modules/person/leave/services/leave-request
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputDate} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
+
+const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Solicitação"}];
 
 export function LeaveVacationRequestFormClient() {
     const {goToList, isEditing} = useCrudScreen();
@@ -61,6 +65,10 @@ export function LeaveVacationRequestFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
+            stepper={{
+                steps: FORM_STEPS,
+                resetKey: "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -72,7 +80,7 @@ export function LeaveVacationRequestFormClient() {
                 </>
             }
         >
-            <div className="grid gap-3 p-4 sm:grid-cols-2">
+            <FormSection id="cadastro" title="Solicitação">
                 <p className="text-sm text-base-content/60 sm:col-span-2">
                     Envie uma solicitação de férias para análise do Departamento Pessoal.
                 </p>
@@ -95,8 +103,8 @@ export function LeaveVacationRequestFormClient() {
                     onValueChange={(v) => setForm((prev) => ({...prev, endDate: v}))}
                     required
                 />
-                {error ? <p className="text-sm font-medium text-error sm:col-span-2">{error}</p> : null}
-            </div>
+            </FormSection>
+            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

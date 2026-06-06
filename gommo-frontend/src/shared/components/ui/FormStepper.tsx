@@ -106,7 +106,12 @@ export function FormStepper({ steps, filledStepIds = [], entityCode, children }:
                     ) : null}
 
                     <nav className="gommo-form-stepper" aria-label="Seções do formulário">
-                        <ol className="gommo-form-stepper__list">
+                        <ol
+                            className={clsx(
+                                "gommo-form-stepper__list",
+                                steps.length >= 5 && "gommo-form-stepper__list--spread",
+                            )}
+                        >
                     {steps.map((step, index) => {
                         const isActive = step.id === activeId;
                         const isDone = activeIndex >= 0 && index < activeIndex;

@@ -10,11 +10,14 @@ import {companyKeys} from "@/modules/company/company.query";
 import {companyService} from "@/modules/company/services/company.service";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
-import {EntityCodeField} from "@/shared/components/crud/EntityCodeField";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputString, InputCNPJ} from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Empresa"}];
 
 export function CompanyFormClient() {
     const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
@@ -88,6 +91,11 @@ export function CompanyFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
+            stepper={{
+                steps: FORM_STEPS,
+                entityCode: isEditing ? detailQuery.data?.code : undefined,
+                resetKey: editingId ?? "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -96,8 +104,7 @@ export function CompanyFormClient() {
                 </>
             }
         >
-            <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined}/>
+            <FormSection id="cadastro" title="Empresa">
                 <InputString label="Legal Name" value={form.legalName ?? ""}
                              onValueChange={(v) => update("legalName", v)} required/>
                 <InputString label="Trade Name" value={form.tradeName ?? ""}
@@ -106,8 +113,8 @@ export function CompanyFormClient() {
                 <InputString label="Email" value={form.email ?? ""} onValueChange={(v) => update("email", v)}/>
                 <InputString label="Phone" value={form.phone ?? ""} onValueChange={(v) => update("phone", v)}/>
                 <InputString label="City" value={form.city ?? ""} onValueChange={(v) => update("city", v)}/>
-                {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-            </div>
+            </FormSection>
+            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

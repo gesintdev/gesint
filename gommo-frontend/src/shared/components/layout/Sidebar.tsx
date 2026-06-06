@@ -10,7 +10,6 @@ import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
 import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
 import {SystemRail} from "@/shared/components/layout/SystemRail";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
 
 type SidebarProps = {
     collapsed: boolean;
@@ -96,13 +95,9 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     const {navSections} = useActiveSystem();
     const activeSystemRoutes = useActiveSystemRoutes();
     const {openRouteModule} = useWorkspaceNavigation();
-    const activeRouteId = useWorkspaceStore((s) => {
-        if (!s.activeTabId) return null;
-        return s.tabs.find((t) => t.id === s.activeTabId)?.routeId ?? null;
-    });
     const [highlightRouteId, setHighlightRouteId] = useState<string | null>(null);
     const pathnameRouteId = useMemo(() => findRouteByHref(pathname)?.id ?? null, [pathname]);
-    const navHighlightRouteId = highlightRouteId ?? activeRouteId ?? pathnameRouteId;
+    const navHighlightRouteId = highlightRouteId ?? pathnameRouteId;
     const [query, setQuery] = useState("");
     const [openIds, setOpenIds] = useState<Set<string>>(new Set());
     const [flyout, setFlyout] = useState<{ route: AppRoute; top: number } | null>(null);
@@ -117,12 +112,6 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         openRouteModule(route);
         onMobileCloseAction?.();
     };
-
-    useEffect(() => {
-        if (highlightRouteId && highlightRouteId === activeRouteId) {
-            setHighlightRouteId(null);
-        }
-    }, [activeRouteId, highlightRouteId]);
 
     const filteredSections = useMemo(() => {
         if (!isSearching) return navSections;
@@ -389,7 +378,13 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             </aside>
 
             {collapsed && flyout && (
-                <SidebarFlyout route={flyout.route} anchorTop={flyout.top} onClose={() => setFlyout(null)}/>
+                <SidebarFlyout
+                    route={flyout.route}
+                    anchorTop={flyout.top}
+                    highlightRouteId={navHighlightRouteId}
+                    onSelectRoute={(route) => setHighlightRouteId(route.id)}
+                    onClose={() => setFlyout(null)}
+                />
             )}
         </>
     );

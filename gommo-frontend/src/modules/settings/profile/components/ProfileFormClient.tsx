@@ -41,6 +41,7 @@ import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { NavRouteTree } from "@/shared/components/layout/NavRouteTree";
 
 import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 
 import { ExceptionCapture } from "@/shared/exceptions";
 
@@ -60,6 +61,11 @@ const SYSTEM_ITEMS: SelectItem[] = [
 
     { value: "RH", label: "Recursos Humanos (RH)" },
 
+];
+
+const FORM_STEPS: FormStepNavItem[] = [
+    { id: "identificacao", label: "Identificação" },
+    { id: "permissoes", label: "Permissões" },
 ];
 
 
@@ -318,6 +324,11 @@ export function ProfileFormClient() {
 
             onSubmit={handleSubmit}
 
+            stepper={{
+                steps: FORM_STEPS,
+                resetKey: editingId ?? "new",
+            }}
+
             footer={
 
                 <>
@@ -340,9 +351,7 @@ export function ProfileFormClient() {
 
         >
 
-            <div className="flex w-full flex-col gap-4 p-4">
-
-            <FormSection title="Identificação">
+            <FormSection id="identificacao" title="Identificação">
 
                 <div className="grid w-full grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-3">
 
@@ -394,7 +403,7 @@ export function ProfileFormClient() {
 
 
 
-            <FormSection title="Permissões por menu" bodyClassName="!p-0 !gap-0">
+            <FormSection id="permissoes" title="Permissões por menu" bodyClassName="!p-0 !gap-0">
 
                 <div className="grid min-h-[26rem] w-full grid-cols-2 overflow-hidden sm:col-span-2">
 
@@ -435,8 +444,6 @@ export function ProfileFormClient() {
             </FormSection>
 
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
-
-            </div>
 
         </CrudFormShell>
 

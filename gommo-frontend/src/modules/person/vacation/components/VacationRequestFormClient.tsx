@@ -26,9 +26,9 @@ import { VacationSplitPeriodsEditor } from "@/modules/person/vacation/components
 import type { VacationPeriodContext } from "@/modules/person/vacation/types/vacation.types";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputSelect, InputString } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -37,6 +37,11 @@ import { mapZodFieldErrors } from "@/shared/lib/zod-field-errors";
 const APPROVAL_ITEMS: SelectItem[] = [
     { value: "true", label: "Aprovado / concedido" },
     { value: "false", label: "Pendente" },
+];
+
+const FORM_STEPS: FormStepNavItem[] = [
+    { id: "periodos", label: "Períodos" },
+    { id: "registro", label: "Registro" },
 ];
 
 type FormField = keyof VacationFormState | "periods";
@@ -187,6 +192,11 @@ export function VacationRequestFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
+            stepper={{
+                steps: FORM_STEPS,
+                entityCode: isEditing ? detailQuery.data?.code : undefined,
+                resetKey: editingId ?? "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -203,14 +213,12 @@ export function VacationRequestFormClient() {
                 </>
             }
         >
-            <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-
-                <FormSection
-                    title="Colaborador e períodos legais"
-                    description="Período aquisitivo (12 meses de trabalho) e concessivo (prazo para a empresa conceder as férias)."
-                    bodyClassName="!grid-cols-1 gap-4"
-                >
+            <FormSection
+                id="periodos"
+                title="Colaborador e períodos legais"
+                description="Período aquisitivo (12 meses de trabalho) e concessivo (prazo para a empresa conceder as férias)."
+                bodyClassName="!grid-cols-1 gap-4"
+            >
                     {periodContext?.contractType === "PJ" ? <VacationPjNotice /> : null}
 
                     {isClt || !form.collaboratorId ? (
@@ -258,7 +266,7 @@ export function VacationRequestFormClient() {
                     )}
                 </FormSection>
 
-                <FormSection title="Registro" bodyClassName="!grid-cols-1">
+                <FormSection id="registro" title="Registro" bodyClassName="!grid-cols-1">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                         <InputSelect
                             label="Situação"
@@ -279,13 +287,12 @@ export function VacationRequestFormClient() {
                 </FormSection>
 
                 {isEditing && detailQuery.data?.approved !== true ? (
-                    <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75 sm:col-span-2">
+                    <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75">
                         Solicitação vinda do RH: revise os períodos, confirme aprovação e salve.
                     </p>
                 ) : null}
 
-                {error ? <p className="text-sm font-medium text-error sm:col-span-2">{error}</p> : null}
-            </div>
+                {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

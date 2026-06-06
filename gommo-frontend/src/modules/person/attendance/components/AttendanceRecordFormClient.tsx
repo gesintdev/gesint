@@ -13,11 +13,14 @@ import {attendancerecordKeys} from "@/modules/person/attendance/attendance.query
 import {attendancerecordService} from "@/modules/person/attendance/services/attendance-record.service";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
-import {EntityCodeField} from "@/shared/components/crud/EntityCodeField";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputString, InputDate} from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Ponto"}];
 
 export function AttendanceRecordFormClient() {
     const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
@@ -88,6 +91,11 @@ export function AttendanceRecordFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
+            stepper={{
+                steps: FORM_STEPS,
+                entityCode: isEditing ? detailQuery.data?.code : undefined,
+                resetKey: editingId ?? "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -96,8 +104,7 @@ export function AttendanceRecordFormClient() {
                 </>
             }
         >
-            <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined}/>
+            <FormSection id="cadastro" title="Ponto">
                 <div className="sm:col-span-2">
                     <CollaboratorPickerField value={form.collaboratorId ?? ""}
                                              onValueChange={(v) => update("collaboratorId", v)} required/>
@@ -108,8 +115,8 @@ export function AttendanceRecordFormClient() {
                              hint="HH:mm"/>
                 <InputString label="Saída" value={form.clockOut ?? ""} onValueChange={(v) => update("clockOut", v)}
                              hint="HH:mm"/>
-                {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-            </div>
+            </FormSection>
+            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

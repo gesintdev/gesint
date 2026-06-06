@@ -11,10 +11,13 @@ import { DepartmentPickerField } from "@/modules/organization/department/compone
 import { jobpositionService } from "@/modules/organization/jobposition/services/jobposition.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputString } from "@/shared/components/ui/input/index";
+
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Cargo" }];
 
 export function JobPositionFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -84,6 +87,11 @@ export function JobPositionFormClient() {
   return (
     <CrudFormShell
       onSubmit={handleSubmit}
+      stepper={{
+        steps: FORM_STEPS,
+        entityCode: isEditing ? detailQuery.data?.code : undefined,
+        resetKey: editingId ?? "new",
+      }}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
@@ -92,17 +100,16 @@ export function JobPositionFormClient() {
         </>
       }
     >
-    <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-      <InputString label="Título do cargo" value={form.title ?? ""} onValueChange={(v) => update("title", v)} required />
-      <InputString label="Código CBO" value={form.cboCode ?? ""} onValueChange={(v) => update("cboCode", v)} />
-      <DepartmentPickerField
-        value={form.departmentId ?? ""}
-        onValueChange={(v) => update("departmentId", v || undefined)}
-        wrapperClassName="sm:col-span-2"
-      />
-      {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-    </div>
+      <FormSection id="cadastro" title="Cargo">
+        <InputString label="Título do cargo" value={form.title ?? ""} onValueChange={(v) => update("title", v)} required />
+        <InputString label="Código CBO" value={form.cboCode ?? ""} onValueChange={(v) => update("cboCode", v)} />
+        <DepartmentPickerField
+          value={form.departmentId ?? ""}
+          onValueChange={(v) => update("departmentId", v || undefined)}
+          wrapperClassName="sm:col-span-2"
+        />
+      </FormSection>
+      {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>
   );
 }

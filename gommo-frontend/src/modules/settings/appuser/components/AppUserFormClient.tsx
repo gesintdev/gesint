@@ -18,6 +18,7 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { InputBase, InputString } from "@/shared/components/ui/input/index";
@@ -30,6 +31,12 @@ const emptyForm = (): AppUserCreateDto => ({
     dpRoleIds: [],
     rhRoleIds: [],
 });
+
+const FORM_STEPS: FormStepNavItem[] = [
+    { id: "colaborador", label: "Colaborador" },
+    { id: "credenciais", label: "Credenciais" },
+    { id: "perfis", label: "Perfis" },
+];
 
 export function AppUserFormClient() {
     const { editingId, isEditing, goToList } = useCrudScreen();
@@ -126,6 +133,10 @@ export function AppUserFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
+            stepper={{
+                steps: FORM_STEPS,
+                resetKey: editingId ?? "new",
+            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -137,8 +148,7 @@ export function AppUserFormClient() {
                 </>
             }
         >
-            <div className="flex w-full flex-col gap-4 p-4">
-            <FormSection title="Colaborador">
+            <FormSection id="colaborador" title="Colaborador">
                 <CollaboratorPickerField
                     value={form.collaboratorId}
                     onValueChange={handleCollaboratorChange}
@@ -147,7 +157,7 @@ export function AppUserFormClient() {
                 />
             </FormSection>
 
-            <FormSection title="Credenciais">
+            <FormSection id="credenciais" title="Credenciais">
                 <div className="grid w-full grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
                     <InputString
                         label="Nome de usuário"
@@ -176,7 +186,7 @@ export function AppUserFormClient() {
                 </div>
             </FormSection>
 
-            <FormSection title="Perfis por sistema">
+            <FormSection id="perfis" title="Perfis por sistema">
                 <div className="grid w-full grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
                     <ProfileRolePicker
                         label="Perfis DP"
@@ -197,7 +207,6 @@ export function AppUserFormClient() {
                 </div>
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
-            </div>
         </CrudFormShell>
     );
 }

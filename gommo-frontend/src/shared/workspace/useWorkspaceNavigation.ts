@@ -137,15 +137,9 @@ export function useWorkspaceNavigation() {
 
     const focusTabById = useCallback(
         (tabId: string) => {
-            const tab = useWorkspaceStore.getState().tabs.find((t) => t.id === tabId);
-            if (!tab) return;
             focusTab(tabId);
-            const { entityKey } = parseWorkspaceTabId(tabId);
-            if (entityKey === "list") syncUrl(tab.href);
-            else if (entityKey === "new") syncUrl(tab.href, { isNew: true });
-            else syncUrl(tab.href, { editingId: entityKey });
         },
-        [focusTab, syncUrl],
+        [focusTab],
     );
 
     const syncCrudUrl = useCallback(
