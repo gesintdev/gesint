@@ -21,6 +21,7 @@ export type InputBaseProps = InputFieldChromeProps & {
     leftIcon?: ReactNode;
     rightSlot?: ReactNode;
     className?: string;
+    inputClassName?: string;
     autoComplete?: string;
     inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
     type?: HTMLInputTypeAttribute;

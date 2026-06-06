@@ -11,7 +11,7 @@ import {
   InputCurrency,
   InputDate,
   InputDatetime,
-  InputDecimal,
+  InputNumber,
   InputRG,
   InputSelect,
   InputSelectAutocomplete,
@@ -44,7 +44,9 @@ type FormState = {
   birthDatetime: string;
   gender: string;
   maritalStatus: string;
-  decimal: string;
+  decimal: number | null;
+  integerNumber: number | null;
+  decimalWithSep: number | null;
   currencyCents: string;
   collaboratorId: string;
   hybridCollaboratorId: string;
@@ -60,7 +62,9 @@ const initial: FormState = {
   birthDatetime: "",
   gender: "",
   maritalStatus: "",
-  decimal: "",
+  decimal: null,
+  integerNumber: null,
+  decimalWithSep: null,
   currencyCents: "",
   collaboratorId: "",
   hybridCollaboratorId: "",
@@ -111,7 +115,23 @@ export function InputsPlaygroundClient() {
           onValueChange={(birthDatetime) => patch({ birthDatetime })}
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          <InputDecimal label="Decimal" value={values.decimal} onValueChange={(decimal) => patch({ decimal })} />
+          <InputNumber label="Decimal (2 casas)" value={values.decimal} onValueChange={(decimal) => patch({ decimal })} />
+          <InputNumber
+            label="Inteiro com sufixo"
+            integer
+            suffix="h"
+            align="left"
+            value={values.integerNumber}
+            onValueChange={(integerNumber) => patch({ integerNumber })}
+          />
+          <InputNumber
+            label="Decimal + milhar"
+            thousandSeparator
+            decimalPlaces={4}
+            prefix="R$"
+            value={values.decimalWithSep}
+            onValueChange={(decimalWithSep) => patch({ decimalWithSep })}
+          />
           <InputCurrency
             label="Moeda (centavos)"
             value={values.currencyCents}
@@ -157,7 +177,7 @@ export function InputsPlaygroundClient() {
 
       <Card title="Valores enviados (sem máscara)" className="lg:col-span-2">
         <p className="mb-3 text-xs text-base-content/55">
-          CPF, CNPJ, CEP e RG retornam apenas dígitos/caracteres limpos. Moeda retorna centavos. Decimal usa ponto.
+          CPF, CNPJ, CEP e RG retornam apenas dígitos/caracteres limpos. Moeda retorna centavos. Número retorna `number | null`.
           Datas retornam ISO (YYYY-MM-DD).
         </p>
         <ValuesPreview values={values} />

@@ -81,7 +81,7 @@ export class AdmissionProcessCreateDto {
     departmentId?: string;
     jobPositionId?: string;
     contractType!: ContractType;
-    /** Formulário: string (moeda/decimal); API: number */
+    /** Formulario: string (moeda); API: number */
     baseSalary?: string | number;
-    workloadHours?: string | number;
+    workloadHours?: number;
 }

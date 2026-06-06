@@ -158,6 +158,7 @@ export function VacationRequestFormClient() {
     };
 
     const maxPecuniary = maxPecuniaryDays(form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences));
+    const entitledDays = form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences);
     const isClt = periodContext?.contractType !== "PJ";
 
     if (isEditing && detailQuery.isLoading) {
@@ -225,10 +226,13 @@ export function VacationRequestFormClient() {
                             </div>
                             <div className="min-w-0">
                                 <VacationLegalPeriodsRightColumn
+                                    entitledDays={entitledDays}
                                     unjustifiedAbsences={form.unjustifiedAbsences}
+                                    justifiedAbsences={form.justifiedAbsences ?? 0}
                                     pecuniaryAllowanceDays={form.pecuniaryAllowanceDays}
                                     maxPecuniary={maxPecuniary}
                                     onUnjustifiedAbsencesChange={(v) => update("unjustifiedAbsences", v)}
+                                    onJustifiedAbsencesChange={(v) => update("justifiedAbsences", v)}
                                     onPecuniaryChange={(v) => update("pecuniaryAllowanceDays", v)}
                                     pecuniaryError={fieldErrors.pecuniaryAllowanceDays}
                                     periods={form.periods}

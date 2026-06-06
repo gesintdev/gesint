@@ -25,6 +25,56 @@ export function inclusiveDays(start: string, end: string): number {
     return diff + 1;
 }
 
+/** Data fim inclusiva: inicio + N dias corridos (ex.: 01/01 + 5 dias = 05/01). */
+export function endDateFromStartAndDays(startDate: string, days: number): string {
+    if (!startDate || days <= 0) return "";
+    const end = parseIsoDate(startDate);
+    end.setDate(end.getDate() + days - 1);
+    return formatIsoDate(end);
+}
+
+export function syncPeriodWithDays(period: VacationSplitPeriod): VacationSplitPeriod {
+    if (!period.startDate || period.days <= 0) {
+        return {...period, endDate: ""};
+    }
+    return {...period, endDate: endDateFromStartAndDays(period.startDate, period.days)};
+}
+
+export function totalGozoDays(periods: VacationSplitPeriod[]): number {
+    return periods.filter((p) => p.days > 0).reduce((sum, p) => sum + p.days, 0);
+}
+
+export type VacationBalanceSummary = {
+    entitledDays: number;
+    gozoDays: number;
+    pecuniaryDays: number;
+    allocatedDays: number;
+    remainingDays: number;
+};
+
+export function summarizeVacationBalance(
+    entitledDays: number,
+    periods: VacationSplitPeriod[],
+    pecuniaryDays: number,
+): VacationBalanceSummary {
+    const gozoDays = totalGozoDays(periods);
+    const allocatedDays = gozoDays + pecuniaryDays;
+    return {
+        entitledDays,
+        gozoDays,
+        pecuniaryDays,
+        allocatedDays,
+        remainingDays: entitledDays - allocatedDays,
+    };
+}
+
+/** Dias restantes ate uma data ISO (negativo = prazo vencido). */
+export function daysUntilDate(targetIso: string, referenceIso = formatIsoDate(new Date())): number {
+    const target = parseIsoDate(targetIso);
+    const ref = parseIsoDate(referenceIso);
+    return Math.round((target.getTime() - ref.getTime()) / 86_400_000);
+}
+
 export function vacationDaysEntitled(unjustifiedAbsences: number): number {
     if (unjustifiedAbsences <= 5) return 30;
     if (unjustifiedAbsences <= 14) return 24;
@@ -93,9 +143,7 @@ export function maxPecuniaryDays(entitledDays: number): number {
 }
 
 export function validateSplitPeriods(periods: VacationSplitPeriod[]): { valid: boolean; message?: string } {
-    const dayCounts = periods
-        .filter((p) => p.startDate && p.endDate)
-        .map((p) => inclusiveDays(p.startDate, p.endDate));
+    const dayCounts = periods.filter((p) => p.days > 0).map((p) => p.days);
 
     if (dayCounts.length === 0) {
         return { valid: false, message: "Informe ao menos um período de gozo." };
@@ -117,12 +165,13 @@ export function validateSplitPeriods(periods: VacationSplitPeriod[]): { valid: b
     return { valid: true };
 }
 
+/** Vedado iniciar férias nos 2 dias que antecedem domingo (DSR) ou feriado (CLT). */
 export function isRestrictedVacationStart(startDate: string): boolean {
     const start = parseIsoDate(startDate);
     for (let i = 1; i <= 2; i++) {
-        const check = new Date(start);
-        check.setDate(check.getDate() - i);
-        if (isWeeklyRestDay(check) || isNationalHoliday(check)) return true;
+        const followingRestOrHoliday = new Date(start);
+        followingRestOrHoliday.setDate(followingRestOrHoliday.getDate() + i);
+        if (isWeeklyRestDay(followingRestOrHoliday) || isNationalHoliday(followingRestOrHoliday)) return true;
     }
     return false;
 }
@@ -152,10 +201,4 @@ export function estimateVacationPayment(
         grossTotal: Math.round((vacationPay + constitutionalThird) * 100) / 100,
         paymentDeadline: firstPeriodStart ? paymentDeadline(firstPeriodStart) : null,
     };
-}
-
-export function totalGozoDays(periods: VacationSplitPeriod[]): number {
-    return periods
-        .filter((p) => p.startDate && p.endDate)
-        .reduce((sum, p) => sum + inclusiveDays(p.startDate, p.endDate), 0);
 }

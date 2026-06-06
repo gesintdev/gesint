@@ -25,7 +25,7 @@ import {
     InputCPF,
     InputCurrency,
     InputDate,
-    InputDecimal,
+    InputNumber,
     RgIdentityFields,
     InputSelect,
     InputString,
@@ -329,10 +329,13 @@ export function AdmissionProcessFormClient() {
                         onValueChange={(v) => update("baseSalary", v)}
                         emitAsDecimal
                     />
-                    <InputDecimal
+                    <InputNumber
                         label="Carga horária semanal"
-                        value={form.workloadHours != null ? String(form.workloadHours) : ""}
-                        onValueChange={(v) => update("workloadHours", v)}
+                        integer
+                        suffix="h"
+                        align="left"
+                        value={form.workloadHours}
+                        onValueChange={(v) => update("workloadHours", v ?? undefined)}
                     />
                     <InputString
                         label="ID empresa (opcional)"

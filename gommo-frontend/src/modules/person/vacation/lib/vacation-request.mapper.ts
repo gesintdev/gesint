@@ -1,6 +1,11 @@
 import type { LeaveRequest, LeaveRequestCreateDto } from "@/modules/person/leave/dto/leave-request.dto";
 import type { VacationRequestFormSchema } from "@/modules/person/vacation/schemas/vacation-request.schema";
-import { totalGozoDays, vacationDaysEntitled } from "@/modules/person/vacation/lib/vacation-rules";
+import {
+    inclusiveDays,
+    syncPeriodWithDays,
+    totalGozoDays,
+    vacationDaysEntitled,
+} from "@/modules/person/vacation/lib/vacation-rules";
 
 export type VacationFormState = VacationRequestFormSchema & {
     vacationDaysEntitled?: number;
@@ -10,10 +15,11 @@ export function emptyVacationForm(): VacationFormState {
     return {
         collaboratorId: "",
         unjustifiedAbsences: 0,
+        justifiedAbsences: 0,
         pecuniaryAllowanceDays: 0,
         approved: true,
         notes: "",
-        periods: [{ startDate: "", endDate: "" }],
+        periods: [{ startDate: "", endDate: "", days: 0 }],
         acquisitionPeriodStart: "",
         acquisitionPeriodEnd: "",
         baseSalarySnapshot: undefined,
@@ -25,10 +31,20 @@ export function leaveToVacationForm(entity: LeaveRequest): VacationFormState {
     return {
         collaboratorId: entity.collaboratorId ?? "",
         unjustifiedAbsences: entity.unjustifiedAbsences ?? 0,
+        justifiedAbsences: 0,
         pecuniaryAllowanceDays: entity.pecuniaryAllowanceDays ?? 0,
         approved: entity.approved ?? true,
         notes: entity.notes ?? "",
-        periods: [{ startDate: entity.startDate?.slice(0, 10) ?? "", endDate: entity.endDate?.slice(0, 10) ?? "" }],
+        periods: [
+            syncPeriodWithDays({
+                startDate: entity.startDate?.slice(0, 10) ?? "",
+                endDate: entity.endDate?.slice(0, 10) ?? "",
+                days:
+                    entity.startDate && entity.endDate
+                        ? inclusiveDays(entity.startDate.slice(0, 10), entity.endDate.slice(0, 10))
+                        : 0,
+            }),
+        ],
         acquisitionPeriodStart: entity.acquisitionPeriodStart?.slice(0, 10) ?? "",
         acquisitionPeriodEnd: entity.acquisitionPeriodEnd?.slice(0, 10) ?? "",
         baseSalarySnapshot: entity.baseSalarySnapshot != null ? Number(entity.baseSalarySnapshot) : undefined,
@@ -43,12 +59,14 @@ export function vacationFormToLeaveDtos(
 ): LeaveRequestCreateDto[] {
     const entitled = vacationDaysEntitled(form.unjustifiedAbsences);
     return form.periods
-        .filter((p) => p.startDate && p.endDate)
-        .map((period, index) => ({
+        .filter((p) => p.startDate && p.days > 0)
+        .map((period, index) => {
+            const synced = syncPeriodWithDays(period);
+            return {
             collaboratorId: form.collaboratorId,
             leaveType: "VACATION" as const,
-            startDate: period.startDate,
-            endDate: period.endDate,
+            startDate: synced.startDate,
+            endDate: synced.endDate,
             approved: form.approved ?? true,
             notes: form.notes,
             pecuniaryAllowanceDays: index === 0 ? form.pecuniaryAllowanceDays : 0,
@@ -59,7 +77,8 @@ export function vacationFormToLeaveDtos(
             splitGroupId,
             splitSequence: index + 1,
             baseSalarySnapshot: form.baseSalarySnapshot,
-        }));
+            };
+        });
 }
 
 export function vacationFormToSingleLeaveDto(form: VacationRequestFormSchema): LeaveRequestCreateDto {

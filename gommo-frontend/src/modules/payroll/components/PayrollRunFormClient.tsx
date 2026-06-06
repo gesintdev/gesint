@@ -13,7 +13,7 @@ import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
-import { InputSelect, InputDecimal } from "@/shared/components/ui/input/index";
+import { InputSelect, InputNumber } from "@/shared/components/ui/input/index";
 
 export function PayrollRunFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -93,8 +93,8 @@ export function PayrollRunFormClient() {
     >
     <div className="grid gap-3 p-4 sm:grid-cols-2">
       <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-      <InputDecimal label="Ano de referência" value={String(form.referenceYear ?? "")} onValueChange={(v) => update("referenceYear", Number(v) || 0)} required />
-      <InputDecimal label="Mês de referência" value={String(form.referenceMonth ?? "")} onValueChange={(v) => update("referenceMonth", Number(v) || 0)} required />
+      <InputNumber label="Ano de referência" integer align="left" value={form.referenceYear} onValueChange={(v) => update("referenceYear", v ?? 0)} required />
+      <InputNumber label="Mês de referência" integer align="left" value={form.referenceMonth} onValueChange={(v) => update("referenceMonth", v ?? 0)} required />
       <InputSelect
         label="Status da folha"
         items={[  { value: "DRAFT", label: "Rascunho" },

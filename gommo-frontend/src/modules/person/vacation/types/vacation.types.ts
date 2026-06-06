@@ -26,6 +26,7 @@ export type VacationPeriodContext = {
 };
 
 export type VacationSplitPeriod = {
+    days: number;
     startDate: string;
     endDate: string;
 };

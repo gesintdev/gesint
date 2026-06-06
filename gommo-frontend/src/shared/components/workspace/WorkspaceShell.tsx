@@ -1,19 +1,25 @@
 "use client";
 
 import clsx from "clsx";
-import {usePathname, useRouter, useSearchParams} from "next/navigation";
-import {useEffect, useRef} from "react";
-import {WorkspaceTabBar, WorkspaceTabBarEmptyHint} from "@/shared/components/workspace/WorkspaceTabBar";
-import {DashboardView} from "@/shared/workspace/views/DashboardView";
-import {WorkspaceTabProvider} from "@/shared/workspace/WorkspaceTabContext";
-import {getWorkspacePageComponent} from "@/shared/workspace/workspace-page-registry";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
-import {findRouteByHref} from "@/shared/workspace/workspace-routes";
-import {buildWorkspaceTabId} from "@/shared/workspace/workspace-tab-id";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { WorkspaceTabBar, WorkspaceTabBarEmptyHint } from "@/shared/components/workspace/WorkspaceTabBar";
+import { DashboardView } from "@/shared/workspace/views/DashboardView";
+import { WorkspaceTabProvider } from "@/shared/workspace/WorkspaceTabContext";
+import { getWorkspacePageComponent } from "@/shared/workspace/workspace-page-registry";
+import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import { findRouteByHref } from "@/shared/workspace/workspace-routes";
+import { buildWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
+import {
+    buildLocationKey,
+    readLastWorkspaceInitLocation,
+    replaceUrlIfNeeded,
+    writeLastWorkspaceInitLocation,
+} from "@/shared/workspace/workspace-location";
 import {
     parseWorkspaceLocation,
     useWorkspaceNavigation,
-    workspaceUrl,
+    workspaceUrlForTab,
     workspaceUrlWithCrud,
 } from "@/shared/workspace/useWorkspaceNavigation";
 
@@ -24,31 +30,54 @@ export function WorkspaceShell() {
     const tabs = useWorkspaceStore((s) => s.tabs);
     const activeTabId = useWorkspaceStore((s) => s.activeTabId);
     const hasHydrated = useWorkspaceStore((s) => s._hasHydrated);
-    const {focusTabById, openFromHref, openRouteRecord} = useWorkspaceNavigation();
+    const { focusTabById, openFromHref, openRouteRecord } = useWorkspaceNavigation();
     const closeTab = useWorkspaceStore((s) => s.closeTab);
-    const initialUrlHandled = useRef(false);
+    const [mountedTabIds, setMountedTabIds] = useState<Set<string>>(() => new Set());
 
     useEffect(() => {
-        if (!hasHydrated || initialUrlHandled.current) return;
-        initialUrlHandled.current = true;
+        if (activeTabId) {
+            setMountedTabIds((prev) => {
+                if (prev.has(activeTabId)) return prev;
+                const next = new Set(prev);
+                next.add(activeTabId);
+                return next;
+            });
+        }
+    }, [activeTabId]);
+
+    useEffect(() => {
+        if (!hasHydrated) return;
+
+        const currentKey = buildLocationKey(pathname, searchParams);
+        if (readLastWorkspaceInitLocation() === currentKey) return;
 
         const state = useWorkspaceStore.getState();
         if (state.tabs.length > 0 && state.activeTabId) {
             const active = state.tabs.find((t) => t.id === state.activeTabId);
             if (active) {
-                router.replace(workspaceUrl(active.href), {scroll: false});
+                const targetUrl = workspaceUrlForTab(active.href, active.id);
+                replaceUrlIfNeeded(router, pathname, searchParams, targetUrl);
+                writeLastWorkspaceInitLocation(targetUrl);
                 return;
             }
         }
 
         const parsed = parseWorkspaceLocation(pathname, searchParams.toString());
-        if (!parsed) return;
+        if (!parsed) {
+            writeLastWorkspaceInitLocation(currentKey);
+            return;
+        }
 
         const route = findRouteByHref(parsed.href);
-        if (!route) return;
+        if (!route) {
+            writeLastWorkspaceInitLocation(currentKey);
+            return;
+        }
 
         if (parsed.editingId) {
+            const targetUrl = workspaceUrlWithCrud(parsed.href, { editingId: parsed.editingId });
             openRouteRecord(route, parsed.editingId);
+            writeLastWorkspaceInitLocation(targetUrl);
             return;
         }
 
@@ -57,16 +86,20 @@ export function WorkspaceShell() {
 
         if (existingList) {
             focusTabById(existingList.id);
+            const targetUrl = parsed.isNew ? workspaceUrlWithCrud(parsed.href, { isNew: true }) : currentKey;
             if (parsed.isNew) {
-                router.replace(workspaceUrlWithCrud(parsed.href, {isNew: true}), {scroll: false});
+                replaceUrlIfNeeded(router, pathname, searchParams, targetUrl);
             }
+            writeLastWorkspaceInitLocation(targetUrl);
             return;
         }
 
         openFromHref(parsed.href);
+        const targetUrl = parsed.isNew ? workspaceUrlWithCrud(parsed.href, { isNew: true }) : parsed.href;
         if (parsed.isNew) {
-            router.replace(workspaceUrlWithCrud(parsed.href, {isNew: true}), {scroll: false});
+            replaceUrlIfNeeded(router, pathname, searchParams, targetUrl);
         }
+        writeLastWorkspaceInitLocation(targetUrl);
     }, [focusTabById, hasHydrated, openFromHref, openRouteRecord, pathname, router, searchParams]);
 
     const showDashboard = tabs.length === 0;
@@ -81,17 +114,19 @@ export function WorkspaceShell() {
                     onClose={closeTab}
                 />
             ) : (
-                <WorkspaceTabBarEmptyHint/>
+                <WorkspaceTabBarEmptyHint />
             )}
 
             <div className="workspace-content relative min-h-0 flex-1 overflow-hidden">
                 {showDashboard && (
                     <div className="workspace-panel absolute inset-0">
-                        <DashboardView/>
+                        <DashboardView />
                     </div>
                 )}
 
                 {tabs.map((tab) => {
+                    if (!mountedTabIds.has(tab.id)) return null;
+
                     const Page = getWorkspacePageComponent(tab.href);
                     const active = tab.id === activeTabId;
 
@@ -107,7 +142,7 @@ export function WorkspaceShell() {
                             aria-hidden={!active}
                         >
                             <WorkspaceTabProvider tab={tab}>
-                                <Page/>
+                                <Page />
                             </WorkspaceTabProvider>
                         </div>
                     );

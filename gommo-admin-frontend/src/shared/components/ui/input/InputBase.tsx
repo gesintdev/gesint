@@ -24,6 +24,7 @@ export function InputBase({
                               leftIcon,
                               rightSlot,
                               className,
+                              inputClassName,
                               autoComplete,
                               inputMode,
                               type = "text",
@@ -69,6 +70,7 @@ export function InputBase({
                     min={min}
                     max={max}
                     step={step}
+                    className={inputClassName}
                     aria-invalid={ariaInvalid ?? Boolean(error)}
                     aria-required={required}
                     onChange={(e) => onDisplayChange(e.target.value)}

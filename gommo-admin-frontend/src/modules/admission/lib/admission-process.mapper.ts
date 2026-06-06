@@ -38,7 +38,7 @@ export function admissionprocessToFormDto(entity: AdmissionProcess): AdmissionPr
         jobPositionId: entity.jobPositionId ?? "",
         contractType: entity.contractType ?? "CLT",
         baseSalary: entity.baseSalary != null ? String(entity.baseSalary) : "",
-        workloadHours: entity.workloadHours != null ? String(entity.workloadHours) : "",
+        workloadHours: entity.workloadHours ?? undefined,
     };
 }
 
@@ -81,6 +81,6 @@ export function admissionFormToPayload(form: AdmissionProcessCreateDto): Admissi
         email: form.email?.trim() || undefined,
         notes: form.notes?.trim() || undefined,
         baseSalary: form.baseSalary != null ? Number(form.baseSalary) : undefined,
-        workloadHours: form.workloadHours != null ? Number(form.workloadHours) : undefined,
+        workloadHours: form.workloadHours ?? undefined,
     };
 }

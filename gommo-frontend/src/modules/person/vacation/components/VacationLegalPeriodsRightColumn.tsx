@@ -3,10 +3,13 @@ import { VacationSplitPeriodsEditor } from "@/modules/person/vacation/components
 import type { VacationSplitPeriod } from "@/modules/person/vacation/types/vacation.types";
 
 type Props = {
+    entitledDays: number;
     unjustifiedAbsences: number;
+    justifiedAbsences: number;
     pecuniaryAllowanceDays: number;
     maxPecuniary: number;
     onUnjustifiedAbsencesChange: (value: number) => void;
+    onJustifiedAbsencesChange: (value: number) => void;
     onPecuniaryChange: (value: number) => void;
     pecuniaryError?: string;
     periods: VacationSplitPeriod[];
@@ -15,10 +18,13 @@ type Props = {
 };
 
 export function VacationLegalPeriodsRightColumn({
+    entitledDays,
     unjustifiedAbsences,
+    justifiedAbsences,
     pecuniaryAllowanceDays,
     maxPecuniary,
     onUnjustifiedAbsencesChange,
+    onJustifiedAbsencesChange,
     onPecuniaryChange,
     pecuniaryError,
     periods,
@@ -28,10 +34,14 @@ export function VacationLegalPeriodsRightColumn({
     return (
         <div className="flex flex-col gap-4">
             <VacationBalanceSidePanel
+                entitledDays={entitledDays}
+                periods={periods}
                 unjustifiedAbsences={unjustifiedAbsences}
+                justifiedAbsences={justifiedAbsences}
                 pecuniaryAllowanceDays={pecuniaryAllowanceDays}
                 maxPecuniary={maxPecuniary}
                 onUnjustifiedAbsencesChange={onUnjustifiedAbsencesChange}
+                onJustifiedAbsencesChange={onJustifiedAbsencesChange}
                 onPecuniaryChange={onPecuniaryChange}
                 pecuniaryError={pecuniaryError}
             />

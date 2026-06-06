@@ -1,11 +1,12 @@
 "use client";
 
-import {useCallback} from "react";
-import {useRouter} from "next/navigation";
-import type {AppRoute} from "@/config/routes";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
-import {defaultShortLabel, findRouteByHref} from "@/shared/workspace/workspace-routes";
-import {buildWorkspaceTabId, parseWorkspaceTabId} from "@/shared/workspace/workspace-tab-id";
+import { useCallback } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { AppRoute } from "@/config/routes";
+import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import { defaultShortLabel, findRouteByHref } from "@/shared/workspace/workspace-routes";
+import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
+import { replaceUrlIfNeeded } from "@/shared/workspace/workspace-location";
 
 function routeToInput(route: AppRoute, shortLabel?: string) {
     if (!route.href) throw new Error(`Rota ${route.id} sem href`);
@@ -42,25 +43,34 @@ export function parseWorkspaceLocation(pathname: string, search: string): Worksp
 
 export function workspaceUrlWithCrud(
     href: string,
-    crud: {editingId?: string | null; isNew?: boolean},
+    crud: { editingId?: string | null; isNew?: boolean },
 ): string {
     if (crud.editingId) return `${href}?edit=${encodeURIComponent(crud.editingId)}`;
     if (crud.isNew) return `${href}?new=1`;
     return href;
 }
 
+export function workspaceUrlForTab(href: string, tabId: string): string {
+    const { entityKey } = parseWorkspaceTabId(tabId);
+    if (entityKey === "new") return workspaceUrlWithCrud(href, { isNew: true });
+    if (entityKey !== "list") return workspaceUrlWithCrud(href, { editingId: entityKey });
+    return workspaceUrl(href);
+}
+
 export function useWorkspaceNavigation() {
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const openModuleTab = useWorkspaceStore((s) => s.openModuleTab);
     const openRecordTab = useWorkspaceStore((s) => s.openRecordTab);
     const focusTab = useWorkspaceStore((s) => s.focusTab);
 
     const syncUrl = useCallback(
-        (href: string, crud?: {editingId?: string | null; isNew?: boolean}) => {
+        (href: string, crud?: { editingId?: string | null; isNew?: boolean }) => {
             const url = crud ? workspaceUrlWithCrud(href, crud) : workspaceUrl(href);
-            router.replace(url, {scroll: false});
+            replaceUrlIfNeeded(router, pathname, searchParams, url);
         },
-        [router],
+        [pathname, router, searchParams],
     );
 
     const openRouteModule = useCallback(
@@ -76,7 +86,7 @@ export function useWorkspaceNavigation() {
         (
             route: AppRoute,
             entityId: string,
-            options?: {titleSuffix?: string; shortLabel?: string},
+            options?: { titleSuffix?: string; shortLabel?: string },
         ) => {
             const input = routeToInput(route, options?.shortLabel);
             const tabId = buildWorkspaceTabId(input.routeId, entityId);
@@ -93,7 +103,7 @@ export function useWorkspaceNavigation() {
                     titleSuffix: options?.titleSuffix,
                 });
             }
-            syncUrl(input.href, {editingId: entityId});
+            syncUrl(input.href, { editingId: entityId });
         },
         [focusTab, openRecordTab, syncUrl],
     );
@@ -111,7 +121,7 @@ export function useWorkspaceNavigation() {
                     entityKey: "new",
                 });
             }
-            syncUrl(input.href, {isNew: true});
+            syncUrl(input.href, { isNew: true });
         },
         [focusTab, openRecordTab, syncUrl],
     );
@@ -130,16 +140,16 @@ export function useWorkspaceNavigation() {
             const tab = useWorkspaceStore.getState().tabs.find((t) => t.id === tabId);
             if (!tab) return;
             focusTab(tabId);
-            const {entityKey} = parseWorkspaceTabId(tabId);
+            const { entityKey } = parseWorkspaceTabId(tabId);
             if (entityKey === "list") syncUrl(tab.href);
-            else if (entityKey === "new") syncUrl(tab.href, {isNew: true});
-            else syncUrl(tab.href, {editingId: entityKey});
+            else if (entityKey === "new") syncUrl(tab.href, { isNew: true });
+            else syncUrl(tab.href, { editingId: entityKey });
         },
         [focusTab, syncUrl],
     );
 
     const syncCrudUrl = useCallback(
-        (tabId: string, crud: {editingId?: string | null; isNew?: boolean}) => {
+        (tabId: string, crud: { editingId?: string | null; isNew?: boolean }) => {
             const tab = useWorkspaceStore.getState().tabs.find((t) => t.id === tabId);
             if (!tab) return;
             syncUrl(tab.href, crud);

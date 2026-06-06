@@ -13,7 +13,7 @@ import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
-import { InputSelect, InputDecimal } from "@/shared/components/ui/input/index";
+import { InputSelect, InputNumber } from "@/shared/components/ui/input/index";
 
 export function PayrollRunFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -96,8 +96,8 @@ export function PayrollRunFormClient() {
         <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar folha" : "Novo(a) folha"}</p>
       </div>
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-      <InputDecimal label="Reference Year" value={String(form.referenceYear ?? "")} onValueChange={(v) => update("referenceYear", Number(v) || 0)} required />
-      <InputDecimal label="Reference Month" value={String(form.referenceMonth ?? "")} onValueChange={(v) => update("referenceMonth", Number(v) || 0)} required />
+      <InputNumber label="Reference Year" integer align="left" value={form.referenceYear} onValueChange={(v) => update("referenceYear", v ?? 0)} required />
+      <InputNumber label="Reference Month" integer align="left" value={form.referenceMonth} onValueChange={(v) => update("referenceMonth", v ?? 0)} required />
       <InputSelect
         label="Payroll Status"
         items={[  { value: "DRAFT", label: "Rascunho" },

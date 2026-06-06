@@ -114,10 +114,11 @@ public final class VacationRules {
         return new SplitValidation(true, null);
     }
 
+    /** Vedado iniciar férias nos 2 dias que antecedem domingo (DSR) ou feriado (CLT). */
     public static boolean isRestrictedVacationStart(LocalDate startDate) {
         for (int i = 1; i <= 2; i++) {
-            LocalDate check = startDate.minusDays(i);
-            if (isWeeklyRestDay(check) || NATIONAL_HOLIDAYS.contains(check)) {
+            LocalDate followingRestOrHoliday = startDate.plusDays(i);
+            if (isWeeklyRestDay(followingRestOrHoliday) || NATIONAL_HOLIDAYS.contains(followingRestOrHoliday)) {
                 return true;
             }
         }

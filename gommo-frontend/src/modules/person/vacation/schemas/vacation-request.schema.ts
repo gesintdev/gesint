@@ -7,14 +7,16 @@ import {
 } from "@/modules/person/vacation/lib/vacation-rules";
 
 const splitPeriodSchema = z.object({
-    startDate: z.string().min(1, "Informe o início"),
-    endDate: z.string().min(1, "Informe o fim"),
+    days: z.coerce.number().int().min(0, "Informe os dias"),
+    startDate: z.string(),
+    endDate: z.string(),
 });
 
 export const vacationRequestFormSchema = z
     .object({
         collaboratorId: z.string().min(1, "Selecione o colaborador").uuid("Colaborador inválido"),
         unjustifiedAbsences: z.coerce.number().int().min(0, "Informe um valor válido"),
+        justifiedAbsences: z.coerce.number().int().min(0).optional(),
         pecuniaryAllowanceDays: z.coerce.number().int().min(0),
         approved: z.boolean().optional(),
         notes: z.string().optional(),
@@ -31,13 +33,29 @@ export const vacationRequestFormSchema = z
 
         for (let i = 0; i < data.periods.length; i++) {
             const p = data.periods[i];
-            if (p.endDate < p.startDate) {
+            if (p.startDate && p.days <= 0) {
                 ctx.addIssue({
                     code: "custom",
-                    message: "Data fim deve ser posterior ao início",
-                    path: ["periods", i, "endDate"],
+                    message: "Informe a quantidade de dias do período",
+                    path: ["periods", i, "days"],
                 });
             }
+            if (p.days > 0 && !p.startDate) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Informe a data de início",
+                    path: ["periods", i, "startDate"],
+                });
+            }
+        }
+
+        const activePeriods = data.periods.filter((p) => p.days > 0);
+        if (activePeriods.length === 0) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Informe ao menos um período de gozo com dias",
+                path: ["periods"],
+            });
         }
 
         const entitledDays = vacationDaysEntitled(data.unjustifiedAbsences);

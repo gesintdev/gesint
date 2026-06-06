@@ -1,6 +1,6 @@
 "use client";
 
-import { getSession, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { setAuthToken } from "@/shared/lib/api.client";
@@ -22,14 +22,6 @@ export function SessionRefresh() {
       void signOut({ callbackUrl: "/login" });
     }
   }, [session?.error]);
-
-  useEffect(() => {
-    const intervalMs = 4 * 60 * 1000;
-    const id = setInterval(() => {
-      void getSession();
-    }, intervalMs);
-    return () => clearInterval(id);
-  }, []);
 
   return null;
 }

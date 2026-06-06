@@ -1,6 +1,6 @@
 "use client";
 
-import {getSession, signOut, useSession} from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import {useEffect, useMemo, useRef} from "react";
 import {toast} from "sonner";
 import {canAccessRoute} from "@/shared/auth/route-access";
@@ -55,14 +55,6 @@ export function SessionRefresh() {
         );
         retainTabsByRouteIds(allowedRouteIds);
     }, [retainTabsByRouteIds, session?.user?.permissions]);
-
-    useEffect(() => {
-        const intervalMs = 4 * 60 * 1000;
-        const id = setInterval(() => {
-            void getSession();
-        }, intervalMs);
-        return () => clearInterval(id);
-    }, []);
 
     return null;
 }

@@ -397,7 +397,7 @@ for (const m of MODULES) {
             if (f.input === "time")
                 return `      <InputString label="${label}" value={form.${f.name} ?? ""} onValueChange={(v) => update("${f.name}", v)} hint="HH:mm" />`;
             if (f.input === "number")
-                return `      <InputDecimal label="${label}" value={String(form.${f.name} ?? "")} onValueChange={(v) => update("${f.name}", Number(v) || 0)} ${f.required ? "required" : ""} />`;
+                return `      <InputNumber label="${label}" integer align="left" value={form.${f.name}} onValueChange={(v) => update("${f.name}", v ?? 0)} ${f.required ? "required" : ""} />`;
             if (f.input === "textarea")
                 return `      <InputString label="${label}" value={form.${f.name} ?? ""} onValueChange={(v) => update("${f.name}", v)} wrapperClassName="sm:col-span-2" />`;
             return `      <InputString label="${label}" value={form.${f.name} ?? ""} onValueChange={(v) => update("${f.name}", v)} ${f.required ? "required" : ""} />`;
@@ -554,7 +554,7 @@ export function ${Pascal}ListClient() {
         ...(m.dtoFields.some((f) => f.input === "cnpj") ? ["InputCNPJ"] : []),
         ...(m.dtoFields.some((f) => f.input === "currency") ? ["InputCurrency"] : []),
         ...(m.dtoFields.some((f) => f.select) ? ["InputSelect"] : []),
-        ...(m.dtoFields.some((f) => f.input === "number") ? ["InputDecimal"] : []),
+        ...(m.dtoFields.some((f) => f.input === "number") ? ["InputNumber"] : []),
     ].join(", ");
 
     writeFile(
