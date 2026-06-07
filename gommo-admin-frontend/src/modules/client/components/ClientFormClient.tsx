@@ -14,7 +14,8 @@ import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
-import { InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { InputSelect, InputString, InputCNPJ } from "@/shared/components/ui/input/index";
+import { digitsOnly } from "@/shared/lib/input/digits";
 
 export function ClientFormClient() {
     const { editingId, isEditing, goToList } = useCrudScreen();
@@ -75,8 +76,12 @@ export function ClientFormClient() {
 
     const saveMutation = useMutation({
         mutationFn: async (dto: ClientCreateDto) => {
-            if (isEditing && editingId) return clientService.update(editingId, dto);
-            return clientService.create(dto);
+            const payload = {
+                ...dto,
+                document: dto.document ? digitsOnly(dto.document) : undefined,
+            };
+            if (isEditing && editingId) return clientService.update(editingId, payload);
+            return clientService.create(payload);
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: clientKeys.all });
@@ -151,7 +156,12 @@ export function ClientFormClient() {
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <InputString label="Nome" value={form.name} onValueChange={(v) => update("name", v)} required />
                 <InputString label="Slug" value={form.slug} onValueChange={(v) => update("slug", v)} required />
-                <InputString label="Documento (CNPJ)" value={form.document ?? ""} onValueChange={(v) => update("document", v)} />
+                <InputCNPJ
+                    label="CNPJ"
+                    value={form.document ?? ""}
+                    onValueChange={(v) => update("document", v)}
+                    hint="Cadastro Nacional da Pessoa Juridica do cliente"
+                />
                 <InputString label="E-mail de contato" value={form.contactEmail ?? ""} onValueChange={(v) => update("contactEmail", v)} />
                 <InputString label="Telefone" value={form.contactPhone ?? ""} onValueChange={(v) => update("contactPhone", v)} />
                 <InputString label="Observações" value={form.notes ?? ""} onValueChange={(v) => update("notes", v)} />
@@ -204,7 +214,7 @@ export function ClientFormClient() {
                     label="Referência de segredo"
                     value={form.databaseSecretRef ?? ""}
                     onValueChange={(v) => update("databaseSecretRef", v)}
-                    hint="Ex.: vault://tenants/acme/db"
+                    hint="Dev: DB_PASSWORD. Producao: vault://tenants/acme/db"
                 />
 
                 <div className="mt-2 border-b border-[var(--gommo-border-subtle)] pb-2">

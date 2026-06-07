@@ -1,4 +1,5 @@
 import type { Client, ClientCreateDto } from "@/modules/client/dto/client.dto";
+import { digitsOnly } from "@/shared/lib/input/digits";
 
 export function emptyClientForm(): ClientCreateDto {
     return {
@@ -27,7 +28,7 @@ export function clientToFormDto(client: Client): ClientCreateDto {
     return {
         name: client.name,
         slug: client.slug,
-        document: client.document ?? "",
+        document: client.document ? digitsOnly(client.document) : "",
         contactEmail: client.contactEmail ?? "",
         contactPhone: client.contactPhone ?? "",
         notes: client.notes ?? "",

@@ -42,9 +42,6 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
         if (path.startsWith("/actuator/health") || path.startsWith("/actuator/prometheus")) {
             return true;
         }
-        if (path.startsWith("/api/v1/auth")) {
-            return true;
-        }
         return false;
     }
 

@@ -1,5 +1,9 @@
 package br.com.gommo.core.security;
 
+import br.com.gommo.core.exception.BusinessException;
+import br.com.gommo.core.tenant.MultiTenantProperties;
+import br.com.gommo.core.tenant.TenantAuthValidator;
+import br.com.gommo.core.tenant.TenantHttpResponses;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,9 +23,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final MultiTenantProperties multiTenantProperties;
+    private final TenantAuthValidator tenantAuthValidator;
+    private final TenantHttpResponses tenantHttpResponses;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(
+            JwtService jwtService,
+            MultiTenantProperties multiTenantProperties,
+            TenantAuthValidator tenantAuthValidator,
+            TenantHttpResponses tenantHttpResponses) {
         this.jwtService = jwtService;
+        this.multiTenantProperties = multiTenantProperties;
+        this.tenantAuthValidator = tenantAuthValidator;
+        this.tenantHttpResponses = tenantHttpResponses;
     }
 
     @Override
@@ -36,6 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     filterChain.doFilter(request, response);
                     return;
                 }
+                if (multiTenantProperties.isEnabled()) {
+                    UUID tokenTenantId = jwtService.extractTenantId(token).orElse(null);
+                    tenantAuthValidator.assertTokenMatchesCurrentTenant(tokenTenantId);
+                }
                 UUID userId = UUID.fromString(claims.getSubject());
                 @SuppressWarnings("unchecked")
                 List<String> permissions = claims.get("permissions", List.class);
@@ -45,6 +63,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userId, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (BusinessException ex) {
+                SecurityContextHolder.clearContext();
+                tenantHttpResponses.writeBusinessError(request, response, ex);
+                return;
             } catch (Exception ignored) {
                 SecurityContextHolder.clearContext();
             }

@@ -1,6 +1,10 @@
 package br.com.gommo.modules.root.service;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.core.tenant.MultiTenantProperties;
+import br.com.gommo.core.tenant.TenantAuthValidator;
+import br.com.gommo.core.tenant.TenantContext;
+import br.com.gommo.core.tenant.TenantContextHolder;
 import br.com.gommo.modules.root.exception.AuthException;
 import br.com.gommo.core.security.JwtProperties;
 import br.com.gommo.core.security.JwtService;
@@ -41,6 +45,8 @@ public class AuthService implements IAuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
+    private final MultiTenantProperties multiTenantProperties;
+    private final TenantAuthValidator tenantAuthValidator;
 
     public AuthService(
             AppUserRepository appUserRepository,
@@ -50,7 +56,9 @@ public class AuthService implements IAuthService {
             RefreshTokenBlacklistRepository blacklistRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            JwtProperties jwtProperties) {
+            JwtProperties jwtProperties,
+            MultiTenantProperties multiTenantProperties,
+            TenantAuthValidator tenantAuthValidator) {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
         this.collaboratorRepository = collaboratorRepository;
@@ -59,6 +67,8 @@ public class AuthService implements IAuthService {
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.jwtProperties = jwtProperties;
+        this.multiTenantProperties = multiTenantProperties;
+        this.tenantAuthValidator = tenantAuthValidator;
     }
 
     @Override
@@ -76,6 +86,8 @@ public class AuthService implements IAuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new BadCredentialsException("Invalid credentials");
         }
+
+        assertTenantUserAccess(user.getId());
 
         user.setLastLogin(OffsetDateTime.now());
         appUserRepository.save(user);
@@ -112,18 +124,36 @@ public class AuthService implements IAuthService {
                 .build());
 
         UUID userId = jwtService.extractUserId(rawRefresh);
+        if (multiTenantProperties.isEnabled()) {
+            UUID tokenTenantId = jwtService.extractTenantId(rawRefresh).orElse(null);
+            try {
+                tenantAuthValidator.assertTokenMatchesCurrentTenant(tokenTenantId);
+            } catch (RuntimeException ex) {
+                throw AuthException.invalidRefresh();
+            }
+        }
+
         AppUser user = appUserRepository
                 .findActiveByIdWithRoles(userId, StatusEnum.DELETED)
                 .orElseThrow(AuthException::userNotFound);
+
+        assertTenantUserAccess(user.getId());
 
         return buildTokenResponse(user);
     }
 
     private TokenResponseDto buildTokenResponse(AppUser user) {
         List<String> permissions = resolvePermissions(user);
+        UUID tenantId = null;
+        String tenantSlug = null;
+        if (multiTenantProperties.isEnabled()) {
+            TenantContext tenant = TenantContextHolder.require();
+            tenantId = tenant.clientId();
+            tenantSlug = tenant.slug();
+        }
 
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getUsername(), permissions);
-        String refreshToken = jwtService.generateRefreshToken(user.getId());
+        String accessToken = jwtService.generateAccessToken(user.getId(), user.getUsername(), permissions, tenantId, tenantSlug);
+        String refreshToken = jwtService.generateRefreshToken(user.getId(), tenantId, tenantSlug);
         persistRefreshToken(user.getId(), refreshToken);
 
         return TokenResponseDto.builder()
@@ -136,6 +166,17 @@ public class AuthService implements IAuthService {
                 .photoObjectId(resolvePhotoObjectId(user))
                 .permissions(permissions)
                 .build();
+    }
+
+    private void assertTenantUserAccess(UUID userId) {
+        if (!multiTenantProperties.isEnabled()) {
+            return;
+        }
+        try {
+            tenantAuthValidator.assertUserBelongsToCurrentTenant(userId);
+        } catch (RuntimeException ex) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
     }
 
     private List<String> resolvePermissions(AppUser user) {
