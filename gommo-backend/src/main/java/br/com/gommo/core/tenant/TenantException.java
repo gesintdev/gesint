@@ -1,0 +1,29 @@
+package br.com.gommo.core.tenant;
+
+import br.com.gommo.core.exception.BusinessException;
+import org.springframework.http.HttpStatus;
+
+public final class TenantException {
+
+    private TenantException() {}
+
+    public static BusinessException notFound() {
+        return new BusinessException(
+                TenantExceptions.NOT_FOUND_CODE, TenantExceptions.NOT_FOUND_MSG, HttpStatus.NOT_FOUND);
+    }
+
+    public static BusinessException notReady() {
+        return new BusinessException(
+                TenantExceptions.NOT_READY_CODE, TenantExceptions.NOT_READY_MSG, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    public static BusinessException suspended() {
+        return new BusinessException(
+                TenantExceptions.SUSPENDED_CODE, TenantExceptions.SUSPENDED_MSG, HttpStatus.FORBIDDEN);
+    }
+
+    public static BusinessException mismatch() {
+        return new BusinessException(
+                TenantExceptions.MISMATCH_CODE, TenantExceptions.MISMATCH_MSG, HttpStatus.FORBIDDEN);
+    }
+}

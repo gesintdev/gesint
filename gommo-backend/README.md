@@ -51,6 +51,16 @@ API local: http://localhost:8081
 
 Detalhes: [README do monorepo — Migrations Flyway](../README.md#migrations-flyway-por-schema)
 
+## Multi-tenant (Etapa 2)
+
+Desligado por padrão (`GOMMO_MULTI_TENANT_ENABLED=false`). Quando ativo:
+
+- `TenantResolutionFilter` resolve o tenant pelo `Host` (ou `X-Tenant-Slug` / `GOMMO_DEV_TENANT_SLUG` em dev)
+- Metadados lidos de `admin.client` no mesmo Postgres
+- `TenantSchemaDataSource` executa `SET search_path` por conexao
+
+Documentacao: [docs/arquitetura/multi-tenant-dev.md](../docs/arquitetura/multi-tenant-dev.md)
+
 ## Exceções
 
 Catálogo de códigos, mapa de caracteres Unicode e conversor: **[README do monorepo](../README.md#exceções-e-mensagens)**.

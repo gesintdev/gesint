@@ -1,5 +1,6 @@
 package br.com.gommo.core.security;
 
+import br.com.gommo.core.tenant.TenantResolutionFilter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,10 +23,15 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorrelationIdFilter correlationIdFilter;
+    private final TenantResolutionFilter tenantResolutionFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CorrelationIdFilter correlationIdFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            CorrelationIdFilter correlationIdFilter,
+            TenantResolutionFilter tenantResolutionFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.correlationIdFilter = correlationIdFilter;
+        this.tenantResolutionFilter = tenantResolutionFilter;
     }
 
     @Bean
@@ -39,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(correlationIdFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(tenantResolutionFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

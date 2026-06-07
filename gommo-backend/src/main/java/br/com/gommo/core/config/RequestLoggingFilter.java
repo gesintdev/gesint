@@ -1,5 +1,6 @@
 package br.com.gommo.core.config;
 
+import br.com.gommo.core.tenant.TenantResolutionFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,12 +24,21 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             long duration = System.currentTimeMillis() - start;
+            String tenantSlug = null;
+            String tenantSchema = null;
+            Object tenantContext = request.getAttribute(TenantResolutionFilter.REQUEST_ATTR);
+            if (tenantContext instanceof br.com.gommo.core.tenant.TenantContext tenant) {
+                tenantSlug = tenant.slug();
+                tenantSchema = tenant.schema();
+            }
             log.info(
-                    "method={} path={} status={} durationMs={}",
+                    "method={} path={} status={} durationMs={} tenant={} schema={}",
                     request.getMethod(),
                     request.getRequestURI(),
                     response.getStatus(),
-                    duration);
+                    duration,
+                    tenantSlug,
+                    tenantSchema);
         }
     }
 }

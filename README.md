@@ -9,6 +9,16 @@ Monorepo RH / Departamento Pessoal — backends (Spring Boot), frontends (Next.j
 | API Admin | `gommo-admin-backend/` | 8082 | [README do admin backend](gommo-admin-backend/README.md) |
 | Web Admin | `gommo-admin-frontend/` | 3001 | [README do admin frontend](gommo-admin-frontend/README.md) |
 
+## Arquitetura multi-tenant
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [docs/arquitetura/multi-tenant.md](docs/arquitetura/multi-tenant.md) | Control plane vs data plane, DNS, onboarding |
+| [docs/arquitetura/multi-tenant-dev.md](docs/arquitetura/multi-tenant-dev.md) | Testes locais (`*.localhost`, fallback dev) |
+| [docs/arquitetura/multi-tenant-implementacao.md](docs/arquitetura/multi-tenant-implementacao.md) | Etapas de implementação |
+
+Tutorial do painel admin: [gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md](gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md).
+
 ## Início rápido (local)
 
 1. Copie `.env.example` para `.env` na raiz e defina as variáveis (senha do Postgres, JWT, admin dev).
