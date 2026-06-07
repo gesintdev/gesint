@@ -25,7 +25,7 @@ import { canAccessRoute } from "@/shared/auth/route-access";
 import { useSessionPermissions } from "@/shared/auth/permissions";
 
 type ActiveSystemContextValue = {
-    /** Domínio selecionado no rail — menu lateral e conteúdo do dashboard. */
+    /** Dominio selecionado no rail — menu lateral e conteudo do dashboard. */
     activeSystem: SystemEnum;
     systems: TSystemInfos[];
     navSections: NavSection[];
@@ -39,10 +39,6 @@ const ActiveSystemContext = createContext<ActiveSystemContextValue | null>(null)
 
 function isSettingsPath(pathname: string): boolean {
     return pathname.startsWith("/settings");
-}
-
-function resolveInitialSystem(): SystemEnum {
-    return SystemEnumHelper.readStoredSystem() ?? SystemEnumHelper.getDefaultSystem();
 }
 
 function filterRoutesByPermissions(routes: AppRoute[], permissions: readonly string[]): AppRoute[] {
@@ -76,7 +72,9 @@ function filterSectionsByPermissions(
 export function ActiveSystemProvider({children}: { children: ReactNode }) {
     const pathname = usePathname();
     const permissions = useSessionPermissions();
-    const [activeSystem, setActiveSystem] = useState<SystemEnum>(resolveInitialSystem);
+    const [activeSystem, setActiveSystem] = useState<SystemEnum>(() =>
+        SystemEnumHelper.getDefaultSystem(),
+    );
     const [isSettingsMode, setIsSettingsMode] = useState(() => isSettingsPath(pathname));
     const prevPathnameRef = useRef(pathname);
 
@@ -88,6 +86,13 @@ export function ActiveSystemProvider({children}: { children: ReactNode }) {
             })
             .map((id) => SystemEnumHelper.getById(id));
     }, [permissions]);
+
+    useEffect(() => {
+        const stored = SystemEnumHelper.readStoredSystem();
+        if (stored) {
+            setActiveSystem(stored);
+        }
+    }, []);
 
     useEffect(() => {
         if (isSettingsMode || systems.length === 0) return;
