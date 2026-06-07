@@ -15,6 +15,16 @@ Monorepo RH / Departamento Pessoal — backends (Spring Boot), frontends (Next.j
 |--------|-----------|
 | Folha de Pagamento | [docs/modulos/folha-de-pagamento.md](docs/modulos/folha-de-pagamento.md) |
 
+## Arquitetura multi-tenant
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [docs/arquitetura/multi-tenant.md](docs/arquitetura/multi-tenant.md) | Control plane vs data plane, DNS, onboarding |
+| [docs/arquitetura/multi-tenant-dev.md](docs/arquitetura/multi-tenant-dev.md) | Testes locais sem subdomínio real (`*.localhost`) |
+| [docs/arquitetura/multi-tenant-implementacao.md](docs/arquitetura/multi-tenant-implementacao.md) | Etapas de implementação (1–6) |
+
+Tutorial do painel admin: [gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md](gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md).
+
 Regras para agentes (Cursor): `.cursor/rules/gommo-payroll-module.mdc` — memória persistente do módulo folha.
 
 ## Início rápido (local)
