@@ -90,3 +90,11 @@ Regras:
 ## Fase atual (01 — Fundação)
 
 Docker, bases genéricas, auth JWT/RBAC, Flyway, módulo Colaboradores, shell FE (login + sidebar + tema).
+
+## Módulo Folha de Pagamento (em desenvolvimento)
+
+- Branch: `feat/folha-de-pagamento`
+- Documentação: `docs/modulos/folha-de-pagamento.md`
+- Regra Cursor (agentes): `.cursor/rules/gommo-payroll-module.mdc`
+- Competência = `PayrollRun`; holerite = `Payslip` enriquecido; eventos = `PayrollEvent`; lançamentos = `PayslipEntry`
+- Implementação em 5 etapas — uma por vez, com autorização entre etapas

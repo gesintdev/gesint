@@ -18,6 +18,7 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
     "leave-absence": "leave",
     "leave-vacation": "leave",
     "payroll-run": "payroll",
+    "payroll-event": "payrollevent",
     payslip: "payslip",
     "benefit-plan": "benefit",
     "benefit-enrollment": "benefitenrollment",

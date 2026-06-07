@@ -1,5 +1,7 @@
 import type { PayrollRun, PayrollRunCreateDto } from "@/modules/payroll/dto/payroll-run.dto";
+import type { PayrollRunProcessResult } from "@/modules/payroll/dto/payroll-run-process.dto";
 import { BaseService } from "@/modules/root/services/base.service";
+import { apiFetch } from "@/shared/lib/api.client";
 import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
 
 const AUTOCOMPLETE_PAGE_SIZE = 6;
@@ -29,6 +31,22 @@ class PayrollRunService extends BaseService<PayrollRun, PayrollRunCreateDto, Pay
         const totalPages = Math.max(1, Math.ceil(filtered.length / AUTOCOMPLETE_PAGE_SIZE));
 
         return { items, page, hasMore: page + 1 < totalPages };
+    }
+
+    process(id: string): Promise<PayrollRunProcessResult> {
+        return apiFetch<PayrollRunProcessResult>(`${this.basePath}/${id}/process`, { method: "POST" });
+    }
+
+    review(id: string): Promise<PayrollRun> {
+        return apiFetch<PayrollRun>(`${this.basePath}/${id}/review`, { method: "POST" });
+    }
+
+    close(id: string): Promise<PayrollRun> {
+        return apiFetch<PayrollRun>(`${this.basePath}/${id}/close`, { method: "POST" });
+    }
+
+    reopen(id: string): Promise<PayrollRun> {
+        return apiFetch<PayrollRun>(`${this.basePath}/${id}/reopen`, { method: "POST" });
     }
 }
 

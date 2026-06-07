@@ -1,0 +1,12 @@
+-- Eventos padrao para processamento da folha (Etapa 3)
+
+INSERT INTO payroll_event (id, event_code, description, event_type, incides_inss, incides_fgts, incides_irrf, formula) VALUES
+    ('50000000-0000-0000-0000-000000000001', 'SAL_BASE', 'Salario base', 'EARNING', TRUE, TRUE, TRUE, 'adjustedBaseSalary'),
+    ('50000000-0000-0000-0000-000000000002', 'HORA_EXTRA', 'Horas extras', 'EARNING', TRUE, TRUE, TRUE, 'overtimePay'),
+    ('50000000-0000-0000-0000-000000000003', 'ADIC_NOTURNO', 'Adicional noturno', 'EARNING', TRUE, TRUE, TRUE, 'nightShiftPay'),
+    ('50000000-0000-0000-0000-000000000004', 'INSALUBRIDADE', 'Insalubridade', 'EARNING', TRUE, TRUE, TRUE, NULL),
+    ('50000000-0000-0000-0000-000000000005', 'PERICULOSIDADE', 'Periculosidade', 'EARNING', TRUE, TRUE, TRUE, NULL),
+    ('50000000-0000-0000-0000-000000000006', 'INSS', 'INSS', 'DEDUCTION', FALSE, FALSE, FALSE, NULL),
+    ('50000000-0000-0000-0000-000000000007', 'IRRF', 'IRRF', 'DEDUCTION', FALSE, FALSE, FALSE, NULL),
+    ('50000000-0000-0000-0000-000000000008', 'FGTS', 'FGTS (informativo)', 'INFORMATIVE', FALSE, FALSE, FALSE, NULL)
+ON CONFLICT (id) DO NOTHING;

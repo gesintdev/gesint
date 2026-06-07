@@ -129,6 +129,56 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     return parseResponse<T>(response);
 }
 
+export async function apiFetchBlob(path: string, options: Omit<RequestOptions, "body"> = {}): Promise<Blob> {
+    const {method = "GET", token, headers = {}, _retry = false} = options;
+    const correlationId = crypto.randomUUID();
+    const bearer = await resolveAuthToken(token);
+
+    const doFetch = (authHeader: string | null) =>
+        fetch(`${API_BASE_URL}${path}`, {
+            method,
+            headers: {
+                "X-Correlation-ID": correlationId,
+                ...(authHeader ? {Authorization: `Bearer ${authHeader}`} : {}),
+                ...headers,
+            },
+            cache: "no-store",
+        });
+
+    let response = await doFetch(bearer);
+
+    if (
+        !_retry &&
+        (response.status === 401 || response.status === 403) &&
+        typeof window !== "undefined" &&
+        !path.startsWith("/api/v1/auth/")
+    ) {
+        const newToken = await refreshSessionTokens({
+            forceBackendRefresh: response.status === 403,
+        });
+        if (!newToken) {
+            throw AppException.client(
+                "AUTH_SESSION_EXPIRED",
+                AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED,
+                401,
+            );
+        }
+        if (newToken !== bearer) {
+            response = await doFetch(newToken);
+            if (response.ok) {
+                return response.blob();
+            }
+        }
+        return handleErrorResponse(response);
+    }
+
+    if (!response.ok) {
+        return handleErrorResponse(response);
+    }
+
+    return response.blob();
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
     if (response.status === 204) {
         return undefined as T;

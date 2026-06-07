@@ -61,7 +61,7 @@ public class DashboardMetricsDao {
                 FROM payroll_run
                 WHERE %s
                   AND payroll_status IN (
-                      CAST(:draft AS payroll_status_enum),
+                      CAST(:open AS payroll_status_enum),
                       CAST(:processing AS payroll_status_enum)
                   )
                   AND reference_year = :year
@@ -70,7 +70,7 @@ public class DashboardMetricsDao {
                         .formatted(STATUS_NOT_DELETED),
                 Map.of(
                         "deleted", StatusEnum.DELETED.name(),
-                        "draft", PayrollStatusEnum.DRAFT.name(),
+                        "open", PayrollStatusEnum.OPEN.name(),
                         "processing", PayrollStatusEnum.PROCESSING.name(),
                         "year", year,
                         "month", month));

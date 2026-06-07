@@ -51,6 +51,12 @@ API local: http://localhost:8081
 
 Detalhes: [README do monorepo — Migrations Flyway](../README.md#migrations-flyway-por-schema)
 
+## Módulo Folha de Pagamento
+
+Plano, modelagem, etapas e decisões: **[docs/modulos/folha-de-pagamento.md](../docs/modulos/folha-de-pagamento.md)**
+
+Código: `src/main/java/br/com/gommo/modules/payroll/`
+
 ## Exceções
 
 Catálogo de códigos, mapa de caracteres Unicode e conversor: **[README do monorepo](../README.md#exceções-e-mensagens)**.

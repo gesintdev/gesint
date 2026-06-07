@@ -1,6 +1,6 @@
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
-import { FileText, Gift, Receipt, Scale, UserCheck, CalendarDays } from "lucide-react";
+import { FileText, Gift, ListOrdered, Receipt, Scale, UserCheck, CalendarDays } from "lucide-react";
 
 export const payrollRoutes: AppRoute[] = [
     routeGroup({
@@ -16,6 +16,7 @@ export const payrollRoutes: AppRoute[] = [
                 permission: "payroll:read",
                 routeId: "payroll-run",
                 tabShortLabel: "Folha de pagamento",
+                listToolbar: "Competências da folha (MM/AAAA). Abra, edite ou feche períodos antes do processamento.",
                 list: lazyNamed(
                     () => import("@/modules/payroll/components/PayrollRunListClient"),
                     "PayrollRunListClient",
@@ -23,6 +24,25 @@ export const payrollRoutes: AppRoute[] = [
                 form: lazyNamed(
                     () => import("@/modules/payroll/components/PayrollRunFormClient"),
                     "PayrollRunFormClient",
+                ),
+            }),
+            tabbedCrudRoute({
+                id: "payroll-event",
+                href: "/payroll/events",
+                label: "Eventos de folha",
+                icon: ListOrdered,
+                permission: "payrollevent:read",
+                routeId: "payroll-event",
+                tabShortLabel: "Eventos",
+                fieldTabName: "eventCode",
+                listToolbar: "Rubricas parametrizáveis (proventos, descontos e informativos) usadas no cálculo da folha.",
+                list: lazyNamed(
+                    () => import("@/modules/payroll/payroll-event/components/PayrollEventListClient"),
+                    "PayrollEventListClient",
+                ),
+                form: lazyNamed(
+                    () => import("@/modules/payroll/payroll-event/components/PayrollEventFormClient"),
+                    "PayrollEventFormClient",
                 ),
             }),
             tabbedCrudRoute({

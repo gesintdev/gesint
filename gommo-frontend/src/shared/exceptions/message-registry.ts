@@ -16,7 +16,15 @@ import {
 } from "@/modules/person/attendance/exceptions/attendance-record.messages";
 import { LEAVE_CLIENT_MESSAGES, LEAVE_MESSAGES } from "@/modules/person/leave/exceptions/leave-request.messages";
 import { PAYROLL_CLIENT_MESSAGES, PAYROLL_MESSAGES } from "@/modules/payroll/exceptions/payroll-run.messages";
+import {
+    PAYROLL_EVENT_CLIENT_MESSAGES,
+    PAYROLL_EVENT_MESSAGES,
+} from "@/modules/payroll/payroll-event/exceptions/payroll-event.messages";
 import { PAYSLIP_CLIENT_MESSAGES, PAYSLIP_MESSAGES } from "@/modules/payroll/payslip/exceptions/payslip.messages";
+import {
+    PAYSLIP_ENTRY_CLIENT_MESSAGES,
+    PAYSLIP_ENTRY_MESSAGES,
+} from "@/modules/payroll/payslip-entry/exceptions/payslip-entry.messages";
 import { BENEFIT_CLIENT_MESSAGES, BENEFIT_MESSAGES } from "@/modules/payroll/benefit/exceptions/benefit-plan.messages";
 import {
   ADMISSION_CLIENT_MESSAGES,
@@ -52,8 +60,12 @@ const REGISTRY: Record<string, string> = {
   ...LEAVE_CLIENT_MESSAGES,
   ...PAYROLL_MESSAGES,
   ...PAYROLL_CLIENT_MESSAGES,
+  ...PAYROLL_EVENT_MESSAGES,
+  ...PAYROLL_EVENT_CLIENT_MESSAGES,
   ...PAYSLIP_MESSAGES,
   ...PAYSLIP_CLIENT_MESSAGES,
+  ...PAYSLIP_ENTRY_MESSAGES,
+  ...PAYSLIP_ENTRY_CLIENT_MESSAGES,
   ...BENEFIT_MESSAGES,
   ...BENEFIT_CLIENT_MESSAGES,
   ...ADMISSION_MESSAGES,

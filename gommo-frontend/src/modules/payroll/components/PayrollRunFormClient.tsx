@@ -3,9 +3,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
+import { CompanyPickerField } from "@/modules/company/components/CompanyPickerField";
 import { PAYROLL_CLIENT_MESSAGES } from "@/modules/payroll/exceptions/payroll-run.messages";
 import type { PayrollRunCreateDto } from "@/modules/payroll/dto/payroll-run.dto";
 import { emptyPayrollRunForm, payrollrunToFormDto } from "@/modules/payroll/lib/payroll-run.mapper";
+import {
+    canEditPayrollRun,
+    isPayrollRunLocked,
+    payrollStatusLabel,
+} from "@/modules/payroll/lib/payroll-run-lifecycle";
 import { payrollrunKeys } from "@/modules/payroll/payroll.query";
 import { payrollrunService } from "@/modules/payroll/services/payroll-run.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -14,14 +20,14 @@ import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputSelect, InputNumber } from "@/shared/components/ui/input/index";
+import { InputNumber, InputDate, InputString } from "@/shared/components/ui/input/index";
 
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Folha" }];
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Competência" }];
 
 export function PayrollRunFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<PayrollRunCreateDto>(emptyPayrollRunForm);
+  const [form, setForm] = useState<PayrollRunCreateDto>(() => emptyPayrollRunForm());
   const [error, setError] = useState<string | null>(null);
 
   const detailQuery = useQuery({
@@ -29,6 +35,9 @@ export function PayrollRunFormClient() {
     queryFn: () => payrollrunService.getById(editingId!),
     enabled: isEditing && Boolean(editingId),
   });
+
+  const currentStatus = detailQuery.data?.payrollStatus ?? form.payrollStatus;
+  const readOnly = isEditing && !canEditPayrollRun(currentStatus);
 
   useEffect(() => {
     if (!isEditing) {
@@ -44,13 +53,19 @@ export function PayrollRunFormClient() {
 
   const saveMutation = useMutation({
     mutationFn: async (dto: PayrollRunCreateDto) => {
-      if (isEditing && editingId) return payrollrunService.update(editingId, dto);
-      return payrollrunService.create(dto);
+      const payload: PayrollRunCreateDto = {
+        companyId: dto.companyId,
+        referenceYear: dto.referenceYear,
+        referenceMonth: dto.referenceMonth,
+        notes: dto.notes,
+      };
+      if (isEditing && editingId) return payrollrunService.update(editingId, payload);
+      return payrollrunService.create(payload);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: payrollrunKeys.all });
       if (editingId) await queryClient.invalidateQueries({ queryKey: payrollrunKeys.detail(editingId) });
-      toast.success(isEditing ? "Folha atualizado(a)" : "Folha cadastrado(a)");
+      toast.success(isEditing ? "Competência atualizada" : "Competência cadastrada");
       setForm(emptyPayrollRunForm());
       goToList();
     },
@@ -94,25 +109,64 @@ export function PayrollRunFormClient() {
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
-          {isEditing && <Button type="button" variant="outline" onClick={startCreate}>Novo</Button>}
-          <Button type="submit" loading={saveMutation.isPending}>{isEditing ? "Salvar" : "Cadastrar"}</Button>
+          {isEditing && !readOnly ? <Button type="button" variant="outline" onClick={startCreate}>Novo</Button> : null}
+          {!readOnly ? <Button type="submit" loading={saveMutation.isPending}>{isEditing ? "Salvar" : "Cadastrar"}</Button> : null}
         </>
       }
     >
-      <FormSection id="cadastro" title="Folha">
-        <InputNumber label="Ano de referência" integer align="left" value={form.referenceYear} onValueChange={(v) => update("referenceYear", v ?? 0)} required />
-        <InputNumber label="Mês de referência" integer align="left" value={form.referenceMonth} onValueChange={(v) => update("referenceMonth", v ?? 0)} required />
-        <InputSelect
-          label="Status da folha"
-          items={[  { value: "DRAFT", label: "Rascunho" },
-  { value: "PROCESSING", label: "Processando" },
-  { value: "CLOSED", label: "Fechado" },
-  { value: "CANCELLED", label: "Cancelado" },]}
-          value={form.payrollStatus ?? ""}
-          onValueChange={(v) => update("payrollStatus", (v || undefined) as PayrollRunCreateDto["payrollStatus"])}
-          placeholder="Selecione"
-          clearable
+      <FormSection id="cadastro" title="Competência">
+        {isEditing ? (
+          <InputString
+            label="Status da folha"
+            value={payrollStatusLabel(currentStatus)}
+            onValueChange={() => undefined}
+            readOnly
+            hint="Alterado pelas ações Processar, Revisar, Fechar e Reabrir na listagem"
+          />
+        ) : null}
+        <CompanyPickerField
+          value={form.companyId ?? ""}
+          onValueChange={(v) => update("companyId", v || undefined)}
+          required
+          disabled={readOnly}
+          wrapperClassName="sm:col-span-2"
         />
+        <InputNumber
+          label="Ano de referência"
+          integer
+          align="left"
+          value={form.referenceYear}
+          onValueChange={(v) => update("referenceYear", v ?? 0)}
+          required
+          readOnly={readOnly}
+        />
+        <InputNumber
+          label="Mês de referência"
+          integer
+          align="left"
+          value={form.referenceMonth}
+          onValueChange={(v) => update("referenceMonth", v ?? 0)}
+          required
+          readOnly={readOnly}
+        />
+        {isEditing && detailQuery.data?.openedAt ? (
+          <InputDate label="Data de abertura" value={detailQuery.data.openedAt.slice(0, 10)} onValueChange={() => undefined} readOnly />
+        ) : null}
+        {isEditing && detailQuery.data?.closedAt ? (
+          <InputDate label="Data de fechamento" value={detailQuery.data.closedAt.slice(0, 10)} onValueChange={() => undefined} readOnly />
+        ) : null}
+        <InputString
+          label="Observações"
+          value={form.notes ?? ""}
+          onValueChange={(v) => update("notes", v)}
+          wrapperClassName="sm:col-span-2"
+          readOnly={readOnly}
+        />
+        {isEditing && isPayrollRunLocked(currentStatus) ? (
+          <p className="sm:col-span-2 text-sm text-base-content/60">
+            Competência fechada: dados bloqueados para edição. Use Reabrir na listagem para ajustes.
+          </p>
+        ) : null}
       </FormSection>
       {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>

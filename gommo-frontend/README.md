@@ -12,6 +12,12 @@ API padrão: `http://localhost:8081`
 
 Credenciais: use `DEV_ADMIN_PASSWORD` configurado no backend (veja `.env.example` na raiz do monorepo).
 
+## Módulo Folha de Pagamento
+
+Plano, telas e convenções FE: **[docs/modulos/folha-de-pagamento.md](../docs/modulos/folha-de-pagamento.md)**
+
+Código: `src/modules/payroll/`
+
 ## Exceções
 
 Catálogo de códigos, mapa de caracteres Unicode e conversor: **[README do monorepo](../README.md#exceções-e-mensagens)**.

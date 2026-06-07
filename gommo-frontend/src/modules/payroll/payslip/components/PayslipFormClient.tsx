@@ -8,6 +8,8 @@ import type { PayslipCreateDto } from "@/modules/payroll/payslip/dto/payslip.dto
 import { emptyPayslipForm, payslipToFormDto } from "@/modules/payroll/payslip/lib/payslip.mapper";
 import { payslipKeys } from "@/modules/payroll/payslip/payslip.query";
 import { payslipService } from "@/modules/payroll/payslip/services/payslip.service";
+import { canEditPayrollRun, isPayrollRunLocked } from "@/modules/payroll/lib/payroll-run-lifecycle";
+import { payrollrunKeys } from "@/modules/payroll/payroll.query";
 import { payrollrunService } from "@/modules/payroll/services/payroll-run.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
@@ -24,7 +26,7 @@ const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contracheque" }
 export function PayslipFormClient() {
   const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<PayslipCreateDto>(emptyPayslipForm);
+  const [form, setForm] = useState<PayslipCreateDto>(() => emptyPayslipForm());
   const [error, setError] = useState<string | null>(null);
 
   const detailQuery = useQuery({
@@ -32,6 +34,17 @@ export function PayslipFormClient() {
     queryFn: () => payslipService.getById(editingId!),
     enabled: isEditing && Boolean(editingId),
   });
+
+  const payrollRunId = form.payrollRunId ?? detailQuery.data?.payrollRunId;
+
+  const payrollRunQuery = useQuery({
+    queryKey: payrollrunKeys.detail(payrollRunId ?? ""),
+    queryFn: () => payrollrunService.getById(payrollRunId!),
+    enabled: Boolean(payrollRunId),
+  });
+
+  const payrollRunStatus = payrollRunQuery.data?.payrollStatus;
+  const readOnly = Boolean(payrollRunId) && !canEditPayrollRun(payrollRunStatus);
 
   useEffect(() => {
     if (!isEditing) {
@@ -85,6 +98,7 @@ export function PayslipFormClient() {
 
   const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (readOnly) return;
     setError(null);
     saveMutation.mutate(form);
   };
@@ -113,8 +127,8 @@ export function PayslipFormClient() {
       footer={
         <>
           <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
-          {isEditing && <Button type="button" variant="outline" onClick={startCreate}>Novo</Button>}
-          <Button type="submit" loading={saveMutation.isPending}>{isEditing ? "Salvar" : "Cadastrar"}</Button>
+          {isEditing && !readOnly ? <Button type="button" variant="outline" onClick={startCreate}>Novo</Button> : null}
+          {!readOnly ? <Button type="submit" loading={saveMutation.isPending}>{isEditing ? "Salvar" : "Cadastrar"}</Button> : null}
         </>
       }
     >
@@ -126,13 +140,29 @@ export function PayslipFormClient() {
           onSearch={searchPayrollRuns}
           resolveLabel={resolvePayrollRunLabel}
           required
+          disabled={readOnly}
         />
-        <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={(v) => update("collaboratorId", v)} required />
-        <InputCurrency label="Valor bruto" value={form.grossAmount ?? ""} onValueChange={(v) => update("grossAmount", v)} emitAsDecimal />
-        <InputCurrency label="Descontos" value={form.deductionsAmount ?? ""} onValueChange={(v) => update("deductionsAmount", v)} emitAsDecimal />
-        <InputCurrency label="Valor líquido" value={form.netAmount ?? ""} onValueChange={(v) => update("netAmount", v)} emitAsDecimal />
+        <CollaboratorPickerField
+          value={form.collaboratorId ?? ""}
+          onValueChange={(v) => {
+            if (readOnly) return;
+            update("collaboratorId", v);
+          }}
+          required
+        />
+        <InputCurrency label="Valor bruto" value={form.grossAmount ?? ""} onValueChange={(v) => update("grossAmount", v)} emitAsDecimal readOnly={readOnly} />
+        <InputCurrency label="Descontos" value={form.deductionsAmount ?? ""} onValueChange={(v) => update("deductionsAmount", v)} emitAsDecimal readOnly={readOnly} />
+        <InputCurrency label="Valor líquido" value={form.netAmount ?? ""} onValueChange={(v) => update("netAmount", v)} emitAsDecimal readOnly={readOnly} />
+        {readOnly ? (
+          <p className="sm:col-span-2 text-sm text-base-content/60">
+            {isPayrollRunLocked(payrollRunStatus)
+              ? "Competência fechada: holerite bloqueado para edição."
+              : "Competência em processamento: holerite bloqueado para edição."}
+          </p>
+        ) : null}
       </FormSection>
       {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
     </CrudFormShell>
   );
 }
+

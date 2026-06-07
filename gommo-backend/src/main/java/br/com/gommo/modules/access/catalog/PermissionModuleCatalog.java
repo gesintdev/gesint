@@ -18,6 +18,7 @@ public final class PermissionModuleCatalog {
                         "department",
                         "jobposition",
                         "payroll",
+                        "payrollevent",
                         "payslip",
                         "benefit",
                         "benefitenrollment",

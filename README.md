@@ -9,6 +9,14 @@ Monorepo RH / Departamento Pessoal — backends (Spring Boot), frontends (Next.j
 | API Admin | `gommo-admin-backend/` | 8082 | [README do admin backend](gommo-admin-backend/README.md) |
 | Web Admin | `gommo-admin-frontend/` | 3001 | [README do admin frontend](gommo-admin-frontend/README.md) |
 
+## Documentação de módulos
+
+| Módulo | Documento |
+|--------|-----------|
+| Folha de Pagamento | [docs/modulos/folha-de-pagamento.md](docs/modulos/folha-de-pagamento.md) |
+
+Regras para agentes (Cursor): `.cursor/rules/gommo-payroll-module.mdc` — memória persistente do módulo folha.
+
 ## Início rápido (local)
 
 1. Copie `.env.example` para `.env` na raiz e defina as variáveis (senha do Postgres, JWT, admin dev).
