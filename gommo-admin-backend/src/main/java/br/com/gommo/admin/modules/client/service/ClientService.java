@@ -7,6 +7,7 @@ import br.com.gommo.admin.modules.client.dto.ClientRequestDto;
 import br.com.gommo.admin.modules.client.dto.ClientResponseDto;
 import br.com.gommo.admin.modules.client.dto.TenantDatabaseTestResultDto;
 import br.com.gommo.admin.modules.client.entity.Client;
+import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
 import br.com.gommo.admin.modules.client.entity.TenantProvisioningStatusEnum;
 import br.com.gommo.admin.modules.client.exception.ClientException;
 import br.com.gommo.admin.modules.client.mapper.ClientMapper;
@@ -18,6 +19,7 @@ import org.springframework.core.NestedExceptionUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class ClientService extends BaseService<Client, ClientRequestDto, ClientResponseDto>
@@ -26,13 +28,18 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     private final ClientRepository repository;
     private final ClientMapper mapper;
     private final TenantDatabaseConnectionTester connectionTester;
+    private final TenantSchemaProvisioner schemaProvisioner;
 
     public ClientService(
-            ClientRepository repository, ClientMapper mapper, TenantDatabaseConnectionTester connectionTester) {
+            ClientRepository repository,
+            ClientMapper mapper,
+            TenantDatabaseConnectionTester connectionTester,
+            TenantSchemaProvisioner schemaProvisioner) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.connectionTester = connectionTester;
+        this.schemaProvisioner = schemaProvisioner;
     }
 
     @Override
@@ -64,7 +71,10 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
                 .ifPresent(c -> {
                     throw ClientException.slugAlreadyExists();
                 });
-        return super.create(request);
+        Client entity = mapper.toEntity(request);
+        applyTenantDefaults(entity, request.getSlug());
+        entity.setStatus(StatusEnum.ACTIVE);
+        return mapper.toResponse(repository.save(entity));
     }
 
     @Override
@@ -94,6 +104,18 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     @Override
     protected void updateEntity(Client entity, ClientRequestDto request) {
         mapper.updateEntity(entity, request);
+        applyTenantDefaults(entity, request.getSlug());
+    }
+
+    private void applyTenantDefaults(Client entity, String slug) {
+        if (!StringUtils.hasText(entity.getSubdomain()) && StringUtils.hasText(slug)) {
+            entity.setSubdomain(slug.trim());
+        }
+        if (entity.getDatabaseStrategy() == TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
+            if (!StringUtils.hasText(entity.getDatabaseSchema()) || "public".equalsIgnoreCase(entity.getDatabaseSchema())) {
+                entity.setDatabaseSchema(TenantSchemaProvisioner.defaultSchemaForSlug(slug));
+            }
+        }
     }
 
     @Override
@@ -132,8 +154,10 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
 
         try {
             connectionTester.testConnection(client);
+            applyTenantDefaults(client, client.getSlug());
+            schemaProvisioner.provisionDedicatedSchema(client);
             client.setProvisioningStatus(TenantProvisioningStatusEnum.READY);
-            client.setProvisioningNotes("Tenant pronto — conexão validada em " + OffsetDateTime.now());
+            client.setProvisioningNotes("Tenant pronto — schema provisionado em " + OffsetDateTime.now());
         } catch (Exception ex) {
             client.setProvisioningStatus(TenantProvisioningStatusEnum.ERROR);
             Throwable root = NestedExceptionUtils.getMostSpecificCause(ex);

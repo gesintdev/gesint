@@ -1,4 +1,5 @@
 import type { JWT } from "next-auth/jwt";
+import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8081";
 
@@ -30,7 +31,10 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...buildTenantRequestHeaders(token.tenantSlug as string | undefined),
+      },
       body: JSON.stringify({ refreshToken: token.refreshToken }),
       cache: "no-store",
     });

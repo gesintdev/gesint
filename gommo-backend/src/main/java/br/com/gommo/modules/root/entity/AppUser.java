@@ -20,7 +20,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "app_user")
+@Table(schema = "public", name = "app_user")
 @Getter
 @Setter
 @SuperBuilder
@@ -48,6 +48,7 @@ public class AppUser extends AuditEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
+            schema = "public",
             name = "user_role",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))

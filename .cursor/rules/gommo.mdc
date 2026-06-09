@@ -78,6 +78,23 @@ Regras:
 - Cross-schema no código (ex.: admin escreve em `public.app_user`) é integração JPA — **não** criar migration Flyway no app errado.
 - Config explícita em `application.yml`: `flyway.schemas`, `default-schema`, `table: flyway_schema_history`.
 
+## Encoding UTF-8 — revisar sempre (erro recorrente)
+
+No Windows, arquivos `.ts`/`.tsx`/`.java` editados pelo agente podem gravar **bytes UTF-8 inválidos** em acentos e pontuação especial. O Next/Turbopack falha com:
+
+`Reading source code for parsing failed` / `invalid utf-8 sequence` / `failed to convert rope into string`
+
+**Sempre ao criar ou editar fonte:**
+
+1. **Comentários e identificadores:** apenas ASCII (`a-z`, `0-9`, `_`).
+2. **Texto PT-BR em strings** (mensagens, labels, `innerHTML`, constantes): usar escapes `\uXXXX` — ver mapa no [README](../README.md#exceções-e-mensagens).
+3. **Evitar** caracteres especiais literais: `…` (ellipsis), `—`, aspas curvas, acentos crus no arquivo.
+4. **Preferir** `...` em vez de `…`; `sess\u00e3o` em vez de `sessão` no fonte.
+5. **Ao terminar:** validar UTF-8 do arquivo (`node -e "require('fs').readFileSync('arquivo.ts').toString('utf8')"`).
+6. **Se o build quebrar por UTF-8:** reescrever o arquivo inteiro com ASCII + `\uXXXX` (não só o trecho visível).
+
+Arquivos que já quebraram por isso: `shared/lib/input/number.ts`, `shared/lib/logging-out-overlay.ts`, `dashboard-system.util.ts`, `WorkspaceNavigationProvider.tsx`.
+
 ## Ao gerar código
 
 - Manter estrutura de pastas do módulo

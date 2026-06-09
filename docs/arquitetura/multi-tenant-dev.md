@@ -1,168 +1,172 @@
-# Multi-tenant — desenvolvimento local
+# Multi-tenant â€” desenvolvimento local
 
-Como testar isolamento por tenant **sem DNS real** nem wildcard em produção.
+Como testar isolamento por tenant **sem DNS real** de producao.
 
-**Pré-requisito:** [multi-tenant.md](./multi-tenant.md)
+**Pre-requisito:** [multi-tenant.md](./multi-tenant.md)
 
 ---
 
-## 1. Estratégia em três camadas
+## 1. Dev vs producao (mesma arquitetura, hosts diferentes)
 
-| Camada | Uso | Produção equivalente |
-|--------|-----|----------------------|
-| **`{slug}.localhost`** | Browser, fluxo E2E | `{slug}.gommo.com.br` |
-| **Fallback env + header** | Dev rápido, Postman | Desabilitado |
-| **`TenantContext` em testes** | `mvn test`, CI | N/A |
+| Conceito | Desenvolvimento | Producao |
+|----------|-----------------|----------|
+| Host do tenant | `empresa-a.localhost:3000` | `empresa-a.gommo.com.br` |
+| Resolver tenant | `Host` + `X-Tenant-Slug` | `Host` (+ header se API separada) |
+| Schema de dados | `tenant_empresa_a` | `tenant_empresa_a` |
+| Lookup metadados | `admin.client` | `admin.client` |
+| JWT com `tenantId` | Sim | Sim |
+| Usuario do cliente | So no subdominio do tenant | So no subdominio do tenant |
+| Operador Gommo (platform) | `localhost:3000` (schema `public`) | Host dedicado ou admin separado |
+| Sessao / cookies | Por host (`empresa-a.localhost`) | Por host (`empresa-a.gommo.com.br`) |
+
+O modelo de **control plane + data plane** e o mesmo. O que muda em dev e principalmente o **hostname** e portas separadas (frontend `:3000`, API `:8081`).
 
 ---
 
 ## 2. URLs locais
 
-| URL | Sistema | Tenant |
-|-----|---------|--------|
-| `http://localhost:3001` | Admin | — |
-| `http://localhost:8082` | Admin API | — |
+| URL | Sistema | Tenant / modo |
+|-----|---------|----------------|
+| `http://localhost:3001` | Admin frontend | â€” |
+| `http://localhost:8082` | Admin API | â€” |
 | `http://empresa-a.localhost:3000` | ERP HR | `empresa-a` |
 | `http://empresa-b.localhost:3000` | ERP HR | `empresa-b` |
-| `http://localhost:3000` | ERP HR | fallback `GOMMO_DEV_TENANT_SLUG` |
-| `http://localhost:8081` | HR API | mesmo resolver do Host |
+| `http://localhost:3000` | ERP HR | **platform** (so `admin.admin_user`) |
+| `http://localhost:8081` | HR API | mesmo resolver do `Host` / header |
 
-Browsers modernos resolvem `*.localhost` ? `127.0.0.1` **sem** editar `hosts`.
+Browsers modernos resolvem `*.localhost` para `127.0.0.1` **sem** editar `hosts`.
 
 ---
 
-## 3. Variáveis de ambiente (dev)
+## 3. Variaveis de ambiente
 
-Adicionar ao `.env` na raiz:
+### Raiz do monorepo (`gommo/.env`) â€” backend HR + compose
 
 ```env
-# Multi-tenant (somente dev/test)
-GOMMO_DEV_TENANT_SLUG=empresa-a
+GOMMO_MULTI_TENANT_ENABLED=true
 GOMMO_TENANT_HEADER_ENABLED=true
 GOMMO_TENANT_BASE_DOMAIN=localhost
+
+CORS_ORIGINS=http://localhost:3000,http://*.localhost:3000,http://localhost:3001
 ```
 
-| Variável | Descrição |
+| Variavel | Descricao |
 |----------|-----------|
-| `GOMMO_DEV_TENANT_SLUG` | Tenant quando Host = `localhost` (sem subdomínio) |
-| `GOMMO_TENANT_HEADER_ENABLED` | Aceita `X-Tenant-Slug` em profile dev/test |
-| `GOMMO_TENANT_BASE_DOMAIN` | Sufixo para extrair subdomínio (`localhost` ou `gommo.com.br`) |
+| `GOMMO_MULTI_TENANT_ENABLED` | Liga resolver + troca de schema no HR |
+| `GOMMO_TENANT_HEADER_ENABLED` | Aceita `X-Tenant-Slug` (browser e Postman) |
+| `GOMMO_TENANT_BASE_DOMAIN` | Sufixo DNS local (`localhost`; em prod: `gommo.com.br`) |
+
+### `gommo-frontend/.env.local` â€” frontend HR
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8081
+NEXT_PUBLIC_MULTI_TENANT_ENABLED=true
+AUTH_URL=http://localhost:3000
+AUTH_SECRET=...
+```
+
+`NEXT_PUBLIC_*` **nao** e lido do `.env` da raiz; precisa estar no projeto do frontend.
 
 ### Header de API (Postman / curl)
 
-Somente com `GOMMO_TENANT_HEADER_ENABLED=true`:
-
 ```http
-GET http://localhost:8081/api/v1/payroll-runs
+GET http://localhost:8081/api/v1/collaborators
 Authorization: Bearer <token>
-X-Tenant-Slug: empresa-b
-Host: localhost:8081
+X-Tenant-Slug: empresa-a
 ```
+
+Com subdominio no browser (`empresa-a.localhost:3000`), o frontend envia o header automaticamente.
 
 ---
 
-## 4. Banco local — dois tenants de exemplo
+## 4. Banco local â€” schemas
 
-Um Postgres (`docker compose`), schemas:
-
-```sql
--- Control plane (já existe)
-admin
-
--- Data plane (criar no provisionamento dev)
-tenant_empresa_a
-tenant_empresa_b
+```
+postgres / database gommo
+â”œâ”€â”€ admin                 (control plane)
+â”œâ”€â”€ public                (dev legado + auth compartilhado)
+â”œâ”€â”€ tenant_empresa_a      (RH Empresa A)
+â””â”€â”€ tenant_empresa_b      (RH Empresa B)
 ```
 
 ### Cadastro no admin
 
-1. Subir stack: `docker compose up -d postgres`
-2. Admin backend + frontend (`:8082`, `:3001`)
-3. **Clientes ?** criar:
+1. Subir Postgres: `docker compose up -d postgres`
+2. Admin (`:3001` / `:8082`)
+3. **Clientes** â€” estrategia `DEDICATED_SCHEMA`, schema `tenant_{slug}`, subdominio = slug
+4. **Testar conexao** â†’ **Executar provisionamento** (cria schema + tabelas)
+5. Assinatura `ACTIVE` + usuario administrativo do tenant
 
-| Campo | Empresa A | Empresa B |
-|-------|-----------|-----------|
-| slug | `empresa-a` | `empresa-b` |
-| subdomain | `empresa-a` | `empresa-b` |
-| database_strategy | `DEDICATED_SCHEMA` | `DEDICATED_SCHEMA` |
-| database_schema | `tenant_empresa_a` | `tenant_empresa_b` |
-| database_host | `localhost` | `localhost` |
-| database_name | `gommo` | `gommo` |
-
-4. Testar conexão ? Provisionar ? Assinatura `ACTIVE`
-5. Criar usuário administrativo de cada tenant
-
-*(Etapa 4 do plano de implementação automatiza criação de schema + Flyway + seed.)*
+Script manual alternativo: `scripts/dev/seed-tenant-empresa-a.sql`
 
 ---
 
-## 5. Checklist de teste manual
+## 5. Autenticacao e logout (frontend HR)
 
-- [ ] `http://empresa-a.localhost:3000` — login usuário A — vê só dados A
-- [ ] `http://empresa-b.localhost:3000` — login usuário B — vê só dados B
-- [ ] Usuário A **não** autentica no contexto B (mesmo password, tenant errado)
-- [ ] `localhost:3000` com `GOMMO_DEV_TENANT_SLUG=empresa-a` equivale ao primeiro item
-- [ ] API com `X-Tenant-Slug: empresa-b` retorna dados B
-- [ ] Tenant `SUSPENDED` ou `provisioning_status != READY` ? erro claro
-- [ ] Admin (`localhost:3001`) continua sem resolver tenant HR
+### Por que nao usar `signOut({ callbackUrl: "/login" })`?
+
+O Auth.js usa `AUTH_URL` fixo no `.env` (`http://localhost:3000`). Em multi-tenant cada licenca tem **host proprio** (`empresa-a.localhost`, depois `empresa-a.gommo.com.br`). O `signOut` client-side redirecionaria para o host errado.
+
+### Padrao adotado (dev e producao)
+
+Funcao `signOutToTenantLogin()` em `gommo-frontend/src/shared/lib/tenant.ts`:
+
+1. Mostra overlay "Saindo..." (evita card de usuario vazio)
+2. `signOut({ redirect: false })` via POST (sem tela de confirmacao do Auth.js)
+3. `window.location.replace(<login no host atual>)` â€” nao usa `callbackUrl` do Auth.js (ele forca `AUTH_URL` / localhost)
+
+**Nao** navegar com GET para `/api/auth/signout` â€” isso abre pagina "Signout / Are you sure?" e o redirect pos-confirmacao ignora o subdominio.
+
+### Sessao por tenant
+
+Cookies de sessao sao por host â€” usuario logado em `empresa-a` **nao** esta logado em `empresa-b`. Comportamento desejado.
 
 ---
 
-## 6. Alternativas se `*.localhost` falhar
+## 6. Checklist de teste manual
 
-### Arquivo hosts (Windows)
+- [ ] `http://empresa-a.localhost:3000` â€” login usuario A â€” ve so dados do tenant A
+- [ ] `http://empresa-b.localhost:3000` â€” login usuario B â€” isolamento
+- [ ] Usuario A **nao** autentica em `localhost:3000` (sem subdominio)
+- [ ] **Sair** em `empresa-a.localhost` volta para `empresa-a.localhost/login` (nao `localhost/login`)
+- [ ] Dashboard zerado no tenant novo (sem vazar dados de `public`)
+- [ ] Tenant `SUSPENDED` ou nao provisionado â€” erro claro
+- [ ] Admin (`localhost:3001`) independente do resolver HR
+
+---
+
+## 7. CORS e cookies (dev)
+
+| Config | Valor |
+|--------|-------|
+| `CORS_ORIGINS` (HR) | `http://localhost:3000,http://*.localhost:3000` |
+| Cookies NextAuth | Um por host de tenant |
+
+Em **producao**, preferir **same-origin** (frontend + API no mesmo host via proxy) para simplificar CORS e cookies. Ver [multi-tenant.md](./multi-tenant.md) secao 8.
+
+---
+
+## 8. Alternativas se `*.localhost` falhar
+
+### Arquivo hosts
 
 ```
 127.0.0.1 empresa-a.gommo.test
 127.0.0.1 empresa-b.gommo.test
 ```
 
-Acesse `http://empresa-a.gommo.test:3000`. Configure `GOMMO_TENANT_BASE_DOMAIN=gommo.test`.
-
-### nip.io (rede externa)
-
-```
-http://empresa-a.127.0.0.1.nip.io:3000
-```
-
-Útil para demo; depende de DNS público.
-
----
-
-## 7. CORS e cookies (dev)
-
-| Config | Valor sugerido |
-|--------|----------------|
-| `CORS_ORIGINS` (HR backend) | incluir `http://*.localhost:3000` ou listar cada tenant |
-| NextAuth | cookie por host (`empresa-a.localhost`) — tenants **não** compartilham sessão (desejável) |
-
----
-
-## 8. Testes automatizados
-
-Sem HTTP/DNS:
-
-```java
-// Pseudocódigo — Etapa 2+
-TenantContextHolder.set(TenantFixtures.EMPRESA_A);
-try {
-    // call service / MockMvc
-} finally {
-    TenantContextHolder.clear();
-}
-```
-
-Testcontainers: um Postgres, schemas `tenant_test_a` / `tenant_test_b`, `@Sql` por schema.
+`GOMMO_TENANT_BASE_DOMAIN=gommo.test` e acesse `http://empresa-a.gommo.test:3000`.
 
 ---
 
 ## 9. Troubleshooting
 
-| Sintoma | Causa provável |
+| Sintoma | Causa provavel |
 |---------|----------------|
-| `TENANT_NOT_FOUND` | Subdomínio não cadastrado em `admin.client` |
-| `TENANT_NOT_READY` | Provisionamento não concluído |
-| `TENANT_SUSPENDED` | Assinatura inativa |
-| Login OK mas 403 em API | JWT sem `tenantId` ou mismatch com Host |
-| CORS error | Origem `*.localhost:3000` não listada |
-| Mesmos dados em A e B | Schema não trocado — bug no resolver |
+| `TENANT_NOT_FOUND` | Subdominio nao cadastrado em `admin.client` |
+| `TENANT_NOT_READY` | Provisionamento nao executado |
+| `TENANT_HOST_REQUIRED` | Usuario de cliente tentou login em `localhost` sem subdominio |
+| Login OK mas erro ao carregar dados | Schema vazio ou enums (`search_path` sem `public`) |
+| Logout vai para `localhost` | Frontend sem rebuild ou `signOut` client em vez de `signOutToTenantLogin` |
+| CORS error | Falta `http://*.localhost:3000` em `CORS_ORIGINS` |
+| Mesmos dados em A e B | Schema nao trocado ou tabelas so em `public` |

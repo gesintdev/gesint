@@ -26,4 +26,9 @@ public final class ClientUserException {
     public static BusinessException passwordRequired() {
         return new BusinessException("CLIENT_USER_PASSWORD_REQUIRED", "Senha obrigatória na criação", HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException passwordTooShort() {
+        return new BusinessException(
+                "CLIENT_USER_PASSWORD_TOO_SHORT", "Senha deve ter no mínimo 8 caracteres", HttpStatus.BAD_REQUEST);
+    }
 }

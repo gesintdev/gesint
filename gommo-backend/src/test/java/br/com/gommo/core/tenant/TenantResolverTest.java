@@ -43,14 +43,12 @@ class TenantResolverTest {
     }
 
     @Test
-    void resolvesDevFallbackOnBareLocalhost() {
-        properties.setDevTenantSlug("empresa-a");
-        TenantContext context = readyTenant("empresa-a", "tenant_empresa_a");
-        when(adminClientLookup.findBySlug("empresa-a")).thenReturn(Optional.of(context));
-
+    void resolvesPlatformAccessOnBareLocalhost() {
         Optional<TenantContext> resolved = resolver.resolve("localhost:8081", null);
 
-        assertThat(resolved).contains(context);
+        assertThat(resolved).isPresent();
+        assertThat(resolved.get().isPlatformAccess()).isTrue();
+        assertThat(resolved.get().schema()).isEqualTo("public");
     }
 
     @Test

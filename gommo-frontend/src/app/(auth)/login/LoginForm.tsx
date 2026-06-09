@@ -9,6 +9,7 @@ import {useState} from "react";
 import {toast} from "sonner";
 import {Button} from "@/shared/components/ui/Button";
 import {Input} from "@/shared/components/ui/Input";
+import {resolveTenantSlugFromHostname} from "@/shared/lib/tenant";
 
 export function LoginForm() {
     const router = useRouter();
@@ -22,9 +23,11 @@ export function LoginForm() {
         e.preventDefault();
         setLoading(true);
         const login = username.trim();
+        const tenantSlug = resolveTenantSlugFromHostname();
         const result = await signIn("credentials", {
             username: login,
             password,
+            tenantSlug: tenantSlug ?? "",
             redirect: false,
         });
         setLoading(false);

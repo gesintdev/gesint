@@ -20,8 +20,10 @@ import {
 import {
     getNavSectionsForSystem,
     SETTINGS_NAV_SECTIONS,
+    systemModuleGroups,
 } from "@/config/routes";
 import { canAccessRoute } from "@/shared/auth/route-access";
+import { useSession } from "next-auth/react";
 import { useSessionPermissions } from "@/shared/auth/permissions";
 
 type ActiveSystemContextValue = {
@@ -39,6 +41,16 @@ const ActiveSystemContext = createContext<ActiveSystemContextValue | null>(null)
 
 function isSettingsPath(pathname: string): boolean {
     return pathname.startsWith("/settings");
+}
+
+function resolveSystemFromPathname(pathname: string): SystemEnum {
+    if (isSettingsPath(pathname)) {
+        return SystemEnumHelper.getDefaultSystem();
+    }
+    return (
+        SystemEnumHelper.findSystemForHref(pathname, systemModuleGroups)
+        ?? SystemEnumHelper.getDefaultSystem()
+    );
 }
 
 function filterRoutesByPermissions(routes: AppRoute[], permissions: readonly string[]): AppRoute[] {
@@ -71,21 +83,26 @@ function filterSectionsByPermissions(
 
 export function ActiveSystemProvider({children}: { children: ReactNode }) {
     const pathname = usePathname();
+    const {status: sessionStatus} = useSession();
     const permissions = useSessionPermissions();
+    const permissionsReady = sessionStatus !== "loading";
     const [activeSystem, setActiveSystem] = useState<SystemEnum>(() =>
-        SystemEnumHelper.getDefaultSystem(),
+        resolveSystemFromPathname(pathname),
     );
     const [isSettingsMode, setIsSettingsMode] = useState(() => isSettingsPath(pathname));
     const prevPathnameRef = useRef(pathname);
 
     const systems = useMemo(() => {
+        if (!permissionsReady) {
+            return [];
+        }
         return SystemEnumHelper.getSortedSystems()
             .filter((systemId) => {
                 const sections = getNavSectionsForSystem(systemId);
                 return filterSectionsByPermissions(sections, permissions).length > 0;
             })
             .map((id) => SystemEnumHelper.getById(id));
-    }, [permissions]);
+    }, [permissions, permissionsReady]);
 
     useEffect(() => {
         const stored = SystemEnumHelper.readStoredSystem();
@@ -102,14 +119,15 @@ export function ActiveSystemProvider({children}: { children: ReactNode }) {
         }
     }, [activeSystem, isSettingsMode, systems]);
 
-    const navSections = useMemo(
-        () =>
-            filterSectionsByPermissions(
-                isSettingsMode ? SETTINGS_NAV_SECTIONS : getNavSectionsForSystem(activeSystem),
-                permissions,
-            ),
-        [activeSystem, isSettingsMode, permissions],
-    );
+    const navSections = useMemo(() => {
+        if (!permissionsReady) {
+            return [];
+        }
+        return filterSectionsByPermissions(
+            isSettingsMode ? SETTINGS_NAV_SECTIONS : getNavSectionsForSystem(activeSystem),
+            permissions,
+        );
+    }, [activeSystem, isSettingsMode, permissions, permissionsReady]);
 
     const selectSystem = useCallback((system: SystemEnum) => {
         setIsSettingsMode(false);
@@ -135,6 +153,10 @@ export function ActiveSystemProvider({children}: { children: ReactNode }) {
         }
 
         setIsSettingsMode(false);
+        const fromPath = SystemEnumHelper.findSystemForHref(pathname, systemModuleGroups);
+        if (fromPath) {
+            setActiveSystem(fromPath);
+        }
     }, [pathname]);
 
     const value = useMemo(

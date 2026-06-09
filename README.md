@@ -53,7 +53,32 @@ Ao criar migration: use o próximo `V{n}` **apenas** do backend/schema correspon
 
 O sistema usa **códigos estáveis** (`code`) na API e **mensagens em português** nos catálogos de cada módulo.
 
-**Regra de encoding nos fontes:** use texto ASCII normal (`CPF`, `Erro`, `login`…) e escape `\uXXXX` **somente em caracteres especiais** (acentos, cedilha, etc.), para evitar quebra de charset no build sem prejudicar a leitura do código.
+**Regra de encoding nos fontes:** use texto ASCII normal (`CPF`, `Erro`, `login`) e escape `\uXXXX` **somente em caracteres especiais** (acentos, cedilha, etc.), para evitar quebra de charset no build sem prejudicar a leitura do código.
+
+### UTF-8 — revisar sempre (mapa mental do projeto)
+
+Este erro **ja aconteceu varias vezes** no monorepo (principalmente no frontend Next.js no Windows). O Turbopack nao consegue parsear o arquivo e o dev server para com:
+
+```
+Reading source code for parsing failed
+invalid utf-8 sequence of 1 bytes from index N
+failed to convert rope into string
+```
+
+**Checklist ao criar ou editar `.ts`, `.tsx`, `.java`:**
+
+| Passo | Regra |
+|-------|--------|
+| 1 | Comentarios e nomes de variavel: **somente ASCII** |
+| 2 | Mensagens PT-BR em strings: acentos via `\uXXXX` (tabela abaixo) |
+| 3 | Nao usar `…` (ellipsis Unicode); usar `...` (tres pontos ASCII) |
+| 4 | Nao colar texto de editores/chat com encoding misto |
+| 5 | Ao finalizar, validar o arquivo: `node -e "require('fs').readFileSync('caminho/arquivo.ts').toString('utf8')"` |
+| 6 | Se quebrar o build: **reescrever o arquivo inteiro** com ASCII + escapes (corrigir so um trecho costuma deixar lixo binario) |
+
+**Arquivos que ja falharam por isso:** `gommo-frontend/src/shared/lib/input/number.ts`, `logging-out-overlay.ts`, `dashboard-system.util.ts`, `WorkspaceNavigationProvider.tsx` (e equivalentes no admin-frontend).
+
+Regra tambem documentada em `.cursor/rules/gommo.mdc` (sempre aplicada aos agentes).
 
 **Conversor recomendado (texto → `\uXXXX`):**  
 https://www.esoapi.com/pt/unicode/converter/

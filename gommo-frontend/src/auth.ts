@@ -6,6 +6,7 @@ import {
 } from "@/auth/refresh-token";
 import { isPathAccessible } from "@/shared/auth/route-permissions";
 import { apiFetch, setAuthToken } from "@/shared/lib/api.client";
+import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 
 class TokenResponse {
   accessToken!: string;
@@ -16,6 +17,7 @@ class TokenResponse {
   email?: string;
   photoObjectId?: string;
   permissions?: string[];
+  platformAdmin?: boolean;
 }
 
 const secureCookies = process.env.NODE_ENV === "production";
@@ -58,11 +60,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         username: { label: "Usuário", type: "text" },
         password: { label: "Senha", type: "password" },
+        tenantSlug: { label: "Tenant", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
           return null;
         }
+        const tenantSlug = (credentials.tenantSlug as string | undefined)?.trim() || undefined;
         try {
           const data = await apiFetch<TokenResponse>("/api/v1/auth/login", {
             method: "POST",
@@ -70,6 +74,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               username: credentials.username,
               password: credentials.password,
             },
+            headers: buildTenantRequestHeaders(tenantSlug),
           });
           setAuthToken(data.accessToken);
           return {
@@ -78,6 +83,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: data.email,
             photoObjectId: data.photoObjectId,
             permissions: data.permissions ?? [],
+            platformAdmin: data.platformAdmin ?? false,
+            tenantSlug,
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
             accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
@@ -96,7 +103,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (isLogin) {
         return auth ? Response.redirect(new URL("/dashboard", nextUrl)) : true;
       }
-      if (!auth) return false;
+      if (!auth) {
+        return Response.redirect(new URL("/login", nextUrl));
+      }
 
       const granted = auth.user?.permissions ?? [];
       if (!isPathAccessible(nextUrl.pathname, granted)) {
@@ -113,6 +122,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           photoObjectId: user.photoObjectId,
           permissions: user.permissions,
+          platformAdmin: user.platformAdmin,
+          tenantSlug: user.tenantSlug,
           accessToken: user.accessToken,
           refreshToken: user.refreshToken,
           accessTokenExpires: user.accessTokenExpires,
@@ -129,6 +140,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       session.accessToken = token.accessToken as string | undefined;
       session.refreshToken = token.refreshToken as string | undefined;
+      session.tenantSlug = token.tenantSlug as string | undefined;
+      session.platformAdmin = token.platformAdmin as boolean | undefined;
       session.error = token.error as typeof session.error;
 
       if (session.user) {

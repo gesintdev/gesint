@@ -5,22 +5,29 @@ import {useEffect, useState, type SubmitEvent} from "react";
 import {toast} from "sonner";
 import {ADMIN_USER_CLIENT_MESSAGES} from "@/modules/adminuser/exceptions/adminuser.messages";
 import type {AdminUserCreateDto} from "@/modules/adminuser/dto/adminuser.dto";
-import {emptyAdminUserForm, adminUserToFormDto} from "@/modules/adminuser/lib/adminuser.mapper";
+import {
+    ADMIN_USER_PASSWORD_MIN_LENGTH,
+    adminUserToFormDto,
+    emptyAdminUserForm,
+    toAdminUserSavePayload,
+    validateAdminUserForm,
+} from "@/modules/adminuser/lib/adminuser.mapper";
 import {adminUserKeys} from "@/modules/adminuser/adminuser.query";
 import {adminUserService} from "@/modules/adminuser/services/adminuser.service";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
+import {EntityCodeField} from "@/shared/components/crud/EntityCodeField";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {Button} from "@/shared/components/ui/Button";
-import {InputString} from "@/shared/components/ui/input/index";
+import {InputPassword, InputString} from "@/shared/components/ui/input/index";
 
 export function AdminUserFormClient() {
     const {editingId, isEditing, goToList} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdminUserCreateDto>(emptyAdminUserForm());
     const [error, setError] = useState<string | null>(null);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
 
     const detailQuery = useQuery({
         queryKey: adminUserKeys.detail(editingId ?? ""),
@@ -33,9 +40,14 @@ export function AdminUserFormClient() {
     useEffect(() => {
         if (!isEditing) {
             setForm(emptyAdminUserForm());
-            return;
+            setPasswordError(null);
         }
-        if (detailQuery.data) setForm(adminUserToFormDto(detailQuery.data));
+    }, [isEditing]);
+
+    useEffect(() => {
+        if (isEditing && detailQuery.data) {
+            setForm(adminUserToFormDto(detailQuery.data));
+        }
     }, [isEditing, detailQuery.data]);
 
     const saveMutation = useMutation({
@@ -56,7 +68,19 @@ export function AdminUserFormClient() {
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
-        saveMutation.mutate(form);
+        setPasswordError(null);
+
+        const validationError = validateAdminUserForm(form, isEditing);
+        if (validationError) {
+            if (validationError.includes("senha")) {
+                setPasswordError(validationError);
+            } else {
+                setError(validationError);
+            }
+            return;
+        }
+
+        saveMutation.mutate(toAdminUserSavePayload(form, isEditing));
     };
 
     return (
@@ -77,23 +101,35 @@ export function AdminUserFormClient() {
         >
             <div className="grid gap-4">
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-                <InputString label="Nome completo" value={form.fullName}
-                             onValueChange={(v) => setForm((p) => ({...p, fullName: v}))} required/>
-                <InputString label="Usuário" value={form.username}
-                             onValueChange={(v) => setForm((p) => ({...p, username: v}))} required/>
-                <InputString label="E-mail" value={form.email} onValueChange={(v) => setForm((p) => ({...p, email: v}))}
-                             required/>
-                <label className="gommo-field flex flex-col gap-1">
-                    <span
-                        className="text-xs font-medium text-base-content/70">{isEditing ? "Nova senha (opcional)" : "Senha"}</span>
-                    <input
-                        type="password"
-                        className="input input-bordered w-full focus:outline-none"
-                        value={form.password ?? ""}
-                        onChange={(e) => setForm((p) => ({...p, password: e.target.value}))}
-                        required={!isEditing}
-                    />
-                </label>
+                <InputString
+                    label="Nome completo"
+                    value={form.fullName}
+                    onValueChange={(v) => setForm((p) => ({...p, fullName: v}))}
+                    required
+                />
+                <InputString
+                    label="Usuário"
+                    value={form.username}
+                    onValueChange={(v) => setForm((p) => ({...p, username: v}))}
+                    required
+                />
+                <InputString
+                    label="E-mail"
+                    value={form.email}
+                    onValueChange={(v) => setForm((p) => ({...p, email: v}))}
+                    required
+                />
+                <InputPassword
+                    label={isEditing ? "Nova senha (opcional)" : "Senha"}
+                    value={form.password ?? ""}
+                    onValueChange={(v) => {
+                        setPasswordError(null);
+                        setForm((p) => ({...p, password: v}));
+                    }}
+                    required={!isEditing}
+                    hint={`Mínimo de ${ADMIN_USER_PASSWORD_MIN_LENGTH} caracteres`}
+                    error={passwordError ?? undefined}
+                />
             </div>
         </CrudFormShell>
     );

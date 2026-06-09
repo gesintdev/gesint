@@ -10,6 +10,14 @@ public record TenantContext(
         TenantProvisioningStatus provisioningStatus,
         String billingStatus) {
 
+    public static TenantContext platform() {
+        return new TenantContext(null, null, "public", "Platform", TenantProvisioningStatus.READY, null);
+    }
+
+    public boolean isPlatformAccess() {
+        return clientId == null;
+    }
+
     public boolean isBillingActive() {
         return billingStatus == null || "ACTIVE".equalsIgnoreCase(billingStatus);
     }

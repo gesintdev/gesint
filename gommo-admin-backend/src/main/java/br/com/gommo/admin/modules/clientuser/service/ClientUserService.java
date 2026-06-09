@@ -89,14 +89,17 @@ public class ClientUserService implements IClientUserService {
                 .findByIdAndStatusNot(request.getClientId(), StatusEnum.DELETED)
                 .orElseThrow(ClientUserException::clientNotFound);
 
-        if (publicAppUserRepository.existsByUsername(request.getUsername())) {
+        if (publicAppUserRepository.existsActiveByUsername(request.getUsername(), StatusEnum.DELETED)) {
             throw ClientUserException.usernameExists();
         }
-        if (publicAppUserRepository.existsByEmail(request.getEmail())) {
+        if (publicAppUserRepository.existsActiveByEmail(request.getEmail(), StatusEnum.DELETED)) {
             throw ClientUserException.emailExists();
         }
         if (!StringUtils.hasText(request.getPassword())) {
             throw ClientUserException.passwordRequired();
+        }
+        if (request.getPassword().length() < 8) {
+            throw ClientUserException.passwordTooShort();
         }
 
         PublicRole hrRole = publicRoleRepository.findById(HR_ROLE_ID).orElseThrow();
@@ -135,16 +138,20 @@ public class ClientUserService implements IClientUserService {
                 .orElseThrow(ClientUserException::notFound);
 
         if (!appUser.getUsername().equals(request.getUsername())
-                && publicAppUserRepository.existsByUsername(request.getUsername())) {
+                && publicAppUserRepository.existsActiveByUsername(request.getUsername(), StatusEnum.DELETED)) {
             throw ClientUserException.usernameExists();
         }
-        if (!appUser.getEmail().equals(request.getEmail()) && publicAppUserRepository.existsByEmail(request.getEmail())) {
+        if (!appUser.getEmail().equals(request.getEmail())
+                && publicAppUserRepository.existsActiveByEmail(request.getEmail(), StatusEnum.DELETED)) {
             throw ClientUserException.emailExists();
         }
 
         appUser.setUsername(request.getUsername());
         appUser.setEmail(request.getEmail());
         if (StringUtils.hasText(request.getPassword())) {
+            if (request.getPassword().length() < 8) {
+                throw ClientUserException.passwordTooShort();
+            }
             appUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
         publicAppUserRepository.save(appUser);

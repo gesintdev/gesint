@@ -1,10 +1,11 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import {useEffect, useMemo, useRef} from "react";
 import {toast} from "sonner";
 import {canAccessRoute} from "@/shared/auth/route-access";
 import {setAuthToken} from "@/shared/lib/api.client";
+import {signOutToTenantLogin} from "@/shared/lib/sign-out.client";
 import {findRouteById} from "@/shared/workspace/workspace-routes";
 import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
 
@@ -29,7 +30,7 @@ export function SessionRefresh() {
         if (session?.error === "RefreshAccessTokenError" || session?.error === "RefreshTokenMissing") {
             setAuthToken(null);
             toast.error("Sessão expirada. Faça login novamente.");
-            void signOut({callbackUrl: "/login"});
+            void signOutToTenantLogin();
         }
     }, [session?.error]);
 

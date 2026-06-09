@@ -28,7 +28,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "role")
+@Table(schema = "public", name = "role")
 @Getter
 @Setter
 @Builder
@@ -71,6 +71,7 @@ public class Role implements CodedEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
+            schema = "public",
             name = "role_permission",
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id"))

@@ -14,7 +14,9 @@ public interface AdminUserRepository extends IBaseRepository<AdminUser> {
     @Query("SELECT u FROM AdminUser u WHERE u.id = :id AND u.status <> :deleted")
     Optional<AdminUser> findActiveById(java.util.UUID id, StatusEnum deleted);
 
-    boolean existsByUsername(String username);
+    @Query("SELECT COUNT(u) > 0 FROM AdminUser u WHERE u.username = :username AND u.status <> :deleted")
+    boolean existsActiveByUsername(String username, StatusEnum deleted);
 
-    boolean existsByEmail(String email);
+    @Query("SELECT COUNT(u) > 0 FROM AdminUser u WHERE u.email = :email AND u.status <> :deleted")
+    boolean existsActiveByEmail(String email, StatusEnum deleted);
 }

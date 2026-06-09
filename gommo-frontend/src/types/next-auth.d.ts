@@ -10,11 +10,15 @@ declare module "next-auth" {
         accessTokenExpires?: number;
         photoObjectId?: string;
         permissions?: string[];
+        tenantSlug?: string;
+        platformAdmin?: boolean;
     }
 
     interface Session {
         accessToken?: string;
         refreshToken?: string;
+        tenantSlug?: string;
+        platformAdmin?: boolean;
         error?: AuthTokenError;
         user: DefaultSession["user"] & {
             photoObjectId?: string;
@@ -32,5 +36,7 @@ declare module "next-auth/jwt" {
         email?: string | null;
         photoObjectId?: string;
         permissions?: string[];
+        tenantSlug?: string;
+        platformAdmin?: boolean;
     }
 }

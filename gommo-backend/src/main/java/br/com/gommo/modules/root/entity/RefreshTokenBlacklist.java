@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "refresh_token_blacklist")
+@Table(schema = "public", name = "refresh_token_blacklist")
 @Getter
 @Setter
 @Builder

@@ -5,4 +5,6 @@ import java.util.UUID;
 public interface TenantClientUserLookup {
 
     boolean belongsToTenant(UUID appUserId, UUID clientId);
+
+    boolean isBoundToAnyClient(UUID appUserId);
 }

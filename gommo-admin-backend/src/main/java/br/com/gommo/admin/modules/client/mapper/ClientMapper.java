@@ -88,7 +88,7 @@ public class ClientMapper {
     }
 
     private TenantDatabaseStrategyEnum resolveDatabaseStrategy(TenantDatabaseStrategyEnum value) {
-        return value == null ? TenantDatabaseStrategyEnum.DEDICATED_DATABASE : value;
+        return value == null ? TenantDatabaseStrategyEnum.DEDICATED_SCHEMA : value;
     }
 
     private TenantProvisioningStatusEnum resolveProvisioningStatus(TenantProvisioningStatusEnum value) {

@@ -2,6 +2,8 @@ export type { InputFieldChromeProps, InputBaseProps } from "./input-field.types"
 export { InputBase } from "./InputBase";
 export { InputString } from "./InputString";
 export type { InputStringProps } from "./InputString";
+export { InputPassword } from "./InputPassword";
+export type { InputPasswordProps } from "./InputPassword";
 export { InputCPF } from "./InputCPF";
 export type { InputCPFProps } from "./InputCPF";
 export { InputCNPJ } from "./InputCNPJ";

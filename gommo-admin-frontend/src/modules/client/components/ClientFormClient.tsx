@@ -5,7 +5,7 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
 import { CLIENT_CLIENT_MESSAGES } from "@/modules/client/exceptions/client.messages";
 import type { ClientCreateDto } from "@/modules/client/dto/client.dto";
-import { emptyClientForm, clientToFormDto } from "@/modules/client/lib/client.mapper";
+import { emptyClientForm, clientToFormDto, tenantSchemaFromSlug } from "@/modules/client/lib/client.mapper";
 import { clientKeys } from "@/modules/client/client.query";
 import { clientService } from "@/modules/client/services/client.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -155,7 +155,22 @@ export function ClientFormClient() {
                 </div>
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <InputString label="Nome" value={form.name} onValueChange={(v) => update("name", v)} required />
-                <InputString label="Slug" value={form.slug} onValueChange={(v) => update("slug", v)} required />
+                <InputString
+                    label="Slug"
+                    value={form.slug}
+                    onValueChange={(v) => {
+                        setForm((prev) => ({
+                            ...prev,
+                            slug: v,
+                            subdomain: !isEditing || !prev.subdomain ? v : prev.subdomain,
+                            databaseSchema:
+                                prev.databaseStrategy === "DEDICATED_SCHEMA" && (!prev.databaseSchema || prev.databaseSchema === "public")
+                                    ? tenantSchemaFromSlug(v)
+                                    : prev.databaseSchema,
+                        }));
+                    }}
+                    required
+                />
                 <InputCNPJ
                     label="CNPJ"
                     value={form.document ?? ""}
@@ -196,7 +211,7 @@ export function ClientFormClient() {
                 </div>
                 <InputSelect
                     label="Estratégia de banco"
-                    value={form.databaseStrategy ?? "DEDICATED_DATABASE"}
+                    value={form.databaseStrategy ?? "DEDICATED_SCHEMA"}
                     onValueChange={(v) => update("databaseStrategy", v)}
                     items={strategyItems}
                     required

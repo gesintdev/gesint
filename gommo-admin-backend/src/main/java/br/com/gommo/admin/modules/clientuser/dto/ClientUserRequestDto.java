@@ -3,6 +3,7 @@ package br.com.gommo.admin.modules.clientuser.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -33,6 +34,6 @@ public class ClientUserRequestDto {
     @Size(max = 200)
     private String displayName;
 
-    @Size(min = 8, max = 100)
+    @Pattern(regexp = "^$|^.{8,100}$", message = "deve ter entre 8 e 100 caracteres")
     private String password;
 }

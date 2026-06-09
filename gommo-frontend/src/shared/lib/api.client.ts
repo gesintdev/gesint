@@ -1,6 +1,8 @@
 import {AppException} from "@/shared/exceptions/app.exception";
 import type {ErrorResponseDto} from "@/shared/exceptions/error-response.dto";
 import {AUTH_CLIENT_MESSAGES} from "@/modules/root/exceptions/auth.messages";
+import {signOutToTenantLogin} from "@/shared/lib/sign-out.client";
+import {buildTenantRequestHeaders, resolveTenantSlugFromHostname} from "@/shared/lib/tenant";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8081";
 
@@ -36,16 +38,19 @@ async function refreshSessionTokens(options?: { forceBackendRefresh?: boolean })
     authToken = null;
     if (typeof window === "undefined") return null;
 
-    const {getSession, signOut} = await import("next-auth/react");
+    const {getSession} = await import("next-auth/react");
     const session = await getSession();
 
     if (session?.error === "RefreshAccessTokenError" || session?.error === "RefreshTokenMissing") {
-        await signOut({callbackUrl: "/login"});
+        signOutToTenantLogin();
         return null;
     }
 
     if (session?.refreshToken) {
-        const refreshed = await refreshAccessTokenFromBackend(session.refreshToken);
+        const refreshed = await refreshAccessTokenFromBackend(
+            session.refreshToken,
+            session.tenantSlug,
+        );
         if (refreshed) {
             setAuthToken(refreshed);
             return refreshed;
@@ -61,11 +66,48 @@ async function refreshSessionTokens(options?: { forceBackendRefresh?: boolean })
     return token;
 }
 
-async function refreshAccessTokenFromBackend(refreshToken: string): Promise<string | null> {
+async function resolveClientTenantHeaders(extra?: Record<string, string>): Promise<Record<string, string>> {
+    const fromExtra = extra?.["X-Tenant-Slug"];
+    if (fromExtra) {
+        return {
+            ...buildTenantRequestHeaders(fromExtra),
+            ...extra,
+        };
+    }
+
+    const fromHost = typeof window !== "undefined" ? resolveTenantSlugFromHostname() : null;
+    if (fromHost) {
+        return {
+            ...buildTenantRequestHeaders(fromHost),
+            ...extra,
+        };
+    }
+
+    if (typeof window !== "undefined") {
+        const {getSession} = await import("next-auth/react");
+        const session = await getSession();
+        if (session?.tenantSlug) {
+            return {
+                ...buildTenantRequestHeaders(session.tenantSlug),
+                ...extra,
+            };
+        }
+    }
+
+    return {...extra};
+}
+
+async function refreshAccessTokenFromBackend(
+    refreshToken: string,
+    tenantSlug?: string | null,
+): Promise<string | null> {
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {
+                "Content-Type": "application/json",
+                ...buildTenantRequestHeaders(tenantSlug),
+            },
             body: JSON.stringify({refreshToken}),
             cache: "no-store",
         });
@@ -82,6 +124,8 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     const correlationId = crypto.randomUUID();
     const bearer = await resolveAuthToken(token);
 
+    const tenantHeaders = await resolveClientTenantHeaders(headers);
+
     const doFetch = (authHeader: string | null) =>
         fetch(`${API_BASE_URL}${path}`, {
             method,
@@ -89,7 +133,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
                 "Content-Type": "application/json",
                 "X-Correlation-ID": correlationId,
                 ...(authHeader ? {Authorization: `Bearer ${authHeader}`} : {}),
-                ...headers,
+                ...tenantHeaders,
             },
             body: body !== undefined ? JSON.stringify(body) : undefined,
             cache: "no-store",

@@ -37,7 +37,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       DEV_ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD}
-      CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+      CORS_ORIGINS: http://localhost:3000,http://*.localhost:3000,http://localhost:3001
       SERVER_PORT: 8081
     ports:
       - "8081:8081"

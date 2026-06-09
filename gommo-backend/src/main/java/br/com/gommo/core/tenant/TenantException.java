@@ -26,4 +26,9 @@ public final class TenantException {
         return new BusinessException(
                 TenantExceptions.MISMATCH_CODE, TenantExceptions.MISMATCH_MSG, HttpStatus.FORBIDDEN);
     }
+
+    public static BusinessException hostRequired() {
+        return new BusinessException(
+                TenantExceptions.HOST_REQUIRED_CODE, TenantExceptions.HOST_REQUIRED_MSG, HttpStatus.FORBIDDEN);
+    }
 }

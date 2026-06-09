@@ -41,4 +41,23 @@ class TenantSchemaDataSourceTest {
 
         verify(statement).execute("SET search_path TO \"tenant_empresa_a\", public");
     }
+
+    @Test
+    void applySearchPathUsesPublicOnlyForPlatformAccess() throws Exception {
+        when(connection.createStatement()).thenReturn(statement);
+        TenantContextHolder.set(TenantContext.platform());
+
+        TenantSchemaDataSource.applySearchPath(connection);
+
+        verify(statement).execute("SET search_path TO public");
+    }
+
+    @Test
+    void applySearchPathUsesPublicWhenNoTenantContext() throws Exception {
+        when(connection.createStatement()).thenReturn(statement);
+
+        TenantSchemaDataSource.applySearchPath(connection);
+
+        verify(statement).execute("SET search_path TO public");
+    }
 }

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.gommo.core.exception.BusinessException;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,9 @@ class TenantAuthValidatorTest {
     @Mock
     private TenantClientUserLookup tenantClientUserLookup;
 
+    @Mock
+    private PlatformAdminUserLookup platformAdminUserLookup;
+
     private MultiTenantProperties properties;
     private TenantAuthValidator validator;
 
@@ -24,7 +28,12 @@ class TenantAuthValidatorTest {
     void setUp() {
         properties = new MultiTenantProperties();
         properties.setEnabled(true);
-        validator = new TenantAuthValidator(properties, tenantClientUserLookup);
+        validator = new TenantAuthValidator(properties, tenantClientUserLookup, platformAdminUserLookup);
+    }
+
+    @AfterEach
+    void tearDown() {
+        TenantContextHolder.clear();
     }
 
     @Test
@@ -38,7 +47,40 @@ class TenantAuthValidatorTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting(ex -> ((BusinessException) ex).getCode())
                 .isEqualTo(TenantExceptions.MISMATCH_CODE);
+    }
 
-        TenantContextHolder.clear();
+    @Test
+    void allowsPlatformAdminOnPlatformHostEvenWhenBoundToClient() {
+        UUID userId = UUID.randomUUID();
+        TenantContextHolder.set(TenantContext.platform());
+        when(platformAdminUserLookup.isPlatformAdmin("admin")).thenReturn(true);
+
+        validator.assertLoginAllowed(userId, "admin");
+    }
+
+    @Test
+    void rejectsClientUserOnPlatformHost() {
+        UUID userId = UUID.randomUUID();
+        TenantContextHolder.set(TenantContext.platform());
+        when(platformAdminUserLookup.isPlatformAdmin("client-admin")).thenReturn(false);
+        when(tenantClientUserLookup.isBoundToAnyClient(userId)).thenReturn(true);
+
+        assertThatThrownBy(() -> validator.assertLoginAllowed(userId, "client-admin"))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getCode())
+                .isEqualTo(TenantExceptions.HOST_REQUIRED_CODE);
+    }
+
+    @Test
+    void rejectsNonPlatformUserOnPlatformHost() {
+        UUID userId = UUID.randomUUID();
+        TenantContextHolder.set(TenantContext.platform());
+        when(tenantClientUserLookup.isBoundToAnyClient(userId)).thenReturn(false);
+        when(platformAdminUserLookup.isPlatformAdmin("guest")).thenReturn(false);
+
+        assertThatThrownBy(() -> validator.assertLoginAllowed(userId, "guest"))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getCode())
+                .isEqualTo(TenantExceptions.MISMATCH_CODE);
     }
 }

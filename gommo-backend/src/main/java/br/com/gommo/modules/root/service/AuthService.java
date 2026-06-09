@@ -2,6 +2,7 @@ package br.com.gommo.modules.root.service;
 
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.tenant.MultiTenantProperties;
+import br.com.gommo.core.tenant.PlatformAdminUserLookup;
 import br.com.gommo.core.tenant.TenantAuthValidator;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
@@ -47,6 +48,7 @@ public class AuthService implements IAuthService {
     private final JwtProperties jwtProperties;
     private final MultiTenantProperties multiTenantProperties;
     private final TenantAuthValidator tenantAuthValidator;
+    private final PlatformAdminUserLookup platformAdminUserLookup;
 
     public AuthService(
             AppUserRepository appUserRepository,
@@ -58,7 +60,8 @@ public class AuthService implements IAuthService {
             JwtService jwtService,
             JwtProperties jwtProperties,
             MultiTenantProperties multiTenantProperties,
-            TenantAuthValidator tenantAuthValidator) {
+            TenantAuthValidator tenantAuthValidator,
+            PlatformAdminUserLookup platformAdminUserLookup) {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
         this.collaboratorRepository = collaboratorRepository;
@@ -69,6 +72,7 @@ public class AuthService implements IAuthService {
         this.jwtProperties = jwtProperties;
         this.multiTenantProperties = multiTenantProperties;
         this.tenantAuthValidator = tenantAuthValidator;
+        this.platformAdminUserLookup = platformAdminUserLookup;
     }
 
     @Override
@@ -87,7 +91,7 @@ public class AuthService implements IAuthService {
             throw new BadCredentialsException("Invalid credentials");
         }
 
-        assertTenantUserAccess(user.getId());
+        assertLoginAllowed(user.getId(), user.getUsername());
 
         user.setLastLogin(OffsetDateTime.now());
         appUserRepository.save(user);
@@ -148,13 +152,17 @@ public class AuthService implements IAuthService {
         String tenantSlug = null;
         if (multiTenantProperties.isEnabled()) {
             TenantContext tenant = TenantContextHolder.require();
-            tenantId = tenant.clientId();
-            tenantSlug = tenant.slug();
+            if (!tenant.isPlatformAccess()) {
+                tenantId = tenant.clientId();
+                tenantSlug = tenant.slug();
+            }
         }
 
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getUsername(), permissions, tenantId, tenantSlug);
         String refreshToken = jwtService.generateRefreshToken(user.getId(), tenantId, tenantSlug);
         persistRefreshToken(user.getId(), refreshToken);
+
+        boolean platformAdmin = platformAdminUserLookup.isPlatformAdmin(user.getUsername());
 
         return TokenResponseDto.builder()
                 .accessToken(accessToken)
@@ -165,7 +173,19 @@ public class AuthService implements IAuthService {
                 .email(user.getEmail())
                 .photoObjectId(resolvePhotoObjectId(user))
                 .permissions(permissions)
+                .platformAdmin(platformAdmin)
                 .build();
+    }
+
+    private void assertLoginAllowed(UUID userId, String username) {
+        if (!multiTenantProperties.isEnabled()) {
+            return;
+        }
+        try {
+            tenantAuthValidator.assertLoginAllowed(userId, username);
+        } catch (RuntimeException ex) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
     }
 
     private void assertTenantUserAccess(UUID userId) {

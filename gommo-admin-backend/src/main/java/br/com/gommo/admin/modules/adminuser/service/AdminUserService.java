@@ -72,10 +72,13 @@ public class AdminUserService implements IAdminUserService {
         if (!StringUtils.hasText(request.getPassword())) {
             throw AdminUserException.passwordRequired();
         }
-        if (repository.existsByUsername(request.getUsername())) {
+        if (request.getPassword().length() < 8) {
+            throw AdminUserException.passwordTooShort();
+        }
+        if (repository.existsActiveByUsername(request.getUsername(), StatusEnum.DELETED)) {
             throw AdminUserException.usernameExists();
         }
-        if (repository.existsByEmail(request.getEmail())) {
+        if (repository.existsActiveByEmail(request.getEmail(), StatusEnum.DELETED)) {
             throw AdminUserException.emailExists();
         }
         AdminUser entity = AdminUser.builder()
@@ -93,14 +96,19 @@ public class AdminUserService implements IAdminUserService {
     @PreAuthorize("hasAuthority('platform:admin')")
     public AdminUserResponseDto update(UUID id, AdminUserRequestDto request) {
         AdminUser entity = findEntity(id);
-        if (!entity.getUsername().equals(request.getUsername()) && repository.existsByUsername(request.getUsername())) {
+        if (!entity.getUsername().equals(request.getUsername())
+                && repository.existsActiveByUsername(request.getUsername(), StatusEnum.DELETED)) {
             throw AdminUserException.usernameExists();
         }
-        if (!entity.getEmail().equals(request.getEmail()) && repository.existsByEmail(request.getEmail())) {
+        if (!entity.getEmail().equals(request.getEmail())
+                && repository.existsActiveByEmail(request.getEmail(), StatusEnum.DELETED)) {
             throw AdminUserException.emailExists();
         }
         mapper.updateEntity(entity, request);
         if (StringUtils.hasText(request.getPassword())) {
+            if (request.getPassword().length() < 8) {
+                throw AdminUserException.passwordTooShort();
+            }
             entity.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
         return mapper.toResponse(repository.save(entity));

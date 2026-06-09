@@ -15,4 +15,7 @@ public final class TenantExceptions {
 
     public static final String MISMATCH_CODE = "TENANT_MISMATCH";
     public static final String MISMATCH_MSG = "Token nao pertence a este ambiente";
+
+    public static final String HOST_REQUIRED_CODE = "TENANT_HOST_REQUIRED";
+    public static final String HOST_REQUIRED_MSG = "Acesso permitido apenas pelo subdominio do cliente";
 }

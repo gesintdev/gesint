@@ -30,7 +30,10 @@ import {
   EXITINTERVIEW_CLIENT_MESSAGES,
   EXITINTERVIEW_MESSAGES,
 } from "@/modules/exitinterview/exceptions/exit-interview.messages";
+import { CLIENT_USER_MESSAGES } from "@/modules/clientuser/exceptions/clientuser.messages";
+import { ADMIN_USER_MESSAGES } from "@/modules/adminuser/exceptions/adminuser.messages";
 import { CORE_MESSAGES } from "@/shared/exceptions/core.messages";
+import { formatValidationMessage } from "@/shared/exceptions/validation-message";
 
 const REGISTRY: Record<string, string> = {
   ...CORE_MESSAGES,
@@ -62,10 +65,15 @@ const REGISTRY: Record<string, string> = {
   ...OFFBOARDING_CLIENT_MESSAGES,
   ...EXITINTERVIEW_MESSAGES,
   ...EXITINTERVIEW_CLIENT_MESSAGES,
+  ...CLIENT_USER_MESSAGES,
+  ...ADMIN_USER_MESSAGES,
 };
 
 export function resolveMessageByCode(code: string | undefined, fallback: string): string {
   if (!code) return fallback;
+  if (code === "VALIDATION_ERROR") {
+    return formatValidationMessage(fallback);
+  }
   return REGISTRY[code] ?? fallback;
 }
 

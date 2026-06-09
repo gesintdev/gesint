@@ -28,13 +28,15 @@ public class TenantSchemaDataSource extends DelegatingDataSource {
     }
 
     static void applySearchPath(Connection connection) throws SQLException {
-        String schema = TenantContextHolder.getOptional()
+        String sql = TenantContextHolder.getOptional()
+                .filter(context -> !context.isPlatformAccess())
                 .map(TenantContext::schema)
                 .map(TenantSchemaNames::requireSafe)
-                .orElse("public");
+                .map(schema -> "SET search_path TO \"" + schema + "\", public")
+                .orElse("SET search_path TO public");
 
         try (Statement statement = connection.createStatement()) {
-            statement.execute("SET search_path TO \"" + schema + "\", public");
+            statement.execute(sql);
         }
     }
 }

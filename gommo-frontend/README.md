@@ -14,7 +14,7 @@ Credenciais: use `DEV_ADMIN_PASSWORD` configurado no backend (veja `.env.example
 
 ## Exceções
 
-Catálogo de códigos, mapa de caracteres Unicode e conversor: **[README do monorepo](../README.md#exceções-e-mensagens)**.
+Catálogo de códigos, mapa de caracteres Unicode, **checklist UTF-8** (revisar sempre) e conversor: **[README do monorepo](../README.md#utf-8--revisar-sempre-mapa-mental-do-projeto)**.
 
 Arquivos deste projeto:
 

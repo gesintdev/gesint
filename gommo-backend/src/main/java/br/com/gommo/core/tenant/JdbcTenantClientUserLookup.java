@@ -23,6 +23,16 @@ public class JdbcTenantClientUserLookup implements TenantClientUserLookup {
             )
             """;
 
+    private static final String SQL_ANY_CLIENT =
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM admin.client_user
+                WHERE app_user_id = ?
+                  AND status <> 'DELETED'
+            )
+            """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public JdbcTenantClientUserLookup(JdbcTemplate jdbcTemplate) {
@@ -36,6 +46,20 @@ public class JdbcTenantClientUserLookup implements TenantClientUserLookup {
         }
         try {
             Boolean exists = jdbcTemplate.queryForObject(SQL, Boolean.class, appUserId, clientId);
+            return Boolean.TRUE.equals(exists);
+        } catch (DataAccessException ex) {
+            log.debug("admin.client_user lookup failed: {}", ex.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isBoundToAnyClient(UUID appUserId) {
+        if (appUserId == null) {
+            return false;
+        }
+        try {
+            Boolean exists = jdbcTemplate.queryForObject(SQL_ANY_CLIENT, Boolean.class, appUserId);
             return Boolean.TRUE.equals(exists);
         } catch (DataAccessException ex) {
             log.debug("admin.client_user lookup failed: {}", ex.getMessage());
