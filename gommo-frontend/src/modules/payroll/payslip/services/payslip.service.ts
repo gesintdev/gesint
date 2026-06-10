@@ -1,6 +1,6 @@
 import type { Payslip, PayslipCreateDto } from "@/modules/payroll/payslip/dto/payslip.dto";
 import { BaseService } from "@/modules/root/services/base.service";
-import { apiFetchBlob } from "@/shared/lib/api.client";
+import { doRequest } from "@/shared/lib/api.client";
 
 class PayslipService extends BaseService<Payslip, PayslipCreateDto, PayslipCreateDto> {
     constructor() {
@@ -8,7 +8,7 @@ class PayslipService extends BaseService<Payslip, PayslipCreateDto, PayslipCreat
     }
 
     downloadPdf(id: string): Promise<Blob> {
-        return apiFetchBlob(`${this.basePath}/${id}/pdf`);
+        return doRequest<Blob>(`${this.basePath}/${id}/pdf`, { responseType: "blob" });
     }
 }
 

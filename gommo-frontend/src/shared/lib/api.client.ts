@@ -76,3 +76,10 @@ export const doRequest = httpClient.doRequest;
 export const apiFetch = httpClient.apiFetch;
 export const setAuthToken = httpClient.setAuthToken;
 export const resolveAuthToken = httpClient.resolveAuthToken;
+
+export function apiFetchBlob(
+    path: string,
+    options: Omit<import("@/shared/lib/create-http-client").DoRequestOptions, "responseType" | "body"> = {},
+): Promise<Blob> {
+    return doRequest<Blob>(path, { ...options, responseType: "blob" });
+}
