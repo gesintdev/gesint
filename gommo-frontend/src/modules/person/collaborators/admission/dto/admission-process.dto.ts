@@ -1,6 +1,9 @@
 export type AdmissionStatus = "DRAFT" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+
 export type Gender = "MALE" | "FEMALE" | "OTHER" | "NOT_INFORMED";
+
 export type MaritalStatus = "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "OTHER";
+
 export type ContractType = "CLT" | "PJ" | "INTERMITTENT" | "APPRENTICE" | "INTERN";
 
 export type AdmissionEmergencyContact = {
@@ -19,7 +22,6 @@ export class AdmissionProcess {
     startedAt?: string;
     completedAt?: string;
     notes?: string;
-
     fullName!: string;
     socialName?: string;
     cpf!: string;
@@ -42,7 +44,6 @@ export class AdmissionProcess {
     district?: string;
     city?: string;
     stateCode?: string;
-
     expectedStartDate!: string;
     companyId?: string;
     departmentId?: string;
@@ -50,16 +51,12 @@ export class AdmissionProcess {
     contractType!: ContractType;
     baseSalary?: number;
     workloadSchedule?: string;
-
     emergencyContacts?: AdmissionEmergencyContact[];
-
     contractStartDate?: string;
     contractEndDate?: string;
-
     providerCnpj?: string;
     providerLegalName?: string;
     providerTradeName?: string;
-
     createdAt?: string;
     updatedAt?: string;
 }
@@ -69,7 +66,6 @@ export class AdmissionProcessCreateDto {
     startedAt?: string;
     notes?: string;
     photoObjectId?: string;
-
     fullName!: string;
     socialName?: string;
     cpf!: string;
@@ -92,7 +88,6 @@ export class AdmissionProcessCreateDto {
     district?: string;
     city?: string;
     stateCode?: string;
-
     expectedStartDate!: string;
     companyId?: string;
     departmentId?: string;
@@ -101,12 +96,9 @@ export class AdmissionProcessCreateDto {
     /** Formulário: string (moeda/decimal); API: number */
     baseSalary?: string | number;
     workloadSchedule?: string;
-
     emergencyContacts?: AdmissionEmergencyContact[];
-
     contractStartDate?: string;
     contractEndDate?: string;
-
     providerCnpj?: string;
     providerLegalName?: string;
     providerTradeName?: string;

@@ -1,19 +1,21 @@
 package br.com.gommo.admin.modules.clientsubscription.entity;
 
-import br.com.gommo.admin.core.entity.AuditEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import br.com.gommo.admin.core.entity.AuditEntity;
 
 @Entity
 @Table(schema = "admin", name = "client_subscription")

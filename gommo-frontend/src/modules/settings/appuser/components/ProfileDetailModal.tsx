@@ -19,7 +19,6 @@ type ProfileDetailModalProps = {
 export function ProfileDetailModal({ open, profile, system, onClose }: ProfileDetailModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [mounted, setMounted] = useState(false);
-
     const detailQuery = useQuery({
         queryKey: profileKeys.detail(profile?.id ?? ""),
         queryFn: () => profileService.getById(profile!.id),
@@ -68,7 +67,6 @@ export function ProfileDetailModal({ open, profile, system, onClose }: ProfileDe
                         <X className="size-4" />
                     </button>
                 </div>
-
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
                     {detailQuery.isLoading ? (
                         <div className="flex items-center justify-center gap-2 py-8 text-sm text-base-content/50">
@@ -105,7 +103,6 @@ export function ProfileDetailModal({ open, profile, system, onClose }: ProfileDe
                         </ul>
                     )}
                 </div>
-
                 <div className="border-t border-base-content/8 px-4 py-3">
                     <Button type="button" variant="ghost" className="w-full" onClick={onClose}>
                         Fechar

@@ -1,11 +1,10 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CONTRACT_CLIENT_MESSAGES } from "@/modules/contract/exceptions/employment-contract.messages";
 import { CONTRACT_TABLE_COLUMNS } from "@/modules/contract/config/employment-contract.table-columns";
-import type { EmploymentContract } from "@/modules/contract/dto/employment-contract.dto";
 import { employmentcontractKeys } from "@/modules/contract/contract.query";
+import type { EmploymentContract } from "@/modules/contract/dto/employment-contract.dto";
+import { CONTRACT_CLIENT_MESSAGES } from "@/modules/contract/exceptions/employment-contract.messages";
 import { employmentcontractService } from "@/modules/contract/services/employment-contract.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function EmploymentContractListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => employmentcontractService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function EmploymentContractListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: CONTRACT_CLIENT_MESSAGES.CONTRACT_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: EmploymentContract) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

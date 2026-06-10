@@ -1,21 +1,8 @@
 package br.com.gommo.admin.modules.clientuser.service;
 
-import br.com.gommo.admin.core.base.dto.PageableResponseDto;
-import br.com.gommo.admin.core.entity.StatusEnum;
-import br.com.gommo.admin.modules.client.entity.Client;
-import br.com.gommo.admin.modules.client.repository.ClientRepository;
-import br.com.gommo.admin.modules.clientuser.dto.ClientUserRequestDto;
-import br.com.gommo.admin.modules.clientuser.dto.ClientUserResponseDto;
-import br.com.gommo.admin.modules.clientuser.entity.ClientUser;
-import br.com.gommo.admin.modules.clientuser.exception.ClientUserException;
-import br.com.gommo.admin.modules.clientuser.repository.ClientUserRepository;
-import br.com.gommo.admin.modules.integration.entity.PublicAppUser;
-import br.com.gommo.admin.modules.integration.entity.PublicRole;
-import br.com.gommo.admin.modules.integration.repository.PublicAppUserRepository;
-import br.com.gommo.admin.modules.integration.repository.PublicRoleRepository;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,27 +10,34 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import br.com.gommo.admin.core.base.dto.PageableResponseDto;
+import br.com.gommo.admin.core.entity.StatusEnum;
+import br.com.gommo.admin.modules.client.entity.Client;
+import br.com.gommo.admin.modules.client.entity.TenantProvisioningStatusEnum;
+import br.com.gommo.admin.modules.client.repository.ClientRepository;
+import br.com.gommo.admin.modules.client.service.TenantUserProvisioner;
+import br.com.gommo.admin.modules.clientuser.dto.ClientUserRequestDto;
+import br.com.gommo.admin.modules.clientuser.dto.ClientUserResponseDto;
+import br.com.gommo.admin.modules.clientuser.entity.ClientUser;
+import br.com.gommo.admin.modules.clientuser.exception.ClientUserException;
+import br.com.gommo.admin.modules.clientuser.repository.ClientUserRepository;
+
 @Service
 public class ClientUserService implements IClientUserService {
 
-    private static final UUID HR_ROLE_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");
-
     private final ClientUserRepository clientUserRepository;
     private final ClientRepository clientRepository;
-    private final PublicAppUserRepository publicAppUserRepository;
-    private final PublicRoleRepository publicRoleRepository;
+    private final TenantUserProvisioner tenantUserProvisioner;
     private final PasswordEncoder passwordEncoder;
 
     public ClientUserService(
             ClientUserRepository clientUserRepository,
             ClientRepository clientRepository,
-            PublicAppUserRepository publicAppUserRepository,
-            PublicRoleRepository publicRoleRepository,
+            TenantUserProvisioner tenantUserProvisioner,
             PasswordEncoder passwordEncoder) {
         this.clientUserRepository = clientUserRepository;
         this.clientRepository = clientRepository;
-        this.publicAppUserRepository = publicAppUserRepository;
-        this.publicRoleRepository = publicRoleRepository;
+        this.tenantUserProvisioner = tenantUserProvisioner;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -89,39 +83,27 @@ public class ClientUserService implements IClientUserService {
                 .findByIdAndStatusNot(request.getClientId(), StatusEnum.DELETED)
                 .orElseThrow(ClientUserException::clientNotFound);
 
-        if (publicAppUserRepository.existsActiveByUsername(request.getUsername(), StatusEnum.DELETED)) {
-            throw ClientUserException.usernameExists();
-        }
-        if (publicAppUserRepository.existsActiveByEmail(request.getEmail(), StatusEnum.DELETED)) {
-            throw ClientUserException.emailExists();
-        }
-        if (!StringUtils.hasText(request.getPassword())) {
-            throw ClientUserException.passwordRequired();
-        }
-        if (request.getPassword().length() < 8) {
-            throw ClientUserException.passwordTooShort();
-        }
-
-        PublicRole hrRole = publicRoleRepository.findById(HR_ROLE_ID).orElseThrow();
-
-        PublicAppUser appUser = PublicAppUser.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .status(StatusEnum.ACTIVE)
-                .roles(Set.of(hrRole))
-                .build();
-        appUser = publicAppUserRepository.save(appUser);
+        validateUniqueCredentials(request.getClientId(), null, request.getUsername(), request.getEmail());
+        validatePassword(request.getPassword(), true);
 
         ClientUser link = ClientUser.builder()
                 .clientId(client.getId())
-                .appUserId(appUser.getId())
-                .displayName(StringUtils.hasText(request.getDisplayName()) ? request.getDisplayName() : request.getUsername())
+                .username(request.getUsername().trim())
+                .email(request.getEmail().trim())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .displayName(
+                        StringUtils.hasText(request.getDisplayName())
+                                ? request.getDisplayName()
+                                : request.getUsername())
                 .status(StatusEnum.ACTIVE)
                 .build();
         link = clientUserRepository.save(link);
 
-        return toResponse(link, client, appUser);
+        if (client.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
+            tenantUserProvisioner.provisionUser(client, link);
+        }
+
+        return toResponse(link, client);
     }
 
     @Override
@@ -133,35 +115,24 @@ public class ClientUserService implements IClientUserService {
                 .findByIdAndStatusNot(request.getClientId(), StatusEnum.DELETED)
                 .orElseThrow(ClientUserException::clientNotFound);
 
-        PublicAppUser appUser = publicAppUserRepository
-                .findById(link.getAppUserId())
-                .orElseThrow(ClientUserException::notFound);
-
-        if (!appUser.getUsername().equals(request.getUsername())
-                && publicAppUserRepository.existsActiveByUsername(request.getUsername(), StatusEnum.DELETED)) {
-            throw ClientUserException.usernameExists();
-        }
-        if (!appUser.getEmail().equals(request.getEmail())
-                && publicAppUserRepository.existsActiveByEmail(request.getEmail(), StatusEnum.DELETED)) {
-            throw ClientUserException.emailExists();
-        }
-
-        appUser.setUsername(request.getUsername());
-        appUser.setEmail(request.getEmail());
-        if (StringUtils.hasText(request.getPassword())) {
-            if (request.getPassword().length() < 8) {
-                throw ClientUserException.passwordTooShort();
-            }
-            appUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        }
-        publicAppUserRepository.save(appUser);
+        validateUniqueCredentials(request.getClientId(), id, request.getUsername(), request.getEmail());
+        validatePassword(request.getPassword(), false);
 
         link.setClientId(client.getId());
+        link.setUsername(request.getUsername().trim());
+        link.setEmail(request.getEmail().trim());
+        if (StringUtils.hasText(request.getPassword())) {
+            link.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
         link.setDisplayName(
                 StringUtils.hasText(request.getDisplayName()) ? request.getDisplayName() : request.getUsername());
         clientUserRepository.save(link);
 
-        return toResponse(link, client, appUser);
+        if (link.getTenantAppUserId() != null && client.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
+            tenantUserProvisioner.syncTenantUserCredentials(client, link);
+        }
+
+        return toResponse(link, client);
     }
 
     @Override
@@ -172,34 +143,63 @@ public class ClientUserService implements IClientUserService {
         link.setStatus(StatusEnum.DELETED);
         clientUserRepository.save(link);
 
-        publicAppUserRepository.findById(link.getAppUserId()).ifPresent(appUser -> {
-            appUser.setStatus(StatusEnum.DELETED);
-            publicAppUserRepository.save(appUser);
+        clientRepository.findById(link.getClientId()).ifPresent(client -> {
+            if (link.getTenantAppUserId() != null) {
+                tenantUserProvisioner.deactivateTenantUser(client, link.getTenantAppUserId());
+            }
         });
     }
 
+    private void validateUniqueCredentials(UUID clientId, UUID id, String username, String email) {
+        String normalizedUsername = username.trim();
+        String normalizedEmail = email.trim();
+        UUID excludeId = id != null ? id : UUID.fromString("00000000-0000-0000-0000-000000000000");
+
+        if (clientUserRepository.existsByClientIdAndUsernameIgnoreCaseAndStatusNotAndIdNot(
+                clientId, normalizedUsername, StatusEnum.DELETED, excludeId)) {
+            throw ClientUserException.usernameExists();
+        }
+        if (clientUserRepository.existsByEmailIgnoreCaseAndStatusNotAndIdNot(
+                normalizedEmail, StatusEnum.DELETED, excludeId)) {
+            throw ClientUserException.emailExists();
+        }
+    }
+
+    private void validatePassword(String password, boolean required) {
+        if (!StringUtils.hasText(password)) {
+            if (required) {
+                throw ClientUserException.passwordRequired();
+            }
+            return;
+        }
+        if (password.length() < 8) {
+            throw ClientUserException.passwordTooShort();
+        }
+    }
+
     private ClientUser findEntity(UUID id) {
-        return clientUserRepository.findByIdAndStatusNot(id, StatusEnum.DELETED).orElseThrow(ClientUserException::notFound);
+        return clientUserRepository
+                .findByIdAndStatusNot(id, StatusEnum.DELETED)
+                .orElseThrow(ClientUserException::notFound);
     }
 
     private ClientUserResponseDto toResponse(ClientUser link) {
         Client client = clientRepository.findById(link.getClientId()).orElse(null);
-        PublicAppUser appUser =
-                publicAppUserRepository.findById(link.getAppUserId()).orElse(null);
-        return toResponse(link, client, appUser);
+        return toResponse(link, client);
     }
 
-    private ClientUserResponseDto toResponse(ClientUser link, Client client, PublicAppUser appUser) {
+    private ClientUserResponseDto toResponse(ClientUser link, Client client) {
         return ClientUserResponseDto.builder()
                 .id(link.getId())
                 .code(link.getCode())
                 .status(link.getStatus())
                 .clientId(link.getClientId())
                 .clientName(client != null ? client.getName() : null)
-                .appUserId(link.getAppUserId())
-                .username(appUser != null ? appUser.getUsername() : null)
-                .email(appUser != null ? appUser.getEmail() : null)
+                .appUserId(link.getTenantAppUserId())
+                .username(link.getUsername())
+                .email(link.getEmail())
                 .displayName(link.getDisplayName())
+                .provisionedAt(link.getProvisionedAt())
                 .createdAt(link.getCreatedAt())
                 .updatedAt(link.getUpdatedAt())
                 .build();

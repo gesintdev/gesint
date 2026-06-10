@@ -1,8 +1,6 @@
-import type {AuthTokenError} from "@/auth/refresh-token";
-import type {DefaultSession} from "next-auth";
-import "next-auth";
+import type { AuthTokenError } from "@/auth/refresh-token";
+import type { DefaultSession } from "next-auth";
 import "next-auth/jwt";
-
 declare module "next-auth" {
     interface User {
         accessToken?: string;
@@ -13,7 +11,6 @@ declare module "next-auth" {
         tenantSlug?: string;
         platformAdmin?: boolean;
     }
-
     interface Session {
         accessToken?: string;
         refreshToken?: string;

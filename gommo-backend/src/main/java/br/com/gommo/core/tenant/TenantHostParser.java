@@ -2,6 +2,7 @@ package br.com.gommo.core.tenant;
 
 import java.util.Locale;
 import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 
 @Component

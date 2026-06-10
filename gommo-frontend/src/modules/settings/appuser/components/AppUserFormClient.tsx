@@ -1,11 +1,11 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState, type SubmitEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { AppUserCreateDto } from "@/modules/settings/appuser/dto/appuser.dto";
+import { collaboratorService } from "@/modules/person/collaborators/people/services/collaborator.service";
 import { appUserKeys } from "@/modules/settings/appuser/appuser.query";
 import { ProfileRolePicker } from "@/modules/settings/appuser/components/ProfileRolePicker";
+import type { AppUserCreateDto } from "@/modules/settings/appuser/dto/appuser.dto";
 import {
     suggestEmailFromCollaborator,
     suggestUsernameFromCollaborator,
@@ -13,15 +13,14 @@ import {
 import { appUserService } from "@/modules/settings/appuser/services/appuser.service";
 import { profileKeys } from "@/modules/settings/profile/profile.query";
 import { profileService } from "@/modules/settings/profile/services/profile.service";
-import { collaboratorService } from "@/modules/person/collaborators/people/services/collaborator.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { Button } from "@/shared/components/ui/Button";
 import { InputBase, InputString } from "@/shared/components/ui/input/index";
+import { ExceptionCapture } from "@/shared/exceptions";
 
 const emptyForm = (): AppUserCreateDto => ({
     collaboratorId: "",
@@ -31,7 +30,6 @@ const emptyForm = (): AppUserCreateDto => ({
     dpRoleIds: [],
     rhRoleIds: [],
 });
-
 const FORM_STEPS: FormStepNavItem[] = [
     { id: "colaborador", label: "Colaborador" },
     { id: "credenciais", label: "Credenciais" },
@@ -43,18 +41,15 @@ export function AppUserFormClient() {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AppUserCreateDto>(emptyForm());
     const [error, setError] = useState<string | null>(null);
-
     const detailQuery = useQuery({
         queryKey: appUserKeys.detail(editingId ?? ""),
         queryFn: () => appUserService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
     });
-
     const dpProfilesQuery = useQuery({
         queryKey: profileKeys.list("DP"),
         queryFn: () => profileService.getAll("DP"),
     });
-
     const rhProfilesQuery = useQuery({
         queryKey: profileKeys.list("RH"),
         queryFn: () => profileService.getAll("RH"),
@@ -66,6 +61,7 @@ export function AppUserFormClient() {
             setError(null);
             return;
         }
+
         if (detailQuery.data) {
             setForm({
                 collaboratorId: detailQuery.data.collaboratorId,
@@ -84,7 +80,6 @@ export function AppUserFormClient() {
             setForm((prev) => ({ ...prev, collaboratorId: "" }));
             return;
         }
-
         try {
             const collaborator = await collaboratorService.getById(collaboratorId);
             setForm((prev) => ({
@@ -97,7 +92,6 @@ export function AppUserFormClient() {
             setForm((prev) => ({ ...prev, collaboratorId }));
         }
     }, []);
-
     const saveMutation = useMutation({
         mutationFn: async (dto: AppUserCreateDto) => {
             const payload: AppUserCreateDto = {
@@ -119,7 +113,6 @@ export function AppUserFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -127,7 +120,13 @@ export function AppUserFormClient() {
     };
 
     if (isEditing && detailQuery.isLoading) {
-        return <div className="grid gap-2 p-5">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton-shimmer h-10 w-full" />)}</div>;
+        return (
+            <div className="grid gap-2 p-5">
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                ))}
+            </div>
+        );
     }
 
     return (
@@ -156,7 +155,6 @@ export function AppUserFormClient() {
                     wrapperClassName="sm:col-span-2"
                 />
             </FormSection>
-
             <FormSection id="credenciais" title="Credenciais">
                 <div className="grid w-full grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
                     <InputString
@@ -185,7 +183,6 @@ export function AppUserFormClient() {
                     />
                 </div>
             </FormSection>
-
             <FormSection id="perfis" title="Perfis por sistema">
                 <div className="grid w-full grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
                     <ProfileRolePicker

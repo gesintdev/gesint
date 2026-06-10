@@ -1,9 +1,9 @@
-import type { JobPosition, JobPositionCreateDto } from "@/modules/organization/jobposition/dto/jobposition.dto";
 import { JOBPOSITION_TABLE_COLUMNS } from "@/modules/organization/jobposition/config/jobposition.table-columns";
+import type { JobPosition, JobPositionCreateDto } from "@/modules/organization/jobposition/dto/jobposition.dto";
 import { BaseService } from "@/modules/root/services/base.service";
-import { apiFetch } from "@/shared/lib/api.client";
-import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
 import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
+import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
+import { apiFetch } from "@/shared/lib/api.client";
 import type { EntityPickerAdvancedSearch, EntityPickerSearchParams } from "@/shared/types/entity-picker.types";
 
 const AUTOCOMPLETE_PAGE_SIZE = 6;
@@ -21,7 +21,6 @@ class JobPositionService extends BaseService<JobPosition, JobPositionCreateDto, 
     constructor() {
         super("/api/v1/job-positions");
     }
-
     search(params: JobPositionSearchParams): Promise<PageableResponseDto<JobPosition>> {
         const qs = new URLSearchParams();
         qs.set("page", String(params.page));
@@ -31,12 +30,7 @@ class JobPositionService extends BaseService<JobPosition, JobPositionCreateDto, 
         if (params.departmentId?.trim()) qs.set("departmentId", params.departmentId.trim());
         return apiFetch<PageableResponseDto<JobPosition>>(`${this.basePath}/search?${qs}`);
     }
-
-    async searchForAutocomplete(
-        query: string,
-        page = 0,
-        departmentId?: string,
-    ): Promise<SelectSearchResult> {
+    async searchForAutocomplete(query: string, page = 0, departmentId?: string): Promise<SelectSearchResult> {
         const result = await this.search({
             page,
             size: AUTOCOMPLETE_PAGE_SIZE,
@@ -49,7 +43,6 @@ class JobPositionService extends BaseService<JobPosition, JobPositionCreateDto, 
             hasMore: page + 1 < result.totalPages,
         };
     }
-
     searchForPicker(params: EntityPickerSearchParams): Promise<PageableResponseDto<JobPosition>> {
         return this.search({
             page: params.page,
@@ -69,7 +62,6 @@ export function toJobPositionSelectItem(jobPosition: JobPosition): SelectItem {
 }
 
 export const jobpositionService = new JobPositionService();
-
 export const JOB_POSITION_PICKER_ADVANCED: EntityPickerAdvancedSearch<JobPosition> = {
     title: "Buscar cargo",
     filters: [

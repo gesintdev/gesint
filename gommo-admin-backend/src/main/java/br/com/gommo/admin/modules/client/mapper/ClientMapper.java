@@ -1,12 +1,13 @@
 package br.com.gommo.admin.modules.client.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.admin.modules.client.dto.ClientRequestDto;
 import br.com.gommo.admin.modules.client.dto.ClientResponseDto;
 import br.com.gommo.admin.modules.client.entity.Client;
 import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
 import br.com.gommo.admin.modules.client.entity.TenantProvisioningStatusEnum;
 import br.com.gommo.admin.modules.client.entity.TenantRoutingModeEnum;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ClientMapper {

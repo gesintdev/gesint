@@ -1,8 +1,5 @@
 package br.com.gommo.modules.root.entity;
 
-import br.com.gommo.core.entity.CodedEntity;
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.access.entity.SystemScopeEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,20 +12,26 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import br.com.gommo.core.entity.CodedEntity;
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.access.entity.SystemScopeEnum;
+
 @Entity
-@Table(schema = "public", name = "role")
+@Table(name = "role")
 @Getter
 @Setter
 @Builder
@@ -71,7 +74,6 @@ public class Role implements CodedEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            schema = "public",
             name = "role_permission",
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id"))

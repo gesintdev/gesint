@@ -1,6 +1,5 @@
 "use client";
-
-import {createContext, useContext, type ReactNode} from "react";
+import { createContext, useContext, type ReactNode } from "react";
 
 export type TabbedCrudConfig = {
     routeId: string;
@@ -13,16 +12,8 @@ export type TabbedCrudConfig = {
 
 const TabbedCrudConfigContext = createContext<TabbedCrudConfig | null>(null);
 
-export function TabbedCrudConfigProvider({
-    value,
-    children,
-}: {
-    value: TabbedCrudConfig;
-    children: ReactNode;
-}) {
-    return (
-        <TabbedCrudConfigContext.Provider value={value}>{children}</TabbedCrudConfigContext.Provider>
-    );
+export function TabbedCrudConfigProvider({ value, children }: { value: TabbedCrudConfig; children: ReactNode }) {
+    return <TabbedCrudConfigContext.Provider value={value}>{children}</TabbedCrudConfigContext.Provider>;
 }
 
 export function useTabbedCrudConfig(): TabbedCrudConfig {

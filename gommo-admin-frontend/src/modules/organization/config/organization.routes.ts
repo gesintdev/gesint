@@ -1,5 +1,5 @@
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { Building2, Briefcase, Network } from "lucide-react";
+import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 
 export const organizationRoutes: AppRoute[] = [
     {

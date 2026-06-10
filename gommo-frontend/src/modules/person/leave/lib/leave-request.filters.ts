@@ -1,4 +1,4 @@
-import type {LeaveRequest} from "@/modules/person/leave/dto/leave-request.dto";
+import type { LeaveRequest } from "@/modules/person/leave/dto/leave-request.dto";
 
 export function isApprovedLeave(row: LeaveRequest): boolean {
     return row.approved === true;
@@ -12,7 +12,6 @@ export function isVacationHistory(row: LeaveRequest): boolean {
     return row.leaveType === "VACATION" && row.approved === true;
 }
 
-/** Férias visíveis no RH: solicitações enviadas ao DP (pendentes) e já concedidas. */
 export function isRhVacationListing(row: LeaveRequest): boolean {
     return row.leaveType === "VACATION";
 }

@@ -10,8 +10,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  */
 public final class PostgresTestEnvironment {
 
-    private static final String DEFAULT_JDBC =
-            "jdbc:postgresql://localhost:5432/gommo";
+    private static final String DEFAULT_JDBC = "jdbc:postgresql://localhost:5432/gommo";
     private static final String DEFAULT_USER = "gommo";
     private static final String DEFAULT_PASSWORD = "gommo_test";
 

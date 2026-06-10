@@ -1,10 +1,9 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/jobposition/exceptions/jobposition.messages";
 import { JOBPOSITION_TABLE_COLUMNS } from "@/modules/jobposition/config/jobposition.table-columns";
 import type { JobPosition } from "@/modules/jobposition/dto/jobposition.dto";
+import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/jobposition/exceptions/jobposition.messages";
 import { jobpositionKeys } from "@/modules/jobposition/jobposition.query";
 import { jobpositionService } from "@/modules/jobposition/services/jobposition.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function JobPositionListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => jobpositionService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function JobPositionListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: JOBPOSITION_CLIENT_MESSAGES.JOBPOSITION_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: JobPosition) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

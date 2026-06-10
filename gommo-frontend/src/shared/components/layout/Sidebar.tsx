@@ -1,15 +1,15 @@
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronRight, Search } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type AppRoute, flattenRoutes } from "@/config/routes";
+import { useActiveSystem, useActiveSystemRoutes } from "@/shared/context/ActiveSystemContext";
+import { findRouteByHref } from "@/shared/workspace/workspace-routes";
+import { SidebarFlyout } from "@/shared/components/layout/SidebarFlyout";
+import { SidebarCollapseTrigger } from "@/shared/components/layout/SidebarCollapseTrigger";
+import { SystemRail } from "@/shared/components/layout/SystemRail";
+import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import clsx from "clsx";
-import {AnimatePresence, motion} from "framer-motion";
-import {ChevronRight, Search} from "lucide-react";
-import {usePathname} from "next/navigation";
-import {type MouseEvent, useEffect, useMemo, useRef, useState} from "react";
-import {type AppRoute, flattenRoutes} from "@/config/routes";
-import {useActiveSystem, useActiveSystemRoutes} from "@/shared/context/ActiveSystemContext";
-import {findRouteByHref} from "@/shared/workspace/workspace-routes";
-import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
-import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
-import {SystemRail} from "@/shared/components/layout/SystemRail";
-import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 
 type SidebarProps = {
     collapsed: boolean;
@@ -34,6 +34,7 @@ function SidebarCollapseControl({
     onToggle?: () => void;
 }) {
     if (!desktop || !onToggle) return null;
+
     return <SidebarCollapseTrigger collapsed={collapsed} onToggle={onToggle} />;
 }
 
@@ -60,11 +61,7 @@ function SidebarToolbar({
             )}
         >
             {panelCollapsed ? (
-                <SidebarCollapseControl
-                    desktop={desktop}
-                    collapsed={collapsed}
-                    onToggle={onCollapsedToggle}
-                />
+                <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle} />
             ) : (
                 <>
                     <div className="min-w-0 flex-1">
@@ -79,29 +76,24 @@ function SidebarToolbar({
                             />
                         </label>
                     </div>
-                    <SidebarCollapseControl
-                        desktop={desktop}
-                        collapsed={collapsed}
-                        onToggle={onCollapsedToggle}
-                    />
+                    <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle} />
                 </>
             )}
         </div>
     );
 }
 
-export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMobileCloseAction}: SidebarProps) {
+export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMobileCloseAction }: SidebarProps) {
     const pathname = usePathname();
-    const {navSections} = useActiveSystem();
+    const { navSections } = useActiveSystem();
     const activeSystemRoutes = useActiveSystemRoutes();
-    const {openRouteModule} = useWorkspaceNavigation();
+    const { openRouteModule } = useWorkspaceNavigation();
     const [highlightRouteId, setHighlightRouteId] = useState<string | null>(null);
     const pathnameRouteId = useMemo(() => findRouteByHref(pathname)?.id ?? null, [pathname]);
     const navHighlightRouteId = highlightRouteId ?? pathnameRouteId;
     const [query, setQuery] = useState("");
     const [openIds, setOpenIds] = useState<Set<string>>(new Set());
     const [flyout, setFlyout] = useState<{ route: AppRoute; top: number } | null>(null);
-
     const flat = useMemo(() => flattenRoutes(activeSystemRoutes), [activeSystemRoutes]);
     const isSearching = query.trim().length > 0;
     const panelCollapsed = collapsed && !mobileOpen;
@@ -112,23 +104,20 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         openRouteModule(route);
         onMobileCloseAction?.();
     };
-
     const filteredSections = useMemo(() => {
         if (!isSearching) return navSections;
         const q = query.toLowerCase();
         const matches = flat.filter((r) => r.searchLabel.toLowerCase().includes(q));
         const ids = new Set(matches.map((m) => m.id));
-        return navSections.map((section) => ({
-            ...section,
-            routes: section.routes.filter(
-                (r) =>
-                    ids.has(r.id) ||
-                    r.children?.some((c) => ids.has(c.id)) ||
-                    r.label.toLowerCase().includes(q),
-            ),
-        })).filter((s) => s.routes.length > 0);
+        return navSections
+            .map((section) => ({
+                ...section,
+                routes: section.routes.filter(
+                    (r) => ids.has(r.id) || r.children?.some((c) => ids.has(c.id)) || r.label.toLowerCase().includes(q),
+                ),
+            }))
+            .filter((s) => s.routes.length > 0);
     }, [query, flat, isSearching, navSections]);
-
     const onMobileCloseRef = useRef(onMobileCloseAction);
 
     useEffect(() => {
@@ -153,11 +142,9 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             return next;
         });
     };
-
     /** Expansão só por clique do usuário (ou busca); troca de aba não abre/fecha grupos. */
     const isOpen = (id: string) => isSearching || openIds.has(id);
-
-    const NavLink = ({route, nested}: { route: AppRoute; nested?: boolean }) => {
+    const NavLink = ({ route, nested }: { route: AppRoute; nested?: boolean }) => {
         const Icon = route.icon;
         const active = route.id === navHighlightRouteId;
 
@@ -176,9 +163,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 <Icon
                     className={clsx(
                         "size-4.25 shrink-0 transition-colors duration-150",
-                        active
-                            ? "text-primary"
-                            : "text-base-content/38 group-hover:text-base-content/65",
+                        active ? "text-primary" : "text-base-content/38 group-hover:text-base-content/65",
                     )}
                     strokeWidth={active ? 2.25 : 2}
                 />
@@ -186,23 +171,21 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             </button>
         );
     };
-
     const renderRoute = (route: AppRoute) => {
         const Icon = route.icon;
         const hasChildren = Boolean(route.children?.length);
         const active = routeIsActive(route, navHighlightRouteId);
         const expanded = isOpen(route.id);
-
         if (panelCollapsed && hasChildren) {
             return (
                 <li key={route.id}>
                     <button
                         type="button"
                         aria-label={route.label}
-                        onClick={(e) => setFlyout({route, top: e.currentTarget.getBoundingClientRect().top})}
+                        onClick={(e) => setFlyout({ route, top: e.currentTarget.getBoundingClientRect().top })}
                         className={clsx("nav-item nav-item-collapsed", active && "nav-item-active")}
                     >
-                        <Icon className="size-4.25" strokeWidth={2}/>
+                        <Icon className="size-4.25" strokeWidth={2} />
                         <span className="sidebar-copy truncate text-left">{route.label}</span>
                     </button>
                 </li>
@@ -212,7 +195,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         if (panelCollapsed) {
             return (
                 <li key={route.id}>
-                    <NavLink route={route}/>
+                    <NavLink route={route} />
                 </li>
             );
         }
@@ -220,11 +203,10 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         if (!hasChildren) {
             return (
                 <li key={route.id}>
-                    <NavLink route={route}/>
+                    <NavLink route={route} />
                 </li>
             );
         }
-
         return (
             <li key={route.id} className="grid gap-1 ">
                 <button
@@ -237,7 +219,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                         expanded && "nav-item-expanded",
                     )}
                 >
-                    <Icon className="size-4.25 shrink-0 text-base-content/38" strokeWidth={2}/>
+                    <Icon className="size-4.25 shrink-0 text-base-content/38" strokeWidth={2} />
                     <span className="sidebar-copy truncate text-left">{route.label}</span>
                     <ChevronRight
                         className={clsx(
@@ -246,17 +228,13 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                         )}
                     />
                 </button>
-                <div
-                    aria-hidden={!expanded}
-                    data-open={expanded ? "true" : "false"}
-                    className="sidebar-submenu"
-                >
+                <div aria-hidden={!expanded} data-open={expanded ? "true" : "false"} className="sidebar-submenu">
                     <div className="sidebar-submenu__viewport">
                         <div className="sidebar-submenu__reveal">
                             <ul className="nav-group-children flex flex-col gap-0.5">
                                 {route.children?.map((child) => (
                                     <li key={child.id}>
-                                        <NavLink route={child} nested/>
+                                        <NavLink route={child} nested />
                                     </li>
                                 ))}
                             </ul>
@@ -266,7 +244,6 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             </li>
         );
     };
-
     const sidebarPanel = (opts: { desktop: boolean }) => (
         <>
             <SidebarToolbar
@@ -277,7 +254,6 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 query={query}
                 onQueryChange={setQuery}
             />
-
             {/* Nav */}
             <div className="sidebar-nav-wrap min-h-0 flex-1">
                 <nav className="sidebar-nav space-y-4 px-3 py-2" aria-label="Navegacao principal">
@@ -286,14 +262,12 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                             <div className="flex flex-col">
                                 <div className="flex min-h-6 items-center px-3">
                                     {panelCollapsed ? (
-                                        <div className="nav-section-rule" aria-hidden="true"/>
+                                        <div className="nav-section-rule" aria-hidden="true" />
                                     ) : (
                                         <p className="nav-section-label">{section.label}</p>
                                     )}
                                 </div>
-                                <ul className="space-y-1 px-2">
-                                    {section.routes.map(renderRoute)}
-                                </ul>
+                                <ul className="space-y-1 px-2">{section.routes.map(renderRoute)}</ul>
                             </div>
                         </div>
                     ))}
@@ -301,10 +275,9 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             </div>
         </>
     );
-
     const sidebarShell = (opts: { desktop: boolean }) => (
         <div className="flex h-full min-w-0">
-            <SystemRail/>
+            <SystemRail />
             <div
                 className={clsx(
                     "sidebar-routes-panel flex min-w-0 shrink-0 flex-col overflow-hidden border-r transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -319,7 +292,6 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             </div>
         </div>
     );
-
     const sidebarTotalWidth = "calc(var(--system-rail-width) + var(--sidebar-width))";
     const sidebarBodyStyle = {
         top: "var(--header-height)",
@@ -335,19 +307,19 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                         <motion.button
                             type="button"
                             aria-label="Fechar menu"
-                            initial={{opacity: 0}}
-                            animate={{opacity: 1}}
-                            exit={{opacity: 0}}
-                            transition={{duration: 0.2}}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                             className="fixed inset-0 z-40 bg-base-content/20 backdrop-blur-[3px] lg:hidden"
-                            style={{top: "var(--header-height)"}}
+                            style={{ top: "var(--header-height)" }}
                             onClick={onMobileCloseAction}
                         />
                         <motion.aside
-                            initial={{x: "-100%"}}
-                            animate={{x: 0}}
-                            exit={{x: "-100%"}}
-                            transition={{duration: 0.28, ease: [0.22, 1, 0.36, 1]}}
+                            initial={{ x: "-100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "-100%" }}
+                            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                             className="fixed left-0 z-50 flex overflow-hidden border-r lg:hidden"
                             style={{
                                 ...sidebarBodyStyle,
@@ -357,26 +329,22 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                             }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {sidebarShell({desktop: false})}
+                            {sidebarShell({ desktop: false })}
                         </motion.aside>
                     </>
                 )}
             </AnimatePresence>
-
             {/* Desktop — abaixo do header: coluna sistemas | coluna rotas */}
             <aside
                 data-collapsed={collapsed ? "true" : undefined}
                 className="fixed left-0 z-40 hidden overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
                 style={{
                     ...sidebarBodyStyle,
-                    width: collapsed
-                        ? "calc(var(--system-rail-width) + var(--sidebar-collapsed))"
-                        : sidebarTotalWidth,
+                    width: collapsed ? "calc(var(--system-rail-width) + var(--sidebar-collapsed))" : sidebarTotalWidth,
                 }}
             >
-                {sidebarShell({desktop: true})}
+                {sidebarShell({ desktop: true })}
             </aside>
-
             {collapsed && flyout && (
                 <SidebarFlyout
                     route={flyout.route}

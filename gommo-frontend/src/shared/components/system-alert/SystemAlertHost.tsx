@@ -1,16 +1,12 @@
 "use client";
-
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Button } from "@/shared/components/ui/Button";
+import { useSystemAlertStore } from "@/shared/system-alert/system-alert.store";
+import type { SystemAlertVariant } from "@/shared/system-alert/system-alert.types";
 import clsx from "clsx";
-import {AlertCircle, AlertTriangle, CheckCircle2, Info, X} from "lucide-react";
-import {useEffect, useRef} from "react";
-import {Button} from "@/shared/components/ui/Button";
-import {useSystemAlertStore} from "@/shared/system-alert/system-alert.store";
-import type {SystemAlertVariant} from "@/shared/system-alert/system-alert.types";
 
-const VARIANT_META: Record<
-    SystemAlertVariant,
-    {icon: typeof Info; bannerClass: string; iconClass: string}
-> = {
+const VARIANT_META: Record<SystemAlertVariant, { icon: typeof Info; bannerClass: string; iconClass: string }> = {
     warning: {
         icon: AlertTriangle,
         bannerClass: "gommo-alert-banner--warning",
@@ -41,7 +37,6 @@ export function SystemAlertHost() {
     useEffect(() => {
         const dialog = dialogRef.current;
         if (!dialog) return;
-
         if (current) {
             if (!dialog.open) dialog.showModal();
             return;
@@ -54,7 +49,6 @@ export function SystemAlertHost() {
         dismiss(confirmed);
         dialogRef.current?.close();
     };
-
     const meta = current ? VARIANT_META[current.variant] : null;
     const Icon = meta?.icon ?? Info;
     const isConfirm = current?.kind === "confirm";
@@ -80,7 +74,7 @@ export function SystemAlertHost() {
                 <div className="gommo-modal-panel">
                     <div className={clsx("gommo-alert-banner relative", meta.bannerClass)}>
                         <span className={clsx("gommo-alert-icon", meta.iconClass)}>
-                            <Icon className="size-5" strokeWidth={2}/>
+                            <Icon className="size-5" strokeWidth={2} />
                         </span>
                         <div className="min-w-0 flex-1 pe-8">
                             <h3 id="system-alert-title" className="font-semibold text-base-content">
@@ -98,10 +92,9 @@ export function SystemAlertHost() {
                             aria-label="Fechar"
                             onClick={() => handleClose(false)}
                         >
-                            <X className="size-4"/>
+                            <X className="size-4" />
                         </button>
                     </div>
-
                     <div className="gommo-modal-footer">
                         {isConfirm ? (
                             <>

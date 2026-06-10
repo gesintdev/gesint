@@ -1,10 +1,11 @@
 package br.com.gommo.core.tenant;
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import java.util.UUID;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 

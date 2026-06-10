@@ -1,26 +1,29 @@
 package br.com.gommo.modules.access.profile.service;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.core.persistence.EntityCodeIncrementer;
-import br.com.gommo.modules.access.catalog.PermissionModuleCatalog;
-import br.com.gommo.modules.access.profile.dto.ProfileRequestDto;
-import br.com.gommo.modules.access.profile.dto.ProfileResponseDto;
-import br.com.gommo.modules.access.profile.exception.ProfileException;
-import br.com.gommo.modules.access.profile.mapper.ProfileMapper;
-import br.com.gommo.modules.access.entity.SystemScopeEnum;
-import br.com.gommo.modules.root.entity.Permission;
-import br.com.gommo.modules.root.entity.Role;
-import br.com.gommo.modules.root.repository.PermissionRepository;
-import br.com.gommo.modules.root.repository.RoleRepository;
 import jakarta.persistence.EntityManager;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.core.persistence.EntityCodeIncrementer;
+import br.com.gommo.modules.access.catalog.PermissionModuleCatalog;
+import br.com.gommo.modules.access.entity.SystemScopeEnum;
+import br.com.gommo.modules.access.profile.dto.ProfileRequestDto;
+import br.com.gommo.modules.access.profile.dto.ProfileResponseDto;
+import br.com.gommo.modules.access.profile.exception.ProfileException;
+import br.com.gommo.modules.access.profile.mapper.ProfileMapper;
+import br.com.gommo.modules.root.entity.Permission;
+import br.com.gommo.modules.root.entity.Role;
+import br.com.gommo.modules.root.repository.PermissionRepository;
+import br.com.gommo.modules.root.repository.RoleRepository;
 
 @Service
 public class ProfileService implements IProfileService {
@@ -49,7 +52,9 @@ public class ProfileService implements IProfileService {
                 ? roleRepository.findAllCustomProfilesWithPermissions(StatusEnum.DELETED)
                 : roleRepository.findAllCustomProfilesWithPermissionsBySystem(system, StatusEnum.DELETED);
         if (!includeInactive) {
-            roles = roles.stream().filter(role -> role.getStatus() == StatusEnum.ACTIVE).toList();
+            roles = roles.stream()
+                    .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
+                    .toList();
         }
         return roles.stream().map(mapper::toResponse).toList();
     }
@@ -69,7 +74,10 @@ public class ProfileService implements IProfileService {
         Role role = Role.builder()
                 .code(EntityCodeIncrementer.nextCode(entityManager, Role.class))
                 .name(request.getName().trim())
-                .description(StringUtils.hasText(request.getDescription()) ? request.getDescription().trim() : null)
+                .description(
+                        StringUtils.hasText(request.getDescription())
+                                ? request.getDescription().trim()
+                                : null)
                 .system(request.getSystem())
                 .status(StatusEnum.ACTIVE)
                 .systemRole(false)
@@ -88,7 +96,10 @@ public class ProfileService implements IProfileService {
         }
         validateUniqueName(request.getName(), id);
         role.setName(request.getName().trim());
-        role.setDescription(StringUtils.hasText(request.getDescription()) ? request.getDescription().trim() : null);
+        role.setDescription(
+                StringUtils.hasText(request.getDescription())
+                        ? request.getDescription().trim()
+                        : null);
         role.setSystem(request.getSystem());
         role.setPermissions(resolvePermissions(request));
         return mapper.toResponse(roleRepository.save(role));

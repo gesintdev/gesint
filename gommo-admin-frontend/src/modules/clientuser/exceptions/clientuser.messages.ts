@@ -2,7 +2,6 @@ export const CLIENT_USER_CLIENT_MESSAGES = {
     LOAD_FAILED: "Não foi possível carregar os usuários dos clientes.",
     SAVE_FAILED: "Não foi possível salvar o usuário.",
 };
-
 export const CLIENT_USER_MESSAGES = {
     CLIENT_USER_NOT_FOUND: "Usuário do cliente não encontrado",
     CLIENT_NOT_FOUND: "Cliente não encontrado",

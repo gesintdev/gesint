@@ -1,6 +1,7 @@
 package br.com.gommo.core.tenant;
 
 import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,9 +23,7 @@ public class TenantResolver {
             return Optional.empty();
         }
 
-        if (properties.isHeaderEnabled()
-                && tenantHeaderValue != null
-                && !tenantHeaderValue.isBlank()) {
+        if (properties.isHeaderEnabled() && tenantHeaderValue != null && !tenantHeaderValue.isBlank()) {
             return findAndValidate(adminClientLookup.findBySlug(tenantHeaderValue.trim()));
         }
 

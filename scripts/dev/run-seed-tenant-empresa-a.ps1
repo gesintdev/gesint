@@ -47,4 +47,4 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ""
 Write-Host "Seed concluido." -ForegroundColor Green
 Write-Host "  URL:   http://empresa-a.localhost:3000"
-Write-Host "  Login: admin / $($env:DEV_ADMIN_PASSWORD)"
+Write-Host "  Login: usuario cadastrado em admin.client_user para Empresa A"

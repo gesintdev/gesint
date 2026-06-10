@@ -1,8 +1,5 @@
 package br.com.gommo.admin.modules.root.config;
 
-import br.com.gommo.admin.core.entity.StatusEnum;
-import br.com.gommo.admin.modules.adminuser.entity.AdminUser;
-import br.com.gommo.admin.modules.adminuser.repository.AdminUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +9,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import br.com.gommo.admin.core.entity.StatusEnum;
+import br.com.gommo.admin.modules.adminuser.entity.AdminUser;
+import br.com.gommo.admin.modules.adminuser.repository.AdminUserRepository;
 
 @Component
 @Profile({"dev", "test"})
@@ -38,8 +39,7 @@ public class DevAdminInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         if (!StringUtils.hasText(devAdminPassword)) {
-            log.warn(
-                    "gommo-admin.dev.admin-password nao configurado; usuario admin da plataforma nao sera criado.");
+            log.warn("gommo-admin.dev.admin-password nao configurado; usuario admin da plataforma nao sera criado.");
             return;
         }
 

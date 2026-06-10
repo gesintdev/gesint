@@ -1,4 +1,5 @@
 export type SystemScope = "DP" | "RH";
+
 export type ProfileStatus = "ACTIVE" | "INACTIVE" | "DELETED";
 
 export type PermissionSummary = {

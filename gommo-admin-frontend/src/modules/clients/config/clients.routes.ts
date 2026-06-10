@@ -1,13 +1,6 @@
+import { Building2, CreditCard, KeyRound, ToggleLeft, Users } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { comingSoonRoute, lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
-import {
-    Building2,
-    CreditCard,
-    KeyRound,
-    ToggleLeft,
-    Users,
-} from "lucide-react";
-
 /** Gestão de clientes (tenants) que contratam o Gommo */
 export const clientsRoutes: AppRoute[] = [
     routeGroup({
@@ -23,14 +16,8 @@ export const clientsRoutes: AppRoute[] = [
                 routeId: "clients",
                 tabShortLabel: "Cliente",
                 fieldTabName: "name",
-                list: lazyNamed(
-                    () => import("@/modules/client/components/ClientListClient"),
-                    "ClientListClient",
-                ),
-                form: lazyNamed(
-                    () => import("@/modules/client/components/ClientFormClient"),
-                    "ClientFormClient",
-                ),
+                list: lazyNamed(() => import("@/modules/client/components/ClientListClient"), "ClientListClient"),
+                form: lazyNamed(() => import("@/modules/client/components/ClientFormClient"), "ClientFormClient"),
             }),
             tabbedCrudRoute({
                 id: "client-users",

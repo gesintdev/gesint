@@ -1,14 +1,28 @@
 package br.com.gommo.modules.root.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.core.security.JwtProperties;
+import br.com.gommo.core.security.JwtService;
 import br.com.gommo.core.tenant.MultiTenantProperties;
 import br.com.gommo.core.tenant.PlatformAdminUserLookup;
 import br.com.gommo.core.tenant.TenantAuthValidator;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
-import br.com.gommo.modules.root.exception.AuthException;
-import br.com.gommo.core.security.JwtProperties;
-import br.com.gommo.core.security.JwtService;
+import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.root.dto.LoginRequestDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
 import br.com.gommo.modules.root.dto.TokenResponseDto;
@@ -17,23 +31,11 @@ import br.com.gommo.modules.root.entity.Permission;
 import br.com.gommo.modules.root.entity.RefreshToken;
 import br.com.gommo.modules.root.entity.RefreshTokenBlacklist;
 import br.com.gommo.modules.root.entity.Role;
-import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.root.exception.AuthException;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.root.repository.PermissionRepository;
 import br.com.gommo.modules.root.repository.RefreshTokenBlacklistRepository;
 import br.com.gommo.modules.root.repository.RefreshTokenRepository;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.OffsetDateTime;
-import java.util.HexFormat;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 @Service
 public class AuthService implements IAuthService {
@@ -131,7 +133,7 @@ public class AuthService implements IAuthService {
         if (multiTenantProperties.isEnabled()) {
             UUID tokenTenantId = jwtService.extractTenantId(rawRefresh).orElse(null);
             try {
-                tenantAuthValidator.assertTokenMatchesCurrentTenant(tokenTenantId);
+                tenantAuthValidator.assertTokenMatchesCurrentTenant(tokenTenantId, userId);
             } catch (RuntimeException ex) {
                 throw AuthException.invalidRefresh();
             }
@@ -158,7 +160,8 @@ public class AuthService implements IAuthService {
             }
         }
 
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getUsername(), permissions, tenantId, tenantSlug);
+        String accessToken =
+                jwtService.generateAccessToken(user.getId(), user.getUsername(), permissions, tenantId, tenantSlug);
         String refreshToken = jwtService.generateRefreshToken(user.getId(), tenantId, tenantSlug);
         persistRefreshToken(user.getId(), refreshToken);
 

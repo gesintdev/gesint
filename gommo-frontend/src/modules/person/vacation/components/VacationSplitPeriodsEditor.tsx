@@ -1,6 +1,8 @@
+import { Plus, Trash2 } from "lucide-react";
+import type { VacationSplitPeriod } from "@/modules/person/vacation/types/vacation.types";
+import { Button } from "@/shared/components/ui/Button";
+import { InputDate, InputNumber } from "@/shared/components/ui/input/index";
 import clsx from "clsx";
-import {Plus, Trash2} from "lucide-react";
-import type {VacationSplitPeriod} from "@/modules/person/vacation/types/vacation.types";
 import {
     isRestrictedVacationStart,
     MAX_SPLIT_PERIODS,
@@ -9,8 +11,6 @@ import {
     syncPeriodWithDays,
     validateSplitPeriods,
 } from "@/modules/person/vacation/lib/vacation-rules";
-import {Button} from "@/shared/components/ui/Button";
-import {InputDate, InputNumber} from "@/shared/components/ui/input/index";
 
 const CONTROL_H = "h-[var(--gommo-control-h)] min-h-[var(--gommo-control-h)]";
 
@@ -33,23 +33,20 @@ type Props = {
     fieldError?: string;
 };
 
-export function VacationSplitPeriodsEditor({periods, onChange, fieldError}: Props) {
+export function VacationSplitPeriodsEditor({ periods, onChange, fieldError }: Props) {
     const updatePeriod = (index: number, patch: Partial<VacationSplitPeriod>) => {
         const current = periods[index];
-        const merged = syncPeriodWithDays({...current, ...patch});
+        const merged = syncPeriodWithDays({ ...current, ...patch });
         onChange(periods.map((p, i) => (i === index ? merged : p)));
     };
-
     const addPeriod = () => {
         if (periods.length >= MAX_SPLIT_PERIODS) return;
-        onChange([...periods, {startDate: "", endDate: "", days: 0}]);
+        onChange([...periods, { startDate: "", endDate: "", days: 0 }]);
     };
-
     const removePeriod = (index: number) => {
         if (periods.length <= 1) return;
         onChange(periods.filter((_, i) => i !== index));
     };
-
     const activePeriods = periods.filter((p) => p.days > 0);
     const splitCheck = activePeriods.length > 1 ? validateSplitPeriods(periods) : null;
 
@@ -66,12 +63,11 @@ export function VacationSplitPeriodsEditor({periods, onChange, fieldError}: Prop
                     const restricted = period.startDate ? isRestrictedVacationStart(period.startDate) : false;
                     const periodTooShort = period.days > 0 && period.days < MIN_OTHER_SPLIT_DAYS;
                     const showSplitHints = activePeriods.length > 1;
-
                     return (
                         <div key={index} className="grid gap-1">
                             <div className="flex flex-col gap-2 lg:flex-row lg:items-end">
                                 <div className="flex w-full shrink-0 flex-col justify-end lg:w-10">
-                                    {showLabels ? <FieldLabelSpacer/> : null}
+                                    {showLabels ? <FieldLabelSpacer /> : null}
                                     <span
                                         className={clsx(
                                             "flex items-center justify-center rounded-md border border-base-300/50 bg-base-200/40 text-xs font-semibold text-base-content/60",
@@ -85,7 +81,7 @@ export function VacationSplitPeriodsEditor({periods, onChange, fieldError}: Prop
                                 <InputDate
                                     label={showLabels ? "Início" : undefined}
                                     value={period.startDate}
-                                    onValueChange={(v) => updatePeriod(index, {startDate: v})}
+                                    onValueChange={(v) => updatePeriod(index, { startDate: v })}
                                     required
                                     wrapperClassName="min-w-0 flex-1"
                                 />
@@ -94,7 +90,7 @@ export function VacationSplitPeriodsEditor({periods, onChange, fieldError}: Prop
                                     integer
                                     align="left"
                                     value={period.days || null}
-                                    onValueChange={(v) => updatePeriod(index, {days: v ?? 0})}
+                                    onValueChange={(v) => updatePeriod(index, { days: v ?? 0 })}
                                     wrapperClassName="min-w-0 flex-1 lg:max-w-[6rem]"
                                 />
                                 <div className="min-w-0 flex-1">
@@ -114,7 +110,7 @@ export function VacationSplitPeriodsEditor({periods, onChange, fieldError}: Prop
                                     </div>
                                 </div>
                                 <div className="flex w-full shrink-0 flex-col justify-end lg:w-10">
-                                    {showLabels ? <FieldLabelSpacer/> : null}
+                                    {showLabels ? <FieldLabelSpacer /> : null}
                                     {showAdd ? (
                                         <Button
                                             type="button"
@@ -122,7 +118,7 @@ export function VacationSplitPeriodsEditor({periods, onChange, fieldError}: Prop
                                             size="sm"
                                             aria-label="Adicionar período de gozo"
                                             className={clsx("w-full lg:w-10 lg:shrink-0 lg:px-0", CONTROL_H)}
-                                            leftIcon={<Plus className="size-4"/>}
+                                            leftIcon={<Plus className="size-4" />}
                                             onClick={addPeriod}
                                         />
                                     ) : showRemove ? (
@@ -132,11 +128,11 @@ export function VacationSplitPeriodsEditor({periods, onChange, fieldError}: Prop
                                             size="sm"
                                             aria-label={`Remover período ${index + 1}`}
                                             className={clsx("w-full lg:w-10 lg:shrink-0 lg:px-0", CONTROL_H)}
-                                            leftIcon={<Trash2 className="size-4"/>}
+                                            leftIcon={<Trash2 className="size-4" />}
                                             onClick={() => removePeriod(index)}
                                         />
                                     ) : (
-                                        <div className={clsx("hidden lg:block lg:w-10", CONTROL_H)}/>
+                                        <div className={clsx("hidden lg:block lg:w-10", CONTROL_H)} />
                                     )}
                                 </div>
                             </div>
@@ -155,9 +151,7 @@ export function VacationSplitPeriodsEditor({periods, onChange, fieldError}: Prop
                     );
                 })}
             </div>
-            {splitCheck && !splitCheck.valid ? (
-                <p className="text-xs text-warning">{splitCheck.message}</p>
-            ) : null}
+            {splitCheck && !splitCheck.valid ? <p className="text-xs text-warning">{splitCheck.message}</p> : null}
             {fieldError ? <p className="text-sm font-medium text-error">{fieldError}</p> : null}
         </div>
     );

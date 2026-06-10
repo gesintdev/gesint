@@ -2,7 +2,6 @@ import type { AdmissionProcess } from "@/modules/person/collaborators/admission/
 import { admissionprocessService } from "@/modules/person/collaborators/admission/services/admission-process.service";
 import type { EmploymentContract } from "@/modules/person/contract/dto/employment-contract.dto";
 import { employmentcontractService } from "@/modules/person/contract/services/employment-contract.service";
-import type { ContractType, VacationPeriodContext } from "@/modules/person/vacation/types/vacation.types";
 import {
     acquisitionPeriod,
     concessivePeriod,
@@ -10,6 +9,7 @@ import {
     resolvePeriodStatus,
     vacationDaysEntitled,
 } from "@/modules/person/vacation/lib/vacation-rules";
+import type { ContractType, VacationPeriodContext } from "@/modules/person/vacation/types/vacation.types";
 
 type HireProfile = {
     contractType: ContractType;
@@ -34,13 +34,9 @@ function completedAdmissionForCollaborator(
     collaboratorId: string,
 ): AdmissionProcess | null {
     const mine = admissions.filter(
-        (a) =>
-            a.collaboratorId === collaboratorId &&
-            a.status !== "DELETED" &&
-            a.admissionStatus === "COMPLETED",
+        (a) => a.collaboratorId === collaboratorId && a.status !== "DELETED" && a.admissionStatus === "COMPLETED",
     );
     if (mine.length === 0) return null;
-
     return mine.sort((a, b) => {
         const dateA = hireDateFromAdmission(a) ?? "";
         const dateB = hireDateFromAdmission(b) ?? "";
@@ -48,24 +44,15 @@ function completedAdmissionForCollaborator(
     })[0];
 }
 
-function resolveHireProfile(
-    contract: EmploymentContract | null,
-    admission: AdmissionProcess | null,
-): HireProfile {
-    const contractType =
-        contract?.contractType ?? admission?.contractType ?? ("CLT" as ContractType);
-
-    const hireDate =
-        contract?.startDate?.slice(0, 10) ??
-        (admission ? hireDateFromAdmission(admission) : null);
-
+function resolveHireProfile(contract: EmploymentContract | null, admission: AdmissionProcess | null): HireProfile {
+    const contractType = contract?.contractType ?? admission?.contractType ?? ("CLT" as ContractType);
+    const hireDate = contract?.startDate?.slice(0, 10) ?? (admission ? hireDateFromAdmission(admission) : null);
     let baseSalary: number | null = null;
     if (contract?.baseSalary != null && contract.baseSalary !== "") {
         baseSalary = Number(contract.baseSalary);
     } else if (admission?.baseSalary != null) {
         baseSalary = Number(admission.baseSalary);
     }
-
     return { contractType, hireDate, baseSalary };
 }
 
@@ -77,12 +64,10 @@ export async function loadCollaboratorVacationContext(
         employmentcontractService.getAll(),
         admissionprocessService.getAll(),
     ]);
-
     const contract = activeContract(contracts, collaboratorId);
     const admission = completedAdmissionForCollaborator(admissions, collaboratorId);
     const profile = resolveHireProfile(contract, admission);
     const entitledDays = vacationDaysEntitled(unjustifiedAbsences);
-
     if (!profile.hireDate || profile.contractType !== "CLT") {
         return {
             contractType: profile.contractType,
@@ -96,12 +81,10 @@ export async function loadCollaboratorVacationContext(
             periodIndex: 0,
         };
     }
-
     const periodIndex = resolveActivePeriodIndex(profile.hireDate);
     const acquisition = acquisitionPeriod(profile.hireDate, periodIndex);
     const concessive = concessivePeriod(acquisition.end);
     const status = resolvePeriodStatus(acquisition, concessive, entitledDays);
-
     return {
         contractType: profile.contractType,
         hireDate: profile.hireDate,

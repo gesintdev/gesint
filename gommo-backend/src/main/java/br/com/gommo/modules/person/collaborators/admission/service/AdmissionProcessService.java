@@ -1,5 +1,18 @@
 package br.com.gommo.modules.person.collaborators.admission.service;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -14,18 +27,6 @@ import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorR
 import br.com.gommo.modules.person.collaborators.people.service.CollaboratorProfileService;
 import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class AdmissionProcessService
@@ -160,7 +161,8 @@ public class AdmissionProcessService
 
     private void applyContractTypeRules(AdmissionProcessRequestDto request) {
         if (request.getContractType() == ContractTypeEnum.PJ) {
-            if (!StringUtils.hasText(request.getProviderCnpj()) || request.getProviderCnpj().length() != 14
+            if (!StringUtils.hasText(request.getProviderCnpj())
+                    || request.getProviderCnpj().length() != 14
                     || !StringUtils.hasText(request.getProviderLegalName())) {
                 throw AdmissionProcessException.pjProviderRequired();
             }
@@ -181,9 +183,9 @@ public class AdmissionProcessService
         UUID linkedCollaboratorId = excludeAdmissionId == null
                 ? null
                 : repository
-                .findByIdAndStatusNot(excludeAdmissionId, StatusEnum.DELETED)
-                .map(AdmissionProcess::getCollaboratorId)
-                .orElse(null);
+                        .findByIdAndStatusNot(excludeAdmissionId, StatusEnum.DELETED)
+                        .map(AdmissionProcess::getCollaboratorId)
+                        .orElse(null);
 
         collaboratorRepository.findByCpfAndStatusNot(cpf, StatusEnum.DELETED).ifPresent(c -> {
             if (linkedCollaboratorId != null && linkedCollaboratorId.equals(c.getId())) {
@@ -224,10 +226,15 @@ public class AdmissionProcessService
         if (admissionId != null) {
             var links = storageObjectLinkRepository.findAllByEntityTypeAndEntityIdAndStatusNot(
                     "admission_process", admissionId, StatusEnum.DELETED);
-            documentCount = links.stream().filter(l -> "DOCUMENT".equalsIgnoreCase(l.getLinkRole())).count();
-            contractDocumentCount = links.stream().filter(l -> "CONTRACT".equalsIgnoreCase(l.getLinkRole())).count();
+            documentCount = links.stream()
+                    .filter(l -> "DOCUMENT".equalsIgnoreCase(l.getLinkRole()))
+                    .count();
+            contractDocumentCount = links.stream()
+                    .filter(l -> "CONTRACT".equalsIgnoreCase(l.getLinkRole()))
+                    .count();
         }
-        entity.setAdmissionStatus(AdmissionProgressEvaluator.resolveStatus(entity, documentCount, contractDocumentCount));
+        entity.setAdmissionStatus(
+                AdmissionProgressEvaluator.resolveStatus(entity, documentCount, contractDocumentCount));
     }
 
     private List<AdmissionProcessResponseDto> mapToResponses(List<AdmissionProcess> entities) {

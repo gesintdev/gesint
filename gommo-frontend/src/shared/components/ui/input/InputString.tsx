@@ -1,7 +1,6 @@
 "use client";
-
-import type {InputFieldChromeProps} from "@/shared/components/ui/input/input-field.types";
-import {InputBase} from "@/shared/components/ui/input/InputBase";
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
+import { InputBase } from "@/shared/components/ui/input/InputBase";
 
 export type InputStringProps = InputFieldChromeProps & {
     value: string;
@@ -12,13 +11,6 @@ export type InputStringProps = InputFieldChromeProps & {
     className?: string;
 };
 
-export function InputString({value, onValueChange, maxLength, ...chrome}: InputStringProps) {
-    return (
-        <InputBase
-            {...chrome}
-            displayValue={value}
-            maxLength={maxLength}
-            onDisplayChange={onValueChange}
-        />
-    );
+export function InputString({ value, onValueChange, maxLength, ...chrome }: InputStringProps) {
+    return <InputBase {...chrome} displayValue={value} maxLength={maxLength} onDisplayChange={onValueChange} />;
 }

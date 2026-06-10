@@ -1,9 +1,9 @@
-import type { Department, DepartmentCreateDto } from "@/modules/organization/department/dto/department.dto";
 import { DEPARTMENT_TABLE_COLUMNS } from "@/modules/organization/department/config/department.table-columns";
+import type { Department, DepartmentCreateDto } from "@/modules/organization/department/dto/department.dto";
 import { BaseService } from "@/modules/root/services/base.service";
-import { apiFetch } from "@/shared/lib/api.client";
-import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
 import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
+import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
+import { apiFetch } from "@/shared/lib/api.client";
 import type { EntityPickerAdvancedSearch, EntityPickerSearchParams } from "@/shared/types/entity-picker.types";
 
 const AUTOCOMPLETE_PAGE_SIZE = 6;
@@ -20,7 +20,6 @@ class DepartmentService extends BaseService<Department, DepartmentCreateDto, Dep
     constructor() {
         super("/api/v1/departments");
     }
-
     search(params: DepartmentSearchParams): Promise<PageableResponseDto<Department>> {
         const qs = new URLSearchParams();
         qs.set("page", String(params.page));
@@ -29,7 +28,6 @@ class DepartmentService extends BaseService<Department, DepartmentCreateDto, Dep
         if (params.costCenter?.trim()) qs.set("costCenter", params.costCenter.trim());
         return apiFetch<PageableResponseDto<Department>>(`${this.basePath}/search?${qs}`);
     }
-
     async searchForAutocomplete(query: string, page = 0): Promise<SelectSearchResult> {
         const result = await this.search({ page, size: AUTOCOMPLETE_PAGE_SIZE, name: query });
         return {
@@ -38,7 +36,6 @@ class DepartmentService extends BaseService<Department, DepartmentCreateDto, Dep
             hasMore: page + 1 < result.totalPages,
         };
     }
-
     searchForPicker(params: EntityPickerSearchParams): Promise<PageableResponseDto<Department>> {
         return this.search({
             page: params.page,
@@ -58,7 +55,6 @@ export function toDepartmentSelectItem(department: Department): SelectItem {
 }
 
 export const departmentService = new DepartmentService();
-
 export const DEPARTMENT_PICKER_ADVANCED: EntityPickerAdvancedSearch<Department> = {
     title: "Buscar departamento",
     filters: [

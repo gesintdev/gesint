@@ -1,9 +1,10 @@
 package br.com.gommo.modules.person.collaborators.people.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.person.collaborators.people.dto.CollaboratorRequestDto;
 import br.com.gommo.modules.person.collaborators.people.dto.CollaboratorResponseDto;
 import br.com.gommo.modules.person.collaborators.people.entity.Collaborator;
-import org.springframework.stereotype.Component;
 
 @Component
 public class CollaboratorMapper {

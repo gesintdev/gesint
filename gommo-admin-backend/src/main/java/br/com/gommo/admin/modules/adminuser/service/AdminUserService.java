@@ -1,5 +1,14 @@
 package br.com.gommo.admin.modules.adminuser.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import br.com.gommo.admin.core.base.dto.PageableResponseDto;
 import br.com.gommo.admin.core.entity.StatusEnum;
 import br.com.gommo.admin.modules.adminuser.dto.AdminUserRequestDto;
@@ -8,13 +17,6 @@ import br.com.gommo.admin.modules.adminuser.entity.AdminUser;
 import br.com.gommo.admin.modules.adminuser.exception.AdminUserException;
 import br.com.gommo.admin.modules.adminuser.mapper.AdminUserMapper;
 import br.com.gommo.admin.modules.adminuser.repository.AdminUserRepository;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 @Service
 public class AdminUserService implements IAdminUserService {
@@ -23,8 +25,7 @@ public class AdminUserService implements IAdminUserService {
     private final AdminUserMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
-    public AdminUserService(
-            AdminUserRepository repository, AdminUserMapper mapper, PasswordEncoder passwordEncoder) {
+    public AdminUserService(AdminUserRepository repository, AdminUserMapper mapper, PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;

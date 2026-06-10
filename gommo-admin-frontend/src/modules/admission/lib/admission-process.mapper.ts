@@ -1,6 +1,5 @@
 import type { AdmissionProcess, AdmissionProcessCreateDto } from "@/modules/admission/dto/admission-process.dto";
 import { digitsOnly } from "@/shared/lib/input/digits";
-
 function toDateInput(value?: string): string {
     return value?.slice(0, 10) ?? "";
 }

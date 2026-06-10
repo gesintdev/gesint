@@ -3,6 +3,7 @@ package br.com.gommo.core.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.crypto.SecretKey;
+
 import org.springframework.stereotype.Service;
 
 @Service

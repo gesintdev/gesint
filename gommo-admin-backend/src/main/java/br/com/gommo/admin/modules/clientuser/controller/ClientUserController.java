@@ -1,12 +1,10 @@
 package br.com.gommo.admin.modules.clientuser.controller;
 
-import br.com.gommo.admin.core.base.dto.PageableResponseDto;
-import br.com.gommo.admin.modules.clientuser.dto.ClientUserRequestDto;
-import br.com.gommo.admin.modules.clientuser.dto.ClientUserResponseDto;
-import br.com.gommo.admin.modules.clientuser.service.IClientUserService;
 import jakarta.validation.Valid;
+
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,6 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import br.com.gommo.admin.core.base.dto.PageableResponseDto;
+import br.com.gommo.admin.modules.clientuser.dto.ClientUserRequestDto;
+import br.com.gommo.admin.modules.clientuser.dto.ClientUserResponseDto;
+import br.com.gommo.admin.modules.clientuser.service.IClientUserService;
 
 @RestController
 @RequestMapping("/api/v1/client-users")

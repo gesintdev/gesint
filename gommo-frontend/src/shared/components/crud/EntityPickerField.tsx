@@ -47,7 +47,6 @@ export function EntityPickerField<T extends object = object>({
             setSelectedLabel("");
             return;
         }
-
         let cancelled = false;
         void resolveLabel(id)
             .then((name) => {
@@ -56,22 +55,16 @@ export function EntityPickerField<T extends object = object>({
             .catch(() => {
                 if (!cancelled) setSelectedLabel("");
             });
-
         return () => {
             cancelled = true;
         };
     }, [value, resolveLabel]);
 
-    const search = useCallback(
-        (query: string, page: number) => onSearch(query, page),
-        [onSearch],
-    );
-
+    const search = useCallback((query: string, page: number) => onSearch(query, page), [onSearch]);
     const handlePick = (item: SelectItem) => {
         onValueChange(item.value, item);
         setSelectedLabel(item.label);
     };
-
     const advancedButton = advancedSearch ? (
         <button
             type="button"
@@ -110,7 +103,6 @@ export function EntityPickerField<T extends object = object>({
                 wrapperClassName={wrapperClassName}
                 trailingAction={advancedButton}
             />
-
             {advancedSearch ? (
                 <EntitySearchModal
                     open={modalOpen}

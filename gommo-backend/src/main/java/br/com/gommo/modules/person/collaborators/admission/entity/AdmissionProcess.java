@@ -1,27 +1,30 @@
 package br.com.gommo.modules.person.collaborators.admission.entity;
 
-import br.com.gommo.core.entity.AuditEntity;
-import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
-import br.com.gommo.modules.person.collaborators.people.entity.GenderEnum;
-import br.com.gommo.modules.person.collaborators.people.entity.MaritalStatusEnum;
-import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+
+import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
+import br.com.gommo.modules.person.collaborators.people.entity.GenderEnum;
+import br.com.gommo.modules.person.collaborators.people.entity.MaritalStatusEnum;
+import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 
 @Entity
 @Table(name = "admission_process")

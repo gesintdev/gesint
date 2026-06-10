@@ -1,8 +1,9 @@
 package br.com.gommo.core.exception;
 
-import java.time.OffsetDateTime;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.time.OffsetDateTime;
 
 @Getter
 @Builder

@@ -1,4 +1,4 @@
-import type {HTMLAttributes, HTMLInputTypeAttribute, ReactNode} from "react";
+import type { HTMLAttributes, HTMLInputTypeAttribute, ReactNode } from "react";
 
 export type InputFieldChromeProps = {
     label?: string;

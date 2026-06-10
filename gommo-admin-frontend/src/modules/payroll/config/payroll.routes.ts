@@ -1,5 +1,5 @@
+import { FileText, Gift, Receipt } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import {FileText, Gift, Receipt} from "lucide-react";
 
 export const payrollRoutes: AppRoute[] = [
     {
@@ -7,9 +7,9 @@ export const payrollRoutes: AppRoute[] = [
         label: "Folha",
         icon: Receipt,
         children: [
-            {id: "payroll-run", label: "Processamento", href: "/payroll", icon: Receipt},
-            {id: "payslip", label: "Holerites", href: "/payroll/payslips", icon: FileText},
+            { id: "payroll-run", label: "Processamento", href: "/payroll", icon: Receipt },
+            { id: "payslip", label: "Holerites", href: "/payroll/payslips", icon: FileText },
         ],
     },
-    {id: "benefit", label: "Benefícios", href: "/benefit", icon: Gift},
-]
+    { id: "benefit", label: "Benefícios", href: "/benefit", icon: Gift },
+];

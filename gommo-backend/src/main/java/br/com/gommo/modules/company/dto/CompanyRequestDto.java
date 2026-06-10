@@ -15,56 +15,37 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CompanyRequestDto {
 
-    @NotBlank
-    @Size(max = 255)
-    private String legalName;
+    @NotBlank @Size(max = 255) private String legalName;
 
-    @Size(max = 255)
-    private String tradeName;
+    @Size(max = 255) private String tradeName;
 
-    @NotBlank
-    @Size(max = 18)
-    private String cnpj;
+    @NotBlank @Size(max = 18) private String cnpj;
 
-    @Size(max = 32)
-    private String stateRegistration;
+    @Size(max = 32) private String stateRegistration;
 
-    @Size(max = 32)
-    private String municipalRegistration;
+    @Size(max = 32) private String municipalRegistration;
 
-    @Size(max = 200)
-    private String email;
+    @Size(max = 200) private String email;
 
-    @Size(max = 20)
-    private String phone;
+    @Size(max = 20) private String phone;
 
-    @Size(max = 200)
-    private String street;
+    @Size(max = 200) private String street;
 
-    @Size(max = 20)
-    private String number;
+    @Size(max = 20) private String number;
 
-    @Size(max = 100)
-    private String complement;
+    @Size(max = 100) private String complement;
 
-    @Size(max = 100)
-    private String district;
+    @Size(max = 100) private String district;
 
-    @Size(max = 100)
-    private String city;
+    @Size(max = 100) private String city;
 
-    @Size(max = 2)
-    private String stateCode;
+    @Size(max = 2) private String stateCode;
 
-    @Size(max = 10)
-    private String zipCode;
+    @Size(max = 10) private String zipCode;
 
-    @Size(max = 60)
-    private String taxRegime;
+    @Size(max = 60) private String taxRegime;
 
-    @Size(max = 200)
-    private String accountantName;
+    @Size(max = 200) private String accountantName;
 
-    @Size(max = 200)
-    private String accountantEmail;
+    @Size(max = 200) private String accountantEmail;
 }

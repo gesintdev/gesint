@@ -1,6 +1,6 @@
+import { digitsOnly } from "@/shared/lib/input/digits";
+import { InputString } from "@/shared/components/ui/input/InputString";
 import clsx from "clsx";
-import {digitsOnly} from "@/shared/lib/input/digits";
-import {InputString} from "@/shared/components/ui/input/InputString";
 
 export type RgIdentityFieldsProps = {
     rg: string;
@@ -13,21 +13,16 @@ export type RgIdentityFieldsProps = {
 };
 
 export function RgIdentityFields({
-                                     rg,
-                                     rgIssuer = "",
-                                     rgStateCode = "",
-                                     onRgChange,
-                                     onRgIssuerChange,
-                                     onRgStateCodeChange,
-                                     wrapperClassName,
-                                 }: RgIdentityFieldsProps) {
+    rg,
+    rgIssuer = "",
+    rgStateCode = "",
+    onRgChange,
+    onRgIssuerChange,
+    onRgStateCodeChange,
+    wrapperClassName,
+}: RgIdentityFieldsProps) {
     return (
-        <div
-            className={clsx(
-                "grid min-w-0 grid-cols-[1fr_1fr_minmax(0,4.75rem)] items-end gap-2",
-                wrapperClassName,
-            )}
-        >
+        <div className={clsx("grid min-w-0 grid-cols-[1fr_1fr_minmax(0,4.75rem)] items-end gap-2", wrapperClassName)}>
             <InputString
                 label="RG"
                 value={rg}
@@ -46,7 +41,12 @@ export function RgIdentityFields({
                 label={"UF emiss\u00e3o"}
                 value={rgStateCode}
                 onValueChange={(v) =>
-                    onRgStateCodeChange(v.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2))
+                    onRgStateCodeChange(
+                        v
+                            .toUpperCase()
+                            .replace(/[^A-Z]/g, "")
+                            .slice(0, 2),
+                    )
                 }
                 maxLength={2}
                 wrapperClassName="min-w-0"

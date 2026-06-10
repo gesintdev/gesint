@@ -1,4 +1,7 @@
-import type { BenefitEnrollment, BenefitEnrollmentCreateDto } from "@/modules/payroll/benefitenrollment/dto/benefit-enrollment.dto";
+import type {
+    BenefitEnrollment,
+    BenefitEnrollmentCreateDto,
+} from "@/modules/payroll/benefitenrollment/dto/benefit-enrollment.dto";
 
 export function benefitEnrollmentToFormDto(entity: BenefitEnrollment): BenefitEnrollmentCreateDto {
     return {

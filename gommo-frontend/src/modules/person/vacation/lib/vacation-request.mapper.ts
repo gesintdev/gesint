@@ -1,11 +1,11 @@
 import type { LeaveRequest, LeaveRequestCreateDto } from "@/modules/person/leave/dto/leave-request.dto";
-import type { VacationRequestFormSchema } from "@/modules/person/vacation/schemas/vacation-request.schema";
 import {
     inclusiveDays,
     syncPeriodWithDays,
     totalGozoDays,
     vacationDaysEntitled,
 } from "@/modules/person/vacation/lib/vacation-rules";
+import type { VacationRequestFormSchema } from "@/modules/person/vacation/schemas/vacation-request.schema";
 
 export type VacationFormState = VacationRequestFormSchema & {
     vacationDaysEntitled?: number;
@@ -52,7 +52,6 @@ export function leaveToVacationForm(entity: LeaveRequest): VacationFormState {
     };
 }
 
-/** Um registro por período de gozo (fracionamento). */
 export function vacationFormToLeaveDtos(
     form: VacationRequestFormSchema,
     splitGroupId: string,
@@ -63,20 +62,20 @@ export function vacationFormToLeaveDtos(
         .map((period, index) => {
             const synced = syncPeriodWithDays(period);
             return {
-            collaboratorId: form.collaboratorId,
-            leaveType: "VACATION" as const,
-            startDate: synced.startDate,
-            endDate: synced.endDate,
-            approved: form.approved ?? true,
-            notes: form.notes,
-            pecuniaryAllowanceDays: index === 0 ? form.pecuniaryAllowanceDays : 0,
-            unjustifiedAbsences: form.unjustifiedAbsences,
-            vacationDaysEntitled: entitled,
-            acquisitionPeriodStart: form.acquisitionPeriodStart || undefined,
-            acquisitionPeriodEnd: form.acquisitionPeriodEnd || undefined,
-            splitGroupId,
-            splitSequence: index + 1,
-            baseSalarySnapshot: form.baseSalarySnapshot,
+                collaboratorId: form.collaboratorId,
+                leaveType: "VACATION" as const,
+                startDate: synced.startDate,
+                endDate: synced.endDate,
+                approved: form.approved ?? true,
+                notes: form.notes,
+                pecuniaryAllowanceDays: index === 0 ? form.pecuniaryAllowanceDays : 0,
+                unjustifiedAbsences: form.unjustifiedAbsences,
+                vacationDaysEntitled: entitled,
+                acquisitionPeriodStart: form.acquisitionPeriodStart || undefined,
+                acquisitionPeriodEnd: form.acquisitionPeriodEnd || undefined,
+                splitGroupId,
+                splitSequence: index + 1,
+                baseSalarySnapshot: form.baseSalarySnapshot,
             };
         });
 }

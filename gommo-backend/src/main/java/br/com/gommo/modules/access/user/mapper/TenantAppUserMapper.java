@@ -1,5 +1,11 @@
 package br.com.gommo.modules.access.user.mapper;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.access.profile.dto.ProfileResponseDto;
 import br.com.gommo.modules.access.profile.mapper.ProfileMapper;
@@ -7,10 +13,6 @@ import br.com.gommo.modules.access.user.dto.AppUserResponseDto;
 import br.com.gommo.modules.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.entity.Role;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import org.springframework.stereotype.Component;
 
 @Component
 public class TenantAppUserMapper {

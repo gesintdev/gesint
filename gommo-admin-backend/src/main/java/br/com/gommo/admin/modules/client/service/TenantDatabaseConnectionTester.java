@@ -1,17 +1,19 @@
 package br.com.gommo.admin.modules.client.service;
 
-import br.com.gommo.admin.core.exception.BusinessException;
-import br.com.gommo.admin.modules.client.entity.Client;
-import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
-import br.com.gommo.admin.modules.client.exception.ClientException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.List;
 import java.util.Properties;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import br.com.gommo.admin.core.exception.BusinessException;
+import br.com.gommo.admin.modules.client.entity.Client;
+import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
+import br.com.gommo.admin.modules.client.exception.ClientException;
 
 @Component
 public class TenantDatabaseConnectionTester {
@@ -68,8 +70,7 @@ public class TenantDatabaseConnectionTester {
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw ClientException.databaseConnectionFailed(
-                    "Não foi possível conectar: " + ex.getMessage());
+            throw ClientException.databaseConnectionFailed("Não foi possível conectar: " + ex.getMessage());
         }
     }
 

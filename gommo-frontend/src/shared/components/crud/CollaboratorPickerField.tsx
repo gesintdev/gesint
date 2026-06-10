@@ -1,6 +1,6 @@
-import {useCallback, useEffect, useState} from "react";
-import {collaboratorService} from "@/modules/person/collaborators/people/services/collaborator.service";
-import {InputAutocomplete} from "@/shared/components/ui/input/index";
+import { useCallback, useEffect, useState } from "react";
+import { collaboratorService } from "@/modules/person/collaborators/people/services/collaborator.service";
+import { InputAutocomplete } from "@/shared/components/ui/input/index";
 
 type CollaboratorPickerFieldProps = {
     label?: string;
@@ -13,14 +13,14 @@ type CollaboratorPickerFieldProps = {
 };
 
 export function CollaboratorPickerField({
-                                            label = "Colaborador",
-                                            hint = "Somente colaboradores com admissão concluída",
-                                            value,
-                                            onValueChange,
-                                            required,
-                                            error,
-                                            wrapperClassName,
-                                        }: CollaboratorPickerFieldProps) {
+    label = "Colaborador",
+    hint = "Somente colaboradores com admissão concluída",
+    value,
+    onValueChange,
+    required,
+    error,
+    wrapperClassName,
+}: CollaboratorPickerFieldProps) {
     const [selectedLabel, setSelectedLabel] = useState("");
 
     useEffect(() => {
@@ -29,7 +29,6 @@ export function CollaboratorPickerField({
             setSelectedLabel("");
             return;
         }
-
         let cancelled = false;
         void collaboratorService
             .getById(id)
@@ -39,7 +38,6 @@ export function CollaboratorPickerField({
             .catch(() => {
                 if (!cancelled) setSelectedLabel("");
             });
-
         return () => {
             cancelled = true;
         };

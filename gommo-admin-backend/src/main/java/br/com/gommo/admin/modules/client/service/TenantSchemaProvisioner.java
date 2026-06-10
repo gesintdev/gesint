@@ -1,13 +1,15 @@
 package br.com.gommo.admin.modules.client.service;
 
-import br.com.gommo.admin.modules.client.entity.Client;
-import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
-import br.com.gommo.admin.modules.client.exception.ClientException;
 import java.util.List;
 import java.util.regex.Pattern;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import br.com.gommo.admin.modules.client.entity.Client;
+import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
+import br.com.gommo.admin.modules.client.exception.ClientException;
 
 @Service
 public class TenantSchemaProvisioner {
@@ -40,9 +42,11 @@ public class TenantSchemaProvisioner {
             "audit_log");
 
     private final JdbcTemplate jdbcTemplate;
+    private final TenantRbacProvisioner tenantRbacProvisioner;
 
-    public TenantSchemaProvisioner(JdbcTemplate jdbcTemplate) {
+    public TenantSchemaProvisioner(JdbcTemplate jdbcTemplate, TenantRbacProvisioner tenantRbacProvisioner) {
         this.jdbcTemplate = jdbcTemplate;
+        this.tenantRbacProvisioner = tenantRbacProvisioner;
     }
 
     public void provisionDedicatedSchema(Client client) {
@@ -60,9 +64,121 @@ public class TenantSchemaProvisioner {
 
         for (String table : TENANT_TABLES) {
             if (!tenantTableExists(schema, table)) {
-                jdbcTemplate.execute(
-                        "CREATE TABLE \"" + schema + "\".\"" + table + "\" (LIKE public.\"" + table + "\" INCLUDING ALL)");
+                jdbcTemplate.execute("CREATE TABLE \"" + schema + "\".\"" + table + "\" (LIKE public.\"" + table
+                        + "\" INCLUDING ALL)");
             }
+        }
+
+        tenantRbacProvisioner.provisionRbacTables(schema);
+        provisionAuthTables(schema);
+    }
+
+    private void provisionAuthTables(String schema) {
+        if (!tenantTableExists(schema, "app_user")) {
+            jdbcTemplate.execute(
+                    """
+                    CREATE TABLE "%s".app_user (
+                        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        status          public.status_enum NOT NULL DEFAULT 'ACTIVE',
+                        collaborator_id UUID,
+                        username        VARCHAR(100) NOT NULL,
+                        email           VARCHAR(200) NOT NULL,
+                        password_hash   VARCHAR(255) NOT NULL,
+                        last_login      TIMESTAMPTZ,
+                        must_change_pwd BOOLEAN DEFAULT false,
+                        created_by      UUID,
+                        created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+                        updated_by      UUID,
+                        updated_at      TIMESTAMPTZ,
+                        code            INTEGER NOT NULL
+                    )
+                    """
+                            .formatted(schema));
+            jdbcTemplate.execute(
+                    """
+                    CREATE UNIQUE INDEX idx_%s_app_user_username
+                        ON "%s".app_user (username) WHERE status != 'DELETED'
+                    """
+                            .formatted(schema.replace('.', '_'), schema));
+            jdbcTemplate.execute(
+                    """
+                    CREATE UNIQUE INDEX idx_%s_app_user_email
+                        ON "%s".app_user (email) WHERE status != 'DELETED'
+                    """
+                            .formatted(schema.replace('.', '_'), schema));
+            jdbcTemplate.execute(
+                    """
+                    CREATE UNIQUE INDEX uk_%s_app_user_code
+                        ON "%s".app_user (code)
+                    """
+                            .formatted(schema.replace('.', '_'), schema));
+        }
+
+        if (!tenantTableExists(schema, "user_role")) {
+            jdbcTemplate.execute(
+                    """
+                    CREATE TABLE "%s".user_role (
+                        user_id UUID NOT NULL REFERENCES "%s".app_user(id),
+                        role_id UUID NOT NULL REFERENCES "%s".role(id),
+                        PRIMARY KEY (user_id, role_id)
+                    )
+                    """
+                            .formatted(schema, schema, schema));
+            jdbcTemplate.execute(
+                    """
+                    CREATE INDEX idx_%s_user_role_user ON "%s".user_role (user_id)
+                    """
+                            .formatted(schema.replace('.', '_'), schema));
+        }
+
+        if (!tenantTableExists(schema, "refresh_token")) {
+            jdbcTemplate.execute(
+                    """
+                    CREATE TABLE "%s".refresh_token (
+                        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        user_id     UUID NOT NULL REFERENCES "%s".app_user(id),
+                        token_hash  VARCHAR(255) NOT NULL UNIQUE,
+                        expires_at  TIMESTAMPTZ NOT NULL,
+                        revoked     BOOLEAN NOT NULL DEFAULT false,
+                        created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+                        code        INTEGER NOT NULL
+                    )
+                    """
+                            .formatted(schema, schema));
+            jdbcTemplate.execute(
+                    """
+                    CREATE INDEX idx_%s_refresh_token_user ON "%s".refresh_token (user_id)
+                    """
+                            .formatted(schema.replace('.', '_'), schema));
+            jdbcTemplate.execute(
+                    """
+                    CREATE INDEX idx_%s_refresh_token_hash ON "%s".refresh_token (token_hash)
+                    """
+                            .formatted(schema.replace('.', '_'), schema));
+            jdbcTemplate.execute(
+                    """
+                    CREATE UNIQUE INDEX uk_%s_refresh_token_code ON "%s".refresh_token (code)
+                    """
+                            .formatted(schema.replace('.', '_'), schema));
+        }
+
+        if (!tenantTableExists(schema, "refresh_token_blacklist")) {
+            jdbcTemplate.execute(
+                    """
+                    CREATE TABLE "%s".refresh_token_blacklist (
+                        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        token_hash  VARCHAR(255) NOT NULL UNIQUE,
+                        revoked_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+                        code        INTEGER NOT NULL
+                    )
+                    """
+                            .formatted(schema));
+            jdbcTemplate.execute(
+                    """
+                    CREATE UNIQUE INDEX uk_%s_refresh_token_blacklist_code
+                        ON "%s".refresh_token_blacklist (code)
+                    """
+                            .formatted(schema.replace('.', '_'), schema));
         }
     }
 
@@ -71,6 +187,10 @@ public class TenantSchemaProvisioner {
             return "public";
         }
         return "tenant_" + slug.trim().toLowerCase().replace('-', '_');
+    }
+
+    public static String requireSafeSchema(String schema) {
+        return requireSchema(schema);
     }
 
     private boolean tenantTableExists(String schema, String table) {

@@ -9,26 +9,21 @@ function formatThousands(digits: string): string {
     return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-/** Visual mask pt-BR; returns unmasked value with dot decimal separator. */
 export function maskNumber(value: string, options: MaskNumberOptions = {}): string {
     const { integer = false, decimalPlaces = 2, thousandSeparator = false } = options;
-
     let raw = value.replace(/[^\d.,-]/g, "");
     const negative = raw.startsWith("-");
     raw = raw.replace(/-/g, "");
-
     if (integer) {
         const intPart = raw.replace(/\D/g, "");
         const formatted = thousandSeparator ? formatThousands(intPart) : intPart;
         return `${negative ? "-" : ""}${formatted}`;
     }
-
     raw = raw.replace(/\./g, ",");
     const parts = raw.split(",");
     const intDigits = (parts[0] ?? "").replace(/\D/g, "");
     const decPart = (parts[1] ?? "").replace(/\D/g, "").slice(0, decimalPlaces);
     const intFormatted = thousandSeparator ? formatThousands(intDigits) : intDigits;
-
     if (parts.length > 1 || raw.endsWith(",")) {
         return `${negative ? "-" : ""}${intFormatted},${decPart}`;
     }
@@ -38,18 +33,15 @@ export function maskNumber(value: string, options: MaskNumberOptions = {}): stri
 export function unmaskNumber(value: string): string {
     const trimmed = value.trim();
     if (!trimmed) return "";
-
     const negative = trimmed.startsWith("-");
     const body = trimmed.replace(/-/g, "");
     const commaIdx = body.lastIndexOf(",");
-
     if (commaIdx >= 0) {
         const intPart = body.slice(0, commaIdx).replace(/\./g, "").replace(/\D/g, "");
         const decPart = body.slice(commaIdx + 1).replace(/\D/g, "");
         const n = decPart ? `${intPart}.${decPart}` : intPart;
         return negative ? `-${n}` : n;
     }
-
     const intOnly = body.replace(/\./g, "").replace(/\D/g, "");
     return negative ? `-${intOnly}` : intOnly;
 }

@@ -1,10 +1,11 @@
 package br.com.gommo.modules.access.catalog;
 
-import br.com.gommo.modules.access.entity.SystemScopeEnum;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import br.com.gommo.modules.access.entity.SystemScopeEnum;
 
 public final class PermissionModuleCatalog {
 

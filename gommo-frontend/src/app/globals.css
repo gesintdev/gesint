@@ -54,12 +54,12 @@
 
     /* Sombras super suaves */
     --gommo-shadow-xs: 0 1px 2px color-mix(in srgb, #0a1628 4%, transparent);
-    --gommo-shadow-sm: 0 1px 3px color-mix(in srgb, #0a1628 5%, transparent),
-    0 1px 2px color-mix(in srgb, #0a1628 3%, transparent);
-    --gommo-shadow-md: 0 2px 8px color-mix(in srgb, #0a1628 6%, transparent),
-    0 1px 3px color-mix(in srgb, #0a1628 4%, transparent);
-    --gommo-shadow-lg: 0 4px 16px color-mix(in srgb, #0a1628 7%, transparent),
-    0 2px 6px color-mix(in srgb, #0a1628 4%, transparent);
+    --gommo-shadow-sm:
+        0 1px 3px color-mix(in srgb, #0a1628 5%, transparent), 0 1px 2px color-mix(in srgb, #0a1628 3%, transparent);
+    --gommo-shadow-md:
+        0 2px 8px color-mix(in srgb, #0a1628 6%, transparent), 0 1px 3px color-mix(in srgb, #0a1628 4%, transparent);
+    --gommo-shadow-lg:
+        0 4px 16px color-mix(in srgb, #0a1628 7%, transparent), 0 2px 6px color-mix(in srgb, #0a1628 4%, transparent);
 }
 
 [data-theme="dark"] {
@@ -308,11 +308,13 @@ body {
     border-radius: var(--gommo-tab-radius);
     border: 1px solid var(--gommo-border);
     background: var(--color-base-100);
-    box-shadow: var(--gommo-shadow-sm),
-    0 0 0 1px color-mix(in srgb, white 80%, transparent);
-    transition: box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.22s ease,
-    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow:
+        var(--gommo-shadow-sm),
+        0 0 0 1px color-mix(in srgb, white 80%, transparent);
+    transition:
+        box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.22s ease,
+        transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 [data-theme="dark"] .surface-card {
@@ -406,9 +408,10 @@ body {
     font-size: var(--gommo-control-font-size);
     font-variation-settings: "wght" 500;
     color: var(--color-base-content);
-    transition: border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
 }
 
 .gommo-control:not(.sidebar-shell-control),
@@ -594,12 +597,13 @@ body {
     cursor: pointer;
     user-select: none;
     text-decoration: none;
-    transition: background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.12s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.15s ease;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.12s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.15s ease;
 }
 
 .gommo-btn:disabled {
@@ -611,36 +615,38 @@ body {
 /* ─── Primary ─── */
 .gommo-btn--primary {
     background: linear-gradient(
-            135deg,
-            var(--gommo-primary-light) 0%,
-            var(--gommo-primary) 52%,
-            var(--gommo-primary-dark) 100%
+        135deg,
+        var(--gommo-primary-light) 0%,
+        var(--gommo-primary) 52%,
+        var(--gommo-primary-dark) 100%
     );
     color: #fff;
     border-color: transparent;
-    box-shadow: 0 1px 2px color-mix(in srgb, var(--gommo-primary-darker) 18%, transparent),
-    0 6px 18px color-mix(in srgb, var(--gommo-primary) 24%, transparent);
+    box-shadow:
+        0 1px 2px color-mix(in srgb, var(--gommo-primary-darker) 18%, transparent),
+        0 6px 18px color-mix(in srgb, var(--gommo-primary) 24%, transparent);
 }
 
 .gommo-btn--primary:hover:not(:disabled) {
     background: linear-gradient(
-            135deg,
-            color-mix(in srgb, var(--gommo-primary-light) 92%, white) 0%,
-            var(--gommo-primary) 48%,
-            var(--gommo-primary-darker) 100%
+        135deg,
+        color-mix(in srgb, var(--gommo-primary-light) 92%, white) 0%,
+        var(--gommo-primary) 48%,
+        var(--gommo-primary-darker) 100%
     );
     border-color: transparent;
-    box-shadow: 0 2px 4px color-mix(in srgb, var(--gommo-primary-darker) 16%, transparent),
-    0 10px 24px color-mix(in srgb, var(--gommo-primary) 28%, transparent);
+    box-shadow:
+        0 2px 4px color-mix(in srgb, var(--gommo-primary-darker) 16%, transparent),
+        0 10px 24px color-mix(in srgb, var(--gommo-primary) 28%, transparent);
     transform: translateY(-1px);
 }
 
 .gommo-btn--primary:active:not(:disabled) {
     background: linear-gradient(
-            135deg,
-            var(--gommo-primary) 0%,
-            var(--gommo-primary-dark) 55%,
-            var(--gommo-primary-darker) 100%
+        135deg,
+        var(--gommo-primary) 0%,
+        var(--gommo-primary-dark) 55%,
+        var(--gommo-primary-darker) 100%
     );
     border-color: transparent;
     transform: translateY(1px) scale(0.995);
@@ -711,8 +717,9 @@ body {
     background: var(--color-success);
     color: var(--color-success-content);
     border-color: transparent;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 1px 2px color-mix(in srgb, var(--color-success) 28%, transparent);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 1px 2px color-mix(in srgb, var(--color-success) 28%, transparent);
 }
 
 .gommo-btn--success:hover:not(:disabled) {
@@ -784,7 +791,7 @@ body {
     width: 100%;
     font-size: 0.625rem;
     font-variation-settings: "wght" 700;
-    letter-spacing: 0.10em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--color-base-content) 30%, transparent);
 }
@@ -818,9 +825,10 @@ body {
     text-align: left;
     color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
     cursor: pointer;
-    transition: background 0.13s ease,
-    color 0.13s ease,
-    border-color 0.13s ease;
+    transition:
+        background 0.13s ease,
+        color 0.13s ease,
+        border-color 0.13s ease;
 }
 
 .nav-item-collapsed {
@@ -831,8 +839,9 @@ body {
 .sidebar-copy {
     min-width: 0;
     opacity: 1;
-    transition: opacity 0.2s ease,
-    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    transition:
+        opacity 0.2s ease,
+        transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 aside[data-collapsed="true"] .sidebar-copy,
@@ -920,10 +929,11 @@ aside[data-collapsed="true"] .sidebar-copy,
     background: var(--color-base-100);
     color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
     box-shadow: var(--gommo-shadow-xs);
-    transition: background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
 .sidebar-collapse-trigger:hover {
@@ -932,7 +942,6 @@ aside[data-collapsed="true"] .sidebar-copy,
     color: var(--gommo-primary);
     box-shadow: var(--gommo-shadow-sm);
 }
-
 
 /* Itens de listbox (select / autocomplete) — mesmo hover do menu do usuário */
 .gommo-listbox-option {
@@ -948,7 +957,9 @@ aside[data-collapsed="true"] .sidebar-copy,
     line-height: 1.25;
     font-variation-settings: "wght" 500;
     color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
-    transition: background 0.13s ease, color 0.13s ease;
+    transition:
+        background 0.13s ease,
+        color 0.13s ease;
 }
 
 .gommo-listbox-option:hover {
@@ -1184,7 +1195,10 @@ aside[data-collapsed="true"] .sidebar-copy,
     font-variation-settings: "wght" 600;
     color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
     background: var(--color-base-100);
-    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        color 0.15s ease,
+        background 0.15s ease;
 }
 
 .gommo-form-stepper__step--active .gommo-form-stepper__badge,
@@ -1329,15 +1343,18 @@ aside[data-collapsed="true"] .sidebar-copy,
 
 .nav-item-active {
     background: linear-gradient(
-            135deg,
-            color-mix(in srgb, var(--gommo-primary) 9%, var(--color-base-100)) 0%,
-            var(--gommo-primary-50) 100%
+        135deg,
+        color-mix(in srgb, var(--gommo-primary) 9%, var(--color-base-100)) 0%,
+        var(--gommo-primary-50) 100%
     );
     color: var(--gommo-primary);
     font-variation-settings: "wght" 620;
     border-color: color-mix(in srgb, var(--gommo-primary) 22%, transparent);
     box-shadow: 0 2px 10px color-mix(in srgb, var(--gommo-primary) 10%, transparent);
-    transition: background 0s ease, color 0.13s ease, border-color 0s ease;
+    transition:
+        background 0s ease,
+        color 0.13s ease,
+        border-color 0s ease;
 }
 
 [data-theme="dark"] .nav-item:hover {
@@ -1352,9 +1369,9 @@ aside[data-collapsed="true"] .sidebar-copy,
 
 .nav-item-active:hover {
     background: linear-gradient(
-            135deg,
-            color-mix(in srgb, var(--gommo-primary) 11%, var(--color-base-100)) 0%,
-            var(--gommo-primary-50) 100%
+        135deg,
+        color-mix(in srgb, var(--gommo-primary) 11%, var(--color-base-100)) 0%,
+        var(--gommo-primary-50) 100%
     );
     color: var(--gommo-primary);
     border-color: color-mix(in srgb, var(--gommo-primary) 26%, transparent);
@@ -1448,10 +1465,10 @@ aside[data-collapsed="true"] .sidebar-copy,
 .skeleton-shimmer {
     border-radius: var(--gommo-control-radius);
     background: linear-gradient(
-            90deg,
-            color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 0%,
-            var(--color-base-100) 40%,
-            color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 100%
+        90deg,
+        color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 0%,
+        var(--color-base-100) 40%,
+        color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
@@ -1527,7 +1544,9 @@ aside[data-collapsed="true"] .sidebar-copy,
 .gommo-table .gommo-table-action--edit,
 .gommo-table .gommo-table-action--delete,
 .gommo-table .gommo-table-action--download {
-    transition: background-color 0.12s ease, color 0.12s ease;
+    transition:
+        background-color 0.12s ease,
+        color 0.12s ease;
 }
 
 .gommo-table .gommo-btn.gommo-table-action--open {
@@ -1763,9 +1782,10 @@ kbd {
     background: color-mix(in srgb, var(--color-base-content) 2%, var(--color-base-100));
     scroll-margin-top: 0.5rem;
 
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02) inset,
-    0 2px 6px rgba(0, 0, 0, 0.04),
-    0 12px 24px rgba(0, 0, 0, 0.03);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+        0 2px 6px rgba(0, 0, 0, 0.04),
+        0 12px 24px rgba(0, 0, 0, 0.03);
 }
 
 [data-theme="dark"] .gommo-form-section {
@@ -1884,7 +1904,7 @@ html.gommo-workspace-active body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: 0 .5rem;
+    padding: 0 0.5rem;
 }
 
 .workspace-tabbar,
@@ -1915,7 +1935,9 @@ html.gommo-workspace-active body {
     margin-inline: 0.25rem;
     border-radius: var(--gommo-control-radius);
     color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
-    transition: background 0.15s ease, color 0.15s ease;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
 .workspace-tabbar-menu-trigger:hover {
@@ -1999,7 +2021,11 @@ html.gommo-workspace-active body {
     letter-spacing: -0.01em;
     font-variation-settings: "wght" 500;
     color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
-    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+    transition:
+        color 0.12s ease,
+        background 0.12s ease,
+        border-color 0.12s ease,
+        box-shadow 0.12s ease;
 }
 
 .gommo-workspace-tab:hover:not(.gommo-workspace-tab--active) {
@@ -2061,7 +2087,10 @@ html.gommo-workspace-active body {
 .workspace-tab-close {
     color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
     opacity: 0;
-    transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+    transition:
+        opacity 0.12s ease,
+        background 0.12s ease,
+        color 0.12s ease;
 }
 
 .gommo-workspace-tab:hover .workspace-tab-close,
@@ -2186,8 +2215,8 @@ html.gommo-workspace-active body {
     justify-content: center;
     border-radius: 9999px;
     background: conic-gradient(
-            var(--gommo-primary) calc(var(--progress) * 1%),
-            color-mix(in srgb, var(--color-base-content) 10%, transparent) 0
+        var(--gommo-primary) calc(var(--progress) * 1%),
+        color-mix(in srgb, var(--color-base-content) 10%, transparent) 0
     );
 }
 
@@ -2292,10 +2321,10 @@ html:has(.login-page) body {
     position: absolute;
     inset: 0;
     background: linear-gradient(
-            105deg,
-            color-mix(in srgb, var(--gommo-primary-950) 20%, transparent) 0%,
-            color-mix(in srgb, var(--gommo-primary-950) 8%, transparent) 46%,
-            transparent 52%
+        105deg,
+        color-mix(in srgb, var(--gommo-primary-950) 20%, transparent) 0%,
+        color-mix(in srgb, var(--gommo-primary-950) 8%, transparent) 46%,
+        transparent 52%
     );
     pointer-events: none;
 }
@@ -2336,17 +2365,18 @@ html:has(.login-page) body {
     overflow: hidden;
     /* base frost — deixa o blur “ler” o fundo */
     background: linear-gradient(
-            165deg,
-            color-mix(in srgb, white 14%, transparent) 0%,
-            color-mix(in srgb, white 6%, transparent) 38%,
-            color-mix(in srgb, var(--gommo-primary-100) 8%, transparent) 100%
+        165deg,
+        color-mix(in srgb, white 14%, transparent) 0%,
+        color-mix(in srgb, white 6%, transparent) 38%,
+        color-mix(in srgb, var(--gommo-primary-100) 8%, transparent) 100%
     );
     -webkit-backdrop-filter: blur(72px) saturate(1.85) brightness(1.1) contrast(1.02);
     backdrop-filter: blur(72px) saturate(1.85) brightness(1.1) contrast(1.02);
-    box-shadow: inset 0 1px 1px color-mix(in srgb, white 28%, transparent),
-    inset 0 -1px 0 color-mix(in srgb, white 6%, transparent),
-    0 8px 32px color-mix(in srgb, black 20%, transparent),
-    0 20px 56px color-mix(in srgb, var(--gommo-primary-darker) 16%, transparent);
+    box-shadow:
+        inset 0 1px 1px color-mix(in srgb, white 28%, transparent),
+        inset 0 -1px 0 color-mix(in srgb, white 6%, transparent),
+        0 8px 32px color-mix(in srgb, black 20%, transparent),
+        0 20px 56px color-mix(in srgb, var(--gommo-primary-darker) 16%, transparent);
 }
 
 .login-page__glass::before,
@@ -2361,22 +2391,23 @@ html:has(.login-page) body {
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background: radial-gradient(
+    background:
+        radial-gradient(
             ellipse 100% 65% at 0% 0%,
             color-mix(in srgb, var(--gommo-primary-light) 32%, transparent) 0%,
             transparent 58%
-    ),
-    radial-gradient(
+        ),
+        radial-gradient(
             ellipse 80% 60% at 100% 100%,
             color-mix(in srgb, var(--gommo-primary) 24%, transparent) 0%,
             transparent 52%
-    ),
-    linear-gradient(
+        ),
+        linear-gradient(
             148deg,
             color-mix(in srgb, var(--gommo-primary-darker) 26%, transparent) 0%,
             color-mix(in srgb, var(--gommo-primary) 14%, transparent) 45%,
             color-mix(in srgb, var(--gommo-primary-950) 22%, transparent) 100%
-    );
+        );
 }
 
 /* Brilho specular + textura sutil de vidro */
@@ -2386,15 +2417,17 @@ html:has(.login-page) body {
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    background: linear-gradient(
+    background:
+        linear-gradient(
             180deg,
             color-mix(in srgb, white 22%, transparent) 0%,
             color-mix(in srgb, white 8%, transparent) 18%,
             transparent 42%
-    ),
-    radial-gradient(color-mix(in srgb, white 16%, transparent) 0.5px, transparent 0.5px);
-    background-size: 100% 100%,
-    20px 20px;
+        ),
+        radial-gradient(color-mix(in srgb, white 16%, transparent) 0.5px, transparent 0.5px);
+    background-size:
+        100% 100%,
+        20px 20px;
     mask-image: linear-gradient(180deg, black 0%, black 35%, transparent 72%);
 }
 
@@ -2494,8 +2527,9 @@ html:has(.login-page) body {
 .gommo-field--login:focus-within {
     border-color: color-mix(in srgb, var(--gommo-primary-light) 70%, white);
     background: color-mix(in srgb, white 16%, transparent);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, white 18%, transparent),
-    0 0 0 3px color-mix(in srgb, var(--gommo-primary-light) 32%, transparent);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 18%, transparent),
+        0 0 0 3px color-mix(in srgb, var(--gommo-primary-light) 32%, transparent);
 }
 
 .gommo-field--login input {
@@ -2579,18 +2613,19 @@ html:has(.login-page) body {
 
     .login-page__visual-scrim {
         background: linear-gradient(
-                180deg,
-                color-mix(in srgb, var(--gommo-primary-950) 78%, transparent) 0%,
-                color-mix(in srgb, var(--gommo-primary-950) 50%, transparent) 50%,
-                color-mix(in srgb, var(--gommo-primary-950) 35%, transparent) 100%
+            180deg,
+            color-mix(in srgb, var(--gommo-primary-950) 78%, transparent) 0%,
+            color-mix(in srgb, var(--gommo-primary-950) 50%, transparent) 50%,
+            color-mix(in srgb, var(--gommo-primary-950) 35%, transparent) 100%
         );
     }
 
     .login-page__glass {
         -webkit-backdrop-filter: blur(56px) saturate(1.75) brightness(1.08);
         backdrop-filter: blur(56px) saturate(1.75) brightness(1.08);
-        box-shadow: inset 0 1px 1px color-mix(in srgb, white 22%, transparent),
-        0 16px 48px color-mix(in srgb, var(--gommo-primary-950) 30%, transparent);
+        box-shadow:
+            inset 0 1px 1px color-mix(in srgb, white 22%, transparent),
+            0 16px 48px color-mix(in srgb, var(--gommo-primary-950) 30%, transparent);
     }
 }
 
@@ -2600,8 +2635,9 @@ html:has(.login-page) body {
     border: 1px solid var(--gommo-border);
     background: var(--color-base-100);
     box-shadow: var(--gommo-shadow-sm);
-    transition: box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    transition:
+        box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .gommo-metric-card:hover {
@@ -2617,9 +2653,9 @@ html:has(.login-page) body {
     justify-content: center;
     border-radius: var(--gommo-control-radius);
     background: linear-gradient(
-            145deg,
-            color-mix(in srgb, var(--gommo-primary) 14%, var(--color-base-100)) 0%,
-            var(--gommo-primary-50) 100%
+        145deg,
+        color-mix(in srgb, var(--gommo-primary) 14%, var(--color-base-100)) 0%,
+        var(--gommo-primary-50) 100%
     );
     color: var(--gommo-primary);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--gommo-primary) 10%, transparent);
@@ -2627,11 +2663,7 @@ html:has(.login-page) body {
 
 .gommo-chart-bar {
     border-radius: var(--gommo-tab-radius);
-    background: linear-gradient(
-            180deg,
-            var(--gommo-primary-light) 0%,
-            var(--gommo-primary) 100%
-    );
+    background: linear-gradient(180deg, var(--gommo-primary-light) 0%, var(--gommo-primary) 100%);
     box-shadow: 0 -2px 12px color-mix(in srgb, var(--gommo-primary) 18%, transparent);
 }
 
@@ -2684,10 +2716,10 @@ html:has(.logging-out-screen) body {
     position: absolute;
     inset: 0;
     background: linear-gradient(
-            105deg,
-            color-mix(in srgb, var(--gommo-primary-950) 28%, transparent) 0%,
-            color-mix(in srgb, var(--gommo-primary-950) 12%, transparent) 46%,
-            transparent 58%
+        105deg,
+        color-mix(in srgb, var(--gommo-primary-950) 28%, transparent) 0%,
+        color-mix(in srgb, var(--gommo-primary-950) 12%, transparent) 46%,
+        transparent 58%
     );
     pointer-events: none;
 }
@@ -2697,10 +2729,10 @@ html:has(.logging-out-screen) body {
     inset: 0;
     z-index: 0;
     background: linear-gradient(
-            160deg,
-            color-mix(in srgb, var(--gommo-primary-950) 52%, transparent) 0%,
-            color-mix(in srgb, var(--gommo-primary-darker) 28%, transparent) 42%,
-            color-mix(in srgb, var(--gommo-content) 22%, transparent) 100%
+        160deg,
+        color-mix(in srgb, var(--gommo-primary-950) 52%, transparent) 0%,
+        color-mix(in srgb, var(--gommo-primary-darker) 28%, transparent) 42%,
+        color-mix(in srgb, var(--gommo-content) 22%, transparent) 100%
     );
     -webkit-backdrop-filter: blur(32px) saturate(1.5) brightness(0.9);
     backdrop-filter: blur(32px) saturate(1.5) brightness(0.9);
@@ -2725,17 +2757,18 @@ html:has(.logging-out-screen) body {
     border-radius: var(--radius-gommo-modal);
     border: 1px solid color-mix(in srgb, white 14%, transparent);
     background: linear-gradient(
-            165deg,
-            color-mix(in srgb, white 14%, transparent) 0%,
-            color-mix(in srgb, white 6%, transparent) 38%,
-            color-mix(in srgb, var(--gommo-primary-100) 8%, transparent) 100%
+        165deg,
+        color-mix(in srgb, white 14%, transparent) 0%,
+        color-mix(in srgb, white 6%, transparent) 38%,
+        color-mix(in srgb, var(--gommo-primary-100) 8%, transparent) 100%
     );
     -webkit-backdrop-filter: blur(72px) saturate(1.85) brightness(1.1) contrast(1.02);
     backdrop-filter: blur(72px) saturate(1.85) brightness(1.1) contrast(1.02);
-    box-shadow: inset 0 1px 1px color-mix(in srgb, white 28%, transparent),
-    inset 0 -1px 0 color-mix(in srgb, white 6%, transparent),
-    0 8px 32px color-mix(in srgb, black 20%, transparent),
-    0 20px 56px color-mix(in srgb, var(--gommo-primary-darker) 16%, transparent);
+    box-shadow:
+        inset 0 1px 1px color-mix(in srgb, white 28%, transparent),
+        inset 0 -1px 0 color-mix(in srgb, white 6%, transparent),
+        0 8px 32px color-mix(in srgb, black 20%, transparent),
+        0 20px 56px color-mix(in srgb, var(--gommo-primary-darker) 16%, transparent);
 }
 
 .logging-out-screen__logo {
@@ -2803,11 +2836,11 @@ html:has(.logging-out-screen) body {
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(
-            90deg,
-            transparent 0%,
-            var(--gommo-primary-600) 45%,
-            var(--gommo-primary-light) 55%,
-            var(--gommo-primary-600) 100%
+        90deg,
+        transparent 0%,
+        var(--gommo-primary-600) 45%,
+        var(--gommo-primary-light) 55%,
+        var(--gommo-primary-600) 100%
     );
     animation: logging-out-progress 1.35s ease-in-out infinite;
 }

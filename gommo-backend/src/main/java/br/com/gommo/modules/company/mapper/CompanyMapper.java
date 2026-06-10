@@ -1,9 +1,10 @@
 package br.com.gommo.modules.company.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.company.dto.CompanyRequestDto;
 import br.com.gommo.modules.company.dto.CompanyResponseDto;
 import br.com.gommo.modules.company.entity.Company;
-import org.springframework.stereotype.Component;
 
 @Component
 public class CompanyMapper {

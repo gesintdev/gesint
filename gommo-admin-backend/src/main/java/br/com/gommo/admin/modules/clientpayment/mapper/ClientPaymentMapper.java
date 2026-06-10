@@ -1,10 +1,11 @@
 package br.com.gommo.admin.modules.clientpayment.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.admin.modules.clientpayment.dto.ClientPaymentRequestDto;
 import br.com.gommo.admin.modules.clientpayment.dto.ClientPaymentResponseDto;
 import br.com.gommo.admin.modules.clientpayment.entity.ClientPayment;
 import br.com.gommo.admin.modules.clientpayment.entity.PaymentStatusEnum;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ClientPaymentMapper {

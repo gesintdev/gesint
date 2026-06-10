@@ -1,10 +1,9 @@
 "use client";
+import { Pencil, Trash2 } from "lucide-react";
+import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
+import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 
-import {Pencil, Trash2} from "lucide-react";
-import {OpenInWorkspaceTabButton} from "@/shared/components/workspace/OpenInWorkspaceTabButton";
-import {TableActionButton} from "@/shared/components/crud/TableActionButton";
-
-type CrudTableActionsProps<T extends {id: string}> = {
+type CrudTableActionsProps<T extends { id: string }> = {
     row: T;
     onEdit: (row: T) => void;
     onDelete?: (row: T) => void;
@@ -13,7 +12,7 @@ type CrudTableActionsProps<T extends {id: string}> = {
     showOpenTab?: boolean;
 };
 
-export function CrudTableActions<T extends {id: string}>({
+export function CrudTableActions<T extends { id: string }>({
     row,
     onEdit,
     onDelete,

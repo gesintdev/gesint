@@ -1,5 +1,5 @@
-import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { getNavSectionsForSystem } from "@/config/routes";
+import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnum } from "@/modules/root/enum/SystemEnum";
 
 const ROUTE_MODULE_MAP: Record<string, string> = {
@@ -42,6 +42,7 @@ function filterPermissionRoutes(routes: AppRoute[]): AppRoute[] {
             }
             continue;
         }
+
         if (resolvePermissionModule(route)) {
             result.push(route);
         }
@@ -49,7 +50,6 @@ function filterPermissionRoutes(routes: AppRoute[]): AppRoute[] {
     return result;
 }
 
-/** Mesmas seções/rotas do sidebar, omitindo telas sem módulo de permissão. */
 export function getPermissionNavSections(system: SystemEnum): NavSection[] {
     return getNavSectionsForSystem(system)
         .map((section) => ({
@@ -92,6 +92,7 @@ function findParentIds(routes: AppRoute[], routeId: string, ancestors: string[])
         if (route.id === routeId) {
             return ancestors;
         }
+
         if (route.children?.length) {
             const nested = findParentIds(route.children, routeId, [...ancestors, route.id]);
             if (nested) return nested;
@@ -118,12 +119,8 @@ export function routeHasMarkedPermissions(route: AppRoute, markedModules: Readon
     return permissionModule != null && markedModules.has(permissionModule);
 }
 
-export function collectMarkedRouteIds(
-    sections: NavSection[],
-    markedModules: ReadonlySet<string>,
-): Set<string> {
+export function collectMarkedRouteIds(sections: NavSection[], markedModules: ReadonlySet<string>): Set<string> {
     const ids = new Set<string>();
-
     const walk = (routes: AppRoute[]) => {
         for (const route of routes) {
             if (route.children?.length) {
@@ -139,10 +136,8 @@ export function collectMarkedRouteIds(
             }
         }
     };
-
     for (const section of sections) {
         walk(section.routes);
     }
-
     return ids;
 }

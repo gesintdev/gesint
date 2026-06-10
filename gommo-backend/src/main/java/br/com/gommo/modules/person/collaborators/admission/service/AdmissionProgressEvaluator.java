@@ -1,15 +1,15 @@
 package br.com.gommo.modules.person.collaborators.admission.service;
 
-import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionProcess;
-import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
-import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionProcess;
+import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
+
 final class AdmissionProgressEvaluator {
 
-    private AdmissionProgressEvaluator() {
-    }
+    private AdmissionProgressEvaluator() {}
 
     static AdmissionStatusEnum resolveStatus(AdmissionProcess entity, long documentCount, long contractDocumentCount) {
         if (isComplete(entity, documentCount, contractDocumentCount)) {

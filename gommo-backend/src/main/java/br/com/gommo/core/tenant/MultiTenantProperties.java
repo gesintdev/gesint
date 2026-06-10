@@ -2,6 +2,7 @@ package br.com.gommo.core.tenant;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter

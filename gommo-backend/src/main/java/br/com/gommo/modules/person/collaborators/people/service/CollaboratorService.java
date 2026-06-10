@@ -1,27 +1,30 @@
 package br.com.gommo.modules.person.collaborators.people.service;
 
-import br.com.gommo.core.base.dto.PageableResponseDto;
-import br.com.gommo.core.base.service.BaseService;
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.person.collaborators.people.exception.CollaboratorException;
-import br.com.gommo.modules.person.collaborators.people.dto.CollaboratorRequestDto;
-import br.com.gommo.modules.person.collaborators.people.dto.CollaboratorResponseDto;
-import br.com.gommo.modules.person.collaborators.people.entity.Collaborator;
-import br.com.gommo.modules.person.collaborators.people.entity.CollaboratorContact;
-import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
-import br.com.gommo.modules.person.collaborators.admission.repository.AdmissionProcessRepository;
-import br.com.gommo.modules.person.collaborators.people.mapper.CollaboratorMapper;
-import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorContactRepository;
-import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.base.dto.PageableResponseDto;
+import br.com.gommo.core.base.service.BaseService;
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.person.collaborators.admission.repository.AdmissionProcessRepository;
+import br.com.gommo.modules.person.collaborators.people.dto.CollaboratorRequestDto;
+import br.com.gommo.modules.person.collaborators.people.dto.CollaboratorResponseDto;
+import br.com.gommo.modules.person.collaborators.people.entity.Collaborator;
+import br.com.gommo.modules.person.collaborators.people.entity.CollaboratorContact;
+import br.com.gommo.modules.person.collaborators.people.exception.CollaboratorException;
+import br.com.gommo.modules.person.collaborators.people.mapper.CollaboratorMapper;
+import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorContactRepository;
+import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
+
 @Service
-public class CollaboratorService extends BaseService<Collaborator, CollaboratorRequestDto, CollaboratorResponseDto> implements ICollaboratorService {
+public class CollaboratorService extends BaseService<Collaborator, CollaboratorRequestDto, CollaboratorResponseDto>
+        implements ICollaboratorService {
 
     private final CollaboratorRepository CollaboratorRepository;
     private final CollaboratorMapper CollaboratorMapper;
@@ -88,8 +91,7 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
     @Transactional
     @PreAuthorize("hasAuthority('collaborator:write')")
     public CollaboratorResponseDto update(UUID id, CollaboratorRequestDto request) {
-        CollaboratorRepository
-                .findByCpfAndStatusNot(request.getCpf(), StatusEnum.DELETED)
+        CollaboratorRepository.findByCpfAndStatusNot(request.getCpf(), StatusEnum.DELETED)
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(p -> {
                     throw CollaboratorException.cpfAlreadyExists();
@@ -106,8 +108,7 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
 
     @Override
     protected Collaborator findEntity(UUID id) {
-        return CollaboratorRepository
-                .findByIdAndStatusNot(id, StatusEnum.DELETED)
+        return CollaboratorRepository.findByIdAndStatusNot(id, StatusEnum.DELETED)
                 .orElseThrow(CollaboratorException::notFound);
     }
 

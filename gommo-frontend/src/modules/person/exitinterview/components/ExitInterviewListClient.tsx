@@ -1,10 +1,9 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { EXITINTERVIEW_CLIENT_MESSAGES } from "@/modules/person/exitinterview/exceptions/exit-interview.messages";
 import { EXITINTERVIEW_TABLE_COLUMNS } from "@/modules/person/exitinterview/config/exit-interview.table-columns";
 import type { ExitInterview } from "@/modules/person/exitinterview/dto/exit-interview.dto";
+import { EXITINTERVIEW_CLIENT_MESSAGES } from "@/modules/person/exitinterview/exceptions/exit-interview.messages";
 import { exitinterviewKeys } from "@/modules/person/exitinterview/exitinterview.query";
 import { exitinterviewService } from "@/modules/person/exitinterview/services/exit-interview.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function ExitInterviewListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => exitinterviewService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function ExitInterviewListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: EXITINTERVIEW_CLIENT_MESSAGES.EXITINTERVIEW_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: ExitInterview) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

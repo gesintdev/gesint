@@ -1,5 +1,19 @@
 package br.com.gommo.admin.modules.root.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.admin.core.entity.StatusEnum;
 import br.com.gommo.admin.core.security.JwtProperties;
 import br.com.gommo.admin.core.security.JwtService;
@@ -14,18 +28,6 @@ import br.com.gommo.admin.modules.root.entity.AdminRefreshTokenBlacklist;
 import br.com.gommo.admin.modules.root.exception.AuthException;
 import br.com.gommo.admin.modules.root.repository.AdminRefreshTokenBlacklistRepository;
 import br.com.gommo.admin.modules.root.repository.AdminRefreshTokenRepository;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.HexFormat;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService implements IAuthService {
@@ -103,9 +105,8 @@ public class AuthService implements IAuthService {
                 .build());
 
         UUID userId = jwtService.extractUserId(rawRefresh);
-        AdminUser user = adminUserRepository
-                .findActiveById(userId, StatusEnum.DELETED)
-                .orElseThrow(AuthException::userNotFound);
+        AdminUser user =
+                adminUserRepository.findActiveById(userId, StatusEnum.DELETED).orElseThrow(AuthException::userNotFound);
 
         return buildTokenResponse(user);
     }

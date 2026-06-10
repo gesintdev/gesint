@@ -1,15 +1,13 @@
 "use client";
-
 import clsx from "clsx";
-import {Calendar} from "lucide-react";
-import {useId, useRef} from "react";
-import {DatePickerPanel} from "@/shared/components/ui/input/DatePickerPanel";
-import type {InputFieldChromeProps} from "@/shared/components/ui/input/input-field.types";
-import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
-import {useClickOutside} from "@/shared/components/ui/input/use-listbox-keyboard";
-import {useDateField} from "@/shared/components/ui/input/useDateField";
+import { Calendar } from "lucide-react";
+import { useId, useRef } from "react";
+import { DatePickerPanel } from "@/shared/components/ui/input/DatePickerPanel";
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
+import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import { useClickOutside } from "@/shared/components/ui/input/use-listbox-keyboard";
+import { useDateField } from "@/shared/components/ui/input/useDateField";
 
-/** Retorno: `YYYY-MM-DD` (ISO) */
 export type InputDateProps = InputFieldChromeProps & {
     value: string;
     onValueChange: (isoDate: string) => void;
@@ -19,26 +17,25 @@ export type InputDateProps = InputFieldChromeProps & {
 };
 
 export function InputDate({
-                              value,
-                              onValueChange,
-                              min,
-                              max,
-                              label,
-                              hint,
-                              error,
-                              required,
-                              disabled,
-                              readOnly,
-                              id: idProp,
-                              wrapperClassName,
-                              className,
-                          }: InputDateProps) {
+    value,
+    onValueChange,
+    min,
+    max,
+    label,
+    hint,
+    error,
+    required,
+    disabled,
+    readOnly,
+    id: idProp,
+    wrapperClassName,
+    className,
+}: InputDateProps) {
     const autoId = useId();
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const rootRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
-
-    const field = useDateField({value, onValueChange, min, max});
+    const field = useDateField({ value, onValueChange, min, max });
 
     useClickOutside([rootRef, panelRef], () => field.setOpen(false), field.open);
 
@@ -84,11 +81,10 @@ export function InputDate({
                             aria-expanded={field.open}
                             onClick={() => field.setOpen((v) => !v)}
                         >
-                            <Calendar className="size-4"/>
+                            <Calendar className="size-4" />
                         </button>
                     )}
                 </div>
-
                 {field.open && !readOnly && !disabled && (
                     <DatePickerPanel
                         ref={panelRef}

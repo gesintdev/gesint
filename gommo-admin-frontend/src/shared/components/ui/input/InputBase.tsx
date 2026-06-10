@@ -1,41 +1,36 @@
 "use client";
-
 import clsx from "clsx";
-import {useId} from "react";
-import type {InputBaseProps} from "@/shared/components/ui/input/input-field.types";
-import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
+import { useId } from "react";
+import type { InputBaseProps } from "@/shared/components/ui/input/input-field.types";
+import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 
-/**
- * Input primitivo: exibe, l\u00ea e altera valor de tela.
- * Inputs especializados aplicam m\u00e1scara/valida\u00e7\u00e3o e repassam valor sem m\u00e1scara via onValueChange.
- */
 export function InputBase({
-                              label,
-                              hint,
-                              error,
-                              required,
-                              disabled,
-                              readOnly,
-                              wrapperClassName,
-                              id: idProp,
-                              displayValue,
-                              onDisplayChange,
-                              placeholder,
-                              leftIcon,
-                              rightSlot,
-                              className,
-                              inputClassName,
-                              autoComplete,
-                              inputMode,
-                              type = "text",
-                              min,
-                              max,
-                              step,
-                              maxLength,
-                              onBlur,
-                              onFocus,
-                              "aria-invalid": ariaInvalid,
-                          }: InputBaseProps) {
+    label,
+    hint,
+    error,
+    required,
+    disabled,
+    readOnly,
+    wrapperClassName,
+    id: idProp,
+    displayValue,
+    onDisplayChange,
+    placeholder,
+    leftIcon,
+    rightSlot,
+    className,
+    inputClassName,
+    autoComplete,
+    inputMode,
+    type = "text",
+    min,
+    max,
+    step,
+    maxLength,
+    onBlur,
+    onFocus,
+    "aria-invalid": ariaInvalid,
+}: InputBaseProps) {
     const autoId = useId();
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
 

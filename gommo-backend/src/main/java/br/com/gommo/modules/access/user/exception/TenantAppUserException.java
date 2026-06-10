@@ -1,7 +1,8 @@
 package br.com.gommo.modules.access.user.exception;
 
-import br.com.gommo.core.exception.BusinessException;
 import org.springframework.http.HttpStatus;
+
+import br.com.gommo.core.exception.BusinessException;
 
 public final class TenantAppUserException {
 
@@ -12,7 +13,8 @@ public final class TenantAppUserException {
     }
 
     public static BusinessException duplicateUsername() {
-        return new BusinessException("APP_USER_DUPLICATE_USERNAME", "Nome de usuário já cadastrado.", HttpStatus.CONFLICT);
+        return new BusinessException(
+                "APP_USER_DUPLICATE_USERNAME", "Nome de usuário já cadastrado.", HttpStatus.CONFLICT);
     }
 
     public static BusinessException duplicateEmail() {
@@ -25,7 +27,8 @@ public final class TenantAppUserException {
     }
 
     public static BusinessException passwordRequired() {
-        return new BusinessException("APP_USER_PASSWORD_REQUIRED", "Senha é obrigatória no cadastro.", HttpStatus.BAD_REQUEST);
+        return new BusinessException(
+                "APP_USER_PASSWORD_REQUIRED", "Senha é obrigatória no cadastro.", HttpStatus.BAD_REQUEST);
     }
 
     public static BusinessException invalidRoleForSystem() {

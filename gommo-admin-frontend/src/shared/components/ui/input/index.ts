@@ -1,31 +1,61 @@
-export type { InputFieldChromeProps, InputBaseProps } from "./input-field.types";
-export { InputBase } from "./InputBase";
-export { InputString } from "./InputString";
-export type { InputStringProps } from "./InputString";
-export { InputPassword } from "./InputPassword";
-export type { InputPasswordProps } from "./InputPassword";
-export { InputCPF } from "./InputCPF";
-export type { InputCPFProps } from "./InputCPF";
-export { InputCNPJ } from "./InputCNPJ";
-export type { InputCNPJProps } from "./InputCNPJ";
-export { InputCEP } from "./InputCEP";
-export type { InputCEPProps } from "./InputCEP";
-export { InputRG } from "./InputRG";
-export type { InputRGProps } from "./InputRG";
-export { RgIdentityFields } from "./RgIdentityFields";
-export type { RgIdentityFieldsProps } from "./RgIdentityFields";
-export { InputDate } from "./InputDate";
-export type { InputDateProps } from "./InputDate";
-export { InputDatetime } from "./InputDatetime";
-export type { InputDatetimeProps } from "./InputDatetime";
-export { InputNumber } from "./InputNumber";
-export type { InputNumberProps, InputNumberAlign } from "./InputNumber";
-export { InputCurrency } from "./InputCurrency";
-export type { InputCurrencyProps } from "./InputCurrency";
-export { InputSelect } from "./InputSelect";
-export type { InputSelectProps } from "./InputSelect";
-export { InputAutocomplete } from "./InputAutocomplete";
+export type { InputBaseProps, InputFieldChromeProps } from "./input-field.types";
+
 export type { InputAutocompleteProps } from "./InputAutocomplete";
-export { InputSelectAutocomplete } from "./InputSelectAutocomplete";
+
+export { InputAutocomplete } from "./InputAutocomplete";
+
+export { InputBase } from "./InputBase";
+
+export type { InputCEPProps } from "./InputCEP";
+
+export { InputCEP } from "./InputCEP";
+
+export type { InputCNPJProps } from "./InputCNPJ";
+
+export { InputCNPJ } from "./InputCNPJ";
+
+export type { InputCPFProps } from "./InputCPF";
+
+export { InputCPF } from "./InputCPF";
+
+export type { InputCurrencyProps } from "./InputCurrency";
+
+export { InputCurrency } from "./InputCurrency";
+
+export type { InputDateProps } from "./InputDate";
+
+export { InputDate } from "./InputDate";
+
+export type { InputDatetimeProps } from "./InputDatetime";
+
+export { InputDatetime } from "./InputDatetime";
+
+export type { InputNumberAlign, InputNumberProps } from "./InputNumber";
+
+export { InputNumber } from "./InputNumber";
+
+export type { InputPasswordProps } from "./InputPassword";
+
+export { InputPassword } from "./InputPassword";
+
+export type { InputRGProps } from "./InputRG";
+
+export { InputRG } from "./InputRG";
+
+export type { InputSelectProps } from "./InputSelect";
+
+export { InputSelect } from "./InputSelect";
+
 export type { InputSelectAutocompleteProps } from "./InputSelectAutocomplete";
+
+export { InputSelectAutocomplete } from "./InputSelectAutocomplete";
+
+export type { InputStringProps } from "./InputString";
+
+export { InputString } from "./InputString";
+
+export type { RgIdentityFieldsProps } from "./RgIdentityFields";
+
+export { RgIdentityFields } from "./RgIdentityFields";
+
 export type { SelectItem, SelectSearchFn, SelectSearchResult } from "./select-item.types";

@@ -1,13 +1,15 @@
 package br.com.gommo.modules.person.collaborators.people.dto;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.person.collaborators.people.entity.GenderEnum;
-import br.com.gommo.modules.person.collaborators.people.entity.MaritalStatusEnum;
+import lombok.Builder;
+import lombok.Getter;
+
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.Builder;
-import lombok.Getter;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.person.collaborators.people.entity.GenderEnum;
+import br.com.gommo.modules.person.collaborators.people.entity.MaritalStatusEnum;
 
 @Getter
 @Builder

@@ -1,15 +1,17 @@
 package br.com.gommo.admin.modules.adminuser.entity;
 
-import br.com.gommo.admin.core.entity.AuditEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+
+import java.time.OffsetDateTime;
+
+import br.com.gommo.admin.core.entity.AuditEntity;
 
 @Entity
 @Table(schema = "admin", name = "admin_user")

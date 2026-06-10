@@ -1,10 +1,13 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
+import { InputPassword, InputString, InputSelect } from "@/shared/components/ui/input/index";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CLIENT_USER_CLIENT_MESSAGES } from "@/modules/clientuser/exceptions/clientuser.messages";
+import { clientKeys } from "@/modules/client/client.query";
+import { clientService } from "@/modules/client/services/client.service";
+import { clientUserKeys } from "@/modules/clientuser/clientuser.query";
 import type { ClientUserCreateDto } from "@/modules/clientuser/dto/clientuser.dto";
+import { CLIENT_USER_CLIENT_MESSAGES } from "@/modules/clientuser/exceptions/clientuser.messages";
 import {
     CLIENT_USER_PASSWORD_MIN_LENGTH,
     clientUserToFormDto,
@@ -12,17 +15,13 @@ import {
     toClientUserSavePayload,
     validateClientUserForm,
 } from "@/modules/clientuser/lib/clientuser.mapper";
-import { clientUserKeys } from "@/modules/clientuser/clientuser.query";
 import { clientUserService } from "@/modules/clientuser/services/clientuser.service";
-import { clientKeys } from "@/modules/client/client.query";
-import { clientService } from "@/modules/client/services/client.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
-import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
-import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
-import { InputPassword, InputString, InputSelect } from "@/shared/components/ui/input/index";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 export function ClientUserFormClient() {
     const { editingId, isEditing, goToList } = useCrudScreen();
@@ -30,12 +29,10 @@ export function ClientUserFormClient() {
     const [form, setForm] = useState<ClientUserCreateDto>(emptyClientUserForm());
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
     const clientsQuery = useQuery({
         queryKey: clientKeys.all,
         queryFn: () => clientService.getAll(),
     });
-
     const detailQuery = useQuery({
         queryKey: clientUserKeys.detail(editingId ?? ""),
         queryFn: () => clientUserService.getById(editingId!),
@@ -68,16 +65,16 @@ export function ClientUserFormClient() {
             goToList();
         },
         onError: (err: unknown) => {
-            setError(ExceptionCapture.handle(err, { fallbackMessage: CLIENT_USER_CLIENT_MESSAGES.SAVE_FAILED }).displayMessage);
+            setError(
+                ExceptionCapture.handle(err, { fallbackMessage: CLIENT_USER_CLIENT_MESSAGES.SAVE_FAILED })
+                    .displayMessage,
+            );
         },
     });
-
     const clientOptions = (clientsQuery.data ?? []).map((c) => ({ value: c.id, label: c.name }));
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
-
         const errors = validateClientUserForm(form, isEditing);
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) {
@@ -85,10 +82,8 @@ export function ClientUserFormClient() {
             if (first) toast.error(first);
             return;
         }
-
         saveMutation.mutate(toClientUserSavePayload(form, isEditing));
     };
-
     const clearFieldError = (field: string) => {
         setFieldErrors((current) => {
             if (!current[field]) return current;

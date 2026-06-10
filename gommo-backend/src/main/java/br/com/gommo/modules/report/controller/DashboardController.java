@@ -1,11 +1,12 @@
 package br.com.gommo.modules.report.controller;
 
-import br.com.gommo.modules.report.dto.DashboardSummaryResponseDto;
-import br.com.gommo.modules.report.service.IDashboardService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import br.com.gommo.modules.report.dto.DashboardSummaryResponseDto;
+import br.com.gommo.modules.report.service.IDashboardService;
 
 @RestController
 @RequestMapping("/api/v1/dashboard")

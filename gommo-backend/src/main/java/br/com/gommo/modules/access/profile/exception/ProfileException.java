@@ -1,7 +1,8 @@
 package br.com.gommo.modules.access.profile.exception;
 
-import br.com.gommo.core.exception.BusinessException;
 import org.springframework.http.HttpStatus;
+
+import br.com.gommo.core.exception.BusinessException;
 
 public final class ProfileException {
 
@@ -13,10 +14,13 @@ public final class ProfileException {
 
     public static BusinessException systemRoleImmutable() {
         return new BusinessException(
-                "PROFILE_SYSTEM_IMMUTABLE", "Perfis padrão do sistema não podem ser alterados.", HttpStatus.BAD_REQUEST);
+                "PROFILE_SYSTEM_IMMUTABLE",
+                "Perfis padrão do sistema não podem ser alterados.",
+                HttpStatus.BAD_REQUEST);
     }
 
     public static BusinessException duplicateName() {
-        return new BusinessException("PROFILE_DUPLICATE_NAME", "Já existe um perfil com este nome.", HttpStatus.CONFLICT);
+        return new BusinessException(
+                "PROFILE_DUPLICATE_NAME", "Já existe um perfil com este nome.", HttpStatus.CONFLICT);
     }
 }

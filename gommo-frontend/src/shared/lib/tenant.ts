@@ -1,10 +1,7 @@
 const LOCALHOST_SUFFIX = ".localhost";
 
 export function resolveTenantSlugFromHostname(hostname?: string): string | null {
-    const host = (hostname ?? (typeof window !== "undefined" ? window.location.hostname : ""))
-        .trim()
-        .toLowerCase();
-
+    const host = (hostname ?? (typeof window !== "undefined" ? window.location.hostname : "")).trim().toLowerCase();
     if (!host || host === "localhost" || host === "127.0.0.1") {
         return null;
     }
@@ -16,7 +13,6 @@ export function resolveTenantSlugFromHostname(hostname?: string): string | null 
         }
         return slug;
     }
-
     return null;
 }
 
@@ -28,11 +24,9 @@ export function buildTenantRequestHeaders(tenantSlug?: string | null): Record<st
     return { "X-Tenant-Slug": slug };
 }
 
-/** URL de login no mesmo host (preserva subdominio do tenant, ex. empresa-a.localhost). */
 export function resolveLoginCallbackUrl(pathname = "/login"): string {
     if (typeof window === "undefined") {
         return pathname;
     }
     return new URL(pathname, window.location.origin).href;
 }
-

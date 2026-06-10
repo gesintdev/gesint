@@ -1,11 +1,16 @@
 package br.com.gommo.modules.payroll.benefitenrollment.dto;
-import br.com.gommo.core.entity.StatusEnum;
+
+import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.*;
-@Getter @Builder
+
+import br.com.gommo.core.entity.StatusEnum;
+
+@Getter
+@Builder
 public class BenefitEnrollmentResponseDto {
     private final UUID id;
     private final Integer code;

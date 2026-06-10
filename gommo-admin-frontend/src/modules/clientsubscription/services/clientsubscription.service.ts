@@ -3,7 +3,6 @@ import type {
     ClientSubscriptionCreateDto,
 } from "@/modules/clientsubscription/dto/clientsubscription.dto";
 import { BaseService } from "@/modules/root/services/base.service";
-
 class ClientSubscriptionService extends BaseService<
     ClientSubscription,
     ClientSubscriptionCreateDto,

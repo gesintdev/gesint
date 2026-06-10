@@ -1,5 +1,5 @@
-import type {Collaborator, CollaboratorCreateDto} from "@/modules/collaborator/dto/collaborator.dto";
-import {digitsOnly} from "@/shared/lib/input/digits";
+import type { Collaborator, CollaboratorCreateDto } from "@/modules/collaborator/dto/collaborator.dto";
+import { digitsOnly } from "@/shared/lib/input/digits";
 
 export function collaboratorFormToPayload(dto: CollaboratorCreateDto): CollaboratorCreateDto {
     return {

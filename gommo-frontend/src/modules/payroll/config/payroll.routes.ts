@@ -1,6 +1,6 @@
+import { FileText, Gift, Receipt, Scale, UserCheck, CalendarDays } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
-import { FileText, Gift, Receipt, Scale, UserCheck, CalendarDays } from "lucide-react";
 
 export const payrollRoutes: AppRoute[] = [
     routeGroup({
@@ -116,7 +116,8 @@ export const payrollRoutes: AppRoute[] = [
                 permission: "leave:read",
                 routeId: "leave",
                 tabShortLabel: "Férias",
-                listToolbar: "Férias concedidas e histórico (CLT). Períodos aquisitivo e concessivo calculados pelo contrato.",
+                listToolbar:
+                    "Férias concedidas e histórico (CLT). Períodos aquisitivo e concessivo calculados pelo contrato.",
                 list: lazyNamed(
                     () => import("@/modules/person/vacation/components/VacationListClient"),
                     "VacationListClient",

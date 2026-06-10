@@ -1,6 +1,7 @@
 package br.com.gommo.core.tenant;
 
 import javax.sql.DataSource;
+
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;

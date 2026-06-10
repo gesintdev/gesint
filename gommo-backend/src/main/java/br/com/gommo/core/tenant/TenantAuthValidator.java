@@ -1,6 +1,7 @@
 package br.com.gommo.core.tenant;
 
 import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,13 +29,14 @@ public class TenantAuthValidator {
             if (platformAdminUserLookup.isPlatformAdmin(username)) {
                 return;
             }
-            if (tenantClientUserLookup.isBoundToAnyClient(appUserId)) {
+            if (tenantClientUserLookup.isRegisteredClientUsername(username)) {
                 throw TenantException.hostRequired();
             }
             throw TenantException.mismatch();
         }
-        if (!tenantClientUserLookup.belongsToTenant(appUserId, tenant.clientId())) {
-            throw TenantException.mismatch();
+        if (platformAdminUserLookup.isPlatformAdmin(username)
+                || platformAdminUserLookup.isPlatformAdminAppUser(appUserId)) {
+            return;
         }
     }
 
@@ -47,17 +49,18 @@ public class TenantAuthValidator {
             if (platformAdminUserLookup.isPlatformAdminAppUser(appUserId)) {
                 return;
             }
-            if (tenantClientUserLookup.isBoundToAnyClient(appUserId)) {
-                throw TenantException.hostRequired();
-            }
             return;
         }
-        if (!tenantClientUserLookup.belongsToTenant(appUserId, tenant.clientId())) {
-            throw TenantException.mismatch();
+        if (platformAdminUserLookup.isPlatformAdminAppUser(appUserId)) {
+            return;
         }
     }
 
     public void assertTokenMatchesCurrentTenant(UUID tokenTenantId) {
+        assertTokenMatchesCurrentTenant(tokenTenantId, null);
+    }
+
+    public void assertTokenMatchesCurrentTenant(UUID tokenTenantId, UUID appUserId) {
         if (!properties.isEnabled()) {
             return;
         }
@@ -68,8 +71,12 @@ public class TenantAuthValidator {
             }
             return;
         }
-        if (tokenTenantId == null || !tokenTenantId.equals(tenant.clientId())) {
-            throw TenantException.mismatch();
+        if (tokenTenantId != null && tokenTenantId.equals(tenant.clientId())) {
+            return;
         }
+        if (tokenTenantId == null && appUserId != null && platformAdminUserLookup.isPlatformAdminAppUser(appUserId)) {
+            return;
+        }
+        throw TenantException.mismatch();
     }
 }

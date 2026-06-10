@@ -1,7 +1,6 @@
+import { ShieldCheck, UserCog } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
-import { ShieldCheck, UserCog } from "lucide-react";
-
 /** Equipe Gommo que opera o painel administrativo */
 export const platformRoutes: AppRoute[] = [
     routeGroup({

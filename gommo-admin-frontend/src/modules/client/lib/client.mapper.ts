@@ -6,6 +6,14 @@ export function tenantSchemaFromSlug(slug: string): string {
     return normalized ? `tenant_${normalized}` : "public";
 }
 
+const DEV_DB_DEFAULTS = {
+    databaseHost: "localhost",
+    databasePort: 5432,
+    databaseName: "gommo",
+    databaseUser: "gommo",
+    databaseSecretRef: "DB_PASSWORD",
+} as const;
+
 export function emptyClientForm(): ClientCreateDto {
     return {
         name: "",
@@ -18,12 +26,8 @@ export function emptyClientForm(): ClientCreateDto {
         subdomain: "",
         customDomain: "",
         databaseStrategy: "DEDICATED_SCHEMA",
-        databaseHost: "",
-        databasePort: 5432,
-        databaseName: "",
+        ...DEV_DB_DEFAULTS,
         databaseSchema: "",
-        databaseUser: "",
-        databaseSecretRef: "",
         provisioningStatus: "PENDING",
         provisioningNotes: "",
     };
@@ -41,12 +45,12 @@ export function clientToFormDto(client: Client): ClientCreateDto {
         subdomain: client.subdomain ?? "",
         customDomain: client.customDomain ?? "",
         databaseStrategy: client.databaseStrategy ?? "DEDICATED_SCHEMA",
-        databaseHost: client.databaseHost ?? "",
-        databasePort: client.databasePort ?? 5432,
-        databaseName: client.databaseName ?? "",
+        databaseHost: client.databaseHost ?? DEV_DB_DEFAULTS.databaseHost,
+        databasePort: client.databasePort ?? DEV_DB_DEFAULTS.databasePort,
+        databaseName: client.databaseName ?? DEV_DB_DEFAULTS.databaseName,
         databaseSchema: client.databaseSchema ?? tenantSchemaFromSlug(client.slug),
-        databaseUser: client.databaseUser ?? "",
-        databaseSecretRef: client.databaseSecretRef ?? "",
+        databaseUser: client.databaseUser ?? DEV_DB_DEFAULTS.databaseUser,
+        databaseSecretRef: client.databaseSecretRef ?? DEV_DB_DEFAULTS.databaseSecretRef,
         provisioningStatus: client.provisioningStatus ?? "PENDING",
         provisioningNotes: client.provisioningNotes ?? "",
     };

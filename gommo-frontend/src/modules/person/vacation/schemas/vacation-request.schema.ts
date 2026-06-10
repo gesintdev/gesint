@@ -1,17 +1,16 @@
-import { z } from "zod";
 import {
     maxPecuniaryDays,
     totalGozoDays,
     validateSplitPeriods,
     vacationDaysEntitled,
 } from "@/modules/person/vacation/lib/vacation-rules";
+import { z } from "zod";
 
 const splitPeriodSchema = z.object({
     days: z.coerce.number().int().min(0, "Informe os dias"),
     startDate: z.string(),
     endDate: z.string(),
 });
-
 export const vacationRequestFormSchema = z
     .object({
         collaboratorId: z.string().min(1, "Selecione o colaborador").uuid("Colaborador inválido"),
@@ -30,7 +29,6 @@ export const vacationRequestFormSchema = z
         if (!splitCheck.valid) {
             ctx.addIssue({ code: "custom", message: splitCheck.message ?? "Períodos inválidos", path: ["periods"] });
         }
-
         for (let i = 0; i < data.periods.length; i++) {
             const p = data.periods[i];
             if (p.startDate && p.days <= 0) {
@@ -40,6 +38,7 @@ export const vacationRequestFormSchema = z
                     path: ["periods", i, "days"],
                 });
             }
+
             if (p.days > 0 && !p.startDate) {
                 ctx.addIssue({
                     code: "custom",
@@ -48,7 +47,6 @@ export const vacationRequestFormSchema = z
                 });
             }
         }
-
         const activePeriods = data.periods.filter((p) => p.days > 0);
         if (activePeriods.length === 0) {
             ctx.addIssue({
@@ -57,9 +55,7 @@ export const vacationRequestFormSchema = z
                 path: ["periods"],
             });
         }
-
         const entitledDays = vacationDaysEntitled(data.unjustifiedAbsences);
-
         if (entitledDays <= 0) {
             ctx.addIssue({
                 code: "custom",
@@ -67,7 +63,6 @@ export const vacationRequestFormSchema = z
                 path: ["unjustifiedAbsences"],
             });
         }
-
         const maxPec = maxPecuniaryDays(entitledDays);
         if (data.pecuniaryAllowanceDays > maxPec) {
             ctx.addIssue({
@@ -76,7 +71,6 @@ export const vacationRequestFormSchema = z
                 path: ["pecuniaryAllowanceDays"],
             });
         }
-
         const gozo = totalGozoDays(data.periods);
         if (gozo + data.pecuniaryAllowanceDays > entitledDays) {
             ctx.addIssue({
@@ -85,7 +79,6 @@ export const vacationRequestFormSchema = z
                 path: ["periods"],
             });
         }
-
     });
 
 export type VacationRequestFormSchema = z.infer<typeof vacationRequestFormSchema>;

@@ -1,19 +1,21 @@
 package br.com.gommo.admin.core.base.service;
 
-import br.com.gommo.admin.core.base.dto.PageableResponseDto;
-import br.com.gommo.admin.core.base.repository.IBaseRepository;
-import br.com.gommo.admin.core.entity.AuditEntity;
-import br.com.gommo.admin.core.entity.StatusEnum;
-import br.com.gommo.admin.core.exception.BusinessException;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
+
+import br.com.gommo.admin.core.base.dto.PageableResponseDto;
+import br.com.gommo.admin.core.base.repository.IBaseRepository;
+import br.com.gommo.admin.core.entity.AuditEntity;
+import br.com.gommo.admin.core.entity.StatusEnum;
+import br.com.gommo.admin.core.exception.BusinessException;
 
 public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto>
         implements IBaseService<RequestDto, ResponseDto> {
@@ -25,9 +27,7 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
     private final String notFoundMessage;
 
     protected BaseService(
-            IBaseRepository<T> repository,
-            Function<T, ResponseDto> toResponse,
-            Function<RequestDto, T> toEntity) {
+            IBaseRepository<T> repository, Function<T, ResponseDto> toResponse, Function<RequestDto, T> toEntity) {
         this(repository, toResponse, toEntity, null, null);
     }
 
@@ -100,9 +100,7 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
     protected abstract void updateEntity(T entity, RequestDto request);
 
     protected T findEntity(UUID id) {
-        return repository
-                .findByIdAndStatusNot(id, StatusEnum.DELETED)
-                .orElseThrow(this::entityNotFound);
+        return repository.findByIdAndStatusNot(id, StatusEnum.DELETED).orElseThrow(this::entityNotFound);
     }
 
     protected RuntimeException entityNotFound() {

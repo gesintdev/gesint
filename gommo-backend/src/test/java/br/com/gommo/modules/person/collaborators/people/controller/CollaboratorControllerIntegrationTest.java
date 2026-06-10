@@ -2,8 +2,9 @@ package br.com.gommo.modules.person.collaborators.people.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.gommo.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
+
+import br.com.gommo.support.AbstractIntegrationTest;
 
 class CollaboratorControllerIntegrationTest extends AbstractIntegrationTest {
 

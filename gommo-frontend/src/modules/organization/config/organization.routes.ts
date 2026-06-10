@@ -1,6 +1,6 @@
+import { Briefcase, Network } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
-import { Briefcase, Network } from "lucide-react";
 
 export const organizationRoutes: AppRoute[] = [
     routeGroup({

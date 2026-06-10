@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import {
     JOB_POSITION_PICKER_ADVANCED,
     jobpositionService,
 } from "@/modules/organization/jobposition/services/jobposition.service";
+import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 
 type JobPositionPickerFieldProps = {
     value: string;
@@ -34,7 +34,6 @@ export function JobPositionPickerField({
             jobpositionService.searchForAutocomplete(query, page, departmentId?.trim() || undefined),
         [departmentId],
     );
-
     const resolveLabel = useCallback(async (id: string) => {
         const jobPosition = await jobpositionService.getById(id);
         return jobPosition.title;

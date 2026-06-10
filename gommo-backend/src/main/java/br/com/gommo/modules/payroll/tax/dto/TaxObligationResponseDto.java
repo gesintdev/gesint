@@ -1,12 +1,17 @@
 package br.com.gommo.modules.payroll.tax.dto;
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.payroll.tax.entity.TaxObligationTypeEnum;
+
+import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.*;
-@Getter @Builder
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.payroll.tax.entity.TaxObligationTypeEnum;
+
+@Getter
+@Builder
 public class TaxObligationResponseDto {
     private final UUID id;
     private final Integer code;

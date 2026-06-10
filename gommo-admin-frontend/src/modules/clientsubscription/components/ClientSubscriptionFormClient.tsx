@@ -1,7 +1,6 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { clientKeys } from "@/modules/client/client.query";
 import { clientService } from "@/modules/client/services/client.service";
@@ -13,8 +12,8 @@ import {
     emptyClientSubscriptionForm,
 } from "@/modules/clientsubscription/lib/clientsubscription.mapper";
 import { clientSubscriptionService } from "@/modules/clientsubscription/services/clientsubscription.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { Button } from "@/shared/components/ui/Button";
 import { InputCurrency, InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
@@ -26,9 +25,7 @@ export function ClientSubscriptionFormClient() {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ClientSubscriptionCreateDto>(emptyClientSubscriptionForm());
     const [error, setError] = useState<string | null>(null);
-
     const clientsQuery = useQuery({ queryKey: clientKeys.all, queryFn: () => clientService.getAll() });
-
     const detailQuery = useQuery({
         queryKey: clientSubscriptionKeys.detail(editingId ?? ""),
         queryFn: () => clientSubscriptionService.getById(editingId!),
@@ -42,6 +39,7 @@ export function ClientSubscriptionFormClient() {
             setForm(emptyClientSubscriptionForm());
             return;
         }
+
         if (detailQuery.data) setForm(clientSubscriptionToFormDto(detailQuery.data));
     }, [isEditing, detailQuery.data]);
 
@@ -67,7 +65,6 @@ export function ClientSubscriptionFormClient() {
             );
         },
     });
-
     const clientOptions = (clientsQuery.data ?? []).map((c) => ({ value: c.id, label: c.name }));
     const billingItems = [
         { value: "ACTIVE", label: "Ativa" },
@@ -79,7 +76,6 @@ export function ClientSubscriptionFormClient() {
         { value: "PRO", label: "Pro" },
         { value: "ENTERPRISE", label: "Enterprise" },
     ];
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);

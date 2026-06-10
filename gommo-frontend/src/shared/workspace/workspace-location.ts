@@ -5,19 +5,15 @@ export function buildLocationKey(pathname: string, search: URLSearchParams | str
     return qs ? `${pathname}?${qs}` : pathname;
 }
 
-/** Compara pathname + query (ordem dos params irrelevante). */
 export function locationsEqual(current: string, target: string): boolean {
     if (current === target) return true;
-
     try {
         const currentUrl = new URL(current, "http://local");
         const targetUrl = new URL(target, "http://local");
         if (currentUrl.pathname !== targetUrl.pathname) return false;
-
         const currentParams = new URLSearchParams(currentUrl.search);
         const targetParams = new URLSearchParams(targetUrl.search);
         if (currentParams.size !== targetParams.size) return false;
-
         for (const [key, value] of currentParams) {
             if (targetParams.get(key) !== value) return false;
         }

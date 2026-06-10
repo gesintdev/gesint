@@ -2,24 +2,13 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+import { sharedLintConfig } from "../config/eslint.shared.mjs";
+
 const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  {
-    rules: {
-      // Form clients reset via CrudScreen form key; detail hydration still uses effects.
-      "react-hooks/set-state-in-effect": "off",
-    },
-  },
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-    "scripts/**",
-  ]),
+    ...nextVitals,
+    ...nextTs,
+    ...sharedLintConfig,
+    globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "scripts/**"]),
 ]);
 
 export default eslintConfig;

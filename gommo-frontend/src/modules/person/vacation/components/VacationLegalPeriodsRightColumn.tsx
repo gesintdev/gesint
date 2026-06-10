@@ -45,11 +45,7 @@ export function VacationLegalPeriodsRightColumn({
                 onPecuniaryChange={onPecuniaryChange}
                 pecuniaryError={pecuniaryError}
             />
-            <VacationSplitPeriodsEditor
-                periods={periods}
-                onChange={onPeriodsChange}
-                fieldError={periodsFieldError}
-            />
+            <VacationSplitPeriodsEditor periods={periods} onChange={onPeriodsChange} fieldError={periodsFieldError} />
         </div>
     );
 }

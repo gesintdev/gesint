@@ -7,7 +7,6 @@ export async function resolveLazyComponent(loader: LazyComponent): Promise<Compo
     return (typeof loaded === "function" ? loaded : loaded.default) as ComponentType;
 }
 
-/** `import()` com export nomeado → lazy para workspace. */
 export function lazyNamed<T extends ComponentType>(
     factory: () => Promise<Record<string, T>>,
     exportName: string,

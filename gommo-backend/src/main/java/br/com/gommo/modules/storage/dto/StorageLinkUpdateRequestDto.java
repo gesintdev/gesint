@@ -15,7 +15,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class StorageLinkUpdateRequestDto {
 
-    @NotBlank
-    @Size(max = 64)
-    private String documentType;
+    @NotBlank @Size(max = 64) private String documentType;
 }

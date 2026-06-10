@@ -1,4 +1,6 @@
-import {Pencil, Trash2} from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
+import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import {
     deriveDeletePermission,
     deriveWritePermission,
@@ -6,12 +8,10 @@ import {
     useSessionPermissions,
 } from "@/shared/auth/permissions";
 import { canWriteRoute } from "@/shared/auth/route-access";
-import {OpenInWorkspaceTabButton} from "@/shared/components/workspace/OpenInWorkspaceTabButton";
-import {TableActionButton} from "@/shared/components/crud/TableActionButton";
-import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
+import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
 
-type CrudTableActionsProps<T extends {id: string}> = {
+type CrudTableActionsProps<T extends { id: string }> = {
     row: T;
     onEdit: (row: T) => void;
     onDelete?: (row: T) => void;
@@ -22,7 +22,7 @@ type CrudTableActionsProps<T extends {id: string}> = {
     deletePermission?: string;
 };
 
-export function CrudTableActions<T extends {id: string}>({
+export function CrudTableActions<T extends { id: string }>({
     row,
     onEdit,
     onDelete,
@@ -36,8 +36,9 @@ export function CrudTableActions<T extends {id: string}>({
     const wsTab = useWorkspaceTabOptional();
     const route = wsTab ? findRouteById(wsTab.tab.routeId) : undefined;
     const canEdit = canWriteRoute(route, permissions, writePermission ?? deriveWritePermission(route?.permission));
-    const canDelete = canWriteRoute(route, permissions)
-        && hasPermission(permissions, deletePermission ?? deriveDeletePermission(route?.permission));
+    const canDelete =
+        canWriteRoute(route, permissions) &&
+        hasPermission(permissions, deletePermission ?? deriveDeletePermission(route?.permission));
 
     return (
         <>

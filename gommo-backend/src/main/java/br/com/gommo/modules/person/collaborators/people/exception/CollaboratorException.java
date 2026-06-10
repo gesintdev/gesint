@@ -1,12 +1,12 @@
 package br.com.gommo.modules.person.collaborators.people.exception;
 
-import br.com.gommo.core.exception.BusinessException;
 import org.springframework.http.HttpStatus;
+
+import br.com.gommo.core.exception.BusinessException;
 
 public final class CollaboratorException {
 
-    private CollaboratorException() {
-    }
+    private CollaboratorException() {}
 
     public static BusinessException notFound() {
         return new BusinessException(

@@ -1,11 +1,10 @@
 package br.com.gommo.support;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,9 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Integração HTTP com PostgreSQL (Testcontainers se Docker disponível, senão localhost). Perfil {@code test}.
@@ -59,14 +61,14 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected TokenPair obtainTokens() throws Exception {
-        var body =
-                "{\"username\":\"%s\",\"password\":\"%s\"}".formatted(TEST_ADMIN_USERNAME, testAdminPassword);
+        var body = "{\"username\":\"%s\",\"password\":\"%s\"}".formatted(TEST_ADMIN_USERNAME, testAdminPassword);
         var response = postJson("/api/v1/auth/login", body, null);
         if (response.statusCode() != 200) {
             throw new IllegalStateException("Login failed: HTTP " + response.statusCode() + " " + response.body());
         }
         JsonNode node = JSON.readTree(response.body());
-        return new TokenPair(node.get("accessToken").asText(), node.get("refreshToken").asText());
+        return new TokenPair(
+                node.get("accessToken").asText(), node.get("refreshToken").asText());
     }
 
     protected static String jsonField(String body, String field) throws Exception {
@@ -87,9 +89,8 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected HttpResponse<String> post(String path, String bearerToken) throws Exception {
-        HttpRequest.Builder builder = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + path))
-                .POST(HttpRequest.BodyPublishers.noBody());
+        HttpRequest.Builder builder =
+                HttpRequest.newBuilder().uri(URI.create(baseUrl + path)).POST(HttpRequest.BodyPublishers.noBody());
 
         if (bearerToken != null) {
             builder.header("Authorization", "Bearer " + bearerToken);
@@ -123,9 +124,8 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected HttpResponse<String> delete(String path, String bearerToken) throws Exception {
-        HttpRequest.Builder builder = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + path))
-                .DELETE();
+        HttpRequest.Builder builder =
+                HttpRequest.newBuilder().uri(URI.create(baseUrl + path)).DELETE();
 
         if (bearerToken != null) {
             builder.header("Authorization", "Bearer " + bearerToken);

@@ -1,13 +1,5 @@
+import { Briefcase, CalendarDays, MessageSquare, UserMinus, UserPlus, UserRound, Users } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import {
-    Briefcase,
-    CalendarDays,
-    MessageSquare,
-    UserMinus,
-    UserPlus,
-    UserRound,
-    Users,
-} from "lucide-react";
 
 export const collaboratorRoutes: AppRoute[] = [
     {
@@ -23,7 +15,13 @@ export const collaboratorRoutes: AppRoute[] = [
                 icon: UserRound,
                 permission: "collaborator:read",
             },
-            { id: "collaborator-admission", label: "Admissão", href: "/collaborator/admission", icon: UserPlus, permission: "admission:read" },
+            {
+                id: "collaborator-admission",
+                label: "Admissão",
+                href: "/collaborator/admission",
+                icon: UserPlus,
+                permission: "admission:read",
+            },
         ],
     },
     { id: "contract", label: "Contratos", href: "/contract", icon: Briefcase },

@@ -1,10 +1,8 @@
 const LOGGING_OUT_OVERLAY_ID = "gommo-logging-out-overlay";
 const LOGGING_OUT_STYLES_ID = "gommo-logging-out-styles";
-
 const TAGLINE = "Gest\u00e3o de DP e RH";
 const TITLE = "Encerrando sess\u00e3o";
 const SUBTITLE = "Aguarde enquanto finalizamos com seguran\u00e7a...";
-
 const OVERLAY_INLINE_STYLE = [
     "position:fixed",
     "top:0",
@@ -24,7 +22,6 @@ const OVERLAY_INLINE_STYLE = [
     "-webkit-backdrop-filter:blur(28px) saturate(1.45) brightness(0.94)",
     "backdrop-filter:blur(28px) saturate(1.45) brightness(0.94)",
 ].join(";");
-
 /** Estilos embutidos: cobertura imediata sem depender do chunk de globals.css. */
 const EMBEDDED_STYLES = `
 .logging-out-screen {
@@ -240,7 +237,6 @@ function buildLoggingOutOverlayMarkup(): string {
     `.trim();
 }
 
-/** Garante que o browser pintou o overlay antes de limpar a sessao. */
 export async function flushLoggingOutOverlay(): Promise<void> {
     const el = document.getElementById(LOGGING_OUT_OVERLAY_ID);
     if (el) {
@@ -251,14 +247,11 @@ export async function flushLoggingOutOverlay(): Promise<void> {
     });
 }
 
-/** Tela full-screen durante logout; evita flash da UI e transicao para o login. */
 export function showLoggingOutOverlay(): void {
     if (typeof document === "undefined" || document.getElementById(LOGGING_OUT_OVERLAY_ID)) {
         return;
     }
-
     ensureOverlayStyles();
-
     const overlay = document.createElement("div");
     overlay.id = LOGGING_OUT_OVERLAY_ID;
     overlay.className = "logging-out-screen";
@@ -268,7 +261,6 @@ export function showLoggingOutOverlay(): void {
     overlay.setAttribute("aria-label", TITLE);
     overlay.style.cssText = OVERLAY_INLINE_STYLE;
     overlay.innerHTML = buildLoggingOutOverlayMarkup();
-
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     document.body.appendChild(overlay);

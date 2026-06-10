@@ -1,9 +1,10 @@
 package br.com.gommo.modules.root.dto;
 
-import java.util.UUID;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Builder

@@ -1,9 +1,10 @@
 package br.com.gommo.modules.organization.department.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.organization.department.dto.DepartmentRequestDto;
 import br.com.gommo.modules.organization.department.dto.DepartmentResponseDto;
 import br.com.gommo.modules.organization.department.entity.Department;
-import org.springframework.stereotype.Component;
 
 @Component
 public class DepartmentMapper {

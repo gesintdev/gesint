@@ -1,7 +1,7 @@
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { customWorkspaceRoute } from "@/shared/routing";
 import { BarChart3 } from "lucide-react";
 import { createElement } from "react";
+import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
+import { customWorkspaceRoute } from "@/shared/routing";
 
 export const insightsRoutes: AppRoute[] = [
     customWorkspaceRoute({

@@ -1,11 +1,6 @@
 export type ContractType = "CLT" | "PJ" | "INTERMITTENT" | "APPRENTICE" | "INTERN";
 
-export type VacationPeriodStatus =
-    | "ACQUIRING"
-    | "AVAILABLE"
-    | "CONCESSIVE"
-    | "EXPIRED"
-    | "FORFEITED";
+export type VacationPeriodStatus = "ACQUIRING" | "AVAILABLE" | "CONCESSIVE" | "EXPIRED" | "FORFEITED";
 
 export type DateRange = {
     start: string;

@@ -1,14 +1,17 @@
 package br.com.gommo.core.tenant;
 
-import br.com.gommo.core.exception.BusinessException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
+
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import br.com.gommo.core.exception.BusinessException;
 
 @Component
 public class TenantResolutionFilter extends OncePerRequestFilter {
@@ -22,9 +25,7 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
     private final TenantHttpResponses tenantHttpResponses;
 
     public TenantResolutionFilter(
-            MultiTenantProperties properties,
-            TenantResolver tenantResolver,
-            TenantHttpResponses tenantHttpResponses) {
+            MultiTenantProperties properties, TenantResolver tenantResolver, TenantHttpResponses tenantHttpResponses) {
         this.properties = properties;
         this.tenantResolver = tenantResolver;
         this.tenantHttpResponses = tenantHttpResponses;

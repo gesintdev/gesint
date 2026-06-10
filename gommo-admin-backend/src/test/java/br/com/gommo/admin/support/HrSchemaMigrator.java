@@ -2,7 +2,9 @@ package br.com.gommo.admin.support;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+
 import org.flywaydb.core.Flyway;
+
 /**
  * Aplica migrations do HR ({@code gommo-backend}) no schema {@code public} antes do Flyway do admin.
  */

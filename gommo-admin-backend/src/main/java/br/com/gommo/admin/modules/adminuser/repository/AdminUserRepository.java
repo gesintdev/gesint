@@ -1,10 +1,12 @@
 package br.com.gommo.admin.modules.adminuser.repository;
 
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.Query;
+
 import br.com.gommo.admin.core.base.repository.IBaseRepository;
 import br.com.gommo.admin.core.entity.StatusEnum;
 import br.com.gommo.admin.modules.adminuser.entity.AdminUser;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.Query;
 
 public interface AdminUserRepository extends IBaseRepository<AdminUser> {
 

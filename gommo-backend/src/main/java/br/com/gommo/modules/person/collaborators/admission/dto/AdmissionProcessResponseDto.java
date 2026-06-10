@@ -1,17 +1,19 @@
 package br.com.gommo.modules.person.collaborators.admission.dto;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
-import br.com.gommo.modules.person.collaborators.people.entity.GenderEnum;
-import br.com.gommo.modules.person.collaborators.people.entity.MaritalStatusEnum;
-import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
+import lombok.Builder;
+import lombok.Getter;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-import lombok.Builder;
-import lombok.Getter;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.person.collaborators.people.entity.GenderEnum;
+import br.com.gommo.modules.person.collaborators.people.entity.MaritalStatusEnum;
+import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 
 @Getter
 @Builder

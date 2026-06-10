@@ -1,5 +1,16 @@
 package br.com.gommo.modules.access.user.service;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.access.user.dto.AppUserRequestDto;
@@ -12,15 +23,6 @@ import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.entity.Role;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.root.repository.RoleRepository;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 @Service
 public class TenantAppUserService implements ITenantAppUserService {

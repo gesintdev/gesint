@@ -1,9 +1,8 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CLIENT_PAYMENT_TABLE_COLUMNS } from "@/modules/clientpayment/config/clientpayment.table-columns";
 import { clientPaymentKeys } from "@/modules/clientpayment/clientpayment.query";
+import { CLIENT_PAYMENT_TABLE_COLUMNS } from "@/modules/clientpayment/config/clientpayment.table-columns";
 import type { ClientPayment } from "@/modules/clientpayment/dto/clientpayment.dto";
 import { CLIENT_PAYMENT_CLIENT_MESSAGES } from "@/modules/clientpayment/exceptions/clientpayment.messages";
 import { clientPaymentService } from "@/modules/clientpayment/services/clientpayment.service";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function ClientPaymentListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => clientPaymentService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function ClientPaymentListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: CLIENT_PAYMENT_CLIENT_MESSAGES.LOAD_FAILED }),
     });
-
     const handleDelete = async (row: ClientPayment) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

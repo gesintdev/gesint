@@ -1,9 +1,4 @@
 "use client";
-
-import clsx from "clsx";
-import type { ReactNode } from "react";
-import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
-import { InputBase } from "@/shared/components/ui/input/InputBase";
 import {
     defaultNumberPlaceholder,
     maskNumber,
@@ -13,6 +8,10 @@ import {
     unmaskedStringToNumber,
     type MaskNumberOptions,
 } from "@/shared/lib/input/number";
+import clsx from "clsx";
+import type { ReactNode } from "react";
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
+import { InputBase } from "@/shared/components/ui/input/InputBase";
 
 export type InputNumberAlign = "left" | "right";
 
@@ -58,7 +57,6 @@ export function InputNumber({
     labelFor,
 }: InputNumberProps) {
     const maskOpts: MaskNumberOptions = numberMaskOptions({ integer, decimalPlaces, thousandSeparator });
-
     const toDisplay = (num: number | null | undefined) =>
         maskNumber(numberToMaskInput(num, maskOpts).replace(".", ","), maskOpts);
 

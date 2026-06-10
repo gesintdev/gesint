@@ -1,4 +1,4 @@
-import {TableDataType, type TableColumnConfig} from "@/shared/types/table.types";
+import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
 import { ENTITY_CODE_TABLE_COLUMN } from "@/shared/config/entity-code.table-column";
 
 export const COLLABORATOR_TABLE_COLUMNS: TableColumnConfig[] = [

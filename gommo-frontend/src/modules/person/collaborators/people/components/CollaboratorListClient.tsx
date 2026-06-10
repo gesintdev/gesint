@@ -1,8 +1,7 @@
 "use client";
-
+import { collaboratorKeys } from "@/modules/person/collaborators/people/collaborator.query";
 import { COLLABORATOR_TABLE_COLUMNS } from "@/modules/person/collaborators/people/config/people.table-columns";
 import type { Collaborator } from "@/modules/person/collaborators/people/dto/collaborator.dto";
-import { collaboratorKeys } from "@/modules/person/collaborators/people/collaborator.query";
 import { collaboratorService } from "@/modules/person/collaborators/people/services/collaborator.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";

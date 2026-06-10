@@ -9,7 +9,6 @@ const FIELD_LABELS: Record<string, string> = {
     slug: "Slug",
     document: "CNPJ",
 };
-
 const RULE_LABELS: Record<string, string> = {
     "must not be null": "\u00e9 obrigat\u00f3rio",
     "must not be blank": "\u00e9 obrigat\u00f3rio",
@@ -20,11 +19,9 @@ const RULE_LABELS: Record<string, string> = {
 export function formatValidationMessage(apiMessage: string): string {
     const colonIdx = apiMessage.indexOf(": ");
     if (colonIdx < 0) return apiMessage;
-
     const detail = apiMessage.slice(colonIdx + 2).trim();
     const match = detail.match(/^([\w.]+):\s*(.+)$/);
     if (!match) return detail;
-
     const [, field, rule] = match;
     const label = FIELD_LABELS[field] ?? field;
     const ruleText = RULE_LABELS[rule] ?? rule;

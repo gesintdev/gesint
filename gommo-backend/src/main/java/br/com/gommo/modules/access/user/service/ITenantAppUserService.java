@@ -1,9 +1,10 @@
 package br.com.gommo.modules.access.user.service;
 
-import br.com.gommo.modules.access.user.dto.AppUserRequestDto;
-import br.com.gommo.modules.access.user.dto.AppUserResponseDto;
 import java.util.List;
 import java.util.UUID;
+
+import br.com.gommo.modules.access.user.dto.AppUserRequestDto;
+import br.com.gommo.modules.access.user.dto.AppUserResponseDto;
 
 public interface ITenantAppUserService {
 

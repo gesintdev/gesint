@@ -1,15 +1,17 @@
 package br.com.gommo.modules.access.user.dto;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.access.profile.dto.ProfileResponseDto;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.access.profile.dto.ProfileResponseDto;
 
 @Getter
 @Setter

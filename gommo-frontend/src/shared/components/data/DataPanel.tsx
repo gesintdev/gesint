@@ -13,13 +13,14 @@
  *    <QueryTablePanel queryKey={keys} request={fetchFn} columns={cols} onRowActivate={...} />
  *    ou <QueryPanel>{({ data }) => <DataTable data={data} onRowActivate={...} />}</QueryPanel>
  */
+export { DataRequest } from "@/shared/components/data/DataRequest";
 
-export {DataRequest} from "@/shared/components/data/DataRequest";
-export {AsyncResult, useAsyncData} from "@/shared/components/data/DataResult";
+export { AsyncResult, useAsyncData } from "@/shared/components/data/DataResult";
+
 export {
-  QueryPanel,
-  QueryTablePanel,
-  type QueryPanelRenderProps,
-  type QueryTablePanelProps,
-  type QueryTablePanelTableProps,
+    QueryPanel,
+    type QueryPanelRenderProps,
+    QueryTablePanel,
+    type QueryTablePanelProps,
+    type QueryTablePanelTableProps,
 } from "@/shared/components/data/QueryPanel";

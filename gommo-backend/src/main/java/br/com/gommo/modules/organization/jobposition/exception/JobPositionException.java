@@ -1,7 +1,8 @@
 package br.com.gommo.modules.organization.jobposition.exception;
 
-import br.com.gommo.core.exception.BusinessException;
 import org.springframework.http.HttpStatus;
+
+import br.com.gommo.core.exception.BusinessException;
 
 public final class JobPositionException {
 
@@ -9,8 +10,6 @@ public final class JobPositionException {
 
     public static BusinessException notFound() {
         return new BusinessException(
-                JobPositionExceptions.NOT_FOUND_CODE,
-                JobPositionExceptions.NOT_FOUND_MSG,
-                HttpStatus.NOT_FOUND);
+                JobPositionExceptions.NOT_FOUND_CODE, JobPositionExceptions.NOT_FOUND_MSG, HttpStatus.NOT_FOUND);
     }
 }

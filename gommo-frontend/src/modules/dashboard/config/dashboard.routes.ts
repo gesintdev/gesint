@@ -1,8 +1,8 @@
+import { FlaskConical, LayoutDashboard } from "lucide-react";
+import { createElement } from "react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { ROUTE_PUBLIC_FULL } from "@/shared/auth/route-access";
 import { customWorkspaceRoute } from "@/shared/routing";
-import { FlaskConical, LayoutDashboard } from "lucide-react";
-import { createElement } from "react";
 
 export const dashboardRoutes: AppRoute[] = [
     {
@@ -25,11 +25,7 @@ export const dashboardRoutes: AppRoute[] = [
             ]);
             return {
                 default: function DevInputsPage() {
-                    return createElement(
-                        PageTransition,
-                        null,
-                        createElement(InputsPlaygroundClient),
-                    );
+                    return createElement(PageTransition, null, createElement(InputsPlaygroundClient));
                 },
             };
         },

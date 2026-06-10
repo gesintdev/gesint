@@ -1,14 +1,16 @@
 "use client";
-
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import { WorkspaceTabBar } from "@/shared/components/workspace/WorkspaceTabBar";
+import {
+    parseWorkspaceLocation,
+    useWorkspaceLocation,
+    useWorkspaceNavigation,
+    workspaceUrlForTab,
+    workspaceUrlWithCrud,
+} from "@/shared/workspace/useWorkspaceNavigation";
 import { DashboardView } from "@/shared/workspace/views/DashboardView";
-import { WorkspaceTabProvider } from "@/shared/workspace/WorkspaceTabContext";
-import { getWorkspacePageComponent } from "@/shared/workspace/workspace-page-registry";
 import { getDashboardTab, useWorkspaceStore } from "@/shared/workspace/workspace.store";
-import { findRouteByHref } from "@/shared/workspace/workspace-routes";
-import { buildWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
 import {
     DASHBOARD_HREF,
     DASHBOARD_ROUTE_ID,
@@ -22,13 +24,10 @@ import {
     replaceUrlIfNeeded,
     writeLastWorkspaceInitLocation,
 } from "@/shared/workspace/workspace-location";
-import {
-    parseWorkspaceLocation,
-    useWorkspaceLocation,
-    useWorkspaceNavigation,
-    workspaceUrlForTab,
-    workspaceUrlWithCrud,
-} from "@/shared/workspace/useWorkspaceNavigation";
+import { getWorkspacePageComponent } from "@/shared/workspace/workspace-page-registry";
+import { findRouteByHref } from "@/shared/workspace/workspace-routes";
+import { buildWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
+import { WorkspaceTabProvider } from "@/shared/workspace/WorkspaceTabContext";
 
 export function WorkspaceShell() {
     const { pathname, searchParams, router } = useWorkspaceLocation();
@@ -55,10 +54,8 @@ export function WorkspaceShell() {
 
     useEffect(() => {
         if (!hasHydrated) return;
-
         const currentKey = buildLocationKey(pathname, searchParams);
         if (readLastWorkspaceInitLocation() === currentKey) return;
-
         const state = useWorkspaceStore.getState();
         if (state.activeTabId && isDashboardTabId(state.activeTabId)) {
             writeLastWorkspaceInitLocation(DASHBOARD_HREF);
@@ -74,13 +71,11 @@ export function WorkspaceShell() {
                 return;
             }
         }
-
         const parsed = parseWorkspaceLocation(pathname, searchParams.toString());
         if (!parsed) {
             writeLastWorkspaceInitLocation(currentKey);
             return;
         }
-
         const route = findRouteByHref(parsed.href);
         if (!route) {
             writeLastWorkspaceInitLocation(currentKey);
@@ -99,10 +94,8 @@ export function WorkspaceShell() {
             writeLastWorkspaceInitLocation(targetUrl);
             return;
         }
-
         const listTabId = buildWorkspaceTabId(route.id, "list");
         const existingList = state.tabs.find((t) => t.id === listTabId);
-
         if (existingList) {
             focusTabById(existingList.id);
             const targetUrl = parsed.isNew ? workspaceUrlWithCrud(parsed.href, { isNew: true }) : currentKey;
@@ -112,7 +105,6 @@ export function WorkspaceShell() {
             writeLastWorkspaceInitLocation(targetUrl);
             return;
         }
-
         openFromHref(parsed.href);
         const targetUrl = parsed.isNew ? workspaceUrlWithCrud(parsed.href, { isNew: true }) : parsed.href;
         if (parsed.isNew) {
@@ -132,22 +124,17 @@ export function WorkspaceShell() {
                     onClose={closeTab}
                 />
             ) : null}
-
             <div className="workspace-content relative min-h-0 flex-1 overflow-hidden">
                 {showDashboard ? (
                     <div className="workspace-panel absolute inset-0">
                         <DashboardView />
                     </div>
                 ) : null}
-
                 {moduleTabs.map((tab) => {
                     if (!mountedTabIds.has(tab.id)) return null;
-
                     const Page = getWorkspacePageComponent(tab.href);
                     const active = tab.id === activeTabId;
-
                     if (!Page) return null;
-
                     return (
                         <div
                             key={tab.id}

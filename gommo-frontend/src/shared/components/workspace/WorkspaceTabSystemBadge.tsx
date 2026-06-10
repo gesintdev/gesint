@@ -1,5 +1,4 @@
 "use client";
-
 import clsx from "clsx";
 import { systemModuleGroups } from "@/config/routes";
 import { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
@@ -11,6 +10,7 @@ type WorkspaceTabSystemBadgeProps = {
 
 export function WorkspaceTabSystemBadge({ href, className }: WorkspaceTabSystemBadgeProps) {
     const system = SystemEnumHelper.getSystemForHref(href, systemModuleGroups);
+
     if (!system) return null;
 
     const { acronym, name } = SystemEnumHelper.getById(system);

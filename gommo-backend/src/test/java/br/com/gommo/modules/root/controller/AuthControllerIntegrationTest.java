@@ -2,15 +2,15 @@ package br.com.gommo.modules.root.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.gommo.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
+
+import br.com.gommo.support.AbstractIntegrationTest;
 
 class AuthControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void login_shouldReturnTokensForAdmin() throws Exception {
-        var body =
-                "{\"username\":\"%s\",\"password\":\"%s\"}".formatted(TEST_ADMIN_USERNAME, testAdminPassword);
+        var body = "{\"username\":\"%s\",\"password\":\"%s\"}".formatted(TEST_ADMIN_USERNAME, testAdminPassword);
         var response = postJson("/api/v1/auth/login", body, null);
 
         assertThat(response.statusCode()).isEqualTo(200);
@@ -28,10 +28,8 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
     void refresh_shouldRotateTokens() throws Exception {
         var tokens = obtainTokens();
 
-        var response = postJson(
-                "/api/v1/auth/refresh",
-                "{\"refreshToken\":\"%s\"}".formatted(tokens.refreshToken()),
-                null);
+        var response =
+                postJson("/api/v1/auth/refresh", "{\"refreshToken\":\"%s\"}".formatted(tokens.refreshToken()), null);
 
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).contains("accessToken").contains("refreshToken");

@@ -1,8 +1,7 @@
 "use client";
-
-import {signOut} from "next-auth/react";
-import {flushLoggingOutOverlay, showLoggingOutOverlay} from "@/shared/lib/logging-out-overlay";
-import {resolveLoginCallbackUrl} from "@/shared/lib/tenant";
+import { signOut } from "next-auth/react";
+import { flushLoggingOutOverlay, showLoggingOutOverlay } from "@/shared/lib/logging-out-overlay";
+import { resolveLoginCallbackUrl } from "@/shared/lib/tenant";
 
 const DEFAULT_LOGOUT_OVERLAY_MS = 1200;
 
@@ -19,24 +18,17 @@ function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Encerra sessao e redireciona no host atual.
- * Overlay primeiro + flush de paint antes do signOut (evita card de usuario vazio).
- */
 export async function signOutToTenantLogin(): Promise<void> {
     if (typeof window === "undefined") {
         return;
     }
-
     const loginUrl = resolveLoginCallbackUrl();
     const minOverlayMs = resolveLogoutOverlayMinMs();
     const startedAt = Date.now();
-
     showLoggingOutOverlay();
     await flushLoggingOutOverlay();
-
     try {
-        await signOut({redirect: false});
+        await signOut({ redirect: false });
     } finally {
         const remainingMs = Math.max(0, minOverlayMs - (Date.now() - startedAt));
         if (remainingMs > 0) {

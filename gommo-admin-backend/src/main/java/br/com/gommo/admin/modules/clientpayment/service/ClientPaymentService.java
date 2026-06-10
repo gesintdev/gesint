@@ -1,5 +1,12 @@
 package br.com.gommo.admin.modules.clientpayment.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.admin.core.base.dto.PageableResponseDto;
 import br.com.gommo.admin.core.base.service.BaseService;
 import br.com.gommo.admin.core.entity.StatusEnum;
@@ -10,15 +17,9 @@ import br.com.gommo.admin.modules.clientpayment.entity.ClientPayment;
 import br.com.gommo.admin.modules.clientpayment.exception.ClientPaymentException;
 import br.com.gommo.admin.modules.clientpayment.mapper.ClientPaymentMapper;
 import br.com.gommo.admin.modules.clientpayment.repository.ClientPaymentRepository;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class ClientPaymentService
-        extends BaseService<ClientPayment, ClientPaymentRequestDto, ClientPaymentResponseDto>
+public class ClientPaymentService extends BaseService<ClientPayment, ClientPaymentRequestDto, ClientPaymentResponseDto>
         implements IClientPaymentService {
 
     private final ClientPaymentRepository repository;

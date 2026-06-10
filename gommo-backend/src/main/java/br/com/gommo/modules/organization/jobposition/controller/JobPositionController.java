@@ -1,16 +1,18 @@
 package br.com.gommo.modules.organization.jobposition.controller;
 
-import br.com.gommo.core.base.controller.BaseController;
-import br.com.gommo.core.base.dto.PageableResponseDto;
-import br.com.gommo.modules.organization.jobposition.dto.JobPositionRequestDto;
-import br.com.gommo.modules.organization.jobposition.dto.JobPositionResponseDto;
-import br.com.gommo.modules.organization.jobposition.service.IJobPositionService;
 import java.util.UUID;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import br.com.gommo.core.base.controller.BaseController;
+import br.com.gommo.core.base.dto.PageableResponseDto;
+import br.com.gommo.modules.organization.jobposition.dto.JobPositionRequestDto;
+import br.com.gommo.modules.organization.jobposition.dto.JobPositionResponseDto;
+import br.com.gommo.modules.organization.jobposition.service.IJobPositionService;
 
 @RestController
 @RequestMapping("/api/v1/job-positions")

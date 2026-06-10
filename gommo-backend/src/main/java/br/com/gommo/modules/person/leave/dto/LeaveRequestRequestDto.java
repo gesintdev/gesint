@@ -1,15 +1,17 @@
 package br.com.gommo.modules.person.leave.dto;
 
-import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
 import jakarta.validation.constraints.NotNull;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
+import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
 
 @Getter
 @Setter
@@ -17,16 +19,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LeaveRequestRequestDto {
-    @NotNull
-    private UUID collaboratorId;
+    @NotNull private UUID collaboratorId;
 
     private LeaveTypeEnum leaveType;
 
-    @NotNull
-    private LocalDate startDate;
+    @NotNull private LocalDate startDate;
 
-    @NotNull
-    private LocalDate endDate;
+    @NotNull private LocalDate endDate;
 
     private Boolean approved;
     private String notes;

@@ -2,7 +2,6 @@ export const ADMIN_USER_CLIENT_MESSAGES = {
     LOAD_FAILED: "Não foi possível carregar os usuários admin.",
     SAVE_FAILED: "Não foi possível salvar o usuário admin.",
 };
-
 export const ADMIN_USER_MESSAGES = {
     ADMIN_USER_NOT_FOUND: "Usuário admin não encontrado",
     ADMIN_USER_USERNAME_EXISTS: "Este usuário já está cadastrado",

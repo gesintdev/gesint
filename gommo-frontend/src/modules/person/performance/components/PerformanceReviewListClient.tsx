@@ -1,5 +1,4 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PERFORMANCE_TABLE_COLUMNS } from "@/modules/person/performance/config/performance-review.table-columns";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function PerformanceReviewListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => performanceReviewService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function PerformanceReviewListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PERFORMANCE_CLIENT_MESSAGES.PERFORMANCE_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: PerformanceReview) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);
