@@ -2,11 +2,13 @@ package br.com.gommo.core.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.gommo.support.AbstractIntegrationTest;
 import java.util.stream.Stream;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import br.com.gommo.support.AbstractIntegrationTest;
 
 class ProtectedApiIntegrationTest extends AbstractIntegrationTest {
 
@@ -44,7 +46,6 @@ class ProtectedApiIntegrationTest extends AbstractIntegrationTest {
                 Arguments.of("/api/v1/offboardings"),
                 Arguments.of("/api/v1/exit-interviews"),
                 Arguments.of("/api/v1/dashboard/summary"),
-                Arguments.of(
-                        "/api/v1/storage/links?entityType=company&entityId=00000000-0000-0000-0000-000000000099"));
+                Arguments.of("/api/v1/storage/links?entityType=company&entityId=00000000-0000-0000-0000-000000000099"));
     }
 }

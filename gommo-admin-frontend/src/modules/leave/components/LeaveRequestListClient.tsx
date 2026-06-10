@@ -1,10 +1,9 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { LEAVE_CLIENT_MESSAGES } from "@/modules/leave/exceptions/leave-request.messages";
 import { LEAVE_TABLE_COLUMNS } from "@/modules/leave/config/leave-request.table-columns";
 import type { LeaveRequest } from "@/modules/leave/dto/leave-request.dto";
+import { LEAVE_CLIENT_MESSAGES } from "@/modules/leave/exceptions/leave-request.messages";
 import { leaverequestKeys } from "@/modules/leave/leave.query";
 import { leaverequestService } from "@/modules/leave/services/leave-request.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function LeaveRequestListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => leaverequestService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function LeaveRequestListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: LeaveRequest) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

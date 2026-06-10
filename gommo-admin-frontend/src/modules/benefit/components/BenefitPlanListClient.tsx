@@ -1,11 +1,10 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { BENEFIT_CLIENT_MESSAGES } from "@/modules/benefit/exceptions/benefit-plan.messages";
+import { benefitplanKeys } from "@/modules/benefit/benefit.query";
 import { BENEFIT_TABLE_COLUMNS } from "@/modules/benefit/config/benefit-plan.table-columns";
 import type { BenefitPlan } from "@/modules/benefit/dto/benefit-plan.dto";
-import { benefitplanKeys } from "@/modules/benefit/benefit.query";
+import { BENEFIT_CLIENT_MESSAGES } from "@/modules/benefit/exceptions/benefit-plan.messages";
 import { benefitplanService } from "@/modules/benefit/services/benefit-plan.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function BenefitPlanListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => benefitplanService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function BenefitPlanListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: BENEFIT_CLIENT_MESSAGES.BENEFIT_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: BenefitPlan) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

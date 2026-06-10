@@ -3,7 +3,6 @@ import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { parentGroupIdsForRoute } from "@/modules/settings/lib/access-menu-catalog";
-
 function routeIsActive(route: AppRoute, highlightRouteId: string | null): boolean {
     if (!highlightRouteId) return false;
     if (route.id === highlightRouteId) return true;
@@ -56,9 +55,7 @@ export function NavRouteTree({
             return next;
         });
     };
-
     const isOpen = (id: string) => openIds.has(id);
-
     const NavLink = ({ route, nested }: { route: AppRoute; nested?: boolean }) => {
         const Icon = route.icon;
         const active = route.id === selectedRouteId;
@@ -91,14 +88,12 @@ export function NavRouteTree({
             </button>
         );
     };
-
     const renderRoute = (route: AppRoute) => {
         const Icon = route.icon;
         const hasChildren = Boolean(route.children?.length);
         const active = routeIsActive(route, selectedRouteId);
         const marked = !active && (markedRouteIds?.has(route.id) ?? false);
         const expanded = isOpen(route.id);
-
         if (!hasChildren) {
             return (
                 <li key={route.id}>
@@ -106,7 +101,6 @@ export function NavRouteTree({
                 </li>
             );
         }
-
         return (
             <li key={route.id} className="grid gap-1">
                 <button
@@ -135,11 +129,7 @@ export function NavRouteTree({
                         )}
                     />
                 </button>
-                <div
-                    aria-hidden={!expanded}
-                    data-open={expanded ? "true" : "false"}
-                    className="sidebar-submenu"
-                >
+                <div aria-hidden={!expanded} data-open={expanded ? "true" : "false"} className="sidebar-submenu">
                     <div className="sidebar-submenu__viewport">
                         <div className="sidebar-submenu__reveal">
                             <ul className="nav-group-children flex flex-col gap-0.5">

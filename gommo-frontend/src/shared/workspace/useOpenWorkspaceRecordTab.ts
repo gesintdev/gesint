@@ -1,24 +1,19 @@
 "use client";
+import { findRouteById } from "@/shared/workspace/workspace-routes";
+import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
+import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 
-import {findRouteById} from "@/shared/workspace/workspace-routes";
-import {useTabbedCrudConfigOptional} from "@/shared/workspace/TabbedCrudConfigContext";
-import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
-
-/** Abre o registro em uma nova aba do workspace (mesmo módulo, outra instância). */
 export function useOpenWorkspaceRecordTab() {
     const cfg = useTabbedCrudConfigOptional();
-    const {openRouteRecord} = useWorkspaceNavigation();
-
-    return (row: {id: string} & object) => {
+    const { openRouteRecord } = useWorkspaceNavigation();
+    return (row: { id: string } & object) => {
         if (!cfg) return;
         const route = findRouteById(cfg.routeId);
         if (!route) return;
-
         const titleSuffix =
             cfg.fieldTabName && cfg.fieldTabName in row
                 ? String(row[cfg.fieldTabName as keyof typeof row] ?? "")
                 : undefined;
-
         openRouteRecord(route, row.id, {
             titleSuffix: titleSuffix || undefined,
             shortLabel: cfg.tabShortLabel,

@@ -3,7 +3,9 @@
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { showLoggingOutOverlay } from "@/shared/lib/logging-out-overlay";
+import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
 import { useEffect, useRef, useState } from "react";
 import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 
@@ -115,7 +117,10 @@ export function HeaderUserMenu() {
                             type="button"
                             role="menuitem"
                             className="nav-item gap-2.5 !px-3 text-left text-[13px] text-error hover:bg-error/8 hover:text-error"
-                            onClick={() => signOut({ callbackUrl: "/login" })}
+                            onClick={() => {
+                                showLoggingOutOverlay();
+                                void signOutToTenantLogin();
+                            }}
                         >
                             <LogOut className="size-[15px] shrink-0" strokeWidth={2} />
                             Sair da conta

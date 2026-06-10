@@ -1,7 +1,5 @@
-import type {JWT} from "next-auth/jwt";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL ?? "http://localhost:8082";
-
+import type { JWT } from "next-auth/jwt";
+import { doRequest } from "@/shared/lib/api.client";
 /** Renova o access token ~60s antes de expirar */
 export const ACCESS_TOKEN_REFRESH_BUFFER_MS = 60_000;
 
@@ -22,23 +20,15 @@ export function isAccessTokenExpired(token: JWT): boolean {
 
 export async function refreshAccessToken(token: JWT): Promise<JWT> {
     if (!token.refreshToken) {
-        return {...token, error: "RefreshTokenMissing"};
+        return { ...token, error: "RefreshTokenMissing" };
     }
-
     try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
+        const data = await doRequest<TokenResponse>("/api/v1/auth/refresh", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({refreshToken: token.refreshToken}),
-            cache: "no-store",
+            body: { refreshToken: token.refreshToken },
+            skipAuth: true,
+            skipAuthRetry: true,
         });
-
-        if (!response.ok) {
-            return {...token, error: "RefreshAccessTokenError"};
-        }
-
-        const data = (await response.json()) as TokenResponse;
-
         return {
             ...token,
             accessToken: data.accessToken,
@@ -47,6 +37,6 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
             error: undefined,
         };
     } catch {
-        return {...token, error: "RefreshAccessTokenError"};
+        return { ...token, error: "RefreshAccessTokenError" };
     }
 }

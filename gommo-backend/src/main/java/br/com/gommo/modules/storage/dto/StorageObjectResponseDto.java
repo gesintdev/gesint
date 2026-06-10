@@ -1,11 +1,13 @@
 package br.com.gommo.modules.storage.dto;
 
-import br.com.gommo.core.entity.StatusEnum;
+import lombok.Builder;
+import lombok.Getter;
+
 import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.UUID;
-import lombok.Builder;
-import lombok.Getter;
+
+import br.com.gommo.core.entity.StatusEnum;
 
 @Getter
 @Builder

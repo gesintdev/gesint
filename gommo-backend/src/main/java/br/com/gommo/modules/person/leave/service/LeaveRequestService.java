@@ -1,5 +1,15 @@
 package br.com.gommo.modules.person.leave.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -14,18 +24,9 @@ import br.com.gommo.modules.person.leave.exception.LeaveRequestException;
 import br.com.gommo.modules.person.leave.exception.LeaveRequestExceptions;
 import br.com.gommo.modules.person.leave.mapper.LeaveRequestMapper;
 import br.com.gommo.modules.person.leave.repository.LeaveRequestRepository;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class LeaveRequestService
-        extends BaseService<LeaveRequest, LeaveRequestRequestDto, LeaveRequestResponseDto>
+public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestRequestDto, LeaveRequestResponseDto>
         implements ILeaveRequestService {
 
     private final LeaveRequestRepository repository;
@@ -47,8 +48,10 @@ public class LeaveRequestService
     @PreAuthorize("hasAuthority('leave:read')")
     public List<LeaveRequestResponseDto> findAll() {
         List<LeaveRequest> entities = repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED);
-        Map<UUID, String> collaboratorNames = collaboratorNamesById(
-                entities.stream().map(LeaveRequest::getCollaboratorId).distinct().toList());
+        Map<UUID, String> collaboratorNames = collaboratorNamesById(entities.stream()
+                .map(LeaveRequest::getCollaboratorId)
+                .distinct()
+                .toList());
         return entities.stream()
                 .map(entity -> mapper.toResponse(entity, collaboratorNames.get(entity.getCollaboratorId())))
                 .toList();
@@ -71,17 +74,21 @@ public class LeaveRequestService
         if (content.isEmpty()) {
             return pageResult;
         }
-        Map<UUID, String> collaboratorNames = collaboratorNamesById(
-                content.stream().map(LeaveRequestResponseDto::getCollaboratorId).distinct().toList());
-        Map<UUID, LeaveRequest> entitiesById = repository.findAllById(
-                        content.stream().map(LeaveRequestResponseDto::getId).toList())
-                .stream()
-                .filter(entity -> entity.getStatus() != StatusEnum.DELETED)
-                .collect(Collectors.toMap(LeaveRequest::getId, Function.identity()));
+        Map<UUID, String> collaboratorNames = collaboratorNamesById(content.stream()
+                .map(LeaveRequestResponseDto::getCollaboratorId)
+                .distinct()
+                .toList());
+        Map<UUID, LeaveRequest> entitiesById =
+                repository
+                        .findAllById(content.stream()
+                                .map(LeaveRequestResponseDto::getId)
+                                .toList())
+                        .stream()
+                        .filter(entity -> entity.getStatus() != StatusEnum.DELETED)
+                        .collect(Collectors.toMap(LeaveRequest::getId, Function.identity()));
         List<LeaveRequestResponseDto> enriched = content.stream()
                 .map(dto -> mapper.toResponse(
-                        entitiesById.get(dto.getId()),
-                        collaboratorNames.get(dto.getCollaboratorId())))
+                        entitiesById.get(dto.getId()), collaboratorNames.get(dto.getCollaboratorId())))
                 .toList();
         return PageableResponseDto.<LeaveRequestResponseDto>builder()
                 .content(enriched)
@@ -119,9 +126,7 @@ public class LeaveRequestService
 
     @Override
     protected LeaveRequest findEntity(UUID id) {
-        return repository
-                .findByIdAndStatusNot(id, StatusEnum.DELETED)
-                .orElseThrow(LeaveRequestException::notFound);
+        return repository.findByIdAndStatusNot(id, StatusEnum.DELETED).orElseThrow(LeaveRequestException::notFound);
     }
 
     @Override

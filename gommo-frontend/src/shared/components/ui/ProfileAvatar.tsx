@@ -1,5 +1,4 @@
 "use client";
-
 import clsx from "clsx";
 import { User } from "lucide-react";
 import { useStorageObjectUrl } from "@/shared/hooks/useStorageObjectUrl";
@@ -18,14 +17,12 @@ const SIZE_CLASS: Record<NonNullable<ProfileAvatarProps["size"]>, string> = {
     lg: "h-12 w-12",
     xl: "h-[200px] w-[200px]",
 };
-
 const ICON_CLASS: Record<NonNullable<ProfileAvatarProps["size"]>, string> = {
     sm: "size-3.5",
     md: "size-4",
     lg: "size-6",
     xl: "size-16",
 };
-
 const SHAPE_CLASS: Record<NonNullable<ProfileAvatarProps["shape"]>, string> = {
     circle: "rounded-full",
     squircle: "mask mask-squircle",

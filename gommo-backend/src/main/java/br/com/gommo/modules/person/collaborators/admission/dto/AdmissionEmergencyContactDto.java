@@ -14,12 +14,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AdmissionEmergencyContactDto {
 
-    @Size(max = 200)
-    private String name;
+    @Size(max = 200) private String name;
 
-    @Size(max = 20)
-    private String phone;
+    @Size(max = 20) private String phone;
 
-    @Size(max = 80)
-    private String relationship;
+    @Size(max = 80) private String relationship;
 }

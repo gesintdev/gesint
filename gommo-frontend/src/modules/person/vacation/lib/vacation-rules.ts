@@ -1,5 +1,5 @@
-import type { VacationPaymentEstimate, VacationSplitPeriod } from "@/modules/person/vacation/types/vacation.types";
 import { isNationalHoliday, isWeeklyRestDay } from "@/modules/person/vacation/lib/brazil-calendar";
+import type { VacationPaymentEstimate, VacationSplitPeriod } from "@/modules/person/vacation/types/vacation.types";
 
 export const MAX_PECUNIARY_DAYS = 10;
 export const MAX_SPLIT_PERIODS = 3;
@@ -25,7 +25,6 @@ export function inclusiveDays(start: string, end: string): number {
     return diff + 1;
 }
 
-/** Data fim inclusiva: inicio + N dias corridos (ex.: 01/01 + 5 dias = 05/01). */
 export function endDateFromStartAndDays(startDate: string, days: number): string {
     if (!startDate || days <= 0) return "";
     const end = parseIsoDate(startDate);
@@ -35,9 +34,9 @@ export function endDateFromStartAndDays(startDate: string, days: number): string
 
 export function syncPeriodWithDays(period: VacationSplitPeriod): VacationSplitPeriod {
     if (!period.startDate || period.days <= 0) {
-        return {...period, endDate: ""};
+        return { ...period, endDate: "" };
     }
-    return {...period, endDate: endDateFromStartAndDays(period.startDate, period.days)};
+    return { ...period, endDate: endDateFromStartAndDays(period.startDate, period.days) };
 }
 
 export function totalGozoDays(periods: VacationSplitPeriod[]): number {
@@ -68,7 +67,6 @@ export function summarizeVacationBalance(
     };
 }
 
-/** Dias restantes ate uma data ISO (negativo = prazo vencido). */
 export function daysUntilDate(targetIso: string, referenceIso = formatIsoDate(new Date())): number {
     const target = parseIsoDate(targetIso);
     const ref = parseIsoDate(referenceIso);
@@ -106,7 +104,6 @@ export function concessivePeriod(acquisitionEnd: string): { start: string; end: 
     return { start: formatIsoDate(start), end: formatIsoDate(end) };
 }
 
-/** Índice do período aquisitivo vigente (0 = primeiro ano de trabalho). */
 export function resolveActivePeriodIndex(hireDate: string, referenceDate = formatIsoDate(new Date())): number {
     const ref = parseIsoDate(referenceDate);
     let index = 0;
@@ -144,15 +141,15 @@ export function maxPecuniaryDays(entitledDays: number): number {
 
 export function validateSplitPeriods(periods: VacationSplitPeriod[]): { valid: boolean; message?: string } {
     const dayCounts = periods.filter((p) => p.days > 0).map((p) => p.days);
-
     if (dayCounts.length === 0) {
         return { valid: false, message: "Informe ao menos um período de gozo." };
     }
+
     if (dayCounts.length > MAX_SPLIT_PERIODS) {
         return { valid: false, message: "É permitido fracionar em até 3 períodos." };
     }
-    if (dayCounts.length === 1) return { valid: true };
 
+    if (dayCounts.length === 1) return { valid: true };
     const hasMain = dayCounts.some((d) => d >= MIN_MAIN_SPLIT_DAYS);
     const allValid = dayCounts.every((d) => d >= MIN_OTHER_SPLIT_DAYS);
     if (!hasMain || !allValid) {
@@ -165,7 +162,6 @@ export function validateSplitPeriods(periods: VacationSplitPeriod[]): { valid: b
     return { valid: true };
 }
 
-/** Vedado iniciar férias nos 2 dias que antecedem domingo (DSR) ou feriado (CLT). */
 export function isRestrictedVacationStart(startDate: string): boolean {
     const start = parseIsoDate(startDate);
     for (let i = 1; i <= 2; i++) {

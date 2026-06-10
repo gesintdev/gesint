@@ -4,10 +4,7 @@ export function workspaceUrl(href: string): string {
     return href;
 }
 
-export function workspaceUrlWithCrud(
-    href: string,
-    crud: { editingId?: string | null; isNew?: boolean },
-): string {
+export function workspaceUrlWithCrud(href: string, crud: { editingId?: string | null; isNew?: boolean }): string {
     if (crud.editingId) return `${href}?edit=${encodeURIComponent(crud.editingId)}`;
     if (crud.isNew) return `${href}?new=1`;
     return href;

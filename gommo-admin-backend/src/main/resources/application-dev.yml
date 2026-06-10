@@ -9,6 +9,8 @@ spring:
     show-sql: false
 
 gommo-admin:
+  tenant-db:
+    fallback-password: ${TENANT_DB_FALLBACK_PASSWORD:${DB_PASSWORD:${POSTGRES_PASSWORD:}}}
   security:
     jwt:
       # Sobrescreva com JWT_SECRET no .env da raiz (mínimo 32 caracteres)

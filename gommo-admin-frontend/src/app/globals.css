@@ -54,12 +54,12 @@
 
     /* Sombras super suaves */
     --gommo-shadow-xs: 0 1px 2px color-mix(in srgb, #0a1628 4%, transparent);
-    --gommo-shadow-sm: 0 1px 3px color-mix(in srgb, #0a1628 5%, transparent),
-        0 1px 2px color-mix(in srgb, #0a1628 3%, transparent);
-    --gommo-shadow-md: 0 2px 8px color-mix(in srgb, #0a1628 6%, transparent),
-        0 1px 3px color-mix(in srgb, #0a1628 4%, transparent);
-    --gommo-shadow-lg: 0 4px 16px color-mix(in srgb, #0a1628 7%, transparent),
-        0 2px 6px color-mix(in srgb, #0a1628 4%, transparent);
+    --gommo-shadow-sm:
+        0 1px 3px color-mix(in srgb, #0a1628 5%, transparent), 0 1px 2px color-mix(in srgb, #0a1628 3%, transparent);
+    --gommo-shadow-md:
+        0 2px 8px color-mix(in srgb, #0a1628 6%, transparent), 0 1px 3px color-mix(in srgb, #0a1628 4%, transparent);
+    --gommo-shadow-lg:
+        0 4px 16px color-mix(in srgb, #0a1628 7%, transparent), 0 2px 6px color-mix(in srgb, #0a1628 4%, transparent);
 
     /* Listagem ↔ formulário CRUD — mesmo recuo horizontal */
     --gommo-crud-panel-padding-x: 1.25rem;
@@ -301,9 +301,10 @@ body {
     border: 1px solid var(--gommo-border);
     background: var(--color-base-100);
     box-shadow: var(--gommo-shadow-sm);
-    transition: box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.22s ease,
-    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    transition:
+        box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.22s ease,
+        transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 [data-theme="dark"] .surface-card {
@@ -344,11 +345,19 @@ body {
 }
 
 /* Logo alternância claro / escuro */
-.sidebar-logo-light { display: block; }
-.sidebar-logo-dark  { display: none;  }
+.sidebar-logo-light {
+    display: block;
+}
+.sidebar-logo-dark {
+    display: none;
+}
 
-[data-theme="dark"] .sidebar-logo-light { display: none;  }
-[data-theme="dark"] .sidebar-logo-dark  { display: block; }
+[data-theme="dark"] .sidebar-logo-light {
+    display: none;
+}
+[data-theme="dark"] .sidebar-logo-dark {
+    display: block;
+}
 
 /* Hero login — wordmark claro sobre fundo brand (mesmo PNG do sidebar) */
 .gommo-logo-on-brand {
@@ -387,9 +396,10 @@ body {
     font-size: var(--gommo-control-font-size);
     font-variation-settings: "wght" 500;
     color: var(--color-base-content);
-    transition: border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
 }
 
 .gommo-control:not(.sidebar-shell-control),
@@ -575,12 +585,13 @@ body {
     cursor: pointer;
     user-select: none;
     text-decoration: none;
-    transition: background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.12s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.15s ease;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.12s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.15s ease;
 }
 
 .gommo-btn:disabled {
@@ -674,8 +685,9 @@ body {
     background: var(--color-success);
     color: var(--color-success-content);
     border-color: transparent;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 1px 2px color-mix(in srgb, var(--color-success) 28%, transparent);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 1px 2px color-mix(in srgb, var(--color-success) 28%, transparent);
 }
 
 .gommo-btn--success:hover:not(:disabled) {
@@ -747,7 +759,7 @@ body {
     width: 100%;
     font-size: 0.625rem;
     font-variation-settings: "wght" 700;
-    letter-spacing: 0.10em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--color-base-content) 30%, transparent);
 }
@@ -779,8 +791,9 @@ body {
     text-align: left;
     color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
     cursor: pointer;
-    transition: background 0.13s ease,
-    color 0.13s ease;
+    transition:
+        background 0.13s ease,
+        color 0.13s ease;
 }
 
 .nav-item-collapsed {
@@ -791,8 +804,9 @@ body {
 .sidebar-copy {
     min-width: 0;
     opacity: 1;
-    transition: opacity 0.2s ease,
-    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    transition:
+        opacity 0.2s ease,
+        transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 aside[data-collapsed="true"] .sidebar-copy,
@@ -860,7 +874,9 @@ aside[data-collapsed="true"] .sidebar-copy,
     line-height: 1.25;
     font-variation-settings: "wght" 500;
     color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
-    transition: background 0.13s ease, color 0.13s ease;
+    transition:
+        background 0.13s ease,
+        color 0.13s ease;
 }
 
 .gommo-listbox-option:hover {
@@ -1086,10 +1102,10 @@ aside[data-collapsed="true"] .sidebar-copy,
 .skeleton-shimmer {
     border-radius: var(--gommo-control-radius);
     background: linear-gradient(
-            90deg,
-            color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 0%,
-            var(--color-base-100) 40%,
-            color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 100%
+        90deg,
+        color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 0%,
+        var(--color-base-100) 40%,
+        color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
@@ -1165,7 +1181,9 @@ aside[data-collapsed="true"] .sidebar-copy,
 .gommo-table .gommo-table-action--edit,
 .gommo-table .gommo-table-action--delete,
 .gommo-table .gommo-table-action--download {
-    transition: background-color 0.12s ease, color 0.12s ease;
+    transition:
+        background-color 0.12s ease,
+        color 0.12s ease;
 }
 
 .gommo-table .gommo-btn.gommo-table-action--open {
@@ -1568,7 +1586,9 @@ html.gommo-workspace-active body {
     margin-inline: 0.25rem;
     border-radius: var(--gommo-control-radius);
     color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
-    transition: background 0.15s ease, color 0.15s ease;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
 .workspace-tabbar-menu-trigger:hover {
@@ -1647,7 +1667,11 @@ html.gommo-workspace-active body {
     letter-spacing: -0.01em;
     font-variation-settings: "wght" 500;
     color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
-    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+    transition:
+        color 0.12s ease,
+        background 0.12s ease,
+        border-color 0.12s ease,
+        box-shadow 0.12s ease;
 }
 
 .gommo-workspace-tab:hover:not(.gommo-workspace-tab--active) {
@@ -1671,7 +1695,10 @@ html.gommo-workspace-active body {
 .workspace-tab-close {
     color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
     opacity: 0;
-    transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+    transition:
+        opacity 0.12s ease,
+        background 0.12s ease,
+        color 0.12s ease;
 }
 
 .gommo-workspace-tab:hover .workspace-tab-close,

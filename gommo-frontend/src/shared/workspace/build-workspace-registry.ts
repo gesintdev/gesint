@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
+
 import type { AppRoute, TModule } from "@/modules/root/enum/ModuleEnum";
 import type { WorkspacePageEntry } from "@/shared/workspace/workspace-page.types";
 
@@ -11,6 +12,7 @@ function flattenRoutable(routes: readonly AppRoute[]): AppRoute[] {
         if (route.href) {
             result.push(route);
         }
+
         if (route.children?.length) {
             result.push(...flattenRoutable(route.children));
         }
@@ -21,7 +23,6 @@ function flattenRoutable(routes: readonly AppRoute[]): AppRoute[] {
 export function collectWorkspacePages(modules: readonly TModule[]): WorkspacePageEntry[] {
     const entries: WorkspacePageEntry[] = [];
     const seen = new Set<string>();
-
     for (const mod of modules) {
         for (const route of flattenRoutable(mod.routes)) {
             const loader = route.workspaceLoader;
@@ -31,13 +32,10 @@ export function collectWorkspacePages(modules: readonly TModule[]): WorkspacePag
 
             if (seen.has(route.href)) {
                 if (process.env.NODE_ENV !== "production") {
-                    console.warn(
-                        `[workspace] href duplicado "${route.href}" no módulo "${mod.infos.id}"`,
-                    );
+                    console.warn(`[workspace] href duplicado "${route.href}" no módulo "${mod.infos.id}"`);
                 }
                 continue;
             }
-
             seen.add(route.href);
             entries.push({
                 href: route.href,
@@ -45,12 +43,9 @@ export function collectWorkspacePages(modules: readonly TModule[]): WorkspacePag
             });
         }
     }
-
     return entries;
 }
 
-export function createWorkspacePageLookup(
-    entries: readonly WorkspacePageEntry[],
-): Map<string, ComponentType> {
+export function createWorkspacePageLookup(entries: readonly WorkspacePageEntry[]): Map<string, ComponentType> {
     return new Map(entries.map((entry) => [entry.href, entry.Component]));
 }

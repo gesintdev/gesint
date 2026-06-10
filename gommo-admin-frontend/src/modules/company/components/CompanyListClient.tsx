@@ -1,11 +1,10 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { COMPANY_CLIENT_MESSAGES } from "@/modules/company/exceptions/company.messages";
+import { companyKeys } from "@/modules/company/company.query";
 import { COMPANY_TABLE_COLUMNS } from "@/modules/company/config/company.table-columns";
 import type { Company } from "@/modules/company/dto/company.dto";
-import { companyKeys } from "@/modules/company/company.query";
+import { COMPANY_CLIENT_MESSAGES } from "@/modules/company/exceptions/company.messages";
 import { companyService } from "@/modules/company/services/company.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function CompanyListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => companyService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function CompanyListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: COMPANY_CLIENT_MESSAGES.COMPANY_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: Company) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

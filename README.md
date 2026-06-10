@@ -9,23 +9,15 @@ Monorepo RH / Departamento Pessoal — backends (Spring Boot), frontends (Next.j
 | API Admin | `gommo-admin-backend/` | 8082 | [README do admin backend](gommo-admin-backend/README.md) |
 | Web Admin | `gommo-admin-frontend/` | 3001 | [README do admin frontend](gommo-admin-frontend/README.md) |
 
-## Documentação de módulos
-
-| Módulo | Documento |
-|--------|-----------|
-| Folha de Pagamento | [docs/modulos/folha-de-pagamento.md](docs/modulos/folha-de-pagamento.md) |
-
 ## Arquitetura multi-tenant
 
 | Documento | Conteúdo |
 |-----------|----------|
 | [docs/arquitetura/multi-tenant.md](docs/arquitetura/multi-tenant.md) | Control plane vs data plane, DNS, onboarding |
-| [docs/arquitetura/multi-tenant-dev.md](docs/arquitetura/multi-tenant-dev.md) | Testes locais sem subdomínio real (`*.localhost`) |
-| [docs/arquitetura/multi-tenant-implementacao.md](docs/arquitetura/multi-tenant-implementacao.md) | Etapas de implementação (1–6) |
+| [docs/arquitetura/multi-tenant-dev.md](docs/arquitetura/multi-tenant-dev.md) | Testes locais (`*.localhost`, fallback dev) |
+| [docs/arquitetura/multi-tenant-implementacao.md](docs/arquitetura/multi-tenant-implementacao.md) | Etapas de implementação |
 
 Tutorial do painel admin: [gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md](gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md).
-
-Regras para agentes (Cursor): `.cursor/rules/gommo-payroll-module.mdc` — memória persistente do módulo folha.
 
 ## Início rápido (local)
 
@@ -61,7 +53,32 @@ Ao criar migration: use o próximo `V{n}` **apenas** do backend/schema correspon
 
 O sistema usa **códigos estáveis** (`code`) na API e **mensagens em português** nos catálogos de cada módulo.
 
-**Regra de encoding nos fontes:** use texto ASCII normal (`CPF`, `Erro`, `login`…) e escape `\uXXXX` **somente em caracteres especiais** (acentos, cedilha, etc.), para evitar quebra de charset no build sem prejudicar a leitura do código.
+**Regra de encoding nos fontes:** use texto ASCII normal (`CPF`, `Erro`, `login`) e escape `\uXXXX` **somente em caracteres especiais** (acentos, cedilha, etc.), para evitar quebra de charset no build sem prejudicar a leitura do código.
+
+### UTF-8 — revisar sempre (mapa mental do projeto)
+
+Este erro **ja aconteceu varias vezes** no monorepo (principalmente no frontend Next.js no Windows). O Turbopack nao consegue parsear o arquivo e o dev server para com:
+
+```
+Reading source code for parsing failed
+invalid utf-8 sequence of 1 bytes from index N
+failed to convert rope into string
+```
+
+**Checklist ao criar ou editar `.ts`, `.tsx`, `.java`:**
+
+| Passo | Regra |
+|-------|--------|
+| 1 | Comentarios e nomes de variavel: **somente ASCII** |
+| 2 | Mensagens PT-BR em strings: acentos via `\uXXXX` (tabela abaixo) |
+| 3 | Nao usar `…` (ellipsis Unicode); usar `...` (tres pontos ASCII) |
+| 4 | Nao colar texto de editores/chat com encoding misto |
+| 5 | Ao finalizar, validar o arquivo: `node -e "require('fs').readFileSync('caminho/arquivo.ts').toString('utf8')"` |
+| 6 | Se quebrar o build: **reescrever o arquivo inteiro** com ASCII + escapes (corrigir so um trecho costuma deixar lixo binario) |
+
+**Arquivos que ja falharam por isso:** `gommo-frontend/src/shared/lib/input/number.ts`, `logging-out-overlay.ts`, `dashboard-system.util.ts`, `WorkspaceNavigationProvider.tsx` (e equivalentes no admin-frontend).
+
+Regra tambem documentada em `.cursor/rules/gommo.mdc` (sempre aplicada aos agentes).
 
 **Conversor recomendado (texto → `\uXXXX`):**  
 https://www.esoapi.com/pt/unicode/converter/

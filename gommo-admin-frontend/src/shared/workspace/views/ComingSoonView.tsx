@@ -1,5 +1,4 @@
 "use client";
-
 import { WorkspacePage } from "@/shared/components/layout/WorkspacePage";
 
 type ComingSoonViewProps = {

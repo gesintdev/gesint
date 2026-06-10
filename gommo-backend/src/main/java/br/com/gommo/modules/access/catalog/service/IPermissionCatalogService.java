@@ -1,8 +1,9 @@
 package br.com.gommo.modules.access.catalog.service;
 
+import java.util.List;
+
 import br.com.gommo.modules.access.catalog.dto.PermissionModuleGroupDto;
 import br.com.gommo.modules.access.entity.SystemScopeEnum;
-import java.util.List;
 
 public interface IPermissionCatalogService {
 

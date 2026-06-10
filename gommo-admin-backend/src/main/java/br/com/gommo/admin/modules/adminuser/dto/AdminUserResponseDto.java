@@ -1,13 +1,15 @@
 package br.com.gommo.admin.modules.adminuser.dto;
 
-import br.com.gommo.admin.core.entity.StatusEnum;
-import java.time.OffsetDateTime;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import br.com.gommo.admin.core.entity.StatusEnum;
 
 @Getter
 @Setter

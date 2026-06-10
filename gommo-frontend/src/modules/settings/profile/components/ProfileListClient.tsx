@@ -1,8 +1,8 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import clsx from "clsx";
 import { Check, PauseCircle } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { PROFILE_TABLE_COLUMNS } from "@/modules/settings/profile/config/profile.table-columns";
 import type { Profile, SystemScope } from "@/modules/settings/profile/dto/profile.dto";
@@ -14,14 +14,12 @@ import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
-import clsx from "clsx";
 
 const SYSTEM_FILTERS: Array<{ value: SystemScope | "ALL"; label: string }> = [
     { value: "ALL", label: "Todos" },
     { value: "DP", label: "DP" },
     { value: "RH", label: "RH" },
 ];
-
 const STATUS_FILTERS: Array<{ value: "ACTIVE" | "INACTIVE" | "ALL"; label: string }> = [
     { value: "ACTIVE", label: "Ativos" },
     { value: "INACTIVE", label: "Inativos" },
@@ -33,7 +31,6 @@ export function ProfileListClient() {
     const queryClient = useQueryClient();
     const [systemFilter, setSystemFilter] = useState<SystemScope | "ALL">("ALL");
     const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "INACTIVE" | "ALL">("ACTIVE");
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => profileService.remove(id),
         onSuccess: async () => {
@@ -43,7 +40,6 @@ export function ProfileListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível excluir o perfil." }),
     });
-
     const activateMutation = useMutation({
         mutationFn: (id: string) => profileService.activate(id),
         onSuccess: async () => {
@@ -53,7 +49,6 @@ export function ProfileListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: "Nao foi possivel ativar o perfil." }),
     });
-
     const deactivateMutation = useMutation({
         mutationFn: (id: string) => profileService.deactivate(id),
         onSuccess: async () => {
@@ -63,9 +58,13 @@ export function ProfileListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: "Nao foi possivel inativar o perfil." }),
     });
-
     const handleDelete = async (row: Profile) => {
-        if (!(await SystemAlert.confirmDelete("Deseja excluir este perfil? Usuários vinculados perderão estas permissões."))) return;
+        if (
+            !(await SystemAlert.confirmDelete(
+                "Deseja excluir este perfil? Usuários vinculados perderão estas permissões.",
+            ))
+        )
+            return;
         deleteMutation.mutate(row.id);
     };
 
@@ -105,10 +104,7 @@ export function ProfileListClient() {
                 ))}
             </div>
             <QueryTablePanel<Profile>
-                queryKey={profileKeys.list(
-                    systemFilter === "ALL" ? undefined : systemFilter,
-                    statusFilter,
-                )}
+                queryKey={profileKeys.list(systemFilter === "ALL" ? undefined : systemFilter, statusFilter)}
                 request={async () => {
                     const includeInactive = statusFilter !== "ACTIVE";
                     const rows = await profileService.getAll(

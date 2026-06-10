@@ -1,10 +1,12 @@
 package br.com.gommo.admin.modules.adminuser.repository;
 
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.Query;
+
 import br.com.gommo.admin.core.base.repository.IBaseRepository;
 import br.com.gommo.admin.core.entity.StatusEnum;
 import br.com.gommo.admin.modules.adminuser.entity.AdminUser;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.Query;
 
 public interface AdminUserRepository extends IBaseRepository<AdminUser> {
 
@@ -14,7 +16,9 @@ public interface AdminUserRepository extends IBaseRepository<AdminUser> {
     @Query("SELECT u FROM AdminUser u WHERE u.id = :id AND u.status <> :deleted")
     Optional<AdminUser> findActiveById(java.util.UUID id, StatusEnum deleted);
 
-    boolean existsByUsername(String username);
+    @Query("SELECT COUNT(u) > 0 FROM AdminUser u WHERE u.username = :username AND u.status <> :deleted")
+    boolean existsActiveByUsername(String username, StatusEnum deleted);
 
-    boolean existsByEmail(String email);
+    @Query("SELECT COUNT(u) > 0 FROM AdminUser u WHERE u.email = :email AND u.status <> :deleted")
+    boolean existsActiveByEmail(String email, StatusEnum deleted);
 }

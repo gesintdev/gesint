@@ -1,7 +1,7 @@
-import type {VacationSplitPeriod} from "@/modules/person/vacation/types/vacation.types";
-import {summarizeVacationBalance} from "@/modules/person/vacation/lib/vacation-rules";
-import {InputNumber} from "@/shared/components/ui/input/index";
-import {VacationBalanceDaysInfo} from "@/modules/person/vacation/components/VacationBalanceDaysInfo";
+import type { VacationSplitPeriod } from "@/modules/person/vacation/types/vacation.types";
+import { summarizeVacationBalance } from "@/modules/person/vacation/lib/vacation-rules";
+import { InputNumber } from "@/shared/components/ui/input/index";
+import { VacationBalanceDaysInfo } from "@/modules/person/vacation/components/VacationBalanceDaysInfo";
 
 type Props = {
     entitledDays: number;
@@ -17,24 +17,20 @@ type Props = {
 };
 
 export function VacationBalanceSidePanel({
-                                             entitledDays,
-                                             periods,
-                                             unjustifiedAbsences,
-                                             justifiedAbsences,
-                                             pecuniaryAllowanceDays,
-                                             maxPecuniary,
-                                             onUnjustifiedAbsencesChange,
-                                             onJustifiedAbsencesChange,
-                                             onPecuniaryChange,
-                                             pecuniaryError,
-                                         }: Props) {
+    entitledDays,
+    periods,
+    unjustifiedAbsences,
+    justifiedAbsences,
+    pecuniaryAllowanceDays,
+    maxPecuniary,
+    onUnjustifiedAbsencesChange,
+    onJustifiedAbsencesChange,
+    onPecuniaryChange,
+    pecuniaryError,
+}: Props) {
     const balance = summarizeVacationBalance(entitledDays, periods, pecuniaryAllowanceDays);
     const remainingClass =
-        balance.remainingDays < 0
-            ? "text-error"
-            : balance.remainingDays === 0
-                ? "text-success"
-                : "text-base-content";
+        balance.remainingDays < 0 ? "text-error" : balance.remainingDays === 0 ? "text-success" : "text-base-content";
 
     return (
         <div className="grid gap-2">
@@ -65,23 +61,17 @@ export function VacationBalanceSidePanel({
                     error={pecuniaryError}
                 />
             </div>
-
             <div className="rounded-lg min-h-19 border border-base-300/60 bg-base-200/30 p-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">Saldo de dias</p>
                 <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
+                    <VacationBalanceDaysInfo title={"Direito"} entitledDays={balance.entitledDays} />
+                    <VacationBalanceDaysInfo title={"Gozo"} entitledDays={balance.gozoDays} />
+                    <VacationBalanceDaysInfo title={"Vendidos"} entitledDays={balance.pecuniaryDays} />
                     <VacationBalanceDaysInfo
-                        title={'Direito'}
-                        entitledDays={balance.entitledDays}/>
-                    <VacationBalanceDaysInfo
-                        title={'Gozo'}
-                        entitledDays={balance.gozoDays}/>
-                    <VacationBalanceDaysInfo
-                        title={'Vendidos'}
-                        entitledDays={balance.pecuniaryDays}/>
-                    <VacationBalanceDaysInfo
-                        title={'Restante'}
+                        title={"Restante"}
                         className={remainingClass}
-                        entitledDays={balance.remainingDays}/>
+                        entitledDays={balance.remainingDays}
+                    />
                 </dl>
                 {balance.remainingDays < 0 ? (
                     <p className="mt-2 text-xs text-error">

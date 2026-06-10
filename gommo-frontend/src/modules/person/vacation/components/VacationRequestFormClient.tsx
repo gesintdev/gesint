@@ -1,31 +1,30 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
+import {
+    vacationRequestFormSchema,
+    type VacationRequestFormSchema,
+} from "@/modules/person/vacation/schemas/vacation-request.schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { LEAVE_CLIENT_MESSAGES } from "@/modules/person/leave/exceptions/leave-request.messages";
 import { leaverequestKeys } from "@/modules/person/leave/leave.query";
 import { leaverequestService } from "@/modules/person/leave/services/leave-request.service";
+import { VacationLegalPeriodsRightColumn } from "@/modules/person/vacation/components/VacationLegalPeriodsRightColumn";
+import { VacationPeriodSummary } from "@/modules/person/vacation/components/VacationPeriodSummary";
+import { VacationPjNotice } from "@/modules/person/vacation/components/VacationPjNotice";
+import { VacationSplitPeriodsEditor } from "@/modules/person/vacation/components/VacationSplitPeriodsEditor";
 import { loadCollaboratorVacationContext } from "@/modules/person/vacation/lib/collaborator-vacation-context";
-import { maxPecuniaryDays, vacationDaysEntitled } from "@/modules/person/vacation/lib/vacation-rules";
 import {
     emptyVacationForm,
     leaveToVacationForm,
     type VacationFormState,
     vacationFormToLeaveDtos,
 } from "@/modules/person/vacation/lib/vacation-request.mapper";
-import {
-    vacationRequestFormSchema,
-    type VacationRequestFormSchema,
-} from "@/modules/person/vacation/schemas/vacation-request.schema";
-import { VacationLegalPeriodsRightColumn } from "@/modules/person/vacation/components/VacationLegalPeriodsRightColumn";
-import { VacationPeriodSummary } from "@/modules/person/vacation/components/VacationPeriodSummary";
-import { VacationPjNotice } from "@/modules/person/vacation/components/VacationPjNotice";
-import { VacationSplitPeriodsEditor } from "@/modules/person/vacation/components/VacationSplitPeriodsEditor";
+import { maxPecuniaryDays, vacationDaysEntitled } from "@/modules/person/vacation/lib/vacation-rules";
 import type { VacationPeriodContext } from "@/modules/person/vacation/types/vacation.types";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -38,7 +37,6 @@ const APPROVAL_ITEMS: SelectItem[] = [
     { value: "true", label: "Aprovado / concedido" },
     { value: "false", label: "Pendente" },
 ];
-
 const FORM_STEPS: FormStepNavItem[] = [
     { id: "periodos", label: "Períodos" },
     { id: "registro", label: "Registro" },
@@ -54,7 +52,6 @@ export function VacationRequestFormClient() {
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<FormField, string>>>({});
     const [periodContext, setPeriodContext] = useState<VacationPeriodContext | null>(null);
     const [contextLoading, setContextLoading] = useState(false);
-
     const detailQuery = useQuery({
         queryKey: leaverequestKeys.detail(editingId ?? ""),
         queryFn: () => leaverequestService.getById(editingId!),
@@ -69,6 +66,7 @@ export function VacationRequestFormClient() {
             setPeriodContext(null);
             return;
         }
+
         if (detailQuery.data) {
             setForm(leaveToVacationForm(detailQuery.data));
             setError(null);
@@ -126,7 +124,6 @@ export function VacationRequestFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends keyof VacationFormState>(field: K, value: VacationFormState[K]) => {
         setForm((prev) => {
             const next = { ...prev, [field]: value };
@@ -142,11 +139,9 @@ export function VacationRequestFormClient() {
             return next;
         });
     };
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
-
         const parsed = vacationRequestFormSchema.safeParse(form);
         if (!parsed.success) {
             setFieldErrors(mapZodFieldErrors<FormField>(parsed.error));
@@ -157,11 +152,9 @@ export function VacationRequestFormClient() {
         if (periodContext?.contractType === "PJ") {
             toast.message("Regime PJ: confira o contrato de prestação de serviços para o recesso.");
         }
-
         setFieldErrors({});
         saveMutation.mutate({ parsed: parsed.data, groupId: crypto.randomUUID() });
     };
-
     const maxPecuniary = maxPecuniaryDays(form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences));
     const entitledDays = form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences);
     const isClt = periodContext?.contractType !== "PJ";
@@ -219,80 +212,76 @@ export function VacationRequestFormClient() {
                 description="Período aquisitivo (12 meses de trabalho) e concessivo (prazo para a empresa conceder as férias)."
                 bodyClassName="!grid-cols-1 gap-4"
             >
-                    {periodContext?.contractType === "PJ" ? <VacationPjNotice /> : null}
-
-                    {isClt || !form.collaboratorId ? (
-                        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 sm:items-start">
-                            <div className="min-w-0">
-                                <VacationPeriodSummary
-                                    context={periodContext}
-                                    loading={contextLoading}
-                                    collaboratorId={form.collaboratorId ?? ""}
-                                    onCollaboratorChange={(v) => update("collaboratorId", v)}
-                                    collaboratorError={fieldErrors.collaboratorId}
-                                />
-                            </div>
-                            <div className="min-w-0">
-                                <VacationLegalPeriodsRightColumn
-                                    entitledDays={entitledDays}
-                                    unjustifiedAbsences={form.unjustifiedAbsences}
-                                    justifiedAbsences={form.justifiedAbsences ?? 0}
-                                    pecuniaryAllowanceDays={form.pecuniaryAllowanceDays}
-                                    maxPecuniary={maxPecuniary}
-                                    onUnjustifiedAbsencesChange={(v) => update("unjustifiedAbsences", v)}
-                                    onJustifiedAbsencesChange={(v) => update("justifiedAbsences", v)}
-                                    onPecuniaryChange={(v) => update("pecuniaryAllowanceDays", v)}
-                                    pecuniaryError={fieldErrors.pecuniaryAllowanceDays}
-                                    periods={form.periods}
-                                    onPeriodsChange={(periods) => update("periods", periods)}
-                                    periodsFieldError={fieldErrors.periods}
-                                />
-                            </div>
+                {periodContext?.contractType === "PJ" ? <VacationPjNotice /> : null}
+                {isClt || !form.collaboratorId ? (
+                    <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 sm:items-start">
+                        <div className="min-w-0">
+                            <VacationPeriodSummary
+                                context={periodContext}
+                                loading={contextLoading}
+                                collaboratorId={form.collaboratorId ?? ""}
+                                onCollaboratorChange={(v) => update("collaboratorId", v)}
+                                collaboratorError={fieldErrors.collaboratorId}
+                            />
                         </div>
-                    ) : (
-                        <>
-                            <CollaboratorPickerField
-                                value={form.collaboratorId ?? ""}
-                                onValueChange={(v) => update("collaboratorId", v)}
-                                required
-                                error={fieldErrors.collaboratorId}
-                            />
-                            <VacationSplitPeriodsEditor
+                        <div className="min-w-0">
+                            <VacationLegalPeriodsRightColumn
+                                entitledDays={entitledDays}
+                                unjustifiedAbsences={form.unjustifiedAbsences}
+                                justifiedAbsences={form.justifiedAbsences ?? 0}
+                                pecuniaryAllowanceDays={form.pecuniaryAllowanceDays}
+                                maxPecuniary={maxPecuniary}
+                                onUnjustifiedAbsencesChange={(v) => update("unjustifiedAbsences", v)}
+                                onJustifiedAbsencesChange={(v) => update("justifiedAbsences", v)}
+                                onPecuniaryChange={(v) => update("pecuniaryAllowanceDays", v)}
+                                pecuniaryError={fieldErrors.pecuniaryAllowanceDays}
                                 periods={form.periods}
-                                onChange={(periods) => update("periods", periods)}
-                                fieldError={fieldErrors.periods}
+                                onPeriodsChange={(periods) => update("periods", periods)}
+                                periodsFieldError={fieldErrors.periods}
                             />
-                        </>
-                    )}
-                </FormSection>
-
-                <FormSection id="registro" title="Registro" bodyClassName="!grid-cols-1">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                        <InputSelect
-                            label="Situação"
-                            items={APPROVAL_ITEMS}
-                            value={form.approved === true ? "true" : form.approved === false ? "false" : ""}
-                            onValueChange={(v) => update("approved", v === "true")}
-                            placeholder="Selecione"
-                            clearable
-                            wrapperClassName="w-full sm:w-[11rem] sm:shrink-0"
-                        />
-                        <InputString
-                            label="Observações"
-                            value={form.notes ?? ""}
-                            onValueChange={(v) => update("notes", v)}
-                            wrapperClassName="min-w-0 flex-1"
-                        />
+                        </div>
                     </div>
-                </FormSection>
-
-                {isEditing && detailQuery.data?.approved !== true ? (
-                    <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75">
-                        Solicitação vinda do RH: revise os períodos, confirme aprovação e salve.
-                    </p>
-                ) : null}
-
-                {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
+                ) : (
+                    <>
+                        <CollaboratorPickerField
+                            value={form.collaboratorId ?? ""}
+                            onValueChange={(v) => update("collaboratorId", v)}
+                            required
+                            error={fieldErrors.collaboratorId}
+                        />
+                        <VacationSplitPeriodsEditor
+                            periods={form.periods}
+                            onChange={(periods) => update("periods", periods)}
+                            fieldError={fieldErrors.periods}
+                        />
+                    </>
+                )}
+            </FormSection>
+            <FormSection id="registro" title="Registro" bodyClassName="!grid-cols-1">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <InputSelect
+                        label="Situação"
+                        items={APPROVAL_ITEMS}
+                        value={form.approved === true ? "true" : form.approved === false ? "false" : ""}
+                        onValueChange={(v) => update("approved", v === "true")}
+                        placeholder="Selecione"
+                        clearable
+                        wrapperClassName="w-full sm:w-[11rem] sm:shrink-0"
+                    />
+                    <InputString
+                        label="Observações"
+                        value={form.notes ?? ""}
+                        onValueChange={(v) => update("notes", v)}
+                        wrapperClassName="min-w-0 flex-1"
+                    />
+                </div>
+            </FormSection>
+            {isEditing && detailQuery.data?.approved !== true ? (
+                <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75">
+                    Solicitação vinda do RH: revise os períodos, confirme aprovação e salve.
+                </p>
+            ) : null}
+            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

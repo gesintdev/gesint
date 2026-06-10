@@ -1,6 +1,6 @@
+import { Shield, Users } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { lazyNamed, tabbedCrudRoute } from "@/shared/routing";
-import { Shield, Users } from "lucide-react";
 
 export const settingsRoutes: AppRoute[] = [
     tabbedCrudRoute({
@@ -12,14 +12,8 @@ export const settingsRoutes: AppRoute[] = [
         routeId: "settings-profiles",
         tabShortLabel: "Perfil",
         fieldTabName: "name",
-        list: lazyNamed(
-            () => import("@/modules/settings/profile/components/ProfileListClient"),
-            "ProfileListClient",
-        ),
-        form: lazyNamed(
-            () => import("@/modules/settings/profile/components/ProfileFormClient"),
-            "ProfileFormClient",
-        ),
+        list: lazyNamed(() => import("@/modules/settings/profile/components/ProfileListClient"), "ProfileListClient"),
+        form: lazyNamed(() => import("@/modules/settings/profile/components/ProfileFormClient"), "ProfileFormClient"),
     }),
     tabbedCrudRoute({
         id: "settings-users",
@@ -30,13 +24,7 @@ export const settingsRoutes: AppRoute[] = [
         routeId: "settings-users",
         tabShortLabel: "Usuário",
         fieldTabName: "username",
-        list: lazyNamed(
-            () => import("@/modules/settings/appuser/components/AppUserListClient"),
-            "AppUserListClient",
-        ),
-        form: lazyNamed(
-            () => import("@/modules/settings/appuser/components/AppUserFormClient"),
-            "AppUserFormClient",
-        ),
+        list: lazyNamed(() => import("@/modules/settings/appuser/components/AppUserListClient"), "AppUserListClient"),
+        form: lazyNamed(() => import("@/modules/settings/appuser/components/AppUserFormClient"), "AppUserFormClient"),
     }),
 ];

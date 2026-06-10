@@ -51,8 +51,7 @@ public final class VacationRules {
             LocalDate.of(2027, 11, 2),
             LocalDate.of(2027, 11, 15),
             LocalDate.of(2027, 11, 20),
-            LocalDate.of(2027, 12, 25)
-    );
+            LocalDate.of(2027, 12, 25));
 
     private VacationRules() {}
 
@@ -135,7 +134,8 @@ public final class VacationRules {
         }
         BigDecimal daily = baseSalary.divide(BigDecimal.valueOf(30), 4, RoundingMode.HALF_UP);
         int totalRemuneratedDays = vacationDaysUsed + pecuniaryDays;
-        BigDecimal vacationPay = daily.multiply(BigDecimal.valueOf(totalRemuneratedDays)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal vacationPay =
+                daily.multiply(BigDecimal.valueOf(totalRemuneratedDays)).setScale(2, RoundingMode.HALF_UP);
         BigDecimal third = vacationPay.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
         return new PaymentEstimate(vacationPay, third, vacationPay.add(third));
     }

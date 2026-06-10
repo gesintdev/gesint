@@ -1,14 +1,5 @@
 package br.com.gommo.modules.report.service;
 
-import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
-import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
-import br.com.gommo.modules.report.dto.DashboardDistributionItemResponseDto;
-import br.com.gommo.modules.report.dto.DashboardMetricResponseDto;
-import br.com.gommo.modules.report.dto.DashboardModuleHealthResponseDto;
-import br.com.gommo.modules.report.dto.DashboardModuleStatusResponseDto;
-import br.com.gommo.modules.report.dto.DashboardMovementPointResponseDto;
-import br.com.gommo.modules.report.dto.DashboardSummaryResponseDto;
-import br.com.gommo.modules.report.repository.DashboardMetricsDao;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -18,9 +9,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
+import br.com.gommo.modules.report.dto.DashboardDistributionItemResponseDto;
+import br.com.gommo.modules.report.dto.DashboardMetricResponseDto;
+import br.com.gommo.modules.report.dto.DashboardModuleHealthResponseDto;
+import br.com.gommo.modules.report.dto.DashboardModuleStatusResponseDto;
+import br.com.gommo.modules.report.dto.DashboardMovementPointResponseDto;
+import br.com.gommo.modules.report.dto.DashboardSummaryResponseDto;
+import br.com.gommo.modules.report.repository.DashboardMetricsDao;
 
 @Service
 public class DashboardService implements IDashboardService {
@@ -56,7 +58,8 @@ public class DashboardService implements IDashboardService {
     public DashboardSummaryResponseDto getSummary() {
         LocalDate today = LocalDate.now(APP_ZONE);
         OffsetDateTime last30Days = today.minusDays(30).atStartOfDay(APP_ZONE).toOffsetDateTime();
-        OffsetDateTime last7DaysStart = today.minusDays(6).atStartOfDay(APP_ZONE).toOffsetDateTime();
+        OffsetDateTime last7DaysStart =
+                today.minusDays(6).atStartOfDay(APP_ZONE).toOffsetDateTime();
 
         long activeCollaborators = dashboardMetricsDao.countActiveCollaborators();
         long newCollaborators = dashboardMetricsDao.countCollaboratorsCreatedSince(last30Days);
@@ -65,7 +68,8 @@ public class DashboardService implements IDashboardService {
         long pendingLeave = dashboardMetricsDao.countPendingLeaveRequests();
 
         return DashboardSummaryResponseDto.builder()
-                .metrics(buildMetrics(activeCollaborators, newCollaborators, activeContracts, openPayrollRuns, pendingLeave, today))
+                .metrics(buildMetrics(
+                        activeCollaborators, newCollaborators, activeContracts, openPayrollRuns, pendingLeave, today))
                 .movementLast7Days(buildMovement(last7DaysStart, today))
                 .moduleHealth(buildModuleHealth())
                 .admissionsByStatus(buildAdmissionsByStatus())
@@ -86,7 +90,10 @@ public class DashboardService implements IDashboardService {
                 .key("collaborators")
                 .label("Colaboradores ativos")
                 .value(activeCollaborators)
-                .hint(newCollaborators > 0 ? newCollaborators + " novos nos últimos 30 dias" : "Nenhum cadastro recente")
+                .hint(
+                        newCollaborators > 0
+                                ? newCollaborators + " novos nos últimos 30 dias"
+                                : "Nenhum cadastro recente")
                 .tone(newCollaborators > 0 ? "success" : "neutral")
                 .build());
 
@@ -102,9 +109,10 @@ public class DashboardService implements IDashboardService {
                 .key("payroll")
                 .label("Folha em aberto")
                 .value(openPayrollRuns)
-                .hint(openPayrollRuns > 0
-                        ? "Referência " + String.format("%02d/%d", today.getMonthValue(), today.getYear())
-                        : "Nenhuma folha aberta no mês")
+                .hint(
+                        openPayrollRuns > 0
+                                ? "Referência " + String.format("%02d/%d", today.getMonthValue(), today.getYear())
+                                : "Nenhuma folha aberta no mês")
                 .tone(openPayrollRuns > 0 ? "warning" : "neutral")
                 .build());
 

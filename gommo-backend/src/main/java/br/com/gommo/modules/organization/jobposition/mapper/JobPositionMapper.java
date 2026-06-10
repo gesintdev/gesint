@@ -1,9 +1,10 @@
 package br.com.gommo.modules.organization.jobposition.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.organization.jobposition.dto.JobPositionRequestDto;
 import br.com.gommo.modules.organization.jobposition.dto.JobPositionResponseDto;
 import br.com.gommo.modules.organization.jobposition.entity.JobPosition;
-import org.springframework.stereotype.Component;
 
 @Component
 public class JobPositionMapper {

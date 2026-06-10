@@ -1,9 +1,9 @@
 package br.com.gommo.core.base.service;
 
-import br.com.gommo.core.base.dto.PageableResponseDto;
-
 import java.util.List;
 import java.util.UUID;
+
+import br.com.gommo.core.base.dto.PageableResponseDto;
 
 public interface IBaseService<RequestDto, ResponseDto> {
 

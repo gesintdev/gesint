@@ -10,15 +10,7 @@ type GommoLogoProps = {
     onBrand?: boolean;
 };
 
-/**
- * Logotipo Gommo centralizado em assets de /public/brand.
- */
-export function GommoLogo({
-    variant = "full",
-    className,
-    iconClassName,
-    onBrand = false,
-}: GommoLogoProps) {
+export function GommoLogo({ variant = "full", className, iconClassName, onBrand = false }: GommoLogoProps) {
     if (variant === "icon") {
         return (
             <Image

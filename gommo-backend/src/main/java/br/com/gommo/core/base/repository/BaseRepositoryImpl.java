@@ -1,11 +1,14 @@
 package br.com.gommo.core.base.repository;
 
-import br.com.gommo.core.entity.CodedEntity;
-import br.com.gommo.core.persistence.EntityCodeIncrementer;
 import jakarta.persistence.EntityManager;
+
 import java.io.Serializable;
+
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+
+import br.com.gommo.core.entity.CodedEntity;
+import br.com.gommo.core.persistence.EntityCodeIncrementer;
 
 public class BaseRepositoryImpl<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> {
 

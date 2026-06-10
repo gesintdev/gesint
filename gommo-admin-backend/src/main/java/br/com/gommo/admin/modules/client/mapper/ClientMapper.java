@@ -1,12 +1,13 @@
 package br.com.gommo.admin.modules.client.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.admin.modules.client.dto.ClientRequestDto;
 import br.com.gommo.admin.modules.client.dto.ClientResponseDto;
 import br.com.gommo.admin.modules.client.entity.Client;
 import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
 import br.com.gommo.admin.modules.client.entity.TenantProvisioningStatusEnum;
 import br.com.gommo.admin.modules.client.entity.TenantRoutingModeEnum;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ClientMapper {
@@ -15,7 +16,7 @@ public class ClientMapper {
         return Client.builder()
                 .name(dto.getName())
                 .slug(dto.getSlug())
-                .document(dto.getDocument())
+                .document(normalizeDocument(dto.getDocument()))
                 .contactEmail(dto.getContactEmail())
                 .contactPhone(dto.getContactPhone())
                 .notes(dto.getNotes())
@@ -37,7 +38,7 @@ public class ClientMapper {
     public void updateEntity(Client entity, ClientRequestDto dto) {
         entity.setName(dto.getName());
         entity.setSlug(dto.getSlug());
-        entity.setDocument(dto.getDocument());
+        entity.setDocument(normalizeDocument(dto.getDocument()));
         entity.setContactEmail(dto.getContactEmail());
         entity.setContactPhone(dto.getContactPhone());
         entity.setNotes(dto.getNotes());
@@ -88,10 +89,18 @@ public class ClientMapper {
     }
 
     private TenantDatabaseStrategyEnum resolveDatabaseStrategy(TenantDatabaseStrategyEnum value) {
-        return value == null ? TenantDatabaseStrategyEnum.DEDICATED_DATABASE : value;
+        return value == null ? TenantDatabaseStrategyEnum.DEDICATED_SCHEMA : value;
     }
 
     private TenantProvisioningStatusEnum resolveProvisioningStatus(TenantProvisioningStatusEnum value) {
         return value == null ? TenantProvisioningStatusEnum.PENDING : value;
+    }
+
+    private String normalizeDocument(String document) {
+        if (document == null || document.isBlank()) {
+            return null;
+        }
+        String digits = document.replaceAll("\\D", "");
+        return digits.isBlank() ? null : digits;
     }
 }

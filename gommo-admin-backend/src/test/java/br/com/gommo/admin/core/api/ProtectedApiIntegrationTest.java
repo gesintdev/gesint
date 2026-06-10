@@ -2,11 +2,13 @@ package br.com.gommo.admin.core.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.gommo.admin.support.AbstractIntegrationTest;
 import java.util.stream.Stream;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import br.com.gommo.admin.support.AbstractIntegrationTest;
 
 class ProtectedApiIntegrationTest extends AbstractIntegrationTest {
 

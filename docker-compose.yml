@@ -37,7 +37,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       DEV_ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD}
-      CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+      CORS_ORIGINS: http://localhost:3000,http://*.localhost:3000,http://localhost:3001
       SERVER_PORT: 8081
     ports:
       - "8081:8081"
@@ -64,6 +64,7 @@ services:
       DEV_ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD}
       ADMIN_CORS_ORIGINS: http://localhost:3001
       ADMIN_SERVER_PORT: 8082
+      TENANT_DB_FALLBACK_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "8082:8082"
     depends_on:

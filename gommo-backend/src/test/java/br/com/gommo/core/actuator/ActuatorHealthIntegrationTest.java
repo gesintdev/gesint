@@ -2,8 +2,9 @@ package br.com.gommo.core.actuator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.gommo.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
+
+import br.com.gommo.support.AbstractIntegrationTest;
 
 class ActuatorHealthIntegrationTest extends AbstractIntegrationTest {
 

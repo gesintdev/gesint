@@ -1,6 +1,7 @@
 package br.com.gommo.core.exception;
 
 import lombok.Getter;
+
 import org.springframework.http.HttpStatus;
 
 @Getter

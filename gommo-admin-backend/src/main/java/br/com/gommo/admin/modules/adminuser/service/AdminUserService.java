@@ -1,5 +1,14 @@
 package br.com.gommo.admin.modules.adminuser.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import br.com.gommo.admin.core.base.dto.PageableResponseDto;
 import br.com.gommo.admin.core.entity.StatusEnum;
 import br.com.gommo.admin.modules.adminuser.dto.AdminUserRequestDto;
@@ -8,13 +17,6 @@ import br.com.gommo.admin.modules.adminuser.entity.AdminUser;
 import br.com.gommo.admin.modules.adminuser.exception.AdminUserException;
 import br.com.gommo.admin.modules.adminuser.mapper.AdminUserMapper;
 import br.com.gommo.admin.modules.adminuser.repository.AdminUserRepository;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 @Service
 public class AdminUserService implements IAdminUserService {
@@ -23,8 +25,7 @@ public class AdminUserService implements IAdminUserService {
     private final AdminUserMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
-    public AdminUserService(
-            AdminUserRepository repository, AdminUserMapper mapper, PasswordEncoder passwordEncoder) {
+    public AdminUserService(AdminUserRepository repository, AdminUserMapper mapper, PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
@@ -72,10 +73,13 @@ public class AdminUserService implements IAdminUserService {
         if (!StringUtils.hasText(request.getPassword())) {
             throw AdminUserException.passwordRequired();
         }
-        if (repository.existsByUsername(request.getUsername())) {
+        if (request.getPassword().length() < 8) {
+            throw AdminUserException.passwordTooShort();
+        }
+        if (repository.existsActiveByUsername(request.getUsername(), StatusEnum.DELETED)) {
             throw AdminUserException.usernameExists();
         }
-        if (repository.existsByEmail(request.getEmail())) {
+        if (repository.existsActiveByEmail(request.getEmail(), StatusEnum.DELETED)) {
             throw AdminUserException.emailExists();
         }
         AdminUser entity = AdminUser.builder()
@@ -93,14 +97,19 @@ public class AdminUserService implements IAdminUserService {
     @PreAuthorize("hasAuthority('platform:admin')")
     public AdminUserResponseDto update(UUID id, AdminUserRequestDto request) {
         AdminUser entity = findEntity(id);
-        if (!entity.getUsername().equals(request.getUsername()) && repository.existsByUsername(request.getUsername())) {
+        if (!entity.getUsername().equals(request.getUsername())
+                && repository.existsActiveByUsername(request.getUsername(), StatusEnum.DELETED)) {
             throw AdminUserException.usernameExists();
         }
-        if (!entity.getEmail().equals(request.getEmail()) && repository.existsByEmail(request.getEmail())) {
+        if (!entity.getEmail().equals(request.getEmail())
+                && repository.existsActiveByEmail(request.getEmail(), StatusEnum.DELETED)) {
             throw AdminUserException.emailExists();
         }
         mapper.updateEntity(entity, request);
         if (StringUtils.hasText(request.getPassword())) {
+            if (request.getPassword().length() < 8) {
+                throw AdminUserException.passwordTooShort();
+            }
             entity.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
         return mapper.toResponse(repository.save(entity));

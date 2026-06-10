@@ -1,4 +1,7 @@
-import type { EmploymentContract, EmploymentContractCreateDto } from "@/modules/person/contract/dto/employment-contract.dto";
+import type {
+    EmploymentContract,
+    EmploymentContractCreateDto,
+} from "@/modules/person/contract/dto/employment-contract.dto";
 
 export function employmentcontractToFormDto(entity: EmploymentContract): EmploymentContractCreateDto {
     return {

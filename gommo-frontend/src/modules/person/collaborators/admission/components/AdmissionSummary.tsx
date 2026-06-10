@@ -1,16 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
-import type { AdmissionProcessCreateDto, AdmissionStatus } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
-import {
-    ADMISSION_STATUS_LABELS,
-    contractTypeLabel,
-} from "@/modules/person/collaborators/admission/lib/admission-form.constants";
+import type {
+    AdmissionProcessCreateDto,
+    AdmissionStatus,
+} from "@/modules/person/collaborators/admission/dto/admission-process.dto";
 import {
     computeFilledAdmissionSteps,
     type AdmissionStepContext,
 } from "@/modules/person/collaborators/admission/lib/admission-status.util";
+import { useQuery } from "@tanstack/react-query";
 import { departmentService } from "@/modules/organization/department/services/department.service";
 import { jobpositionService } from "@/modules/organization/jobposition/services/jobposition.service";
 import { isAdmissionPj } from "@/modules/person/collaborators/admission/lib/admission-contract.util";
+import {
+    ADMISSION_STATUS_LABELS,
+    contractTypeLabel,
+} from "@/modules/person/collaborators/admission/lib/admission-form.constants";
 import { formatCnpj, formatCpf } from "@/shared/lib/table/format-cell-value";
 
 type AdmissionSummaryProps = {
@@ -28,15 +31,7 @@ function formatDateBr(value?: string): string {
     return `${day}/${month}/${year}`;
 }
 
-function SummaryRow({
-    label,
-    value,
-    emphasize,
-}: {
-    label: string;
-    value: string;
-    emphasize?: boolean;
-}) {
+function SummaryRow({ label, value, emphasize }: { label: string; value: string; emphasize?: boolean }) {
     return (
         <p className="leading-snug text-base-content/75">
             <span className="text-base-content/45">{label}:</span>{" "}
@@ -49,13 +44,11 @@ export function AdmissionSummary({ form, stepIds, context, entityCode, status }:
     const filledSteps = computeFilledAdmissionSteps(form, context, stepIds);
     const requiredCount = stepIds.filter((id) => id !== "observacoes").length;
     const isPj = isAdmissionPj(form.contractType);
-
     const departmentQuery = useQuery({
         queryKey: ["department-summary", form.departmentId],
         queryFn: () => departmentService.getById(form.departmentId!),
         enabled: Boolean(form.departmentId?.trim()),
     });
-
     const jobPositionQuery = useQuery({
         queryKey: ["job-position-summary", form.jobPositionId],
         queryFn: () => jobpositionService.getById(form.jobPositionId!),
@@ -70,52 +63,23 @@ export function AdmissionSummary({ form, stepIds, context, entityCode, status }:
                 </p>
             ) : null}
             <div className="grid flex-1 content-start gap-1.5">
-                <SummaryRow
-                    label="Andamento"
-                    value={ADMISSION_STATUS_LABELS[status] ?? status}
-                    emphasize
-                />
-                <SummaryRow
-                    label="Etapas"
-                    value={`${filledSteps.length} de ${requiredCount} concluídas`}
-                />
+                <SummaryRow label="Andamento" value={ADMISSION_STATUS_LABELS[status] ?? status} emphasize />
+                <SummaryRow label="Etapas" value={`${filledSteps.length} de ${requiredCount} concluídas`} />
                 <SummaryRow label="Nome" value={form.fullName?.trim() || "—"} />
-                <SummaryRow
-                    label="CPF"
-                    value={form.cpf?.trim() ? formatCpf(form.cpf) : "—"}
-                />
-                <SummaryRow
-                    label="Contrato"
-                    value={contractTypeLabel(form.contractType)}
-                />
+                <SummaryRow label="CPF" value={form.cpf?.trim() ? formatCpf(form.cpf) : "—"} />
+                <SummaryRow label="Contrato" value={contractTypeLabel(form.contractType)} />
                 {isPj ? (
                     <>
                         <SummaryRow
                             label="CNPJ"
-                            value={
-                                form.providerCnpj?.trim()
-                                    ? formatCnpj(form.providerCnpj)
-                                    : "—"
-                            }
+                            value={form.providerCnpj?.trim() ? formatCnpj(form.providerCnpj) : "—"}
                         />
-                        <SummaryRow
-                            label="Razão social"
-                            value={form.providerLegalName?.trim() || "—"}
-                        />
+                        <SummaryRow label="Razão social" value={form.providerLegalName?.trim() || "—"} />
                     </>
                 ) : null}
-                <SummaryRow
-                    label="Departamento"
-                    value={departmentQuery.data?.name ?? "—"}
-                />
-                <SummaryRow
-                    label="Cargo"
-                    value={jobPositionQuery.data?.title ?? "—"}
-                />
-                <SummaryRow
-                    label="Data início"
-                    value={formatDateBr(form.expectedStartDate)}
-                />
+                <SummaryRow label="Departamento" value={departmentQuery.data?.name ?? "—"} />
+                <SummaryRow label="Cargo" value={jobPositionQuery.data?.title ?? "—"} />
+                <SummaryRow label="Data início" value={formatDateBr(form.expectedStartDate)} />
             </div>
         </div>
     );

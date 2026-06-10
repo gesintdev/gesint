@@ -1,2 +1,8 @@
 package br.com.gommo.modules.payroll.tax.entity;
-public enum TaxObligationTypeEnum { IRRF, INSS, FGTS, OTHER }
+
+public enum TaxObligationTypeEnum {
+    IRRF,
+    INSS,
+    FGTS,
+    OTHER
+}

@@ -1,11 +1,10 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ATTENDANCE_CLIENT_MESSAGES } from "@/modules/person/attendance/exceptions/attendance-record.messages";
+import { attendancerecordKeys } from "@/modules/person/attendance/attendance.query";
 import { ATTENDANCE_TABLE_COLUMNS } from "@/modules/person/attendance/config/attendance-record.table-columns";
 import type { AttendanceRecord } from "@/modules/person/attendance/dto/attendance-record.dto";
-import { attendancerecordKeys } from "@/modules/person/attendance/attendance.query";
+import { ATTENDANCE_CLIENT_MESSAGES } from "@/modules/person/attendance/exceptions/attendance-record.messages";
 import { attendancerecordService } from "@/modules/person/attendance/services/attendance-record.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function AttendanceRecordListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => attendancerecordService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function AttendanceRecordListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: AttendanceRecord) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

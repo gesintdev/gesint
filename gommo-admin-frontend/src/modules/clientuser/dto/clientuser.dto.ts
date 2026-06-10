@@ -17,5 +17,5 @@ export class ClientUserCreateDto {
     username!: string;
     email!: string;
     displayName?: string;
-    password!: string;
+    password?: string;
 }

@@ -1,9 +1,8 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CLIENT_SUBSCRIPTION_TABLE_COLUMNS } from "@/modules/clientsubscription/config/clientsubscription.table-columns";
 import { clientSubscriptionKeys } from "@/modules/clientsubscription/clientsubscription.query";
+import { CLIENT_SUBSCRIPTION_TABLE_COLUMNS } from "@/modules/clientsubscription/config/clientsubscription.table-columns";
 import type { ClientSubscription } from "@/modules/clientsubscription/dto/clientsubscription.dto";
 import { CLIENT_SUBSCRIPTION_CLIENT_MESSAGES } from "@/modules/clientsubscription/exceptions/clientsubscription.messages";
 import { clientSubscriptionService } from "@/modules/clientsubscription/services/clientsubscription.service";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function ClientSubscriptionListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => clientSubscriptionService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function ClientSubscriptionListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: CLIENT_SUBSCRIPTION_CLIENT_MESSAGES.LOAD_FAILED }),
     });
-
     const handleDelete = async (row: ClientSubscription) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

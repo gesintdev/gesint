@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import {
     DEPARTMENT_PICKER_ADVANCED,
     departmentService,
 } from "@/modules/organization/department/services/department.service";
+import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 
 type DepartmentPickerFieldProps = {
     value: string;
@@ -30,7 +30,6 @@ export function DepartmentPickerField({
         (query: string, page: number) => departmentService.searchForAutocomplete(query, page),
         [],
     );
-
     const resolveLabel = useCallback(async (id: string) => {
         const department = await departmentService.getById(id);
         return department.name;

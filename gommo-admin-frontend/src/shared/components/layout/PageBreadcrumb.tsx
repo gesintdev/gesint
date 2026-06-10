@@ -1,5 +1,4 @@
 "use client";
-
 import clsx from "clsx";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -36,9 +35,7 @@ export function PageBreadcrumb({ actions, activeLabel }: PageBreadcrumbProps) {
                                     <Icon
                                         className={clsx(
                                             "size-3.5 shrink-0",
-                                            item.isActive
-                                                ? "text-primary"
-                                                : "text-base-content/45",
+                                            item.isActive ? "text-primary" : "text-base-content/45",
                                         )}
                                         strokeWidth={item.isActive ? 2.25 : 2}
                                         aria-hidden
@@ -47,7 +44,6 @@ export function PageBreadcrumb({ actions, activeLabel }: PageBreadcrumbProps) {
                                 <span className="truncate">{item.label}</span>
                             </span>
                         );
-
                         return (
                             <li
                                 key={`${index}-${item.label}`}
@@ -74,10 +70,7 @@ export function PageBreadcrumb({ actions, activeLabel }: PageBreadcrumbProps) {
                     })}
                 </ul>
             </nav>
-
-            {actions && (
-                <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
-            )}
+            {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
         </motion.header>
     );
 }

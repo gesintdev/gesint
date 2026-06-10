@@ -1,28 +1,12 @@
 "use client";
-
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-    type ReactNode,
-} from "react";
-import {usePathname} from "next/navigation";
-import type {AppRoute, NavSection} from "@/modules/root/enum/ModuleEnum";
-import {
-    SystemEnum,
-    SystemEnumHelper,
-    type TSystemInfos,
-} from "@/modules/root/enum/SystemEnum";
-import {
-    getNavSectionsForSystem,
-    SETTINGS_NAV_SECTIONS,
-} from "@/config/routes";
-import { canAccessRoute } from "@/shared/auth/route-access";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
+import { SystemEnum, SystemEnumHelper, type TSystemInfos } from "@/modules/root/enum/SystemEnum";
+import { getNavSectionsForSystem, SETTINGS_NAV_SECTIONS, systemModuleGroups } from "@/config/routes";
+import { useSession } from "next-auth/react";
 import { useSessionPermissions } from "@/shared/auth/permissions";
+import { canAccessRoute } from "@/shared/auth/route-access";
 
 type ActiveSystemContextValue = {
     /** Dominio selecionado no rail — menu lateral e conteudo do dashboard. */
@@ -41,12 +25,17 @@ function isSettingsPath(pathname: string): boolean {
     return pathname.startsWith("/settings");
 }
 
+function resolveSystemFromPathname(pathname: string): SystemEnum {
+    if (isSettingsPath(pathname)) {
+        return SystemEnumHelper.getDefaultSystem();
+    }
+    return SystemEnumHelper.findSystemForHref(pathname, systemModuleGroups) ?? SystemEnumHelper.getDefaultSystem();
+}
+
 function filterRoutesByPermissions(routes: AppRoute[], permissions: readonly string[]): AppRoute[] {
     const filtered: AppRoute[] = [];
     for (const route of routes) {
-        const children = route.children
-            ? filterRoutesByPermissions(route.children, permissions)
-            : undefined;
+        const children = route.children ? filterRoutesByPermissions(route.children, permissions) : undefined;
         const hasDirectAccess = canAccessRoute(route, permissions);
         const hasVisibleChildren = Boolean(children?.length);
         if (!hasDirectAccess && !hasVisibleChildren) {
@@ -57,10 +46,7 @@ function filterRoutesByPermissions(routes: AppRoute[], permissions: readonly str
     return filtered;
 }
 
-function filterSectionsByPermissions(
-    sections: NavSection[],
-    permissions: readonly string[],
-): NavSection[] {
+function filterSectionsByPermissions(sections: NavSection[], permissions: readonly string[]): NavSection[] {
     return sections
         .map((section) => ({
             ...section,
@@ -69,23 +55,25 @@ function filterSectionsByPermissions(
         .filter((section) => section.routes.length > 0);
 }
 
-export function ActiveSystemProvider({children}: { children: ReactNode }) {
+export function ActiveSystemProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname();
+    const { status: sessionStatus } = useSession();
     const permissions = useSessionPermissions();
-    const [activeSystem, setActiveSystem] = useState<SystemEnum>(() =>
-        SystemEnumHelper.getDefaultSystem(),
-    );
+    const permissionsReady = sessionStatus !== "loading";
+    const [activeSystem, setActiveSystem] = useState<SystemEnum>(() => resolveSystemFromPathname(pathname));
     const [isSettingsMode, setIsSettingsMode] = useState(() => isSettingsPath(pathname));
     const prevPathnameRef = useRef(pathname);
-
     const systems = useMemo(() => {
+        if (!permissionsReady) {
+            return [];
+        }
         return SystemEnumHelper.getSortedSystems()
             .filter((systemId) => {
                 const sections = getNavSectionsForSystem(systemId);
                 return filterSectionsByPermissions(sections, permissions).length > 0;
             })
             .map((id) => SystemEnumHelper.getById(id));
-    }, [permissions]);
+    }, [permissions, permissionsReady]);
 
     useEffect(() => {
         const stored = SystemEnumHelper.readStoredSystem();
@@ -102,25 +90,23 @@ export function ActiveSystemProvider({children}: { children: ReactNode }) {
         }
     }, [activeSystem, isSettingsMode, systems]);
 
-    const navSections = useMemo(
-        () =>
-            filterSectionsByPermissions(
-                isSettingsMode ? SETTINGS_NAV_SECTIONS : getNavSectionsForSystem(activeSystem),
-                permissions,
-            ),
-        [activeSystem, isSettingsMode, permissions],
-    );
-
+    const navSections = useMemo(() => {
+        if (!permissionsReady) {
+            return [];
+        }
+        return filterSectionsByPermissions(
+            isSettingsMode ? SETTINGS_NAV_SECTIONS : getNavSectionsForSystem(activeSystem),
+            permissions,
+        );
+    }, [activeSystem, isSettingsMode, permissions, permissionsReady]);
     const selectSystem = useCallback((system: SystemEnum) => {
         setIsSettingsMode(false);
         setActiveSystem(system);
         SystemEnumHelper.persistSystem(system);
     }, []);
-
     const openSettings = useCallback(() => {
         setIsSettingsMode(true);
     }, []);
-
     const closeSettings = useCallback(() => {
         setIsSettingsMode(false);
     }, []);
@@ -128,13 +114,15 @@ export function ActiveSystemProvider({children}: { children: ReactNode }) {
     useEffect(() => {
         if (pathname === prevPathnameRef.current) return;
         prevPathnameRef.current = pathname;
-
         if (isSettingsPath(pathname)) {
             setIsSettingsMode(true);
             return;
         }
-
         setIsSettingsMode(false);
+        const fromPath = SystemEnumHelper.findSystemForHref(pathname, systemModuleGroups);
+        if (fromPath) {
+            setActiveSystem(fromPath);
+        }
     }, [pathname]);
 
     const value = useMemo(
@@ -150,9 +138,7 @@ export function ActiveSystemProvider({children}: { children: ReactNode }) {
         [activeSystem, systems, navSections, isSettingsMode, selectSystem, openSettings, closeSettings],
     );
 
-    return (
-        <ActiveSystemContext.Provider value={value}>{children}</ActiveSystemContext.Provider>
-    );
+    return <ActiveSystemContext.Provider value={value}>{children}</ActiveSystemContext.Provider>;
 }
 
 export function useActiveSystem(): ActiveSystemContextValue {
@@ -164,6 +150,6 @@ export function useActiveSystem(): ActiveSystemContextValue {
 }
 
 export function useActiveSystemRoutes(): AppRoute[] {
-    const {navSections} = useActiveSystem();
+    const { navSections } = useActiveSystem();
     return useMemo(() => navSections.flatMap((s) => s.routes), [navSections]);
 }

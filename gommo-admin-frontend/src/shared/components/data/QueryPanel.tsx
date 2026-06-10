@@ -1,5 +1,4 @@
 "use client";
-
 import { useQuery, type QueryKey, type UseQueryResult } from "@tanstack/react-query";
 import { useMemo, type ReactNode } from "react";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -9,141 +8,138 @@ import type { TableColumnConfig } from "@/shared/types/table.types";
 import { QueryRefreshProvider } from "@/shared/components/data/QueryRefreshContext";
 import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
 
-/** Props do render prop de {@link QueryPanel} (lista: `data` é sempre `TRow[]`). */
 export type QueryPanelRenderProps<TRow> = {
-  data: TRow[];
-  refetch: UseQueryResult<TRow[]>["refetch"];
-  isFetching: boolean;
+    data: TRow[];
+    refetch: UseQueryResult<TRow[]>["refetch"];
+    isFetching: boolean;
 };
 
 type QueryPanelProps<TRow extends object> = {
-  queryKey: QueryKey;
-  request: () => Promise<TRow[]>;
-  children: (props: QueryPanelRenderProps<TRow>) => ReactNode;
-  fallback?: ReactNode;
-  errorFallback?: (error: Error, retry: () => void) => ReactNode;
-  showRefresh?: boolean;
+    queryKey: QueryKey;
+    request: () => Promise<TRow[]>;
+    children: (props: QueryPanelRenderProps<TRow>) => ReactNode;
+    fallback?: ReactNode;
+    errorFallback?: (error: Error, retry: () => void) => ReactNode;
+    showRefresh?: boolean;
 };
 
-/** Props da tabela repassadas ao {@link DataTable} (sem `data` / `columns`). */
 export type QueryTablePanelTableProps<TRow extends object> = {
-  rowKey?: string;
-  emptyMessage?: string;
-  compact?: boolean;
-  striped?: boolean;
-  stickyHeader?: boolean;
-  onRowActivate?: (row: TRow) => void;
-  rowActivateOn?: DataTableRowActivateOn;
-  /** @deprecated Use `onRowActivate` + `rowActivateOn="click"` */
-  onRowClick?: (row: TRow) => void;
-  /** @deprecated Use `onRowActivate` + `rowActivateOn="doubleclick"` */
-  onRowDoubleClick?: (row: TRow) => void;
-  renderActions?: (row: TRow) => ReactNode;
-  actionsHeader?: string;
-  actionsClassName?: string;
+    rowKey?: string;
+    emptyMessage?: string;
+    compact?: boolean;
+    striped?: boolean;
+    stickyHeader?: boolean;
+    onRowActivate?: (row: TRow) => void;
+    rowActivateOn?: DataTableRowActivateOn;
+    /** @deprecated Use `onRowActivate` + `rowActivateOn="click"` */
+    onRowClick?: (row: TRow) => void;
+    /** @deprecated Use `onRowActivate` + `rowActivateOn="doubleclick"` */
+    onRowDoubleClick?: (row: TRow) => void;
+    renderActions?: (row: TRow) => ReactNode;
+    actionsHeader?: string;
+    actionsClassName?: string;
 };
 
-/** QueryPanel + DataTable — `onRowActivate` e demais props de tabela vão aqui. */
 export type QueryTablePanelProps<TRow extends object> = QueryTablePanelTableProps<TRow> & {
-  queryKey: QueryKey;
-  request: () => Promise<TRow[]>;
-  columns: TableColumnConfig[];
-  showRefresh?: boolean;
-  fallback?: ReactNode;
-  errorFallback?: (error: Error, retry: () => void) => ReactNode;
+    queryKey: QueryKey;
+    request: () => Promise<TRow[]>;
+    columns: TableColumnConfig[];
+    showRefresh?: boolean;
+    fallback?: ReactNode;
+    errorFallback?: (error: Error, retry: () => void) => ReactNode;
 };
 
 function TableSkeleton() {
-  return (
-    <div className="gommo-crud-panel-inset grid gap-2">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="skeleton-shimmer h-10 w-full" style={{ animationDelay: `${i * 70}ms` }} />
-      ))}
-    </div>
-  );
+    return (
+        <div className="gommo-crud-panel-inset grid gap-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="skeleton-shimmer h-10 w-full" style={{ animationDelay: `${i * 70}ms` }} />
+            ))}
+        </div>
+    );
 }
 
 export function QueryPanel<TRow extends object>({
-  queryKey,
-  request,
-  children,
-  fallback,
-  errorFallback,
+    queryKey,
+    request,
+    children,
+    fallback,
+    errorFallback,
 }: QueryPanelProps<TRow>) {
-  const query = useQuery({ queryKey, queryFn: request });
-
-  const refreshValue = useMemo(
-    () =>
-      !query.isLoading && !query.isError && query.data !== undefined
-        ? {
-            refetch: () => void query.refetch(),
-            isFetching: query.isFetching,
-          }
-        : null,
-    [query],
-  );
-
-  if (query.isLoading) {
-    return <QueryRefreshProvider value={null}>{fallback ?? <TableSkeleton />}</QueryRefreshProvider>;
-  }
-
-  if (query.isError) {
-    const ex = ExceptionCapture.fromUnknown(query.error);
-    const error = new Error(ex.displayMessage);
-    return (
-      <QueryRefreshProvider value={null}>
-        {errorFallback?.(error, () => void query.refetch()) ?? (
-          <div className="gommo-crud-panel-inset rounded-xl bg-error/8">
-            <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
-            <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
-              Tentar novamente
-            </Button>
-          </div>
-        )}
-      </QueryRefreshProvider>
+    const query = useQuery({ queryKey, queryFn: request });
+    const refreshValue = useMemo(
+        () =>
+            !query.isLoading && !query.isError && query.data !== undefined
+                ? {
+                      refetch: () => void query.refetch(),
+                      isFetching: query.isFetching,
+                  }
+                : null,
+        [query],
     );
-  }
 
-  if (query.data === undefined) return null;
+    if (query.isLoading) {
+        return <QueryRefreshProvider value={null}>{fallback ?? <TableSkeleton />}</QueryRefreshProvider>;
+    }
 
-  return (
-    <QueryRefreshProvider value={refreshValue}>
-      <div className="min-h-0 flex-1">
-        {children({ data: query.data, refetch: query.refetch, isFetching: query.isFetching })}
-      </div>
-    </QueryRefreshProvider>
-  );
+    if (query.isError) {
+        const ex = ExceptionCapture.fromUnknown(query.error);
+        const error = new Error(ex.displayMessage);
+        return (
+            <QueryRefreshProvider value={null}>
+                {errorFallback?.(error, () => void query.refetch()) ?? (
+                    <div className="gommo-crud-panel-inset rounded-xl bg-error/8">
+                        <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
+                        <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
+                            Tentar novamente
+                        </Button>
+                    </div>
+                )}
+            </QueryRefreshProvider>
+        );
+    }
+
+    if (query.data === undefined) return null;
+
+    return (
+        <QueryRefreshProvider value={refreshValue}>
+            <div className="min-h-0 flex-1">
+                {children({ data: query.data, refetch: query.refetch, isFetching: query.isFetching })}
+            </div>
+        </QueryRefreshProvider>
+    );
 }
 
 export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps<TRow>) {
-  const {
-    queryKey,
-    request,
-    columns,
-    showRefresh,
-    fallback,
-    errorFallback,
-    rowActivateOn = "doubleclick",
-    ...tableProps
-  } = props;
-  return (
-    <QueryPanel<TRow>
-      queryKey={queryKey}
-      request={request}
-      showRefresh={showRefresh}
-      fallback={fallback}
-      errorFallback={errorFallback}
-    >
-      {({ data }) => (
-        <div className="gommo-crud-panel-inset flex min-h-0 flex-1 flex-col">
-          <DataTable<TRow>
-            data={sortRowsByCreatedAtDesc(data)}
-            columns={columns}
-            rowActivateOn={rowActivateOn}
-            {...tableProps}
-          />
-        </div>
-      )}
-    </QueryPanel>
-  );
+    const {
+        queryKey,
+        request,
+        columns,
+        showRefresh,
+        fallback,
+        errorFallback,
+        rowActivateOn = "doubleclick",
+        ...tableProps
+    } = props;
+
+    return (
+        <QueryPanel<TRow>
+            queryKey={queryKey}
+            request={request}
+            showRefresh={showRefresh}
+            fallback={fallback}
+            errorFallback={errorFallback}
+        >
+            {({ data }) => (
+                <div className="gommo-crud-panel-inset flex min-h-0 flex-1 flex-col">
+                    <DataTable<TRow>
+                        data={sortRowsByCreatedAtDesc(data)}
+                        columns={columns}
+                        rowActivateOn={rowActivateOn}
+                        {...tableProps}
+                    />
+                </div>
+            )}
+        </QueryPanel>
+    );
 }

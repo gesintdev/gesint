@@ -1,8 +1,8 @@
+import type { ReactNode } from "react";
+import type { VacationPeriodContext } from "@/modules/person/vacation/types/vacation.types";
+import { daysUntilDate } from "@/modules/person/vacation/lib/vacation-rules";
+import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import clsx from "clsx";
-import type {ReactNode} from "react";
-import type {VacationPeriodContext} from "@/modules/person/vacation/types/vacation.types";
-import {daysUntilDate} from "@/modules/person/vacation/lib/vacation-rules";
-import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 
 const STATUS_LABEL: Record<VacationPeriodContext["status"], string> = {
     ACQUIRING: "Em aquisição",
@@ -30,7 +30,7 @@ function formatRange(start: string | undefined, end: string | undefined): string
     return `${formatDate(start)} → ${formatDate(end)}`;
 }
 
-function SummaryCard({label, children, className}: { label: string; children: ReactNode; className?: string }) {
+function SummaryCard({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
     return (
         <div
             className={clsx(
@@ -39,14 +39,12 @@ function SummaryCard({label, children, className}: { label: string; children: Re
             )}
         >
             <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">{label}</p>
-            <div className="mt-1 min-h-5.5 flex-1 text-sm font-medium leading-snug text-base-content">
-                {children}
-            </div>
+            <div className="mt-1 min-h-5.5 flex-1 text-sm font-medium leading-snug text-base-content">{children}</div>
         </div>
     );
 }
 
-function SummaryAlert({children, tone}: { children: ReactNode; tone: "warning" | "error" }) {
+function SummaryAlert({ children, tone }: { children: ReactNode; tone: "warning" | "error" }) {
     return (
         <p
             className={clsx(
@@ -62,19 +60,19 @@ function SummaryAlert({children, tone}: { children: ReactNode; tone: "warning" |
 }
 
 export function VacationPeriodSummary({
-                                          context,
-                                          loading,
-                                          collaboratorId,
-                                          onCollaboratorChange,
-                                          collaboratorError,
-                                      }: Props) {
+    context,
+    loading,
+    collaboratorId,
+    onCollaboratorChange,
+    collaboratorError,
+}: Props) {
     if (loading) {
         return (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="skeleton-shimmer col-span-1 h-10 rounded-lg sm:col-span-2"/>
-                <div className="skeleton-shimmer col-span-1 h-19 rounded-lg sm:col-span-2"/>
-                {Array.from({length: 4}).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-19 rounded-lg"/>
+                <div className="skeleton-shimmer col-span-1 h-10 rounded-lg sm:col-span-2" />
+                <div className="skeleton-shimmer col-span-1 h-19 rounded-lg sm:col-span-2" />
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-19 rounded-lg" />
                 ))}
             </div>
         );
@@ -84,15 +82,13 @@ export function VacationPeriodSummary({
         context?.periodIndex != null && context.periodIndex > 0
             ? `${context.periodIndex + 1}º período aquisitivo em foco`
             : null;
-
     const entitledDays = context?.entitledDays ?? 0;
     const concessiveEnd = context?.concessive?.end;
     const daysLeft =
         concessiveEnd && (context?.status === "CONCESSIVE" || context?.status === "AVAILABLE")
             ? daysUntilDate(concessiveEnd)
             : null;
-    const daysOverdue =
-        concessiveEnd && context?.status === "EXPIRED" ? Math.abs(daysUntilDate(concessiveEnd)) : null;
+    const daysOverdue = concessiveEnd && context?.status === "EXPIRED" ? Math.abs(daysUntilDate(concessiveEnd)) : null;
 
     return (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -104,46 +100,40 @@ export function VacationPeriodSummary({
                     error={collaboratorError}
                 />
             </div>
-
             {context?.contractType === "CLT" && !context.hireDate ? (
                 <SummaryAlert tone="warning">
-                    Não encontramos data de início na admissão concluída nem no contrato de trabalho. Informe a data
-                    no vínculo ou no contrato para calcular os períodos.
+                    Não encontramos data de início na admissão concluída nem no contrato de trabalho. Informe a data no
+                    vínculo ou no contrato para calcular os períodos.
                 </SummaryAlert>
             ) : null}
-
             <SummaryCard label="Data de início" className="sm:col-span-2">
                 <span className="block">{formatDate(context?.hireDate)}</span>
                 {periodLabel ? (
                     <span className="mt-1 block text-xs font-normal text-base-content/60">{periodLabel}</span>
                 ) : null}
             </SummaryCard>
-
             <SummaryCard label="Período aquisitivo">
-                <span
-                    className="block wrap-break-word">{formatRange(context?.acquisition?.start, context?.acquisition?.end)}</span>
+                <span className="block wrap-break-word">
+                    {formatRange(context?.acquisition?.start, context?.acquisition?.end)}
+                </span>
             </SummaryCard>
-
             <SummaryCard label="Período concessivo">
-                <span
-                    className="block wrap-break-word">{formatRange(context?.concessive?.start, context?.concessive?.end)}</span>
+                <span className="block wrap-break-word">
+                    {formatRange(context?.concessive?.start, context?.concessive?.end)}
+                </span>
             </SummaryCard>
-
             {daysLeft != null && daysLeft >= 0 ? (
                 <SummaryAlert tone="warning">
                     Prazo para concessão: {daysLeft} dia(s) restante(s) (até {formatDate(concessiveEnd)}). Após o
                     vencimento, risco de pagamento em dobro (art. 137 CLT).
                 </SummaryAlert>
             ) : null}
-
             <SummaryCard label="Dias de direito">
                 <span>{entitledDays} dias</span>
             </SummaryCard>
-
             <SummaryCard label="Situação">
                 <span>{context ? STATUS_LABEL[context.status] : "—"}</span>
             </SummaryCard>
-
             {context?.status === "EXPIRED" ? (
                 <SummaryAlert tone="error">
                     Período concessivo vencido

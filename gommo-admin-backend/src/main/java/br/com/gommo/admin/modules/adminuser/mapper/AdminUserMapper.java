@@ -1,9 +1,10 @@
 package br.com.gommo.admin.modules.adminuser.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.admin.modules.adminuser.dto.AdminUserRequestDto;
 import br.com.gommo.admin.modules.adminuser.dto.AdminUserResponseDto;
 import br.com.gommo.admin.modules.adminuser.entity.AdminUser;
-import org.springframework.stereotype.Component;
 
 @Component
 public class AdminUserMapper {

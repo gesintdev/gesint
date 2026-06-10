@@ -1,10 +1,9 @@
 "use client";
-
-import {create} from "zustand";
-import {createJSONStorage, persist} from "zustand/middleware";
-import type {OpenWorkspaceRecordInput, OpenWorkspaceTabInput, WorkspaceTab} from "@/shared/workspace/workspace.types";
-import {buildWorkspaceTabId, parseWorkspaceTabId} from "@/shared/workspace/workspace-tab-id";
-import {defaultShortLabel} from "@/shared/workspace/workspace-routes";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import type { OpenWorkspaceRecordInput, OpenWorkspaceTabInput, WorkspaceTab } from "@/shared/workspace/workspace.types";
+import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
+import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
 import {
     DASHBOARD_ROUTE_ID,
     DASHBOARD_TAB_ID,
@@ -26,7 +25,7 @@ type WorkspaceState = {
     clearTitleSuffix: (tabId: string) => void;
 };
 
-export {DASHBOARD_TAB_ID};
+export { DASHBOARD_TAB_ID };
 
 function createDashboardTab(): WorkspaceTab {
     return {
@@ -61,7 +60,7 @@ function upsertTab(tabs: WorkspaceTab[], tab: WorkspaceTab): WorkspaceTab[] {
     const idx = tabs.findIndex((t) => t.id === tab.id);
     if (idx === -1) return [...tabs, tab];
     const next = [...tabs];
-    next[idx] = {...next[idx], ...tab};
+    next[idx] = { ...next[idx], ...tab };
     return next;
 }
 
@@ -71,10 +70,9 @@ function resolveActiveTabId(activeRaw: string | null, moduleTabs: WorkspaceTab[]
     return DASHBOARD_TAB_ID;
 }
 
-/** Garante id estável routeId::entityKey após reidratação. */
 function normalizeTabs(tabs: WorkspaceTab[]): WorkspaceTab[] {
     return tabs.map((tab) => {
-        const {routeId, entityKey} = parseWorkspaceTabId(tab.id);
+        const { routeId, entityKey } = parseWorkspaceTabId(tab.id);
         return {
             ...tab,
             id: buildWorkspaceTabId(routeId, entityKey),
@@ -92,26 +90,24 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             _hasHydrated: false,
             setHasHydrated: (value) => {
                 if (!value) {
-                    set({_hasHydrated: false});
+                    set({ _hasHydrated: false });
                     return;
                 }
                 const tabs = stripDashboardTabs(normalizeTabs(get().tabs));
                 const activeId = resolveActiveTabId(get().activeTabId, tabs);
-                set({_hasHydrated: true, tabs, activeTabId: activeId});
+                set({ _hasHydrated: true, tabs, activeTabId: activeId });
             },
-
             openModuleTab: (input) => {
                 if (input.routeId === DASHBOARD_ROUTE_ID) {
-                    set({activeTabId: DASHBOARD_TAB_ID});
+                    set({ activeTabId: DASHBOARD_TAB_ID });
                     return;
                 }
-                const tab = buildTab({...input, entityKey: "list"});
+                const tab = buildTab({ ...input, entityKey: "list" });
                 set({
                     tabs: upsertTab(get().tabs, tab),
                     activeTabId: tab.id,
                 });
             },
-
             openRecordTab: (input) => {
                 const tab = buildTab(input);
                 set({
@@ -119,20 +115,19 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     activeTabId: tab.id,
                 });
             },
-
             focusTab: (tabId) => {
                 if (isDashboardTabId(tabId)) {
-                    set({activeTabId: DASHBOARD_TAB_ID});
+                    set({ activeTabId: DASHBOARD_TAB_ID });
                     return;
                 }
+
                 if (get().tabs.some((t) => t.id === tabId)) {
-                    set({activeTabId: tabId});
+                    set({ activeTabId: tabId });
                 }
             },
-
             closeTab: (tabId) => {
                 if (isDashboardTabId(tabId)) return;
-                const {tabs, activeTabId} = get();
+                const { tabs, activeTabId } = get();
                 const nextTabs = tabs.filter((t) => t.id !== tabId);
                 let nextActive = activeTabId;
                 if (activeTabId === tabId) {
@@ -140,26 +135,23 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     const neighbor = nextTabs[closedIndex] ?? nextTabs[closedIndex - 1] ?? null;
                     nextActive = neighbor?.id ?? DASHBOARD_TAB_ID;
                 }
-                set({tabs: nextTabs, activeTabId: nextActive});
+                set({ tabs: nextTabs, activeTabId: nextActive });
             },
-
-            closeAllTabs: () => set({tabs: [], activeTabId: DASHBOARD_TAB_ID}),
-
+            closeAllTabs: () => set({ tabs: [], activeTabId: DASHBOARD_TAB_ID }),
             setTitleSuffix: (tabId, titleSuffix) => {
                 const tabs = get().tabs;
                 const current = tabs.find((t) => t.id === tabId);
                 if (!current || current.titleSuffix === titleSuffix) return;
                 set({
-                    tabs: tabs.map((t) => (t.id === tabId ? {...t, titleSuffix} : t)),
+                    tabs: tabs.map((t) => (t.id === tabId ? { ...t, titleSuffix } : t)),
                 });
             },
-
             clearTitleSuffix: (tabId) => {
                 const tabs = get().tabs;
                 const current = tabs.find((t) => t.id === tabId);
                 if (!current?.titleSuffix) return;
                 set({
-                    tabs: tabs.map((t) => (t.id === tabId ? {...t, titleSuffix: undefined} : t)),
+                    tabs: tabs.map((t) => (t.id === tabId ? { ...t, titleSuffix: undefined } : t)),
                 });
             },
         }),
@@ -167,7 +159,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             name: "gommo-workspace-tabs",
             storage: createJSONStorage(() => sessionStorage),
             partialize: (state) => ({
-                tabs: stripDashboardTabs(state.tabs).map(({icon, ...rest}) => {
+                tabs: stripDashboardTabs(state.tabs).map(({ icon, ...rest }) => {
                     void icon;
                     return rest;
                 }),

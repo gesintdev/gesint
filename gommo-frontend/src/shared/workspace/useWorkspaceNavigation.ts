@@ -1,17 +1,9 @@
 "use client";
-
 import { findRouteByHref } from "@/shared/workspace/workspace-routes";
 
-export {
-    useWorkspaceLocation,
-    useWorkspaceNavigation,
-} from "@/shared/workspace/WorkspaceNavigationProvider";
+export { workspaceUrl, workspaceUrlForTab, workspaceUrlWithCrud } from "@/shared/workspace/workspace-navigation-url";
 
-export {
-    workspaceUrl,
-    workspaceUrlForTab,
-    workspaceUrlWithCrud,
-} from "@/shared/workspace/workspace-navigation-url";
+export { useWorkspaceLocation, useWorkspaceNavigation } from "@/shared/workspace/WorkspaceNavigationProvider";
 
 export type WorkspaceCrudLocation = {
     href: string;

@@ -1,14 +1,13 @@
 "use client";
-
+import { ChevronDown, X } from "lucide-react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
+import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { useClickOutside, useListboxKeyboard } from "@/shared/components/ui/input/use-listbox-keyboard";
 import clsx from "clsx";
-import {ChevronDown, X} from "lucide-react";
-import {useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState} from "react";
-import {createPortal} from "react-dom";
-import type {InputFieldChromeProps} from "@/shared/components/ui/input/input-field.types";
-import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
-import {InputSelectPanel} from "@/shared/components/ui/input/InputSelectPanel";
-import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
-import {useClickOutside, useListboxKeyboard} from "@/shared/components/ui/input/use-listbox-keyboard";
 
 export type InputSelectProps = InputFieldChromeProps & {
     items: SelectItem[];
@@ -20,20 +19,20 @@ export type InputSelectProps = InputFieldChromeProps & {
 };
 
 export function InputSelect({
-                                items,
-                                value,
-                                onValueChange,
-                                placeholder = "Selecione...",
-                                clearable = false,
-                                label,
-                                hint,
-                                error,
-                                required,
-                                disabled,
-                                id: idProp,
-                                wrapperClassName,
-                                className,
-                            }: InputSelectProps) {
+    items,
+    value,
+    onValueChange,
+    placeholder = "Selecione...",
+    clearable = false,
+    label,
+    hint,
+    error,
+    required,
+    disabled,
+    id: idProp,
+    wrapperClassName,
+    className,
+}: InputSelectProps) {
     const autoId = useId();
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const listId = `${id}-listbox`;
@@ -41,12 +40,9 @@ export function InputSelect({
     const rootRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState(false);
-    const [panelPosition, setPanelPosition] = useState({top: 0, left: 0, width: 0});
-
+    const [panelPosition, setPanelPosition] = useState({ top: 0, left: 0, width: 0 });
     const selected = useMemo(() => items.find((i) => i.value === value), [items, value]);
-
     const close = useCallback(() => setOpen(false), []);
-
     const updatePanelPosition = useCallback(() => {
         const anchor = rootRef.current;
         if (!anchor) return;
@@ -83,9 +79,7 @@ export function InputSelect({
         },
         [close, onValueChange],
     );
-
-    const {activeIndex, setActiveIndex, onKeyDown} = useListboxKeyboard(items, open, pick, close);
-
+    const { activeIndex, setActiveIndex, onKeyDown } = useListboxKeyboard(items, open, pick, close);
     const handleKeyDown = (e: React.KeyboardEvent) => {
         const signal = onKeyDown(e);
         if (signal === "open") setOpen(true);
@@ -125,39 +119,38 @@ export function InputSelect({
                 >
                     <span className="min-w-0 flex-1 truncate">{selected?.label ?? placeholder}</span>
                     <span className="flex shrink-0 items-center gap-1 text-base-content/40">
-            {clearable && value && !disabled && (
-                <X
-                    className="size-3.5 hover:text-base-content"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onValueChange("");
-                    }}
-                />
-            )}
-                        <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")}/>
-          </span>
+                        {clearable && value && !disabled && (
+                            <X
+                                className="size-3.5 hover:text-base-content"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onValueChange("");
+                                }}
+                            />
+                        )}
+                        <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")} />
+                    </span>
                 </button>
-
                 {open && typeof document !== "undefined"
                     ? createPortal(
-                        <InputSelectPanel
-                            ref={panelRef}
-                            listId={listId}
-                            items={items}
-                            activeIndex={activeIndex}
-                            selectedValue={value}
-                            onPick={pick}
-                            onHighlight={setActiveIndex}
-                            className="fixed z-[200]"
-                            style={{
-                                top: panelPosition.top,
-                                left: panelPosition.left,
-                                width: panelPosition.width,
-                                minWidth: panelPosition.width,
-                            }}
-                        />,
-                        document.body,
-                    )
+                          <InputSelectPanel
+                              ref={panelRef}
+                              listId={listId}
+                              items={items}
+                              activeIndex={activeIndex}
+                              selectedValue={value}
+                              onPick={pick}
+                              onHighlight={setActiveIndex}
+                              className="fixed z-[200]"
+                              style={{
+                                  top: panelPosition.top,
+                                  left: panelPosition.left,
+                                  width: panelPosition.width,
+                                  minWidth: panelPosition.width,
+                              }}
+                          />,
+                          document.body,
+                      )
                     : null}
             </div>
         </InputFieldChrome>

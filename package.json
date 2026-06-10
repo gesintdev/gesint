@@ -1,0 +1,17 @@
+{
+    "name": "gommo",
+    "private": true,
+    "scripts": {
+        "format": "npm run format:front && npm run format:java",
+        "lint:fix": "npm run lint:fix --prefix gommo-frontend && npm run lint:fix --prefix gommo-admin-frontend",
+        "format:front": "node scripts/dev/normalize-block-spacing.mjs && prettier --config prettier.config.mjs --ignore-path .prettierignore --write \"gommo-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\" \"gommo-admin-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\"",
+        "format:front:check": "prettier --config prettier.config.mjs --ignore-path .prettierignore --check \"gommo-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\" \"gommo-admin-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\"",
+        "format:java": "mvn -q spotless:apply"
+    },
+    "devDependencies": {
+        "eslint-config-prettier": "^10.1.5",
+        "eslint-plugin-simple-import-sort": "^12.1.1",
+        "eslint-plugin-unused-imports": "^4.1.4",
+        "prettier": "^3.5.3"
+    }
+}

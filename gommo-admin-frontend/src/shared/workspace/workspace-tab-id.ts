@@ -10,7 +10,7 @@ export function parseWorkspaceTabId(tabId: string): {
     entityKey: WorkspaceEntityKey;
 } {
     const sep = tabId.indexOf("::");
-    if (sep === -1) return {routeId: tabId, entityKey: "list"};
+    if (sep === -1) return { routeId: tabId, entityKey: "list" };
     return {
         routeId: tabId.slice(0, sep),
         entityKey: tabId.slice(sep + 2) as WorkspaceEntityKey,

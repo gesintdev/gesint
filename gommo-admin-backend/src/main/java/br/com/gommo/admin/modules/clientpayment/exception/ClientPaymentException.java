@@ -1,7 +1,8 @@
 package br.com.gommo.admin.modules.clientpayment.exception;
 
-import br.com.gommo.admin.core.exception.BusinessException;
 import org.springframework.http.HttpStatus;
+
+import br.com.gommo.admin.core.exception.BusinessException;
 
 public final class ClientPaymentException {
 

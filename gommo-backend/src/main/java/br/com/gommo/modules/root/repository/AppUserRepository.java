@@ -1,18 +1,22 @@
 package br.com.gommo.modules.root.repository;
 
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.Query;
+
 import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.root.entity.AppUser;
-import java.util.Optional;
-import java.util.UUID;
-import org.springframework.data.jpa.repository.Query;
 
 public interface AppUserRepository extends IBaseRepository<AppUser> {
 
-    @Query("SELECT u FROM AppUser u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = :username AND u.status <> :deleted")
+    @Query(
+            "SELECT u FROM AppUser u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = :username AND u.status <> :deleted")
     Optional<AppUser> findActiveByUsername(String username, StatusEnum deleted);
 
-    @Query("""
+    @Query(
+            """
             SELECT u
             FROM AppUser u
             LEFT JOIN FETCH u.roles r
@@ -22,7 +26,8 @@ public interface AppUserRepository extends IBaseRepository<AppUser> {
             """)
     Optional<AppUser> findActiveByLogin(String login, StatusEnum deleted);
 
-    @Query("SELECT u FROM AppUser u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.id = :id AND u.status <> :deleted")
+    @Query(
+            "SELECT u FROM AppUser u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.id = :id AND u.status <> :deleted")
     Optional<AppUser> findActiveByIdWithRoles(UUID id, StatusEnum deleted);
 
     @Query("SELECT u FROM AppUser u LEFT JOIN FETCH u.roles WHERE u.id = :id AND u.status <> :deleted")

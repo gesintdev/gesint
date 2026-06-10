@@ -1,15 +1,12 @@
 package br.com.gommo.modules.storage.controller;
 
-import br.com.gommo.modules.storage.dto.StorageLinkRequestDto;
-import br.com.gommo.modules.storage.dto.StorageLinkUpdateRequestDto;
-import br.com.gommo.modules.storage.dto.StorageObjectLinkResponseDto;
-import br.com.gommo.modules.storage.dto.StorageObjectResponseDto;
-import br.com.gommo.modules.storage.service.IStorageService;
 import jakarta.validation.Valid;
+
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,6 +22,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import br.com.gommo.modules.storage.dto.StorageLinkRequestDto;
+import br.com.gommo.modules.storage.dto.StorageLinkUpdateRequestDto;
+import br.com.gommo.modules.storage.dto.StorageObjectLinkResponseDto;
+import br.com.gommo.modules.storage.dto.StorageObjectResponseDto;
+import br.com.gommo.modules.storage.service.IStorageService;
 
 @RestController
 @RequestMapping("/api/v1/storage")
@@ -69,7 +72,8 @@ public class StorageController {
     public ResponseEntity<InputStreamResource> download(@PathVariable UUID id) {
         StorageObjectResponseDto meta = storageService.findObject(id);
         InputStream stream = storageService.download(id);
-        String contentType = meta.getContentType() != null ? meta.getContentType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        String contentType =
+                meta.getContentType() != null ? meta.getContentType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
         String filename = Path.of(meta.getObjectKey()).getFileName().toString();
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")

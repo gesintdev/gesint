@@ -15,7 +15,4 @@ export type TabbedCrudRouteConfig = {
     list: LazyComponent;
     form: LazyComponent;
     listPrimaryAction?: LazyComponent;
-} & Pick<
-    CrudScreenProps,
-    "showListToFormButton" | "listToolbar" | "formTabLabel" | "formTabLabelEdit"
->;
+} & Pick<CrudScreenProps, "showListToFormButton" | "listToolbar" | "formTabLabel" | "formTabLabelEdit">;

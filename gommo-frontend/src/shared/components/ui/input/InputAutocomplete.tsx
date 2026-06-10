@@ -1,11 +1,11 @@
+import { Loader2, Search, X } from "lucide-react";
+import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
+import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
+import type { SelectItem, SelectSearchFn } from "@/shared/components/ui/input/select-item.types";
+import { useClickOutside, useListboxKeyboard } from "@/shared/components/ui/input/use-listbox-keyboard";
 import clsx from "clsx";
-import {Loader2, Search, X} from "lucide-react";
-import {type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState} from "react";
-import type {InputFieldChromeProps} from "@/shared/components/ui/input/input-field.types";
-import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
-import {InputSelectPanel} from "@/shared/components/ui/input/InputSelectPanel";
-import type {SelectItem, SelectSearchFn} from "@/shared/components/ui/input/select-item.types";
-import {useClickOutside, useListboxKeyboard} from "@/shared/components/ui/input/use-listbox-keyboard";
 
 const PAGE_SIZE = 6;
 const DEBOUNCE_MS = 300;
@@ -27,30 +27,29 @@ export type InputAutocompleteProps = InputFieldChromeProps & {
 };
 
 export function InputAutocomplete({
-                                      value,
-                                      selectedLabel: selectedLabelProp,
-                                      onValueChange,
-                                      onSearch,
-                                      placeholder = "Buscar...",
-                                      minChars = 0,
-                                      clearable = true,
-                                      label,
-                                      hint,
-                                      error,
-                                      required,
-                                      disabled,
-                                      id: idProp,
-                                      wrapperClassName,
-                                      className,
-                                      autoComplete = "off",
-                                      trailingAction,
-                                  }: InputAutocompleteProps) {
+    value,
+    selectedLabel: selectedLabelProp,
+    onValueChange,
+    onSearch,
+    placeholder = "Buscar...",
+    minChars = 0,
+    clearable = true,
+    label,
+    hint,
+    error,
+    required,
+    disabled,
+    id: idProp,
+    wrapperClassName,
+    className,
+    autoComplete = "off",
+    trailingAction,
+}: InputAutocompleteProps) {
     const autoId = useId();
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const listId = `${id}-listbox`;
     const rootRef = useRef<HTMLDivElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [items, setItems] = useState<SelectItem[]>([]);
@@ -58,9 +57,7 @@ export function InputAutocomplete({
     const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedLabel, setSelectedLabel] = useState("");
-
     const displayText = open ? query : selectedLabel;
-
     const close = useCallback(() => {
         setOpen(false);
         setQuery("");
@@ -87,7 +84,6 @@ export function InputAutocomplete({
         },
         [minChars, onSearch],
     );
-
     const scheduleSearch = useCallback(
         (q: string) => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -109,6 +105,7 @@ export function InputAutocomplete({
             setSelectedLabel("");
             return;
         }
+
         if (!open && selectedLabelProp !== undefined) {
             setSelectedLabel(selectedLabelProp);
         }
@@ -122,21 +119,17 @@ export function InputAutocomplete({
         },
         [close, onValueChange],
     );
-
-    const {activeIndex, setActiveIndex, onKeyDown} = useListboxKeyboard(items, open, pick, close);
-
+    const { activeIndex, setActiveIndex, onKeyDown } = useListboxKeyboard(items, open, pick, close);
     const handleFocus = () => {
         if (disabled) return;
         setOpen(true);
         scheduleSearch(query);
     };
-
     const handleChange = (next: string) => {
         setQuery(next);
         setOpen(true);
         scheduleSearch(next);
     };
-
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "ArrowDown" && !open) {
             setOpen(true);
@@ -144,7 +137,6 @@ export function InputAutocomplete({
         }
         onKeyDown(e);
     };
-
     const footer = useMemo(() => {
         if (!hasMore) return null;
         return (
@@ -173,14 +165,8 @@ export function InputAutocomplete({
             wrapperClassName={wrapperClassName}
         >
             <div ref={rootRef} className="relative">
-                <div
-                    className={clsx(
-                        "gommo-field",
-                        fieldClass(disabled, false, Boolean(error)),
-                        className,
-                    )}
-                >
-                    <Search className="size-4 shrink-0 text-base-content/35" aria-hidden/>
+                <div className={clsx("gommo-field", fieldClass(disabled, false, Boolean(error)), className)}>
+                    <Search className="size-4 shrink-0 text-base-content/35" aria-hidden />
                     <input
                         id={id}
                         type="text"
@@ -202,7 +188,7 @@ export function InputAutocomplete({
                         onFocus={handleFocus}
                         onKeyDown={handleKeyDown}
                     />
-                    {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35"/>}
+                    {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}
                     {clearable && value && !disabled && !loading && (
                         <button
                             type="button"
@@ -215,12 +201,11 @@ export function InputAutocomplete({
                                 setItems([]);
                             }}
                         >
-                            <X className="size-3.5"/>
+                            <X className="size-3.5" />
                         </button>
                     )}
                     {trailingAction}
                 </div>
-
                 {open && (
                     <InputSelectPanel
                         listId={listId}

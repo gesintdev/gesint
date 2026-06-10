@@ -1,8 +1,9 @@
 package br.com.gommo.admin.core.base.dto;
 
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 @Builder

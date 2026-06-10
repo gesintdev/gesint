@@ -1,12 +1,11 @@
-import {useQuery, type QueryKey, type UseQueryResult} from "@tanstack/react-query";
-import {useMemo, type ReactNode} from "react";
-import {ExceptionCapture} from "@/shared/exceptions";
-import {Button} from "@/shared/components/ui/Button";
-import {DataTable, type DataTableRowActivateOn} from "@/shared/components/ui/DataTable";
-import type {TableColumnConfig} from "@/shared/types/table.types";
-import {QueryRefreshProvider} from "@/shared/components/data/QueryRefreshContext";
-import {sortRowsByCreatedAtDesc} from "@/shared/lib/table/sort-rows-by-created-at";
-
+import { useQuery, type QueryKey, type UseQueryResult } from "@tanstack/react-query";
+import { useMemo, type ReactNode } from "react";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { Button } from "@/shared/components/ui/Button";
+import { DataTable, type DataTableRowActivateOn } from "@/shared/components/ui/DataTable";
+import type { TableColumnConfig } from "@/shared/types/table.types";
+import { QueryRefreshProvider } from "@/shared/components/data/QueryRefreshContext";
+import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
 /** Props do render prop de {@link QueryPanel} (lista: `data` é sempre `TRow[]`). */
 export type QueryPanelRenderProps<TRow> = {
     data: TRow[];
@@ -23,7 +22,6 @@ type QueryPanelProps<TRow extends object> = {
     showRefresh?: boolean;
 };
 
-/** Props da tabela repassadas ao {@link DataTable} (sem `data` / `columns`). */
 export type QueryTablePanelTableProps<TRow extends object> = {
     rowKey?: string;
     emptyMessage?: string;
@@ -41,7 +39,6 @@ export type QueryTablePanelTableProps<TRow extends object> = {
     actionsClassName?: string;
 };
 
-/** QueryPanel + DataTable — `onRowActivate` e demais props de tabela vão aqui. */
 export type QueryTablePanelProps<TRow extends object> = QueryTablePanelTableProps<TRow> & {
     queryKey: QueryKey;
     request: () => Promise<TRow[]>;
@@ -54,35 +51,34 @@ export type QueryTablePanelProps<TRow extends object> = QueryTablePanelTableProp
 function TableSkeleton() {
     return (
         <div className="grid gap-2 p-5">
-            {Array.from({length: 5}).map((_, i) => (
-                <div key={i} className="skeleton-shimmer h-10 w-full" style={{animationDelay: `${i * 70}ms`}}/>
+            {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="skeleton-shimmer h-10 w-full" style={{ animationDelay: `${i * 70}ms` }} />
             ))}
         </div>
     );
 }
 
 export function QueryPanel<TRow extends object>({
-                                                    queryKey,
-                                                    request,
-                                                    children,
-                                                    fallback,
-                                                    errorFallback,
-                                                }: QueryPanelProps<TRow>) {
-    const query = useQuery({queryKey, queryFn: request});
-
+    queryKey,
+    request,
+    children,
+    fallback,
+    errorFallback,
+}: QueryPanelProps<TRow>) {
+    const query = useQuery({ queryKey, queryFn: request });
     const refreshValue = useMemo(
         () =>
             !query.isLoading && !query.isError && query.data !== undefined
                 ? {
-                    refetch: () => void query.refetch(),
-                    isFetching: query.isFetching,
-                }
+                      refetch: () => void query.refetch(),
+                      isFetching: query.isFetching,
+                  }
                 : null,
         [query],
     );
 
     if (query.isLoading) {
-        return <QueryRefreshProvider value={null}>{fallback ?? <TableSkeleton/>}</QueryRefreshProvider>;
+        return <QueryRefreshProvider value={null}>{fallback ?? <TableSkeleton />}</QueryRefreshProvider>;
     }
 
     if (query.isError) {
@@ -107,7 +103,7 @@ export function QueryPanel<TRow extends object>({
     return (
         <QueryRefreshProvider value={refreshValue}>
             <div className="min-h-0 flex-1 p-2">
-                {children({data: query.data, refetch: query.refetch, isFetching: query.isFetching})}
+                {children({ data: query.data, refetch: query.refetch, isFetching: query.isFetching })}
             </div>
         </QueryRefreshProvider>
     );
@@ -124,6 +120,7 @@ export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps
         rowActivateOn = "doubleclick",
         ...tableProps
     } = props;
+
     return (
         <QueryPanel<TRow>
             queryKey={queryKey}
@@ -132,7 +129,7 @@ export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps
             fallback={fallback}
             errorFallback={errorFallback}
         >
-            {({data}) => (
+            {({ data }) => (
                 <DataTable<TRow>
                     data={sortRowsByCreatedAtDesc(data)}
                     columns={columns}

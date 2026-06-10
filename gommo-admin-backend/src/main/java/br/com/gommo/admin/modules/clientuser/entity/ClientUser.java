@@ -1,15 +1,18 @@
 package br.com.gommo.admin.modules.clientuser.entity;
 
-import br.com.gommo.admin.core.entity.AuditEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import br.com.gommo.admin.core.entity.AuditEntity;
 
 @Entity
 @Table(schema = "admin", name = "client_user")
@@ -23,9 +26,21 @@ public class ClientUser extends AuditEntity {
     @Column(name = "client_id", nullable = false)
     private UUID clientId;
 
-    @Column(name = "app_user_id", nullable = false)
-    private UUID appUserId;
+    @Column(name = "tenant_app_user_id")
+    private UUID tenantAppUserId;
+
+    @Column(length = 100)
+    private String username;
+
+    @Column(length = 200)
+    private String email;
+
+    @Column(name = "password_hash")
+    private String passwordHash;
 
     @Column(name = "display_name", length = 200)
     private String displayName;
+
+    @Column(name = "provisioned_at")
+    private OffsetDateTime provisionedAt;
 }

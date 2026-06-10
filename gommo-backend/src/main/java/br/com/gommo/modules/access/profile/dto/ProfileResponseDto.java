@@ -1,16 +1,18 @@
 package br.com.gommo.modules.access.profile.dto;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.access.entity.SystemScopeEnum;
-import br.com.gommo.modules.root.dto.PermissionSummaryDto;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.access.entity.SystemScopeEnum;
+import br.com.gommo.modules.root.dto.PermissionSummaryDto;
 
 @Getter
 @Setter

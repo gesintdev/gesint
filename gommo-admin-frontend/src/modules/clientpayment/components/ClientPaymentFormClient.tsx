@@ -1,7 +1,6 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { clientKeys } from "@/modules/client/client.query";
 import { clientService } from "@/modules/client/services/client.service";
@@ -10,8 +9,8 @@ import type { ClientPaymentCreateDto } from "@/modules/clientpayment/dto/clientp
 import { CLIENT_PAYMENT_CLIENT_MESSAGES } from "@/modules/clientpayment/exceptions/clientpayment.messages";
 import { clientPaymentToFormDto, emptyClientPaymentForm } from "@/modules/clientpayment/lib/clientpayment.mapper";
 import { clientPaymentService } from "@/modules/clientpayment/services/clientpayment.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { Button } from "@/shared/components/ui/Button";
 import { InputCurrency, InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
@@ -23,9 +22,7 @@ export function ClientPaymentFormClient() {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ClientPaymentCreateDto>(emptyClientPaymentForm());
     const [error, setError] = useState<string | null>(null);
-
     const clientsQuery = useQuery({ queryKey: clientKeys.all, queryFn: () => clientService.getAll() });
-
     const detailQuery = useQuery({
         queryKey: clientPaymentKeys.detail(editingId ?? ""),
         queryFn: () => clientPaymentService.getById(editingId!),
@@ -39,6 +36,7 @@ export function ClientPaymentFormClient() {
             setForm(emptyClientPaymentForm());
             return;
         }
+
         if (detailQuery.data) setForm(clientPaymentToFormDto(detailQuery.data));
     }, [isEditing, detailQuery.data]);
 
@@ -63,7 +61,6 @@ export function ClientPaymentFormClient() {
             );
         },
     });
-
     const clientOptions = (clientsQuery.data ?? []).map((c) => ({ value: c.id, label: c.name }));
     const paymentStatusItems = [
         { value: "PENDING", label: "Pendente" },
@@ -71,7 +68,6 @@ export function ClientPaymentFormClient() {
         { value: "OVERDUE", label: "Em atraso" },
         { value: "CANCELLED", label: "Cancelado" },
     ];
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);

@@ -2,8 +2,9 @@ package br.com.gommo.admin.modules.client.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.gommo.admin.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
+
+import br.com.gommo.admin.support.AbstractIntegrationTest;
 
 class ClientControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -16,8 +17,7 @@ class ClientControllerIntegrationTest extends AbstractIntegrationTest {
                 "/api/v1/clients",
                 """
                 {"name":"Empresa Teste","slug":"%s"}
-                """
-                        .formatted(slug),
+                """.formatted(slug),
                 token);
 
         assertThat(created.statusCode()).isEqualTo(201);
@@ -28,11 +28,9 @@ class ClientControllerIntegrationTest extends AbstractIntegrationTest {
     void create_duplicateSlug_shouldReturnConflict() throws Exception {
         var token = obtainAccessToken();
         var slug = "dup-slug-" + System.currentTimeMillis();
-        var body =
-                """
+        var body = """
                 {"name":"Empresa A","slug":"%s"}
-                """
-                        .formatted(slug);
+                """.formatted(slug);
 
         assertThat(postJson("/api/v1/clients", body, token).statusCode()).isEqualTo(201);
         var duplicate = postJson("/api/v1/clients", body, token);
@@ -50,8 +48,7 @@ class ClientControllerIntegrationTest extends AbstractIntegrationTest {
                 "/api/v1/clients",
                 """
                 {"name":"Sem host","slug":"%s"}
-                """
-                        .formatted(slug),
+                """.formatted(slug),
                 token);
         assertThat(created.statusCode()).isEqualTo(201);
 

@@ -1,4 +1,18 @@
 import type { Client, ClientCreateDto } from "@/modules/client/dto/client.dto";
+import { digitsOnly } from "@/shared/lib/input/digits";
+
+export function tenantSchemaFromSlug(slug: string): string {
+    const normalized = slug.trim().toLowerCase().replace(/-/g, "_");
+    return normalized ? `tenant_${normalized}` : "public";
+}
+
+const DEV_DB_DEFAULTS = {
+    databaseHost: "localhost",
+    databasePort: 5432,
+    databaseName: "gommo",
+    databaseUser: "gommo",
+    databaseSecretRef: "DB_PASSWORD",
+} as const;
 
 export function emptyClientForm(): ClientCreateDto {
     return {
@@ -11,13 +25,9 @@ export function emptyClientForm(): ClientCreateDto {
         routingMode: "SUBDOMAIN",
         subdomain: "",
         customDomain: "",
-        databaseStrategy: "DEDICATED_DATABASE",
-        databaseHost: "",
-        databasePort: 5432,
-        databaseName: "",
-        databaseSchema: "public",
-        databaseUser: "",
-        databaseSecretRef: "",
+        databaseStrategy: "DEDICATED_SCHEMA",
+        ...DEV_DB_DEFAULTS,
+        databaseSchema: "",
         provisioningStatus: "PENDING",
         provisioningNotes: "",
     };
@@ -27,20 +37,20 @@ export function clientToFormDto(client: Client): ClientCreateDto {
     return {
         name: client.name,
         slug: client.slug,
-        document: client.document ?? "",
+        document: client.document ? digitsOnly(client.document) : "",
         contactEmail: client.contactEmail ?? "",
         contactPhone: client.contactPhone ?? "",
         notes: client.notes ?? "",
         routingMode: client.routingMode ?? "SUBDOMAIN",
         subdomain: client.subdomain ?? "",
         customDomain: client.customDomain ?? "",
-        databaseStrategy: client.databaseStrategy ?? "DEDICATED_DATABASE",
-        databaseHost: client.databaseHost ?? "",
-        databasePort: client.databasePort ?? 5432,
-        databaseName: client.databaseName ?? "",
-        databaseSchema: client.databaseSchema ?? "public",
-        databaseUser: client.databaseUser ?? "",
-        databaseSecretRef: client.databaseSecretRef ?? "",
+        databaseStrategy: client.databaseStrategy ?? "DEDICATED_SCHEMA",
+        databaseHost: client.databaseHost ?? DEV_DB_DEFAULTS.databaseHost,
+        databasePort: client.databasePort ?? DEV_DB_DEFAULTS.databasePort,
+        databaseName: client.databaseName ?? DEV_DB_DEFAULTS.databaseName,
+        databaseSchema: client.databaseSchema ?? tenantSchemaFromSlug(client.slug),
+        databaseUser: client.databaseUser ?? DEV_DB_DEFAULTS.databaseUser,
+        databaseSecretRef: client.databaseSecretRef ?? DEV_DB_DEFAULTS.databaseSecretRef,
         provisioningStatus: client.provisioningStatus ?? "PENDING",
         provisioningNotes: client.provisioningNotes ?? "",
     };

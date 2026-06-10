@@ -3,19 +3,19 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "../src/modules");
-
 function w(rel, c) {
-  const p = path.join(ROOT, rel);
-  fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(p, c.trim() + "\n");
+    const p = path.join(ROOT, rel);
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, c.trim() + "\n");
 }
 
 function crudModule({ pkg, entity, Entity, apiPath, permPrefix, label, columns, formFields }) {
-  const keys = `${pkg}Keys`;
-  const service = `${entity}Service`;
-  const mapper = `${entity.charAt(0).toLowerCase()}${entity.slice(1)}ToFormDto`;
-
-  w(`${pkg}/dto/${entity}.dto.ts`, `export type TaxObligationType = "IRRF" | "INSS" | "FGTS" | "OTHER";
+    const keys = `${pkg}Keys`;
+    const service = `${entity}Service`;
+    const mapper = `${entity.charAt(0).toLowerCase()}${entity.slice(1)}ToFormDto`;
+    w(
+        `${pkg}/dto/${entity}.dto.ts`,
+        `export type TaxObligationType = "IRRF" | "INSS" | "FGTS" | "OTHER";
 export type PerformanceRating = "NEEDS_IMPROVEMENT" | "MEETS" | "EXCEEDS" | "OUTSTANDING";
 
 export class ${Entity} {
@@ -29,13 +29,16 @@ export class ${Entity} {
 export class ${Entity}CreateDto {
     collaboratorId!: string;
 }
-`);
+`,
+    );
 
-  // overwritten below per module
+    // overwritten below per module
 }
 
 // tax
-w("tax/dto/tax-obligation.dto.ts", `export type TaxObligationType = "IRRF" | "INSS" | "FGTS" | "OTHER";
+w(
+    "tax/dto/tax-obligation.dto.ts",
+    `export type TaxObligationType = "IRRF" | "INSS" | "FGTS" | "OTHER";
 
 export class TaxObligation {
     id!: string;
@@ -62,9 +65,11 @@ export class TaxObligationCreateDto {
     ratePercent?: string;
     notes?: string;
 }
-`);
-
-w("tax/lib/tax-obligation.mapper.ts", `import type { TaxObligation, TaxObligationCreateDto } from "@/modules/tax/dto/tax-obligation.dto";
+`,
+);
+w(
+    "tax/lib/tax-obligation.mapper.ts",
+    `import type { TaxObligation, TaxObligationCreateDto } from "@/modules/tax/dto/tax-obligation.dto";
 
 export function taxObligationToFormDto(entity: TaxObligation): TaxObligationCreateDto {
     return {
@@ -88,9 +93,11 @@ export const emptyTaxObligationForm = (): TaxObligationCreateDto => ({
     ratePercent: "",
     notes: "",
 });
-`);
-
-w("tax/services/tax-obligation.service.ts", `import type { TaxObligation, TaxObligationCreateDto } from "@/modules/tax/dto/tax-obligation.dto";
+`,
+);
+w(
+    "tax/services/tax-obligation.service.ts",
+    `import type { TaxObligation, TaxObligationCreateDto } from "@/modules/tax/dto/tax-obligation.dto";
 import { BaseService } from "@/modules/root/services/base.service";
 
 class TaxObligationService extends BaseService<TaxObligation, TaxObligationCreateDto, TaxObligationCreateDto> {
@@ -100,21 +107,27 @@ class TaxObligationService extends BaseService<TaxObligation, TaxObligationCreat
 }
 
 export const taxObligationService = new TaxObligationService();
-`);
-
-w("tax/tax.query.ts", `export const taxObligationKeys = {
+`,
+);
+w(
+    "tax/tax.query.ts",
+    `export const taxObligationKeys = {
     all: ["tax-obligations"] as const,
     detail: (id: string) => ["tax-obligations", id] as const,
 };
-`);
-
-w("tax/exceptions/tax-obligation.messages.ts", `export const TAX_CLIENT_MESSAGES = {
+`,
+);
+w(
+    "tax/exceptions/tax-obligation.messages.ts",
+    `export const TAX_CLIENT_MESSAGES = {
     TAX_LOAD_FAILED: "Não foi possível carregar a obrigação fiscal.",
     TAX_SAVE_FAILED: "Não foi possível salvar a obrigação fiscal.",
 } as const;
-`);
-
-w("tax/config/tax-obligation.table-columns.ts", `import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
+`,
+);
+w(
+    "tax/config/tax-obligation.table-columns.ts",
+    `import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
 
 export const TAX_TABLE_COLUMNS: TableColumnConfig[] = [
     { id: "obligationType", columnName: "Tipo", fieldValue: "obligationType", dataType: TableDataType.TEXT },
@@ -122,6 +135,6 @@ export const TAX_TABLE_COLUMNS: TableColumnConfig[] = [
     { id: "endDate", columnName: "Fim", fieldValue: "endDate", dataType: TableDataType.DATE },
     { id: "status", columnName: "Status", fieldValue: "status", dataType: TableDataType.BADGE },
 ];
-`);
-
+`,
+);
 console.log("tax dto/service done");

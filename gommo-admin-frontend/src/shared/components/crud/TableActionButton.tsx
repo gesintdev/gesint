@@ -1,8 +1,7 @@
 "use client";
-
+import type { ComponentProps, ReactNode } from "react";
+import { Button } from "@/shared/components/ui/Button";
 import clsx from "clsx";
-import type {ComponentProps, ReactNode} from "react";
-import {Button} from "@/shared/components/ui/Button";
 
 export type TableActionVariant = "open" | "edit" | "delete" | "download";
 
@@ -18,12 +17,7 @@ type TableActionButtonProps = Omit<ComponentProps<typeof Button>, "variant" | "s
     leftIcon: ReactNode;
 };
 
-export function TableActionButton({
-    actionVariant,
-    className,
-    leftIcon,
-    ...props
-}: TableActionButtonProps) {
+export function TableActionButton({ actionVariant, className, leftIcon, ...props }: TableActionButtonProps) {
     return (
         <Button
             variant="ghost"

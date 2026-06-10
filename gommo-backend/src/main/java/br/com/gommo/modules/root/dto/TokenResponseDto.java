@@ -1,9 +1,10 @@
 package br.com.gommo.modules.root.dto;
 
-import java.util.UUID;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -17,4 +18,6 @@ public class TokenResponseDto {
     private final String email;
     private final UUID photoObjectId;
     private final List<String> permissions;
+    /** Usuario operador do Gommo Admin (admin.admin_user), login em host plataforma. */
+    private final boolean platformAdmin;
 }

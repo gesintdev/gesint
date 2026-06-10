@@ -1,10 +1,9 @@
-import {useSystemAlertStore} from "@/shared/system-alert/system-alert.store";
+import { useSystemAlertStore } from "@/shared/system-alert/system-alert.store";
 import type {
     SystemAlertAlertOptions,
     SystemAlertConfirmOptions,
     SystemAlertVariant,
 } from "@/shared/system-alert/system-alert.types";
-
 const DEFAULT_LABELS = {
     confirm: "Confirmar",
     cancel: "Cancelar",
@@ -24,7 +23,6 @@ function enqueue(
 ): Promise<boolean> {
     return new Promise((resolve) => {
         const confirmOpts = kind === "confirm" ? (options as SystemAlertConfirmOptions) : null;
-
         useSystemAlertStore.getState().enqueue({
             kind,
             variant: options.variant ?? defaults.variant,
@@ -42,10 +40,6 @@ function enqueue(
     });
 }
 
-/**
- * Diálogos modais do sistema (DaisyUI). Use para confirmações e avisos que exigem decisão do usuário.
- * Feedback transitório continua em toast (sonner).
- */
 export const SystemAlert = {
     /** Dois botões — retorna `true` se confirmou. */
     confirm(options: SystemAlertConfirmOptions): Promise<boolean> {
@@ -57,7 +51,6 @@ export const SystemAlert = {
             destructive: options.destructive,
         });
     },
-
     /** Um botão — apenas informa; resolve ao fechar. */
     alert(options: SystemAlertAlertOptions): Promise<void> {
         return enqueue("alert", options, {
@@ -67,35 +60,30 @@ export const SystemAlert = {
             dismissLabel: options.dismissLabel ?? DEFAULT_LABELS.dismiss,
         }).then(() => undefined);
     },
-
     warning: {
         confirm: (options: SystemAlertConfirmOptions) =>
-            SystemAlert.confirm({...options, variant: options.variant ?? "warning"}),
+            SystemAlert.confirm({ ...options, variant: options.variant ?? "warning" }),
         alert: (options: SystemAlertAlertOptions) =>
-            SystemAlert.alert({...options, variant: options.variant ?? "warning"}),
+            SystemAlert.alert({ ...options, variant: options.variant ?? "warning" }),
     },
-
     success: {
         confirm: (options: SystemAlertConfirmOptions) =>
-            SystemAlert.confirm({...options, variant: options.variant ?? "success"}),
+            SystemAlert.confirm({ ...options, variant: options.variant ?? "success" }),
         alert: (options: SystemAlertAlertOptions) =>
-            SystemAlert.alert({...options, variant: options.variant ?? "success"}),
+            SystemAlert.alert({ ...options, variant: options.variant ?? "success" }),
     },
-
     info: {
         confirm: (options: SystemAlertConfirmOptions) =>
-            SystemAlert.confirm({...options, variant: options.variant ?? "info"}),
+            SystemAlert.confirm({ ...options, variant: options.variant ?? "info" }),
         alert: (options: SystemAlertAlertOptions) =>
-            SystemAlert.alert({...options, variant: options.variant ?? "info"}),
+            SystemAlert.alert({ ...options, variant: options.variant ?? "info" }),
     },
-
     error: {
         confirm: (options: SystemAlertConfirmOptions) =>
-            SystemAlert.confirm({...options, variant: options.variant ?? "error"}),
+            SystemAlert.confirm({ ...options, variant: options.variant ?? "error" }),
         alert: (options: SystemAlertAlertOptions) =>
-            SystemAlert.alert({...options, variant: options.variant ?? "error"}),
+            SystemAlert.alert({ ...options, variant: options.variant ?? "error" }),
     },
-
     /** Atalho para exclusão em grids e formulários. */
     confirmDelete(message = "Esta ação não pode ser desfeita. Deseja excluir este registro?"): Promise<boolean> {
         return SystemAlert.confirm({

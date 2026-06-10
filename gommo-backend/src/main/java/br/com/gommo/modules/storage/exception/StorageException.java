@@ -1,7 +1,8 @@
 package br.com.gommo.modules.storage.exception;
 
-import br.com.gommo.core.exception.BusinessException;
 import org.springframework.http.HttpStatus;
+
+import br.com.gommo.core.exception.BusinessException;
 
 public final class StorageException {
 

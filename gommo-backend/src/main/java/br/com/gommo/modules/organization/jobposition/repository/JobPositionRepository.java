@@ -1,19 +1,22 @@
 package br.com.gommo.modules.organization.jobposition.repository;
 
-import br.com.gommo.core.base.repository.IBaseRepository;
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.organization.jobposition.entity.JobPosition;
 import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import br.com.gommo.core.base.repository.IBaseRepository;
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.organization.jobposition.entity.JobPosition;
+
 @Repository
 public interface JobPositionRepository extends IBaseRepository<JobPosition> {
 
-    @Query("""
+    @Query(
+            """
             SELECT j FROM JobPosition j
             WHERE j.status <> :deleted
               AND (:titlePattern IS NULL OR LOWER(j.title) LIKE :titlePattern)

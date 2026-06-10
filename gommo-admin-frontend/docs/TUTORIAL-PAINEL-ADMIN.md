@@ -8,10 +8,10 @@ Este guia explica, em linguagem simples, o que é o **painel admin** (`gommo-adm
 
 O Gommo é dividido em dois produtos que conversam entre si:
 
-| Sistema | Onde roda | Para quem | O que guarda |
-|--------|-----------|-----------|--------------|
-| **RH (HR)** | `:3000` / `:8081` | Colaboradores e gestores de cada empresa | Folha, férias, colaboradores, etc. |
-| **Admin (plataforma)** | `:3001` / `:8082` | Equipe interna da Gommo | Cadastro de **clientes (tenants)**, contratos, cobrança, usuários iniciais |
+| Sistema                | Onde roda         | Para quem                                | O que guarda                                                               |
+| ---------------------- | ----------------- | ---------------------------------------- | -------------------------------------------------------------------------- |
+| **RH (HR)**            | `:3000` / `:8081` | Colaboradores e gestores de cada empresa | Folha, férias, colaboradores, etc.                                         |
+| **Admin (plataforma)** | `:3001` / `:8082` | Equipe interna da Gommo                  | Cadastro de **clientes (tenants)**, contratos, cobrança, usuários iniciais |
 
 O admin **não substitui** o RH. Ele **orquestra** quem pode usar o RH e **onde** os dados de cada cliente ficam guardados.
 
@@ -63,18 +63,18 @@ Cadastro do **tenant**: empresa que contratou o Gommo.
 
 1. **Cliente** — nome, slug (identificador único na URL), CNPJ, contato.
 2. **Roteamento DNS** — como o sistema descobre qual tenant é:
-   - `SUBDOMAIN`: ex. slug `acme` → `acme.gommo.com`
-   - `CUSTOM_DOMAIN`: ex. `rh.acme.com`
+    - `SUBDOMAIN`: ex. slug `acme` → `acme.gommo.com`
+    - `CUSTOM_DOMAIN`: ex. `rh.acme.com`
 3. **Conexão de dados** — onde ficam os dados de RH desse cliente:
-   - `DEDICATED_DATABASE`: um banco PostgreSQL só para o cliente
-   - `DEDICATED_SCHEMA`: um schema dentro de um banco compartilhado
-   - Host, porta, nome do banco, schema, usuário, **referência de segredo** (senha não fica no formulário em texto claro)
+    - `DEDICATED_DATABASE`: um banco PostgreSQL só para o cliente
+    - `DEDICATED_SCHEMA`: um schema dentro de um banco compartilhado
+    - Host, porta, nome do banco, schema, usuário, **referência de segredo** (senha não fica no formulário em texto claro)
 4. **Provisionamento** — estado operacional do tenant:
-   - `PENDING` → ainda não validado
-   - `PROVISIONING` → validação em andamento
-   - `READY` → conexão OK
-   - `ERROR` → falha (ver notas)
-   - `SUSPENDED` → bloqueado
+    - `PENDING` → ainda não validado
+    - `PROVISIONING` → validação em andamento
+    - `READY` → conexão OK
+    - `ERROR` → falha (ver notas)
+    - `SUSPENDED` → bloqueado
 
 **Ações (ao editar um cliente):**
 
@@ -154,14 +154,14 @@ cd gommo-admin-frontend && npm run dev
 
 ## 7. APIs principais (referência rápida)
 
-| Recurso | Base path |
-|---------|-----------|
-| Clientes | `POST/GET/PUT/DELETE /api/v1/clients` |
-| Testar DB | `POST /api/v1/clients/{id}/actions/test-database-connection` |
-| Provisionar | `POST /api/v1/clients/{id}/actions/start-provisioning` |
-| Assinaturas | `/api/v1/client-subscriptions` |
-| Pagamentos | `/api/v1/client-payments` |
-| Usuários do cliente | `/api/v1/client-users` |
+| Recurso             | Base path                                                    |
+| ------------------- | ------------------------------------------------------------ |
+| Clientes            | `POST/GET/PUT/DELETE /api/v1/clients`                        |
+| Testar DB           | `POST /api/v1/clients/{id}/actions/test-database-connection` |
+| Provisionar         | `POST /api/v1/clients/{id}/actions/start-provisioning`       |
+| Assinaturas         | `/api/v1/client-subscriptions`                               |
+| Pagamentos          | `/api/v1/client-payments`                                    |
+| Usuários do cliente | `/api/v1/client-users`                                       |
 
 Todas exigem JWT de operador com `platform:admin`.
 
@@ -178,13 +178,13 @@ Todas exigem JWT de operador com `platform:admin`.
 
 ## 9. Glossário
 
-| Termo | Significado |
-|-------|-------------|
-| **Tenant** | Um cliente da plataforma (uma empresa contratante) |
-| **Slug** | Identificador curto na URL (`acme`) |
-| **Control plane** | Admin + schema `admin` |
-| **Data plane** | Banco/schema onde vivem dados de RH |
-| **Provisionamento** | Processo de validar/preparar o ambiente do tenant |
+| Termo               | Significado                                        |
+| ------------------- | -------------------------------------------------- |
+| **Tenant**          | Um cliente da plataforma (uma empresa contratante) |
+| **Slug**            | Identificador curto na URL (`acme`)                |
+| **Control plane**   | Admin + schema `admin`                             |
+| **Data plane**      | Banco/schema onde vivem dados de RH                |
+| **Provisionamento** | Processo de validar/preparar o ambiente do tenant  |
 
 ---
 

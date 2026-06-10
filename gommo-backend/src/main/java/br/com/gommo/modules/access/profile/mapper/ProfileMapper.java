@@ -1,12 +1,14 @@
 package br.com.gommo.modules.access.profile.mapper;
 
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.access.profile.dto.ProfileResponseDto;
 import br.com.gommo.modules.root.dto.PermissionSummaryDto;
 import br.com.gommo.modules.root.entity.Permission;
 import br.com.gommo.modules.root.entity.Role;
-import java.util.Comparator;
-import java.util.List;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ProfileMapper {

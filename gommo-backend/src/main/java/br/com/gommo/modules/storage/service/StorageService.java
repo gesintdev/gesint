@@ -1,15 +1,5 @@
 package br.com.gommo.modules.storage.service;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.storage.config.StorageProperties;
-import br.com.gommo.modules.storage.dto.StorageObjectLinkResponseDto;
-import br.com.gommo.modules.storage.dto.StorageObjectResponseDto;
-import br.com.gommo.modules.storage.entity.StorageObject;
-import br.com.gommo.modules.storage.entity.StorageObjectLink;
-import br.com.gommo.modules.storage.exception.StorageException;
-import br.com.gommo.modules.storage.mapper.StorageMapper;
-import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
-import br.com.gommo.modules.storage.repository.StorageObjectRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -22,10 +12,22 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.storage.config.StorageProperties;
+import br.com.gommo.modules.storage.dto.StorageObjectLinkResponseDto;
+import br.com.gommo.modules.storage.dto.StorageObjectResponseDto;
+import br.com.gommo.modules.storage.entity.StorageObject;
+import br.com.gommo.modules.storage.entity.StorageObjectLink;
+import br.com.gommo.modules.storage.exception.StorageException;
+import br.com.gommo.modules.storage.mapper.StorageMapper;
+import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
+import br.com.gommo.modules.storage.repository.StorageObjectRepository;
 
 @Service
 public class StorageService implements IStorageService {
@@ -117,7 +119,8 @@ public class StorageService implements IStorageService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('storage:read')")
     public List<StorageObjectLinkResponseDto> listByEntity(String entityType, UUID entityId) {
-        return linkRepository.findAllByEntityTypeAndEntityIdAndStatusNot(entityType, entityId, StatusEnum.DELETED)
+        return linkRepository
+                .findAllByEntityTypeAndEntityIdAndStatusNot(entityType, entityId, StatusEnum.DELETED)
                 .stream()
                 .map(link -> {
                     StorageObject object = objectRepository

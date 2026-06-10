@@ -1,10 +1,11 @@
 package br.com.gommo.admin.modules.clientsubscription.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.admin.modules.clientsubscription.dto.ClientSubscriptionRequestDto;
 import br.com.gommo.admin.modules.clientsubscription.dto.ClientSubscriptionResponseDto;
 import br.com.gommo.admin.modules.clientsubscription.entity.BillingStatusEnum;
 import br.com.gommo.admin.modules.clientsubscription.entity.ClientSubscription;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ClientSubscriptionMapper {

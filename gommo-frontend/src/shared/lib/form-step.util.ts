@@ -11,7 +11,6 @@ export function isFormValueFilled(value: unknown): boolean {
     return true;
 }
 
-/** Step has at least one field with meaningful content (optionally ignoring empty defaults). */
 export function isStepFilled(fields: StepFieldCheck[]): boolean {
     return fields.some(({ value, empty }) => {
         if (!isFormValueFilled(value)) return false;
@@ -20,12 +19,7 @@ export function isStepFilled(fields: StepFieldCheck[]): boolean {
     });
 }
 
-/** True when any listed key differs from the empty form snapshot. */
-export function sectionHasChanges<T extends object>(
-    form: T,
-    empty: T,
-    keys: (keyof T)[],
-): boolean {
+export function sectionHasChanges<T extends object>(form: T, empty: T, keys: (keyof T)[]): boolean {
     return keys.some((key) => {
         const value = form[key];
         const baseline = empty[key];

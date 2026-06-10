@@ -1,34 +1,38 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
+import { InputPassword, InputString, InputSelect } from "@/shared/components/ui/input/index";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CLIENT_USER_CLIENT_MESSAGES } from "@/modules/clientuser/exceptions/clientuser.messages";
-import type { ClientUserCreateDto } from "@/modules/clientuser/dto/clientuser.dto";
-import { emptyClientUserForm, clientUserToFormDto } from "@/modules/clientuser/lib/clientuser.mapper";
-import { clientUserKeys } from "@/modules/clientuser/clientuser.query";
-import { clientUserService } from "@/modules/clientuser/services/clientuser.service";
 import { clientKeys } from "@/modules/client/client.query";
 import { clientService } from "@/modules/client/services/client.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { clientUserKeys } from "@/modules/clientuser/clientuser.query";
+import type { ClientUserCreateDto } from "@/modules/clientuser/dto/clientuser.dto";
+import { CLIENT_USER_CLIENT_MESSAGES } from "@/modules/clientuser/exceptions/clientuser.messages";
+import {
+    CLIENT_USER_PASSWORD_MIN_LENGTH,
+    clientUserToFormDto,
+    emptyClientUserForm,
+    toClientUserSavePayload,
+    validateClientUserForm,
+} from "@/modules/clientuser/lib/clientuser.mapper";
+import { clientUserService } from "@/modules/clientuser/services/clientuser.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
-import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
-import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
-import { InputString, InputSelect } from "@/shared/components/ui/input/index";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 export function ClientUserFormClient() {
     const { editingId, isEditing, goToList } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ClientUserCreateDto>(emptyClientUserForm());
     const [error, setError] = useState<string | null>(null);
-
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const clientsQuery = useQuery({
         queryKey: clientKeys.all,
         queryFn: () => clientService.getAll(),
     });
-
     const detailQuery = useQuery({
         queryKey: clientUserKeys.detail(editingId ?? ""),
         queryFn: () => clientUserService.getById(editingId!),
@@ -40,9 +44,14 @@ export function ClientUserFormClient() {
     useEffect(() => {
         if (!isEditing) {
             setForm(emptyClientUserForm());
-            return;
+            setFieldErrors({});
         }
-        if (detailQuery.data) setForm(clientUserToFormDto(detailQuery.data));
+    }, [isEditing]);
+
+    useEffect(() => {
+        if (isEditing && detailQuery.data) {
+            setForm(clientUserToFormDto(detailQuery.data));
+        }
     }, [isEditing, detailQuery.data]);
 
     const saveMutation = useMutation({
@@ -56,16 +65,32 @@ export function ClientUserFormClient() {
             goToList();
         },
         onError: (err: unknown) => {
-            setError(ExceptionCapture.handle(err, { fallbackMessage: CLIENT_USER_CLIENT_MESSAGES.SAVE_FAILED }).displayMessage);
+            setError(
+                ExceptionCapture.handle(err, { fallbackMessage: CLIENT_USER_CLIENT_MESSAGES.SAVE_FAILED })
+                    .displayMessage,
+            );
         },
     });
-
     const clientOptions = (clientsQuery.data ?? []).map((c) => ({ value: c.id, label: c.name }));
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
-        saveMutation.mutate(form);
+        const errors = validateClientUserForm(form, isEditing);
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) {
+            const first = Object.values(errors)[0];
+            if (first) toast.error(first);
+            return;
+        }
+        saveMutation.mutate(toClientUserSavePayload(form, isEditing));
+    };
+    const clearFieldError = (field: string) => {
+        setFieldErrors((current) => {
+            if (!current[field]) return current;
+            const next = { ...current };
+            delete next[field];
+            return next;
+        });
     };
 
     return (
@@ -86,20 +111,53 @@ export function ClientUserFormClient() {
         >
             <div className="grid gap-4">
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-                <InputSelect label="Cliente" value={form.clientId} onValueChange={(v) => setForm((p) => ({ ...p, clientId: v }))} items={clientOptions} required />
-                <InputString label="Nome de exibição" value={form.displayName ?? ""} onValueChange={(v) => setForm((p) => ({ ...p, displayName: v }))} />
-                <InputString label="Usuário" value={form.username} onValueChange={(v) => setForm((p) => ({ ...p, username: v }))} required />
-                <InputString label="E-mail" value={form.email} onValueChange={(v) => setForm((p) => ({ ...p, email: v }))} required />
-                <label className="gommo-field flex flex-col gap-1">
-                    <span className="text-xs font-medium text-base-content/70">{isEditing ? "Nova senha (opcional)" : "Senha"}</span>
-                    <input
-                        type="password"
-                        className="input input-bordered w-full focus:outline-none"
-                        value={form.password}
-                        onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                        required={!isEditing}
-                    />
-                </label>
+                <InputSelect
+                    label="Cliente"
+                    value={form.clientId}
+                    onValueChange={(v) => {
+                        clearFieldError("clientId");
+                        setForm((p) => ({ ...p, clientId: v }));
+                    }}
+                    items={clientOptions}
+                    required
+                    error={fieldErrors.clientId}
+                />
+                <InputString
+                    label="Nome de exibição"
+                    value={form.displayName ?? ""}
+                    onValueChange={(v) => setForm((p) => ({ ...p, displayName: v }))}
+                />
+                <InputString
+                    label="Usuário"
+                    value={form.username}
+                    onValueChange={(v) => {
+                        clearFieldError("username");
+                        setForm((p) => ({ ...p, username: v }));
+                    }}
+                    required
+                    error={fieldErrors.username}
+                />
+                <InputString
+                    label="E-mail"
+                    value={form.email}
+                    onValueChange={(v) => {
+                        clearFieldError("email");
+                        setForm((p) => ({ ...p, email: v }));
+                    }}
+                    required
+                    error={fieldErrors.email}
+                />
+                <InputPassword
+                    label={isEditing ? "Nova senha (opcional)" : "Senha"}
+                    value={form.password ?? ""}
+                    onValueChange={(v) => {
+                        clearFieldError("password");
+                        setForm((p) => ({ ...p, password: v }));
+                    }}
+                    required={!isEditing}
+                    hint={`Mínimo de ${CLIENT_USER_PASSWORD_MIN_LENGTH} caracteres`}
+                    error={fieldErrors.password}
+                />
             </div>
         </CrudFormShell>
     );

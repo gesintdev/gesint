@@ -1,10 +1,11 @@
 package br.com.gommo.modules.person.leave.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.person.leave.dto.LeaveRequestRequestDto;
 import br.com.gommo.modules.person.leave.dto.LeaveRequestResponseDto;
 import br.com.gommo.modules.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
-import org.springframework.stereotype.Component;
 
 @Component
 public class LeaveRequestMapper {

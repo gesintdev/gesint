@@ -1,5 +1,5 @@
-import type {LucideIcon} from "lucide-react";
-import type {WorkspaceEntityKey} from "@/shared/workspace/workspace-tab-id";
+import type { LucideIcon } from "lucide-react";
+import type { WorkspaceEntityKey } from "@/shared/workspace/workspace-tab-id";
 
 export type WorkspaceTab = {
     id: string;
@@ -30,6 +30,7 @@ export function formatWorkspaceTabTitle(tab: WorkspaceTab): string {
     if (tab.entityKey === "new") {
         return tab.titleSuffix ? `${tab.shortLabel} - ${tab.titleSuffix}` : `${tab.shortLabel} - Novo`;
     }
+
     if (tab.titleSuffix) return `${tab.shortLabel} - ${tab.titleSuffix}`;
     return tab.shortLabel;
 }

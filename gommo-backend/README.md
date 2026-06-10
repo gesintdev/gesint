@@ -51,11 +51,16 @@ API local: http://localhost:8081
 
 Detalhes: [README do monorepo — Migrations Flyway](../README.md#migrations-flyway-por-schema)
 
-## Módulo Folha de Pagamento
+## Multi-tenant (Etapas 2-3)
 
-Plano, modelagem, etapas e decisões: **[docs/modulos/folha-de-pagamento.md](../docs/modulos/folha-de-pagamento.md)**
+Desligado por padrao (`GOMMO_MULTI_TENANT_ENABLED=false`). Quando ativo:
 
-Código: `src/main/java/br/com/gommo/modules/payroll/`
+- `TenantResolutionFilter` resolve o tenant pelo `Host` (ou `X-Tenant-Slug` / `GOMMO_DEV_TENANT_SLUG` em dev)
+- Metadados lidos de `admin.client` no mesmo Postgres
+- `TenantSchemaDataSource` executa `SET search_path` por conexao
+- Login/refresh/JWT validam vinculo em `admin.client_user` e claims `tenantId` / `tenantSlug`
+
+Documentacao: [docs/arquitetura/multi-tenant-dev.md](../docs/arquitetura/multi-tenant-dev.md)
 
 ## Exceções
 

@@ -2,19 +2,20 @@ package br.com.gommo.admin.modules.client.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import br.com.gommo.admin.core.exception.BusinessException;
-import br.com.gommo.admin.modules.client.entity.Client;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.mock.env.MockEnvironment;
+
+import br.com.gommo.admin.core.exception.BusinessException;
+import br.com.gommo.admin.modules.client.entity.Client;
 
 class TenantDatabaseConnectionTesterTest {
 
-    private final TenantDatabaseConnectionTester tester = new TenantDatabaseConnectionTester();
+    private TenantDatabaseConnectionTester tester;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(tester, "fallbackPassword", "");
+        tester = new TenantDatabaseConnectionTester("", new MockEnvironment());
     }
 
     @Test
@@ -45,6 +46,6 @@ class TenantDatabaseConnectionTesterTest {
 
         assertThatThrownBy(() -> tester.testConnection(client))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("Senha não encontrada");
+                .hasMessageContaining("Senha nao encontrada");
     }
 }

@@ -1,10 +1,9 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { appUserKeys } from "@/modules/settings/appuser/appuser.query";
 import { APP_USER_TABLE_COLUMNS } from "@/modules/settings/appuser/config/appuser.table-columns";
 import type { AppUser } from "@/modules/settings/appuser/dto/appuser.dto";
-import { appUserKeys } from "@/modules/settings/appuser/appuser.query";
 import { appUserService } from "@/modules/settings/appuser/services/appuser.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
@@ -15,7 +14,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function AppUserListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => appUserService.remove(id),
         onSuccess: async () => {
@@ -25,7 +23,6 @@ export function AppUserListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível excluir o usuário." }),
     });
-
     const handleDelete = async (row: AppUser) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

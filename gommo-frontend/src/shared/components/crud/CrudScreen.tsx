@@ -1,30 +1,17 @@
 "use client";
-
+import { Plus, RefreshCw } from "lucide-react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { canAccessExtraTab, canWriteRoute, type RoutePublicAccess } from "@/shared/auth/route-access";
+import { useQueryRefresh } from "@/shared/components/data/QueryRefreshContext";
+import { Button } from "@/shared/components/ui/Button";
+import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
+import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
+import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
+import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import { isModuleListTab } from "@/shared/workspace/workspace-tab-id";
 import clsx from "clsx";
-import {Plus, RefreshCw} from "lucide-react";
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-    type ReactNode,
-} from "react";
-import {
-    canAccessExtraTab,
-    canWriteRoute,
-    type RoutePublicAccess,
-} from "@/shared/auth/route-access";
 import { useSessionPermissions } from "@/shared/auth/permissions";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
-import {useQueryRefresh} from "@/shared/components/data/QueryRefreshContext";
-import {Button} from "@/shared/components/ui/Button";
-import {useTabbedCrudConfigOptional} from "@/shared/workspace/TabbedCrudConfigContext";
-import {useWorkspaceTabOptional} from "@/shared/workspace/WorkspaceTabContext";
-import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
-import {isModuleListTab} from "@/shared/workspace/workspace-tab-id";
 
 export const CRUD_TAB_LIST = "list";
 export const CRUD_TAB_FORM = "form";
@@ -78,40 +65,35 @@ export type CrudScreenProps = {
 };
 
 export function CrudScreen({
-                               list,
-                               form,
-                               extraTabs = [],
-                               listTabLabel = "Listagem",
-                               formTabLabel = "Cadastro",
-                               formTabLabelEdit = "Editar",
-                               listToolbar,
-                               showListToFormButton = true,
-                               editOnly = false,
-                               listPrimaryAction,
-                               listToFormLabel = "Novo cadastro",
-                               writePermission,
-                               defaultTab = CRUD_TAB_LIST,
-                               initialEditingId = null,
-                               workspaceEnabled = false,
-                           }: CrudScreenProps) {
+    list,
+    form,
+    extraTabs = [],
+    listTabLabel = "Listagem",
+    formTabLabel = "Cadastro",
+    formTabLabelEdit = "Editar",
+    listToolbar,
+    showListToFormButton = true,
+    editOnly = false,
+    listPrimaryAction,
+    listToFormLabel = "Novo cadastro",
+    writePermission,
+    defaultTab = CRUD_TAB_LIST,
+    initialEditingId = null,
+    workspaceEnabled = false,
+}: CrudScreenProps) {
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [editingId, setEditingId] = useState<string | null>(initialEditingId);
     const permissions = useSessionPermissions();
     const crudConfig = useTabbedCrudConfigOptional();
     const workspaceTabCtx = useWorkspaceTabOptional();
-    const {syncCrudUrl} = useWorkspaceNavigation();
+    const { syncCrudUrl } = useWorkspaceNavigation();
     const clearTitleSuffix = useWorkspaceStore((s) => s.clearTitleSuffix);
     const setTitleSuffix = useWorkspaceStore((s) => s.setTitleSuffix);
-
     const isEditing = editingId != null;
-    const workspaceRoute = workspaceTabCtx
-        ? findRouteById(workspaceTabCtx.tab.routeId)
-        : undefined;
+    const workspaceRoute = workspaceTabCtx ? findRouteById(workspaceTabCtx.tab.routeId) : undefined;
     const canWrite = canWriteRoute(workspaceRoute, permissions, writePermission);
     const formSessionActive = canWrite && (isEditing || activeTab === CRUD_TAB_FORM);
-    const isListInstance =
-        workspaceTabCtx == null || isModuleListTab(workspaceTabCtx.tab.entityKey);
-
+    const isListInstance = workspaceTabCtx == null || isModuleListTab(workspaceTabCtx.tab.entityKey);
     const syncWorkspace = useCallback(
         (crud: { editingId?: string | null; isNew?: boolean; titleSuffix?: string | null }) => {
             if (!workspaceEnabled || !crudConfig || !workspaceTabCtx) return;
@@ -119,26 +101,16 @@ export function CrudScreen({
             if (!isListInstance) return;
             if (crud.titleSuffix) setTitleSuffix(tabId, crud.titleSuffix);
             else clearTitleSuffix(tabId);
-            syncCrudUrl(tabId, {editingId: crud.editingId, isNew: crud.isNew});
+            syncCrudUrl(tabId, { editingId: crud.editingId, isNew: crud.isNew });
         },
-        [
-            clearTitleSuffix,
-            crudConfig,
-            isListInstance,
-            setTitleSuffix,
-            syncCrudUrl,
-            workspaceEnabled,
-            workspaceTabCtx,
-        ],
+        [clearTitleSuffix, crudConfig, isListInstance, setTitleSuffix, syncCrudUrl, workspaceEnabled, workspaceTabCtx],
     );
-
     const visibleExtraTabs = useMemo(
         () => extraTabs.filter((tab) => canAccessExtraTab(tab, permissions)),
         [extraTabs, permissions],
     );
-
     const tabs = useMemo(() => {
-        const items: { id: string; label: string }[] = [{id: CRUD_TAB_LIST, label: listTabLabel}];
+        const items: { id: string; label: string }[] = [{ id: CRUD_TAB_LIST, label: listTabLabel }];
         const showFormTab = canWrite && (!editOnly || isEditing || activeTab === CRUD_TAB_FORM);
         if (showFormTab) {
             items.push({
@@ -146,25 +118,21 @@ export function CrudScreen({
                 label: isEditing ? formTabLabelEdit : formTabLabel,
             });
         }
-        items.push(...visibleExtraTabs.map((t) => ({id: t.id, label: t.label})));
+        items.push(...visibleExtraTabs.map((t) => ({ id: t.id, label: t.label })));
         return items;
     }, [activeTab, canWrite, editOnly, formTabLabel, formTabLabelEdit, isEditing, listTabLabel, visibleExtraTabs]);
-
     const goToList = useCallback(() => {
         setEditingId(null);
         setActiveTab(CRUD_TAB_LIST);
         syncWorkspace({});
     }, [syncWorkspace]);
-
     const goToForm = useCallback(() => setActiveTab(CRUD_TAB_FORM), []);
-
     const startCreate = useCallback(() => {
         if (editOnly || !canWrite) return;
         setEditingId(null);
         setActiveTab(CRUD_TAB_FORM);
-        syncWorkspace({isNew: true});
+        syncWorkspace({ isNew: true });
     }, [canWrite, editOnly, syncWorkspace]);
-
     const startEdit = useCallback(
         (id: string, record?: object) => {
             if (!canWrite) return;
@@ -181,7 +149,6 @@ export function CrudScreen({
         },
         [canWrite, crudConfig, syncWorkspace],
     );
-
     const goToTab = useCallback((tabId: string) => setActiveTab(tabId), []);
 
     useEffect(() => {
@@ -191,23 +158,16 @@ export function CrudScreen({
     }, [activeTab, canWrite]);
 
     const ctx = useMemo(
-        () => ({activeTab, editingId, isEditing, goToList, goToForm, startCreate, startEdit, goToTab}),
+        () => ({ activeTab, editingId, isEditing, goToList, goToForm, startCreate, startEdit, goToTab }),
         [activeTab, editingId, goToForm, goToList, goToTab, isEditing, startCreate, startEdit],
     );
-
     const extraTabPanel = visibleExtraTabs.find((t) => t.id === activeTab)?.content ?? null;
-
     const queryRefresh = useQueryRefresh();
 
     return (
         <CrudScreenContext.Provider value={ctx}>
             <div className="flex min-h-0 flex-1 flex-col">
-
-                <div
-                    className="gommo-crud-tablist"
-                    role="tablist"
-                    aria-label="Seções do cadastro"
-                >
+                <div className="gommo-crud-tablist" role="tablist" aria-label="Seções do cadastro">
                     {tabs.map((tab) => {
                         const selected = activeTab === tab.id;
                         return (
@@ -225,7 +185,7 @@ export function CrudScreen({
                                         if (!canWrite) return;
                                         if (editOnly && !editingId) return;
                                         setActiveTab(CRUD_TAB_FORM);
-                                        if (workspaceEnabled && !editingId && !editOnly) syncWorkspace({isNew: true});
+                                        if (workspaceEnabled && !editingId && !editOnly) syncWorkspace({ isNew: true });
                                     } else setActiveTab(tab.id);
                                 }}
                                 className={clsx("gommo-crud-tab", selected && "gommo-crud-tab--active")}
@@ -235,7 +195,6 @@ export function CrudScreen({
                         );
                     })}
                 </div>
-
                 <div
                     id={`crud-panel-${activeTab}`}
                     role="tabpanel"
@@ -243,8 +202,7 @@ export function CrudScreen({
                     className="flex min-h-0 flex-1 flex-col overflow-hidden"
                 >
                     {activeTab === CRUD_TAB_LIST && (
-                        <div
-                            className="crud-list-toolbar flex flex-wrap items-center justify-between gap-2 border-b px-4 py-1.5">
+                        <div className="crud-list-toolbar flex flex-wrap items-center justify-between gap-2 border-b px-4 py-1.5">
                             <div className="text-[13px] text-base-content/50">
                                 {listToolbar ?? "Consulte os registros ou inicie um novo cadastro."}
                             </div>
@@ -268,7 +226,7 @@ export function CrudScreen({
                                 {showListToFormButton && canWrite ? (
                                     <Button
                                         size="sm"
-                                        leftIcon={<Plus className="size-3.5" strokeWidth={2.5}/>}
+                                        leftIcon={<Plus className="size-3.5" strokeWidth={2.5} />}
                                         onClick={startCreate}
                                     >
                                         {listToFormLabel}
@@ -279,15 +237,14 @@ export function CrudScreen({
                             </div>
                         </div>
                     )}
-
                     <div
                         className={clsx(
                             "min-h-0 flex-1",
                             activeTab === CRUD_TAB_LIST
                                 ? "overflow-y-auto"
                                 : activeTab === CRUD_TAB_FORM
-                                    ? "flex flex-col overflow-hidden"
-                                    : "overflow-y-auto",
+                                  ? "flex flex-col overflow-hidden"
+                                  : "overflow-y-auto",
                         )}
                     >
                         {activeTab === CRUD_TAB_LIST ? list : null}

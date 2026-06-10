@@ -1,7 +1,7 @@
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { customWorkspaceRoute } from "@/shared/routing";
 import { FlaskConical, LayoutDashboard } from "lucide-react";
 import { createElement } from "react";
+import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
+import { customWorkspaceRoute } from "@/shared/routing";
 
 export const dashboardRoutes: AppRoute[] = [
     customWorkspaceRoute({
@@ -19,11 +19,7 @@ export const dashboardRoutes: AppRoute[] = [
                         createElement(
                             "div",
                             { className: "flex min-h-[12rem] flex-col gap-2 p-8" },
-                            createElement(
-                                "h1",
-                                { className: "text-xl font-semibold" },
-                                "Painel administrativo",
-                            ),
+                            createElement("h1", { className: "text-xl font-semibold" }, "Painel administrativo"),
                             createElement(
                                 "p",
                                 { className: "text-sm text-base-content/60" },
@@ -47,11 +43,7 @@ export const dashboardRoutes: AppRoute[] = [
             ]);
             return {
                 default: function DevInputsPage() {
-                    return createElement(
-                        PageTransition,
-                        null,
-                        createElement(InputsPlaygroundClient),
-                    );
+                    return createElement(PageTransition, null, createElement(InputsPlaygroundClient));
                 },
             };
         },

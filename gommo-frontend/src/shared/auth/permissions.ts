@@ -2,27 +2,15 @@ import { useSession } from "next-auth/react";
 
 export function deriveWritePermission(readPermission?: string): string | undefined {
     if (!readPermission) return undefined;
-    return readPermission.endsWith(":read")
-        ? `${readPermission.slice(0, -":read".length)}:write`
-        : undefined;
+    return readPermission.endsWith(":read") ? `${readPermission.slice(0, -":read".length)}:write` : undefined;
 }
 
 export function deriveDeletePermission(readPermission?: string): string | undefined {
     if (!readPermission) return undefined;
-    return readPermission.endsWith(":read")
-        ? `${readPermission.slice(0, -":read".length)}:delete`
-        : undefined;
+    return readPermission.endsWith(":read") ? `${readPermission.slice(0, -":read".length)}:delete` : undefined;
 }
 
-/**
- * Point permission check only.
- * If `permission` is omitted, it returns true.
- * Use route-access helpers for route/menu guards.
- */
-export function hasPermission(
-    granted: readonly string[] | null | undefined,
-    permission?: string,
-): boolean {
+export function hasPermission(granted: readonly string[] | null | undefined, permission?: string): boolean {
     if (!permission) return true;
     if (!granted?.length) return false;
     return granted.includes(permission);

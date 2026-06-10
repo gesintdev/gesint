@@ -1,23 +1,25 @@
 package br.com.gommo.modules.person.collaborators.admission.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProcessResponseDto;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class AdmissionProcessMapper {
 
     public AdmissionProcess toEntity(AdmissionProcessRequestDto dto) {
         return AdmissionProcess.builder()
-                .admissionStatus(dto.getAdmissionStatus() != null ? dto.getAdmissionStatus() : AdmissionStatusEnum.IN_PROGRESS)
+                .admissionStatus(
+                        dto.getAdmissionStatus() != null ? dto.getAdmissionStatus() : AdmissionStatusEnum.IN_PROGRESS)
                 .startedAt(dto.getStartedAt())
                 .notes(dto.getNotes())
                 .fullName(dto.getFullName())
@@ -159,7 +161,8 @@ public class AdmissionProcessMapper {
                 .build();
     }
 
-    private static List<AdmissionEmergencyContactDto> copyEmergencyContacts(List<AdmissionEmergencyContactDto> contacts) {
+    private static List<AdmissionEmergencyContactDto> copyEmergencyContacts(
+            List<AdmissionEmergencyContactDto> contacts) {
         if (CollectionUtils.isEmpty(contacts)) {
             return new ArrayList<>();
         }

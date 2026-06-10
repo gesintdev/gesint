@@ -1,10 +1,11 @@
 package br.com.gommo.admin.modules.clientuser.service;
 
+import java.util.List;
+import java.util.UUID;
+
 import br.com.gommo.admin.core.base.dto.PageableResponseDto;
 import br.com.gommo.admin.modules.clientuser.dto.ClientUserRequestDto;
 import br.com.gommo.admin.modules.clientuser.dto.ClientUserResponseDto;
-import java.util.List;
-import java.util.UUID;
 
 public interface IClientUserService {
 

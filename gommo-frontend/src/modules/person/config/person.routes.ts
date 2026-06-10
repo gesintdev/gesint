@@ -1,14 +1,6 @@
+import { CalendarDays, MessageSquare, Target, UserMinus, UserPlus, UserRound, Users } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
-import {
-    CalendarDays,
-    MessageSquare,
-    Target,
-    UserMinus,
-    UserPlus,
-    UserRound,
-    Users,
-} from "lucide-react";
 
 export const personRoutes: AppRoute[] = [
     routeGroup({
@@ -46,8 +38,7 @@ export const personRoutes: AppRoute[] = [
                 fieldTabName: "fullName",
                 editOnly: true,
                 showListToFormButton: false,
-                listToolbar:
-                    "Consulte e edite dados pessoais. Novos colaboradores entram somente pela admissão.",
+                listToolbar: "Consulte e edite dados pessoais. Novos colaboradores entram somente pela admissão.",
                 formTabLabel: "Dados pessoais",
                 formTabLabelEdit: "Editar pessoa",
                 list: lazyNamed(

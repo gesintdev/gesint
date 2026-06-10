@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import br.com.gommo.core.tenant.TenantResolutionFilter;
+
 @Configuration
 @EnableMethodSecurity
 @EnableConfigurationProperties(JwtProperties.class)
@@ -22,10 +24,15 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorrelationIdFilter correlationIdFilter;
+    private final TenantResolutionFilter tenantResolutionFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CorrelationIdFilter correlationIdFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            CorrelationIdFilter correlationIdFilter,
+            TenantResolutionFilter tenantResolutionFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.correlationIdFilter = correlationIdFilter;
+        this.tenantResolutionFilter = tenantResolutionFilter;
     }
 
     @Bean
@@ -33,12 +40,16 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**")
+                        .permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/prometheus")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
                 .addFilterBefore(correlationIdFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(tenantResolutionFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

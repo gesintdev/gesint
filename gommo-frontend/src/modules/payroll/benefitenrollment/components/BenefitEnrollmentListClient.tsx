@@ -1,11 +1,10 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { benefitEnrollmentKeys } from "@/modules/payroll/benefitenrollment/benefitenrollment.query";
 import { BENEFIT_ENROLLMENT_TABLE_COLUMNS } from "@/modules/payroll/benefitenrollment/config/benefit-enrollment.table-columns";
 import type { BenefitEnrollment } from "@/modules/payroll/benefitenrollment/dto/benefit-enrollment.dto";
 import { BENEFIT_ENROLLMENT_CLIENT_MESSAGES } from "@/modules/payroll/benefitenrollment/exceptions/benefit-enrollment.messages";
-import { benefitEnrollmentKeys } from "@/modules/payroll/benefitenrollment/benefitenrollment.query";
 import { benefitEnrollmentService } from "@/modules/payroll/benefitenrollment/services/benefit-enrollment.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function BenefitEnrollmentListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => benefitEnrollmentService.remove(id),
         onSuccess: async () => {
@@ -24,9 +22,10 @@ export function BenefitEnrollmentListClient() {
             toast.success("Vínculo de benefício excluído");
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: BENEFIT_ENROLLMENT_CLIENT_MESSAGES.BENEFIT_ENROLLMENT_LOAD_FAILED }),
+            ExceptionCapture.handle(err, {
+                fallbackMessage: BENEFIT_ENROLLMENT_CLIENT_MESSAGES.BENEFIT_ENROLLMENT_LOAD_FAILED,
+            }),
     });
-
     const handleDelete = async (row: BenefitEnrollment) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

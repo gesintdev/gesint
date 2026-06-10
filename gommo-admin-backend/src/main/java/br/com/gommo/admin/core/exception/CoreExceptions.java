@@ -14,6 +14,5 @@ public final class CoreExceptions {
     public static final String INTERNAL_ERROR_MSG = "Ocorreu um erro inesperado";
 
     public static final String FORBIDDEN_CODE = "FORBIDDEN";
-    public static final String FORBIDDEN_MSG =
-            "Voc\u00ea n\u00e3o tem permiss\u00e3o para esta a\u00e7\u00e3o";
+    public static final String FORBIDDEN_MSG = "Voc\u00ea n\u00e3o tem permiss\u00e3o para esta a\u00e7\u00e3o";
 }

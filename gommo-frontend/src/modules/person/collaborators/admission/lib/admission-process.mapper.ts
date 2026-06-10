@@ -1,5 +1,12 @@
-import type { AdmissionProcess, AdmissionProcessCreateDto, AdmissionEmergencyContact } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
-import { computeAdmissionStatus, type AdmissionStepContext } from "@/modules/person/collaborators/admission/lib/admission-status.util";
+import type {
+    AdmissionProcess,
+    AdmissionProcessCreateDto,
+    AdmissionEmergencyContact,
+} from "@/modules/person/collaborators/admission/dto/admission-process.dto";
+import {
+    computeAdmissionStatus,
+    type AdmissionStepContext,
+} from "@/modules/person/collaborators/admission/lib/admission-status.util";
 import { normalizeEmergencyContacts } from "@/modules/person/collaborators/admission/lib/admission-emergency-contacts.util";
 import { digitsOnly } from "@/shared/lib/input/digits";
 
@@ -92,9 +99,7 @@ export function admissionFormToPayload(
     context: AdmissionStepContext,
 ): AdmissionProcessCreateDto {
     const admissionStatus = computeAdmissionStatus(form, context, ADMISSION_STEP_IDS);
-
     const emergencyContacts = sanitizeEmergencyContacts(form.emergencyContacts);
-
     return {
         ...form,
         admissionStatus,

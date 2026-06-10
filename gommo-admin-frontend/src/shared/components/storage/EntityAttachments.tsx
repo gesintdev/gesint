@@ -1,5 +1,5 @@
 "use client";
-
+import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
@@ -10,7 +10,6 @@ import { Button } from "@/shared/components/ui/Button";
 import { DataTable } from "@/shared/components/ui/DataTable";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
-import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
 
 const ATTACHMENT_COLUMNS: TableColumnConfig[] = [
     { id: "displayName", columnName: "Nome", fieldValue: "displayName", dataType: TableDataType.TEXT },
@@ -32,13 +31,11 @@ export function EntityAttachments({ entityType, entityId, linkRole = "DOCUMENT" 
     const queryClient = useQueryClient();
     const [uploading, setUploading] = useState(false);
     const queryKey = ["storage-links", entityType, entityId] as const;
-
     const linksQuery = useQuery({
         queryKey,
         queryFn: () => storageService.listLinks(entityType, entityId!),
         enabled: Boolean(entityId),
     });
-
     const deleteMutation = useMutation({
         mutationFn: async (link: StorageObjectLink) => {
             await storageService.deleteObject(link.storageObjectId);
@@ -50,7 +47,6 @@ export function EntityAttachments({ entityType, entityId, linkRole = "DOCUMENT" 
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível remover o arquivo" }),
     });
-
     const handleUpload = async (file: File) => {
         if (!entityId) return;
         setUploading(true);
@@ -73,11 +69,7 @@ export function EntityAttachments({ entityType, entityId, linkRole = "DOCUMENT" 
     };
 
     if (!entityId) {
-        return (
-            <p className="text-sm text-base-content/50">
-                Salve o registro para anexar documentos.
-            </p>
-        );
+        return <p className="text-sm text-base-content/50">Salve o registro para anexar documentos.</p>;
     }
 
     const rows = linksQuery.data ?? [];
@@ -106,7 +98,6 @@ export function EntityAttachments({ entityType, entityId, linkRole = "DOCUMENT" 
                     Enviar arquivo
                 </Button>
             </div>
-
             {linksQuery.isLoading ? (
                 <div className="skeleton-shimmer h-24 w-full rounded-lg" />
             ) : (
@@ -135,7 +126,12 @@ export function EntityAttachments({ entityType, entityId, linkRole = "DOCUMENT" 
                                 leftIcon={<Trash2 className="size-3.5" />}
                                 loading={deleteMutation.isPending}
                                 onClick={async () => {
-                                    if (!(await SystemAlert.confirmDelete("Deseja remover este arquivo? Esta ação não pode ser desfeita."))) return;
+                                    if (
+                                        !(await SystemAlert.confirmDelete(
+                                            "Deseja remover este arquivo? Esta ação não pode ser desfeita.",
+                                        ))
+                                    )
+                                        return;
                                     deleteMutation.mutate(row);
                                 }}
                             />

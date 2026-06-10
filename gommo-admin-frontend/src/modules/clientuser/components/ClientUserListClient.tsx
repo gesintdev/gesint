@@ -1,11 +1,10 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CLIENT_USER_CLIENT_MESSAGES } from "@/modules/clientuser/exceptions/clientuser.messages";
+import { clientUserKeys } from "@/modules/clientuser/clientuser.query";
 import { CLIENT_USER_TABLE_COLUMNS } from "@/modules/clientuser/config/clientuser.table-columns";
 import type { ClientUser } from "@/modules/clientuser/dto/clientuser.dto";
-import { clientUserKeys } from "@/modules/clientuser/clientuser.query";
+import { CLIENT_USER_CLIENT_MESSAGES } from "@/modules/clientuser/exceptions/clientuser.messages";
 import { clientUserService } from "@/modules/clientuser/services/clientuser.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function ClientUserListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => clientUserService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function ClientUserListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: CLIENT_USER_CLIENT_MESSAGES.LOAD_FAILED }),
     });
-
     const handleDelete = async (row: ClientUser) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

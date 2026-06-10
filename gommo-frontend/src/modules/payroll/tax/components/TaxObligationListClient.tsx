@@ -1,12 +1,11 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TAX_TABLE_COLUMNS } from "@/modules/payroll/tax/config/tax-obligation.table-columns";
 import type { TaxObligation } from "@/modules/payroll/tax/dto/tax-obligation.dto";
 import { TAX_CLIENT_MESSAGES } from "@/modules/payroll/tax/exceptions/tax-obligation.messages";
-import { taxObligationKeys } from "@/modules/payroll/tax/tax.query";
 import { taxObligationService } from "@/modules/payroll/tax/services/tax-obligation.service";
+import { taxObligationKeys } from "@/modules/payroll/tax/tax.query";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function TaxObligationListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => taxObligationService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function TaxObligationListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: TAX_CLIENT_MESSAGES.TAX_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: TaxObligation) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

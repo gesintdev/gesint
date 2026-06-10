@@ -6,7 +6,6 @@ import {
     type SystemScope,
 } from "@/modules/settings/lib/access-menu-catalog";
 import type { Profile } from "@/modules/settings/profile/dto/profile.dto";
-
 function collectLeafModules(routes: AppRoute[], modules: Set<string>) {
     for (const route of routes) {
         if (route.children?.length) {
@@ -32,6 +31,7 @@ function walkRoutes(routes: AppRoute[], query: string, modules: Set<string>) {
         if (route.label.toLowerCase().includes(query)) {
             collectModulesForRoute(route, modules);
         }
+
         if (route.children?.length) {
             walkRoutes(route.children, query, modules);
         }
@@ -41,37 +41,25 @@ function walkRoutes(routes: AppRoute[], query: string, modules: Set<string>) {
 export function permissionModulesMatchingMenuQuery(system: SystemScope, query: string): Set<string> {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return new Set();
-
     const modules = new Set<string>();
     const sections = getPermissionNavSections(systemEnumFromScope(system));
-
     for (const section of sections) {
         if (section.label.toLowerCase().includes(normalized)) {
             collectLeafModules(section.routes, modules);
         }
         walkRoutes(section.routes, normalized, modules);
     }
-
     return modules;
 }
 
-export function filterProfilesBySearch(
-    profiles: Profile[],
-    query: string,
-    system: SystemScope,
-): Profile[] {
+export function filterProfilesBySearch(profiles: Profile[], query: string, system: SystemScope): Profile[] {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return profiles;
-
     const menuModules = permissionModulesMatchingMenuQuery(system, normalized);
-
     return profiles.filter((profile) => {
         if (profile.name.toLowerCase().includes(normalized)) return true;
         if (profile.description?.toLowerCase().includes(normalized)) return true;
-        if (
-            menuModules.size > 0 &&
-            profile.permissions?.some((permission) => menuModules.has(permission.module))
-        ) {
+        if (menuModules.size > 0 && profile.permissions?.some((permission) => menuModules.has(permission.module))) {
             return true;
         }
         return false;

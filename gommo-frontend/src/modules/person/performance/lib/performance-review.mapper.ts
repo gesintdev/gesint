@@ -1,4 +1,7 @@
-import type { PerformanceReview, PerformanceReviewCreateDto } from "@/modules/person/performance/dto/performance-review.dto";
+import type {
+    PerformanceReview,
+    PerformanceReviewCreateDto,
+} from "@/modules/person/performance/dto/performance-review.dto";
 
 export function performanceReviewToFormDto(entity: PerformanceReview): PerformanceReviewCreateDto {
     return {

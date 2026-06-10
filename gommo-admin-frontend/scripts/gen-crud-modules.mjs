@@ -4,11 +4,10 @@
  */
 import fs from "fs";
 import path from "path";
-import {fileURLToPath} from "url";
+import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..", "src");
-
 const MODULES = [
     {
         key: "company",
@@ -19,18 +18,18 @@ const MODULES = [
         label: "Empresa",
         labelPlural: "Empresas",
         dtoFields: [
-            {name: "legalName", type: "string", required: true},
-            {name: "tradeName", type: "string"},
-            {name: "cnpj", type: "string", required: true, input: "cnpj"},
-            {name: "email", type: "string"},
-            {name: "phone", type: "string"},
-            {name: "city", type: "string"},
+            { name: "legalName", type: "string", required: true },
+            { name: "tradeName", type: "string" },
+            { name: "cnpj", type: "string", required: true, input: "cnpj" },
+            { name: "email", type: "string" },
+            { name: "phone", type: "string" },
+            { name: "city", type: "string" },
         ],
         tableCols: [
-            {id: "legalName", name: "Razão social", field: "legalName"},
-            {id: "cnpj", name: "CNPJ", field: "cnpj", type: "TEXT"},
-            {id: "city", name: "Cidade", field: "city"},
-            {id: "status", name: "Status", field: "status", type: "BADGE"},
+            { id: "legalName", name: "Razão social", field: "legalName" },
+            { id: "cnpj", name: "CNPJ", field: "cnpj", type: "TEXT" },
+            { id: "city", name: "Cidade", field: "city" },
+            { id: "status", name: "Status", field: "status", type: "BADGE" },
         ],
     },
     {
@@ -42,13 +41,13 @@ const MODULES = [
         label: "Departamento",
         labelPlural: "Departamentos",
         dtoFields: [
-            {name: "name", type: "string", required: true},
-            {name: "costCenter", type: "string"},
+            { name: "name", type: "string", required: true },
+            { name: "costCenter", type: "string" },
         ],
         tableCols: [
-            {id: "name", name: "Nome", field: "name"},
-            {id: "costCenter", name: "Centro de custo", field: "costCenter"},
-            {id: "status", name: "Status", field: "status", type: "BADGE"},
+            { id: "name", name: "Nome", field: "name" },
+            { id: "costCenter", name: "Centro de custo", field: "costCenter" },
+            { id: "status", name: "Status", field: "status", type: "BADGE" },
         ],
     },
     {
@@ -60,15 +59,15 @@ const MODULES = [
         label: "Cargo",
         labelPlural: "Cargos",
         dtoFields: [
-            {name: "title", type: "string", required: true},
-            {name: "cboCode", type: "string"},
-            {name: "departmentId", type: "string"},
+            { name: "title", type: "string", required: true },
+            { name: "cboCode", type: "string" },
+            { name: "departmentId", type: "string" },
         ],
         tableCols: [
-            {id: "title", name: "Título", field: "title"},
-            {id: "cboCode", name: "CBO", field: "cboCode"},
-            {id: "departmentId", name: "Dept. ID", field: "departmentId", type: "UUID"},
-            {id: "status", name: "Status", field: "status", type: "BADGE"},
+            { id: "title", name: "Título", field: "title" },
+            { id: "cboCode", name: "CBO", field: "cboCode" },
+            { id: "departmentId", name: "Dept. ID", field: "departmentId", type: "UUID" },
+            { id: "status", name: "Status", field: "status", type: "BADGE" },
         ],
     },
     {
@@ -81,7 +80,7 @@ const MODULES = [
         label: "Contrato",
         labelPlural: "Contratos",
         dtoFields: [
-            {name: "collaboratorId", type: "string", required: true},
+            { name: "collaboratorId", type: "string", required: true },
             {
                 name: "contractType",
                 type: '"CLT" | "PJ" | "INTERMITTENT" | "APPRENTICE" | "INTERN"',
@@ -94,14 +93,14 @@ const MODULES = [
                     ["INTERN", "Estágio"],
                 ],
             },
-            {name: "startDate", type: "string", required: true, input: "date"},
-            {name: "baseSalary", type: "string", input: "currency"},
+            { name: "startDate", type: "string", required: true, input: "date" },
+            { name: "baseSalary", type: "string", input: "currency" },
         ],
         tableCols: [
-            {id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID"},
-            {id: "contractType", name: "Tipo", field: "contractType"},
-            {id: "startDate", name: "Início", field: "startDate", type: "DATE"},
-            {id: "status", name: "Status", field: "status", type: "BADGE"},
+            { id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID" },
+            { id: "contractType", name: "Tipo", field: "contractType" },
+            { id: "startDate", name: "Início", field: "startDate", type: "DATE" },
+            { id: "status", name: "Status", field: "status", type: "BADGE" },
         ],
     },
     {
@@ -114,16 +113,16 @@ const MODULES = [
         label: "Registro de ponto",
         labelPlural: "Registros de ponto",
         dtoFields: [
-            {name: "collaboratorId", type: "string", required: true},
-            {name: "workDate", type: "string", required: true, input: "date"},
-            {name: "clockIn", type: "string", input: "time"},
-            {name: "clockOut", type: "string", input: "time"},
+            { name: "collaboratorId", type: "string", required: true },
+            { name: "workDate", type: "string", required: true, input: "date" },
+            { name: "clockIn", type: "string", input: "time" },
+            { name: "clockOut", type: "string", input: "time" },
         ],
         tableCols: [
-            {id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID"},
-            {id: "workDate", name: "Data", field: "workDate", type: "DATE"},
-            {id: "clockIn", name: "Entrada", field: "clockIn"},
-            {id: "clockOut", name: "Saída", field: "clockOut"},
+            { id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID" },
+            { id: "workDate", name: "Data", field: "workDate", type: "DATE" },
+            { id: "clockIn", name: "Entrada", field: "clockIn" },
+            { id: "clockOut", name: "Saída", field: "clockOut" },
         ],
     },
     {
@@ -136,7 +135,7 @@ const MODULES = [
         label: "Afastamento",
         labelPlural: "Afastamentos",
         dtoFields: [
-            {name: "collaboratorId", type: "string", required: true},
+            { name: "collaboratorId", type: "string", required: true },
             {
                 name: "leaveType",
                 type: '"VACATION" | "MEDICAL" | "MATERNITY" | "PATERNITY" | "UNPAID" | "OTHER"',
@@ -150,8 +149,8 @@ const MODULES = [
                     ["OTHER", "Outro"],
                 ],
             },
-            {name: "startDate", type: "string", required: true, input: "date"},
-            {name: "endDate", type: "string", required: true, input: "date"},
+            { name: "startDate", type: "string", required: true, input: "date" },
+            { name: "endDate", type: "string", required: true, input: "date" },
             {
                 name: "approved",
                 type: "boolean",
@@ -163,10 +162,10 @@ const MODULES = [
             },
         ],
         tableCols: [
-            {id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID"},
-            {id: "leaveType", name: "Tipo", field: "leaveType"},
-            {id: "startDate", name: "Início", field: "startDate", type: "DATE"},
-            {id: "approved", name: "Aprovado", field: "approved", type: "BOOLEAN"},
+            { id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID" },
+            { id: "leaveType", name: "Tipo", field: "leaveType" },
+            { id: "startDate", name: "Início", field: "startDate", type: "DATE" },
+            { id: "approved", name: "Aprovado", field: "approved", type: "BOOLEAN" },
         ],
     },
     {
@@ -179,8 +178,8 @@ const MODULES = [
         label: "Folha",
         labelPlural: "Processamentos de folha",
         dtoFields: [
-            {name: "referenceYear", type: "number", required: true, input: "number"},
-            {name: "referenceMonth", type: "number", required: true, input: "number"},
+            { name: "referenceYear", type: "number", required: true, input: "number" },
+            { name: "referenceMonth", type: "number", required: true, input: "number" },
             {
                 name: "payrollStatus",
                 type: '"DRAFT" | "PROCESSING" | "CLOSED" | "CANCELLED"',
@@ -194,10 +193,10 @@ const MODULES = [
             },
         ],
         tableCols: [
-            {id: "referenceYear", name: "Ano", field: "referenceYear"},
-            {id: "referenceMonth", name: "Mês", field: "referenceMonth"},
-            {id: "payrollStatus", name: "Status folha", field: "payrollStatus"},
-            {id: "status", name: "Status", field: "status", type: "BADGE"},
+            { id: "referenceYear", name: "Ano", field: "referenceYear" },
+            { id: "referenceMonth", name: "Mês", field: "referenceMonth" },
+            { id: "payrollStatus", name: "Status folha", field: "payrollStatus" },
+            { id: "status", name: "Status", field: "status", type: "BADGE" },
         ],
     },
     {
@@ -209,16 +208,16 @@ const MODULES = [
         label: "Holerite",
         labelPlural: "Holerites",
         dtoFields: [
-            {name: "payrollRunId", type: "string", required: true},
-            {name: "collaboratorId", type: "string", required: true},
-            {name: "grossAmount", type: "string", input: "currency"},
-            {name: "netAmount", type: "string", input: "currency"},
+            { name: "payrollRunId", type: "string", required: true },
+            { name: "collaboratorId", type: "string", required: true },
+            { name: "grossAmount", type: "string", input: "currency" },
+            { name: "netAmount", type: "string", input: "currency" },
         ],
         tableCols: [
-            {id: "payrollRunId", name: "Folha ID", field: "payrollRunId", type: "UUID"},
-            {id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID"},
-            {id: "grossAmount", name: "Bruto", field: "grossAmount", type: "CURRENCY"},
-            {id: "netAmount", name: "Líquido", field: "netAmount", type: "CURRENCY"},
+            { id: "payrollRunId", name: "Folha ID", field: "payrollRunId", type: "UUID" },
+            { id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID" },
+            { id: "grossAmount", name: "Bruto", field: "grossAmount", type: "CURRENCY" },
+            { id: "netAmount", name: "Líquido", field: "netAmount", type: "CURRENCY" },
         ],
     },
     {
@@ -231,15 +230,15 @@ const MODULES = [
         label: "Benefício",
         labelPlural: "Benefícios",
         dtoFields: [
-            {name: "name", type: "string", required: true},
-            {name: "benefitType", type: "string", required: true},
-            {name: "monthlyValue", type: "string", input: "currency"},
+            { name: "name", type: "string", required: true },
+            { name: "benefitType", type: "string", required: true },
+            { name: "monthlyValue", type: "string", input: "currency" },
         ],
         tableCols: [
-            {id: "name", name: "Nome", field: "name"},
-            {id: "benefitType", name: "Tipo", field: "benefitType"},
-            {id: "monthlyValue", name: "Valor mensal", field: "monthlyValue", type: "CURRENCY"},
-            {id: "status", name: "Status", field: "status", type: "BADGE"},
+            { id: "name", name: "Nome", field: "name" },
+            { id: "benefitType", name: "Tipo", field: "benefitType" },
+            { id: "monthlyValue", name: "Valor mensal", field: "monthlyValue", type: "CURRENCY" },
+            { id: "status", name: "Status", field: "status", type: "BADGE" },
         ],
     },
     {
@@ -252,7 +251,7 @@ const MODULES = [
         label: "Admissão",
         labelPlural: "Admissões",
         dtoFields: [
-            {name: "collaboratorId", type: "string", required: true},
+            { name: "collaboratorId", type: "string", required: true },
             {
                 name: "admissionStatus",
                 type: '"DRAFT" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"',
@@ -264,12 +263,12 @@ const MODULES = [
                     ["CANCELLED", "Cancelada"],
                 ],
             },
-            {name: "startedAt", type: "string", input: "date"},
+            { name: "startedAt", type: "string", input: "date" },
         ],
         tableCols: [
-            {id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID"},
-            {id: "admissionStatus", name: "Status", field: "admissionStatus"},
-            {id: "startedAt", name: "Início", field: "startedAt", type: "DATE"},
+            { id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID" },
+            { id: "admissionStatus", name: "Status", field: "admissionStatus" },
+            { id: "startedAt", name: "Início", field: "startedAt", type: "DATE" },
         ],
     },
     {
@@ -282,19 +281,18 @@ const MODULES = [
         label: "Entrevista de desligamento",
         labelPlural: "Entrevistas de desligamento",
         dtoFields: [
-            {name: "collaboratorId", type: "string", required: true},
-            {name: "interviewDate", type: "string", required: true, input: "date"},
-            {name: "departureReason", type: "string"},
-            {name: "feedback", type: "string", input: "textarea"},
+            { name: "collaboratorId", type: "string", required: true },
+            { name: "interviewDate", type: "string", required: true, input: "date" },
+            { name: "departureReason", type: "string" },
+            { name: "feedback", type: "string", input: "textarea" },
         ],
         tableCols: [
-            {id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID"},
-            {id: "interviewDate", name: "Data", field: "interviewDate", type: "DATE"},
-            {id: "departureReason", name: "Motivo", field: "departureReason"},
+            { id: "collaboratorId", name: "Colaborador", field: "collaboratorId", type: "UUID" },
+            { id: "interviewDate", name: "Data", field: "interviewDate", type: "DATE" },
+            { id: "departureReason", name: "Motivo", field: "departureReason" },
         ],
     },
 ];
-
 function kebab(s) {
     return s.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
@@ -305,7 +303,7 @@ function upperSnake(key) {
 
 function writeFile(rel, content) {
     const full = path.join(ROOT, rel);
-    fs.mkdirSync(path.dirname(full), {recursive: true});
+    fs.mkdirSync(path.dirname(full), { recursive: true });
     fs.writeFileSync(full, content, "utf8");
     console.log("wrote", rel);
 }
@@ -315,14 +313,12 @@ for (const m of MODULES) {
     const Pascal = m.pascal;
     const KEY = upperSnake(m.key);
     const modPath = `modules/${m.key}`;
-
     const entityFields = m.dtoFields
         .map((f) => {
             const t = f.type.includes("|") ? f.type : f.type;
             return `    ${f.name}${f.optional || f.type.includes("|") ? "?" : ""}!: ${t};`;
         })
         .join("\n");
-
     const createFields = m.dtoFields
         .map((f) => {
             const t = f.type.includes("|") ? f.type : f.type;
@@ -330,7 +326,6 @@ for (const m of MODULES) {
             return `    ${f.name}${opt ? "?" : ""}!: ${t};`;
         })
         .join("\n");
-
     const emptyForm = m.dtoFields
         .map((f) => {
             if (f.type === "number") return `    ${f.name}: 0,`;
@@ -338,7 +333,6 @@ for (const m of MODULES) {
             return `    ${f.name}: "",`;
         })
         .join("\n");
-
     const toForm = m.dtoFields
         .map((f) => {
             if (f.input === "date" || f.name.includes("Date") || f.name.endsWith("At"))
@@ -348,9 +342,7 @@ for (const m of MODULES) {
             return `        ${f.name}: entity.${f.name} ?? "",`;
         })
         .join("\n");
-
     const tableType = (t) => (t ? `TableDataType.${t}` : "TableDataType.TEXT");
-
     const tableCols = m.tableCols
         .map(
             (c) => `    {
@@ -361,7 +353,6 @@ for (const m of MODULES) {
     },`,
         )
         .join("\n");
-
     const formInputs = m.dtoFields
         .map((f) => {
             const label = f.name
@@ -403,10 +394,8 @@ for (const m of MODULES) {
             return `      <InputString label="${label}" value={form.${f.name} ?? ""} onValueChange={(v) => update("${f.name}", v)} ${f.required ? "required" : ""} />`;
         })
         .join("\n");
-
     const displayField = m.tableCols[0]?.field ?? "id";
     const displayLabel = m.tableCols[0]?.name ?? "registro";
-
     writeFile(
         `${modPath}/dto/${prefix}.dto.ts`,
         `export class ${Pascal} {
@@ -422,7 +411,6 @@ ${createFields}
 }
 `,
     );
-
     writeFile(
         `${modPath}/services/${prefix}.service.ts`,
         `import type { ${Pascal}, ${Pascal}CreateDto } from "@/modules/${m.key}/dto/${prefix}.dto";
@@ -437,7 +425,6 @@ class ${Pascal}Service extends BaseService<${Pascal}, ${Pascal}CreateDto, ${Pasc
 export const ${prefix.replace(/-/g, "")}Service = new ${Pascal}Service();
 `,
     );
-
     writeFile(
         `${modPath}/${m.key}.query.ts`,
         `export const ${prefix.replace(/-/g, "")}Keys = {
@@ -446,7 +433,6 @@ export const ${prefix.replace(/-/g, "")}Service = new ${Pascal}Service();
 };
 `,
     );
-
     writeFile(
         `${modPath}/lib/${prefix}.mapper.ts`,
         `import type { ${Pascal}, ${Pascal}CreateDto } from "@/modules/${m.key}/dto/${prefix}.dto";
@@ -462,7 +448,6 @@ ${emptyForm}
 });
 `,
     );
-
     writeFile(
         `${modPath}/config/${prefix}.table-columns.ts`,
         `import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
@@ -472,7 +457,6 @@ ${tableCols}
 ];
 `,
     );
-
     writeFile(
         `${modPath}/exceptions/${prefix}.messages.ts`,
         `export const ${KEY}_MESSAGES = {
@@ -485,14 +469,11 @@ export const ${KEY}_CLIENT_MESSAGES = {
 } as const;
 `,
     );
-
     const svcVar = `${prefix.replace(/-/g, "")}Service`;
     const keysVar = `${prefix.replace(/-/g, "")}Keys`;
-
     writeFile(
         `${modPath}/components/${Pascal}ListClient.tsx`,
         `"use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -510,7 +491,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function ${Pascal}ListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => ${svcVar}.remove(id),
         onSuccess: async () => {
@@ -520,14 +500,11 @@ export function ${Pascal}ListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: ${KEY}_CLIENT_MESSAGES.${KEY}_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: ${Pascal}) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);
     };
-
     const rowLabel = (row: ${Pascal}) => String((row as Record<string, unknown>)["${displayField}"] ?? row.id);
-
     return (
         <QueryTablePanel<${Pascal}>
             queryKey={${keysVar}.all}
@@ -547,20 +524,17 @@ export function ${Pascal}ListClient() {
 }
 `,
     );
-
     const imports = [
-        'InputString',
+        "InputString",
         ...(m.dtoFields.some((f) => f.input === "date") ? ["InputDate"] : []),
         ...(m.dtoFields.some((f) => f.input === "cnpj") ? ["InputCNPJ"] : []),
         ...(m.dtoFields.some((f) => f.input === "currency") ? ["InputCurrency"] : []),
         ...(m.dtoFields.some((f) => f.select) ? ["InputSelect"] : []),
         ...(m.dtoFields.some((f) => f.input === "number") ? ["InputNumber"] : []),
     ].join(", ");
-
     writeFile(
         `${modPath}/components/${Pascal}FormClient.tsx`,
         `"use client";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
@@ -579,13 +553,11 @@ export function ${Pascal}FormClient() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<${Pascal}CreateDto>(empty${Pascal}Form);
   const [error, setError] = useState<string | null>(null);
-
   const detailQuery = useQuery({
     queryKey: ${keysVar}.detail(editingId ?? ""),
     queryFn: () => ${svcVar}.getById(editingId!),
     enabled: isEditing && Boolean(editingId),
   });
-
   useEffect(() => {
     if (!isEditing) {
       setForm(empty${Pascal}Form());
@@ -597,7 +569,6 @@ export function ${Pascal}FormClient() {
       setError(null);
     }
   }, [isEditing, detailQuery.data]);
-
   const saveMutation = useMutation({
     mutationFn: async (dto: ${Pascal}CreateDto) => {
       if (isEditing && editingId) return ${svcVar}.update(editingId, dto);
@@ -615,17 +586,14 @@ export function ${Pascal}FormClient() {
       setError(ex.displayMessage);
     },
   });
-
   const update = <K extends keyof ${Pascal}CreateDto>(field: K, value: ${Pascal}CreateDto[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
-
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     saveMutation.mutate(form);
   };
-
   if (isEditing && detailQuery.isLoading) {
     return <div className="grid gap-2 p-5">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton-shimmer h-10 w-full" />)}</div>;
   }
@@ -656,7 +624,6 @@ ${formInputs}
 }
 `,
     );
-
     writeFile(
         `app/(system)/${m.pagePath}/page.tsx`,
         `import {PascalFormClient} from "@/modules/EXTERNAL_FRAGMENT/components/PascalFormClient";

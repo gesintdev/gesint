@@ -1,23 +1,25 @@
 package br.com.gommo.modules.organization.department.service;
 
-import br.com.gommo.core.base.dto.PageableResponseDto;
-import br.com.gommo.core.base.service.BaseService;
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.organization.department.dto.DepartmentRequestDto;
-import br.com.gommo.modules.organization.department.dto.DepartmentResponseDto;
-import br.com.gommo.modules.organization.department.entity.Department;
-import br.com.gommo.core.util.TextSearchUtils;
-import br.com.gommo.modules.organization.department.exception.DepartmentException;
-import br.com.gommo.modules.organization.department.mapper.DepartmentMapper;
-import br.com.gommo.modules.organization.department.repository.DepartmentRepository;
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import br.com.gommo.core.base.dto.PageableResponseDto;
+import br.com.gommo.core.base.service.BaseService;
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.core.util.TextSearchUtils;
+import br.com.gommo.modules.organization.department.dto.DepartmentRequestDto;
+import br.com.gommo.modules.organization.department.dto.DepartmentResponseDto;
+import br.com.gommo.modules.organization.department.entity.Department;
+import br.com.gommo.modules.organization.department.exception.DepartmentException;
+import br.com.gommo.modules.organization.department.mapper.DepartmentMapper;
+import br.com.gommo.modules.organization.department.repository.DepartmentRepository;
 
 @Service
 public class DepartmentService extends BaseService<Department, DepartmentRequestDto, DepartmentResponseDto>
@@ -99,9 +101,7 @@ public class DepartmentService extends BaseService<Department, DepartmentRequest
 
     @Override
     protected Department findEntity(UUID id) {
-        return repository
-                .findByIdAndStatusNot(id, StatusEnum.DELETED)
-                .orElseThrow(DepartmentException::notFound);
+        return repository.findByIdAndStatusNot(id, StatusEnum.DELETED).orElseThrow(DepartmentException::notFound);
     }
 
     @Override

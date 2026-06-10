@@ -16,9 +16,6 @@ export type CrudFormShellProps = {
     formId?: string;
 };
 
-/**
- * Formulário CRUD com uma única tag `<form>`, área rolável e rodapé de ações fixo.
- */
 export function CrudFormShell({
     children,
     footer,

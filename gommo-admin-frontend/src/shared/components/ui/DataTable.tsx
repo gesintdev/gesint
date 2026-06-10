@@ -1,10 +1,9 @@
 "use client";
-
+import type { MouseEvent, ReactNode } from "react";
+import { badgeClassForStatus, formatCellValue } from "@/shared/lib/table/format-cell-value";
+import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
 import clsx from "clsx";
 import get from "lodash/get";
-import type {MouseEvent, ReactNode} from "react";
-import {badgeClassForStatus, formatCellValue} from "@/shared/lib/table/format-cell-value";
-import {TableDataType, type TableColumnConfig} from "@/shared/types/table.types";
 
 export type DataTableRowActivateOn = "click" | "doubleclick";
 
@@ -30,15 +29,10 @@ export type DataTableProps<T extends object> = {
 };
 
 function resolveRowInteraction<T extends object>(props: DataTableProps<T>) {
-    const {onRowActivate, onRowClick, onRowDoubleClick, rowActivateOn} = props;
-
-    const mode: DataTableRowActivateOn =
-        rowActivateOn ?? (onRowDoubleClick && !onRowClick ? "doubleclick" : "click");
-
-    const handler =
-        onRowActivate ?? (mode === "doubleclick" ? onRowDoubleClick : onRowClick);
-
-    return {mode, handler, interactive: Boolean(handler)};
+    const { onRowActivate, onRowClick, onRowDoubleClick, rowActivateOn } = props;
+    const mode: DataTableRowActivateOn = rowActivateOn ?? (onRowDoubleClick && !onRowClick ? "doubleclick" : "click");
+    const handler = onRowActivate ?? (mode === "doubleclick" ? onRowDoubleClick : onRowClick);
+    return { mode, handler, interactive: Boolean(handler) };
 }
 
 function alignClass(align?: TableColumnConfig["align"]) {
@@ -51,10 +45,7 @@ function renderCellContent(value: unknown, dataType?: TableDataType): ReactNode 
     if (dataType === TableDataType.EMAIL && value) {
         const email = String(value);
         return (
-            <a
-                href={`mailto:${email}`}
-                className="text-primary underline-offset-2 hover:underline"
-            >
+            <a href={`mailto:${email}`} className="text-primary underline-offset-2 hover:underline">
                 {email}
             </a>
         );
@@ -63,11 +54,10 @@ function renderCellContent(value: unknown, dataType?: TableDataType): ReactNode 
     if (dataType === TableDataType.BADGE && value != null && value !== "") {
         return (
             <span className={clsx("gommo-badge", badgeClassForStatus(value))}>
-        {formatCellValue(value, TableDataType.BADGE)}
-      </span>
+                {formatCellValue(value, TableDataType.BADGE)}
+            </span>
         );
     }
-
     const formatted = formatCellValue(value, dataType);
     const isNumeric =
         dataType === TableDataType.CPF ||
@@ -75,29 +65,26 @@ function renderCellContent(value: unknown, dataType?: TableDataType): ReactNode 
         dataType === TableDataType.FLOAT ||
         dataType === TableDataType.CURRENCY ||
         dataType === TableDataType.PERCENT;
-
-    return (
-        <span className={clsx("text-sm", isNumeric && "tabular-nums")}>{formatted}</span>
-    );
+    return <span className={clsx("text-sm", isNumeric && "tabular-nums")}>{formatted}</span>;
 }
 
 export function DataTable<T extends object>({
-                                                data,
-                                                columns,
-                                                rowKey = "id",
-                                                emptyMessage = "Nenhum registro encontrado.",
-                                                compact = true,
-                                                striped = false,
-                                                stickyHeader = true,
-                                                onRowActivate,
-                                                rowActivateOn,
-                                                onRowClick,
-                                                onRowDoubleClick,
-                                                renderActions,
-                                                actionsHeader = "Ações",
-                                                actionsClassName,
-                                            }: DataTableProps<T>) {
-    const {mode, handler, interactive} = resolveRowInteraction({
+    data,
+    columns,
+    rowKey = "id",
+    emptyMessage = "Nenhum registro encontrado.",
+    compact = true,
+    striped = false,
+    stickyHeader = true,
+    onRowActivate,
+    rowActivateOn,
+    onRowClick,
+    onRowDoubleClick,
+    renderActions,
+    actionsHeader = "Ações",
+    actionsClassName,
+}: DataTableProps<T>) {
+    const { mode, handler, interactive } = resolveRowInteraction({
         data,
         columns,
         onRowActivate,
@@ -112,101 +99,76 @@ export function DataTable<T extends object>({
     return (
         <div className="overflow-x-auto">
             <table
-                className={clsx(
-                    "gommo-table",
-                    compact && "gommo-table--compact",
-                    striped && "gommo-table--striped",
-                )}
+                className={clsx("gommo-table", compact && "gommo-table--compact", striped && "gommo-table--striped")}
             >
                 <thead className={clsx(stickyHeader && "sticky top-0 z-[1]")}>
-                <tr>
-                    {columns.map((col, colIndex) => (
-                        <th
-                            key={col.id || col.fieldValue || `col-${colIndex}`}
-                            className={clsx(
-                                "bg-transparent",
-                                alignClass(col.align),
-                                col.headerClassName,
-                            )}
-                        >
-                            {col.columnName}
-                        </th>
-                    ))}
-                    {hasActions && (
-                        <th
-                            key="__actions"
-                            className={clsx("bg-transparent text-right", actionsClassName)}
-                        >
-                            {actionsHeader}
-                        </th>
-                    )}
-                </tr>
-                </thead>
-
-                <tbody>
-                {data.length === 0 ? (
                     <tr>
-                        <td
-                            colSpan={colSpan}
-                            className="py-20 text-center text-sm text-base-content/38"
-                        >
-                            {emptyMessage}
-                        </td>
-                    </tr>
-                ) : (
-                    data.map((row, index) => {
-                        const key = String(get(row, rowKey) ?? index);
-
-                        return (
-                            <tr
-                                key={key}
-                                onClick={
-                                    interactive && mode === "click"
-                                        ? () => handler?.(row)
-                                        : undefined
-                                }
-                                onDoubleClick={
-                                    interactive && mode === "doubleclick"
-                                        ? () => handler?.(row)
-                                        : undefined
-                                }
-                                className={clsx(
-                                    interactive && "cursor-pointer",
-                                )}
+                        {columns.map((col, colIndex) => (
+                            <th
+                                key={col.id || col.fieldValue || `col-${colIndex}`}
+                                className={clsx("bg-transparent", alignClass(col.align), col.headerClassName)}
                             >
-                                {columns.map((col, colIndex) => {
-                                    const raw = get(row, col.fieldValue);
-                                    const isPrimary = col.fieldValue === columns[0]?.fieldValue;
-
-                                    return (
-                                        <td
-                                            key={col.id || col.fieldValue || `col-${colIndex}`}
-                                            className={clsx(
-                                                alignClass(col.align),
-                                                isPrimary && "font-semibold text-base-content",
-                                                !isPrimary && "text-base-content/70",
-                                                col.className,
-                                            )}
-                                        >
-                                            {renderCellContent(raw, col.dataType)}
+                                {col.columnName}
+                            </th>
+                        ))}
+                        {hasActions && (
+                            <th key="__actions" className={clsx("bg-transparent text-right", actionsClassName)}>
+                                {actionsHeader}
+                            </th>
+                        )}
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.length === 0 ? (
+                        <tr>
+                            <td colSpan={colSpan} className="py-20 text-center text-sm text-base-content/38">
+                                {emptyMessage}
+                            </td>
+                        </tr>
+                    ) : (
+                        data.map((row, index) => {
+                            const key = String(get(row, rowKey) ?? index);
+                            return (
+                                <tr
+                                    key={key}
+                                    onClick={interactive && mode === "click" ? () => handler?.(row) : undefined}
+                                    onDoubleClick={
+                                        interactive && mode === "doubleclick" ? () => handler?.(row) : undefined
+                                    }
+                                    className={clsx(interactive && "cursor-pointer")}
+                                >
+                                    {columns.map((col, colIndex) => {
+                                        const raw = get(row, col.fieldValue);
+                                        const isPrimary = col.fieldValue === columns[0]?.fieldValue;
+                                        return (
+                                            <td
+                                                key={col.id || col.fieldValue || `col-${colIndex}`}
+                                                className={clsx(
+                                                    alignClass(col.align),
+                                                    isPrimary && "font-semibold text-base-content",
+                                                    !isPrimary && "text-base-content/70",
+                                                    col.className,
+                                                )}
+                                            >
+                                                {renderCellContent(raw, col.dataType)}
+                                            </td>
+                                        );
+                                    })}
+                                    {hasActions && (
+                                        <td className={clsx("text-right", actionsClassName)}>
+                                            <div
+                                                className="gommo-table-actions"
+                                                onClick={stopRowClick}
+                                                onDoubleClick={stopRowClick}
+                                            >
+                                                {renderActions?.(row)}
+                                            </div>
                                         </td>
-                                    );
-                                })}
-                                {hasActions && (
-                                    <td className={clsx("text-right", actionsClassName)}>
-                                        <div
-                                            className="gommo-table-actions"
-                                            onClick={stopRowClick}
-                                            onDoubleClick={stopRowClick}
-                                        >
-                                            {renderActions?.(row)}
-                                        </div>
-                                    </td>
-                                )}
-                            </tr>
-                        );
-                    })
-                )}
+                                    )}
+                                </tr>
+                            );
+                        })
+                    )}
                 </tbody>
             </table>
         </div>

@@ -1,12 +1,10 @@
-import type {LucideIcon} from "lucide-react";
-import type {RoutePublicAccess} from "@/shared/auth/route-access";
-import type {WorkspacePageLoader} from "@/shared/workspace/workspace-page.types";
-
+import type { LucideIcon } from "lucide-react";
+import type { RoutePublicAccess } from "@/shared/auth/route-access";
+import type { WorkspacePageLoader } from "@/shared/workspace/workspace-page.types";
 // ─────────────────────────────────────────────
 // Core navigation types (source-of-truth here,
 // re-exported from @/config/routes for compat)
 // ─────────────────────────────────────────────
-
 export type AppRoute = {
     id: string;
     label: string;
@@ -32,11 +30,6 @@ export type NavSection = {
     routes: AppRoute[];
 };
 
-// ─────────────────────────────────────────────
-// Module system types
-// ─────────────────────────────────────────────
-
-/** Metadata that describes a module's identity inside the nav */
 export type TModuleInfos = {
     /** Unique section id used in NavSection (e.g. "people") */
     id: string;
@@ -46,15 +39,10 @@ export type TModuleInfos = {
     order?: number;
 };
 
-/** A fully configured module: its metadata + its routes */
 export type TModule = {
     infos: TModuleInfos;
     routes: AppRoute[];
 };
-
-// ─────────────────────────────────────────────
-// Enum
-// ─────────────────────────────────────────────
 
 export enum ModuleEnum {
     ROOT = "root",
@@ -66,17 +54,11 @@ export enum ModuleEnum {
     SETTINGS = "settings",
 }
 
-// ─────────────────────────────────────────────
-// Interface
-// ─────────────────────────────────────────────
-
 export interface IModuleHelper {
     /** Returns the full registry of module infos, keyed by ModuleEnum */
     getInfos(): Record<ModuleEnum, TModuleInfos>;
-
     /** Returns the infos for a single module by its enum key */
     getById(id: ModuleEnum): TModuleInfos;
-
     /**
      * Converts a TModule[] into the NavSection[] expected by the sidebar.
      * Modules are sorted by `infos.order` when present.
@@ -84,12 +66,7 @@ export interface IModuleHelper {
     toNavSections(modules: TModule[]): NavSection[];
 }
 
-// ─────────────────────────────────────────────
-// Implementation
-// ─────────────────────────────────────────────
-
 export class ModuleEnumHelper implements IModuleHelper {
-
     /**
      * Central registry — every module enum value MUST have an entry here.
      * Module files call `ModuleEnumHelper.getInfos()[ModuleEnum.X]` to
@@ -132,19 +109,15 @@ export class ModuleEnumHelper implements IModuleHelper {
             order: 99,
         },
     };
-
     // ── Static API (primary usage) ───────────────
-
     /** Returns the full registry keyed by ModuleEnum */
     static getInfos(): Record<ModuleEnum, TModuleInfos> {
         return ModuleEnumHelper.registry;
     }
-
     /** Returns the infos for a single module */
     static getById(id: ModuleEnum): TModuleInfos {
         return ModuleEnumHelper.registry[id];
     }
-
     /**
      * Converts TModule[] → NavSection[], sorted by `infos.order`.
      * This is what `routes.ts` uses to build NAV_SECTIONS.
@@ -158,17 +131,13 @@ export class ModuleEnumHelper implements IModuleHelper {
                 routes: m.routes,
             }));
     }
-
     // ── Instance API (satisfies IModuleHelper) ───
-
     getInfos(): Record<ModuleEnum, TModuleInfos> {
         return ModuleEnumHelper.getInfos();
     }
-
     getById(id: ModuleEnum): TModuleInfos {
         return ModuleEnumHelper.getById(id);
     }
-
     toNavSections(modules: TModule[]): NavSection[] {
         return ModuleEnumHelper.toNavSections(modules);
     }

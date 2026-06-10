@@ -1,32 +1,25 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
+import { InputCPF, InputDate, RgIdentityFields, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { COLLABORATOR_CLIENT_MESSAGES } from "@/modules/collaborator/exceptions/collaborator.messages";
+import { collaboratorKeys } from "@/modules/collaborator/collaborator.query";
 import type { CollaboratorCreateDto } from "@/modules/collaborator/dto/collaborator.dto";
+import { COLLABORATOR_CLIENT_MESSAGES } from "@/modules/collaborator/exceptions/collaborator.messages";
 import {
     collaboratorFormToPayload,
     collaboratorToFormDto,
     emptyCollaboratorForm,
 } from "@/modules/collaborator/lib/collaborator.mapper";
-import { collaboratorKeys } from "@/modules/collaborator/collaborator.query";
 import { collaboratorService } from "@/modules/collaborator/services/collaborator.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
-import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
-import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import {
-    InputCPF,
-    InputDate,
-    RgIdentityFields,
-    InputSelect,
-    InputString,
-} from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 const GENDER_ITEMS: SelectItem[] = [
     { value: "MALE", label: "Masculino" },
@@ -34,7 +27,6 @@ const GENDER_ITEMS: SelectItem[] = [
     { value: "OTHER", label: "Outro" },
     { value: "NOT_INFORMED", label: "Prefere não informar" },
 ];
-
 const MARITAL_ITEMS: SelectItem[] = [
     { value: "SINGLE", label: "Solteiro(a)" },
     { value: "MARRIED", label: "Casado(a)" },
@@ -48,7 +40,6 @@ export function CollaboratorFormClient() {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CollaboratorCreateDto>(emptyCollaboratorForm);
     const [error, setError] = useState<string | null>(null);
-
     const detailQuery = useQuery({
         queryKey: collaboratorKeys.detail(editingId ?? ""),
         queryFn: () => collaboratorService.getById(editingId!),
@@ -63,6 +54,7 @@ export function CollaboratorFormClient() {
             setError(null);
             return;
         }
+
         if (detailQuery.data) {
             setForm(collaboratorToFormDto(detailQuery.data));
             setError(null);
@@ -87,11 +79,9 @@ export function CollaboratorFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends keyof CollaboratorCreateDto>(field: K, value: CollaboratorCreateDto[K]) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -153,7 +143,6 @@ export function CollaboratorFormClient() {
                         Alterações aqui não substituem o fluxo de admissão para novos colaboradores.
                     </p>
                 </div>
-
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <FormSection title="Identificação" description="Dados pessoais do colaborador.">
                     <InputString
@@ -193,9 +182,7 @@ export function CollaboratorFormClient() {
                         label="Gênero"
                         items={GENDER_ITEMS}
                         value={form.gender ?? ""}
-                        onValueChange={(v) =>
-                            update("gender", (v || undefined) as CollaboratorCreateDto["gender"])
-                        }
+                        onValueChange={(v) => update("gender", (v || undefined) as CollaboratorCreateDto["gender"])}
                         placeholder="Não informado"
                         clearable
                     />
@@ -232,7 +219,6 @@ export function CollaboratorFormClient() {
                         wrapperClassName="sm:col-span-2"
                     />
                 </FormSection>
-
                 {error && <p className="text-sm font-medium text-error">{error}</p>}
             </div>
         </CrudFormShell>

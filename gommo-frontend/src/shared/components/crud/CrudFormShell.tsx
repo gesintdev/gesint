@@ -1,6 +1,6 @@
+import { FormStepper, type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import clsx from "clsx";
 import type { ReactNode, SubmitEvent } from "react";
-import { FormStepper, type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 
 export type CrudFormStepperConfig = {
     steps: FormStepNavItem[];
@@ -19,9 +19,6 @@ type CrudFormShellProps = {
     stepper?: CrudFormStepperConfig;
 };
 
-/**
- * Formulário CRUD com área rolável e rodapé de ações fixo na base do painel.
- */
 export function CrudFormShell({
     children,
     footer,
@@ -45,18 +42,8 @@ export function CrudFormShell({
     );
 
     return (
-        <form
-            id={formId}
-            onSubmit={onSubmit}
-            className={clsx("crud-form-shell", className)}
-        >
-            <div
-                className={clsx(
-                    "crud-form-shell__body",
-                    stepper && "!overflow-hidden !p-0",
-                    bodyClassName,
-                )}
-            >
+        <form id={formId} onSubmit={onSubmit} className={clsx("crud-form-shell", className)}>
+            <div className={clsx("crud-form-shell__body", stepper && "!overflow-hidden !p-0", bodyClassName)}>
                 {bodyContent}
             </div>
             <div className="crud-form-shell__footer">

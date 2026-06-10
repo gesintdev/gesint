@@ -1,6 +1,5 @@
 package br.com.gommo.modules.root.entity;
 
-import br.com.gommo.core.entity.AuditEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -8,16 +7,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+
+import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+import br.com.gommo.core.entity.AuditEntity;
 
 @Entity
 @Table(name = "app_user")

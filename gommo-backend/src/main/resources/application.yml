@@ -13,7 +13,6 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        default_schema: public
         jdbc:
           time_zone: America/Sao_Paulo
   flyway:
@@ -47,7 +46,14 @@ gommo:
       access-token-minutes: 15
       refresh-token-days: 7
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://*.localhost:3000}
+  multi-tenant:
+    enabled: ${GOMMO_MULTI_TENANT_ENABLED:false}
+    dev-tenant-slug: ${GOMMO_DEV_TENANT_SLUG:}
+    header-enabled: ${GOMMO_TENANT_HEADER_ENABLED:true}
+    tenant-header: X-Tenant-Slug
+    base-domain: ${GOMMO_TENANT_BASE_DOMAIN:localhost}
+    production-base-domain: ${GOMMO_TENANT_PRODUCTION_BASE_DOMAIN:gommo.com.br}
 
 logging:
   pattern:

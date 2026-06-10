@@ -2,6 +2,7 @@ package br.com.gommo.admin.modules.adminuser.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,19 +17,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AdminUserRequestDto {
 
-    @NotBlank
-    @Size(max = 100)
-    private String username;
+    @NotBlank @Size(max = 100) private String username;
 
-    @NotBlank
-    @Email
-    @Size(max = 200)
-    private String email;
+    @NotBlank @Email @Size(max = 200) private String email;
 
-    @NotBlank
-    @Size(max = 200)
-    private String fullName;
+    @NotBlank @Size(max = 200) private String fullName;
 
-    @Size(min = 8, max = 100)
-    private String password;
+    @Pattern(regexp = "^$|^.{8,100}$", message = "deve ter entre 8 e 100 caracteres") private String password;
 }

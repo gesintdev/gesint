@@ -1,19 +1,21 @@
 package br.com.gommo.modules.access.catalog.service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.modules.access.catalog.PermissionModuleCatalog;
 import br.com.gommo.modules.access.catalog.dto.PermissionModuleGroupDto;
 import br.com.gommo.modules.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.root.dto.PermissionSummaryDto;
 import br.com.gommo.modules.root.entity.Permission;
 import br.com.gommo.modules.root.repository.PermissionRepository;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PermissionCatalogService implements IPermissionCatalogService {
@@ -68,8 +70,7 @@ public class PermissionCatalogService implements IPermissionCatalogService {
         Map<String, List<PermissionSummaryDto>> grouped = new LinkedHashMap<>();
         permissions.stream()
                 .sorted(Comparator.comparing(Permission::getModule).thenComparing(Permission::getAuthority))
-                .forEach(permission -> grouped
-                        .computeIfAbsent(permission.getModule(), key -> new ArrayList<>())
+                .forEach(permission -> grouped.computeIfAbsent(permission.getModule(), key -> new ArrayList<>())
                         .add(toSummary(permission)));
 
         return grouped.entrySet().stream()

@@ -15,43 +15,42 @@ export function isAdmissionStepComplete(
 ): boolean {
     switch (stepId) {
         case "dados-basicos":
-            return isStepFilled([
-                {value: form.fullName},
-                {value: form.cpf},
-                {value: form.birthDate},
-            ]) && context.hasPhoto;
+            return (
+                isStepFilled([{ value: form.fullName }, { value: form.cpf }, { value: form.birthDate }]) &&
+                context.hasPhoto
+            );
         case "contatos-emergencia":
             return (form.emergencyContacts ?? []).some((contact) =>
                 isStepFilled([{ value: contact.name }, { value: contact.phone }]),
             );
         case "endereco":
             return isStepFilled([
-                {value: form.zipCode},
-                {value: form.stateCode},
-                {value: form.street},
-                {value: form.number},
-                {value: form.city},
+                { value: form.zipCode },
+                { value: form.stateCode },
+                { value: form.street },
+                { value: form.number },
+                { value: form.city },
             ]);
         case "documentos":
             return context.documentCount > 0;
         case "vinculo":
             if (isAdmissionPj(form.contractType)) {
                 return isStepFilled([
-                    {value: form.expectedStartDate},
-                    {value: form.contractType},
-                    {value: form.providerCnpj},
-                    {value: form.providerLegalName},
+                    { value: form.expectedStartDate },
+                    { value: form.contractType },
+                    { value: form.providerCnpj },
+                    { value: form.providerLegalName },
                 ]);
             }
             return isStepFilled([
-                {value: form.expectedStartDate},
-                {value: form.contractType},
-                {value: form.workloadSchedule},
+                { value: form.expectedStartDate },
+                { value: form.contractType },
+                { value: form.workloadSchedule },
             ]);
         case "contrato":
-            return isStepFilled([{value: form.contractStartDate}]) && context.contractDocumentCount > 0;
+            return isStepFilled([{ value: form.contractStartDate }]) && context.contractDocumentCount > 0;
         case "observacoes":
-            return isStepFilled([{value: form.notes}]);
+            return isStepFilled([{ value: form.notes }]);
         default:
             return false;
     }

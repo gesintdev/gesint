@@ -1,3 +1,10 @@
+import {
+    PROFILE_PHOTO_DISPLAY_PX,
+    baseCoverScale,
+    exportProfilePhotoBlob,
+    loadImageFromFile,
+    type ProfilePhotoCropState,
+} from "@/shared/lib/image/profile-photo.util";
 import clsx from "clsx";
 import { Camera, Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -6,13 +13,6 @@ import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/Button";
 import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { ExceptionCapture } from "@/shared/exceptions";
-import {
-    PROFILE_PHOTO_DISPLAY_PX,
-    baseCoverScale,
-    exportProfilePhotoBlob,
-    loadImageFromFile,
-    type ProfilePhotoCropState,
-} from "@/shared/lib/image/profile-photo.util";
 
 type ProfilePhotoFieldProps = {
     /** ID já persistido no storage/admissão */
@@ -80,18 +80,14 @@ function ProfilePhotoCropModal({
         };
     }, [previewUrl]);
 
-    const displayScale = image
-        ? baseCoverScale(image.naturalWidth, image.naturalHeight, viewport) * crop.scale
-        : 1;
+    const displayScale = image ? baseCoverScale(image.naturalWidth, image.naturalHeight, viewport) * crop.scale : 1;
     const displayWidth = image ? image.naturalWidth * displayScale : viewport;
     const displayHeight = image ? image.naturalHeight * displayScale : viewport;
-
     const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
         if (!image) return;
         e.currentTarget.setPointerCapture(e.pointerId);
         dragRef.current = { x: e.clientX, y: e.clientY, panX: crop.panX, panY: crop.panY };
     };
-
     const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
         if (!dragRef.current) return;
         const dx = e.clientX - dragRef.current.x;
@@ -102,12 +98,10 @@ function ProfilePhotoCropModal({
             panY: dragRef.current!.panY + dy,
         }));
     };
-
     const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
         dragRef.current = null;
         e.currentTarget.releasePointerCapture(e.pointerId);
     };
-
     const handleConfirm = async () => {
         if (!image) return;
         setProcessing(true);
@@ -149,7 +143,6 @@ function ProfilePhotoCropModal({
                         <X className="size-4" />
                     </button>
                 </div>
-
                 <div className="flex flex-col items-center gap-4">
                     <div
                         className="relative touch-none overflow-hidden rounded-2xl bg-base-300/40 ring-1 ring-base-content/10"
@@ -179,7 +172,6 @@ function ProfilePhotoCropModal({
                             </div>
                         )}
                     </div>
-
                     <label className="flex w-full max-w-xs items-center gap-3 text-xs text-base-content/60">
                         <span className="shrink-0">Zoom</span>
                         <input
@@ -188,14 +180,11 @@ function ProfilePhotoCropModal({
                             max={3}
                             step={0.01}
                             value={crop.scale}
-                            onChange={(e) =>
-                                setCrop((prev) => ({ ...prev, scale: Number(e.target.value) }))
-                            }
+                            onChange={(e) => setCrop((prev) => ({ ...prev, scale: Number(e.target.value) }))}
                             className="range range-primary range-xs flex-1"
                         />
                     </label>
                 </div>
-
                 <div className="modal-action">
                     <Button type="button" variant="ghost" onClick={onCancel} disabled={processing}>
                         Cancelar
@@ -205,12 +194,7 @@ function ProfilePhotoCropModal({
                     </Button>
                 </div>
             </div>
-            <button
-                type="button"
-                className="modal-backdrop"
-                aria-label="Fechar modal"
-                onClick={onCancel}
-            />
+            <button type="button" className="modal-backdrop" aria-label="Fechar modal" onClick={onCancel} />
         </dialog>,
         document.body,
     );
@@ -227,7 +211,6 @@ export function ProfilePhotoField({
 }: ProfilePhotoFieldProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [pendingFile, setPendingFile] = useState<File | null>(null);
-
     const handleFileSelect = useCallback((file: File | undefined) => {
         if (!file) return;
         if (!file.type.startsWith("image/")) {
@@ -236,13 +219,11 @@ export function ProfilePhotoField({
         }
         setPendingFile(file);
     }, []);
-
     const handleCropConfirm = (blob: Blob) => {
         setPendingFile(null);
         onCropComplete(blob);
         toast.success("Foto pronta — clique em Salvar para gravar");
     };
-
     const hasPhoto = Boolean(pendingPreviewUrl || photoObjectId);
 
     return (
@@ -261,11 +242,7 @@ export function ProfilePhotoField({
             >
                 {pendingPreviewUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                        src={pendingPreviewUrl}
-                        alt={displayName}
-                        className="h-full w-full rounded-2xl object-cover"
-                    />
+                    <img src={pendingPreviewUrl} alt={displayName} className="h-full w-full rounded-2xl object-cover" />
                 ) : (
                     <ProfileAvatar
                         name={displayName}
@@ -279,7 +256,6 @@ export function ProfilePhotoField({
                     <Camera className="size-7 text-white opacity-0 drop-shadow transition-opacity group-hover:opacity-100" />
                 </span>
             </button>
-
             <input
                 ref={inputRef}
                 type="file"
@@ -290,7 +266,6 @@ export function ProfilePhotoField({
                     e.target.value = "";
                 }}
             />
-
             <div className="flex flex-col items-center gap-1">
                 <p className="text-center text-xs font-medium text-base-content/70">Foto do colaborador</p>
                 {pendingPreviewUrl ? (
@@ -309,7 +284,6 @@ export function ProfilePhotoField({
                     <p className="text-center text-[11px] text-base-content/40">Clique para enviar</p>
                 )}
             </div>
-
             {pendingFile && (
                 <ProfilePhotoCropModal
                     file={pendingFile}

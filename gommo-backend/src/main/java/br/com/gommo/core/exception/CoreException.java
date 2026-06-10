@@ -19,7 +19,6 @@ public final class CoreException {
     }
 
     public static BusinessException forbidden() {
-        return new BusinessException(
-                CoreExceptions.FORBIDDEN_CODE, CoreExceptions.FORBIDDEN_MSG, HttpStatus.FORBIDDEN);
+        return new BusinessException(CoreExceptions.FORBIDDEN_CODE, CoreExceptions.FORBIDDEN_MSG, HttpStatus.FORBIDDEN);
     }
 }

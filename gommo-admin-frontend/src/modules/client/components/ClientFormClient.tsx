@@ -1,27 +1,26 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
+import { emptyClientForm, clientToFormDto, tenantSchemaFromSlug } from "@/modules/client/lib/client.mapper";
+import { InputSelect, InputString, InputCNPJ } from "@/shared/components/ui/input/index";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CLIENT_CLIENT_MESSAGES } from "@/modules/client/exceptions/client.messages";
-import type { ClientCreateDto } from "@/modules/client/dto/client.dto";
-import { emptyClientForm, clientToFormDto } from "@/modules/client/lib/client.mapper";
 import { clientKeys } from "@/modules/client/client.query";
+import type { ClientCreateDto } from "@/modules/client/dto/client.dto";
+import { CLIENT_CLIENT_MESSAGES } from "@/modules/client/exceptions/client.messages";
 import { clientService } from "@/modules/client/services/client.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
-import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
-import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
-import { InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { digitsOnly } from "@/shared/lib/input/digits";
+import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 export function ClientFormClient() {
     const { editingId, isEditing, goToList } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ClientCreateDto>(emptyClientForm());
     const [error, setError] = useState<string | null>(null);
-
     const detailQuery = useQuery({
         queryKey: clientKeys.detail(editingId ?? ""),
         queryFn: () => clientService.getById(editingId!),
@@ -36,14 +35,31 @@ export function ClientFormClient() {
             setError(null);
             return;
         }
+
         if (detailQuery.data) {
             setForm(clientToFormDto(detailQuery.data));
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
 
+    const buildPayload = () => ({
+        ...form,
+        document: form.document ? digitsOnly(form.document) : undefined,
+    });
+    const persistForm = async () => {
+        if (!editingId) {
+            throw new Error("Cliente nao encontrado para salvar.");
+        }
+        const saved = await clientService.update(editingId, buildPayload());
+        setForm(clientToFormDto(saved));
+        await queryClient.invalidateQueries({ queryKey: clientKeys.detail(editingId) });
+        return saved;
+    };
     const testConnectionMutation = useMutation({
-        mutationFn: () => clientService.testDatabaseConnection(editingId!),
+        mutationFn: async () => {
+            await persistForm();
+            return clientService.testDatabaseConnection(editingId!);
+        },
         onSuccess: (result) => {
             if (result.success) {
                 toast.success(result.message + (result.latencyMs ? ` (${result.latencyMs} ms)` : ""));
@@ -52,14 +68,14 @@ export function ClientFormClient() {
             }
         },
         onError: (err: unknown) => {
-            toast.error(
-                ExceptionCapture.handle(err, { fallbackMessage: "Falha ao testar conexão." }).displayMessage,
-            );
+            toast.error(ExceptionCapture.handle(err, { fallbackMessage: "Falha ao testar conexão." }).displayMessage);
         },
     });
-
     const provisionMutation = useMutation({
-        mutationFn: () => clientService.startProvisioning(editingId!),
+        mutationFn: async () => {
+            await persistForm();
+            return clientService.startProvisioning(editingId!);
+        },
         onSuccess: async (client) => {
             await queryClient.invalidateQueries({ queryKey: clientKeys.all });
             await queryClient.invalidateQueries({ queryKey: clientKeys.detail(editingId!) });
@@ -72,11 +88,16 @@ export function ClientFormClient() {
             );
         },
     });
-
     const saveMutation = useMutation({
         mutationFn: async (dto: ClientCreateDto) => {
-            if (isEditing && editingId) return clientService.update(editingId, dto);
-            return clientService.create(dto);
+            const payload = {
+                ...dto,
+                document: dto.document ? digitsOnly(dto.document) : undefined,
+            };
+            if (isEditing && editingId) {
+                return clientService.update(editingId, payload);
+            }
+            return clientService.create(payload);
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: clientKeys.all });
@@ -88,21 +109,17 @@ export function ClientFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends keyof ClientCreateDto>(field: K, value: ClientCreateDto[K]) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
-
     const routingItems = [
         { value: "SUBDOMAIN", label: "Subdomínio Gommo (tenant.gommo.com)" },
         { value: "CUSTOM_DOMAIN", label: "Domínio customizado (rh.cliente.com)" },
     ];
-
     const strategyItems = [
         { value: "DEDICATED_DATABASE", label: "Banco dedicado por cliente" },
         { value: "DEDICATED_SCHEMA", label: "Schema dedicado por cliente" },
     ];
-
     const provisioningItems = [
         { value: "PENDING", label: "Pendente" },
         { value: "PROVISIONING", label: "Provisionando" },
@@ -110,7 +127,6 @@ export function ClientFormClient() {
         { value: "ERROR", label: "Erro" },
         { value: "SUSPENDED", label: "Suspenso" },
     ];
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -150,15 +166,45 @@ export function ClientFormClient() {
                 </div>
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
                 <InputString label="Nome" value={form.name} onValueChange={(v) => update("name", v)} required />
-                <InputString label="Slug" value={form.slug} onValueChange={(v) => update("slug", v)} required />
-                <InputString label="Documento (CNPJ)" value={form.document ?? ""} onValueChange={(v) => update("document", v)} />
-                <InputString label="E-mail de contato" value={form.contactEmail ?? ""} onValueChange={(v) => update("contactEmail", v)} />
-                <InputString label="Telefone" value={form.contactPhone ?? ""} onValueChange={(v) => update("contactPhone", v)} />
+                <InputString
+                    label="Slug"
+                    value={form.slug}
+                    onValueChange={(v) => {
+                        setForm((prev) => ({
+                            ...prev,
+                            slug: v,
+                            subdomain: !isEditing || !prev.subdomain ? v : prev.subdomain,
+                            databaseSchema:
+                                prev.databaseStrategy === "DEDICATED_SCHEMA" &&
+                                (!prev.databaseSchema || prev.databaseSchema === "public")
+                                    ? tenantSchemaFromSlug(v)
+                                    : prev.databaseSchema,
+                        }));
+                    }}
+                    required
+                />
+                <InputCNPJ
+                    label="CNPJ"
+                    value={form.document ?? ""}
+                    onValueChange={(v) => update("document", v)}
+                    hint="Cadastro Nacional da Pessoa Juridica do cliente"
+                />
+                <InputString
+                    label="E-mail de contato"
+                    value={form.contactEmail ?? ""}
+                    onValueChange={(v) => update("contactEmail", v)}
+                />
+                <InputString
+                    label="Telefone"
+                    value={form.contactPhone ?? ""}
+                    onValueChange={(v) => update("contactPhone", v)}
+                />
                 <InputString label="Observações" value={form.notes ?? ""} onValueChange={(v) => update("notes", v)} />
-
                 <div className="mt-2 border-b border-[var(--gommo-border-subtle)] pb-2">
                     <p className="text-sm font-semibold text-base-content">Roteamento DNS</p>
-                    <p className="text-xs text-base-content/55">Como o tenant será resolvido para direcionar conexão de banco.</p>
+                    <p className="text-xs text-base-content/55">
+                        Como o tenant será resolvido para direcionar conexão de banco.
+                    </p>
                 </div>
                 <InputSelect
                     label="Modo de roteamento"
@@ -179,34 +225,50 @@ export function ClientFormClient() {
                     onValueChange={(v) => update("customDomain", v)}
                     hint="Ex.: rh.acme.com"
                 />
-
                 <div className="mt-2 border-b border-[var(--gommo-border-subtle)] pb-2">
                     <p className="text-sm font-semibold text-base-content">Conexão de dados do tenant</p>
-                    <p className="text-xs text-base-content/55">Metadados para resolver o banco/schema dedicado de cada cliente.</p>
+                    <p className="text-xs text-base-content/55">
+                        Metadados para resolver o banco/schema dedicado de cada cliente.
+                    </p>
                 </div>
                 <InputSelect
                     label="Estratégia de banco"
-                    value={form.databaseStrategy ?? "DEDICATED_DATABASE"}
+                    value={form.databaseStrategy ?? "DEDICATED_SCHEMA"}
                     onValueChange={(v) => update("databaseStrategy", v)}
                     items={strategyItems}
                     required
                 />
-                <InputString label="Host do banco" value={form.databaseHost ?? ""} onValueChange={(v) => update("databaseHost", v)} />
+                <InputString
+                    label="Host do banco"
+                    value={form.databaseHost ?? ""}
+                    onValueChange={(v) => update("databaseHost", v)}
+                />
                 <InputString
                     label="Porta"
                     value={String(form.databasePort ?? "")}
                     onValueChange={(v) => update("databasePort", v ? Number(v) : undefined)}
                 />
-                <InputString label="Nome do banco" value={form.databaseName ?? ""} onValueChange={(v) => update("databaseName", v)} />
-                <InputString label="Schema do tenant" value={form.databaseSchema ?? ""} onValueChange={(v) => update("databaseSchema", v)} />
-                <InputString label="Usuário DB" value={form.databaseUser ?? ""} onValueChange={(v) => update("databaseUser", v)} />
+                <InputString
+                    label="Nome do banco"
+                    value={form.databaseName ?? ""}
+                    onValueChange={(v) => update("databaseName", v)}
+                />
+                <InputString
+                    label="Schema do tenant"
+                    value={form.databaseSchema ?? ""}
+                    onValueChange={(v) => update("databaseSchema", v)}
+                />
+                <InputString
+                    label="Usuário DB"
+                    value={form.databaseUser ?? ""}
+                    onValueChange={(v) => update("databaseUser", v)}
+                />
                 <InputString
                     label="Referência de segredo"
                     value={form.databaseSecretRef ?? ""}
                     onValueChange={(v) => update("databaseSecretRef", v)}
-                    hint="Ex.: vault://tenants/acme/db"
+                    hint="Dev: DB_PASSWORD. Producao: vault://tenants/acme/db"
                 />
-
                 <div className="mt-2 border-b border-[var(--gommo-border-subtle)] pb-2">
                     <p className="text-sm font-semibold text-base-content">Provisionamento</p>
                 </div>
@@ -222,7 +284,6 @@ export function ClientFormClient() {
                     value={form.provisioningNotes ?? ""}
                     onValueChange={(v) => update("provisioningNotes", v)}
                 />
-
                 {isEditing && editingId ? (
                     <div className="mt-2 flex flex-wrap gap-2 border-t border-[var(--gommo-border-subtle)] pt-4">
                         <Button

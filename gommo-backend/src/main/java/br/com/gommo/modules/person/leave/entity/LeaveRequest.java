@@ -1,21 +1,24 @@
 package br.com.gommo.modules.person.leave.entity;
 
-import br.com.gommo.core.entity.AuditEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+
+import br.com.gommo.core.entity.AuditEntity;
 
 @Entity
 @Table(name = "leave_request")

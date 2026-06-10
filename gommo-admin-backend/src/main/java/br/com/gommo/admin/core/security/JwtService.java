@@ -3,12 +3,14 @@ package br.com.gommo.admin.core.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.crypto.SecretKey;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,9 +25,8 @@ public class JwtService {
         this.properties = properties;
         String secret = properties.secret();
         if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < MIN_SECRET_BYTES) {
-            throw new IllegalStateException(
-                    "JWT_SECRET inválido: use pelo menos 32 caracteres (256 bits). "
-                            + "Defina JWT_SECRET no .env da raiz do monorepo ou na Run Configuration do IntelliJ.");
+            throw new IllegalStateException("JWT_SECRET inválido: use pelo menos 32 caracteres (256 bits). "
+                    + "Defina JWT_SECRET no .env da raiz do monorepo ou na Run Configuration do IntelliJ.");
         }
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }

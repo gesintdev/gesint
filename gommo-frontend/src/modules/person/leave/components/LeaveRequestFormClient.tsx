@@ -1,45 +1,42 @@
 "use client";
-
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type SubmitEvent, useEffect, useState} from "react";
-import {toast} from "sonner";
-import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
-import type {LeaveRequestCreateDto} from "@/modules/person/leave/dto/leave-request.dto";
-import {LEAVE_CLIENT_MESSAGES} from "@/modules/person/leave/exceptions/leave-request.messages";
-import {emptyLeaveRequestForm, leaverequestToFormDto} from "@/modules/person/leave/lib/leave-request.mapper";
-import {leaverequestKeys} from "@/modules/person/leave/leave.query";
-import {leaveRequestFormSchema} from "@/modules/person/leave/schemas/leave-request.schema";
-import {leaverequestService} from "@/modules/person/leave/services/leave-request.service";
-import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
-import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
-import {Button} from "@/shared/components/ui/Button";
-import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
-import {InputDate, InputSelect} from "@/shared/components/ui/input/index";
-import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
-import {ExceptionCapture} from "@/shared/exceptions";
-import {mapZodFieldErrors} from "@/shared/lib/zod-field-errors";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type SubmitEvent, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
+import type { LeaveRequestCreateDto } from "@/modules/person/leave/dto/leave-request.dto";
+import { LEAVE_CLIENT_MESSAGES } from "@/modules/person/leave/exceptions/leave-request.messages";
+import { emptyLeaveRequestForm, leaverequestToFormDto } from "@/modules/person/leave/lib/leave-request.mapper";
+import { leaverequestKeys } from "@/modules/person/leave/leave.query";
+import { leaveRequestFormSchema } from "@/modules/person/leave/schemas/leave-request.schema";
+import { leaverequestService } from "@/modules/person/leave/services/leave-request.service";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
+import { InputDate, InputSelect } from "@/shared/components/ui/input/index";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { mapZodFieldErrors } from "@/shared/lib/zod-field-errors";
 
 const LEAVE_TYPE_ITEMS: SelectItem[] = [
-    {value: "VACATION", label: "Férias"},
-    {value: "MEDICAL", label: "Afastamento médico"},
-    {value: "MATERNITY", label: "Maternidade"},
-    {value: "PATERNITY", label: "Paternidade"},
-    {value: "UNPAID", label: "Não remunerado"},
-    {value: "OTHER", label: "Outro"},
+    { value: "VACATION", label: "Férias" },
+    { value: "MEDICAL", label: "Afastamento médico" },
+    { value: "MATERNITY", label: "Maternidade" },
+    { value: "PATERNITY", label: "Paternidade" },
+    { value: "UNPAID", label: "Não remunerado" },
+    { value: "OTHER", label: "Outro" },
 ];
-
 const APPROVAL_ITEMS: SelectItem[] = [
-    {value: "true", label: "Aprovado"},
-    {value: "false", label: "Pendente"},
+    { value: "true", label: "Aprovado" },
+    { value: "false", label: "Pendente" },
 ];
-
-const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Afastamento"}];
+const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Afastamento" }];
 
 type LeaveFormField = keyof LeaveRequestCreateDto;
 
 export function LeaveRequestFormClient() {
-    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<LeaveRequestCreateDto>(emptyLeaveRequestForm);
     const [error, setError] = useState<string | null>(null);
@@ -57,6 +54,7 @@ export function LeaveRequestFormClient() {
             setFieldErrors({});
             return;
         }
+
         if (detailQuery.data) {
             setForm(leaverequestToFormDto(detailQuery.data));
             setError(null);
@@ -70,39 +68,35 @@ export function LeaveRequestFormClient() {
             return leaverequestService.create(dto);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: leaverequestKeys.all});
-            if (editingId) await queryClient.invalidateQueries({queryKey: leaverequestKeys.detail(editingId)});
+            await queryClient.invalidateQueries({ queryKey: leaverequestKeys.all });
+            if (editingId) await queryClient.invalidateQueries({ queryKey: leaverequestKeys.detail(editingId) });
             toast.success(isEditing ? "Registro salvo" : "Afastamento cadastrado");
             setForm(emptyLeaveRequestForm());
             goToList();
         },
         onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, {fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED});
+            const ex = ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED });
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends LeaveFormField>(field: K, value: LeaveRequestCreateDto[K]) => {
-        setForm((prev) => ({...prev, [field]: value}));
+        setForm((prev) => ({ ...prev, [field]: value }));
         setFieldErrors((prev) => {
             if (!prev[field]) return prev;
-            const next = {...prev};
+            const next = { ...prev };
             delete next[field];
             return next;
         });
     };
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
-
         const parsed = leaveRequestFormSchema.safeParse(form);
         if (!parsed.success) {
             setFieldErrors(mapZodFieldErrors<LeaveFormField>(parsed.error));
             setError("Verifique os campos destacados.");
             return;
         }
-
         setFieldErrors({});
         saveMutation.mutate(parsed.data);
     };
@@ -110,8 +104,8 @@ export function LeaveRequestFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({length: 4}).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full" />
                 ))}
             </div>
         );
@@ -169,7 +163,6 @@ export function LeaveRequestFormClient() {
                         error={fieldErrors.collaboratorId}
                     />
                 </div>
-
                 <InputSelect
                     label="Tipo de afastamento"
                     items={LEAVE_TYPE_ITEMS}
@@ -179,7 +172,6 @@ export function LeaveRequestFormClient() {
                     required
                     error={fieldErrors.leaveType}
                 />
-
                 <InputSelect
                     label="Situação"
                     items={APPROVAL_ITEMS}
@@ -188,7 +180,6 @@ export function LeaveRequestFormClient() {
                     placeholder="Selecione"
                     clearable
                 />
-
                 <InputDate
                     label="Data de início"
                     value={form.startDate ?? ""}
@@ -196,7 +187,6 @@ export function LeaveRequestFormClient() {
                     required
                     error={fieldErrors.startDate}
                 />
-
                 <InputDate
                     label="Data de fim"
                     value={form.endDate ?? ""}
@@ -205,7 +195,6 @@ export function LeaveRequestFormClient() {
                     error={fieldErrors.endDate}
                 />
             </FormSection>
-
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );

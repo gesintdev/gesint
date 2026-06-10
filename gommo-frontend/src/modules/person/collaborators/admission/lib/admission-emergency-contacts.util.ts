@@ -4,9 +4,7 @@ export function createEmptyEmergencyContact(): AdmissionEmergencyContact {
     return { name: "", phone: "", relationship: "" };
 }
 
-export function normalizeEmergencyContacts(
-    contacts?: AdmissionEmergencyContact[] | null,
-): AdmissionEmergencyContact[] {
+export function normalizeEmergencyContacts(contacts?: AdmissionEmergencyContact[] | null): AdmissionEmergencyContact[] {
     if (!contacts?.length) {
         return [createEmptyEmergencyContact()];
     }

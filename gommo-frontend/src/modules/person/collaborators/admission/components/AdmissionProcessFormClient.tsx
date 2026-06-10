@@ -1,13 +1,11 @@
 "use client";
-
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type SubmitEvent, useCallback, useEffect, useMemo, useState} from "react";
-import {toast} from "sonner";
-import {ADMISSION_CLIENT_MESSAGES} from "@/modules/person/collaborators/admission/exceptions/admission-process.messages";
-import type {AdmissionProcessCreateDto} from "@/modules/person/collaborators/admission/dto/admission-process.dto";
-import {AdmissionSummary} from "@/modules/person/collaborators/admission/components/AdmissionSummary";
-import {AdmissionEmergencyContactsField} from "@/modules/person/collaborators/admission/components/AdmissionEmergencyContactsField";
-import { isAdmissionPj } from "@/modules/person/collaborators/admission/lib/admission-contract.util";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { ADMISSION_CLIENT_MESSAGES } from "@/modules/person/collaborators/admission/exceptions/admission-process.messages";
+import type { AdmissionProcessCreateDto } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
+import { AdmissionSummary } from "@/modules/person/collaborators/admission/components/AdmissionSummary";
+import { AdmissionEmergencyContactsField } from "@/modules/person/collaborators/admission/components/AdmissionEmergencyContactsField";
 import {
     ADMISSION_DOCUMENT_TYPE_ITEMS,
     CONTRACT_TYPE_ITEMS,
@@ -15,26 +13,27 @@ import {
     contractDocumentTypeItems,
 } from "@/modules/person/collaborators/admission/lib/admission-form.constants";
 import {
-    ADMISSION_STEP_IDS,
-    admissionFormToPayload,
-    admissionprocessToFormDto,
-    emptyAdmissionProcessForm,
-} from "@/modules/person/collaborators/admission/lib/admission-process.mapper";
-import {computeAdmissionStatus, computeFilledAdmissionSteps} from "@/modules/person/collaborators/admission/lib/admission-status.util";
-import {admissionprocessKeys} from "@/modules/person/collaborators/admission/admission.query";
-import {admissionprocessService} from "@/modules/person/collaborators/admission/services/admission-process.service";
-import {storageService} from "@/modules/storage/services/storage.service";
-import {DepartmentPickerField} from "@/modules/organization/department/components/DepartmentPickerField";
-import {JobPositionPickerField} from "@/modules/organization/jobposition/components/JobPositionPickerField";
-import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
-import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
-import {EntityAttachments, flushPendingAttachments, type PendingAttachment} from "@/shared/components/storage/EntityAttachments";
-import {ExceptionCapture} from "@/shared/exceptions";
-import {Button} from "@/shared/components/ui/Button";
-import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
-import {ProfilePhotoField} from "@/shared/components/ui/ProfilePhotoField";
-import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
+    computeAdmissionStatus,
+    computeFilledAdmissionSteps,
+} from "@/modules/person/collaborators/admission/lib/admission-status.util";
+import { admissionprocessKeys } from "@/modules/person/collaborators/admission/admission.query";
+import { admissionprocessService } from "@/modules/person/collaborators/admission/services/admission-process.service";
+import { storageService } from "@/modules/storage/services/storage.service";
+import { DepartmentPickerField } from "@/modules/organization/department/components/DepartmentPickerField";
+import { JobPositionPickerField } from "@/modules/organization/jobposition/components/JobPositionPickerField";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import {
+    EntityAttachments,
+    flushPendingAttachments,
+    type PendingAttachment,
+} from "@/shared/components/storage/EntityAttachments";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
+import { ProfilePhotoField } from "@/shared/components/ui/ProfilePhotoField";
+import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 import {
     InputCEP,
     InputCNPJ,
@@ -45,35 +44,40 @@ import {
     InputSelect,
     InputString,
 } from "@/shared/components/ui/input/index";
-import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { isAdmissionPj } from "@/modules/person/collaborators/admission/lib/admission-contract.util";
+import {
+    ADMISSION_STEP_IDS,
+    admissionFormToPayload,
+    admissionprocessToFormDto,
+    emptyAdmissionProcessForm,
+} from "@/modules/person/collaborators/admission/lib/admission-process.mapper";
 
 const GENDER_ITEMS: SelectItem[] = [
-    {value: "MALE", label: "Masculino"},
-    {value: "FEMALE", label: "Feminino"},
-    {value: "OTHER", label: "Outro"},
-    {value: "NOT_INFORMED", label: "Prefere não informar"},
+    { value: "MALE", label: "Masculino" },
+    { value: "FEMALE", label: "Feminino" },
+    { value: "OTHER", label: "Outro" },
+    { value: "NOT_INFORMED", label: "Prefere não informar" },
 ];
-
 const MARITAL_ITEMS: SelectItem[] = [
-    {value: "SINGLE", label: "Solteiro(a)"},
-    {value: "MARRIED", label: "Casado(a)"},
-    {value: "DIVORCED", label: "Divorciado(a)"},
-    {value: "WIDOWED", label: "Viúvo(a)"},
-    {value: "OTHER", label: "Outro"},
+    { value: "SINGLE", label: "Solteiro(a)" },
+    { value: "MARRIED", label: "Casado(a)" },
+    { value: "DIVORCED", label: "Divorciado(a)" },
+    { value: "WIDOWED", label: "Viúvo(a)" },
+    { value: "OTHER", label: "Outro" },
 ];
-
 const ADMISSION_FORM_STEPS: FormStepNavItem[] = [
-    {id: "dados-basicos", label: "Dados básicos"},
-    {id: "contatos-emergencia", label: "Contatos de emergência"},
-    {id: "endereco", label: "Endereço"},
-    {id: "documentos", label: "Documentos"},
-    {id: "vinculo", label: "Vínculo"},
-    {id: "contrato", label: "Contrato"},
-    {id: "observacoes", label: "Observações"},
+    { id: "dados-basicos", label: "Dados básicos" },
+    { id: "contatos-emergencia", label: "Contatos de emergência" },
+    { id: "endereco", label: "Endereço" },
+    { id: "documentos", label: "Documentos" },
+    { id: "vinculo", label: "Vínculo" },
+    { id: "contrato", label: "Contrato" },
+    { id: "observacoes", label: "Observações" },
 ];
 
 export function AdmissionProcessFormClient() {
-    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessCreateDto>(emptyAdmissionProcessForm);
     const [error, setError] = useState<string | null>(null);
@@ -81,7 +85,6 @@ export function AdmissionProcessFormClient() {
     const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
     const [pendingDocumentAttachments, setPendingDocumentAttachments] = useState<PendingAttachment[]>([]);
     const [pendingContractAttachments, setPendingContractAttachments] = useState<PendingAttachment[]>([]);
-
     const detailQuery = useQuery({
         queryKey: admissionprocessKeys.detail(editingId ?? ""),
         queryFn: () => admissionprocessService.getById(editingId!),
@@ -95,28 +98,28 @@ export function AdmissionProcessFormClient() {
         queryFn: () => storageService.listLinks("admission_process", editingId!),
         enabled: Boolean(editingId),
     });
-
     const clearPendingAttachments = useCallback(() => {
         setPendingDocumentAttachments([]);
         setPendingContractAttachments([]);
     }, []);
-
-    const stepContext = useMemo(() => ({
-        documentCount:
-            (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "DOCUMENT").length
-            + pendingDocumentAttachments.length,
-        contractDocumentCount:
-            (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "CONTRACT").length
-            + pendingContractAttachments.length,
-        hasPhoto: Boolean(form.photoObjectId || pendingPreviewUrl),
-    }), [
-        attachmentsQuery.data,
-        form.photoObjectId,
-        pendingContractAttachments.length,
-        pendingDocumentAttachments.length,
-        pendingPreviewUrl,
-    ]);
-
+    const stepContext = useMemo(
+        () => ({
+            documentCount:
+                (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "DOCUMENT").length +
+                pendingDocumentAttachments.length,
+            contractDocumentCount:
+                (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "CONTRACT").length +
+                pendingContractAttachments.length,
+            hasPhoto: Boolean(form.photoObjectId || pendingPreviewUrl),
+        }),
+        [
+            attachmentsQuery.data,
+            form.photoObjectId,
+            pendingContractAttachments.length,
+            pendingDocumentAttachments.length,
+            pendingPreviewUrl,
+        ],
+    );
     const clearPendingPhoto = useCallback(() => {
         setPendingPreviewUrl((current) => {
             if (current) URL.revokeObjectURL(current);
@@ -124,9 +127,8 @@ export function AdmissionProcessFormClient() {
         });
         setPendingPhotoBlob(null);
     }, []);
-
     const update = <K extends keyof AdmissionProcessCreateDto>(field: K, value: AdmissionProcessCreateDto[K]) => {
-        setForm((prev) => ({...prev, [field]: value}));
+        setForm((prev) => ({ ...prev, [field]: value }));
     };
 
     useEffect(() => {
@@ -137,6 +139,7 @@ export function AdmissionProcessFormClient() {
             clearPendingAttachments();
             return;
         }
+
         if (detailQuery.data) {
             setForm(admissionprocessToFormDto(detailQuery.data));
             setError(null);
@@ -152,22 +155,18 @@ export function AdmissionProcessFormClient() {
         });
         setPendingPhotoBlob(blob);
     }, []);
-
     const handlePhotoClear = useCallback(() => {
         clearPendingPhoto();
         update("photoObjectId", "");
     }, [clearPendingPhoto]);
-
     const saveMutation = useMutation({
         mutationFn: async (dto: AdmissionProcessCreateDto) => {
             let payload = admissionFormToPayload(dto, stepContext);
-
             if (pendingPhotoBlob) {
-                const file = new File([pendingPhotoBlob], "profile-photo.jpg", {type: "image/jpeg"});
+                const file = new File([pendingPhotoBlob], "profile-photo.jpg", { type: "image/jpeg" });
                 const object = await storageService.upload(file);
-                payload = {...payload, photoObjectId: object.id};
+                payload = { ...payload, photoObjectId: object.id };
             }
-
             let savedId = editingId ?? null;
             if (isEditing && editingId) {
                 await admissionprocessService.update(editingId, payload);
@@ -179,7 +178,6 @@ export function AdmissionProcessFormClient() {
             if (!savedId) {
                 throw new Error("Não foi possível identificar o registro salvo.");
             }
-
             await flushPendingAttachments({
                 entityType: "admission_process",
                 entityId: savedId,
@@ -192,42 +190,36 @@ export function AdmissionProcessFormClient() {
                 linkRole: "CONTRACT",
                 items: pendingContractAttachments,
             });
-
             return savedId;
         },
         onSuccess: async (savedId) => {
             clearPendingPhoto();
             clearPendingAttachments();
-            await queryClient.invalidateQueries({queryKey: admissionprocessKeys.all});
-            await queryClient.invalidateQueries({queryKey: admissionprocessKeys.detail(savedId)});
-            await queryClient.invalidateQueries({queryKey: ["storage-links", "admission_process", savedId]});
+            await queryClient.invalidateQueries({ queryKey: admissionprocessKeys.all });
+            await queryClient.invalidateQueries({ queryKey: admissionprocessKeys.detail(savedId) });
+            await queryClient.invalidateQueries({ queryKey: ["storage-links", "admission_process", savedId] });
             toast.success(isEditing ? "Admissão atualizada" : "Admissão registrada");
             setForm(emptyAdmissionProcessForm());
             goToList();
         },
         onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, {fallbackMessage: ADMISSION_CLIENT_MESSAGES.ADMISSION_SAVE_FAILED});
+            const ex = ExceptionCapture.handle(err, {
+                fallbackMessage: ADMISSION_CLIENT_MESSAGES.ADMISSION_SAVE_FAILED,
+            });
             setError(ex.displayMessage);
         },
     });
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         saveMutation.mutate(form);
     };
-
     const filledStepIds = useMemo(
         () => computeFilledAdmissionSteps(form, stepContext, ADMISSION_STEP_IDS),
         [form, stepContext],
     );
-
     const isPj = isAdmissionPj(form.contractType);
-    const contractDocTypeItems = useMemo(
-        () => contractDocumentTypeItems(form.contractType),
-        [form.contractType],
-    );
-
+    const contractDocTypeItems = useMemo(() => contractDocumentTypeItems(form.contractType), [form.contractType]);
     const summaryStatus = useMemo(() => {
         if (isEditing && (detailQuery.isLoading || attachmentsQuery.isLoading)) {
             return detailQuery.data?.admissionStatus ?? "IN_PROGRESS";
@@ -245,8 +237,8 @@ export function AdmissionProcessFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({length: 6}).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full" />
                 ))}
             </div>
         );
@@ -256,7 +248,10 @@ export function AdmissionProcessFormClient() {
         return (
             <div className="p-5">
                 <p className="text-sm font-medium text-error">
-                    {ExceptionCapture.displayMessage(detailQuery.error, ADMISSION_CLIENT_MESSAGES.ADMISSION_LOAD_FAILED)}
+                    {ExceptionCapture.displayMessage(
+                        detailQuery.error,
+                        ADMISSION_CLIENT_MESSAGES.ADMISSION_LOAD_FAILED,
+                    )}
                 </p>
                 <Button variant="ghost" size="sm" className="mt-3" onClick={goToList}>
                     Voltar
@@ -290,313 +285,297 @@ export function AdmissionProcessFormClient() {
                 </>
             }
         >
-                <FormSection
-                    id="dados-basicos"
-                    title="Dados básicos"
-                    description="Identificação pessoal e contato do colaborador."
-                    bodyClassName="!block"
-                >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+            <FormSection
+                id="dados-basicos"
+                title="Dados básicos"
+                description="Identificação pessoal e contato do colaborador."
+                bodyClassName="!block"
+            >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
                     <div className="flex flex-col gap-4 lg:h-full lg:max-w-[15rem] lg:shrink-0">
-                            <ProfilePhotoField
-                                photoObjectId={form.photoObjectId || undefined}
-                                pendingPreviewUrl={pendingPreviewUrl}
-                                onCropComplete={handlePhotoCropComplete}
-                                onClear={handlePhotoClear}
-                                displayName={form.fullName || "Colaborador"}
-                            />
-                            <div className="min-h-0 flex-1">
-                                <AdmissionSummary
-                                    form={form}
-                                    stepIds={ADMISSION_STEP_IDS}
-                                    context={stepContext}
-                                    entityCode={isEditing ? detailQuery.data?.code : undefined}
-                                    status={summaryStatus}
-                                />
-                            </div>
-                        </div>
-                        <div className="grid min-w-0 flex-1 gap-4 sm:grid-cols-2">
-                            <InputString
-                                label="Nome completo"
-                                value={form.fullName}
-                                onValueChange={(v) => update("fullName", v)}
-                                required
-                                wrapperClassName="sm:col-span-2"
-                            />
-                            <InputString
-                                label="Nome social"
-                                value={form.socialName ?? ""}
-                                onValueChange={(v) => update("socialName", v)}
-                            />
-                            <InputCPF
-                                label="CPF"
-                                value={form.cpf}
-                                onValueChange={(v) => update("cpf", v)}
-                                required
-                            />
-                            <RgIdentityFields
-                                rg={form.rg ?? ""}
-                                rgIssuer={form.rgIssuer}
-                                rgStateCode={form.rgStateCode}
-                                onRgChange={(v) => update("rg", v)}
-                                onRgIssuerChange={(v) => update("rgIssuer", v)}
-                                onRgStateCodeChange={(v) => update("rgStateCode", v)}
-                            />
-                            <InputDate
-                                label="Data de nascimento"
-                                value={form.birthDate}
-                                onValueChange={(v) => update("birthDate", v)}
-                                required
-                            />
-                            <InputSelect
-                                label="Gênero"
-                                items={GENDER_ITEMS}
-                                value={form.gender ?? ""}
-                                onValueChange={(v) => update("gender", (v || undefined) as AdmissionProcessCreateDto["gender"])}
-                                placeholder="Não informado"
-                                clearable
-                            />
-                            <InputSelect
-                                label="Estado civil"
-                                items={MARITAL_ITEMS}
-                                value={form.maritalStatus ?? ""}
-                                onValueChange={(v) =>
-                                    update("maritalStatus", (v || undefined) as AdmissionProcessCreateDto["maritalStatus"])
-                                }
-                                placeholder="Não informado"
-                                clearable
-                            />
-                            <InputString
-                                label="Nacionalidade"
-                                value={form.nationality ?? ""}
-                                onValueChange={(v) => update("nationality", v)}
-                            />
-                            {!isPj ? (
-                                <InputString
-                                    label="PIS/PASEP"
-                                    value={form.pisPasep ?? ""}
-                                    onValueChange={(v) => update("pisPasep", v)}
-                                />
-                            ) : null}
-                            <InputString
-                                label="Nome da mãe"
-                                value={form.motherName ?? ""}
-                                onValueChange={(v) => update("motherName", v)}
-                                wrapperClassName="sm:col-span-2"
-                            />
-                            <InputString
-                                label="Nome do pai"
-                                value={form.fatherName ?? ""}
-                                onValueChange={(v) => update("fatherName", v)}
-                                wrapperClassName="sm:col-span-2"
-                            />
-                            <InputString label="E-mail" value={form.email ?? ""} onValueChange={(v) => update("email", v)}/>
-                            <InputString
-                                label="Telefone / WhatsApp"
-                                value={form.phone ?? ""}
-                                onValueChange={(v) => update("phone", v)}
+                        <ProfilePhotoField
+                            photoObjectId={form.photoObjectId || undefined}
+                            pendingPreviewUrl={pendingPreviewUrl}
+                            onCropComplete={handlePhotoCropComplete}
+                            onClear={handlePhotoClear}
+                            displayName={form.fullName || "Colaborador"}
+                        />
+                        <div className="min-h-0 flex-1">
+                            <AdmissionSummary
+                                form={form}
+                                stepIds={ADMISSION_STEP_IDS}
+                                context={stepContext}
+                                entityCode={isEditing ? detailQuery.data?.code : undefined}
+                                status={summaryStatus}
                             />
                         </div>
                     </div>
-                </FormSection>
-
-                <FormSection
-                    id="contatos-emergencia"
-                    title="Contatos de emergência"
-                    description="Pessoas de referência em caso de urgência."
-                >
-                    <AdmissionEmergencyContactsField
-                        contacts={form.emergencyContacts ?? []}
-                        onChange={(emergencyContacts) => update("emergencyContacts", emergencyContacts)}
-                    />
-                </FormSection>
-
-                <FormSection
-                    id="endereco"
-                    title="Endereço"
-                    description="Residência principal informada na admissão."
-                >
-                    <InputCEP label="CEP" value={form.zipCode ?? ""} onValueChange={(v) => update("zipCode", v)}/>
-                    <InputString
-                        label="UF"
-                        value={form.stateCode ?? ""}
-                        onValueChange={(v) => update("stateCode", v)}
-                        maxLength={2}
-                    />
-                    <InputString
-                        label="Logradouro"
-                        value={form.street ?? ""}
-                        onValueChange={(v) => update("street", v)}
-                        wrapperClassName="sm:col-span-2"
-                    />
-                    <InputString label="Número" value={form.number ?? ""}
-                                 onValueChange={(v) => update("number", v)}/>
-                    <InputString
-                        label="Complemento"
-                        value={form.complement ?? ""}
-                        onValueChange={(v) => update("complement", v)}
-                    />
-                    <InputString label="Bairro" value={form.district ?? ""}
-                                 onValueChange={(v) => update("district", v)}/>
-                    <InputString label="Cidade" value={form.city ?? ""} onValueChange={(v) => update("city", v)}/>
-                </FormSection>
-
-                <FormSection
-                    id="documentos"
-                    title="Documentos"
-                    description="Anexos pessoais vinculados ao processo de admissão."
-                    bodyClassName="!block"
-                >
-                    <EntityAttachments
-                        entityType="admission_process"
-                        entityId={editingId}
-                        linkRole="DOCUMENT"
-                        documentTypeItems={ADMISSION_DOCUMENT_TYPE_ITEMS}
-                        deferUpload
-                        pendingAttachments={pendingDocumentAttachments}
-                        onPendingAttachmentsChange={setPendingDocumentAttachments}
-                    />
-                </FormSection>
-
-                <FormSection
-                    id="vinculo"
-                    title="Vínculo previsto"
-                    description="Contrato e alocação organizacional."
-                >
-                    <InputDate
-                        label="Previsão de início"
-                        value={form.expectedStartDate}
-                        onValueChange={(v) => update("expectedStartDate", v)}
-                        required
-                    />
-                    <InputSelect
-                        label="Tipo de contrato"
-                        items={CONTRACT_TYPE_ITEMS}
-                        value={form.contractType ?? "CLT"}
-                        onValueChange={(v) => {
-                            const next = (v || "CLT") as AdmissionProcessCreateDto["contractType"];
-                            setForm((prev) =>
-                                next === "PJ"
-                                    ? {
-                                        ...prev,
-                                        contractType: next,
-                                        workloadSchedule: "",
-                                        pisPasep: "",
-                                    }
-                                    : {
-                                        ...prev,
-                                        contractType: next,
-                                        providerCnpj: "",
-                                        providerLegalName: "",
-                                        providerTradeName: "",
-                                    },
-                            );
-                        }}
-                        required
-                    />
-                    {isPj ? (
-                        <>
-                            <InputCNPJ
-                                label="CNPJ da prestadora"
-                                value={form.providerCnpj ?? ""}
-                                onValueChange={(v) => update("providerCnpj", v)}
-                                required
-                            />
-                            <InputString
-                                label="Razão social"
-                                value={form.providerLegalName ?? ""}
-                                onValueChange={(v) => update("providerLegalName", v)}
-                                required
-                            />
-                            <InputString
-                                label="Nome fantasia"
-                                value={form.providerTradeName ?? ""}
-                                onValueChange={(v) => update("providerTradeName", v)}
-                                wrapperClassName="sm:col-span-2"
-                            />
-                        </>
-                    ) : null}
-                    <InputCurrency
-                        label={isPj ? "Valor do contrato" : "Salário base"}
-                        value={form.baseSalary != null ? String(form.baseSalary) : ""}
-                        onValueChange={(v) => update("baseSalary", v)}
-                        emitAsDecimal
-                    />
-                    {!isPj ? (
+                    <div className="grid min-w-0 flex-1 gap-4 sm:grid-cols-2">
+                        <InputString
+                            label="Nome completo"
+                            value={form.fullName}
+                            onValueChange={(v) => update("fullName", v)}
+                            required
+                            wrapperClassName="sm:col-span-2"
+                        />
+                        <InputString
+                            label="Nome social"
+                            value={form.socialName ?? ""}
+                            onValueChange={(v) => update("socialName", v)}
+                        />
+                        <InputCPF label="CPF" value={form.cpf} onValueChange={(v) => update("cpf", v)} required />
+                        <RgIdentityFields
+                            rg={form.rg ?? ""}
+                            rgIssuer={form.rgIssuer}
+                            rgStateCode={form.rgStateCode}
+                            onRgChange={(v) => update("rg", v)}
+                            onRgIssuerChange={(v) => update("rgIssuer", v)}
+                            onRgStateCodeChange={(v) => update("rgStateCode", v)}
+                        />
+                        <InputDate
+                            label="Data de nascimento"
+                            value={form.birthDate}
+                            onValueChange={(v) => update("birthDate", v)}
+                            required
+                        />
                         <InputSelect
-                            label="Carga horária"
-                            items={WORKLOAD_SCHEDULE_ITEMS}
-                            value={form.workloadSchedule ?? ""}
-                            onValueChange={(v) => update("workloadSchedule", v)}
-                            placeholder="Selecione"
-                            required
+                            label="Gênero"
+                            items={GENDER_ITEMS}
+                            value={form.gender ?? ""}
+                            onValueChange={(v) =>
+                                update("gender", (v || undefined) as AdmissionProcessCreateDto["gender"])
+                            }
+                            placeholder="Não informado"
+                            clearable
                         />
-                    ) : null}
-                    <InputString
-                        label="ID empresa (opcional)"
-                        value={form.companyId ?? ""}
-                        onValueChange={(v) => update("companyId", v)}
-                    />
-                    <DepartmentPickerField
-                        value={form.departmentId ?? ""}
-                        onValueChange={(v) => {
-                            update("departmentId", v);
-                            update("jobPositionId", "");
-                        }}
-                    />
-                    <JobPositionPickerField
-                        value={form.jobPositionId ?? ""}
-                        departmentId={form.departmentId}
-                        onValueChange={(v) => update("jobPositionId", v)}
-                        wrapperClassName="sm:col-span-2"
-                    />
-                </FormSection>
-
-                <FormSection
-                    id="contrato"
-                    title="Contrato"
-                    description="Datas do contrato e documentos assinados."
-                    bodyClassName="!block"
-                >
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <InputDate
-                            label="Início do contrato"
-                            value={form.contractStartDate ?? ""}
-                            onValueChange={(v) => update("contractStartDate", v)}
-                            required
+                        <InputSelect
+                            label="Estado civil"
+                            items={MARITAL_ITEMS}
+                            value={form.maritalStatus ?? ""}
+                            onValueChange={(v) =>
+                                update("maritalStatus", (v || undefined) as AdmissionProcessCreateDto["maritalStatus"])
+                            }
+                            placeholder="Não informado"
+                            clearable
                         />
-                        <InputDate
-                            label="Fim do contrato"
-                            value={form.contractEndDate ?? ""}
-                            onValueChange={(v) => update("contractEndDate", v)}
+                        <InputString
+                            label="Nacionalidade"
+                            value={form.nationality ?? ""}
+                            onValueChange={(v) => update("nationality", v)}
+                        />
+                        {!isPj ? (
+                            <InputString
+                                label="PIS/PASEP"
+                                value={form.pisPasep ?? ""}
+                                onValueChange={(v) => update("pisPasep", v)}
+                            />
+                        ) : null}
+                        <InputString
+                            label="Nome da mãe"
+                            value={form.motherName ?? ""}
+                            onValueChange={(v) => update("motherName", v)}
+                            wrapperClassName="sm:col-span-2"
+                        />
+                        <InputString
+                            label="Nome do pai"
+                            value={form.fatherName ?? ""}
+                            onValueChange={(v) => update("fatherName", v)}
+                            wrapperClassName="sm:col-span-2"
+                        />
+                        <InputString
+                            label="E-mail"
+                            value={form.email ?? ""}
+                            onValueChange={(v) => update("email", v)}
+                        />
+                        <InputString
+                            label="Telefone / WhatsApp"
+                            value={form.phone ?? ""}
+                            onValueChange={(v) => update("phone", v)}
                         />
                     </div>
-                    <EntityAttachments
-                        entityType="admission_process"
-                        entityId={editingId}
-                        linkRole="CONTRACT"
-                        documentTypeItems={contractDocTypeItems}
-                        emptyMessage="Nenhum documento de contrato anexado."
-                        deferUpload
-                        pendingAttachments={pendingContractAttachments}
-                        onPendingAttachmentsChange={setPendingContractAttachments}
+                </div>
+            </FormSection>
+            <FormSection
+                id="contatos-emergencia"
+                title="Contatos de emergência"
+                description="Pessoas de referência em caso de urgência."
+            >
+                <AdmissionEmergencyContactsField
+                    contacts={form.emergencyContacts ?? []}
+                    onChange={(emergencyContacts) => update("emergencyContacts", emergencyContacts)}
+                />
+            </FormSection>
+            <FormSection id="endereco" title="Endereço" description="Residência principal informada na admissão.">
+                <InputCEP label="CEP" value={form.zipCode ?? ""} onValueChange={(v) => update("zipCode", v)} />
+                <InputString
+                    label="UF"
+                    value={form.stateCode ?? ""}
+                    onValueChange={(v) => update("stateCode", v)}
+                    maxLength={2}
+                />
+                <InputString
+                    label="Logradouro"
+                    value={form.street ?? ""}
+                    onValueChange={(v) => update("street", v)}
+                    wrapperClassName="sm:col-span-2"
+                />
+                <InputString label="Número" value={form.number ?? ""} onValueChange={(v) => update("number", v)} />
+                <InputString
+                    label="Complemento"
+                    value={form.complement ?? ""}
+                    onValueChange={(v) => update("complement", v)}
+                />
+                <InputString label="Bairro" value={form.district ?? ""} onValueChange={(v) => update("district", v)} />
+                <InputString label="Cidade" value={form.city ?? ""} onValueChange={(v) => update("city", v)} />
+            </FormSection>
+            <FormSection
+                id="documentos"
+                title="Documentos"
+                description="Anexos pessoais vinculados ao processo de admissão."
+                bodyClassName="!block"
+            >
+                <EntityAttachments
+                    entityType="admission_process"
+                    entityId={editingId}
+                    linkRole="DOCUMENT"
+                    documentTypeItems={ADMISSION_DOCUMENT_TYPE_ITEMS}
+                    deferUpload
+                    pendingAttachments={pendingDocumentAttachments}
+                    onPendingAttachmentsChange={setPendingDocumentAttachments}
+                />
+            </FormSection>
+            <FormSection id="vinculo" title="Vínculo previsto" description="Contrato e alocação organizacional.">
+                <InputDate
+                    label="Previsão de início"
+                    value={form.expectedStartDate}
+                    onValueChange={(v) => update("expectedStartDate", v)}
+                    required
+                />
+                <InputSelect
+                    label="Tipo de contrato"
+                    items={CONTRACT_TYPE_ITEMS}
+                    value={form.contractType ?? "CLT"}
+                    onValueChange={(v) => {
+                        const next = (v || "CLT") as AdmissionProcessCreateDto["contractType"];
+                        setForm((prev) =>
+                            next === "PJ"
+                                ? {
+                                      ...prev,
+                                      contractType: next,
+                                      workloadSchedule: "",
+                                      pisPasep: "",
+                                  }
+                                : {
+                                      ...prev,
+                                      contractType: next,
+                                      providerCnpj: "",
+                                      providerLegalName: "",
+                                      providerTradeName: "",
+                                  },
+                        );
+                    }}
+                    required
+                />
+                {isPj ? (
+                    <>
+                        <InputCNPJ
+                            label="CNPJ da prestadora"
+                            value={form.providerCnpj ?? ""}
+                            onValueChange={(v) => update("providerCnpj", v)}
+                            required
+                        />
+                        <InputString
+                            label="Razão social"
+                            value={form.providerLegalName ?? ""}
+                            onValueChange={(v) => update("providerLegalName", v)}
+                            required
+                        />
+                        <InputString
+                            label="Nome fantasia"
+                            value={form.providerTradeName ?? ""}
+                            onValueChange={(v) => update("providerTradeName", v)}
+                            wrapperClassName="sm:col-span-2"
+                        />
+                    </>
+                ) : null}
+                <InputCurrency
+                    label={isPj ? "Valor do contrato" : "Salário base"}
+                    value={form.baseSalary != null ? String(form.baseSalary) : ""}
+                    onValueChange={(v) => update("baseSalary", v)}
+                    emitAsDecimal
+                />
+                {!isPj ? (
+                    <InputSelect
+                        label="Carga horária"
+                        items={WORKLOAD_SCHEDULE_ITEMS}
+                        value={form.workloadSchedule ?? ""}
+                        onValueChange={(v) => update("workloadSchedule", v)}
+                        placeholder="Selecione"
+                        required
                     />
-                </FormSection>
-
-                <FormSection
-                    id="observacoes"
-                    title="Observações"
-                    description="Notas internas sobre o processo de admissão."
-                >
-                    <InputString
-                        label="Observações internas"
-                        value={form.notes ?? ""}
-                        onValueChange={(v) => update("notes", v)}
-                        wrapperClassName="sm:col-span-2"
+                ) : null}
+                <InputString
+                    label="ID empresa (opcional)"
+                    value={form.companyId ?? ""}
+                    onValueChange={(v) => update("companyId", v)}
+                />
+                <DepartmentPickerField
+                    value={form.departmentId ?? ""}
+                    onValueChange={(v) => {
+                        update("departmentId", v);
+                        update("jobPositionId", "");
+                    }}
+                />
+                <JobPositionPickerField
+                    value={form.jobPositionId ?? ""}
+                    departmentId={form.departmentId}
+                    onValueChange={(v) => update("jobPositionId", v)}
+                    wrapperClassName="sm:col-span-2"
+                />
+            </FormSection>
+            <FormSection
+                id="contrato"
+                title="Contrato"
+                description="Datas do contrato e documentos assinados."
+                bodyClassName="!block"
+            >
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <InputDate
+                        label="Início do contrato"
+                        value={form.contractStartDate ?? ""}
+                        onValueChange={(v) => update("contractStartDate", v)}
+                        required
                     />
-                </FormSection>
-
-                {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
+                    <InputDate
+                        label="Fim do contrato"
+                        value={form.contractEndDate ?? ""}
+                        onValueChange={(v) => update("contractEndDate", v)}
+                    />
+                </div>
+                <EntityAttachments
+                    entityType="admission_process"
+                    entityId={editingId}
+                    linkRole="CONTRACT"
+                    documentTypeItems={contractDocTypeItems}
+                    emptyMessage="Nenhum documento de contrato anexado."
+                    deferUpload
+                    pendingAttachments={pendingContractAttachments}
+                    onPendingAttachmentsChange={setPendingContractAttachments}
+                />
+            </FormSection>
+            <FormSection
+                id="observacoes"
+                title="Observações"
+                description="Notas internas sobre o processo de admissão."
+            >
+                <InputString
+                    label="Observações internas"
+                    value={form.notes ?? ""}
+                    onValueChange={(v) => update("notes", v)}
+                    wrapperClassName="sm:col-span-2"
+                />
+            </FormSection>
+            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

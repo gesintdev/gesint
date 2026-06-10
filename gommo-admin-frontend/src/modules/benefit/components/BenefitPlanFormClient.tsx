@@ -1,110 +1,137 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
-import { toast } from "sonner";
-import { BENEFIT_CLIENT_MESSAGES } from "@/modules/benefit/exceptions/benefit-plan.messages";
-import type { BenefitPlanCreateDto } from "@/modules/benefit/dto/benefit-plan.dto";
 import { emptyBenefitPlanForm, benefitplanToFormDto } from "@/modules/benefit/lib/benefit-plan.mapper";
-import { benefitplanKeys } from "@/modules/benefit/benefit.query";
-import { benefitplanService } from "@/modules/benefit/services/benefit-plan.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { Button } from "@/shared/components/ui/Button";
 import { InputString, InputCurrency } from "@/shared/components/ui/input/index";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { benefitplanKeys } from "@/modules/benefit/benefit.query";
+import type { BenefitPlanCreateDto } from "@/modules/benefit/dto/benefit-plan.dto";
+import { BENEFIT_CLIENT_MESSAGES } from "@/modules/benefit/exceptions/benefit-plan.messages";
+import { benefitplanService } from "@/modules/benefit/services/benefit-plan.service";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
+import { Button } from "@/shared/components/ui/Button";
+import { ExceptionCapture } from "@/shared/exceptions";
 
 export function BenefitPlanFormClient() {
-  const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
-  const queryClient = useQueryClient();
-  const [form, setForm] = useState<BenefitPlanCreateDto>(emptyBenefitPlanForm);
-  const [error, setError] = useState<string | null>(null);
+    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const queryClient = useQueryClient();
+    const [form, setForm] = useState<BenefitPlanCreateDto>(emptyBenefitPlanForm);
+    const [error, setError] = useState<string | null>(null);
+    const detailQuery = useQuery({
+        queryKey: benefitplanKeys.detail(editingId ?? ""),
+        queryFn: () => benefitplanService.getById(editingId!),
+        enabled: isEditing && Boolean(editingId),
+    });
 
-  const detailQuery = useQuery({
-    queryKey: benefitplanKeys.detail(editingId ?? ""),
-    queryFn: () => benefitplanService.getById(editingId!),
-    enabled: isEditing && Boolean(editingId),
-  });
+    useEffect(() => {
+        if (!isEditing) {
+            setForm(emptyBenefitPlanForm());
+            setError(null);
+            return;
+        }
 
-  useEffect(() => {
-    if (!isEditing) {
-      setForm(emptyBenefitPlanForm());
-      setError(null);
-      return;
+        if (detailQuery.data) {
+            setForm(benefitplanToFormDto(detailQuery.data));
+            setError(null);
+        }
+    }, [isEditing, detailQuery.data]);
+
+    const saveMutation = useMutation({
+        mutationFn: async (dto: BenefitPlanCreateDto) => {
+            const payload = {
+                ...dto,
+                monthlyValue: dto.monthlyValue ? Number(dto.monthlyValue) : undefined,
+            };
+            if (isEditing && editingId) return benefitplanService.update(editingId, payload as BenefitPlanCreateDto);
+            return benefitplanService.create(payload as BenefitPlanCreateDto);
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: benefitplanKeys.all });
+            if (editingId) await queryClient.invalidateQueries({ queryKey: benefitplanKeys.detail(editingId) });
+            toast.success(isEditing ? "Benefício atualizado(a)" : "Benefício cadastrado(a)");
+            setForm(emptyBenefitPlanForm());
+            goToList();
+        },
+        onError: (err: unknown) => {
+            const ex = ExceptionCapture.handle(err, { fallbackMessage: BENEFIT_CLIENT_MESSAGES.BENEFIT_SAVE_FAILED });
+            setError(ex.displayMessage);
+        },
+    });
+    const update = <K extends keyof BenefitPlanCreateDto>(field: K, value: BenefitPlanCreateDto[K]) => {
+        setForm((prev) => ({ ...prev, [field]: value }));
+    };
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setError(null);
+        saveMutation.mutate(form);
+    };
+
+    if (isEditing && detailQuery.isLoading) {
+        return (
+            <div className="gommo-crud-panel-inset grid gap-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                ))}
+            </div>
+        );
     }
-    if (detailQuery.data) {
-      setForm(benefitplanToFormDto(detailQuery.data));
-      setError(null);
+
+    if (isEditing && detailQuery.isError) {
+        return (
+            <div className="gommo-crud-panel-inset">
+                <p className="text-sm font-medium text-error">
+                    {ExceptionCapture.displayMessage(detailQuery.error, BENEFIT_CLIENT_MESSAGES.BENEFIT_LOAD_FAILED)}
+                </p>
+                <Button variant="ghost" size="sm" className="mt-3" onClick={goToList}>
+                    Voltar
+                </Button>
+            </div>
+        );
     }
-  }, [isEditing, detailQuery.data]);
 
-  const saveMutation = useMutation({
-    mutationFn: async (dto: BenefitPlanCreateDto) => {
-      const payload = {
-        ...dto,
-        monthlyValue: dto.monthlyValue ? Number(dto.monthlyValue) : undefined,
-      };
-      if (isEditing && editingId) return benefitplanService.update(editingId, payload as BenefitPlanCreateDto);
-      return benefitplanService.create(payload as BenefitPlanCreateDto);
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: benefitplanKeys.all });
-      if (editingId) await queryClient.invalidateQueries({ queryKey: benefitplanKeys.detail(editingId) });
-      toast.success(isEditing ? "Benefício atualizado(a)" : "Benefício cadastrado(a)");
-      setForm(emptyBenefitPlanForm());
-      goToList();
-    },
-    onError: (err: unknown) => {
-      const ex = ExceptionCapture.handle(err, { fallbackMessage: BENEFIT_CLIENT_MESSAGES.BENEFIT_SAVE_FAILED });
-      setError(ex.displayMessage);
-    },
-  });
-
-  const update = <K extends keyof BenefitPlanCreateDto>(field: K, value: BenefitPlanCreateDto[K]) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    saveMutation.mutate(form);
-  };
-
-  if (isEditing && detailQuery.isLoading) {
-    return <div className="gommo-crud-panel-inset grid gap-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton-shimmer h-10 w-full" />)}</div>;
-  }
-
-  if (isEditing && detailQuery.isError) {
     return (
-      <div className="gommo-crud-panel-inset">
-        <p className="text-sm font-medium text-error">{ExceptionCapture.displayMessage(detailQuery.error, BENEFIT_CLIENT_MESSAGES.BENEFIT_LOAD_FAILED)}</p>
-        <Button variant="ghost" size="sm" className="mt-3" onClick={goToList}>Voltar</Button>
-      </div>
-    );
-  }
-
-  return (
-    <CrudFormShell
-      onSubmit={handleSubmit}
-      footer={
-        <>
-          <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
-          {isEditing && <Button type="button" variant="outline" onClick={startCreate}>Novo</Button>}
-          <Button type="submit" loading={saveMutation.isPending}>{isEditing ? "Salvar" : "Cadastrar"}</Button>
-        </>
-      }
-    >
-    <div className="grid gap-3 sm:grid-cols-2">
-      <div className="sm:col-span-2">
-        <p className="text-sm font-semibold text-base-content">{isEditing ? "Editar benefício" : "Novo(a) benefício"}</p>
-      </div>
+        <CrudFormShell
+            onSubmit={handleSubmit}
+            footer={
+                <>
+                    <Button type="button" variant="ghost" onClick={goToList}>
+                        Cancelar
+                    </Button>
+                    {isEditing && (
+                        <Button type="button" variant="outline" onClick={startCreate}>
+                            Novo
+                        </Button>
+                    )}
+                    <Button type="submit" loading={saveMutation.isPending}>
+                        {isEditing ? "Salvar" : "Cadastrar"}
+                    </Button>
+                </>
+            }
+        >
+            <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                    <p className="text-sm font-semibold text-base-content">
+                        {isEditing ? "Editar benefício" : "Novo(a) benefício"}
+                    </p>
+                </div>
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-      <InputString label="Name" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
-      <InputString label="Benefit Type" value={form.benefitType ?? ""} onValueChange={(v) => update("benefitType", v)} required />
-      <InputCurrency label="Valor mensal" value={form.monthlyValue ?? ""} onValueChange={(v) => update("monthlyValue", v)} emitAsDecimal />
-      {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
-    </div>
-    </CrudFormShell>
-  );
+                <InputString label="Name" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
+                <InputString
+                    label="Benefit Type"
+                    value={form.benefitType ?? ""}
+                    onValueChange={(v) => update("benefitType", v)}
+                    required
+                />
+                <InputCurrency
+                    label="Valor mensal"
+                    value={form.monthlyValue ?? ""}
+                    onValueChange={(v) => update("monthlyValue", v)}
+                    emitAsDecimal
+                />
+                {error && <p className="text-sm font-medium text-error sm:col-span-2">{error}</p>}
+            </div>
+        </CrudFormShell>
+    );
 }

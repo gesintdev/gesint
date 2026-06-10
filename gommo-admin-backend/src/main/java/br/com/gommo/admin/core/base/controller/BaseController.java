@@ -1,10 +1,10 @@
 package br.com.gommo.admin.core.base.controller;
 
-import br.com.gommo.admin.core.base.dto.PageableResponseDto;
-import br.com.gommo.admin.core.base.service.IBaseService;
 import jakarta.validation.Valid;
+
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import br.com.gommo.admin.core.base.dto.PageableResponseDto;
+import br.com.gommo.admin.core.base.service.IBaseService;
 
 /**
  * CRUD REST padrão. RBAC por módulo fica no {@link IBaseService} (ex.: {@code PersonService}).
@@ -33,8 +36,7 @@ public abstract class BaseController<RequestDto, ResponseDto> {
 
     @GetMapping("/page")
     public ResponseEntity<PageableResponseDto<ResponseDto>> findPage(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(service.findPage(page, size));
     }
 

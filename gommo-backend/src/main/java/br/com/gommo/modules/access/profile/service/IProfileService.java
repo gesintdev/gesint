@@ -1,10 +1,11 @@
 package br.com.gommo.modules.access.profile.service;
 
-import br.com.gommo.modules.access.profile.dto.ProfileRequestDto;
-import br.com.gommo.modules.access.profile.dto.ProfileResponseDto;
-import br.com.gommo.modules.access.entity.SystemScopeEnum;
 import java.util.List;
 import java.util.UUID;
+
+import br.com.gommo.modules.access.entity.SystemScopeEnum;
+import br.com.gommo.modules.access.profile.dto.ProfileRequestDto;
+import br.com.gommo.modules.access.profile.dto.ProfileResponseDto;
 
 public interface IProfileService {
 

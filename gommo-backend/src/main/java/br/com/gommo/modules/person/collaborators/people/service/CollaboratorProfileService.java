@@ -1,5 +1,10 @@
 package br.com.gommo.modules.person.collaborators.people.service;
 
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.person.collaborators.people.dto.CollaboratorRequestDto;
@@ -11,9 +16,6 @@ import br.com.gommo.modules.person.collaborators.people.mapper.CollaboratorMappe
 import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorAddressRepository;
 import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorContactRepository;
 import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
-import java.util.UUID;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CollaboratorProfileService {

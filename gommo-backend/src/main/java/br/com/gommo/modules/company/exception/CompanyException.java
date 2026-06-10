@@ -1,7 +1,8 @@
 package br.com.gommo.modules.company.exception;
 
-import br.com.gommo.core.exception.BusinessException;
 import org.springframework.http.HttpStatus;
+
+import br.com.gommo.core.exception.BusinessException;
 
 public final class CompanyException {
 
@@ -9,9 +10,7 @@ public final class CompanyException {
 
     public static BusinessException notFound() {
         return new BusinessException(
-                CompanyExceptions.NOT_FOUND_CODE,
-                CompanyExceptions.NOT_FOUND_MSG,
-                HttpStatus.NOT_FOUND);
+                CompanyExceptions.NOT_FOUND_CODE, CompanyExceptions.NOT_FOUND_MSG, HttpStatus.NOT_FOUND);
     }
 
     public static BusinessException cnpjAlreadyExists() {

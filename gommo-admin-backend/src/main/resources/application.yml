@@ -40,8 +40,8 @@ management:
 
 gommo-admin:
   tenant-db:
-    # Em dev, permite testar conexão sem vault (senha do tenant = DB_PASSWORD do compose).
-    fallback-password: ${TENANT_DB_FALLBACK_PASSWORD:}
+    # Em dev, permite testar conexao sem vault (senha do tenant = DB_PASSWORD do compose).
+    fallback-password: ${TENANT_DB_FALLBACK_PASSWORD:${DB_PASSWORD:${POSTGRES_PASSWORD:}}}
   security:
     jwt:
       secret: ${JWT_SECRET}

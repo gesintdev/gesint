@@ -1,5 +1,12 @@
 package br.com.gommo.modules.company.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -9,11 +16,6 @@ import br.com.gommo.modules.company.entity.Company;
 import br.com.gommo.modules.company.exception.CompanyException;
 import br.com.gommo.modules.company.mapper.CompanyMapper;
 import br.com.gommo.modules.company.repository.CompanyRepository;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CompanyService extends BaseService<Company, CompanyRequestDto, CompanyResponseDto>
@@ -53,10 +55,9 @@ public class CompanyService extends BaseService<Company, CompanyRequestDto, Comp
     @Transactional
     @PreAuthorize("hasAuthority('company:write')")
     public CompanyResponseDto create(CompanyRequestDto request) {
-        repository.findByCnpjAndStatusNot(request.getCnpj(), StatusEnum.DELETED)
-                .ifPresent(c -> {
-                    throw CompanyException.cnpjAlreadyExists();
-                });
+        repository.findByCnpjAndStatusNot(request.getCnpj(), StatusEnum.DELETED).ifPresent(c -> {
+            throw CompanyException.cnpjAlreadyExists();
+        });
         return super.create(request);
     }
 
@@ -64,7 +65,8 @@ public class CompanyService extends BaseService<Company, CompanyRequestDto, Comp
     @Transactional
     @PreAuthorize("hasAuthority('company:write')")
     public CompanyResponseDto update(UUID id, CompanyRequestDto request) {
-        repository.findByCnpjAndStatusNot(request.getCnpj(), StatusEnum.DELETED)
+        repository
+                .findByCnpjAndStatusNot(request.getCnpj(), StatusEnum.DELETED)
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(c -> {
                     throw CompanyException.cnpjAlreadyExists();

@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
-import type { CrudScreenProps } from "@/shared/components/crud/CrudScreen";
 import type { RoutePublicAccess } from "@/shared/auth/route-access";
+import type { CrudScreenProps } from "@/shared/components/crud/CrudScreen";
 import type { LazyComponent } from "@/shared/routing/resolve-lazy-component";
 
 export type TabbedCrudExtraTabConfig = {

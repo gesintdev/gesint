@@ -1,10 +1,11 @@
 package br.com.gommo.modules.storage.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.storage.dto.StorageObjectLinkResponseDto;
 import br.com.gommo.modules.storage.dto.StorageObjectResponseDto;
 import br.com.gommo.modules.storage.entity.StorageObject;
 import br.com.gommo.modules.storage.entity.StorageObjectLink;
-import org.springframework.stereotype.Component;
 
 @Component
 public class StorageMapper {

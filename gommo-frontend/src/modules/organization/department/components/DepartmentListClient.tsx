@@ -1,11 +1,10 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { DEPARTMENT_CLIENT_MESSAGES } from "@/modules/organization/department/exceptions/department.messages";
 import { DEPARTMENT_TABLE_COLUMNS } from "@/modules/organization/department/config/department.table-columns";
-import type { Department } from "@/modules/organization/department/dto/department.dto";
 import { departmentKeys } from "@/modules/organization/department/department.query";
+import type { Department } from "@/modules/organization/department/dto/department.dto";
+import { DEPARTMENT_CLIENT_MESSAGES } from "@/modules/organization/department/exceptions/department.messages";
 import { departmentService } from "@/modules/organization/department/services/department.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
@@ -16,7 +15,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function DepartmentListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => departmentService.remove(id),
         onSuccess: async () => {
@@ -26,7 +24,6 @@ export function DepartmentListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: DEPARTMENT_CLIENT_MESSAGES.DEPARTMENT_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: Department) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

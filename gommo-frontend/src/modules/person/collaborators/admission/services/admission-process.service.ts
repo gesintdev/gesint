@@ -1,7 +1,13 @@
-import type { AdmissionProcess, AdmissionProcessCreateDto } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
+import type {
+    AdmissionProcess,
+    AdmissionProcessCreateDto,
+} from "@/modules/person/collaborators/admission/dto/admission-process.dto";
 import { BaseService } from "@/modules/root/services/base.service";
-
-class AdmissionProcessService extends BaseService<AdmissionProcess, AdmissionProcessCreateDto, AdmissionProcessCreateDto> {
+class AdmissionProcessService extends BaseService<
+    AdmissionProcess,
+    AdmissionProcessCreateDto,
+    AdmissionProcessCreateDto
+> {
     constructor() {
         super("/api/v1/admissions");
     }

@@ -1,24 +1,24 @@
 "use client";
-
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import clsx from "clsx";
-import type {InputFieldChromeProps} from "@/shared/components/ui/input/input-field.types";
 
 export function InputFieldChrome({
-                                     label,
-                                     hint,
-                                     error,
-                                     required,
-                                     id,
-                                     labelFor = true,
-                                     wrapperClassName,
-                                     children,
-                                 }: InputFieldChromeProps & { children: React.ReactNode }) {
+    label,
+    hint,
+    error,
+    required,
+    id,
+    labelFor = true,
+    wrapperClassName,
+    children,
+}: InputFieldChromeProps & { children: React.ReactNode }) {
     const labelId = id ? `${id}-label` : undefined;
 
     return (
         <div className={wrapperClassName}>
-            {label && labelId && (
-                labelFor ? (
+            {label &&
+                labelId &&
+                (labelFor ? (
                     <label htmlFor={id} className="gommo-label">
                         {label}
                         {required && <span className="ms-0.5 text-error">*</span>}
@@ -28,8 +28,7 @@ export function InputFieldChrome({
                         {label}
                         {required && <span className="ms-0.5 text-error">*</span>}
                     </span>
-                )
-            )}
+                ))}
             {label && !labelId && (
                 <span className="gommo-label">
                     {label}

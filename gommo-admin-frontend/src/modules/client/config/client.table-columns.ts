@@ -17,7 +17,7 @@ export const CLIENT_TABLE_COLUMNS: TableColumnConfig[] = [
     },
     {
         id: "document",
-        columnName: "Documento",
+        columnName: "CNPJ",
         fieldValue: "document",
         dataType: TableDataType.TEXT,
     },

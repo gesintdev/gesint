@@ -1,8 +1,7 @@
 "use client";
-
-import {createContext, type ReactNode, useContext, useMemo} from "react";
-import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
+import { createContext, type ReactNode, useContext, useMemo } from "react";
+import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
+import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 
 type WorkspaceTabContextValue = {
     tab: WorkspaceTab;
@@ -11,16 +10,9 @@ type WorkspaceTabContextValue = {
 
 const WorkspaceTabContext = createContext<WorkspaceTabContextValue | null>(null);
 
-export function WorkspaceTabProvider({
-                                         tab,
-                                         children,
-                                     }: {
-    tab: WorkspaceTab;
-    children: ReactNode;
-}) {
+export function WorkspaceTabProvider({ tab, children }: { tab: WorkspaceTab; children: ReactNode }) {
     const setTitleSuffixAction = useWorkspaceStore((s) => s.setTitleSuffix);
     const tabId = tab.id;
-
     const value = useMemo(
         () => ({
             tab,
@@ -29,9 +21,7 @@ export function WorkspaceTabProvider({
         [setTitleSuffixAction, tab, tabId],
     );
 
-    return (
-        <WorkspaceTabContext.Provider value={value}>{children}</WorkspaceTabContext.Provider>
-    );
+    return <WorkspaceTabContext.Provider value={value}>{children}</WorkspaceTabContext.Provider>;
 }
 
 export function useWorkspaceTab(): WorkspaceTabContextValue {

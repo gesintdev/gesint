@@ -1,9 +1,8 @@
 "use client";
-
-import { maskPhone } from "@/shared/lib/input/phone";
-import { digitsOnly } from "@/shared/lib/input/digits";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { InputBase } from "@/shared/components/ui/input/InputBase";
+import { digitsOnly } from "@/shared/lib/input/digits";
+import { maskPhone } from "@/shared/lib/input/phone";
 
 export type InputPhoneProps = InputFieldChromeProps & {
     value: string;

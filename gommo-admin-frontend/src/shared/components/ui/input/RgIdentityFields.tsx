@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { digitsOnly } from "@/shared/lib/input/digits";
 import { InputString } from "@/shared/components/ui/input/InputString";
+import { digitsOnly } from "@/shared/lib/input/digits";
 
 export type RgIdentityFieldsProps = {
     rg: string;
@@ -46,7 +46,12 @@ export function RgIdentityFields({
                 label={"UF emiss\u00e3o"}
                 value={rgStateCode}
                 onValueChange={(v) =>
-                    onRgStateCodeChange(v.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2))
+                    onRgStateCodeChange(
+                        v
+                            .toUpperCase()
+                            .replace(/[^A-Z]/g, "")
+                            .slice(0, 2),
+                    )
                 }
                 maxLength={2}
                 wrapperClassName="min-w-0"

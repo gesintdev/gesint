@@ -1,13 +1,9 @@
 package br.com.gommo.modules.root.config;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.root.entity.AppUser;
-import br.com.gommo.modules.root.entity.Role;
-import br.com.gommo.modules.root.repository.AppUserRepository;
-import br.com.gommo.modules.root.repository.RoleRepository;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +13,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.root.entity.AppUser;
+import br.com.gommo.modules.root.entity.Role;
+import br.com.gommo.modules.root.repository.AppUserRepository;
+import br.com.gommo.modules.root.repository.RoleRepository;
 
 @Component
 @Profile({"dev", "test"})
@@ -47,9 +49,8 @@ public class DevAdminInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         if (!StringUtils.hasText(devAdminPassword)) {
-            log.warn(
-                    "gommo.dev.admin-password nao configurado; usuario admin de desenvolvimento nao sera criado. "
-                            + "Defina DEV_ADMIN_PASSWORD (veja .env.example).");
+            log.warn("gommo.dev.admin-password nao configurado; usuario admin de desenvolvimento nao sera criado. "
+                    + "Defina DEV_ADMIN_PASSWORD (veja .env.example).");
             return;
         }
 
@@ -57,9 +58,7 @@ public class DevAdminInitializer implements ApplicationRunner {
 
         appUserRepository
                 .findActiveByUsername(devAdminUsername, StatusEnum.DELETED)
-                .ifPresentOrElse(
-                        user -> ensureAdminRole(user, adminRole),
-                        () -> createAdmin(adminRole));
+                .ifPresentOrElse(user -> ensureAdminRole(user, adminRole), () -> createAdmin(adminRole));
     }
 
     private void ensureAdminRole(AppUser user, Role adminRole) {
