@@ -40,12 +40,7 @@ export function PaymentPeriodFormClient() {
     const periodId = editingId ?? detailQuery.data?.id;
     const batchUpload = usePaymentBatchUpload(periodId);
 
-    const formSteps: FormStepNavItem[] = periodId
-        ? [
-              { id: "cadastro", label: "Período" },
-              { id: "arquivos", label: "Arquivos" },
-          ]
-        : [{ id: "cadastro", label: "Período" }];
+    const formSteps: FormStepNavItem[] = [{ id: "cadastro", label: "Per\u00edodo" }];
 
     useEffect(() => {
         if (!isEditing) {
@@ -139,13 +134,11 @@ export function PaymentPeriodFormClient() {
                     </div>
                 </FormSection>
                 {periodId ? (
-                    <FormSection id="arquivos" bodyClassName="!grid-cols-1">
-                        <PaymentBatchPanel
-                            periodId={periodId}
-                            periodLabel={formatPaymentReference(form.referenceDate)}
-                            upload={batchUpload}
-                        />
-                    </FormSection>
+                    <PaymentBatchPanel
+                        periodId={periodId}
+                        periodLabel={formatPaymentReference(form.referenceDate)}
+                        upload={batchUpload}
+                    />
                 ) : null}
             </div>
         </CrudFormShell>

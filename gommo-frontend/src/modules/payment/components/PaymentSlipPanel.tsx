@@ -240,7 +240,7 @@ export function PaymentSlipPanel({
                     </button>
                 ))}
             </div>
-            <div className="min-h-0 min-w-0 w-full max-h-96 overflow-y-auto">
+            <div className="min-w-0 w-full">
                 <QueryTablePanel<PaymentSlipRow>
                     key={`${activeTab}-${refreshToken}`}
                     queryKey={queryKey}
