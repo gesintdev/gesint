@@ -1,5 +1,6 @@
 package br.com.gommo.modules.person.collaborators.people.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -12,4 +13,6 @@ import br.com.gommo.modules.person.collaborators.people.entity.Collaborator;
 public interface CollaboratorRepository extends IBaseRepository<Collaborator> {
 
     Optional<Collaborator> findByCpfAndStatusNot(String cpf, StatusEnum status);
+
+    List<Collaborator> findByStatusNotOrderByFullNameAsc(StatusEnum status);
 }

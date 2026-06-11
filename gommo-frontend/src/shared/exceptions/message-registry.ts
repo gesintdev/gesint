@@ -9,6 +9,7 @@ import {
 import { COMPANY_CLIENT_MESSAGES, COMPANY_MESSAGES } from "@/modules/company/exceptions/company.messages";
 import { BENEFIT_CLIENT_MESSAGES, BENEFIT_MESSAGES } from "@/modules/payroll/benefit/exceptions/benefit-plan.messages";
 import { PAYROLL_CLIENT_MESSAGES, PAYROLL_MESSAGES } from "@/modules/payroll/exceptions/payroll-run.messages";
+import { PAYMENT_CLIENT_MESSAGES, PAYMENT_MESSAGES } from "@/modules/payment/exceptions/payment.messages";
 import { PAYSLIP_CLIENT_MESSAGES, PAYSLIP_MESSAGES } from "@/modules/payroll/payslip/exceptions/payslip.messages";
 import {
     ATTENDANCE_CLIENT_MESSAGES,
@@ -58,6 +59,8 @@ const REGISTRY: Record<string, string> = {
     ...LEAVE_CLIENT_MESSAGES,
     ...PAYROLL_MESSAGES,
     ...PAYROLL_CLIENT_MESSAGES,
+    ...PAYMENT_MESSAGES,
+    ...PAYMENT_CLIENT_MESSAGES,
     ...PAYSLIP_MESSAGES,
     ...PAYSLIP_CLIENT_MESSAGES,
     ...BENEFIT_MESSAGES,

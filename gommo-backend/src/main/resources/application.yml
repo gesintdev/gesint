@@ -17,6 +17,7 @@ spring:
           time_zone: America/Sao_Paulo
   flyway:
     enabled: true
+    encoding: UTF-8
     locations: classpath:db/migration
     # Histórico e DDL do HR ficam no schema public (independente do admin).
     schemas: public

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, type SubmitEvent } from "react";
-import { InputSelect, InputNumber } from "@/shared/components/ui/input/index";
+import { InputSelect, InputMonth } from "@/shared/components/ui/input/index";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { PayrollRunCreateDto } from "@/modules/payroll/dto/payroll-run.dto";
@@ -113,20 +113,10 @@ export function PayrollRunFormClient() {
                     </p>
                 </div>
                 <EntityCodeField code={isEditing ? detailQuery.data?.code : undefined} />
-                <InputNumber
-                    label="Reference Year"
-                    integer
-                    align="left"
-                    value={form.referenceYear}
-                    onValueChange={(v) => update("referenceYear", v ?? 0)}
-                    required
-                />
-                <InputNumber
-                    label="Reference Month"
-                    integer
-                    align="left"
-                    value={form.referenceMonth}
-                    onValueChange={(v) => update("referenceMonth", v ?? 0)}
+                <InputMonth
+                    label="Competência"
+                    value={form.referenceDate ?? ""}
+                    onValueChange={(v) => update("referenceDate", v)}
                     required
                 />
                 <InputSelect

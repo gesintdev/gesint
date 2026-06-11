@@ -1,5 +1,6 @@
 package br.com.gommo.modules.payroll.integration;
 
+import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.person.contract.entity.EmploymentContract;
 import br.com.gommo.modules.person.contract.repository.EmploymentContractRepository;
 import java.math.BigDecimal;
@@ -26,7 +27,7 @@ public class ContractSalaryProviderImpl implements ContractSalaryProvider {
     public List<ContractSalarySnapshot> findActiveContracts(
             UUID companyId, LocalDate periodStart, LocalDate periodEnd) {
         List<EmploymentContract> contracts =
-                contractRepository.findActiveForPeriod(companyId, periodStart, periodEnd);
+                contractRepository.findActiveForPeriod(companyId, periodStart, periodEnd, StatusEnum.DELETED);
 
         Map<UUID, ContractSalarySnapshot> latestByCollaborator = new LinkedHashMap<>();
         for (EmploymentContract contract : contracts) {

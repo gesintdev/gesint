@@ -1,19 +1,18 @@
 import type { PayrollRun, PayrollRunCreateDto } from "@/modules/payroll/dto/payroll-run.dto";
+import { currentMonthReferenceDate, isoToMonthBr, normalizeMonthIso } from "@/shared/lib/input/date";
 
 function toDateField(value?: string): string | undefined {
     if (!value) return undefined;
     return value.slice(0, 10);
 }
 
-export function formatPayrollReference(month: number, year: number): string {
-    return `${String(month).padStart(2, "0")}/${year}`;
+export function formatPayrollReference(referenceDate: string): string {
+    return isoToMonthBr(referenceDate) || "—";
 }
 
 export function payrollrunToFormDto(entity: PayrollRun): PayrollRunCreateDto {
     return {
-        companyId: entity.companyId,
-        referenceYear: entity.referenceYear ?? 0,
-        referenceMonth: entity.referenceMonth ?? 0,
+        referenceDate: normalizeMonthIso(entity.referenceDate ?? ""),
         payrollStatus: entity.payrollStatus === "DRAFT" ? "OPEN" : entity.payrollStatus,
         openedAt: toDateField(entity.openedAt),
         closedAt: toDateField(entity.closedAt),
@@ -23,7 +22,6 @@ export function payrollrunToFormDto(entity: PayrollRun): PayrollRunCreateDto {
 }
 
 export const emptyPayrollRunForm = (): PayrollRunCreateDto => ({
-    referenceYear: new Date().getFullYear(),
-    referenceMonth: new Date().getMonth() + 1,
+    referenceDate: currentMonthReferenceDate(),
     payrollStatus: "OPEN",
 });

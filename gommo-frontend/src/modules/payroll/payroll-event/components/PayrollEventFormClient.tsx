@@ -141,7 +141,7 @@ export function PayrollEventFormClient() {
     >
       <FormSection id="cadastro" title="Evento de folha">
         <InputString
-          label="Código"
+          label="Chave"
           value={form.eventCode ?? ""}
           onValueChange={(v) => update("eventCode", v)}
           required

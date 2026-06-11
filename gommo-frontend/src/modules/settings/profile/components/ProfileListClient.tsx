@@ -19,6 +19,7 @@ const SYSTEM_FILTERS: Array<{ value: SystemScope | "ALL"; label: string }> = [
     { value: "ALL", label: "Todos" },
     { value: "DP", label: "DP" },
     { value: "RH", label: "RH" },
+    { value: "CONTABILIDADE", label: "CTB" },
 ];
 const STATUS_FILTERS: Array<{ value: "ACTIVE" | "INACTIVE" | "ALL"; label: string }> = [
     { value: "ACTIVE", label: "Ativos" },

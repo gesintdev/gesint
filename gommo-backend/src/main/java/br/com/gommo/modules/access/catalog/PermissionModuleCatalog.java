@@ -18,6 +18,14 @@ public final class PermissionModuleCatalog {
                         "company",
                         "department",
                         "jobposition",
+                        "payment",
+                        "leave",
+                        "storage",
+                        "role",
+                        "user"));
+        MODULES_BY_SYSTEM.put(
+                SystemScopeEnum.CONTABILIDADE,
+                Set.of(
                         "payroll",
                         "payrollevent",
                         "payslip",
@@ -56,12 +64,22 @@ public final class PermissionModuleCatalog {
     }
 
     public static SystemScopeEnum systemForModule(String module) {
+        if ("leave".equals(module)) {
+            return null;
+        }
         if (MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)
-                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.RH).contains(module)) {
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.RH).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CONTABILIDADE).contains(module)) {
             return SystemScopeEnum.DP;
         }
-        if (MODULES_BY_SYSTEM.get(SystemScopeEnum.RH).contains(module)
+        if (MODULES_BY_SYSTEM.get(SystemScopeEnum.CONTABILIDADE).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.RH).contains(module)
                 && !MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)) {
+            return SystemScopeEnum.CONTABILIDADE;
+        }
+        if (MODULES_BY_SYSTEM.get(SystemScopeEnum.RH).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CONTABILIDADE).contains(module)) {
             return SystemScopeEnum.RH;
         }
         return null;

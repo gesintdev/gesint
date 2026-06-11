@@ -12,7 +12,7 @@ export function isFormValueFilled(value: unknown): boolean {
 }
 
 export function isStepFilled(fields: StepFieldCheck[]): boolean {
-    return fields.some(({ value, empty }) => {
+    return fields.every(({ value, empty }) => {
         if (!isFormValueFilled(value)) return false;
         if (empty !== undefined && value === empty) return false;
         return true;

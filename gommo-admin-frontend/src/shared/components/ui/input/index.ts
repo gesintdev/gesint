@@ -30,6 +30,10 @@ export type { InputDatetimeProps } from "./InputDatetime";
 
 export { InputDatetime } from "./InputDatetime";
 
+export type { InputMonthProps } from "./InputMonth";
+
+export { InputMonth } from "./InputMonth";
+
 export type { InputNumberAlign, InputNumberProps } from "./InputNumber";
 
 export { InputNumber } from "./InputNumber";

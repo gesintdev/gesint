@@ -6,8 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,14 +25,8 @@ import org.hibernate.type.SqlTypes;
 @AllArgsConstructor
 public class PayrollRun extends AuditEntity {
 
-    @Column(name = "company_id")
-    private UUID companyId;
-
-    @Column(name = "reference_year", nullable = false)
-    private Integer referenceYear;
-
-    @Column(name = "reference_month", nullable = false)
-    private Integer referenceMonth;
+    @Column(name = "reference_date", nullable = false)
+    private LocalDate referenceDate;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)

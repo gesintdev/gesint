@@ -57,7 +57,7 @@ public class DashboardMetricsDao {
                 Map.of("deleted", StatusEnum.DELETED.name(), "today", today));
     }
 
-    public long countOpenPayrollRuns(int year, int month) {
+    public long countOpenPayrollRuns(LocalDate referenceDate) {
         return countWhere(
                 """
                 SELECT COUNT(*)
@@ -67,16 +67,14 @@ public class DashboardMetricsDao {
                       CAST(:open AS payroll_status_enum),
                       CAST(:processing AS payroll_status_enum)
                   )
-                  AND reference_year = :year
-                  AND reference_month = :month
+                  AND reference_date = :referenceDate
                 """
                         .formatted(STATUS_NOT_DELETED),
                 Map.of(
                         "deleted", StatusEnum.DELETED.name(),
                         "open", PayrollStatusEnum.OPEN.name(),
                         "processing", PayrollStatusEnum.PROCESSING.name(),
-                        "year", year,
-                        "month", month));
+                        "referenceDate", referenceDate));
     }
 
     public long countPendingLeaveRequests() {

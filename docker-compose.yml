@@ -22,7 +22,10 @@ services:
           memory: 512M
 
   gommo-backend:
-    image: eclipse-temurin:21-jdk-alpine
+    build:
+      context: ./gommo-backend
+      dockerfile: Dockerfile
+      target: dev
     container_name: gommo-backend
     working_dir: /app
     volumes:

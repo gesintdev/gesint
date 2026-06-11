@@ -18,3 +18,7 @@ gommo:
   dev:
     admin-username: ${DEV_ADMIN_USERNAME:admin}
     admin-password: ${DEV_ADMIN_PASSWORD}
+  payment:
+    ocr:
+      # Vazio = auto-detecta ./data/tessdata e ../data/tessdata (IDE na raiz vs mvn em gommo-backend)
+      tessdata-path: ${TESSDATA_PREFIX:}

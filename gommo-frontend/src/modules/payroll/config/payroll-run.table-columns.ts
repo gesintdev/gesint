@@ -11,12 +11,6 @@ export const PAYROLL_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.TEXT,
     },
     {
-        id: "companyName",
-        columnName: "Empresa",
-        fieldValue: "companyName",
-        dataType: TableDataType.TEXT,
-    },
-    {
         id: "payrollStatus",
         columnName: "Status folha",
         fieldValue: "payrollStatus",

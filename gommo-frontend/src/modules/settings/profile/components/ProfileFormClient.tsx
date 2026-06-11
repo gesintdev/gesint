@@ -29,6 +29,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const SYSTEM_ITEMS: SelectItem[] = [
     { value: "DP", label: "Departamento Pessoal (DP)" },
     { value: "RH", label: "Recursos Humanos (RH)" },
+    { value: "CONTABILIDADE", label: "Contabilidade (CTB)" },
 ];
 const FORM_STEPS: FormStepNavItem[] = [
     { id: "identificacao", label: "Identificação" },

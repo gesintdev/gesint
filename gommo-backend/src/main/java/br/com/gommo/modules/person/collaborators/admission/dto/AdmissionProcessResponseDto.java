@@ -25,6 +25,9 @@ public class AdmissionProcessResponseDto {
     private final UUID collaboratorId;
     private final UUID photoObjectId;
     private final AdmissionStatusEnum admissionStatus;
+    private final int completedStepCount;
+    private final int requiredStepCount;
+    private final List<String> completedStepIds;
     private final LocalDate startedAt;
     private final LocalDate completedAt;
     private final String notes;

@@ -20,6 +20,8 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
     "payroll-run": "payroll",
     "payroll-event": "payrollevent",
     payslip: "payslip",
+    "payment-period": "payment",
+    "payment-batch": "payment",
     "benefit-plan": "benefit",
     "benefit-enrollment": "benefitenrollment",
     tax: "tax",
@@ -102,14 +104,18 @@ function findParentIds(routes: AppRoute[], routeId: string, ancestors: string[])
     return null;
 }
 
-export type SystemScope = "DP" | "RH";
+export type SystemScope = "DP" | "RH" | "CONTABILIDADE";
 
 export function systemScopeFromEnum(system: SystemEnum): SystemScope {
-    return system === SystemEnum.DP ? "DP" : "RH";
+    if (system === SystemEnum.DP) return "DP";
+    if (system === SystemEnum.CONTABILIDADE) return "CONTABILIDADE";
+    return "RH";
 }
 
 export function systemEnumFromScope(scope: SystemScope): SystemEnum {
-    return scope === "DP" ? SystemEnum.DP : SystemEnum.RH;
+    if (scope === "DP") return SystemEnum.DP;
+    if (scope === "CONTABILIDADE") return SystemEnum.CONTABILIDADE;
+    return SystemEnum.RH;
 }
 
 export function routeHasMarkedPermissions(route: AppRoute, markedModules: ReadonlySet<string>): boolean {

@@ -1,14 +1,13 @@
 import type { PayrollRun, PayrollRunCreateDto } from "@/modules/payroll/dto/payroll-run.dto";
+import { currentMonthReferenceDate, normalizeMonthIso } from "@/shared/lib/input/date";
 
 export function payrollrunToFormDto(entity: PayrollRun): PayrollRunCreateDto {
     return {
-        referenceYear: entity.referenceYear ?? 0,
-        referenceMonth: entity.referenceMonth ?? 0,
+        referenceDate: normalizeMonthIso(entity.referenceDate ?? ""),
         payrollStatus: entity.payrollStatus,
     };
 }
 
 export const emptyPayrollRunForm = (): PayrollRunCreateDto => ({
-    referenceYear: 0,
-    referenceMonth: 0,
+    referenceDate: currentMonthReferenceDate(),
 });

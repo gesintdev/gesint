@@ -1,11 +1,13 @@
 import type { DashboardSummary } from "@/modules/dashboard/dto/dashboard.dto";
 /** Valores alinhados a SystemEnum, sem importar o enum (evita lucide no middleware). */
-export type DashboardSystemId = "dp" | "rh";
+export type DashboardSystemId = "dp" | "rh" | "contabilidade";
 
 const RH_METRIC_KEYS = new Set(["collaborators", "contracts", "leave"]);
-const DP_METRIC_KEYS = new Set(["payroll"]);
+const DP_METRIC_KEYS = new Set(["payment"]);
+const CONTABILIDADE_METRIC_KEYS = new Set(["payroll"]);
 const RH_MODULE_KEYS = new Set(["collaborator", "admission", "contract", "leave", "attendance", "offboarding"]);
-const DP_MODULE_KEYS = new Set(["payroll", "payslip", "benefit", "company", "department", "jobposition"]);
+const DP_MODULE_KEYS = new Set(["payment", "company", "department", "jobposition", "leave"]);
+const CONTABILIDADE_MODULE_KEYS = new Set(["payroll", "payslip", "benefit", "company", "department", "jobposition"]);
 
 function filterModuleHealth(
     moduleHealth: DashboardSummary["moduleHealth"],
@@ -33,6 +35,15 @@ export function filterDashboardSummaryForSystem(data: DashboardSummary, system: 
             leaveByType: [],
         };
     }
+    if (system === "contabilidade") {
+        return {
+            metrics: data.metrics.filter((metric) => CONTABILIDADE_METRIC_KEYS.has(metric.key)),
+            movementLast7Days: data.movementLast7Days,
+            moduleHealth: filterModuleHealth(data.moduleHealth, CONTABILIDADE_MODULE_KEYS),
+            admissionsByStatus: [],
+            leaveByType: [],
+        };
+    }
     return {
         metrics: data.metrics.filter((metric) => RH_METRIC_KEYS.has(metric.key)),
         movementLast7Days: data.movementLast7Days,
@@ -43,5 +54,7 @@ export function filterDashboardSummaryForSystem(data: DashboardSummary, system: 
 }
 
 export function dashboardTitleForSystem(system: DashboardSystemId): string {
-    return system === "dp" ? "Painel DP" : "Painel RH";
+    if (system === "dp") return "Painel DP";
+    if (system === "contabilidade") return "Painel Contabilidade";
+    return "Painel RH";
 }

@@ -11,9 +11,7 @@ export class PayrollRun {
     id!: string;
     code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
-    companyId?: string;
-    referenceYear!: number;
-    referenceMonth!: number;
+    referenceDate!: string;
     payrollStatus?: PayrollStatus;
     openedAt?: string;
     closedAt?: string;
@@ -24,9 +22,7 @@ export class PayrollRun {
 }
 
 export class PayrollRunCreateDto {
-    companyId?: string;
-    referenceYear!: number;
-    referenceMonth!: number;
+    referenceDate!: string;
     payrollStatus?: PayrollStatus;
     openedAt?: string;
     closedAt?: string;

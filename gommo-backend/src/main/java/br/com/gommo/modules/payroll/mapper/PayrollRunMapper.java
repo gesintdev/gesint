@@ -4,6 +4,7 @@ import br.com.gommo.modules.payroll.dto.PayrollRunRequestDto;
 import br.com.gommo.modules.payroll.dto.PayrollRunResponseDto;
 import br.com.gommo.modules.payroll.entity.PayrollRun;
 import br.com.gommo.modules.payroll.entity.PayrollStatusEnum;
+import java.time.LocalDate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,9 +12,7 @@ public class PayrollRunMapper {
 
     public PayrollRun toEntity(PayrollRunRequestDto dto) {
         return PayrollRun.builder()
-                .companyId(dto.getCompanyId())
-                .referenceYear(dto.getReferenceYear())
-                .referenceMonth(dto.getReferenceMonth())
+                .referenceDate(normalizeReferenceDate(dto.getReferenceDate()))
                 .payrollStatus(dto.getPayrollStatus() != null ? dto.getPayrollStatus() : PayrollStatusEnum.OPEN)
                 .openedAt(dto.getOpenedAt())
                 .closedAt(dto.getClosedAt())
@@ -23,9 +22,7 @@ public class PayrollRunMapper {
     }
 
     public void updateEditableFields(PayrollRun entity, PayrollRunRequestDto dto) {
-        entity.setCompanyId(dto.getCompanyId());
-        entity.setReferenceYear(dto.getReferenceYear());
-        entity.setReferenceMonth(dto.getReferenceMonth());
+        entity.setReferenceDate(normalizeReferenceDate(dto.getReferenceDate()));
         entity.setNotes(dto.getNotes());
     }
 
@@ -38,9 +35,7 @@ public class PayrollRunMapper {
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
-                .companyId(entity.getCompanyId())
-                .referenceYear(entity.getReferenceYear())
-                .referenceMonth(entity.getReferenceMonth())
+                .referenceDate(entity.getReferenceDate())
                 .payrollStatus(entity.getPayrollStatus())
                 .openedAt(entity.getOpenedAt())
                 .closedAt(entity.getClosedAt())
@@ -49,5 +44,12 @@ public class PayrollRunMapper {
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
+    }
+
+    static LocalDate normalizeReferenceDate(LocalDate referenceDate) {
+        if (referenceDate == null) {
+            return null;
+        }
+        return referenceDate.withDayOfMonth(1);
     }
 }

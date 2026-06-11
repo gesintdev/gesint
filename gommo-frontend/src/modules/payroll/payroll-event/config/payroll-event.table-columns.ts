@@ -6,7 +6,7 @@ export const PAYROLL_EVENT_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {
         id: "eventCode",
-        columnName: "Código",
+        columnName: "Chave",
         fieldValue: "eventCode",
         dataType: TableDataType.TEXT,
     },

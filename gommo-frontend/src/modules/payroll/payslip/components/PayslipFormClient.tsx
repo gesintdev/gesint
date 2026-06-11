@@ -9,6 +9,7 @@ import { emptyPayslipForm, payslipToFormDto } from "@/modules/payroll/payslip/li
 import { payslipKeys } from "@/modules/payroll/payslip/payslip.query";
 import { payslipService } from "@/modules/payroll/payslip/services/payslip.service";
 import { canEditPayrollRun, isPayrollRunLocked } from "@/modules/payroll/lib/payroll-run-lifecycle";
+import { formatPayrollReference } from "@/modules/payroll/lib/payroll-run.mapper";
 import { payrollrunKeys } from "@/modules/payroll/payroll.query";
 import { payrollrunService } from "@/modules/payroll/services/payroll-run.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -65,7 +66,7 @@ export function PayslipFormClient() {
 
   const resolvePayrollRunLabel = useCallback(async (id: string) => {
     const run = await payrollrunService.getById(id);
-    return `Competência ${String(run.referenceMonth).padStart(2, "0")}/${run.referenceYear}`;
+    return `Competência ${formatPayrollReference(run.referenceDate)}`;
   }, []);
 
   const saveMutation = useMutation({

@@ -288,6 +288,18 @@ BEGIN
     WHERE NOT EXISTS (
         SELECT 1 FROM tenant_empresa_a.company WHERE cnpj = v_cnpj
     );
+
+    -- 7. Eventos padrão de folha (isolados no schema do tenant)
+    INSERT INTO tenant_empresa_a.payroll_event (
+        id, status, event_code, description, event_type,
+        incides_inss, incides_fgts, incides_irrf, formula, code, created_at
+    )
+    SELECT
+        p.id, p.status, p.event_code, p.description, p.event_type,
+        p.incides_inss, p.incides_fgts, p.incides_irrf, p.formula, p.code, now()
+    FROM public.payroll_event p
+    WHERE p.status <> 'DELETED'
+    ON CONFLICT (id) DO NOTHING;
 END;
 $seed$;
 

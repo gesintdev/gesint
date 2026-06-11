@@ -18,8 +18,7 @@ public class PayrollCalculationContext {
     private final UUID payrollRunId;
     private final UUID collaboratorId;
     private final UUID companyId;
-    private final int referenceYear;
-    private final int referenceMonth;
+    private final LocalDate referenceDate;
     private final LocalDate periodStart;
     private final LocalDate periodEnd;
     private final Map<String, PayrollEvent> eventsByCode;
@@ -41,16 +40,14 @@ public class PayrollCalculationContext {
             UUID payrollRunId,
             UUID collaboratorId,
             UUID companyId,
-            int referenceYear,
-            int referenceMonth,
+            LocalDate referenceDate,
             LocalDate periodStart,
             LocalDate periodEnd,
             Map<String, PayrollEvent> eventsByCode) {
         this.payrollRunId = payrollRunId;
         this.collaboratorId = collaboratorId;
         this.companyId = companyId;
-        this.referenceYear = referenceYear;
-        this.referenceMonth = referenceMonth;
+        this.referenceDate = referenceDate != null ? referenceDate.withDayOfMonth(1) : null;
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
         this.eventsByCode = eventsByCode;
@@ -68,12 +65,8 @@ public class PayrollCalculationContext {
         return companyId;
     }
 
-    public int getReferenceYear() {
-        return referenceYear;
-    }
-
-    public int getReferenceMonth() {
-        return referenceMonth;
+    public LocalDate getReferenceDate() {
+        return referenceDate;
     }
 
     public LocalDate getPeriodStart() {

@@ -20,6 +20,8 @@ public interface AdmissionProcessRepository extends IBaseRepository<AdmissionPro
 
     Optional<AdmissionProcess> findByCpfAndStatusNotAndIdNot(String cpf, StatusEnum status, UUID id);
 
+    Optional<AdmissionProcess> findByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
+
     @Query(
             """
             SELECT DISTINCT a.collaboratorId FROM AdmissionProcess a
@@ -29,4 +31,7 @@ public interface AdmissionProcessRepository extends IBaseRepository<AdmissionPro
             """)
     List<UUID> findCollaboratorIdsFromCompletedAdmissions(
             @Param("completed") AdmissionStatusEnum completed, @Param("deleted") StatusEnum deleted);
+
+    List<AdmissionProcess> findByAdmissionStatusAndCollaboratorIdIsNotNullAndStatusNot(
+            AdmissionStatusEnum admissionStatus, StatusEnum status);
 }

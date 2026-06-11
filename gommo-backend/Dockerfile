@@ -8,10 +8,26 @@ RUN mvn -q -DskipTests dependency:go-offline
 COPY src ./src
 RUN mvn -q -DskipTests package
 
-FROM eclipse-temurin:21-jre-alpine
+# Dev local (docker compose): JDK + Maven + Tesseract para OCR de holerites escaneados
+FROM eclipse-temurin:21-jdk-alpine AS dev
+RUN apk add --no-cache \
+    maven \
+    curl \
+    tesseract-ocr \
+    tesseract-ocr-data-por \
+    fontconfig \
+    ttf-dejavu
 WORKDIR /app
 
-RUN apk add --no-cache curl \
+FROM eclipse-temurin:21-jre-alpine AS prod
+WORKDIR /app
+
+RUN apk add --no-cache \
+    curl \
+    tesseract-ocr \
+    tesseract-ocr-data-por \
+    fontconfig \
+    ttf-dejavu \
     && addgroup -S gommo && adduser -S gommo -G gommo \
     && mkdir -p /data/storage && chown -R gommo:gommo /data/storage
 

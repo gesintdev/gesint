@@ -9,12 +9,15 @@ import org.springframework.util.CollectionUtils;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProcessResponseDto;
+import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProgress;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 
 @Component
 public class AdmissionProcessMapper {
+
+    private static final int REQUIRED_STEP_COUNT = 6;
 
     public AdmissionProcess toEntity(AdmissionProcessRequestDto dto) {
         return AdmissionProcess.builder()
@@ -107,10 +110,24 @@ public class AdmissionProcessMapper {
     }
 
     public AdmissionProcessResponseDto toResponse(AdmissionProcess entity) {
-        return toResponse(entity, entity.getAdmissionStatus());
+        return toResponse(entity, entity.getAdmissionStatus(), 0, REQUIRED_STEP_COUNT, List.of());
     }
 
-    public AdmissionProcessResponseDto toResponse(AdmissionProcess entity, AdmissionStatusEnum admissionStatus) {
+    public AdmissionProcessResponseDto toResponse(AdmissionProcess entity, AdmissionProgress progress) {
+        return toResponse(
+                entity,
+                progress.status(),
+                progress.completedStepCount(),
+                progress.requiredStepCount(),
+                progress.completedStepIds());
+    }
+
+    public AdmissionProcessResponseDto toResponse(
+            AdmissionProcess entity,
+            AdmissionStatusEnum admissionStatus,
+            int completedStepCount,
+            int requiredStepCount,
+            List<String> completedStepIds) {
         return AdmissionProcessResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
@@ -118,6 +135,9 @@ public class AdmissionProcessMapper {
                 .collaboratorId(entity.getCollaboratorId())
                 .photoObjectId(entity.getPhotoObjectId())
                 .admissionStatus(admissionStatus)
+                .completedStepCount(completedStepCount)
+                .requiredStepCount(requiredStepCount)
+                .completedStepIds(completedStepIds)
                 .startedAt(entity.getStartedAt())
                 .completedAt(admissionStatus == AdmissionStatusEnum.COMPLETED ? entity.getCompletedAt() : null)
                 .notes(entity.getNotes())

@@ -64,7 +64,7 @@ public class DashboardService implements IDashboardService {
         long activeCollaborators = dashboardMetricsDao.countActiveCollaborators();
         long newCollaborators = dashboardMetricsDao.countCollaboratorsCreatedSince(last30Days);
         long activeContracts = dashboardMetricsDao.countActiveContracts(today);
-        long openPayrollRuns = dashboardMetricsDao.countOpenPayrollRuns(today.getYear(), today.getMonthValue());
+        long openPayrollRuns = dashboardMetricsDao.countOpenPayrollRuns(today.withDayOfMonth(1));
         long pendingLeave = dashboardMetricsDao.countPendingLeaveRequests();
 
         return DashboardSummaryResponseDto.builder()

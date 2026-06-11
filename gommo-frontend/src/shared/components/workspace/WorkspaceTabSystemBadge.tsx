@@ -21,6 +21,7 @@ export function WorkspaceTabSystemBadge({ href, className }: WorkspaceTabSystemB
                 "workspace-tab-system-badge",
                 system === SystemEnum.DP && "workspace-tab-system-badge--dp",
                 system === SystemEnum.RH && "workspace-tab-system-badge--rh",
+                system === SystemEnum.CONTABILIDADE && "workspace-tab-system-badge--ctb",
                 className,
             )}
             title={name}
