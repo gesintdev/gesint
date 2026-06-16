@@ -20,7 +20,15 @@ variable "api_key_fingerprint" {
 
 variable "api_private_key_path" {
   type        = string
-  description = "Caminho local para o arquivo .pem da chave API (nunca commitar)."
+  description = "Caminho local para o arquivo .pem da chave API (nunca commitar). Usado em dev local."
+  default     = ""
+}
+
+variable "api_private_key" {
+  type        = string
+  sensitive   = true
+  description = "Conteudo inline da chave privada PEM. Usado em CI/CD (GitHub Actions). Deixe vazio para usar api_private_key_path."
+  default     = ""
 }
 
 variable "region" {
