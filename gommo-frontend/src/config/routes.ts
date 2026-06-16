@@ -5,6 +5,7 @@ import { dashboardModule } from "@/modules/dashboard/dashboard.module";
 import { organizationModule } from "@/modules/organization/organization.module";
 import { personModule } from "@/modules/person/person.module";
 import { payrollModule } from "@/modules/payroll/payroll.module";
+import { paymentsModule } from "@/modules/payment/payment.module";
 import { insightsModule } from "@/modules/insights/insights.module";
 import { settingsModule } from "@/modules/settings/settings.module";
 /**
@@ -32,11 +33,15 @@ export { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 export const systemModuleGroups: TSystemModuleGroup[] = [
     {
         system: SystemEnum.DP,
-        modules: [organizationModule, payrollModule],
+        modules: [organizationModule, paymentsModule],
     },
     {
         system: SystemEnum.RH,
         modules: [dashboardModule, personModule, insightsModule],
+    },
+    {
+        system: SystemEnum.CONTABILIDADE,
+        modules: [payrollModule],
     },
 ];
 /** Módulo de configurações (rail inferior — perfis e usuários). */

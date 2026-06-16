@@ -83,12 +83,12 @@ public class PayrollRunProcessingService implements IPayrollRunProcessingService
         payrollRun.setPayrollStatus(PayrollStatusEnum.PROCESSING);
         payrollRunRepository.save(payrollRun);
 
-        YearMonth competence = YearMonth.of(payrollRun.getReferenceYear(), payrollRun.getReferenceMonth());
+        YearMonth competence = YearMonth.from(payrollRun.getReferenceDate());
         LocalDate periodStart = competence.atDay(1);
         LocalDate periodEnd = competence.atEndOfMonth();
 
-        List<ContractSalarySnapshot> contracts = contractSalaryProvider.findActiveContracts(
-                payrollRun.getCompanyId(), periodStart, periodEnd);
+        List<ContractSalarySnapshot> contracts =
+                contractSalaryProvider.findActiveContracts(null, periodStart, periodEnd);
 
         int processed = 0;
         for (ContractSalarySnapshot contract : contracts) {
@@ -139,8 +139,7 @@ public class PayrollRunProcessingService implements IPayrollRunProcessingService
                 payrollRun.getId(),
                 contract.collaboratorId(),
                 contract.companyId(),
-                payrollRun.getReferenceYear(),
-                payrollRun.getReferenceMonth(),
+                payrollRun.getReferenceDate(),
                 periodStart,
                 periodEnd,
                 eventsByCode);

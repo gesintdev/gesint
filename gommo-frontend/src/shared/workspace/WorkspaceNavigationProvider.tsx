@@ -11,9 +11,10 @@ import {
 import type { AppRoute } from "@/config/routes";
 import { replaceUrlIfNeeded } from "@/shared/workspace/workspace-location";
 import { defaultShortLabel, findRouteByHref } from "@/shared/workspace/workspace-routes";
-import { buildWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
+import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import { workspaceUrl, workspaceUrlWithCrud } from "@/shared/workspace/workspace-navigation-url";
+import { DASHBOARD_HREF, isDashboardTabId } from "@/shared/workspace/workspace-dashboard";
 
 function routeToInput(route: AppRoute, shortLabel?: string) {
     if (!route.href) throw new Error(`Rota ${route.id} sem href`);
@@ -128,8 +129,22 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
     const focusTabById = useCallback(
         (tabId: string) => {
             focusTab(tabId);
+            if (isDashboardTabId(tabId)) {
+                syncUrl(DASHBOARD_HREF);
+                return;
+            }
+            const tab = useWorkspaceStore.getState().tabs.find((t) => t.id === tabId);
+            if (!tab) return;
+            const { entityKey } = parseWorkspaceTabId(tabId);
+            if (entityKey === "new") {
+                syncUrl(tab.href, { isNew: true });
+            } else if (entityKey !== "list") {
+                syncUrl(tab.href, { editingId: entityKey });
+            } else {
+                syncUrl(tab.href);
+            }
         },
-        [focusTab],
+        [focusTab, syncUrl],
     );
 
     const syncCrudUrl = useCallback(

@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import { Settings } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
 import { settingsRoutes } from "@/modules/settings/config/settings.routes";
@@ -11,7 +10,6 @@ import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigatio
 import { DASHBOARD_TAB_ID } from "@/shared/workspace/workspace-dashboard";
 
 export function SystemRail() {
-    const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
     const { activeSystem, systems, selectSystem, isSettingsMode, openSettings } = useActiveSystem();
 
@@ -19,23 +17,17 @@ export function SystemRail() {
         setMounted(true);
     }, []);
 
-    const { openRouteModule, focusTabById } = useWorkspaceNavigation();
+    const { focusTabById } = useWorkspaceNavigation();
     const permissions = useSessionPermissions();
     const canOpenSettings = settingsRoutes.some((route) => canAccessRoute(route, permissions));
+
     const handleSelect = (system: SystemEnum) => {
-        if (system === activeSystem && !isSettingsMode) {
-            focusTabById(DASHBOARD_TAB_ID);
-            return;
-        }
         selectSystem(system);
         focusTabById(DASHBOARD_TAB_ID);
     };
+
     const handleOpenSettings = () => {
         openSettings();
-        const firstRoute = settingsRoutes[0];
-        if (firstRoute?.href && !pathname.startsWith("/settings")) {
-            openRouteModule(firstRoute);
-        }
     };
 
     return (
@@ -45,7 +37,7 @@ export function SystemRail() {
                 background: "var(--system-rail-bg)",
                 borderColor: "var(--system-rail-border)",
             }}
-            aria-label="Domínios do sistema"
+            aria-label="Dominios do sistema"
         >
             <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-1.5 overflow-x-hidden overflow-y-auto px-1 py-3">
                 {systems.map((system) => {
@@ -74,8 +66,8 @@ export function SystemRail() {
                 {canOpenSettings ? (
                     <button
                         type="button"
-                        title="Configurações do sistema"
-                        aria-label="Configurações do sistema"
+                        title="Configuracoes do sistema"
+                        aria-label="Configuracoes do sistema"
                         aria-current={mounted && isSettingsMode ? "true" : undefined}
                         onClick={handleOpenSettings}
                         className={clsx("system-rail-item", mounted && isSettingsMode && "system-rail-item--active")}

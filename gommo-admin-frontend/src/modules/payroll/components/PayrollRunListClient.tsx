@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PAYROLL_TABLE_COLUMNS } from "@/modules/payroll/config/payroll-run.table-columns";
 import type { PayrollRun } from "@/modules/payroll/dto/payroll-run.dto";
+import { isoToMonthBr } from "@/shared/lib/input/date";
 import { PAYROLL_CLIENT_MESSAGES } from "@/modules/payroll/exceptions/payroll-run.messages";
 import { payrollrunKeys } from "@/modules/payroll/payroll.query";
 import { payrollrunService } from "@/modules/payroll/services/payroll-run.service";
@@ -11,6 +12,8 @@ import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
+
+type PayrollRunListRow = PayrollRun & { referencePeriod: string };
 
 export function PayrollRunListClient() {
     const { startEdit } = useCrudScreen();
@@ -30,9 +33,14 @@ export function PayrollRunListClient() {
     };
 
     return (
-        <QueryTablePanel<PayrollRun>
+        <QueryTablePanel<PayrollRunListRow>
             queryKey={payrollrunKeys.all}
-            request={() => payrollrunService.getAll()}
+            request={async () =>
+                (await payrollrunService.getAll()).map((run) => ({
+                    ...run,
+                    referencePeriod: isoToMonthBr(run.referenceDate),
+                }))
+            }
             columns={PAYROLL_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum(a) folha cadastrado(a)."

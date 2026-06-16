@@ -26,6 +26,13 @@ public class CompanyDisplayProviderImpl implements CompanyDisplayProvider {
                 .map(this::toSnapshot);
     }
 
+    @Override
+    public Optional<CompanyDisplaySnapshot> findPrimary() {
+        return companyRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+                .findFirst()
+                .map(this::toSnapshot);
+    }
+
     private CompanyDisplaySnapshot toSnapshot(Company company) {
         return new CompanyDisplaySnapshot(
                 company.getId(),

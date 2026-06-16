@@ -75,10 +75,10 @@ public class PayslipPdfService implements IPayslipPdfService {
         document.add(spacedParagraph("Colaborador: " + safe(data.collaboratorName()), HEADER_FONT));
         document.add(spacedParagraph("CPF: " + formatCpf(data.collaboratorCpf()), BODY_FONT));
         document.add(spacedParagraph(
-                "Holerite nº "
+                "Holerite No. "
                         + (data.payslipCode() != null ? data.payslipCode() : "-")
                         + (data.generatedAt() != null
-                                ? " — Gerado em " + GENERATED_AT.format(data.generatedAt())
+                                ? " - Gerado em " + GENERATED_AT.format(data.generatedAt())
                                 : ""),
                 SMALL_FONT));
         document.add(spacedParagraph(" ", BODY_FONT));

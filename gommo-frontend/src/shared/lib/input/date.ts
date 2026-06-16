@@ -82,3 +82,39 @@ export function dateToIso(date: Date): string {
     const d = String(date.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
 }
+
+/** Máscara visual MM/AAAA */
+export function maskMonthBr(value: string): string {
+    const d = digitsOnly(value).slice(0, 6);
+    if (d.length <= 2) return d;
+    return `${d.slice(0, 2)}/${d.slice(2)}`;
+}
+
+export function isoToMonthBr(iso: string): string {
+    if (!iso) return "";
+    const [y, m] = iso.split("-");
+    if (!y || !m) return "";
+    return `${m.padStart(2, "0")}/${y}`;
+}
+
+export function parseMonthBrToIso(br: string): string | null {
+    const match = br.match(/^(\d{2})\/(\d{4})$/);
+    if (!match) return null;
+    const [, mm, yyyy] = match;
+    const month = Number(mm);
+    if (month < 1 || month > 12) return null;
+    return `${yyyy}-${mm}-01`;
+}
+
+export function normalizeMonthIso(iso: string): string {
+    if (!iso) return "";
+    const parsed = parseMonthBrToIso(isoToMonthBr(iso));
+    return parsed ?? iso;
+}
+
+export function currentMonthReferenceDate(): string {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}-01`;
+}

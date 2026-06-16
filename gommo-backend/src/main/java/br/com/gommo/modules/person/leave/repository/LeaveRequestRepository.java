@@ -1,5 +1,7 @@
 package br.com.gommo.modules.person.leave.repository;
+
 import br.com.gommo.core.base.repository.IBaseRepository;
+import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
 import java.time.LocalDate;
@@ -14,7 +16,7 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
 
     @Query("""
             SELECT l FROM LeaveRequest l
-            WHERE l.status <> br.com.gommo.core.entity.StatusEnum.DELETED
+            WHERE l.status <> :deletedStatus
               AND l.collaboratorId = :collaboratorId
               AND l.approved = TRUE
               AND l.leaveType = :leaveType
@@ -25,5 +27,6 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             @Param("collaboratorId") UUID collaboratorId,
             @Param("leaveType") LeaveTypeEnum leaveType,
             @Param("periodStart") LocalDate periodStart,
-            @Param("periodEnd") LocalDate periodEnd);
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
 }

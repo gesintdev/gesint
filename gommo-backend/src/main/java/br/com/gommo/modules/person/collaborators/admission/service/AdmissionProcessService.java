@@ -18,6 +18,7 @@ import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProcessResponseDto;
+import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProgress;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.person.collaborators.admission.exception.AdmissionProcessException;
@@ -234,7 +235,18 @@ public class AdmissionProcessService
                     .count();
         }
         entity.setAdmissionStatus(
-                AdmissionProgressEvaluator.resolveStatus(entity, documentCount, contractDocumentCount));
+                AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount).status());
+    }
+
+    private AdmissionProgress evaluateProgress(AdmissionProcess entity, UUID admissionId) {
+        long documentCount = 0;
+        long contractDocumentCount = 0;
+        if (admissionId != null) {
+            AdmissionAttachmentCounts counts = loadAttachmentCounts(admissionId);
+            documentCount = counts.documentCount();
+            contractDocumentCount = counts.contractDocumentCount();
+        }
+        return AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount);
     }
 
     private List<AdmissionProcessResponseDto> mapToResponses(List<AdmissionProcess> entities) {
@@ -247,18 +259,16 @@ public class AdmissionProcessService
         return entities.stream()
                 .map(entity -> {
                     AdmissionAttachmentCounts counts = AdmissionAttachmentCounts.fromLinks(links, entity.getId());
-                    AdmissionStatusEnum status = AdmissionProgressEvaluator.resolveStatus(
+                    AdmissionProgress progress = AdmissionProgressEvaluator.evaluate(
                             entity, counts.documentCount(), counts.contractDocumentCount());
-                    return mapper.toResponse(entity, status);
+                    return mapper.toResponse(entity, progress);
                 })
                 .toList();
     }
 
     private AdmissionProcessResponseDto toEnrichedResponse(AdmissionProcess entity) {
-        AdmissionAttachmentCounts counts = loadAttachmentCounts(entity.getId());
-        AdmissionStatusEnum status = AdmissionProgressEvaluator.resolveStatus(
-                entity, counts.documentCount(), counts.contractDocumentCount());
-        return mapper.toResponse(entity, status);
+        AdmissionProgress progress = evaluateProgress(entity, entity.getId());
+        return mapper.toResponse(entity, progress);
     }
 
     private AdmissionAttachmentCounts loadAttachmentCounts(UUID admissionId) {

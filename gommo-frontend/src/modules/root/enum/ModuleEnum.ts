@@ -50,6 +50,7 @@ export enum ModuleEnum {
     ORGANIZATION = "organization",
     PERSON = "person",
     PAYROLL = "payroll",
+    PAYMENTS = "payments",
     INSIGHTS = "insights",
     SETTINGS = "settings",
 }
@@ -94,9 +95,14 @@ export class ModuleEnumHelper implements IModuleHelper {
             order: 3,
         },
         [ModuleEnum.PAYROLL]: {
-            id: "payroll",
-            name: "Folha e benefícios",
+            id: "accounting",
+            name: "Contabilidade",
             order: 4,
+        },
+        [ModuleEnum.PAYMENTS]: {
+            id: "payments",
+            name: "Pagamentos",
+            order: 3,
         },
         [ModuleEnum.INSIGHTS]: {
             id: "insights",

@@ -63,11 +63,9 @@ public class PayslipPdfDataLoader {
                 .findById(payslip.getCollaboratorId())
                 .orElse(CollaboratorDisplaySnapshot.empty(payslip.getCollaboratorId()));
 
-        CompanyDisplaySnapshot company = payrollRun.getCompanyId() != null
-                ? companyDisplayProvider
-                        .findById(payrollRun.getCompanyId())
-                        .orElse(CompanyDisplaySnapshot.empty(payrollRun.getCompanyId()))
-                : new CompanyDisplaySnapshot(null, "Empresa", "", "", "", "");
+        CompanyDisplaySnapshot company = companyDisplayProvider
+                .findPrimary()
+                .orElse(new CompanyDisplaySnapshot(null, "Empresa", "", "", "", ""));
 
         Map<UUID, PayrollEvent> eventsById = payrollEventRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED)
                 .stream()
@@ -96,7 +94,10 @@ public class PayslipPdfDataLoader {
 
         lines.sort(Comparator.comparing(PayslipPdfLineItem::eventCode));
 
-        String competence = String.format("%02d/%d", payrollRun.getReferenceMonth(), payrollRun.getReferenceYear());
+        String competence = String.format(
+                "%02d/%d",
+                payrollRun.getReferenceDate().getMonthValue(),
+                payrollRun.getReferenceDate().getYear());
 
         return new PayslipPdfDocument(
                 payslip.getId(),

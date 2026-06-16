@@ -6,11 +6,18 @@ import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { HeaderUserMenu } from "@/shared/components/layout/HeaderUserMenu";
 import { Sidebar } from "@/shared/components/layout/Sidebar";
 import { ThemeToggle } from "@/shared/components/layout/ThemeToggle";
+import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
 import { ActiveSystemProvider } from "@/shared/context/ActiveSystemContext";
 import { WorkspaceNavigationProvider } from "@/shared/workspace/WorkspaceNavigationProvider";
 import { setAuthToken } from "@/shared/lib/api.client";
 
-export function SystemShell({ children }: { children: ReactNode }) {
+export function SystemShell({
+    children,
+    initialStoredSystem = null,
+}: {
+    children: ReactNode;
+    initialStoredSystem?: SystemEnum | null;
+}) {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileNav, setMobileNav] = useState(false);
     const { data: session } = useSession();
@@ -36,7 +43,7 @@ export function SystemShell({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <ActiveSystemProvider>
+        <ActiveSystemProvider initialStoredSystem={initialStoredSystem}>
             <div className="flex h-dvh flex-col overflow-hidden">
                 {/* Linha superior: Gommo (largura do sidebar) + header principal */}
                 <div

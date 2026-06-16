@@ -3,7 +3,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { toast } from "sonner";
-import { CompanyPickerField } from "@/modules/company/components/CompanyPickerField";
 import { PAYROLL_CLIENT_MESSAGES } from "@/modules/payroll/exceptions/payroll-run.messages";
 import type { PayrollRunCreateDto } from "@/modules/payroll/dto/payroll-run.dto";
 import { emptyPayrollRunForm, payrollrunToFormDto } from "@/modules/payroll/lib/payroll-run.mapper";
@@ -20,7 +19,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputNumber, InputDate, InputString } from "@/shared/components/ui/input/index";
+import { InputDate, InputMonth, InputString } from "@/shared/components/ui/input/index";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Competência" }];
 
@@ -54,9 +53,7 @@ export function PayrollRunFormClient() {
   const saveMutation = useMutation({
     mutationFn: async (dto: PayrollRunCreateDto) => {
       const payload: PayrollRunCreateDto = {
-        companyId: dto.companyId,
-        referenceYear: dto.referenceYear,
-        referenceMonth: dto.referenceMonth,
+        referenceDate: dto.referenceDate,
         notes: dto.notes,
       };
       if (isEditing && editingId) return payrollrunService.update(editingId, payload);
@@ -124,30 +121,14 @@ export function PayrollRunFormClient() {
             hint="Alterado pelas ações Processar, Revisar, Fechar e Reabrir na listagem"
           />
         ) : null}
-        <CompanyPickerField
-          value={form.companyId ?? ""}
-          onValueChange={(v) => update("companyId", v || undefined)}
+        <InputMonth
+          label="Competência"
+          value={form.referenceDate ?? ""}
+          onValueChange={(v) => update("referenceDate", v)}
           required
-          disabled={readOnly}
+          readOnly={readOnly}
           wrapperClassName="sm:col-span-2"
-        />
-        <InputNumber
-          label="Ano de referência"
-          integer
-          align="left"
-          value={form.referenceYear}
-          onValueChange={(v) => update("referenceYear", v ?? 0)}
-          required
-          readOnly={readOnly}
-        />
-        <InputNumber
-          label="Mês de referência"
-          integer
-          align="left"
-          value={form.referenceMonth}
-          onValueChange={(v) => update("referenceMonth", v ?? 0)}
-          required
-          readOnly={readOnly}
+          hint="Mês/ano de referência da folha"
         />
         {isEditing && detailQuery.data?.openedAt ? (
           <InputDate label="Data de abertura" value={detailQuery.data.openedAt.slice(0, 10)} onValueChange={() => undefined} readOnly />

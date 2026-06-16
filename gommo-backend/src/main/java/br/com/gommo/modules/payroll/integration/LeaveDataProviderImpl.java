@@ -1,5 +1,6 @@
 package br.com.gommo.modules.payroll.integration;
 
+import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.person.leave.repository.LeaveRequestRepository;
@@ -21,7 +22,7 @@ public class LeaveDataProviderImpl implements LeaveDataProvider {
     @Override
     public LeaveDataSnapshot loadLeaveData(UUID collaboratorId, LocalDate periodStart, LocalDate periodEnd) {
         List<LeaveRequest> unpaidLeaves = leaveRequestRepository.findApprovedByCollaboratorAndTypeOverlapping(
-                collaboratorId, LeaveTypeEnum.UNPAID, periodStart, periodEnd);
+                collaboratorId, LeaveTypeEnum.UNPAID, periodStart, periodEnd, StatusEnum.DELETED);
 
         int unpaidDays = 0;
         for (LeaveRequest leave : unpaidLeaves) {

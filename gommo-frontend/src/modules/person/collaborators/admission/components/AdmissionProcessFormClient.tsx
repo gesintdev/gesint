@@ -13,7 +13,6 @@ import {
     contractDocumentTypeItems,
 } from "@/modules/person/collaborators/admission/lib/admission-form.constants";
 import {
-    computeAdmissionStatus,
     computeFilledAdmissionSteps,
 } from "@/modules/person/collaborators/admission/lib/admission-status.util";
 import { admissionprocessKeys } from "@/modules/person/collaborators/admission/admission.query";
@@ -110,14 +109,11 @@ export function AdmissionProcessFormClient() {
             contractDocumentCount:
                 (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "CONTRACT").length +
                 pendingContractAttachments.length,
-            hasPhoto: Boolean(form.photoObjectId || pendingPreviewUrl),
         }),
         [
             attachmentsQuery.data,
-            form.photoObjectId,
             pendingContractAttachments.length,
             pendingDocumentAttachments.length,
-            pendingPreviewUrl,
         ],
     );
     const clearPendingPhoto = useCallback(() => {
@@ -161,7 +157,7 @@ export function AdmissionProcessFormClient() {
     }, [clearPendingPhoto]);
     const saveMutation = useMutation({
         mutationFn: async (dto: AdmissionProcessCreateDto) => {
-            let payload = admissionFormToPayload(dto, stepContext);
+            let payload = admissionFormToPayload(dto);
             if (pendingPhotoBlob) {
                 const file = new File([pendingPhotoBlob], "profile-photo.jpg", { type: "image/jpeg" });
                 const object = await storageService.upload(file);
@@ -170,6 +166,7 @@ export function AdmissionProcessFormClient() {
             let savedId = editingId ?? null;
             if (isEditing && editingId) {
                 await admissionprocessService.update(editingId, payload);
+                savedId = editingId;
             } else {
                 const created = await admissionprocessService.create(payload);
                 savedId = created.id;
@@ -190,6 +187,7 @@ export function AdmissionProcessFormClient() {
                 linkRole: "CONTRACT",
                 items: pendingContractAttachments,
             });
+            await admissionprocessService.update(savedId, payload);
             return savedId;
         },
         onSuccess: async (savedId) => {
@@ -214,25 +212,18 @@ export function AdmissionProcessFormClient() {
         setError(null);
         saveMutation.mutate(form);
     };
-    const filledStepIds = useMemo(
-        () => computeFilledAdmissionSteps(form, stepContext, ADMISSION_STEP_IDS),
-        [form, stepContext],
-    );
+    const filledStepIds = useMemo(() => {
+        if (isEditing && detailQuery.data?.completedStepIds) {
+            return detailQuery.data.completedStepIds;
+        }
+        return computeFilledAdmissionSteps(form, stepContext, ADMISSION_STEP_IDS);
+    }, [detailQuery.data?.completedStepIds, form, isEditing, stepContext]);
     const isPj = isAdmissionPj(form.contractType);
     const contractDocTypeItems = useMemo(() => contractDocumentTypeItems(form.contractType), [form.contractType]);
-    const summaryStatus = useMemo(() => {
-        if (isEditing && (detailQuery.isLoading || attachmentsQuery.isLoading)) {
-            return detailQuery.data?.admissionStatus ?? "IN_PROGRESS";
-        }
-        return computeAdmissionStatus(form, stepContext, ADMISSION_STEP_IDS);
-    }, [
-        attachmentsQuery.isLoading,
-        detailQuery.data?.admissionStatus,
-        detailQuery.isLoading,
-        form,
-        isEditing,
-        stepContext,
-    ]);
+    const summaryAdmissionStatus = detailQuery.data?.admissionStatus ?? "IN_PROGRESS";
+    const summaryCompletedStepCount =
+        detailQuery.data?.completedStepCount ?? filledStepIds.length;
+    const summaryRequiredStepCount = detailQuery.data?.requiredStepCount ?? 6;
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -303,10 +294,10 @@ export function AdmissionProcessFormClient() {
                         <div className="min-h-0 flex-1">
                             <AdmissionSummary
                                 form={form}
-                                stepIds={ADMISSION_STEP_IDS}
-                                context={stepContext}
                                 entityCode={isEditing ? detailQuery.data?.code : undefined}
-                                status={summaryStatus}
+                                admissionStatus={summaryAdmissionStatus}
+                                completedStepCount={summaryCompletedStepCount}
+                                requiredStepCount={summaryRequiredStepCount}
                             />
                         </div>
                     </div>

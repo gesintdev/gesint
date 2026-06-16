@@ -19,6 +19,9 @@ export class AdmissionProcess {
     collaboratorId?: string;
     photoObjectId?: string;
     admissionStatus!: AdmissionStatus;
+    completedStepCount?: number;
+    requiredStepCount?: number;
+    completedStepIds?: string[];
     startedAt?: string;
     completedAt?: string;
     notes?: string;

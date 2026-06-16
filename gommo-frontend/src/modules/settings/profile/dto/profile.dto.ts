@@ -1,4 +1,4 @@
-export type SystemScope = "DP" | "RH";
+export type SystemScope = "DP" | "RH" | "CONTABILIDADE";
 
 export type ProfileStatus = "ACTIVE" | "INACTIVE" | "DELETED";
 

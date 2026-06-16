@@ -4,15 +4,9 @@ import { ENTITY_CODE_TABLE_COLUMN } from "@/shared/config/entity-code.table-colu
 export const PAYROLL_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {
-        id: "referenceYear",
-        columnName: "Ano",
-        fieldValue: "referenceYear",
-        dataType: TableDataType.TEXT,
-    },
-    {
-        id: "referenceMonth",
-        columnName: "Mês",
-        fieldValue: "referenceMonth",
+        id: "referencePeriod",
+        columnName: "Competência",
+        fieldValue: "referencePeriod",
         dataType: TableDataType.TEXT,
     },
     {

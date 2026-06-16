@@ -2,8 +2,11 @@
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.*
+# tfvars com credenciais nao devem ser commitados
 *.tfvars
+# excecoes: arquivo de exemplo e o tfvars padrao (so valores nao-sensiveis)
 !terraform.tfvars.example
+!terraform.tfvars
 crash.log
 crash.*.log
 override.tf

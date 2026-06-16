@@ -5,7 +5,6 @@ import { isStepFilled } from "@/shared/lib/form-step.util";
 export type AdmissionStepContext = {
     documentCount: number;
     contractDocumentCount: number;
-    hasPhoto: boolean;
 };
 
 export function isAdmissionStepComplete(
@@ -15,10 +14,7 @@ export function isAdmissionStepComplete(
 ): boolean {
     switch (stepId) {
         case "dados-basicos":
-            return (
-                isStepFilled([{ value: form.fullName }, { value: form.cpf }, { value: form.birthDate }]) &&
-                context.hasPhoto
-            );
+            return isStepFilled([{ value: form.fullName }, { value: form.cpf }, { value: form.birthDate }]);
         case "contatos-emergencia":
             return (form.emergencyContacts ?? []).some((contact) =>
                 isStepFilled([{ value: contact.name }, { value: contact.phone }]),
@@ -62,14 +58,4 @@ export function computeFilledAdmissionSteps(
     stepIds: string[],
 ): string[] {
     return stepIds.filter((stepId) => stepId !== "observacoes" && isAdmissionStepComplete(stepId, form, context));
-}
-
-export function computeAdmissionStatus(
-    form: AdmissionProcessCreateDto,
-    context: AdmissionStepContext,
-    stepIds: string[],
-): "IN_PROGRESS" | "COMPLETED" {
-    const requiredSteps = stepIds.filter((id) => id !== "observacoes");
-    const allComplete = requiredSteps.every((stepId) => isAdmissionStepComplete(stepId, form, context));
-    return allComplete ? "COMPLETED" : "IN_PROGRESS";
 }

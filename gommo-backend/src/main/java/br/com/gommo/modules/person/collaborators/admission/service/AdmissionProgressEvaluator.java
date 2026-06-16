@@ -1,43 +1,74 @@
 package br.com.gommo.modules.person.collaborators.admission.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import br.com.gommo.modules.person.collaborators.admission.dto.AdmissionProgress;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gommo.modules.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.person.contract.entity.ContractTypeEnum;
 
-final class AdmissionProgressEvaluator {
+public final class AdmissionProgressEvaluator {
+
+    public static final int REQUIRED_STEP_COUNT = 6;
 
     private AdmissionProgressEvaluator() {}
 
-    static AdmissionStatusEnum resolveStatus(AdmissionProcess entity, long documentCount, long contractDocumentCount) {
-        if (isComplete(entity, documentCount, contractDocumentCount)) {
-            return AdmissionStatusEnum.COMPLETED;
+    public static AdmissionProgress evaluate(AdmissionProcess entity, long documentCount, long contractDocumentCount) {
+        List<String> completedStepIds = new ArrayList<>(REQUIRED_STEP_COUNT);
+        if (isDadosBasicosComplete(entity)) {
+            completedStepIds.add("dados-basicos");
         }
-        return AdmissionStatusEnum.IN_PROGRESS;
+        if (hasValidEmergencyContacts(entity)) {
+            completedStepIds.add("contatos-emergencia");
+        }
+        if (isEnderecoComplete(entity)) {
+            completedStepIds.add("endereco");
+        }
+        if (documentCount > 0) {
+            completedStepIds.add("documentos");
+        }
+        if (isVinculoComplete(entity)) {
+            completedStepIds.add("vinculo");
+        }
+        if (isContratoComplete(entity, contractDocumentCount)) {
+            completedStepIds.add("contrato");
+        }
+
+        int completedStepCount = completedStepIds.size();
+        AdmissionStatusEnum status = completedStepCount == REQUIRED_STEP_COUNT
+                ? AdmissionStatusEnum.COMPLETED
+                : AdmissionStatusEnum.IN_PROGRESS;
+        return new AdmissionProgress(status, completedStepCount, REQUIRED_STEP_COUNT, List.copyOf(completedStepIds));
     }
 
-    private static boolean isComplete(AdmissionProcess entity, long documentCount, long contractDocumentCount) {
-        return entity.getPhotoObjectId() != null
-                && hasText(entity.getFullName())
-                && hasText(entity.getCpf())
-                && entity.getBirthDate() != null
-                && hasValidEmergencyContacts(entity)
-                && hasText(entity.getZipCode())
+    public static AdmissionStatusEnum resolveStatus(AdmissionProcess entity, long documentCount, long contractDocumentCount) {
+        return evaluate(entity, documentCount, contractDocumentCount).status();
+    }
+
+    private static boolean isDadosBasicosComplete(AdmissionProcess entity) {
+        return hasText(entity.getFullName()) && hasText(entity.getCpf()) && entity.getBirthDate() != null;
+    }
+
+    private static boolean isEnderecoComplete(AdmissionProcess entity) {
+        return hasText(entity.getZipCode())
                 && hasText(entity.getStreet())
                 && hasText(entity.getNumber())
                 && hasText(entity.getCity())
-                && hasText(entity.getStateCode())
-                && entity.getExpectedStartDate() != null
-                && entity.getContractType() != null
-                && isVinculoComplete(entity)
-                && entity.getContractStartDate() != null
-                && documentCount > 0
-                && contractDocumentCount > 0;
+                && hasText(entity.getStateCode());
+    }
+
+    private static boolean isContratoComplete(AdmissionProcess entity, long contractDocumentCount) {
+        return entity.getContractStartDate() != null && contractDocumentCount > 0;
     }
 
     private static boolean isVinculoComplete(AdmissionProcess entity) {
+        if (entity.getExpectedStartDate() == null || entity.getContractType() == null) {
+            return false;
+        }
         if (entity.getContractType() == ContractTypeEnum.PJ) {
             return hasText(entity.getProviderCnpj())
                     && entity.getProviderCnpj().length() == 14

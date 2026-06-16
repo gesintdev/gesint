@@ -50,6 +50,15 @@ Monolito modular (bounded contexts), preparado para microserviços. **Nunca** de
 - Grid para layout; flex interno; 100% responsivo; botões componentizados
 - Perguntar antes de adicionar dependência Maven/NPM não listada no plano
 
+## Sistema ativo (rail) — regra absoluta
+
+- O dominio ativo (DP / RH / CTB / CFG) vem **somente** da selecao no rail esquerdo, persistido (`gommo-active-system` + `gommo-settings-mode` em localStorage).
+- **Nunca** derivar dominio ou menu lateral da URL, da aba focada ou do `href` da rota aberta — trocar aba no workspace **nao** recalcula o menu lateral (vale igual para CFG, DP, RH e CTB).
+- `isSettingsMode` muda **apenas** ao clicar CFG (`openSettings`) ou DP/RH/CTB (`selectSystem`); **proibido** `useEffect` em `pathname` para isso.
+- Clicar em **CFG** apenas troca o menu lateral para configuracoes; **nao** abre rota/aba automaticamente.
+- Clicar em **DP/RH/CTB** persiste o sistema, desliga CFG e foca o painel (`/dashboard`).
+- Implementacao: `ActiveSystemContext` + `SystemRail`; badge nas abas (`WorkspaceTabSystemBadge`) usa `href` so para exibicao.
+
 ## Nomenclatura
 
 | Camada | Padrão |
@@ -93,7 +102,7 @@ No Windows, arquivos `.ts`/`.tsx`/`.java` editados pelo agente podem gravar **by
 5. **Ao terminar:** validar UTF-8 do arquivo (`node -e "require('fs').readFileSync('arquivo.ts').toString('utf8')"`).
 6. **Se o build quebrar por UTF-8:** reescrever o arquivo inteiro com ASCII + `\uXXXX` (não só o trecho visível).
 
-Arquivos que já quebraram por isso: `shared/lib/input/number.ts`, `shared/lib/logging-out-overlay.ts`, `dashboard-system.util.ts`, `WorkspaceNavigationProvider.tsx`.
+Arquivos que ja quebraram por isso: `shared/lib/input/number.ts`, `shared/lib/logging-out-overlay.ts`, `dashboard-system.util.ts`, `WorkspaceNavigationProvider.tsx`, `shared/components/ui/input/InputMonth.tsx`, `shared/components/ui/input/useMonthField.ts`, `shared/components/ui/input/MonthPickerPanel.tsx`, `db/migration/V29__payroll_event_sequential_code.sql`, `db/migration/V30__payroll_run_reference_date.sql`.
 
 ## Ao gerar código
 

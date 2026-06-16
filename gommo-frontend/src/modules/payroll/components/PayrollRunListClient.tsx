@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Lock, LockOpen, Play } from "lucide-react";
 import { toast } from "sonner";
-import { companyService } from "@/modules/company/services/company.service";
 import { PAYROLL_CLIENT_MESSAGES } from "@/modules/payroll/exceptions/payroll-run.messages";
 import { PAYROLL_TABLE_COLUMNS } from "@/modules/payroll/config/payroll-run.table-columns";
 import type { PayrollRun } from "@/modules/payroll/dto/payroll-run.dto";
@@ -33,19 +32,16 @@ import { findRouteById } from "@/shared/workspace/workspace-routes";
 
 type PayrollRunListRow = PayrollRun & {
     referencePeriod: string;
-    companyName: string;
 };
 
 type LifecycleAction = "review" | "close" | "reopen";
 
 async function loadPayrollRunRows(): Promise<PayrollRunListRow[]> {
-    const [runs, companies] = await Promise.all([payrollrunService.getAll(), companyService.getAll()]);
-    const companyById = new Map(companies.map((company) => [company.id, company.legalName]));
+    const runs = await payrollrunService.getAll();
 
     return runs.map((run) => ({
         ...run,
-        referencePeriod: formatPayrollReference(run.referenceMonth, run.referenceYear),
-        companyName: run.companyId ? (companyById.get(run.companyId) ?? "—") : "—",
+        referencePeriod: formatPayrollReference(run.referenceDate),
     }));
 }
 
@@ -112,7 +108,7 @@ export function PayrollRunListClient() {
         if (
             !(await SystemAlert.confirm({
                 title: "Processar competência",
-                message: `Calcular holerites da competência ${formatPayrollReference(row.referenceMonth, row.referenceYear)}?`,
+                message: `Calcular holerites da competência ${formatPayrollReference(row.referenceDate)}?`,
                 confirmLabel: "Processar",
             }))
         ) {
@@ -122,7 +118,7 @@ export function PayrollRunListClient() {
     };
 
     const handleLifecycle = async (row: PayrollRun, action: LifecycleAction) => {
-        const reference = formatPayrollReference(row.referenceMonth, row.referenceYear);
+        const reference = formatPayrollReference(row.referenceDate);
         const config =
             action === "review"
                 ? {

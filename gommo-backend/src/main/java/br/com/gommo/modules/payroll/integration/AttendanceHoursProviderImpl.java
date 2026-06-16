@@ -1,5 +1,6 @@
 package br.com.gommo.modules.payroll.integration;
 
+import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.person.attendance.entity.AttendanceRecord;
 import br.com.gommo.modules.person.attendance.repository.AttendanceRecordRepository;
 import java.math.BigDecimal;
@@ -26,7 +27,8 @@ public class AttendanceHoursProviderImpl implements AttendanceHoursProvider {
     @Override
     public AttendanceHoursSnapshot loadHours(UUID collaboratorId, LocalDate periodStart, LocalDate periodEnd) {
         List<AttendanceRecord> records =
-                attendanceRecordRepository.findByCollaboratorAndPeriod(collaboratorId, periodStart, periodEnd);
+                attendanceRecordRepository.findByCollaboratorAndPeriod(
+                        collaboratorId, periodStart, periodEnd, StatusEnum.DELETED);
 
         BigDecimal workedHours = BigDecimal.ZERO;
         BigDecimal nightShiftHours = BigDecimal.ZERO;

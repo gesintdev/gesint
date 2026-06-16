@@ -2,10 +2,6 @@ import type {
     AdmissionProcessCreateDto,
     AdmissionStatus,
 } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
-import {
-    computeFilledAdmissionSteps,
-    type AdmissionStepContext,
-} from "@/modules/person/collaborators/admission/lib/admission-status.util";
 import { useQuery } from "@tanstack/react-query";
 import { departmentService } from "@/modules/organization/department/services/department.service";
 import { jobpositionService } from "@/modules/organization/jobposition/services/jobposition.service";
@@ -18,10 +14,10 @@ import { formatCnpj, formatCpf } from "@/shared/lib/table/format-cell-value";
 
 type AdmissionSummaryProps = {
     form: AdmissionProcessCreateDto;
-    stepIds: string[];
-    context: AdmissionStepContext;
     entityCode?: number;
-    status: AdmissionStatus;
+    admissionStatus: AdmissionStatus;
+    completedStepCount: number;
+    requiredStepCount: number;
 };
 
 function formatDateBr(value?: string): string {
@@ -40,9 +36,13 @@ function SummaryRow({ label, value, emphasize }: { label: string; value: string;
     );
 }
 
-export function AdmissionSummary({ form, stepIds, context, entityCode, status }: AdmissionSummaryProps) {
-    const filledSteps = computeFilledAdmissionSteps(form, context, stepIds);
-    const requiredCount = stepIds.filter((id) => id !== "observacoes").length;
+export function AdmissionSummary({
+    form,
+    entityCode,
+    admissionStatus,
+    completedStepCount,
+    requiredStepCount,
+}: AdmissionSummaryProps) {
     const isPj = isAdmissionPj(form.contractType);
     const departmentQuery = useQuery({
         queryKey: ["department-summary", form.departmentId],
@@ -63,8 +63,15 @@ export function AdmissionSummary({ form, stepIds, context, entityCode, status }:
                 </p>
             ) : null}
             <div className="grid flex-1 content-start gap-1.5">
-                <SummaryRow label="Andamento" value={ADMISSION_STATUS_LABELS[status] ?? status} emphasize />
-                <SummaryRow label="Etapas" value={`${filledSteps.length} de ${requiredCount} concluídas`} />
+                <SummaryRow
+                    label="Andamento"
+                    value={ADMISSION_STATUS_LABELS[admissionStatus] ?? admissionStatus}
+                    emphasize
+                />
+                <SummaryRow
+                    label="Etapas"
+                    value={`${completedStepCount} de ${requiredStepCount} concluídas`}
+                />
                 <SummaryRow label="Nome" value={form.fullName?.trim() || "—"} />
                 <SummaryRow label="CPF" value={form.cpf?.trim() ? formatCpf(form.cpf) : "—"} />
                 <SummaryRow label="Contrato" value={contractTypeLabel(form.contractType)} />

@@ -3,10 +3,6 @@ import type {
     AdmissionProcessCreateDto,
     AdmissionEmergencyContact,
 } from "@/modules/person/collaborators/admission/dto/admission-process.dto";
-import {
-    computeAdmissionStatus,
-    type AdmissionStepContext,
-} from "@/modules/person/collaborators/admission/lib/admission-status.util";
 import { normalizeEmergencyContacts } from "@/modules/person/collaborators/admission/lib/admission-emergency-contacts.util";
 import { digitsOnly } from "@/shared/lib/input/digits";
 
@@ -96,13 +92,10 @@ export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
 
 export function admissionFormToPayload(
     form: AdmissionProcessCreateDto,
-    context: AdmissionStepContext,
 ): AdmissionProcessCreateDto {
-    const admissionStatus = computeAdmissionStatus(form, context, ADMISSION_STEP_IDS);
     const emergencyContacts = sanitizeEmergencyContacts(form.emergencyContacts);
     return {
         ...form,
-        admissionStatus,
         cpf: digitsOnly(form.cpf),
         phone: form.phone ? digitsOnly(form.phone) : undefined,
         zipCode: form.zipCode ? digitsOnly(form.zipCode) : undefined,

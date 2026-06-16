@@ -6,4 +6,6 @@ import java.util.UUID;
 public interface CompanyDisplayProvider {
 
     Optional<CompanyDisplaySnapshot> findById(UUID companyId);
+
+    Optional<CompanyDisplaySnapshot> findPrimary();
 }
