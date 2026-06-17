@@ -104,18 +104,18 @@ Frontend: headers de tenant via `api.client.ts` / `tenant.ts` — sem logica ext
 
 ## Encoding UTF-8 — revisar sempre (erro recorrente)
 
-No Windows, arquivos `.ts`/`.tsx`/`.java` editados pelo agente podem gravar **bytes UTF-8 inválidos** em acentos e pontuação especial. O Next/Turbopack falha com:
+No Windows, arquivos `.ts`/`.tsx` editados pelo agente podem gravar **bytes UTF-8 inválidos** em acentos. O Next/Turbopack falha com `invalid utf-8 sequence` / `failed to convert rope into string`.
 
-`Reading source code for parsing failed` / `invalid utf-8 sequence` / `failed to convert rope into string`
+**Labels e textos visíveis na UI (botões, abas, colunas, toasts):**
 
-**Sempre ao criar ou editar fonte:**
+1. **Nunca** usar escapes `\uXXXX` em strings de interface — o Turbopack pode exibir `\\u00e7` literalmente no botão/aba.
+2. Centralizar PT-BR em arquivo `*.route-labels.ts` ou `person.routes.ts` (como `leave-vacation.route-labels.ts`) com **acentos literais em UTF-8 válido**.
+3. Componentes importam constantes desse arquivo — **não** duplicar labels hardcoded no JSX.
+4. **Ao terminar:** validar (`node -e "require('fs').readFileSync('arquivo.ts').toString('utf8')"`); se houver `\uFFFD`, reescrever o arquivo.
 
-1. **Comentários e identificadores:** apenas ASCII (`a-z`, `0-9`, `_`).
-2. **Texto PT-BR em strings** (mensagens, labels, `innerHTML`, constantes): usar escapes `\uXXXX` — ver mapa no [README](../README.md#exceções-e-mensagens).
-3. **Evitar** caracteres especiais literais: `…` (ellipsis), `—`, aspas curvas, acentos crus no arquivo.
-4. **Preferir** `...` em vez de `…`; `sess\u00e3o` em vez de `sessão` no fonte.
-5. **Ao terminar:** validar UTF-8 do arquivo (`node -e "require('fs').readFileSync('arquivo.ts').toString('utf8')"`).
-6. **Se o build quebrar por UTF-8:** reescrever o arquivo inteiro com ASCII + `\uXXXX` (não só o trecho visível).
+**Código (comentários e identificadores):** apenas ASCII (`a-z`, `0-9`, `_`). Evitar `…`, `—`, aspas curvas no fonte; preferir `...`.
+
+**Exceção legada:** `\uXXXX` só em mensagens de erro internas raras onde o literal já existia e foi validado — nunca em labels de CRUD.
 
 Arquivos que ja quebraram por isso: `shared/lib/input/number.ts`, `shared/lib/logging-out-overlay.ts`, `dashboard-system.util.ts`, `WorkspaceNavigationProvider.tsx`, `shared/components/ui/input/InputMonth.tsx`, `shared/components/ui/input/useMonthField.ts`, `shared/components/ui/input/MonthPickerPanel.tsx`, `db/migration/V29__payroll_event_sequential_code.sql`, `db/migration/V30__payroll_run_reference_date.sql`.
 

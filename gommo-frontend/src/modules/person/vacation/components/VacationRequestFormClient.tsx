@@ -101,6 +101,26 @@ export function VacationRequestFormClient() {
         };
     }, [form.collaboratorId, form.unjustifiedAbsences]);
 
+    useEffect(() => {
+        const acquisition = periodContext?.acquisition;
+        if (!form.collaboratorId || !acquisition?.start || !acquisition.end) return;
+        let cancelled = false;
+        void leaverequestService
+            .absenceSummary(form.collaboratorId, acquisition.start, acquisition.end)
+            .then((summary) => {
+                if (cancelled) return;
+                setForm((prev) => ({
+                    ...prev,
+                    unjustifiedAbsences: summary.unjustifiedAbsences,
+                    justifiedAbsences: summary.justifiedAbsences,
+                    vacationDaysEntitled: vacationDaysEntitled(summary.unjustifiedAbsences),
+                }));
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [form.collaboratorId, periodContext?.acquisition?.start, periodContext?.acquisition?.end]);
+
     const saveMutation = useMutation({
         mutationFn: async (payload: { parsed: VacationRequestFormSchema; groupId: string }) => {
             const dtoList = vacationFormToLeaveDtos(payload.parsed, payload.groupId);
@@ -277,9 +297,16 @@ export function VacationRequestFormClient() {
                 </div>
             </FormSection>
             {isEditing && detailQuery.data?.approved !== true ? (
-                <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75">
-                    Solicitação vinda do RH: revise os períodos, confirme aprovação e salve.
-                </p>
+                <div className="grid gap-2">
+                    <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75">
+                        Solicitação vinda do RH: revise períodos, faltas e atestados antes de aprovar.
+                    </p>
+                    {detailQuery.data?.reviewReason ? (
+                        <p className="rounded-lg border border-warning/25 bg-warning/8 px-3 py-2 text-sm text-base-content/75">
+                            Motivo anterior: {detailQuery.data.reviewReason}
+                        </p>
+                    ) : null}
+                </div>
             ) : null}
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>

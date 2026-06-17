@@ -5,7 +5,12 @@ export function isApprovedLeave(row: LeaveRequest): boolean {
 }
 
 export function isPendingVacationRequest(row: LeaveRequest): boolean {
-    return row.leaveType === "VACATION" && row.approved !== true;
+    return (
+        row.leaveType === "VACATION" &&
+        row.approved !== true &&
+        row.reviewStatus !== "REJECTED" &&
+        row.reviewStatus !== "RETURNED"
+    );
 }
 
 export function isVacationHistory(row: LeaveRequest): boolean {

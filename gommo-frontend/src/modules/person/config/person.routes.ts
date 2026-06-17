@@ -1,5 +1,6 @@
 import { CalendarDays, MessageSquare, Target, UserMinus, UserPlus, UserRound, Users } from "lucide-react";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
+import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/person/leave/config/leave-vacation.route-labels";
 import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
 
 export const personRoutes: AppRoute[] = [
@@ -58,13 +59,17 @@ export const personRoutes: AppRoute[] = [
     }),
     tabbedCrudRoute({
         id: "leave-vacation",
-        href: "/leave/vacation",
-        label: "Férias",
+        href: LEAVE_VACATION_CRUD_LABELS.href,
+        label: LEAVE_VACATION_CRUD_LABELS.routeLabel,
         icon: CalendarDays,
         permission: "leave:read",
-        routeId: "leave-vacation",
-        tabShortLabel: "Férias",
-        listToolbar: "Solicitações enviadas ao DP e férias já concedidas.",
+        routeId: LEAVE_VACATION_CRUD_LABELS.routeId,
+        tabShortLabel: LEAVE_VACATION_CRUD_LABELS.tabShortLabel,
+        listToolbar: LEAVE_VACATION_CRUD_LABELS.listToolbar,
+        workspace: lazyNamed(
+            () => import("@/modules/person/leave/components/LeaveVacationWorkspacePage"),
+            "LeaveVacationWorkspacePage",
+        ),
         list: lazyNamed(
             () => import("@/modules/person/leave/components/LeaveRequestRhListClient"),
             "LeaveRequestRhListClient",
@@ -73,8 +78,8 @@ export const personRoutes: AppRoute[] = [
             () => import("@/modules/person/leave/components/LeaveVacationRequestFormClient"),
             "LeaveVacationRequestFormClient",
         ),
-        formTabLabel: "Solicitação de férias",
-        listToFormLabel: "Nova solicitação de férias",
+        formTabLabel: LEAVE_VACATION_CRUD_LABELS.formTabLabel,
+        listToFormLabel: LEAVE_VACATION_CRUD_LABELS.listToFormLabel,
         showListToFormButton: true,
     }),
     tabbedCrudRoute({

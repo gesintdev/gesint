@@ -29,4 +29,20 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             @Param("periodStart") LocalDate periodStart,
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
+
+    @Query("""
+            SELECT l FROM LeaveRequest l
+            WHERE l.status <> :deletedStatus
+              AND l.collaboratorId = :collaboratorId
+              AND l.leaveType <> :vacationType
+              AND l.approved = TRUE
+              AND l.startDate <= :periodEnd
+              AND l.endDate >= :periodStart
+            """)
+    List<LeaveRequest> findApprovedAbsencesOverlapping(
+            @Param("collaboratorId") UUID collaboratorId,
+            @Param("vacationType") LeaveTypeEnum vacationType,
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
 }

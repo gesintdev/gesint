@@ -17,6 +17,9 @@ export class LeaveRequest {
     splitGroupId?: string;
     splitSequence?: number;
     baseSalarySnapshot?: number;
+    justifiedAbsences?: number;
+    reviewStatus?: "PENDING" | "APPROVED" | "RETURNED" | "REJECTED";
+    reviewReason?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -36,4 +39,7 @@ export class LeaveRequestCreateDto {
     splitGroupId?: string;
     splitSequence?: number;
     baseSalarySnapshot?: number;
+    justifiedAbsences?: number;
+    reviewStatus?: "PENDING" | "APPROVED" | "RETURNED" | "REJECTED";
+    reviewReason?: string;
 }

@@ -154,7 +154,7 @@ export function DepartmentFormClient() {
                     onValueChange={(v) => update("costCenter", v)}
                 />
                 <DescriptionTextarea
-                    label="Descri\u00e7\u00e3o"
+                    label="Descrição"
                     value={form.description ?? ""}
                     onValueChange={(v) => update("description", v)}
                     wrapperClassName="sm:col-span-2"
@@ -165,13 +165,13 @@ export function DepartmentFormClient() {
                     wrapperClassName="sm:col-span-2"
                 />
                 <InputCurrency
-                    label="Or\u00e7amento mensal"
+                    label="Orçamento mensal"
                     value={form.monthlyBudget ?? ""}
                     onValueChange={(v) => update("monthlyBudget", v)}
                     emitAsDecimal
                 />
                 <InputString
-                    label="Localiza\u00e7\u00e3o"
+                    label="Localização"
                     value={form.location ?? ""}
                     onValueChange={(v) => update("location", v)}
                 />

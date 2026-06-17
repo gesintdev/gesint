@@ -31,7 +31,7 @@ export function leaveToVacationForm(entity: LeaveRequest): VacationFormState {
     return {
         collaboratorId: entity.collaboratorId ?? "",
         unjustifiedAbsences: entity.unjustifiedAbsences ?? 0,
-        justifiedAbsences: 0,
+        justifiedAbsences: entity.justifiedAbsences ?? 0,
         pecuniaryAllowanceDays: entity.pecuniaryAllowanceDays ?? 0,
         approved: entity.approved ?? true,
         notes: entity.notes ?? "",
@@ -70,12 +70,14 @@ export function vacationFormToLeaveDtos(
                 notes: form.notes,
                 pecuniaryAllowanceDays: index === 0 ? form.pecuniaryAllowanceDays : 0,
                 unjustifiedAbsences: form.unjustifiedAbsences,
+                justifiedAbsences: form.justifiedAbsences,
                 vacationDaysEntitled: entitled,
                 acquisitionPeriodStart: form.acquisitionPeriodStart || undefined,
                 acquisitionPeriodEnd: form.acquisitionPeriodEnd || undefined,
                 splitGroupId,
                 splitSequence: index + 1,
                 baseSalarySnapshot: form.baseSalarySnapshot,
+                reviewStatus: form.approved ? ("APPROVED" as const) : ("PENDING" as const),
             };
         });
 }
@@ -83,6 +85,18 @@ export function vacationFormToLeaveDtos(
 export function vacationFormToSingleLeaveDto(form: VacationRequestFormSchema): LeaveRequestCreateDto {
     const [first] = vacationFormToLeaveDtos(form, crypto.randomUUID());
     return first;
+}
+
+export function vacationFormToRhLeaveDtos(
+    form: VacationRequestFormSchema,
+    splitGroupId: string,
+): LeaveRequestCreateDto[] {
+    return vacationFormToLeaveDtos({ ...form, approved: false }, splitGroupId).map((dto, index) => ({
+        ...dto,
+        approved: false,
+        reviewStatus: "PENDING" as const,
+        justifiedAbsences: index === 0 ? form.justifiedAbsences : undefined,
+    }));
 }
 
 export function summarizeGozoDays(form: VacationRequestFormSchema): number {

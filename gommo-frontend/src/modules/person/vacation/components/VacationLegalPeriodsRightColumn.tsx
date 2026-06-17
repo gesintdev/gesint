@@ -15,6 +15,7 @@ type Props = {
     periods: VacationSplitPeriod[];
     onPeriodsChange: (periods: VacationSplitPeriod[]) => void;
     periodsFieldError?: string;
+    readOnlyAbsences?: boolean;
 };
 
 export function VacationLegalPeriodsRightColumn({
@@ -30,6 +31,7 @@ export function VacationLegalPeriodsRightColumn({
     periods,
     onPeriodsChange,
     periodsFieldError,
+    readOnlyAbsences,
 }: Props) {
     return (
         <div className="flex flex-col gap-2">
@@ -44,6 +46,7 @@ export function VacationLegalPeriodsRightColumn({
                 onJustifiedAbsencesChange={onJustifiedAbsencesChange}
                 onPecuniaryChange={onPecuniaryChange}
                 pecuniaryError={pecuniaryError}
+                readOnlyAbsences={readOnlyAbsences}
             />
             <VacationSplitPeriodsEditor periods={periods} onChange={onPeriodsChange} fieldError={periodsFieldError} />
         </div>

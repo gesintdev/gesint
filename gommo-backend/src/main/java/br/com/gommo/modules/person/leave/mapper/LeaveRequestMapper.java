@@ -6,6 +6,7 @@ import br.com.gommo.modules.person.leave.dto.LeaveRequestRequestDto;
 import br.com.gommo.modules.person.leave.dto.LeaveRequestResponseDto;
 import br.com.gommo.modules.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
+import br.com.gommo.modules.person.leave.entity.VacationReviewStatusEnum;
 
 @Component
 public class LeaveRequestMapper {
@@ -25,6 +26,9 @@ public class LeaveRequestMapper {
                 .splitGroupId(dto.getSplitGroupId())
                 .splitSequence(dto.getSplitSequence())
                 .baseSalarySnapshot(dto.getBaseSalarySnapshot())
+                .justifiedAbsences(dto.getJustifiedAbsences())
+                .reviewStatus(dto.getReviewStatus())
+                .reviewReason(dto.getReviewReason())
                 .build();
     }
 
@@ -49,6 +53,11 @@ public class LeaveRequestMapper {
         entity.setSplitGroupId(dto.getSplitGroupId());
         entity.setSplitSequence(dto.getSplitSequence());
         entity.setBaseSalarySnapshot(dto.getBaseSalarySnapshot());
+        entity.setJustifiedAbsences(dto.getJustifiedAbsences());
+        if (dto.getReviewStatus() != null) {
+            entity.setReviewStatus(dto.getReviewStatus());
+        }
+        entity.setReviewReason(dto.getReviewReason());
     }
 
     public LeaveRequestResponseDto toResponse(LeaveRequest entity) {
@@ -75,6 +84,9 @@ public class LeaveRequestMapper {
                 .splitGroupId(entity.getSplitGroupId())
                 .splitSequence(entity.getSplitSequence())
                 .baseSalarySnapshot(entity.getBaseSalarySnapshot())
+                .justifiedAbsences(entity.getJustifiedAbsences())
+                .reviewStatus(entity.getReviewStatus())
+                .reviewReason(entity.getReviewReason())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

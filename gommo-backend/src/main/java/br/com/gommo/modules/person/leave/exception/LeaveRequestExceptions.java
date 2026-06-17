@@ -15,4 +15,9 @@ public final class LeaveRequestExceptions {
     public static final String VACATION_START_RESTRICTED_MSG =
             "Não é permitido iniciar férias nos 2 dias anteriores a feriado ou ao descanso semanal remunerado";
     public static final String VACATION_DAYS_EXCEEDED_MSG = "Dias de gozo excedem o saldo disponível no período";
+
+    public static final String VACATION_REVIEW_INVALID_CODE = "VACATION_REVIEW_INVALID";
+    public static final String VACATION_REVIEW_NOT_VACATION_MSG = "A revisão só se aplica a solicitações de férias";
+    public static final String VACATION_REVIEW_REASON_REQUIRED_MSG =
+            "Informe o motivo para devolver ou reprovar a solicitação";
 }

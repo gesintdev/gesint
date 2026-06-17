@@ -27,6 +27,7 @@ export type TabbedCrudRouteConfig = {
     form: LazyComponent;
     listPrimaryAction?: LazyComponent;
     extraTabs?: TabbedCrudExtraTabConfig[];
+    workspace?: LazyComponent;
 } & Pick<
     CrudScreenProps,
     "showListToFormButton" | "listToolbar" | "formTabLabel" | "formTabLabelEdit" | "listToFormLabel"

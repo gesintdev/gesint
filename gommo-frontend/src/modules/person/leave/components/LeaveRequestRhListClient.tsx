@@ -6,7 +6,16 @@ import { leaverequestKeys } from "@/modules/person/leave/leave.query";
 import { leaverequestService } from "@/modules/person/leave/services/leave-request.service";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
 
-type RhVacationRow = LeaveRequest & { rhVacationStatus: "PENDING" | "APPROVED" };
+type RhVacationRow = LeaveRequest & {
+    rhVacationStatus: "PENDING" | "APPROVED" | "RETURNED" | "REJECTED";
+};
+
+function mapRhVacationStatus(row: LeaveRequest): RhVacationRow["rhVacationStatus"] {
+    if (row.approved === true || row.reviewStatus === "APPROVED") return "APPROVED";
+    if (row.reviewStatus === "RETURNED") return "RETURNED";
+    if (row.reviewStatus === "REJECTED") return "REJECTED";
+    return "PENDING";
+}
 
 export function LeaveRequestRhListClient() {
     return (
@@ -16,7 +25,7 @@ export function LeaveRequestRhListClient() {
                 const rows = await leaverequestService.getAll();
                 return rows.filter(isRhVacationListing).map((row) => ({
                     ...row,
-                    rhVacationStatus: row.approved === true ? "APPROVED" : "PENDING",
+                    rhVacationStatus: mapRhVacationStatus(row),
                 }));
             }}
             columns={LEAVE_HISTORY_TABLE_COLUMNS}

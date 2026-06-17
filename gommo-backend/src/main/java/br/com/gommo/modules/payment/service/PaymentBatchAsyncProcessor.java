@@ -132,7 +132,7 @@ public class PaymentBatchAsyncProcessor {
         TenantContext tenant = capturedTenant != null
                 ? capturedTenant
                 : TenantContextHolder.getOptional().orElse(null);
-        if (tenant == null || tenant.isPlatformAccess()) {
+        if (tenant == null) {
             log.error(
                     "Payment batch {} aborted: tenant context missing on async worker (schema isolation broken)",
                     batchId);
@@ -142,7 +142,11 @@ public class PaymentBatchAsyncProcessor {
         if (TenantContextHolder.getOptional().isEmpty()) {
             TenantContextHolder.set(tenant);
         }
-        log.debug("Payment batch {} processing on schema={}", batchId, tenant.schema());
+        if (tenant.isPlatformAccess()) {
+            log.debug("Payment batch {} processing on platform schema (public)", batchId);
+        } else {
+            log.debug("Payment batch {} processing on schema={}", batchId, tenant.schema());
+        }
         return true;
     }
 

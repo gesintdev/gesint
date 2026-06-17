@@ -20,8 +20,8 @@ type CollaboratorMultiPickerFieldProps = {
 };
 
 export function CollaboratorMultiPickerField({
-    label = "Respons\u00e1veis",
-    hint = "Somente colaboradores com admiss\u00e3o conclu\u00edda",
+    label = "Responsáveis",
+    hint = "Somente colaboradores com admissão concluída",
     selectedIds,
     onChange,
     error,
@@ -120,7 +120,7 @@ export function CollaboratorMultiPickerField({
                     ))}
                 </ul>
             ) : (
-                <p className="text-xs text-base-content/45">Nenhum respons\u00e1vel selecionado.</p>
+                <p className="text-xs text-base-content/45">Nenhum responsável selecionado.</p>
             )}
         </div>
     );

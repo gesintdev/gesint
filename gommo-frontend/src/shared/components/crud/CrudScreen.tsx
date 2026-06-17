@@ -22,6 +22,7 @@ export type CrudExtraTab = {
     content: ReactNode;
     permission?: string;
     publicAccess?: RoutePublicAccess;
+    badge?: number;
 };
 
 type CrudScreenContextValue = {
@@ -110,7 +111,7 @@ export function CrudScreen({
         [extraTabs, permissions],
     );
     const tabs = useMemo(() => {
-        const items: { id: string; label: string }[] = [{ id: CRUD_TAB_LIST, label: listTabLabel }];
+        const items: { id: string; label: string; badge?: number }[] = [{ id: CRUD_TAB_LIST, label: listTabLabel }];
         const showFormTab = canWrite && (!editOnly || isEditing || activeTab === CRUD_TAB_FORM);
         if (showFormTab) {
             items.push({
@@ -118,7 +119,9 @@ export function CrudScreen({
                 label: isEditing ? formTabLabelEdit : formTabLabel,
             });
         }
-        items.push(...visibleExtraTabs.map((t) => ({ id: t.id, label: t.label })));
+        items.push(
+            ...visibleExtraTabs.map((t) => ({ id: t.id, label: t.label, badge: t.badge })),
+        );
         return items;
     }, [activeTab, canWrite, editOnly, formTabLabel, formTabLabelEdit, isEditing, listTabLabel, visibleExtraTabs]);
     const goToList = useCallback(() => {
@@ -190,7 +193,10 @@ export function CrudScreen({
                                 }}
                                 className={clsx("gommo-crud-tab", selected && "gommo-crud-tab--active")}
                             >
-                                {tab.label}
+                                <span>{tab.label}</span>
+                                {tab.badge != null && tab.badge > 0 ? (
+                                    <span className="gommo-crud-tab-badge">{tab.badge}</span>
+                                ) : null}
                             </button>
                         );
                     })}

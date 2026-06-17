@@ -29,6 +29,8 @@ export const LEAVE_HISTORY_TABLE_COLUMNS: TableColumnConfig[] = [
         badgeLabels: {
             PENDING: "Aguardando DP",
             APPROVED: "Concedida",
+            RETURNED: "Devolvida",
+            REJECTED: "Reprovada",
         },
     },
 ];

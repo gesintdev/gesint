@@ -15,4 +15,9 @@ public final class LeaveRequestException {
     public static BusinessException vacationInvalid(String message) {
         return new BusinessException(LeaveRequestExceptions.VACATION_INVALID_CODE, message, HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException vacationReviewInvalid(String message) {
+        return new BusinessException(
+                LeaveRequestExceptions.VACATION_REVIEW_INVALID_CODE, message, HttpStatus.BAD_REQUEST);
+    }
 }

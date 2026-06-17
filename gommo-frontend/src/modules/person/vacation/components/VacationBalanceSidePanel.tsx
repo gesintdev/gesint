@@ -14,6 +14,7 @@ type Props = {
     onJustifiedAbsencesChange: (value: number) => void;
     onPecuniaryChange: (value: number) => void;
     pecuniaryError?: string;
+    readOnlyAbsences?: boolean;
 };
 
 export function VacationBalanceSidePanel({
@@ -27,6 +28,7 @@ export function VacationBalanceSidePanel({
     onJustifiedAbsencesChange,
     onPecuniaryChange,
     pecuniaryError,
+    readOnlyAbsences,
 }: Props) {
     const balance = summarizeVacationBalance(entitledDays, periods, pecuniaryAllowanceDays);
     const remainingClass =
@@ -42,6 +44,7 @@ export function VacationBalanceSidePanel({
                     value={unjustifiedAbsences}
                     onValueChange={(v) => onUnjustifiedAbsencesChange(v ?? 0)}
                     hint={`Direito atual: ${entitledDays} dia(s) (tabela CLT art. 130)`}
+                    readOnly={readOnlyAbsences}
                 />
                 <InputNumber
                     label="Faltas justificadas / atestados"
@@ -50,6 +53,7 @@ export function VacationBalanceSidePanel({
                     value={justifiedAbsences}
                     onValueChange={(v) => onJustifiedAbsencesChange(v ?? 0)}
                     hint="Informativo — não reduz dias de férias (CLT)"
+                    readOnly={readOnlyAbsences}
                 />
                 <InputNumber
                     label="Abono pecuniário (dias vendidos)"

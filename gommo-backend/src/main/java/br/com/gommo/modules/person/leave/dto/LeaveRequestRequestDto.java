@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
+import br.com.gommo.modules.person.leave.entity.VacationReviewStatusEnum;
 
 @Getter
 @Setter
@@ -38,4 +39,7 @@ public class LeaveRequestRequestDto {
     private UUID splitGroupId;
     private Integer splitSequence;
     private BigDecimal baseSalarySnapshot;
+    private Integer justifiedAbsences;
+    private VacationReviewStatusEnum reviewStatus;
+    private String reviewReason;
 }

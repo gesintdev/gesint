@@ -71,4 +71,14 @@ public class LeaveRequest extends AuditEntity {
 
     @Column(name = "base_salary_snapshot", precision = 14, scale = 2)
     private BigDecimal baseSalarySnapshot;
+
+    @Column(name = "justified_absences")
+    private Integer justifiedAbsences;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "review_status", length = 20)
+    private VacationReviewStatusEnum reviewStatus;
+
+    @Column(name = "review_reason", columnDefinition = "TEXT")
+    private String reviewReason;
 }

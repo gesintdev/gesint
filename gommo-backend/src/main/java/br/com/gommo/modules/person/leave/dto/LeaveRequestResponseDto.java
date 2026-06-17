@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
+import br.com.gommo.modules.person.leave.entity.VacationReviewStatusEnum;
 
 @Getter
 @Builder
@@ -32,6 +33,9 @@ public class LeaveRequestResponseDto {
     private final UUID splitGroupId;
     private final Integer splitSequence;
     private final BigDecimal baseSalarySnapshot;
+    private final Integer justifiedAbsences;
+    private final VacationReviewStatusEnum reviewStatus;
+    private final String reviewReason;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

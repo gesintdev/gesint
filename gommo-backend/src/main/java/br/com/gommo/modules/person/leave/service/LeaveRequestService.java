@@ -1,5 +1,6 @@
 package br.com.gommo.modules.person.leave.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -15,11 +16,16 @@ import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.person.leave.domain.VacationAbsenceCalculator;
 import br.com.gommo.modules.person.leave.domain.VacationRules;
 import br.com.gommo.modules.person.leave.dto.LeaveRequestRequestDto;
 import br.com.gommo.modules.person.leave.dto.LeaveRequestResponseDto;
+import br.com.gommo.modules.person.leave.dto.VacationAbsenceSummaryDto;
+import br.com.gommo.modules.person.leave.dto.VacationReviewRequestDto;
 import br.com.gommo.modules.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.person.leave.entity.LeaveTypeEnum;
+import br.com.gommo.modules.person.leave.entity.VacationReviewActionEnum;
+import br.com.gommo.modules.person.leave.entity.VacationReviewStatusEnum;
 import br.com.gommo.modules.person.leave.exception.LeaveRequestException;
 import br.com.gommo.modules.person.leave.exception.LeaveRequestExceptions;
 import br.com.gommo.modules.person.leave.mapper.LeaveRequestMapper;
@@ -104,8 +110,65 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @PreAuthorize("hasAuthority('leave:write')")
     public LeaveRequestResponseDto create(LeaveRequestRequestDto request) {
         validateRequest(request);
-        LeaveRequestResponseDto created = super.create(request);
-        return findById(created.getId());
+        LeaveRequest entity = mapper.toEntity(request);
+        applyVacationDefaultsOnCreate(entity, request);
+        LeaveRequest saved = repository.save(entity);
+        return findById(saved.getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('leave:read')")
+    public VacationAbsenceSummaryDto absenceSummary(
+            UUID collaboratorId, LocalDate acquisitionStart, LocalDate acquisitionEnd) {
+        if (acquisitionEnd.isBefore(acquisitionStart)) {
+            throw LeaveRequestException.vacationInvalid(LeaveRequestExceptions.VACATION_INVALID_DATES_MSG);
+        }
+        List<LeaveRequest> leaves =
+                repository.findApprovedAbsencesOverlapping(
+                        collaboratorId,
+                        LeaveTypeEnum.VACATION,
+                        acquisitionStart,
+                        acquisitionEnd,
+                        StatusEnum.DELETED);
+        VacationAbsenceCalculator.Summary summary =
+                VacationAbsenceCalculator.summarize(leaves, acquisitionStart, acquisitionEnd);
+        return VacationAbsenceSummaryDto.builder()
+                .unjustifiedAbsences(summary.unjustifiedAbsences())
+                .justifiedAbsences(summary.justifiedAbsences())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('leave:write')")
+    public LeaveRequestResponseDto reviewVacation(UUID id, VacationReviewRequestDto request) {
+        LeaveRequest entity = findEntity(id);
+        if (entity.getLeaveType() != LeaveTypeEnum.VACATION) {
+            throw LeaveRequestException.vacationReviewInvalid(LeaveRequestExceptions.VACATION_REVIEW_NOT_VACATION_MSG);
+        }
+        switch (request.getAction()) {
+            case APPROVE -> {
+                entity.setApproved(true);
+                entity.setReviewStatus(VacationReviewStatusEnum.APPROVED);
+                entity.setReviewReason(null);
+            }
+            case RETURN -> {
+                String reason = requireReviewReason(request.getReason());
+                entity.setApproved(false);
+                entity.setReviewStatus(VacationReviewStatusEnum.RETURNED);
+                entity.setReviewReason(reason);
+            }
+            case REJECT -> {
+                String reason = requireReviewReason(request.getReason());
+                entity.setApproved(false);
+                entity.setReviewStatus(VacationReviewStatusEnum.REJECTED);
+                entity.setReviewReason(reason);
+            }
+            default -> throw LeaveRequestException.vacationReviewInvalid(LeaveRequestExceptions.VACATION_REVIEW_INVALID_CODE);
+        }
+        repository.save(entity);
+        return findById(id);
     }
 
     @Override
@@ -132,6 +195,26 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @Override
     protected void updateEntity(LeaveRequest entity, LeaveRequestRequestDto request) {
         mapper.updateEntity(entity, request);
+    }
+
+    private void applyVacationDefaultsOnCreate(LeaveRequest entity, LeaveRequestRequestDto request) {
+        LeaveTypeEnum type = request.getLeaveType() != null ? request.getLeaveType() : LeaveTypeEnum.VACATION;
+        if (type != LeaveTypeEnum.VACATION) {
+            return;
+        }
+        if (!Boolean.TRUE.equals(request.getApproved()) && entity.getReviewStatus() == null) {
+            entity.setReviewStatus(VacationReviewStatusEnum.PENDING);
+        }
+        if (Boolean.TRUE.equals(request.getApproved()) && entity.getReviewStatus() == null) {
+            entity.setReviewStatus(VacationReviewStatusEnum.APPROVED);
+        }
+    }
+
+    private static String requireReviewReason(String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw LeaveRequestException.vacationReviewInvalid(LeaveRequestExceptions.VACATION_REVIEW_REASON_REQUIRED_MSG);
+        }
+        return reason.trim();
     }
 
     private void validateRequest(LeaveRequestRequestDto request) {
