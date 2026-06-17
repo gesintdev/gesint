@@ -58,20 +58,32 @@ public class DevAdminInitializer implements ApplicationRunner {
 
         appUserRepository
                 .findActiveByUsername(devAdminUsername, StatusEnum.DELETED)
-                .ifPresentOrElse(user -> ensureAdminRole(user, adminRole), () -> createAdmin(adminRole));
+                .ifPresentOrElse(user -> syncAdmin(user, adminRole), () -> createAdmin(adminRole));
     }
 
-    private void ensureAdminRole(AppUser user, Role adminRole) {
+    private void syncAdmin(AppUser user, Role adminRole) {
+        boolean changed = false;
+
         Set<Role> roles = new HashSet<>(user.getRoles());
-        if (roles.contains(adminRole)) {
-            return;
+        if (!roles.contains(adminRole)) {
+            roles.add(adminRole);
+            user.setRoles(roles);
+            changed = true;
+            log.warn(
+                    "Usuario '{}' existia sem role ADMIN; role vinculada. Faca login novamente para atualizar o token.",
+                    user.getUsername());
         }
-        roles.add(adminRole);
-        user.setRoles(roles);
-        appUserRepository.save(user);
-        log.warn(
-                "Usuario '{}' existia sem role ADMIN; role vinculada. Faca login novamente para atualizar o token.",
-                user.getUsername());
+
+        if (!passwordEncoder.matches(devAdminPassword, user.getPasswordHash())) {
+            user.setPasswordHash(passwordEncoder.encode(devAdminPassword));
+            changed = true;
+            log.warn("Usuario '{}' existia com senha diferente; senha de desenvolvimento sincronizada.",
+                    user.getUsername());
+        }
+
+        if (changed) {
+            appUserRepository.save(user);
+        }
     }
 
     private void createAdmin(Role adminRole) {
