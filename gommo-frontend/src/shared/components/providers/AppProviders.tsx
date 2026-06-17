@@ -20,7 +20,7 @@ export function AppProviders({ children, session }: { children: ReactNode; sessi
             <QueryClientProvider client={queryClient}>
                 <ThemeProvider>
                     {children}
-                    <Toaster richColors position="top-right" closeButton />
+                    <Toaster richColors position="top-center" closeButton />
                     <SystemAlertHost />
                 </ThemeProvider>
             </QueryClientProvider>

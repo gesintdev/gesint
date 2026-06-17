@@ -1,5 +1,7 @@
 package br.com.gommo.modules.payment.service;
 
+import br.com.gommo.core.tenant.TenantContext;
+import br.com.gommo.core.tenant.TenantContextHolder;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -15,15 +17,16 @@ public class PaymentBatchProcessTrigger {
     }
 
     public void scheduleAfterCommit(UUID batchId, byte[] sourceBytes) {
+        TenantContext tenantContext = TenantContextHolder.getOptional().orElse(null);
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    asyncProcessor.processBatch(batchId, sourceBytes);
+                    asyncProcessor.processBatch(batchId, sourceBytes, tenantContext);
                 }
             });
             return;
         }
-        asyncProcessor.processBatch(batchId, sourceBytes);
+        asyncProcessor.processBatch(batchId, sourceBytes, tenantContext);
     }
 }

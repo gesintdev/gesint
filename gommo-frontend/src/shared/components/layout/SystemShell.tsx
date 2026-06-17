@@ -14,9 +14,11 @@ import { setAuthToken } from "@/shared/lib/api.client";
 export function SystemShell({
     children,
     initialStoredSystem = null,
+    initialSettingsMode = false,
 }: {
     children: ReactNode;
     initialStoredSystem?: SystemEnum | null;
+    initialSettingsMode?: boolean;
 }) {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileNav, setMobileNav] = useState(false);
@@ -43,7 +45,10 @@ export function SystemShell({
     }, []);
 
     return (
-        <ActiveSystemProvider initialStoredSystem={initialStoredSystem}>
+        <ActiveSystemProvider
+            initialStoredSystem={initialStoredSystem}
+            initialSettingsMode={initialSettingsMode}
+        >
             <div className="flex h-dvh flex-col overflow-hidden">
                 {/* Linha superior: Gommo (largura do sidebar) + header principal */}
                 <div

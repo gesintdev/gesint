@@ -1,0 +1,40 @@
+package br.com.gommo.admin.modules.client.service;
+
+import java.util.List;
+
+/**
+ * Canonical list of HR data-plane tables cloned into each tenant schema.
+ * Keep in sync with scripts/dev/seed-tenant-empresa-a.sql (tenant_tables array).
+ */
+public final class TenantSchemaTableCatalog {
+
+    public static final List<String> HR_DATA_TABLES = List.of(
+            "company",
+            "department",
+            "job_position",
+            "collaborator",
+            "collaborator_address",
+            "collaborator_contact",
+            "employment_contract",
+            "admission_process",
+            "attendance_record",
+            "benefit_plan",
+            "benefit_enrollment",
+            "leave_request",
+            "offboarding",
+            "exit_interview",
+            "performance_review",
+            "payroll_run",
+            "payroll_event",
+            "payslip",
+            "payslip_entry",
+            "payment_period",
+            "payment_batch",
+            "payment_slip",
+            "storage_object",
+            "storage_object_link",
+            "tax_obligation",
+            "audit_log");
+
+    private TenantSchemaTableCatalog() {}
+}

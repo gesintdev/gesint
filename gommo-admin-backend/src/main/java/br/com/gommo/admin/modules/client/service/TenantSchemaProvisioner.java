@@ -16,30 +16,7 @@ public class TenantSchemaProvisioner {
 
     private static final Pattern SAFE_SCHEMA = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
 
-    private static final List<String> TENANT_TABLES = List.of(
-            "company",
-            "department",
-            "job_position",
-            "collaborator",
-            "collaborator_address",
-            "collaborator_contact",
-            "employment_contract",
-            "admission_process",
-            "attendance_record",
-            "benefit_plan",
-            "benefit_enrollment",
-            "leave_request",
-            "offboarding",
-            "exit_interview",
-            "performance_review",
-            "payroll_run",
-            "payroll_event",
-            "payslip",
-            "payslip_entry",
-            "storage_object",
-            "storage_object_link",
-            "tax_obligation",
-            "audit_log");
+    private static final List<String> TENANT_TABLES = TenantSchemaTableCatalog.HR_DATA_TABLES;
 
     private final JdbcTemplate jdbcTemplate;
     private final TenantRbacProvisioner tenantRbacProvisioner;

@@ -45,6 +45,13 @@ public class TenantResolver {
         }
 
         if (hostParser.isBareLocalHost(host)) {
+            String devSlug = properties.getDevTenantSlug();
+            if (devSlug != null && !devSlug.isBlank()) {
+                Optional<TenantContext> devTenant = findAndValidate(adminClientLookup.findBySlug(devSlug.trim()));
+                if (devTenant.isPresent()) {
+                    return devTenant;
+                }
+            }
             return Optional.of(TenantContext.platform());
         }
 

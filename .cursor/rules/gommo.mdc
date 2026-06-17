@@ -87,6 +87,21 @@ Regras:
 - Cross-schema no código (ex.: admin escreve em `public.app_user`) é integração JPA — **não** criar migration Flyway no app errado.
 - Config explícita em `application.yml`: `flyway.schemas`, `default-schema`, `table: flyway_schema_history`.
 
+## Multi-tenant (schema por cliente) — obrigatorio em modulo novo
+
+Isolamento e **schema dedicado** (`tenant_*`), nao `tenant_id` em query. O `search_path` inclui `public` como fallback — se a tabela **nao existir** no schema do tenant, o Postgres le/escreve em `public` (vazamento entre clientes).
+
+**Checklist ao criar tabela/entidade de negocio:**
+
+1. Migration Flyway em `gommo-backend` (template em `public`).
+2. Incluir o nome da tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` (admin-backend).
+3. Espelhar a mesma lista em `scripts/dev/seed-tenant-empresa-a.sql` (`tenant_tables`).
+4. Rodar `scripts/dev/sync-tenant-missing-tables.sql` em dev para tenants ja provisionados.
+5. **Nunca** filtrar tenant manualmente no service — confiar no `TenantSchemaDataSource` + JWT/header (`X-Tenant-Slug`).
+6. Trabalho **@Async**: usar `TenantContextTaskDecorator` no executor (ver `PaymentAsyncConfig`).
+
+Frontend: headers de tenant via `api.client.ts` / `tenant.ts` — sem logica extra por tela.
+
 ## Encoding UTF-8 — revisar sempre (erro recorrente)
 
 No Windows, arquivos `.ts`/`.tsx`/`.java` editados pelo agente podem gravar **bytes UTF-8 inválidos** em acentos e pontuação especial. O Next/Turbopack falha com:
