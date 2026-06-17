@@ -1,141 +1,167 @@
----
-description: Gommo — arquitetura, stack, convenções e regras absolutas (DP/RH)
+﻿---
+description: Gommo — arquitetura, stack, convenções e regras absolutas (ERP RH/DP/CTB)
 alwaysApply: true
 ---
 
-# Gommo — Departamento Pessoal
+# Gommo — regras gerais do projeto
 
-Monolito modular (bounded contexts), preparado para microserviços. **Nunca** dependência direta entre módulos — use eventos de integração.
+Monorepo ERP com HR/DP/CTB e painel Admin. Arquitetura atual: monólito modular preparado para separação futura. Regra máxima: seguir padrões existentes; não criar novo padrão sem justificativa explícita.
 
 ## Repositórios
 
-- HR Frontend: `gommo-frontend/` (Next.js App Router, `src/`, `:3000`)
-- HR Backend: `gommo-backend/` (Spring Boot, pacote `br.com.gommo`, `:8081`)
-- Admin Frontend: `gommo-admin-frontend/` (Next.js, `:3001`)
-- Admin Backend: `gommo-admin-backend/` (Spring Boot, pacote `br.com.gommo.admin`, `:8082`)
+- HR Frontend: `gommo-frontend/` (Next.js App Router, `src/`, porta `3000`)
+- HR Backend: `gommo-backend/` (Spring Boot, pacote `br.com.gommo`, porta `8081`)
+- Admin Frontend: `gommo-admin-frontend/` (Next.js, porta `3001`)
+- Admin Backend: `gommo-admin-backend/` (Spring Boot, pacote `br.com.gommo.admin`, porta `8082`)
 
-## Stack (versões do repo)
+## Stack
 
-- FE: Next.js, TypeScript strict, Tailwind 4, DaisyUI, NextAuth, next-themes, Framer Motion, Sonner
-- BE: Spring Boot 4, Java 21, Spring Security, JPA, Flyway, PostgreSQL
-- Infra: Docker Compose, Nginx (prod), Prometheus/Grafana, timezone `America/Sao_Paulo`
+- Frontend: Next.js, TypeScript strict, Tailwind 4, DaisyUI, NextAuth, next-themes, Framer Motion, Sonner, TanStack Query
+- Backend: Spring Boot 4, Java 21, Spring Security, JPA, Flyway, PostgreSQL
+- Infra: Docker Compose, Nginx/Coolify, Prometheus/Grafana, timezone `America/Sao_Paulo`
 
-## Módulos (nomes idênticos FE/BE)
+## Sistemas e menus atuais
 
-`root`, `collaborator`, `payroll`, `leave`, `benefit`, `attendance`, `contract`, `tax`, `performance`, `report`, `admission`
+O sistema ativo vem do rail esquerdo e não da URL.
+
+| Sistema | Papel | Módulos atuais no frontend |
+|---|---|---|
+| DP | Departamento Pessoal | Organização, Pagamentos |
+| RH | Recursos Humanos | Dashboard, Pessoas/RH, Insights |
+| CTB | Contabilidade | Folha de Pagamento |
+| CFG | Configurações | Perfis, usuários e configurações |
+
+Folha de Pagamento foi movida de DP para CTB. O módulo Pagamentos permanece em DP.
+
+## Organização futura de módulos
+
+A estrutura desejada deve espelhar o caminho visual da sidebar tanto no frontend quanto no backend.
+
+Exemplo:
+
+```text
+dp/organization/department
+dp/payment/...
+rh/person/leave
+ctb/payroll/payroll-run
+ctb/payroll/payslip
+```
+
+O código atual ainda possui agrupamentos legados como `modules/person`, `modules/payroll`, `modules/organization` e deve ser refatorado em branch dedicada, com moves coordenados, atualização de imports e validação ampla.
 
 ## Backend — obrigatório
 
-- CRUD via `BaseController` / `BaseService` / `IBaseRepository` — controllers filhos **não** redeclaram endpoints; RBAC com `@PreAuthorize` no service do módulo
-- Entidades: `BaseEntity` (id UUID, status) + `AuditEntity` (created/updated by/at)
-- Soft delete: `status = DELETED` — sem DELETE físico
-- Flyway para **toda** alteração de schema (`V{n}__descricao_snake_case.sql`) — ver **Migrations por schema** abaixo
-- API versionada: `/api/v1/...`
-- DTOs sempre **classes** (não records) com Lombok `@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor`
-- Em entidades JPA: **sem @Data** — `@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor`
-- Regras de negócio em UseCase/Service — **não** no Controller
-- Exceções: `BusinessException` + `GlobalExceptionHandler`
-- Logs: SLF4J estruturado; correlation-id `X-Correlation-ID` em todo request
-- JWT: access 15min, refresh 7d com rotação + blacklist (DB)
-- Senha: BCrypt strength 12; RBAC `@PreAuthorize` por módulo
-- IDs: UUID; timestamps: `TIMESTAMPTZ`
+- CRUD via `BaseController` / `BaseService` / `IBaseRepository`.
+- Controllers filhos não redeclaram endpoints CRUD padrão.
+- RBAC com `@PreAuthorize` no service do módulo.
+- Entidades: `BaseEntity` (UUID, status) + `AuditEntity` (created/updated by/at).
+- Soft delete: `status = DELETED`; nunca DELETE físico para entidades de negócio.
+- Flyway para toda alteração de schema: `V{n}__descricao_snake_case.sql`.
+- API versionada: `/api/v1/...`.
+- DTOs sempre classes com Lombok; não usar records em DTO público.
+- Entidades JPA sem `@Data`; usar `@Getter`, `@Setter`, `@Builder`, `@NoArgsConstructor`, `@AllArgsConstructor` conforme padrão local.
+- Regras de negócio em service/use case/domain; nunca no controller.
+- Exceções por catálogo: `{Modulo}Exceptions` + `{Modulo}Exception`, integradas ao `GlobalExceptionHandler`.
+- Logs SLF4J; correlation id `X-Correlation-ID`.
+- JWT: access token curto, refresh token com rotação/blacklist.
+- Senha com BCrypt; RBAC por authority de módulo.
+- IDs UUID; timestamps `TIMESTAMPTZ`.
 
 ## Frontend — obrigatório
 
-- `BaseService<T>`: getAll, getById, create, update, remove
-- Rotas/menus: arquivo `.ts` tipado (`Route`) — **não** hardcoded em JSX
-- Sidebar esquerda: expandir/retrair; retraída = ícones + flyout de submenus; busca de menus
-- Login: formulário coluna direita + branding coluna esquerda
-- Dark mode (next-themes); inputs focus = border only (sem outline)
-- Grid para layout; flex interno; 100% responsivo; botões componentizados
-- Perguntar antes de adicionar dependência Maven/NPM não listada no plano
+- Services devem estender `BaseService<T>` quando forem CRUD.
+- HTTP via fetch nativo (`api.client.ts` / `api.server.ts`); não usar axios.
+- Rotas e menus em arquivos `.routes.ts` tipados; não hardcoded em JSX.
+- Workspace por abas via `tabbedCrudRoute`, registry e componentes lazy.
+- Listas usam `QueryTablePanel`/`DataTable`; forms usam `CrudFormShell`, `FormSection` e inputs compartilhados.
+- Sidebar esquerda com expand/retract, busca, flyout no modo retraído.
+- Login em layout próprio; dark mode com `next-themes`.
+- Inputs com foco por borda/ring suave; sem outline bruto.
+- Perguntar antes de adicionar dependência Maven/NPM não prevista.
 
 ## Sistema ativo (rail) — regra absoluta
 
-- O dominio ativo (DP / RH / CTB / CFG) vem **somente** da selecao no rail esquerdo, persistido (`gommo-active-system` + `gommo-settings-mode` em localStorage).
-- **Nunca** derivar dominio ou menu lateral da URL, da aba focada ou do `href` da rota aberta — trocar aba no workspace **nao** recalcula o menu lateral (vale igual para CFG, DP, RH e CTB).
-- `isSettingsMode` muda **apenas** ao clicar CFG (`openSettings`) ou DP/RH/CTB (`selectSystem`); **proibido** `useEffect` em `pathname` para isso.
-- Clicar em **CFG** apenas troca o menu lateral para configuracoes; **nao** abre rota/aba automaticamente.
-- Clicar em **DP/RH/CTB** persiste o sistema, desliga CFG e foca o painel (`/dashboard`).
-- Implementacao: `ActiveSystemContext` + `SystemRail`; badge nas abas (`WorkspaceTabSystemBadge`) usa `href` so para exibicao.
+- O domínio ativo (DP/RH/CTB/CFG) vem somente da seleção no rail esquerdo.
+- Persistência: `gommo-active-system` e `gommo-settings-mode`.
+- Nunca derivar domínio ou menu lateral da URL, aba focada ou `href` aberto.
+- Trocar aba no workspace não recalcula menu lateral.
+- `isSettingsMode` muda apenas ao clicar CFG (`openSettings`) ou DP/RH/CTB (`selectSystem`).
+- É proibido usar `useEffect` em `pathname` para alternar domínio ativo.
+- Clicar em CFG troca o menu para configurações; não abre rota automaticamente.
+- Clicar em DP/RH/CTB persiste sistema, desliga CFG e foca dashboard.
 
-## Nomenclatura
+## Migrations por schema
 
-| Camada | Padrão |
-|--------|--------|
-| FE component | `CollaboratorForm.tsx` |
-| FE hook | `useCollaborator.ts` |
-| FE service | `collaborator.service.ts` |
-| BE entity | `Collaborator.java` |
-| BE service | `CollaboratorService.java` / `ICollaboratorService.java` |
-| BE DTO | `CollaboratorRequestDto.java` / `CollaboratorResponseDto.java` |
-| BE use case | `CreateCollaboratorUseCase.java` |
-
-## Migrations por schema (Flyway)
-
-Dois backends, **um PostgreSQL**, históricos Flyway **independentes** — numeração `V1`, `V2`… **não** precisa ser coordenada entre apps.
+Dois backends compartilham um PostgreSQL, com históricos Flyway independentes.
 
 | App | Pasta migrations | Schema PG | Histórico Flyway |
-|-----|------------------|-----------|------------------|
+|---|---|---|---|
 | `gommo-backend` | `gommo-backend/src/main/resources/db/migration/` | `public` | `public.flyway_schema_history` |
 | `gommo-admin-backend` | `gommo-admin-backend/src/main/resources/db/migration/` | `admin` | `admin.flyway_schema_history` |
 
 Regras:
 
-- Próximo `V{n}` de cada app: consultar **somente** o histórico daquele schema (ou as migrations da pasta daquele backend).
-- DDL do HR → **sempre** via `gommo-backend`; DDL da plataforma admin → **sempre** via `gommo-admin-backend`.
-- Cross-schema no código (ex.: admin escreve em `public.app_user`) é integração JPA — **não** criar migration Flyway no app errado.
-- Config explícita em `application.yml`: `flyway.schemas`, `default-schema`, `table: flyway_schema_history`.
+- Próximo `V{n}` deve considerar apenas o backend/schema correspondente.
+- DDL do HR deve ir no `gommo-backend`.
+- DDL da plataforma admin deve ir no `gommo-admin-backend`.
+- Integração cross-schema no código não substitui migration no backend dono do schema.
+- `application.yml` deve manter `flyway.schemas`, `default-schema` e `table` explícitos.
 
-## Multi-tenant (schema por cliente) — obrigatorio em modulo novo
+## Multi-tenant
 
-Isolamento e **schema dedicado** (`tenant_*`), nao `tenant_id` em query. O `search_path` inclui `public` como fallback — se a tabela **nao existir** no schema do tenant, o Postgres le/escreve em `public` (vazamento entre clientes).
+MVP usa schema dedicado por cliente (`tenant_*`), não coluna `tenant_id`.
 
-**Checklist ao criar tabela/entidade de negocio:**
+Ao criar tabela/entidade de negócio:
 
-1. Migration Flyway em `gommo-backend` (template em `public`).
-2. Incluir o nome da tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` (admin-backend).
-3. Espelhar a mesma lista em `scripts/dev/seed-tenant-empresa-a.sql` (`tenant_tables`).
-4. Rodar `scripts/dev/sync-tenant-missing-tables.sql` em dev para tenants ja provisionados.
-5. **Nunca** filtrar tenant manualmente no service — confiar no `TenantSchemaDataSource` + JWT/header (`X-Tenant-Slug`).
-6. Trabalho **@Async**: usar `TenantContextTaskDecorator` no executor (ver `PaymentAsyncConfig`).
+1. Criar migration Flyway em `gommo-backend`.
+2. Incluir a tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin backend.
+3. Espelhar em `scripts/dev/seed-tenant-empresa-a.sql` (`tenant_tables`).
+4. Sincronizar tenants existentes em dev quando necessário.
+5. Nunca filtrar tenant manualmente no service; usar `TenantSchemaDataSource` + JWT/header (`X-Tenant-Slug`).
+6. Trabalho `@Async` deve usar `TenantContextTaskDecorator` no executor.
 
-Frontend: headers de tenant via `api.client.ts` / `tenant.ts` — sem logica extra por tela.
+Frontend envia headers de tenant via `api.client.ts` / `tenant.ts`; não criar lógica extra por tela.
 
-## Encoding UTF-8 — revisar sempre (erro recorrente)
+## Encoding e textos PT-BR
 
-No Windows, arquivos `.ts`/`.tsx` editados pelo agente podem gravar **bytes UTF-8 inválidos** em acentos. O Next/Turbopack falha com `invalid utf-8 sequence` / `failed to convert rope into string`.
+Regra prática atual:
 
-**Labels e textos visíveis na UI (botões, abas, colunas, toasts):**
+- Labels visíveis de UI, botões, abas, colunas e textos de tela devem usar português normal em UTF-8 válido.
+- Não duplicar labels de CRUD no JSX quando já houver arquivo central como `*.route-labels.ts` ou `*.routes.ts`.
+- Mensagens de exceptions/catálogos podem usar escapes `\uXXXX` quando necessário para evitar regressões de encoding no Windows.
+- Comentários e identificadores de código devem preferir ASCII.
+- Evitar caracteres decorativos em fonte (`…`, aspas curvas, travessões soltos) quando não houver necessidade.
+- Ao editar `.ts`, `.tsx`, `.java`, `.sql` ou `.mdc`, validar leitura UTF-8 se houver suspeita de encoding inválido.
+- Se aparecer `invalid utf-8 sequence` / `failed to convert rope into string`, reescrever o arquivo em UTF-8 válido.
 
-1. **Nunca** usar escapes `\uXXXX` em strings de interface — o Turbopack pode exibir `\\u00e7` literalmente no botão/aba.
-2. Centralizar PT-BR em arquivo `*.route-labels.ts` ou `person.routes.ts` (como `leave-vacation.route-labels.ts`) com **acentos literais em UTF-8 válido**.
-3. Componentes importam constantes desse arquivo — **não** duplicar labels hardcoded no JSX.
-4. **Ao terminar:** validar (`node -e "require('fs').readFileSync('arquivo.ts').toString('utf8')"`); se houver `\uFFFD`, reescrever o arquivo.
+## Nomenclatura atual
 
-**Código (comentários e identificadores):** apenas ASCII (`a-z`, `0-9`, `_`). Evitar `…`, `—`, aspas curvas no fonte; preferir `...`.
+| Camada | Padrão |
+|---|---|
+| FE component | `CollaboratorFormClient.tsx`, `DepartmentListClient.tsx` |
+| FE hook | `useCollaborator.ts` |
+| FE service | `collaborator.service.ts` |
+| FE mapper | `collaborator.mapper.ts` |
+| BE entity | `Collaborator.java` |
+| BE service | `CollaboratorService.java` / `ICollaboratorService.java` |
+| BE DTO | `CollaboratorRequestDto.java` / `CollaboratorResponseDto.java` |
+| BE mapper | `CollaboratorMapper.java` |
 
-**Exceção legada:** `\uXXXX` só em mensagens de erro internas raras onde o literal já existia e foi validado — nunca em labels de CRUD.
+## Folha de Pagamento
 
-Arquivos que ja quebraram por isso: `shared/lib/input/number.ts`, `shared/lib/logging-out-overlay.ts`, `dashboard-system.util.ts`, `WorkspaceNavigationProvider.tsx`, `shared/components/ui/input/InputMonth.tsx`, `shared/components/ui/input/useMonthField.ts`, `shared/components/ui/input/MonthPickerPanel.tsx`, `db/migration/V29__payroll_event_sequential_code.sql`, `db/migration/V30__payroll_run_reference_date.sql`.
+- Domínio atual: CTB / Contabilidade.
+- Documentação: `docs/modulos/folha-de-pagamento.md`.
+- Regra específica: `.cursor/rules/gommo-payroll-module.mdc`.
+- Entidades existentes: `PayrollRun`, `PayrollEvent`, `Payslip`, `PayslipEntry`.
+- Processamento, lifecycle e PDF já existem no código.
 
 ## Ao gerar código
 
-- Manter estrutura de pastas do módulo
-- Interface + implementação
-- Validação nos DTOs (`@NotNull`, `@Size`)
-- Migration Flyway junto com entidade
-- Não quebrar contratos sem versionar API
-- SOLID, DDD (linguagem ubíqua), Strategy para cálculos (payroll/benefit)
-
-## Fase atual (01 — Fundação)
-
-Docker, bases genéricas, auth JWT/RBAC, Flyway, módulo Colaboradores, shell FE (login + sidebar + tema).
-
-## Módulo Folha de Pagamento (em desenvolvimento)
-
-- Branch: `feat/folha-de-pagamento`
-- Documentação: `docs/modulos/folha-de-pagamento.md`
-- Regra Cursor (agentes): `.cursor/rules/gommo-payroll-module.mdc`
-- Competência = `PayrollRun`; holerite = `Payslip` enriquecido; eventos = `PayrollEvent`; lançamentos = `PayslipEntry`
-- Implementação em 5 etapas — uma por vez, com autorização entre etapas
+- Manter estrutura de pastas do módulo atual, salvo refatoração estrutural planejada.
+- Procurar implementação semelhante antes de criar arquivos novos.
+- Usar interface + implementação quando o módulo segue esse padrão.
+- Validar DTOs com Bean Validation no backend.
+- Criar migration junto com entidade/tabela nova.
+- Não quebrar contratos sem versionar API.
+- Preferir SOLID, DDD e linguagem ubíqua do módulo.
+- Strategy é o padrão para cálculos de folha/benefícios.

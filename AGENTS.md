@@ -2,7 +2,10 @@
 
 Leia obrigatoriamente:
 
-- .curso.*
+- `.cursor/rules/gommo.mdc`
+- `.cursor/rules/gommo-frontend-ui.mdc`
+- `.cursor/rules/gommo-ui-system.mdc`
+- `.cursor/rules/gommo-payroll-module.mdc` quando tocar folha/payroll
 
 Antes de implementar qualquer alteração:
 

@@ -1,188 +1,153 @@
-# Gommo
+﻿# Gommo
 
-Monorepo RH / Departamento Pessoal — backends (Spring Boot), frontends (Next.js), painel admin da plataforma e infra (Docker).
+Monorepo ERP para RH, Departamento Pessoal e Contabilidade, com backends Spring Boot, frontends Next.js, painel admin da plataforma e infra Docker/Coolify.
 
-| Projeto | Pasta | Porta | Documentação |
-|---------|-------|-------|----------------|
-| API HR | `gommo-backend/` | 8081 | [README do backend](gommo-backend/README.md) |
-| Web HR | `gommo-frontend/` | 3000 | [README do frontend](gommo-frontend/README.md) |
-| API Admin | `gommo-admin-backend/` | 8082 | [README do admin backend](gommo-admin-backend/README.md) |
-| Web Admin | `gommo-admin-frontend/` | 3001 | [README do admin frontend](gommo-admin-frontend/README.md) |
+| Projeto | Pasta | Porta |
+|---|---|---|
+| API HR | `gommo-backend/` | 8081 |
+| Web HR | `gommo-frontend/` | 3000 |
+| API Admin | `gommo-admin-backend/` | 8082 |
+| Web Admin | `gommo-admin-frontend/` | 3001 |
+
+## Sistemas do produto
+
+| Sistema | Uso atual |
+|---|---|
+| DP | Departamento Pessoal: Organização e Pagamentos |
+| RH | Pessoas, férias/afastamentos, performance, insights |
+| CTB | Contabilidade: Folha de Pagamento |
+| CFG | Configurações: perfis e usuários |
+
+O domínio ativo no frontend vem do rail esquerdo, não da URL. Trocar abas no workspace não deve recalcular o menu lateral.
 
 ## Arquitetura multi-tenant
 
+O Gommo usa control plane + data plane.
+
 | Documento | Conteúdo |
-|-----------|----------|
-| [docs/arquitetura/multi-tenant.md](docs/arquitetura/multi-tenant.md) | Control plane vs data plane, DNS, onboarding |
-| [docs/arquitetura/multi-tenant-dev.md](docs/arquitetura/multi-tenant-dev.md) | Testes locais (`*.localhost`, fallback dev) |
-| [docs/arquitetura/multi-tenant-implementacao.md](docs/arquitetura/multi-tenant-implementacao.md) | Etapas de implementação |
+|---|---|
+| `docs/arquitetura/multi-tenant.md` | Modelo control plane/data plane, DNS e onboarding |
+| `docs/arquitetura/multi-tenant-dev.md` | Testes locais (`*.localhost`, fallback dev) |
+| `docs/arquitetura/multi-tenant-implementacao.md` | Plano e etapas de implementação |
 
-Tutorial do painel admin: [gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md](gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md).
+MVP multi-tenant: schema dedicado por cliente (`tenant_*`), não `tenant_id` em tabelas de negócio.
 
-## Início rápido (local)
+Ao criar tabela de negócio no HR:
 
-1. Copie `.env.example` para `.env` na raiz e defina as variáveis (senha do Postgres, JWT, admin dev).
-2. `docker compose up -d`
-3. HR: `cd gommo-backend && mvn spring-boot:run` → http://localhost:8081 e `cd gommo-frontend && npm install && npm run dev` → http://localhost:3000
-4. Admin: `cd gommo-admin-backend && mvn spring-boot:run` → http://localhost:8082 e `cd gommo-admin-frontend && npm install && npm run dev` → http://localhost:3001
+1. Criar migration em `gommo-backend/src/main/resources/db/migration/`.
+2. Incluir a tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin backend.
+3. Espelhar em `scripts/dev/seed-tenant-empresa-a.sql`.
+4. Sincronizar tenants existentes quando necessário.
 
-## Deploy — Oracle Cloud + Coolify
+## Módulo Folha de Pagamento
 
-Produção na VPS Oracle (Free Tier) com Terraform e painel Coolify:
+Documentação atualizada: `docs/modulos/folha-de-pagamento.md`.
 
-| Etapa | Documentação |
-|-------|----------------|
-| Criar VPS (Terraform) | [infra/terraform/oci/README.md](infra/terraform/oci/README.md) |
-| Subir stack no Coolify | [infra/coolify/README.md](infra/coolify/README.md) |
-| Visão geral da infra | [infra/README.md](infra/README.md) |
+Estado atual: Folha está em CTB/Contabilidade. Pagamentos permanece em DP.
 
-## Migrations Flyway (por schema)
+Já existem no código `PayrollRun`, `PayrollEvent`, `Payslip`, `PayslipEntry`, processamento por strategies, lifecycle de competência e PDF com OpenPDF.
 
-Cada backend aplica migrations **no seu schema PostgreSQL**, com histórico Flyway **separado**. Admin e HR podem ter `V1`, `V2`… ao mesmo tempo sem conflito de versionamento.
+## Início rápido local
+
+1. Copie `.env.example` para `.env` na raiz e configure as variáveis.
+2. Suba infraestrutura:
+
+```bash
+docker compose up -d
+```
+
+3. HR backend:
+
+```bash
+cd gommo-backend
+mvn spring-boot:run
+```
+
+4. HR frontend:
+
+```bash
+cd gommo-frontend
+npm install
+npm run dev
+```
+
+5. Admin backend:
+
+```bash
+cd gommo-admin-backend
+mvn spring-boot:run
+```
+
+6. Admin frontend:
+
+```bash
+cd gommo-admin-frontend
+npm install
+npm run dev
+```
+
+## Migrations Flyway
+
+Cada backend aplica migrations no seu schema PostgreSQL, com histórico separado.
 
 | Backend | Schema | Histórico | Pasta |
-|---------|--------|----------|-------|
+|---|---|---|---|
 | `gommo-backend` | `public` | `public.flyway_schema_history` | `gommo-backend/src/main/resources/db/migration/` |
 | `gommo-admin-backend` | `admin` | `admin.flyway_schema_history` | `gommo-admin-backend/src/main/resources/db/migration/` |
 
-Ao criar migration: use o próximo `V{n}` **apenas** do backend/schema correspondente. Alterações em tabelas do HR (`public`) vão no HR; alterações da plataforma admin vão no admin. Escrita cross-schema no código (integração) não substitui migration no backend dono do schema.
-
----
+O próximo `V{n}` deve ser calculado apenas dentro do backend/schema correspondente.
 
 ## Exceções e mensagens
 
-O sistema usa **códigos estáveis** (`code`) na API e **mensagens em português** nos catálogos de cada módulo.
+A API usa códigos estáveis (`code`) e mensagens em português nos catálogos de cada módulo.
 
-**Regra de encoding nos fontes:** use texto ASCII normal (`CPF`, `Erro`, `login`) e escape `\uXXXX` **somente em caracteres especiais** (acentos, cedilha, etc.), para evitar quebra de charset no build sem prejudicar a leitura do código.
-
-### UTF-8 — revisar sempre (mapa mental do projeto)
-
-Este erro **ja aconteceu varias vezes** no monorepo (principalmente no frontend Next.js no Windows). O Turbopack nao consegue parsear o arquivo e o dev server para com:
-
-```
-Reading source code for parsing failed
-invalid utf-8 sequence of 1 bytes from index N
-failed to convert rope into string
-```
-
-**Checklist ao criar ou editar `.ts`, `.tsx`, `.java`:**
-
-| Passo | Regra |
-|-------|--------|
-| 1 | Comentarios e nomes de variavel: **somente ASCII** |
-| 2 | Mensagens PT-BR em strings: acentos via `\uXXXX` (tabela abaixo) |
-| 3 | Nao usar `…` (ellipsis Unicode); usar `...` (tres pontos ASCII) |
-| 4 | Nao colar texto de editores/chat com encoding misto |
-| 5 | Ao finalizar, validar o arquivo: `node -e "require('fs').readFileSync('caminho/arquivo.ts').toString('utf8')"` |
-| 6 | Se quebrar o build: **reescrever o arquivo inteiro** com ASCII + escapes (corrigir so um trecho costuma deixar lixo binario) |
-
-**Arquivos que ja falharam por isso:** `gommo-frontend/src/shared/lib/input/number.ts`, `logging-out-overlay.ts`, `dashboard-system.util.ts`, `WorkspaceNavigationProvider.tsx` (e equivalentes no admin-frontend).
-
-Regra tambem documentada em `.cursor/rules/gommo.mdc` (sempre aplicada aos agentes).
-
-**Conversor recomendado (texto → `\uXXXX`):**  
-https://www.esoapi.com/pt/unicode/converter/
-
-**Referência de caracteres Unicode:**  
-https://unicode-table.com/pt/
-
-### Mapa de caracteres especiais (PT-BR)
-
-| Caractere | Unicode | Escape Java / TypeScript |
-|-----------|---------|---------------------------|
-| á | U+00E1 | `\u00e1` |
-| à | U+00E0 | `\u00e0` |
-| â | U+00E2 | `\u00e2` |
-| ã | U+00E3 | `\u00e3` |
-| ç | U+00E7 | `\u00e7` |
-| é | U+00E9 | `\u00e9` |
-| ê | U+00EA | `\u00ea` |
-| í | U+00ED | `\u00ed` |
-| ó | U+00F3 | `\u00f3` |
-| ô | U+00F4 | `\u00f4` |
-| õ | U+00F5 | `\u00f5` |
-| ú | U+00FA | `\u00fa` |
-| Á | U+00C1 | `\u00c1` |
-| É | U+00C9 | `\u00c9` |
-| Ê | U+00CA | `\u00ca` |
-| Ç | U+00C7 | `\u00c7` |
-| Ã | U+00C3 | `\u00c3` |
-
-Exemplo no código:
-
-```java
-public static final String MSG = "CPF j\u00e1 cadastrado";
-```
-
-```typescript
-PERSON_CPF_ALREADY_EXISTS: "CPF j\u00e1 cadastrado";
-```
-
-### Mapa de códigos de erro (`code`)
-
-Resposta padrão da API (`4xx` / `5xx`):
+Resposta padrão:
 
 ```json
 {
-  "code": "PERSON_CPF_ALREADY_EXISTS",
+  "code": "COLLABORATOR_CPF_ALREADY_EXISTS",
   "message": "CPF já cadastrado",
   "correlationId": "uuid",
   "timestamp": "2026-05-22T12:00:00Z"
 }
 ```
 
-#### Núcleo (Core)
-
-| Código | HTTP | Mensagem exibida |
-|--------|------|------------------|
-| `VALIDATION_ERROR` | 400 | Erro de validação |
-| `FORBIDDEN` | 403 | Você não tem permissão para esta ação |
-| `INTERNAL_ERROR` | 500 | Ocorreu um erro inesperado |
-| `UNKNOWN` | — | Ocorreu um erro inesperado *(somente frontend)* |
-
-**Backend:** `gommo-backend/.../core/exception/CoreExceptions.java`  
-**Frontend:** `gommo-frontend/src/shared/exceptions/core.messages.ts`
-
-#### Auth
-
-| Código | HTTP | Mensagem exibida |
-|--------|------|------------------|
-| `AUTH_INVALID_CREDENTIALS` | 401 | Usuário ou senha inválidos |
-| `AUTH_INVALID_REFRESH` | 401 | Token de atualização inválido |
-| `AUTH_REVOKED_REFRESH` | 401 | Sessão expirada. Faça login novamente |
-| `AUTH_EXPIRED_REFRESH` | 401 | Sessão expirada. Faça login novamente |
-| `AUTH_USER_NOT_FOUND` | 404 | Usuário não encontrado |
-| `AUTH_ERROR` | — | Falha na autenticação *(frontend)* |
-| `AUTH_SESSION_EXPIRED` | 401 | Sessão expirada. Faça login novamente *(somente frontend)* |
-
-**Backend:** `gommo-backend/.../modules/root/exception/AuthExceptions.java`  
-**Frontend:** `gommo-frontend/src/modules/root/exceptions/auth.messages.ts`
-
-#### Colaboradores
-
-| Código | HTTP | Mensagem exibida |
-|--------|------|------------------|
-| `COLLABORATOR_NOT_FOUND` | 404 | Colaborador não encontrado |
-| `COLLABORATOR_CPF_ALREADY_EXISTS` | 409 | CPF já cadastrado |
-| `CPF_ALREADY_EXISTS` | — | CPF já cadastrado *(alias legado no frontend)* |
-| `COLLABORATOR_LOAD_FAILED` | — | Não foi possível carregar o colaborador *(somente frontend)* |
-| `COLLABORATOR_SAVE_FAILED` | — | Não foi possível salvar o colaborador *(somente frontend)* |
-
-**Backend:** `gommo-backend/.../modules/collaborator/exception/CollaboratorExceptions.java`  
-**Frontend:** `gommo-frontend/src/modules/collaborator/exceptions/collaborator.messages.ts`
-
-### Onde implementar
+Padrão de implementação:
 
 | Camada | Padrão |
-|--------|--------|
-| Backend | `{Modulo}Exceptions.java` (catálogo) + `{Modulo}Exception.java` (fábricas) |
+|---|---|
+| Backend | `{Modulo}Exceptions.java` + `{Modulo}Exception.java` |
 | Frontend API | `{modulo}.messages.ts` + registro em `message-registry.ts` |
-| Frontend cliente | `{modulo}.messages.ts` (`*_CLIENT_MESSAGES`) + `{modulo}.client-exception.ts` |
-| Captura global | `ExceptionCapture` em `gommo-frontend/src/shared/exceptions/` |
+| Frontend cliente | `{modulo}.messages.ts` + `{modulo}.client-exception.ts` quando existir |
+| Captura global | `ExceptionCapture` em `src/shared/exceptions/` |
 
-```typescript
-import { ExceptionCapture } from "@/shared/exceptions";
+## Encoding UTF-8
 
-ExceptionCapture.handle(error); // toast + AppException
-ExceptionCapture.displayMessage(error); // só texto
+Regra atual:
+
+- Labels de UI, botões, abas, colunas e textos de tela usam português normal em UTF-8 válido.
+- Mensagens em catálogos de exceptions podem usar escapes `\uXXXX` quando necessário para evitar regressões de encoding no Windows.
+- Comentários e identificadores devem preferir ASCII.
+- Evitar caracteres decorativos em código quando não forem necessários.
+- Ao terminar alterações em `.ts`, `.tsx`, `.java`, `.sql`, `.md` ou `.mdc`, validar leitura UTF-8 se houver suspeita de arquivo corrompido.
+
+Validação rápida:
+
+```bash
+node -e "require('fs').readFileSync('caminho/arquivo.ts').toString('utf8')"
 ```
+
+Se aparecer `invalid utf-8 sequence` ou caractere de substituição (`�`), reescrever o arquivo em UTF-8 válido.
+
+## Regras para agentes
+
+As regras ativas ficam em `.cursor/rules/`.
+
+Leitura obrigatória antes de alterações:
+
+- `.cursor/rules/gommo.mdc`
+- `.cursor/rules/gommo-frontend-ui.mdc`
+- `.cursor/rules/gommo-ui-system.mdc` quando tocar UI/frontend
+- `.cursor/rules/gommo-payroll-module.mdc` quando tocar folha/payroll
+
+Antes de implementar: analisar arquitetura, procurar implementação semelhante, explicar o plano e só então alterar.
