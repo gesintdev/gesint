@@ -1,0 +1,22 @@
+---
+description: Suas instrucoes personalizadas (rascunho - mover para .agents/rules/ para ativar)
+globs:
+alwaysApply: false
+---
+
+# Titulo da regra
+
+Descreva aqui as instrucoes que o agente deve seguir.
+
+## Exemplos do que colocar
+
+- Convencoes de nomenclatura especificas do time
+- Fluxos de trabalho (branch, PR, commits)
+- Padroes de UI/UX alem das regras globais
+- Regras de um modulo ou bounded context
+
+## Checklist antes de ativar
+
+- [ ] `description` preenchida
+- [ ] Definido `alwaysApply` ou `globs`
+- [ ] Arquivo copiado/movido para `.agents/rules/`

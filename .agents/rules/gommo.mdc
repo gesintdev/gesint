@@ -1,4 +1,4 @@
-﻿---
+---
 description: Gommo — arquitetura, stack, convenções e regras absolutas (ERP RH/DP/CTB)
 alwaysApply: true
 ---
@@ -158,7 +158,7 @@ Regra prática atual:
 
 - Domínio atual: CTB / Contabilidade.
 - Documentação: `docs/modulos/folha-de-pagamento.md`.
-- Regra específica: `.cursor/rules/gommo-payroll-module.mdc`.
+- Regra específica: `.agents/rules/gommo-payroll-module.mdc`.
 - Entidades existentes: `PayrollRun`, `PayrollEvent`, `Payslip`, `PayslipEntry`.
 - Processamento, lifecycle e PDF já existem no código.
 

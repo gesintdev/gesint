@@ -1,4 +1,4 @@
-﻿# Gommo
+# Gommo
 
 Monorepo ERP para RH, Departamento Pessoal e Contabilidade, com backends Spring Boot, frontends Next.js, painel admin da plataforma e infra Docker/Coolify.
 
@@ -141,13 +141,13 @@ Se aparecer `invalid utf-8 sequence` ou caractere de substituição (`�`), ree
 
 ## Regras para agentes
 
-As regras ativas ficam em `.cursor/rules/`.
+As regras ativas ficam em `.agents/rules/`.
 
 Leitura obrigatória antes de alterações:
 
-- `.cursor/rules/gommo.mdc`
-- `.cursor/rules/gommo-frontend-ui.mdc`
-- `.cursor/rules/gommo-ui-system.mdc` quando tocar UI/frontend
-- `.cursor/rules/gommo-payroll-module.mdc` quando tocar folha/payroll
+- `.agents/rules/gommo.mdc`
+- `.agents/rules/gommo-frontend-ui.mdc`
+- `.agents/rules/gommo-ui-system.mdc` quando tocar UI/frontend
+- `.agents/rules/gommo-payroll-module.mdc` quando tocar folha/payroll
 
 Antes de implementar: analisar arquitetura, procurar implementação semelhante, explicar o plano e só então alterar.

@@ -39,7 +39,7 @@ gantt
 - [x] `docs/arquitetura/multi-tenant-implementacao.md` (este arquivo)
 - [x] README raiz — links para arquitetura
 - [x] `.env.example` — variáveis dev tenant
-- [ ] Regra Cursor `.cursor/rules/gommo-multi-tenant.mdc` (opcional, após Etapa 2)
+- [ ] Regra de agente `.agents/rules/gommo-multi-tenant.mdc` (opcional, após Etapa 2)
 
 ### Decisões fechadas
 
