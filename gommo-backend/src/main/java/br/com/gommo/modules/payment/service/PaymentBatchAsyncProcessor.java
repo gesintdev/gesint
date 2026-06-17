@@ -1,6 +1,9 @@
 package br.com.gommo.modules.payment.service;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.core.tenant.MultiTenantProperties;
+import br.com.gommo.core.tenant.TenantContext;
+import br.com.gommo.core.tenant.TenantContextHolder;
 import br.com.gommo.modules.payment.entity.PaymentBatchStatusEnum;
 import br.com.gommo.modules.payment.entity.PaymentSlip;
 import br.com.gommo.modules.payment.entity.PaymentSlipStatusEnum;
@@ -35,6 +38,7 @@ public class PaymentBatchAsyncProcessor {
     private final PaymentCollaboratorResolver collaboratorResolver;
     private final PaymentBatchProgressService progressService;
     private final PaymentNameMatcher nameMatcher;
+    private final MultiTenantProperties multiTenantProperties;
 
     public PaymentBatchAsyncProcessor(
             PaymentBatchRepository batchRepository,
@@ -43,7 +47,8 @@ public class PaymentBatchAsyncProcessor {
             PaymentFileStorageHelper fileStorageHelper,
             PaymentCollaboratorResolver collaboratorResolver,
             PaymentBatchProgressService progressService,
-            PaymentNameMatcher nameMatcher) {
+            PaymentNameMatcher nameMatcher,
+            MultiTenantProperties multiTenantProperties) {
         this.batchRepository = batchRepository;
         this.slipRepository = slipRepository;
         this.pdfParser = pdfParser;
@@ -51,10 +56,14 @@ public class PaymentBatchAsyncProcessor {
         this.collaboratorResolver = collaboratorResolver;
         this.progressService = progressService;
         this.nameMatcher = nameMatcher;
+        this.multiTenantProperties = multiTenantProperties;
     }
 
     @Async("paymentBatchExecutor")
-    public void processBatch(UUID batchId, byte[] sourceBytes) {
+    public void processBatch(UUID batchId, byte[] sourceBytes, TenantContext capturedTenant) {
+        if (!applyTenantContext(batchId, capturedTenant)) {
+            return;
+        }
         try (PDDocument document = Loader.loadPDF(sourceBytes)) {
             int pageCount = document.getNumberOfPages();
 
@@ -112,8 +121,29 @@ public class PaymentBatchAsyncProcessor {
                     notFound);
         } catch (Exception ex) {
             log.error("Payment batch {} processing failed", batchId, ex);
-            markBatchFailed(batchId);
+            markBatchFailed(batchId, "Erro no processamento");
         }
+    }
+
+    private boolean applyTenantContext(UUID batchId, TenantContext capturedTenant) {
+        if (!multiTenantProperties.isEnabled()) {
+            return true;
+        }
+        TenantContext tenant = capturedTenant != null
+                ? capturedTenant
+                : TenantContextHolder.getOptional().orElse(null);
+        if (tenant == null || tenant.isPlatformAccess()) {
+            log.error(
+                    "Payment batch {} aborted: tenant context missing on async worker (schema isolation broken)",
+                    batchId);
+            markBatchFailed(batchId, "Contexto de tenant ausente no processamento");
+            return false;
+        }
+        if (TenantContextHolder.getOptional().isEmpty()) {
+            TenantContextHolder.set(tenant);
+        }
+        log.debug("Payment batch {} processing on schema={}", batchId, tenant.schema());
+        return true;
     }
 
     private void finalizeBatch(UUID batchId, int pageCount, int divergent, OffsetDateTime processedAt) {
@@ -129,15 +159,15 @@ public class PaymentBatchAsyncProcessor {
                 });
     }
 
-    private void markBatchFailed(UUID batchId) {
+    private void markBatchFailed(UUID batchId, String reason) {
         batchRepository
                 .findByIdAndStatusNot(batchId, StatusEnum.DELETED)
                 .ifPresent(batch -> {
                     batch.setBatchStatus(PaymentBatchStatusEnum.PROCESSED);
                     batch.setDescription(
                             batch.getDescription() == null
-                                    ? "Erro no processamento"
-                                    : batch.getDescription() + " (erro no processamento)");
+                                    ? reason
+                                    : batch.getDescription() + " (" + reason + ")");
                     batchRepository.save(batch);
                 });
     }

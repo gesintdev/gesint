@@ -1,5 +1,6 @@
 package br.com.gommo.core.config;
 
+import br.com.gommo.core.tenant.TenantContextTaskDecorator;
 import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,7 @@ public class PaymentAsyncConfig {
         executor.setMaxPoolSize(2);
         executor.setQueueCapacity(8);
         executor.setThreadNamePrefix("payment-batch-");
+        executor.setTaskDecorator(new TenantContextTaskDecorator());
         executor.initialize();
         return executor;
     }

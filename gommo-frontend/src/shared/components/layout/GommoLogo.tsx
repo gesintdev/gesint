@@ -29,6 +29,7 @@ export function GommoLogo({ variant = "full", className, iconClassName, onBrand 
             alt="Gommo"
             width={onBrand ? 180 : 160}
             height={onBrand ? 48 : 44}
+            priority={!onBrand}
             className={clsx(
                 onBrand
                     ? "gommo-logo-on-brand h-9 w-auto max-w-[180px] shrink-0 object-contain object-left"

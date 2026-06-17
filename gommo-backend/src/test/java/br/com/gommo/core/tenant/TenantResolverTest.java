@@ -53,6 +53,17 @@ class TenantResolverTest {
     }
 
     @Test
+    void resolvesDevTenantSlugOnBareLocalhostWhenConfigured() {
+        properties.setDevTenantSlug("empresa-a");
+        TenantContext context = readyTenant("empresa-a", "tenant_empresa_a");
+        when(adminClientLookup.findBySlug("empresa-a")).thenReturn(Optional.of(context));
+
+        Optional<TenantContext> resolved = resolver.resolve("localhost:8081", null);
+
+        assertThat(resolved).contains(context);
+    }
+
+    @Test
     void resolvesByHeaderWhenEnabled() {
         properties.setHeaderEnabled(true);
         TenantContext context = readyTenant("empresa-b", "tenant_empresa_b");
