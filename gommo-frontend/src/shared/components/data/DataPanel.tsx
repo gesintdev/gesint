@@ -14,9 +14,7 @@
  *    ou <QueryPanel>{({ data }) => <DataTable data={data} onRowActivate={...} />}</QueryPanel>
  */
 export { DataRequest } from "@/shared/components/data/DataRequest";
-
 export { AsyncResult, useAsyncData } from "@/shared/components/data/DataResult";
-
 export {
     QueryPanel,
     type QueryPanelRenderProps,

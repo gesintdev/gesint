@@ -22,7 +22,7 @@ import br.com.gommo.core.tenant.PlatformAdminUserLookup;
 import br.com.gommo.core.tenant.TenantAuthValidator;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
-import br.com.gommo.modules.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.root.dto.LoginRequestDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
 import br.com.gommo.modules.root.dto.TokenResponseDto;

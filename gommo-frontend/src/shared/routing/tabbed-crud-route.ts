@@ -1,6 +1,6 @@
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import type { TabbedCrudRouteConfig } from "@/shared/routing/tabbed-crud-route.types";
 import { resolveLazyComponent } from "@/shared/routing/resolve-lazy-component";
+import type { TabbedCrudRouteConfig } from "@/shared/routing/tabbed-crud-route.types";
 
 export function tabbedCrudRoute(config: TabbedCrudRouteConfig): AppRoute {
     return {

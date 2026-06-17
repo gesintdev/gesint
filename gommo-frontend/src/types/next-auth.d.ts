@@ -1,6 +1,8 @@
-import type { AuthTokenError } from "@/auth/refresh-token";
-import type { DefaultSession } from "next-auth";
 import "next-auth/jwt";
+
+import type { DefaultSession } from "next-auth";
+
+import type { AuthTokenError } from "@/auth/refresh-token";
 declare module "next-auth" {
     interface User {
         accessToken?: string;

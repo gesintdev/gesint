@@ -1,6 +1,7 @@
-import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+
+import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import { isPathAccessible } from "@/shared/auth/route-permissions";
 import { apiFetch, setAuthToken } from "@/shared/lib/api.client";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";

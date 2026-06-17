@@ -1,11 +1,12 @@
 "use client";
 
-import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
-import type { CrudExtraTab } from "@/shared/components/crud/CrudScreen";
+import { type ComponentType, lazy, type ReactNode, Suspense } from "react";
+
 import { deriveWritePermission } from "@/shared/auth/permissions";
+import type { CrudExtraTab } from "@/shared/components/crud/CrudScreen";
 import { TabbedCrudPage } from "@/shared/components/layout/TabbedCrudPage";
-import type { TabbedCrudRouteConfig } from "@/shared/routing/tabbed-crud-route.types";
 import { resolveLazyComponent } from "@/shared/routing/resolve-lazy-component";
+import type { TabbedCrudRouteConfig } from "@/shared/routing/tabbed-crud-route.types";
 
 function toLazy(loader: TabbedCrudRouteConfig["list"]) {
     return lazy(() => resolveLazyComponent(loader).then((defaultExport) => ({ default: defaultExport })));
@@ -22,7 +23,13 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
         Content: toLazy(tab.content),
     }));
 
-    const { list: _omitList, form: _omitForm, listPrimaryAction: _omitPrimary, extraTabs: _omitExtra, ...tabbedCrudProps } = config;
+    const {
+        list: _omitList,
+        form: _omitForm,
+        listPrimaryAction: _omitPrimary,
+        extraTabs: _omitExtra,
+        ...tabbedCrudProps
+    } = config;
     void _omitList;
     void _omitForm;
     void _omitPrimary;
@@ -51,16 +58,16 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
         const extraTabs: CrudExtraTab[] = ExtraTabs.map(({ id, label, Content }) => {
             const tabConfig = config.extraTabs?.find((tab) => tab.id === id);
             return {
-            id,
-            label,
-            permission: tabConfig?.permission,
-            publicAccess: tabConfig?.publicAccess,
-            content: (
-                <Suspense fallback={null}>
-                    <Content />
-                </Suspense>
-            ),
-        };
+                id,
+                label,
+                permission: tabConfig?.permission,
+                publicAccess: tabConfig?.publicAccess,
+                content: (
+                    <Suspense fallback={null}>
+                        <Content />
+                    </Suspense>
+                ),
+            };
         });
 
         return (

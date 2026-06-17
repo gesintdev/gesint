@@ -1,15 +1,16 @@
 "use client";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+
 import type { OpenWorkspaceRecordInput, OpenWorkspaceTabInput, WorkspaceTab } from "@/shared/workspace/workspace.types";
-import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
-import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
 import {
     DASHBOARD_ROUTE_ID,
     DASHBOARD_TAB_ID,
     isDashboardTabId,
     stripDashboardTabs,
 } from "@/shared/workspace/workspace-dashboard";
+import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
+import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
 
 type WorkspaceState = {
     tabs: WorkspaceTab[];

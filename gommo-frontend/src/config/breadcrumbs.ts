@@ -1,5 +1,6 @@
-import { APP_ROUTES, ALL_NAV_SECTIONS } from "@/config/routes";
 import type { LucideIcon } from "lucide-react";
+
+import { ALL_NAV_SECTIONS, APP_ROUTES } from "@/config/routes";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 
 export type BreadcrumbItem = {

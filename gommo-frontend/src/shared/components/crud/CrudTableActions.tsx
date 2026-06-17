@@ -1,6 +1,5 @@
 import { Pencil, Trash2 } from "lucide-react";
-import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
-import { TableActionButton } from "@/shared/components/crud/TableActionButton";
+
 import {
     deriveDeletePermission,
     deriveWritePermission,
@@ -8,6 +7,8 @@ import {
     useSessionPermissions,
 } from "@/shared/auth/permissions";
 import { canWriteRoute } from "@/shared/auth/route-access";
+import { TableActionButton } from "@/shared/components/crud/TableActionButton";
+import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
 import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
 

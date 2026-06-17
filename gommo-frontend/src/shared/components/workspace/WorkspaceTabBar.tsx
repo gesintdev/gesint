@@ -1,12 +1,13 @@
 import clsx from "clsx";
-import {X} from "lucide-react";
-import {Fragment, useRef} from "react";
-import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
-import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
-import {isDashboardTabId} from "@/shared/workspace/workspace-dashboard";
-import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
-import {WorkspaceTabSystemBadge} from "@/shared/components/workspace/WorkspaceTabSystemBadge";
-import {WorkspaceTabOverflowMenu} from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
+import { X } from "lucide-react";
+import { Fragment, useRef } from "react";
+
+import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
+import { WorkspaceTabOverflowMenu } from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
+import { WorkspaceTabSystemBadge } from "@/shared/components/workspace/WorkspaceTabSystemBadge";
+import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
+import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
+import { isDashboardTabId } from "@/shared/workspace/workspace-dashboard";
 
 type WorkspaceTabBarProps = {
     dashboardTab: WorkspaceTab;
@@ -36,18 +37,13 @@ function WorkspaceTabButton({
             aria-selected={active}
             title={title}
             onClick={onSelect}
-            className={clsx(
-                "gommo-workspace-tab group/tab max-w-60 min-w-30",
-                active && "gommo-workspace-tab--active",
-            )}
+            className={clsx("gommo-workspace-tab group/tab max-w-60 min-w-30", active && "gommo-workspace-tab--active")}
         >
             <WorkspaceTabIcon
                 tab={tab}
                 className={clsx(
                     "size-3.5 shrink-0 transition-colors",
-                    active
-                        ? "text-primary"
-                        : "text-base-content/40 group-hover/tab:text-base-content/60",
+                    active ? "text-primary" : "text-base-content/40 group-hover/tab:text-base-content/60",
                 )}
             />
             <WorkspaceTabSystemBadge href={tab.href} />
@@ -77,13 +73,7 @@ function WorkspaceTabButton({
     );
 }
 
-export function WorkspaceTabBar({
-    dashboardTab,
-    moduleTabs,
-    activeTabId,
-    onSelect,
-    onClose,
-}: WorkspaceTabBarProps) {
+export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelect, onClose }: WorkspaceTabBarProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const dashboardActive = isDashboardTabId(activeTabId);
 
@@ -117,7 +107,9 @@ export function WorkspaceTabBar({
                                                 onSelect={() => onSelect(tab.id)}
                                                 onClose={() => onClose(tab.id)}
                                             />
-                                            {!isLast ? <span className="workspace-tabbar-sep text-base-300">|</span> : null}
+                                            {!isLast ? (
+                                                <span className="workspace-tabbar-sep text-base-300">|</span>
+                                            ) : null}
                                         </Fragment>
                                     );
                                 })}
@@ -128,11 +120,7 @@ export function WorkspaceTabBar({
             </div>
 
             <div className="workspace-tabbar-actions flex shrink-0 items-stretch">
-                <WorkspaceTabOverflowMenu
-                    moduleTabs={moduleTabs}
-                    activeTabId={activeTabId}
-                    onSelect={onSelect}
-                />
+                <WorkspaceTabOverflowMenu moduleTabs={moduleTabs} activeTabId={activeTabId} onSelect={onSelect} />
             </div>
         </div>
     );

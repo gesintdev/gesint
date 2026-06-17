@@ -1,17 +1,18 @@
 "use client";
+import clsx from "clsx";
 import { Plus, RefreshCw } from "lucide-react";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+
+import { useSessionPermissions } from "@/shared/auth/permissions";
 import { canAccessExtraTab, canWriteRoute, type RoutePublicAccess } from "@/shared/auth/route-access";
 import { useQueryRefresh } from "@/shared/components/data/QueryRefreshContext";
 import { Button } from "@/shared/components/ui/Button";
 import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
-import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
-import { isModuleListTab } from "@/shared/workspace/workspace-tab-id";
-import clsx from "clsx";
-import { useSessionPermissions } from "@/shared/auth/permissions";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
+import { isModuleListTab } from "@/shared/workspace/workspace-tab-id";
+import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
 
 export const CRUD_TAB_LIST = "list";
 export const CRUD_TAB_FORM = "form";
@@ -119,9 +120,7 @@ export function CrudScreen({
                 label: isEditing ? formTabLabelEdit : formTabLabel,
             });
         }
-        items.push(
-            ...visibleExtraTabs.map((t) => ({ id: t.id, label: t.label, badge: t.badge })),
-        );
+        items.push(...visibleExtraTabs.map((t) => ({ id: t.id, label: t.label, badge: t.badge })));
         return items;
     }, [activeTab, canWrite, editOnly, formTabLabel, formTabLabelEdit, isEditing, listTabLabel, visibleExtraTabs]);
     const goToList = useCallback(() => {

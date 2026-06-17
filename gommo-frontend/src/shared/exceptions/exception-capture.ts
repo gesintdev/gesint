@@ -1,5 +1,6 @@
-import { AppException, ApiError } from "@/shared/exceptions/app.exception";
 import { toast } from "sonner";
+
+import { ApiError, AppException } from "@/shared/exceptions/app.exception";
 import type { ErrorResponseDto } from "@/shared/exceptions/error-response.dto";
 import { resolveMessageByCode } from "@/shared/exceptions/message-registry";
 

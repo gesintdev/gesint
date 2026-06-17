@@ -1,14 +1,15 @@
 "use client";
-import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
-import { signIn } from "next-auth/react";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
+
 import { Button } from "@/shared/components/ui/Button";
 import { Input } from "@/shared/components/ui/Input";
 import { resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
-import Link from "next/link";
 
 export function LoginForm() {
     const router = useRouter();

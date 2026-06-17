@@ -1,7 +1,8 @@
 "use client";
-import type { ComponentProps, ReactNode } from "react";
-import { Button } from "@/shared/components/ui/Button";
 import clsx from "clsx";
+import type { ComponentProps, ReactNode } from "react";
+
+import { Button } from "@/shared/components/ui/Button";
 
 export type TableActionVariant = "open" | "edit" | "delete" | "download";
 

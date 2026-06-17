@@ -1,8 +1,9 @@
 import clsx from "clsx";
 import { Settings } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { settingsRoutes } from "@/modules/cfg/settings/config/settings.routes";
 import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
-import { settingsRoutes } from "@/modules/settings/config/settings.routes";
 import { useSessionPermissions } from "@/shared/auth/permissions";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";

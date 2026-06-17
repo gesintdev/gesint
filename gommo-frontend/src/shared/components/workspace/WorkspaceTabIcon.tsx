@@ -1,5 +1,6 @@
 "use client";
 import { FileText } from "lucide-react";
+
 import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
 

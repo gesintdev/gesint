@@ -1,6 +1,7 @@
 "use client";
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
+
 import { WorkspaceTabBar } from "@/shared/components/workspace/WorkspaceTabBar";
 import {
     parseWorkspaceLocation,

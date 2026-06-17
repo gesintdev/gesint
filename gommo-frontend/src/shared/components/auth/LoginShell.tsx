@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { ThemeToggle } from "@/shared/components/layout/ThemeToggle";
 

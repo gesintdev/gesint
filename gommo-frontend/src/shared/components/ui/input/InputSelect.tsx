@@ -1,13 +1,14 @@
 "use client";
+import clsx from "clsx";
 import { ChevronDown, X } from "lucide-react";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { useClickOutside, useListboxKeyboard } from "@/shared/components/ui/input/use-listbox-keyboard";
-import clsx from "clsx";
 
 export type InputSelectProps = InputFieldChromeProps & {
     items: SelectItem[];

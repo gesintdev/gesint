@@ -28,7 +28,7 @@ import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.entity.CodedEntity;
 import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.access.entity.SystemScopeEnum;
+import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 
 @Entity
 @Table(name = "role")

@@ -1,6 +1,7 @@
-import { FormStepper, type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import clsx from "clsx";
 import type { ReactNode, SubmitEvent } from "react";
+
+import { type FormStepNavItem, FormStepper } from "@/shared/components/ui/FormStepper";
 
 export type CrudFormStepperConfig = {
     steps: FormStepNavItem[];

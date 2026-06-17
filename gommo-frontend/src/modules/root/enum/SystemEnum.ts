@@ -1,4 +1,5 @@
-import { Calculator, Users, Wallet, type LucideIcon } from "lucide-react";
+import { Calculator, type LucideIcon, Users, Wallet } from "lucide-react";
+
 import type { AppRoute, TModule } from "@/modules/root/enum/ModuleEnum";
 
 export enum SystemEnum {

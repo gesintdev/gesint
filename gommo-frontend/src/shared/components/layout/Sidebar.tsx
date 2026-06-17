@@ -1,15 +1,16 @@
+import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
+
 import { type AppRoute, flattenRoutes } from "@/config/routes";
-import { useActiveSystem, useActiveSystemRoutes } from "@/shared/context/ActiveSystemContext";
-import { findRouteByHref } from "@/shared/workspace/workspace-routes";
-import { SidebarFlyout } from "@/shared/components/layout/SidebarFlyout";
 import { SidebarCollapseTrigger } from "@/shared/components/layout/SidebarCollapseTrigger";
+import { SidebarFlyout } from "@/shared/components/layout/SidebarFlyout";
 import { SystemRail } from "@/shared/components/layout/SystemRail";
+import { useActiveSystem, useActiveSystemRoutes } from "@/shared/context/ActiveSystemContext";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
-import clsx from "clsx";
+import { findRouteByHref } from "@/shared/workspace/workspace-routes";
 
 type SidebarProps = {
     collapsed: boolean;

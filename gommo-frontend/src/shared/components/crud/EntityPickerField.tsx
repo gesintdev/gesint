@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { PanelRightOpen } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+
 import { EntitySearchModal } from "@/shared/components/picker/EntitySearchModal";
 import { InputAutocomplete } from "@/shared/components/ui/input/index";
 import type { SelectItem, SelectSearchFn } from "@/shared/components/ui/input/select-item.types";

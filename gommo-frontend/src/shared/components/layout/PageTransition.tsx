@@ -1,7 +1,7 @@
 "use client";
+import clsx from "clsx";
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
-import clsx from "clsx";
 
 type PageTransitionProps = {
     children: ReactNode;

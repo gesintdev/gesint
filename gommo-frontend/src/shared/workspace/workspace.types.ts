@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+
 import type { WorkspaceEntityKey } from "@/shared/workspace/workspace-tab-id";
 
 export type WorkspaceTab = {

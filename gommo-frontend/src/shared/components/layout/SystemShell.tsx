@@ -1,15 +1,16 @@
 "use client";
 import { Bell, Command, Menu, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
+import { type ReactNode, Suspense, useCallback, useEffect, useState } from "react";
+
+import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { HeaderUserMenu } from "@/shared/components/layout/HeaderUserMenu";
 import { Sidebar } from "@/shared/components/layout/Sidebar";
 import { ThemeToggle } from "@/shared/components/layout/ThemeToggle";
-import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
 import { ActiveSystemProvider } from "@/shared/context/ActiveSystemContext";
-import { WorkspaceNavigationProvider } from "@/shared/workspace/WorkspaceNavigationProvider";
 import { setAuthToken } from "@/shared/lib/api.client";
+import { WorkspaceNavigationProvider } from "@/shared/workspace/WorkspaceNavigationProvider";
 
 export function SystemShell({
     children,
@@ -45,10 +46,7 @@ export function SystemShell({
     }, []);
 
     return (
-        <ActiveSystemProvider
-            initialStoredSystem={initialStoredSystem}
-            initialSettingsMode={initialSettingsMode}
-        >
+        <ActiveSystemProvider initialStoredSystem={initialStoredSystem} initialSettingsMode={initialSettingsMode}>
             <div className="flex h-dvh flex-col overflow-hidden">
                 {/* Linha superior: Gommo (largura do sidebar) + header principal */}
                 <div

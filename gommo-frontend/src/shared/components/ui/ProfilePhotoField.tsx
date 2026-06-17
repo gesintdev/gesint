@@ -1,18 +1,19 @@
-import {
-    PROFILE_PHOTO_DISPLAY_PX,
-    baseCoverScale,
-    exportProfilePhotoBlob,
-    loadImageFromFile,
-    type ProfilePhotoCropState,
-} from "@/shared/lib/image/profile-photo.util";
 import clsx from "clsx";
 import { Camera, Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
+
 import { Button } from "@/shared/components/ui/Button";
 import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { ExceptionCapture } from "@/shared/exceptions";
+import {
+    baseCoverScale,
+    exportProfilePhotoBlob,
+    loadImageFromFile,
+    PROFILE_PHOTO_DISPLAY_PX,
+    type ProfilePhotoCropState,
+} from "@/shared/lib/image/profile-photo.util";
 
 type ProfilePhotoFieldProps = {
     /** ID já persistido no storage/admissão */

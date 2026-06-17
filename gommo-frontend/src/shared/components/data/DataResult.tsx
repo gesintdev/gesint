@@ -1,4 +1,4 @@
-import { use, type ReactElement } from "react";
+import { type ReactElement, use } from "react";
 /**
  * Client Component para streaming com `use()`.
  * Passe como filho um componente que lê o contexto ou use o wrapper específico do módulo.

@@ -1,11 +1,12 @@
+import clsx from "clsx";
 import { Loader2, Search, X } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
 import type { SelectItem, SelectSearchFn } from "@/shared/components/ui/input/select-item.types";
 import { useClickOutside, useListboxKeyboard } from "@/shared/components/ui/input/use-listbox-keyboard";
-import clsx from "clsx";
 
 const PAGE_SIZE = 6;
 const DEBOUNCE_MS = 300;

@@ -33,9 +33,9 @@ O sistema ativo vem do rail esquerdo e não da URL.
 
 Folha de Pagamento foi movida de DP para CTB. O módulo Pagamentos permanece em DP.
 
-## Organização futura de módulos
+## Organização de módulos
 
-A estrutura desejada deve espelhar o caminho visual da sidebar tanto no frontend quanto no backend.
+A estrutura de módulos deve espelhar o caminho visual da sidebar tanto no frontend quanto no backend.
 
 Exemplo:
 
@@ -47,7 +47,14 @@ ctb/payroll/payroll-run
 ctb/payroll/payslip
 ```
 
-O código atual ainda possui agrupamentos legados como `modules/person`, `modules/payroll`, `modules/organization` e deve ser refatorado em branch dedicada, com moves coordenados, atualização de imports e validação ampla.
+Os agrupamentos funcionais atuais são:
+
+- DP: `dp/organization` e `dp/payment`
+- RH: `rh/dashboard`, `rh/person` e `rh/insights`
+- CTB: `ctb/payroll`
+- CFG: `cfg/access` no backend e `cfg/settings` no frontend
+
+Novos módulos devem seguir o mesmo caminho do menu lateral. Exemplo: se a sidebar mostra `DP > Organização > Departamentos`, os arquivos devem ficar em `dp/organization/department` no frontend e em `br.com.gommo.modules.dp.organization.department` no backend.
 
 ## Backend — obrigatório
 

@@ -1,8 +1,9 @@
 "use client";
+import clsx from "clsx";
 import { Check } from "lucide-react";
 import { forwardRef } from "react";
+
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
-import clsx from "clsx";
 
 type InputSelectPanelProps = {
     listId: string;

@@ -1,65 +1,33 @@
 export type { InputBaseProps, InputFieldChromeProps } from "./input-field.types";
-
 export type { InputAutocompleteProps } from "./InputAutocomplete";
-
 export { InputAutocomplete } from "./InputAutocomplete";
-
 export { InputBase } from "./InputBase";
-
 export type { InputCEPProps } from "./InputCEP";
-
 export { InputCEP } from "./InputCEP";
-
 export type { InputCNPJProps } from "./InputCNPJ";
-
 export { InputCNPJ } from "./InputCNPJ";
-
 export type { InputCPFProps } from "./InputCPF";
-
 export { InputCPF } from "./InputCPF";
-
 export type { InputCurrencyProps } from "./InputCurrency";
-
 export { InputCurrency } from "./InputCurrency";
-
 export type { InputDateProps } from "./InputDate";
-
 export { InputDate } from "./InputDate";
-
 export type { InputDatetimeProps } from "./InputDatetime";
-
 export { InputDatetime } from "./InputDatetime";
-
 export type { InputMonthProps } from "./InputMonth";
-
 export { InputMonth } from "./InputMonth";
-
 export type { InputNumberAlign, InputNumberProps } from "./InputNumber";
-
 export { InputNumber } from "./InputNumber";
-
 export type { InputPhoneProps } from "./InputPhone";
-
 export { InputPhone } from "./InputPhone";
-
 export type { InputRGProps } from "./InputRG";
-
 export { InputRG } from "./InputRG";
-
 export type { InputSelectProps } from "./InputSelect";
-
 export { InputSelect } from "./InputSelect";
-
 export type { InputSelectAutocompleteProps } from "./InputSelectAutocomplete";
-
 export { InputSelectAutocomplete } from "./InputSelectAutocomplete";
-
 export type { InputStringProps } from "./InputString";
-
 export { InputString } from "./InputString";
-
 export type { RgIdentityFieldsProps } from "./RgIdentityFields";
-
 export { RgIdentityFields } from "./RgIdentityFields";
-
 export type { SelectItem, SelectSearchFn, SelectSearchResult } from "./select-item.types";

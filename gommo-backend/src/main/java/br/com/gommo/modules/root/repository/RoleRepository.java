@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.access.entity.SystemScopeEnum;
+import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.root.entity.Role;
 
 public interface RoleRepository extends JpaRepository<Role, UUID> {

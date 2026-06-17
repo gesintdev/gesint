@@ -3,9 +3,10 @@
 import clsx from "clsx";
 import { CalendarDays } from "lucide-react";
 import { useId, useRef } from "react";
-import { MonthPickerPanel } from "@/shared/components/ui/input/MonthPickerPanel";
+
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import { MonthPickerPanel } from "@/shared/components/ui/input/MonthPickerPanel";
 import { useClickOutside } from "@/shared/components/ui/input/use-listbox-keyboard";
 import { useMonthField } from "@/shared/components/ui/input/useMonthField";
 

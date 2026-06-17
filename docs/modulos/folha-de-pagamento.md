@@ -32,7 +32,7 @@ Não criar entidades paralelas como `CompetenciaFolha`, `FolhaPagamento` ou equi
 
 ### 2.1 Backend existente
 
-Pacote atual: `gommo-backend/src/main/java/br/com/gommo/modules/payroll/`
+Pacote atual: `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/`
 
 Já existe:
 
@@ -58,7 +58,7 @@ Componentes principais:
 
 ### 2.2 Frontend existente
 
-Pasta atual: `gommo-frontend/src/modules/payroll/`
+Pasta atual: `gommo-frontend/src/modules/ctb/payroll/`
 
 Já existe:
 
@@ -200,11 +200,11 @@ Tabelas atuais de folha já presentes no catálogo/seed:
 
 ---
 
-## 7. Organização futura de módulos
+## 7. Organização de módulos
 
-A organização desejada é espelhar o caminho visual da sidebar na estrutura de pastas do frontend e backend.
+A organização de módulos espelha o caminho visual da sidebar na estrutura de pastas do frontend e backend.
 
-Exemplo desejado:
+Exemplo:
 
 ```text
 dp/organization/department
@@ -214,25 +214,20 @@ ctb/payroll/payroll-run
 ctb/payroll/payslip
 ```
 
-Hoje o código ainda usa agrupamentos legados como:
+Folha de Pagamento fica em:
 
 ```text
-gommo-backend/src/main/java/br/com/gommo/modules/payroll
-gommo-backend/src/main/java/br/com/gommo/modules/person
-gommo-backend/src/main/java/br/com/gommo/modules/organization
-gommo-frontend/src/modules/payroll
-gommo-frontend/src/modules/person
-gommo-frontend/src/modules/organization
+gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll
+gommo-frontend/src/modules/ctb/payroll
 ```
 
-Essa refatoração deve ser feita em branch dedicada, com moves coordenados entre backend/frontend, atualização de imports, validação de rotas, build e testes.
+Novos submódulos devem continuar seguindo o agrupamento da sidebar. Exemplo: `CTB > Folha de Pagamento > Holerites` deve permanecer sob `ctb/payroll/payslip`.
 
 ---
 
 ## 8. Pendências e dúvidas conhecidas
 
-- Refatorar estrutura de módulos para refletir a sidebar: `sistema/grupo/modulo`.
-- Revisar providers em `payroll/integration`: hoje eles encapsulam integração, mas ainda importam repositories/entities de `modules.person`; isso deve ser revisitado junto com a reorganização dos módulos.
+- Revisar providers em `payroll/integration`: hoje eles encapsulam integração com RH/DP e devem manter imports explícitos para os pacotes reorganizados.
 - Revisar documentação antiga que ainda cita folha como DP.
 - Validar se o lifecycle atual cobre todos os cenários operacionais de fechamento/reabertura.
 - Evoluir cálculos legais conforme necessidade fiscal/contábil.
@@ -243,17 +238,17 @@ Essa refatoração deve ser feita em branch dedicada, com moves coordenados entr
 
 Backend:
 
-- `gommo-backend/src/main/java/br/com/gommo/modules/payroll/controller/PayrollRunController.java`
-- `gommo-backend/src/main/java/br/com/gommo/modules/payroll/service/PayrollRunProcessingService.java`
-- `gommo-backend/src/main/java/br/com/gommo/modules/payroll/service/PayrollRunLifecycleService.java`
-- `gommo-backend/src/main/java/br/com/gommo/modules/payroll/lifecycle/PayrollRunStateMachine.java`
-- `gommo-backend/src/main/java/br/com/gommo/modules/payroll/calculation/`
-- `gommo-backend/src/main/java/br/com/gommo/modules/payroll/payslip/pdf/`
+- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/controller/PayrollRunController.java`
+- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/service/PayrollRunProcessingService.java`
+- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/service/PayrollRunLifecycleService.java`
+- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/lifecycle/PayrollRunStateMachine.java`
+- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/calculation/`
+- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/payslip/pdf/`
 
 Frontend:
 
 - `gommo-frontend/src/config/routes.ts`
-- `gommo-frontend/src/modules/payroll/config/payroll.routes.ts`
-- `gommo-frontend/src/modules/payroll/components/PayrollRunListClient.tsx`
-- `gommo-frontend/src/modules/payroll/payroll-event/components/PayrollEventListClient.tsx`
-- `gommo-frontend/src/modules/payroll/payslip/components/PayslipListClient.tsx`
+- `gommo-frontend/src/modules/ctb/payroll/config/payroll.routes.ts`
+- `gommo-frontend/src/modules/ctb/payroll/components/PayrollRunListClient.tsx`
+- `gommo-frontend/src/modules/ctb/payroll/payroll-event/components/PayrollEventListClient.tsx`
+- `gommo-frontend/src/modules/ctb/payroll/payslip/components/PayslipListClient.tsx`

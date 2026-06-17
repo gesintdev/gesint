@@ -1,14 +1,10 @@
-import { AppException } from "@/shared/exceptions/app.exception";
-import type { ErrorResponseDto } from "@/shared/exceptions/error-response.dto";
-import { AUTH_CLIENT_MESSAGES } from "@/modules/root/exceptions/auth.messages";
+import { createHttpClient } from "@/shared/lib/create-http-client";
 import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
 import { buildTenantRequestHeaders, resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
-import { createHttpClient } from "@/shared/lib/create-http-client";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8081";
 
 export { ApiError, AppException } from "@/shared/exceptions/app.exception";
-
 export type { DoRequestOptions } from "@/shared/lib/create-http-client";
 
 export async function resolveClientTenantHeaders(extra?: Record<string, string>): Promise<Record<string, string>> {

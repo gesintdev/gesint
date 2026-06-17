@@ -1,9 +1,9 @@
-import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Download, Pencil, Trash2, Upload, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { documentTypeLabel } from "@/modules/person/collaborators/admission/lib/admission-form.constants";
+
+import { documentTypeLabel } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
 import type { StorageObjectLink } from "@/modules/storage/dto/storage.dto";
 import { formatStorageMaxFileSize, isStorageFileTooLarge } from "@/modules/storage/lib/storage-limits";
 import { storageService } from "@/modules/storage/services/storage.service";
@@ -15,6 +15,7 @@ import type { SelectItem } from "@/shared/components/ui/input/select-item.types"
 import { ExceptionCapture } from "@/shared/exceptions";
 import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
 import { SystemAlert } from "@/shared/system-alert";
+import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
 
 export type PendingAttachment = {
     id: string;

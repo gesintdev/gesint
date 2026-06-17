@@ -4,29 +4,18 @@ import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useEffect, useRef, useState } from "react";
+
+import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { showLoggingOutOverlay } from "@/shared/lib/logging-out-overlay";
 import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
-import { useEffect, useRef, useState } from "react";
-import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 
-function UserIdentity({
-    name,
-    email,
-    compact = false,
-}: {
-    name: string;
-    email?: string | null;
-    compact?: boolean;
-}) {
+function UserIdentity({ name, email, compact = false }: { name: string; email?: string | null; compact?: boolean }) {
     return (
         <span className={clsx("min-w-0 text-left", compact ? "hidden sm:block" : "block")}>
-            <span className="block truncate text-[13px] font-semibold leading-tight text-base-content">
-                {name}
-            </span>
+            <span className="block truncate text-[13px] font-semibold leading-tight text-base-content">{name}</span>
             {email ? (
-                <span className="mt-0.5 block truncate text-[11px] leading-tight text-base-content/45">
-                    {email}
-                </span>
+                <span className="mt-0.5 block truncate text-[11px] leading-tight text-base-content/45">{email}</span>
             ) : null}
         </span>
     );
@@ -102,11 +91,7 @@ export function HeaderUserMenu() {
 
                         <div className="my-1 h-px bg-base-content/8" />
 
-                        <button
-                            type="button"
-                            role="menuitem"
-                            className="nav-item gap-2.5 !px-3 text-left text-[13px]"
-                        >
+                        <button type="button" role="menuitem" className="nav-item gap-2.5 !px-3 text-left text-[13px]">
                             <Settings className="size-[15px] shrink-0 text-base-content/38" strokeWidth={2} />
                             Configurações
                         </button>

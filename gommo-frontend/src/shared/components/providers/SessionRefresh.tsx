@@ -1,17 +1,18 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import {useEffect, useMemo, useRef} from "react";
-import {toast} from "sonner";
-import {canAccessRoute} from "@/shared/auth/route-access";
-import {setAuthToken} from "@/shared/lib/api.client";
-import {signOutToTenantLogin} from "@/shared/lib/sign-out.client";
-import {findRouteById} from "@/shared/workspace/workspace-routes";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
+import { useEffect, useMemo, useRef } from "react";
+import { toast } from "sonner";
+
+import { canAccessRoute } from "@/shared/auth/route-access";
+import { setAuthToken } from "@/shared/lib/api.client";
+import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
+import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import { findRouteById } from "@/shared/workspace/workspace-routes";
 
 /** Mantém o token em memória sincronizado e reage a falha de refresh */
 export function SessionRefresh() {
-    const {data: session} = useSession();
+    const { data: session } = useSession();
     const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
     const retainTabsByRouteIds = useWorkspaceStore((s) => s.retainTabsByRouteIds);
     const previousUserRef = useRef<string | null>(null);
@@ -47,8 +48,7 @@ export function SessionRefresh() {
         const allowedRouteIds = new Set(
             useWorkspaceStore
                 .getState()
-                .tabs
-                .map((tab) => tab.routeId)
+                .tabs.map((tab) => tab.routeId)
                 .filter((routeId) => {
                     const route = findRouteById(routeId);
                     return canAccessRoute(route, permissions);

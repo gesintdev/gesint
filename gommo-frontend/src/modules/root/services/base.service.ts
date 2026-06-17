@@ -1,5 +1,5 @@
-import { apiFetch } from "@/shared/lib/api.client";
 import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
+import { apiFetch } from "@/shared/lib/api.client";
 
 export abstract class BaseService<T, CreateDto = Partial<T>, UpdateDto = Partial<T>> {
     constructor(protected readonly basePath: string) {}

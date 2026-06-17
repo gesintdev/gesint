@@ -1,13 +1,13 @@
+import { settingsModule } from "@/modules/cfg/settings/settings.module";
+import { payrollModule } from "@/modules/ctb/payroll/payroll.module";
+import { organizationModule } from "@/modules/dp/organization/organization.module";
+import { paymentsModule } from "@/modules/dp/payment/payment.module";
+import { dashboardModule } from "@/modules/rh/dashboard/dashboard.module";
+import { insightsModule } from "@/modules/rh/insights/insights.module";
+import { personModule } from "@/modules/rh/person/person.module";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnum, type TSystemModuleGroup } from "@/modules/root/enum/SystemEnum";
-import { dashboardModule } from "@/modules/dashboard/dashboard.module";
-import { organizationModule } from "@/modules/organization/organization.module";
-import { personModule } from "@/modules/person/person.module";
-import { payrollModule } from "@/modules/payroll/payroll.module";
-import { paymentsModule } from "@/modules/payment/payment.module";
-import { insightsModule } from "@/modules/insights/insights.module";
-import { settingsModule } from "@/modules/settings/settings.module";
 /**
  * routes.ts - ponto de entrada de navegacao do sistema.
  *
@@ -23,11 +23,8 @@ import { settingsModule } from "@/modules/settings/settings.module";
  */
 // Re-exporta tipos centrais (mantem compatibilidade com imports existentes)
 export type { AppRoute, NavSection, TModule, TModuleInfos } from "@/modules/root/enum/ModuleEnum";
-
 export { ModuleEnum, ModuleEnumHelper } from "@/modules/root/enum/ModuleEnum";
-
 export type { TSystemModuleGroup } from "@/modules/root/enum/SystemEnum";
-
 export { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 
 export const systemModuleGroups: TSystemModuleGroup[] = [

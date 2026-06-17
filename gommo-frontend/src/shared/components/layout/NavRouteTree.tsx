@@ -1,8 +1,9 @@
 import clsx from "clsx";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { parentGroupIdsForRoute } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
-import { parentGroupIdsForRoute } from "@/modules/settings/lib/access-menu-catalog";
 function routeIsActive(route: AppRoute, highlightRouteId: string | null): boolean {
     if (!highlightRouteId) return false;
     if (route.id === highlightRouteId) return true;

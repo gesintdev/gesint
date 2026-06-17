@@ -1,22 +1,23 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import {
     createContext,
+    type ReactNode,
     useCallback,
     useContext,
     useEffect,
     useMemo,
     useState,
     useSyncExternalStore,
-    type ReactNode,
 } from "react";
+
+import { getNavSectionsForSystem, SETTINGS_NAV_SECTIONS } from "@/config/routes";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnum, SystemEnumHelper, type TSystemInfos } from "@/modules/root/enum/SystemEnum";
-import { getNavSectionsForSystem, SETTINGS_NAV_SECTIONS } from "@/config/routes";
-import { SETTINGS_MODE_COOKIE_KEY } from "@/shared/lib/active-system-preferences";
-import { useSession } from "next-auth/react";
 import { useSessionPermissions } from "@/shared/auth/permissions";
 import { canAccessRoute } from "@/shared/auth/route-access";
+import { SETTINGS_MODE_COOKIE_KEY } from "@/shared/lib/active-system-preferences";
 
 const SETTINGS_MODE_STORAGE_KEY = "gommo-settings-mode";
 const SETTINGS_MODE_EVENT = "gommo-settings-mode-change";

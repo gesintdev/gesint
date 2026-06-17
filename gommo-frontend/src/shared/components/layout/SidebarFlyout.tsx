@@ -1,7 +1,8 @@
+import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
+
 import type { AppRoute } from "@/config/routes";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
-import clsx from "clsx";
 
 type SidebarFlyoutProps = {
     route: AppRoute;

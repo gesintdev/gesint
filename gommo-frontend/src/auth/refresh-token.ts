@@ -1,4 +1,5 @@
 import type { JWT } from "next-auth/jwt";
+
 import { doRequest } from "@/shared/lib/api.client";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 /** Renova o access token ~60s antes de expirar */

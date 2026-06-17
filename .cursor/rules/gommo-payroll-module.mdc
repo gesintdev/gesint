@@ -1,6 +1,6 @@
 ﻿---
 description: Folha de Pagamento — estado atual, decisões e padrões (CTB)
-globs: gommo-backend/**/payroll/**/*,gommo-frontend/src/modules/payroll/**/*,docs/modulos/folha-de-pagamento.md
+globs: gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/**/*,gommo-frontend/src/modules/ctb/payroll/**/*,docs/modulos/folha-de-pagamento.md
 alwaysApply: false
 ---
 
@@ -41,11 +41,11 @@ Não recriar entidades paralelas como `CompetenciaFolha`, `FolhaPagamento` ou eq
 
 **Frontend:** usar `tabbedCrudRoute` em `payroll.routes.ts`; `{Entity}ListClient` + `{Entity}FormClient`; `BaseService`; mapper manual; `QueryTablePanel`; `CrudFormShell`; componentes compartilhados de UI.
 
-## Organização futura de módulos
+## Organização de módulos
 
-A arquitetura desejada é espelhar o caminho visual da sidebar também nas pastas de frontend e backend.
+A arquitetura espelha o caminho visual da sidebar também nas pastas de frontend e backend.
 
-Exemplo desejado:
+Exemplo:
 
 ```text
 dp/organization/department
@@ -53,7 +53,10 @@ ctb/payroll/payroll-run
 rh/person/leave
 ```
 
-O código atual ainda possui agrupamentos legados como `modules/person`, `modules/payroll`, `modules/organization` e deve ser refatorado em etapa dedicada, com moves coordenados entre frontend, backend, imports e documentação.
+Folha de Pagamento deve permanecer em:
+
+- Backend: `br.com.gommo.modules.ctb.payroll`
+- Frontend: `gommo-frontend/src/modules/ctb/payroll`
 
 ## Ao concluir alterações relevantes
 
