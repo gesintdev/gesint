@@ -56,9 +56,22 @@ function resolveHireProfile(contract: EmploymentContract | null, admission: Admi
     return { contractType, hireDate, baseSalary };
 }
 
+function resolveRequestedPeriodIndex(hireDate: string, acquisitionStart?: string): number {
+    const requestedStart = acquisitionStart?.slice(0, 10);
+    if (!requestedStart) return resolveActivePeriodIndex(hireDate);
+
+    for (let index = 0; index < 100; index += 1) {
+        const period = acquisitionPeriod(hireDate, index);
+        if (period.start === requestedStart) return index;
+        if (period.start > requestedStart) break;
+    }
+    return resolveActivePeriodIndex(hireDate);
+}
+
 export async function loadCollaboratorVacationContext(
     collaboratorId: string,
     unjustifiedAbsences: number,
+    acquisitionStart?: string,
 ): Promise<VacationPeriodContext> {
     const [contracts, admissions] = await Promise.all([
         employmentcontractService.getAll(),
@@ -81,7 +94,7 @@ export async function loadCollaboratorVacationContext(
             periodIndex: 0,
         };
     }
-    const periodIndex = resolveActivePeriodIndex(profile.hireDate);
+    const periodIndex = resolveRequestedPeriodIndex(profile.hireDate, acquisitionStart);
     const acquisition = acquisitionPeriod(profile.hireDate, periodIndex);
     const concessive = concessivePeriod(acquisition.end);
     const status = resolvePeriodStatus(acquisition, concessive, entitledDays);

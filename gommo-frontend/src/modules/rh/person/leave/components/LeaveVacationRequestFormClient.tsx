@@ -78,7 +78,11 @@ export function LeaveVacationRequestFormClient() {
         }
         let cancelled = false;
         setContextLoading(true);
-        void loadCollaboratorVacationContext(form.collaboratorId, form.unjustifiedAbsences)
+        void loadCollaboratorVacationContext(
+            form.collaboratorId,
+            form.unjustifiedAbsences,
+            form.acquisitionPeriodStart,
+        )
             .then((ctx) => {
                 if (cancelled) return;
                 setPeriodContext(ctx);
@@ -96,7 +100,7 @@ export function LeaveVacationRequestFormClient() {
         return () => {
             cancelled = true;
         };
-    }, [form.collaboratorId, form.unjustifiedAbsences]);
+    }, [form.acquisitionPeriodStart, form.collaboratorId, form.unjustifiedAbsences]);
 
     useEffect(() => {
         const acquisition = periodContext?.acquisition;

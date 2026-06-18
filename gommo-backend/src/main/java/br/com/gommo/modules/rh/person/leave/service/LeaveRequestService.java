@@ -1,8 +1,11 @@
 package br.com.gommo.modules.rh.person.leave.service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -16,11 +19,19 @@ import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
+import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
+import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
+import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
 import br.com.gommo.modules.rh.person.leave.domain.VacationAbsenceCalculator;
+import br.com.gommo.modules.rh.person.leave.domain.VacationEligibilityEvaluator;
 import br.com.gommo.modules.rh.person.leave.domain.VacationRules;
 import br.com.gommo.modules.rh.person.leave.dto.LeaveRequestRequestDto;
 import br.com.gommo.modules.rh.person.leave.dto.LeaveRequestResponseDto;
 import br.com.gommo.modules.rh.person.leave.dto.VacationAbsenceSummaryDto;
+import br.com.gommo.modules.rh.person.leave.dto.VacationEligibleCollaboratorDto;
 import br.com.gommo.modules.rh.person.leave.dto.VacationReviewRequestDto;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
@@ -38,15 +49,21 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     private final LeaveRequestRepository repository;
     private final LeaveRequestMapper mapper;
     private final CollaboratorRepository collaboratorRepository;
+    private final EmploymentContractRepository employmentContractRepository;
+    private final AdmissionProcessRepository admissionProcessRepository;
 
     public LeaveRequestService(
             LeaveRequestRepository repository,
             LeaveRequestMapper mapper,
-            CollaboratorRepository collaboratorRepository) {
+            CollaboratorRepository collaboratorRepository,
+            EmploymentContractRepository employmentContractRepository,
+            AdmissionProcessRepository admissionProcessRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.collaboratorRepository = collaboratorRepository;
+        this.employmentContractRepository = employmentContractRepository;
+        this.admissionProcessRepository = admissionProcessRepository;
     }
 
     @Override
@@ -137,6 +154,42 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
                 .unjustifiedAbsences(summary.unjustifiedAbsences())
                 .justifiedAbsences(summary.justifiedAbsences())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('leave:read')")
+    public List<VacationEligibleCollaboratorDto> findVacationEligibleCollaborators() {
+        LocalDate referenceDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        Map<UUID, List<EmploymentContract>> contractsByCollaborator = employmentContractRepository.findAll().stream()
+                .filter(contract -> contract.getStatus() != StatusEnum.DELETED)
+                .collect(Collectors.groupingBy(EmploymentContract::getCollaboratorId));
+        Map<UUID, AdmissionProcess> admissionsByCollaborator = admissionProcessRepository
+                .findByAdmissionStatusAndCollaboratorIdIsNotNullAndStatusNot(
+                        AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED)
+                .stream()
+                .collect(Collectors.toMap(
+                        AdmissionProcess::getCollaboratorId,
+                        Function.identity(),
+                        LeaveRequestService::latestAdmission));
+        Map<UUID, List<LeaveRequest>> leavesByCollaborator = repository
+                .findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED)
+                .stream()
+                .collect(Collectors.groupingBy(LeaveRequest::getCollaboratorId));
+
+        return collaboratorRepository.findByStatusNotOrderByFullNameAsc(StatusEnum.DELETED).stream()
+                .filter(collaborator -> collaborator.getStatus() == StatusEnum.ACTIVE)
+                .map(collaborator -> buildEligibleCollaborator(
+                        collaborator,
+                        contractsByCollaborator.getOrDefault(collaborator.getId(), List.of()),
+                        admissionsByCollaborator.get(collaborator.getId()),
+                        leavesByCollaborator.getOrDefault(collaborator.getId(), List.of()),
+                        referenceDate))
+                .flatMap(Optional::stream)
+                .sorted(Comparator.comparing((VacationEligibleCollaboratorDto row) -> !"EXPIRED".equals(row.getPeriodStatus()))
+                        .thenComparing(VacationEligibleCollaboratorDto::getConcessiveEnd)
+                        .thenComparing(VacationEligibleCollaboratorDto::getCollaboratorName))
+                .toList();
     }
 
     @Override
@@ -249,6 +302,82 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         if (VacationRules.isRestrictedVacationStart(request.getStartDate())) {
             throw LeaveRequestException.vacationInvalid(LeaveRequestExceptions.VACATION_START_RESTRICTED_MSG);
         }
+    }
+
+    private Optional<VacationEligibleCollaboratorDto> buildEligibleCollaborator(
+            Collaborator collaborator,
+            List<EmploymentContract> contracts,
+            AdmissionProcess admission,
+            List<LeaveRequest> leaves,
+            LocalDate referenceDate) {
+        Optional<EmploymentContract> activeContract = contracts.stream()
+                .filter(contract -> contract.getStatus() == StatusEnum.ACTIVE)
+                .filter(contract -> !contract.getStartDate().isAfter(referenceDate))
+                .filter(contract -> contract.getEndDate() == null || !contract.getEndDate().isBefore(referenceDate))
+                .max(Comparator.comparing(EmploymentContract::getStartDate));
+
+        if (!contracts.isEmpty() && activeContract.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ContractTypeEnum contractType = activeContract
+                .map(EmploymentContract::getContractType)
+                .orElseGet(() -> admission != null ? admission.getContractType() : null);
+        if (contractType != ContractTypeEnum.CLT
+                || (activeContract.isEmpty() && !isAdmissionActive(admission, referenceDate))) {
+            return Optional.empty();
+        }
+
+        LocalDate hireDate = admission != null ? admissionDate(admission) : null;
+        if (hireDate == null) {
+            hireDate = activeContract.map(EmploymentContract::getStartDate).orElse(null);
+        }
+        if (hireDate == null) {
+            return Optional.empty();
+        }
+        LocalDate resolvedHireDate = hireDate;
+
+        return VacationEligibilityEvaluator.findFirstEligiblePeriod(resolvedHireDate, referenceDate, leaves)
+                .map(period -> VacationEligibleCollaboratorDto.builder()
+                        .collaboratorId(collaborator.getId())
+                        .collaboratorName(collaborator.getFullName())
+                        .cpf(collaborator.getCpf())
+                        .photoObjectId(collaborator.getPhotoObjectId() != null
+                                ? collaborator.getPhotoObjectId()
+                                : admission != null ? admission.getPhotoObjectId() : null)
+                        .hireDate(resolvedHireDate)
+                        .contractType(contractType)
+                        .periodStatus(period.status())
+                        .entitledDays(period.entitledDays())
+                        .unjustifiedAbsences(period.unjustifiedAbsences())
+                        .justifiedAbsences(period.justifiedAbsences())
+                        .acquisitionStart(period.acquisition().start())
+                        .acquisitionEnd(period.acquisition().end())
+                        .concessiveStart(period.concessive().start())
+                        .concessiveEnd(period.concessive().end())
+                        .build());
+    }
+
+    private static boolean isAdmissionActive(AdmissionProcess admission, LocalDate referenceDate) {
+        LocalDate startDate = admission != null ? admissionDate(admission) : null;
+        if (startDate == null || startDate.isAfter(referenceDate)) {
+            return false;
+        }
+        return admission.getContractEndDate() == null || !admission.getContractEndDate().isBefore(referenceDate);
+    }
+
+    private static LocalDate admissionDate(AdmissionProcess admission) {
+        return admission.getContractStartDate() != null
+                ? admission.getContractStartDate()
+                : admission.getExpectedStartDate();
+    }
+
+    private static AdmissionProcess latestAdmission(AdmissionProcess first, AdmissionProcess second) {
+        LocalDate firstDate = admissionDate(first);
+        LocalDate secondDate = admissionDate(second);
+        if (firstDate == null) return second;
+        if (secondDate == null) return first;
+        return firstDate.isAfter(secondDate) ? first : second;
     }
 
     private Map<UUID, String> collaboratorNamesById(List<UUID> collaboratorIds) {

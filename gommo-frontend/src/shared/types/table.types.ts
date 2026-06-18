@@ -32,6 +32,8 @@ export type TableColumnConfig = {
     avatarImageField?: string;
     /** Subtítulo abaixo do nome (AVATAR_PROFILE) */
     avatarSubtitleField?: string;
+    /** Tamanho do avatar; listas mais densas podem usar `sm`. */
+    avatarSize?: "sm" | "md" | "lg";
     /** Rótulos customizados para células BADGE (sobrescreve o mapa global) */
     badgeLabels?: Record<string, string>;
 };

@@ -52,13 +52,27 @@ function renderCellContent(
         const name = value != null && value !== "" ? String(value) : "—";
         const photoObjectId = col.avatarImageField ? (get(row, col.avatarImageField) as string | undefined) : undefined;
         const subtitle = col.avatarSubtitleField ? get(row, col.avatarSubtitleField) : undefined;
+        const avatarSize = col.avatarSize ?? "lg";
+        const denseProfile = avatarSize === "sm";
         return (
-            <div className="flex items-center gap-3">
-                <ProfileAvatar name={name} photoObjectId={photoObjectId} size="lg" shape="squircle" />
+            <div className={clsx("flex items-center", denseProfile ? "gap-2" : "gap-3")}>
+                <ProfileAvatar name={name} photoObjectId={photoObjectId} size={avatarSize} shape="squircle" />
                 <div className="min-w-0">
-                    <div className="truncate font-bold text-base-content">{name}</div>
+                    <div
+                        className={clsx(
+                            "truncate text-base-content",
+                            denseProfile ? "text-sm font-semibold" : "font-bold",
+                        )}
+                    >
+                        {name}
+                    </div>
                     {subtitle != null && subtitle !== "" ? (
-                        <div className="truncate text-sm opacity-50 tabular-nums">
+                        <div
+                            className={clsx(
+                                "truncate opacity-50 tabular-nums",
+                                denseProfile ? "text-xs" : "text-sm",
+                            )}
+                        >
                             {formatCellValue(subtitle, TableDataType.CPF)}
                         </div>
                     ) : null}

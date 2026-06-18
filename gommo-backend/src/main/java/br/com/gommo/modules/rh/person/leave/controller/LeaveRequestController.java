@@ -1,6 +1,7 @@
 package br.com.gommo.modules.rh.person.leave.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import br.com.gommo.core.base.controller.BaseController;
 import br.com.gommo.modules.rh.person.leave.dto.LeaveRequestRequestDto;
 import br.com.gommo.modules.rh.person.leave.dto.LeaveRequestResponseDto;
 import br.com.gommo.modules.rh.person.leave.dto.VacationAbsenceSummaryDto;
+import br.com.gommo.modules.rh.person.leave.dto.VacationEligibleCollaboratorDto;
 import br.com.gommo.modules.rh.person.leave.dto.VacationReviewRequestDto;
 import br.com.gommo.modules.rh.person.leave.service.ILeaveRequestService;
 import jakarta.validation.Valid;
@@ -36,6 +38,11 @@ public class LeaveRequestController extends BaseController<LeaveRequestRequestDt
             @RequestParam LocalDate acquisitionStart,
             @RequestParam LocalDate acquisitionEnd) {
         return leaveRequestService.absenceSummary(collaboratorId, acquisitionStart, acquisitionEnd);
+    }
+
+    @GetMapping("/vacation/eligible-collaborators")
+    public List<VacationEligibleCollaboratorDto> eligibleCollaborators() {
+        return leaveRequestService.findVacationEligibleCollaborators();
     }
 
     @PostMapping("/{id}/vacation-review")
