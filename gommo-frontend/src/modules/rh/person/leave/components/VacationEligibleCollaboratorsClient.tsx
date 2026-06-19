@@ -24,6 +24,11 @@ export function VacationEligibleCollaboratorsClient() {
                     justifiedAbsences: row.justifiedAbsences,
                     acquisitionPeriodStart: row.acquisitionStart,
                     acquisitionPeriodEnd: row.acquisitionEnd,
+                    recessPeriodId: row.recessPeriodId,
+                    recessAllowSplit: row.recessAllowSplit,
+                    recessMaxSplitPeriods: row.recessMaxSplitPeriods,
+                    recessMinimumSplitDays: row.recessMinimumSplitDays,
+                    vacationDaysEntitled: row.entitledDays,
                 }),
             );
         }

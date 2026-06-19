@@ -11,6 +11,7 @@ import java.util.UUID;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.person.leave.entity.VacationReviewStatusEnum;
+import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
 
 @Getter
 @Builder
@@ -36,6 +37,9 @@ public class LeaveRequestResponseDto {
     private final Integer justifiedAbsences;
     private final VacationReviewStatusEnum reviewStatus;
     private final String reviewReason;
+    private final UUID recessPeriodId;
+    private final RecessFinancialModeEnum recessFinancialMode;
+    private final BigDecimal recessPaidPercentage;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

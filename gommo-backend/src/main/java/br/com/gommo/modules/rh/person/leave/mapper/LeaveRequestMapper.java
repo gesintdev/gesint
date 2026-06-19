@@ -2,6 +2,7 @@ package br.com.gommo.modules.rh.person.leave.mapper;
 
 import org.springframework.stereotype.Component;
 
+import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.leave.dto.LeaveRequestRequestDto;
 import br.com.gommo.modules.rh.person.leave.dto.LeaveRequestResponseDto;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
@@ -12,6 +13,7 @@ import br.com.gommo.modules.rh.person.leave.entity.VacationReviewStatusEnum;
 public class LeaveRequestMapper {
     public LeaveRequest toEntity(LeaveRequestRequestDto dto) {
         return LeaveRequest.builder()
+                .status(StatusEnum.ACTIVE)
                 .collaboratorId(dto.getCollaboratorId())
                 .leaveType(dto.getLeaveType() != null ? dto.getLeaveType() : LeaveTypeEnum.VACATION)
                 .startDate(dto.getStartDate())
@@ -29,6 +31,9 @@ public class LeaveRequestMapper {
                 .justifiedAbsences(dto.getJustifiedAbsences())
                 .reviewStatus(dto.getReviewStatus())
                 .reviewReason(dto.getReviewReason())
+                .recessPeriodId(dto.getRecessPeriodId())
+                .recessFinancialMode(dto.getRecessFinancialMode())
+                .recessPaidPercentage(dto.getRecessPaidPercentage())
                 .build();
     }
 
@@ -58,6 +63,9 @@ public class LeaveRequestMapper {
             entity.setReviewStatus(dto.getReviewStatus());
         }
         entity.setReviewReason(dto.getReviewReason());
+        entity.setRecessPeriodId(dto.getRecessPeriodId());
+        entity.setRecessFinancialMode(dto.getRecessFinancialMode());
+        entity.setRecessPaidPercentage(dto.getRecessPaidPercentage());
     }
 
     public LeaveRequestResponseDto toResponse(LeaveRequest entity) {
@@ -87,6 +95,9 @@ public class LeaveRequestMapper {
                 .justifiedAbsences(entity.getJustifiedAbsences())
                 .reviewStatus(entity.getReviewStatus())
                 .reviewReason(entity.getReviewReason())
+                .recessPeriodId(entity.getRecessPeriodId())
+                .recessFinancialMode(entity.getRecessFinancialMode())
+                .recessPaidPercentage(entity.getRecessPaidPercentage())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

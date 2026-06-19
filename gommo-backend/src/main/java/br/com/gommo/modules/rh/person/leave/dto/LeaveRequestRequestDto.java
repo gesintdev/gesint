@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.person.leave.entity.VacationReviewStatusEnum;
+import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
 
 @Getter
 @Setter
@@ -42,4 +43,7 @@ public class LeaveRequestRequestDto {
     private Integer justifiedAbsences;
     private VacationReviewStatusEnum reviewStatus;
     private String reviewReason;
+    private UUID recessPeriodId;
+    private RecessFinancialModeEnum recessFinancialMode;
+    private BigDecimal recessPaidPercentage;
 }

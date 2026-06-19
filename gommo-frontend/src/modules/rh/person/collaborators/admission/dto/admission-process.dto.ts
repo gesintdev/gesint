@@ -5,6 +5,7 @@ export type Gender = "MALE" | "FEMALE" | "OTHER" | "NOT_INFORMED";
 export type MaritalStatus = "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "OTHER";
 
 export type ContractType = "CLT" | "PJ" | "INTERMITTENT" | "APPRENTICE" | "INTERN";
+export type RecessFinancialMode = "FULLY_PAID" | "UNPAID" | "PROPORTIONAL" | "CUSTOM";
 
 export type AdmissionEmergencyContact = {
     name: string;
@@ -60,6 +61,17 @@ export class AdmissionProcess {
     providerCnpj?: string;
     providerLegalName?: string;
     providerTradeName?: string;
+    recessEnabled?: boolean;
+    recessTotalDaysPerCycle?: number;
+    recessCycleMonths?: number;
+    recessEligibilityAfterMonths?: number;
+    recessFinancialMode?: RecessFinancialMode;
+    recessPaidPercentage?: number;
+    recessAllowSplit?: boolean;
+    recessMaxSplitPeriods?: number;
+    recessMinimumSplitDays?: number;
+    recessAdvanceNoticeDays?: number;
+    recessNotes?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -105,4 +117,15 @@ export class AdmissionProcessCreateDto {
     providerCnpj?: string;
     providerLegalName?: string;
     providerTradeName?: string;
+    recessEnabled?: boolean;
+    recessTotalDaysPerCycle?: string | number;
+    recessCycleMonths?: string | number;
+    recessEligibilityAfterMonths?: string | number;
+    recessFinancialMode?: RecessFinancialMode;
+    recessPaidPercentage?: string | number;
+    recessAllowSplit?: boolean;
+    recessMaxSplitPeriods?: string | number;
+    recessMinimumSplitDays?: string | number;
+    recessAdvanceNoticeDays?: string | number;
+    recessNotes?: string;
 }

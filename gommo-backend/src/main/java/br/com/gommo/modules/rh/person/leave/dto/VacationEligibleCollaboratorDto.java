@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
+import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -24,4 +25,11 @@ public class VacationEligibleCollaboratorDto {
     private final LocalDate acquisitionEnd;
     private final LocalDate concessiveStart;
     private final LocalDate concessiveEnd;
+    private final UUID recessPeriodId;
+    private final RecessFinancialModeEnum recessFinancialMode;
+    private final java.math.BigDecimal recessPaidPercentage;
+    private final Boolean recessAllowSplit;
+    private final Integer recessMaxSplitPeriods;
+    private final Integer recessMinimumSplitDays;
+    private final Integer recessAdvanceNoticeDays;
 }

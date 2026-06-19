@@ -30,18 +30,30 @@ function formatDisplayDate(iso: string): string {
 
 type Props = {
     periods: VacationSplitPeriod[];
-    onChange: (periods: VacationSplitPeriod[]) => void;
+    onChange: (_periods: VacationSplitPeriod[]) => void;
     fieldError?: string;
+    policy?: "CLT" | "CONTRACT_RECESS";
+    maxPeriods?: number;
+    minimumPeriodDays?: number;
 };
 
-export function VacationSplitPeriodsEditor({ periods, onChange, fieldError }: Props) {
+export function VacationSplitPeriodsEditor({
+    periods,
+    onChange,
+    fieldError,
+    policy = "CLT",
+    maxPeriods = MAX_SPLIT_PERIODS,
+    minimumPeriodDays,
+}: Props) {
+    const isContractRecess = policy === "CONTRACT_RECESS";
+    const periodLimit = Math.max(1, maxPeriods);
     const updatePeriod = (index: number, patch: Partial<VacationSplitPeriod>) => {
         const current = periods[index];
         const merged = syncPeriodWithDays({ ...current, ...patch });
         onChange(periods.map((p, i) => (i === index ? merged : p)));
     };
     const addPeriod = () => {
-        if (periods.length >= MAX_SPLIT_PERIODS) return;
+        if (periods.length >= periodLimit) return;
         onChange([...periods, { startDate: "", endDate: "", days: 0 }]);
     };
     const removePeriod = (index: number) => {
@@ -49,7 +61,7 @@ export function VacationSplitPeriodsEditor({ periods, onChange, fieldError }: Pr
         onChange(periods.filter((_, i) => i !== index));
     };
     const activePeriods = periods.filter((p) => p.days > 0);
-    const splitCheck = activePeriods.length > 1 ? validateSplitPeriods(periods) : null;
+    const splitCheck = !isContractRecess && activePeriods.length > 1 ? validateSplitPeriods(periods) : null;
 
     return (
         <div className="grid gap-2">
@@ -58,12 +70,15 @@ export function VacationSplitPeriodsEditor({ periods, onChange, fieldError }: Pr
                     const showLabels = index === 0;
                     const isFirstRow = index === 0;
                     const isLastRow = index === periods.length - 1;
-                    const canAddMore = periods.length < MAX_SPLIT_PERIODS;
+                    const canAddMore = periods.length < periodLimit;
                     const showAdd = isFirstRow && canAddMore;
                     const showRemove = isLastRow && periods.length > 1;
-                    const restricted = period.startDate ? isRestrictedVacationStart(period.startDate) : false;
-                    const periodTooShort = period.days > 0 && period.days < MIN_OTHER_SPLIT_DAYS;
-                    const showSplitHints = activePeriods.length > 1;
+                    const restricted =
+                        !isContractRecess && period.startDate ? isRestrictedVacationStart(period.startDate) : false;
+                    const effectiveMinimumDays = isContractRecess ? minimumPeriodDays : MIN_OTHER_SPLIT_DAYS;
+                    const periodTooShort =
+                        period.days > 0 && effectiveMinimumDays != null && period.days < effectiveMinimumDays;
+                    const showSplitHints = !isContractRecess && activePeriods.length > 1;
                     return (
                         <div key={index} className="grid gap-1">
                             <div className="flex flex-col gap-2 lg:flex-row lg:items-end">

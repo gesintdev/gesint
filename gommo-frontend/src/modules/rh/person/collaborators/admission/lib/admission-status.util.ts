@@ -45,6 +45,15 @@ export function isAdmissionStepComplete(
             ]);
         case "contrato":
             return isStepFilled([{ value: form.contractStartDate }]) && context.contractDocumentCount > 0;
+        case "recesso-contratual":
+            if (!isAdmissionPj(form.contractType) || !form.recessEnabled) return true;
+            return isStepFilled([
+                { value: form.recessTotalDaysPerCycle },
+                { value: form.recessCycleMonths },
+                { value: form.recessEligibilityAfterMonths },
+                { value: form.recessFinancialMode },
+                { value: form.recessAdvanceNoticeDays },
+            ]);
         case "observacoes":
             return isStepFilled([{ value: form.notes }]);
         default:

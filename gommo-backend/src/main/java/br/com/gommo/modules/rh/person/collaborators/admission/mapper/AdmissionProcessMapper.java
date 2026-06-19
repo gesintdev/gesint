@@ -60,6 +60,17 @@ public class AdmissionProcessMapper {
                 .providerCnpj(dto.getProviderCnpj())
                 .providerLegalName(dto.getProviderLegalName())
                 .providerTradeName(dto.getProviderTradeName())
+                .recessEnabled(dto.isRecessEnabled())
+                .recessTotalDaysPerCycle(dto.getRecessTotalDaysPerCycle())
+                .recessCycleMonths(dto.getRecessCycleMonths())
+                .recessEligibilityAfterMonths(dto.getRecessEligibilityAfterMonths())
+                .recessFinancialMode(dto.getRecessFinancialMode())
+                .recessPaidPercentage(dto.getRecessPaidPercentage())
+                .recessAllowSplit(dto.isRecessAllowSplit())
+                .recessMaxSplitPeriods(dto.getRecessMaxSplitPeriods())
+                .recessMinimumSplitDays(dto.getRecessMinimumSplitDays())
+                .recessAdvanceNoticeDays(dto.getRecessAdvanceNoticeDays() != null ? dto.getRecessAdvanceNoticeDays() : 0)
+                .recessNotes(dto.getRecessNotes())
                 .photoObjectId(dto.getPhotoObjectId())
                 .build();
     }
@@ -106,6 +117,17 @@ public class AdmissionProcessMapper {
         entity.setProviderCnpj(dto.getProviderCnpj());
         entity.setProviderLegalName(dto.getProviderLegalName());
         entity.setProviderTradeName(dto.getProviderTradeName());
+        entity.setRecessEnabled(dto.isRecessEnabled());
+        entity.setRecessTotalDaysPerCycle(dto.getRecessTotalDaysPerCycle());
+        entity.setRecessCycleMonths(dto.getRecessCycleMonths());
+        entity.setRecessEligibilityAfterMonths(dto.getRecessEligibilityAfterMonths());
+        entity.setRecessFinancialMode(dto.getRecessFinancialMode());
+        entity.setRecessPaidPercentage(dto.getRecessPaidPercentage());
+        entity.setRecessAllowSplit(dto.isRecessAllowSplit());
+        entity.setRecessMaxSplitPeriods(dto.getRecessMaxSplitPeriods());
+        entity.setRecessMinimumSplitDays(dto.getRecessMinimumSplitDays());
+        entity.setRecessAdvanceNoticeDays(dto.getRecessAdvanceNoticeDays() != null ? dto.getRecessAdvanceNoticeDays() : 0);
+        entity.setRecessNotes(dto.getRecessNotes());
         entity.setPhotoObjectId(dto.getPhotoObjectId());
     }
 
@@ -176,6 +198,17 @@ public class AdmissionProcessMapper {
                 .providerCnpj(entity.getProviderCnpj())
                 .providerLegalName(entity.getProviderLegalName())
                 .providerTradeName(entity.getProviderTradeName())
+                .recessEnabled(entity.isRecessEnabled())
+                .recessTotalDaysPerCycle(entity.getRecessTotalDaysPerCycle())
+                .recessCycleMonths(entity.getRecessCycleMonths())
+                .recessEligibilityAfterMonths(entity.getRecessEligibilityAfterMonths())
+                .recessFinancialMode(entity.getRecessFinancialMode())
+                .recessPaidPercentage(entity.getRecessPaidPercentage())
+                .recessAllowSplit(entity.isRecessAllowSplit())
+                .recessMaxSplitPeriods(entity.getRecessMaxSplitPeriods())
+                .recessMinimumSplitDays(entity.getRecessMinimumSplitDays())
+                .recessAdvanceNoticeDays(entity.getRecessAdvanceNoticeDays())
+                .recessNotes(entity.getRecessNotes())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

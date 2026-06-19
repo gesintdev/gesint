@@ -25,6 +25,11 @@ import br.com.gommo.modules.rh.person.collaborators.admission.repository.Admissi
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
 import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
+import br.com.gommo.modules.rh.person.contract.recess.entity.ContractRecessPeriod;
+import br.com.gommo.modules.rh.person.contract.recess.entity.ContractRecessPolicy;
+import br.com.gommo.modules.rh.person.contract.recess.entity.RecessPeriodStatusEnum;
+import br.com.gommo.modules.rh.person.contract.recess.repository.ContractRecessPeriodRepository;
+import br.com.gommo.modules.rh.person.contract.recess.repository.ContractRecessPolicyRepository;
 import br.com.gommo.modules.rh.person.leave.domain.VacationAbsenceCalculator;
 import br.com.gommo.modules.rh.person.leave.domain.VacationEligibilityEvaluator;
 import br.com.gommo.modules.rh.person.leave.domain.VacationRules;
@@ -51,19 +56,25 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     private final CollaboratorRepository collaboratorRepository;
     private final EmploymentContractRepository employmentContractRepository;
     private final AdmissionProcessRepository admissionProcessRepository;
+    private final ContractRecessPeriodRepository recessPeriodRepository;
+    private final ContractRecessPolicyRepository recessPolicyRepository;
 
     public LeaveRequestService(
             LeaveRequestRepository repository,
             LeaveRequestMapper mapper,
             CollaboratorRepository collaboratorRepository,
             EmploymentContractRepository employmentContractRepository,
-            AdmissionProcessRepository admissionProcessRepository) {
+            AdmissionProcessRepository admissionProcessRepository,
+            ContractRecessPeriodRepository recessPeriodRepository,
+            ContractRecessPolicyRepository recessPolicyRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.collaboratorRepository = collaboratorRepository;
         this.employmentContractRepository = employmentContractRepository;
         this.admissionProcessRepository = admissionProcessRepository;
+        this.recessPeriodRepository = recessPeriodRepository;
+        this.recessPolicyRepository = recessPolicyRepository;
     }
 
     @Override
@@ -126,6 +137,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @Transactional
     @PreAuthorize("hasAuthority('leave:write')")
     public LeaveRequestResponseDto create(LeaveRequestRequestDto request) {
+        prepareRecessRequest(request);
         validateRequest(request);
         LeaveRequest entity = mapper.toEntity(request);
         applyVacationDefaultsOnCreate(entity, request);
@@ -200,6 +212,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         if (entity.getLeaveType() != LeaveTypeEnum.VACATION) {
             throw LeaveRequestException.vacationReviewInvalid(LeaveRequestExceptions.VACATION_REVIEW_NOT_VACATION_MSG);
         }
+        VacationReviewStatusEnum previousStatus = entity.getReviewStatus();
         switch (request.getAction()) {
             case APPROVE -> {
                 entity.setApproved(true);
@@ -220,6 +233,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
             }
             default -> throw LeaveRequestException.vacationReviewInvalid(LeaveRequestExceptions.VACATION_REVIEW_INVALID_CODE);
         }
+        adjustRecessBalance(entity, previousStatus, request.getAction());
         repository.save(entity);
         return findById(id);
     }
@@ -237,6 +251,10 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @Transactional
     @PreAuthorize("hasAuthority('leave:delete')")
     public void delete(UUID id) {
+        LeaveRequest entity = findEntity(id);
+        if (entity.getRecessPeriodId() != null && entity.getReviewStatus() == VacationReviewStatusEnum.PENDING) {
+            releaseRecessReservation(entity);
+        }
         super.delete(id);
     }
 
@@ -253,6 +271,9 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     private void applyVacationDefaultsOnCreate(LeaveRequest entity, LeaveRequestRequestDto request) {
         LeaveTypeEnum type = request.getLeaveType() != null ? request.getLeaveType() : LeaveTypeEnum.VACATION;
         if (type != LeaveTypeEnum.VACATION) {
+            return;
+        }
+        if (request.getRecessPeriodId() != null) {
             return;
         }
         if (!Boolean.TRUE.equals(request.getApproved()) && entity.getReviewStatus() == null) {
@@ -323,8 +344,10 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         ContractTypeEnum contractType = activeContract
                 .map(EmploymentContract::getContractType)
                 .orElseGet(() -> admission != null ? admission.getContractType() : null);
-        if (contractType != ContractTypeEnum.CLT
-                || (activeContract.isEmpty() && !isAdmissionActive(admission, referenceDate))) {
+        if (contractType == ContractTypeEnum.PJ && activeContract.isPresent()) {
+            return buildEligibleRecess(collaborator, admission, activeContract.get(), referenceDate);
+        }
+        if (contractType != ContractTypeEnum.CLT || (activeContract.isEmpty() && !isAdmissionActive(admission, referenceDate))) {
             return Optional.empty();
         }
 
@@ -356,6 +379,103 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
                         .concessiveStart(period.concessive().start())
                         .concessiveEnd(period.concessive().end())
                         .build());
+    }
+
+    private Optional<VacationEligibleCollaboratorDto> buildEligibleRecess(
+            Collaborator collaborator, AdmissionProcess admission, EmploymentContract contract, LocalDate referenceDate) {
+        ContractRecessPolicy policy = recessPolicyRepository
+                .findEffective(contract.getId(), referenceDate, StatusEnum.DELETED)
+                .filter(ContractRecessPolicy::isEnabled)
+                .orElse(null);
+        if (policy == null) return Optional.empty();
+        return recessPeriodRepository
+                .findAllByCollaboratorIdAndStatusNotOrderByCycleStartDesc(collaborator.getId(), StatusEnum.DELETED)
+                .stream()
+                .filter(period -> period.getPolicyId().equals(policy.getId()))
+                .filter(period -> !referenceDate.isBefore(period.getCycleStart().plusMonths(policy.getEligibilityAfterMonths())))
+                .filter(period -> period.getRemainingDays() > 0)
+                .findFirst()
+                .map(period -> VacationEligibleCollaboratorDto.builder()
+                        .collaboratorId(collaborator.getId())
+                        .collaboratorName(collaborator.getFullName())
+                        .cpf(collaborator.getCpf())
+                        .photoObjectId(collaborator.getPhotoObjectId() != null ? collaborator.getPhotoObjectId() : admission != null ? admission.getPhotoObjectId() : null)
+                        .hireDate(contract.getStartDate())
+                        .contractType(ContractTypeEnum.PJ)
+                        .periodStatus("CONTRACT_RECESS")
+                        .entitledDays(period.getRemainingDays())
+                        .unjustifiedAbsences(0)
+                        .justifiedAbsences(0)
+                        .acquisitionStart(period.getCycleStart())
+                        .acquisitionEnd(period.getCycleEnd())
+                        .concessiveStart(period.getCycleStart().plusMonths(policy.getEligibilityAfterMonths()))
+                        .concessiveEnd(period.getCycleEnd())
+                        .recessPeriodId(period.getId())
+                        .recessFinancialMode(policy.getFinancialMode())
+                        .recessPaidPercentage(policy.getPaidPercentage())
+                        .recessAllowSplit(policy.isAllowSplit())
+                        .recessMaxSplitPeriods(policy.getMaxSplitPeriods())
+                        .recessMinimumSplitDays(policy.getMinimumSplitDays())
+                        .recessAdvanceNoticeDays(policy.getAdvanceNoticeDays())
+                        .build());
+    }
+
+    private void prepareRecessRequest(LeaveRequestRequestDto request) {
+        if (request.getRecessPeriodId() == null) return;
+        ContractRecessPeriod period = recessPeriodRepository
+                .findByIdAndStatusNot(request.getRecessPeriodId(), StatusEnum.DELETED)
+                .orElseThrow(() -> LeaveRequestException.vacationInvalid("Período de recesso contratual não encontrado"));
+        ContractRecessPolicy policy = recessPolicyRepository
+                .findByIdAndStatusNot(period.getPolicyId(), StatusEnum.DELETED)
+                .orElseThrow(() -> LeaveRequestException.vacationInvalid("Política de recesso contratual não encontrada"));
+        int days = VacationRules.inclusiveDays(request.getStartDate(), request.getEndDate());
+        if (days > period.getRemainingDays()) {
+            throw LeaveRequestException.vacationInvalid("A solicitação excede o saldo de recesso contratual");
+        }
+        if (request.getStartDate().isBefore(LocalDate.now(ZoneId.of("America/Sao_Paulo")).plusDays(policy.getAdvanceNoticeDays()))) {
+            throw LeaveRequestException.vacationInvalid("A solicitação não respeita a antecedência contratual mínima");
+        }
+        if (policy.isAllowSplit() && policy.getMinimumSplitDays() != null && days < policy.getMinimumSplitDays()) {
+            throw LeaveRequestException.vacationInvalid("A parcela possui menos dias que o mínimo contratual");
+        }
+        request.setPecuniaryAllowanceDays(0);
+        request.setUnjustifiedAbsences(0);
+        request.setVacationDaysEntitled(period.getRemainingDays());
+        request.setAcquisitionPeriodStart(period.getCycleStart());
+        request.setAcquisitionPeriodEnd(period.getCycleEnd());
+        request.setRecessFinancialMode(policy.getFinancialMode());
+        request.setRecessPaidPercentage(policy.getPaidPercentage());
+        period.setReservedDays(period.getReservedDays() + days);
+        period.setPeriodStatus(period.getRemainingDays() == 0 ? RecessPeriodStatusEnum.EXHAUSTED : RecessPeriodStatusEnum.AVAILABLE);
+        recessPeriodRepository.save(period);
+    }
+
+    private void adjustRecessBalance(
+            LeaveRequest request, VacationReviewStatusEnum previousStatus, VacationReviewActionEnum action) {
+        if (request.getRecessPeriodId() == null || previousStatus != VacationReviewStatusEnum.PENDING) return;
+        ContractRecessPeriod period = recessPeriodRepository
+                .findByIdAndStatusNot(request.getRecessPeriodId(), StatusEnum.DELETED)
+                .orElseThrow(() -> LeaveRequestException.vacationInvalid("Periodo de recesso contratual nao encontrado"));
+        int days = VacationRules.inclusiveDays(request.getStartDate(), request.getEndDate());
+        period.setReservedDays(Math.max(0, period.getReservedDays() - days));
+        if (action == VacationReviewActionEnum.APPROVE) {
+            period.setUsedDays(period.getUsedDays() + days);
+        }
+        period.setPeriodStatus(period.getRemainingDays() == 0
+                ? RecessPeriodStatusEnum.EXHAUSTED
+                : RecessPeriodStatusEnum.AVAILABLE);
+        recessPeriodRepository.save(period);
+    }
+
+    private void releaseRecessReservation(LeaveRequest request) {
+        ContractRecessPeriod period = recessPeriodRepository
+                .findByIdAndStatusNot(request.getRecessPeriodId(), StatusEnum.DELETED)
+                .orElse(null);
+        if (period == null) return;
+        int days = VacationRules.inclusiveDays(request.getStartDate(), request.getEndDate());
+        period.setReservedDays(Math.max(0, period.getReservedDays() - days));
+        period.setPeriodStatus(RecessPeriodStatusEnum.AVAILABLE);
+        recessPeriodRepository.save(period);
     }
 
     private static boolean isAdmissionActive(AdmissionProcess admission, LocalDate referenceDate) {

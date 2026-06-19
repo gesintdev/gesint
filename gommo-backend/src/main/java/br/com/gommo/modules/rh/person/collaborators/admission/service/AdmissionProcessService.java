@@ -27,6 +27,7 @@ import br.com.gommo.modules.rh.person.collaborators.admission.repository.Admissi
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.service.CollaboratorProfileService;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
+import br.com.gommo.modules.rh.person.contract.recess.service.ContractRecessProvisioningService;
 import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
 
 @Service
@@ -39,19 +40,22 @@ public class AdmissionProcessService
     private final CollaboratorRepository collaboratorRepository;
     private final CollaboratorProfileService collaboratorProfileService;
     private final StorageObjectLinkRepository storageObjectLinkRepository;
+    private final ContractRecessProvisioningService contractRecessProvisioningService;
 
     public AdmissionProcessService(
             AdmissionProcessRepository repository,
             AdmissionProcessMapper mapper,
             CollaboratorRepository collaboratorRepository,
             CollaboratorProfileService collaboratorProfileService,
-            StorageObjectLinkRepository storageObjectLinkRepository) {
+            StorageObjectLinkRepository storageObjectLinkRepository,
+            ContractRecessProvisioningService contractRecessProvisioningService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.collaboratorRepository = collaboratorRepository;
         this.collaboratorProfileService = collaboratorProfileService;
         this.storageObjectLinkRepository = storageObjectLinkRepository;
+        this.contractRecessProvisioningService = contractRecessProvisioningService;
     }
 
     @Override
@@ -98,6 +102,7 @@ public class AdmissionProcessService
         entity.setCollaboratorId(collaboratorId);
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
+        contractRecessProvisioningService.sync(saved);
         return toEnrichedResponse(saved);
     }
 
@@ -115,6 +120,7 @@ public class AdmissionProcessService
         entity.setCollaboratorId(collaboratorId);
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
+        contractRecessProvisioningService.sync(saved);
         return toEnrichedResponse(saved);
     }
 

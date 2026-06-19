@@ -19,6 +19,7 @@ import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionSt
 import br.com.gommo.modules.rh.person.collaborators.people.entity.GenderEnum;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.MaritalStatusEnum;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
+import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
 
 @Getter
 @Setter
@@ -96,4 +97,15 @@ public class AdmissionProcessRequestDto {
     @Size(max = 200) private String providerLegalName;
 
     @Size(max = 200) private String providerTradeName;
+    private boolean recessEnabled;
+    private Integer recessTotalDaysPerCycle;
+    private Integer recessCycleMonths;
+    private Integer recessEligibilityAfterMonths;
+    private RecessFinancialModeEnum recessFinancialMode;
+    private BigDecimal recessPaidPercentage;
+    private boolean recessAllowSplit;
+    private Integer recessMaxSplitPeriods;
+    private Integer recessMinimumSplitDays;
+    private Integer recessAdvanceNoticeDays;
+    private String recessNotes;
 }

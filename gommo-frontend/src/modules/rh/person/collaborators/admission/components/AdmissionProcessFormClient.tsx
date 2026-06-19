@@ -66,6 +66,16 @@ const MARITAL_ITEMS: SelectItem[] = [
     { value: "WIDOWED", label: "Viúvo(a)" },
     { value: "OTHER", label: "Outro" },
 ];
+const YES_NO_ITEMS: SelectItem[] = [
+    { value: "false", label: "Não" },
+    { value: "true", label: "Sim" },
+];
+const RECESS_FINANCIAL_ITEMS: SelectItem[] = [
+    { value: "FULLY_PAID", label: "Valor contratual integral" },
+    { value: "UNPAID", label: "Sem faturamento no período" },
+    { value: "PROPORTIONAL", label: "Valor contratual proporcional" },
+    { value: "CUSTOM", label: "Tratamento contratual específico" },
+];
 const ADMISSION_FORM_STEPS: FormStepNavItem[] = [
     { id: "dados-basicos", label: "Dados básicos" },
     { id: "contatos-emergencia", label: "Contatos de emergência" },
@@ -213,11 +223,20 @@ export function AdmissionProcessFormClient() {
         setError(null);
         saveMutation.mutate(form);
     };
-    const filledStepIds =
-        isEditing && detailQuery.data?.completedStepIds
-            ? detailQuery.data.completedStepIds
-            : computeFilledAdmissionSteps(form, stepContext, ADMISSION_STEP_IDS);
     const isPj = isAdmissionPj(form.contractType);
+    const admissionFormSteps = useMemo(
+        () =>
+            isPj
+                ? [
+                      ...ADMISSION_FORM_STEPS.slice(0, -1),
+                      { id: "recesso-contratual", label: "Recesso contratual" },
+                      ADMISSION_FORM_STEPS.at(-1)!,
+                  ]
+                : ADMISSION_FORM_STEPS,
+        [isPj],
+    );
+    const activeStepIds = useMemo(() => admissionFormSteps.map((step) => step.id), [admissionFormSteps]);
+    const filledStepIds = computeFilledAdmissionSteps(form, stepContext, activeStepIds);
     const contractDocTypeItems = useMemo(() => contractDocumentTypeItems(form.contractType), [form.contractType]);
     const summaryAdmissionStatus = detailQuery.data?.admissionStatus ?? "IN_PROGRESS";
     const summaryCompletedStepCount =
@@ -254,7 +273,7 @@ export function AdmissionProcessFormClient() {
         <CrudFormShell
             onSubmit={handleSubmit}
             stepper={{
-                steps: ADMISSION_FORM_STEPS,
+                steps: admissionFormSteps,
                 filledStepIds,
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
@@ -553,6 +572,40 @@ export function AdmissionProcessFormClient() {
                     onPendingAttachmentsChange={setPendingContractAttachments}
                 />
             </FormSection>
+            {isPj ? (
+                <FormSection
+                    id="recesso-contratual"
+                    title="Recesso contratual"
+                    description="Condição comercial prevista no contrato PJ; não corresponde a férias CLT."
+                >
+                    <InputSelect
+                        label="O contrato prevê recesso?"
+                        items={YES_NO_ITEMS}
+                        value={String(form.recessEnabled ?? false)}
+                        onValueChange={(v) => update("recessEnabled", v === "true")}
+                    />
+                    {form.recessEnabled ? (
+                        <>
+                            <InputString label="Dias por ciclo" value={String(form.recessTotalDaysPerCycle ?? "")} onValueChange={(v) => update("recessTotalDaysPerCycle", v)} required />
+                            <InputString label="Duração do ciclo (meses)" value={String(form.recessCycleMonths ?? "")} onValueChange={(v) => update("recessCycleMonths", v)} required />
+                            <InputString label="Carência (meses)" value={String(form.recessEligibilityAfterMonths ?? "")} onValueChange={(v) => update("recessEligibilityAfterMonths", v)} required />
+                            <InputSelect label="Efeito no valor contratual" items={RECESS_FINANCIAL_ITEMS} value={form.recessFinancialMode ?? ""} onValueChange={(v) => update("recessFinancialMode", v as AdmissionProcessCreateDto["recessFinancialMode"])} required />
+                            {form.recessFinancialMode === "PROPORTIONAL" ? (
+                                <InputString label="Percentual mantido" value={String(form.recessPaidPercentage ?? "")} onValueChange={(v) => update("recessPaidPercentage", v)} required />
+                            ) : null}
+                            <InputSelect label="Permite fracionamento?" items={YES_NO_ITEMS} value={String(form.recessAllowSplit ?? false)} onValueChange={(v) => update("recessAllowSplit", v === "true")} />
+                            {form.recessAllowSplit ? (
+                                <>
+                                    <InputString label="Máximo de parcelas" value={String(form.recessMaxSplitPeriods ?? "")} onValueChange={(v) => update("recessMaxSplitPeriods", v)} required />
+                                    <InputString label="Mínimo de dias por parcela" value={String(form.recessMinimumSplitDays ?? "")} onValueChange={(v) => update("recessMinimumSplitDays", v)} required />
+                                </>
+                            ) : null}
+                            <InputString label="Antecedência mínima (dias)" value={String(form.recessAdvanceNoticeDays ?? 0)} onValueChange={(v) => update("recessAdvanceNoticeDays", v)} />
+                            <InputString label="Cláusula ou observações" value={form.recessNotes ?? ""} onValueChange={(v) => update("recessNotes", v)} wrapperClassName="sm:col-span-2" />
+                        </>
+                    ) : null}
+                </FormSection>
+            ) : null}
             <FormSection
                 id="observacoes"
                 title="Observações"
