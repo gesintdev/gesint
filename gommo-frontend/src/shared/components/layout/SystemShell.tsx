@@ -84,7 +84,7 @@ export function SystemShell({
                                 className="pe-2 placeholder:text-base-content/32"
                             />
                             <kbd className="ms-auto hidden shrink-0 sm:flex">
-                                <Command className="size-2.5" strokeWidth={2.5} />K
+                                Alt+S
                             </kbd>
                         </label>
                         <div className="flex items-center gap-1 sm:gap-1.5">
