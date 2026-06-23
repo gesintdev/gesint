@@ -28,6 +28,20 @@ export const personRoutes: AppRoute[] = [
                     () => import("@/modules/rh/person/collaborators/admission/components/AdmissionProcessFormClient"),
                     "AdmissionProcessFormClient",
                 ),
+                extraTabs: [
+                    {
+                        id: "vacation-history",
+                        label: "Histórico de férias",
+                        permission: "leave:read",
+                        content: lazyNamed(
+                            () =>
+                                import(
+                                    "@/modules/rh/person/collaborators/admission/components/AdmissionVacationHistoryTab"
+                                ),
+                            "AdmissionVacationHistoryTab",
+                        ),
+                    },
+                ],
             }),
             tabbedCrudRoute({
                 id: "collaborator-people",

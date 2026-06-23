@@ -587,7 +587,7 @@ body {
     border: 0;
     font-family: inherit;
     font-size: var(--gommo-control-font-size);
-    font-variation-settings: "wght" 620;
+    font-variation-settings: "wght" 540;
     line-height: 1;
     white-space: nowrap;
     cursor: pointer;
@@ -731,7 +731,7 @@ body {
 .gommo-btn--sm {
     padding: 0 var(--gommo-control-px);
     font-size: var(--gommo-control-font-size);
-    font-variation-settings: "wght" 600;
+    font-variation-settings: "wght" 540;
 }
 
 /* ─── Icon-only ─── */
@@ -1035,7 +1035,7 @@ aside[data-collapsed="true"] .sidebar-copy,
 }
 
 .gommo-crud-tab--active {
-    font-variation-settings: "wght" 600;
+    font-variation-settings: "wght" 540;
     color: var(--gommo-primary);
 }
 
@@ -1065,7 +1065,7 @@ aside[data-collapsed="true"] .sidebar-copy,
     border-radius: 9999px;
     padding: 0 0.3rem;
     font-size: 0.625rem;
-    font-variation-settings: "wght" 600;
+    font-variation-settings: "wght" 540;
     line-height: 1.25rem;
     background: color-mix(in srgb, var(--gommo-primary) 14%, transparent);
     color: var(--gommo-primary);
@@ -1520,7 +1520,7 @@ aside[data-collapsed="true"] .sidebar-copy,
 
 .gommo-table th {
     font-size: 0.65625rem;
-    font-variation-settings: "wght" 700;
+    font-variation-settings: "wght" 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--color-base-content) 38%, transparent);
@@ -1649,7 +1649,7 @@ aside[data-collapsed="true"] .sidebar-copy,
     border-radius: var(--gommo-radius-badge);
     padding: 0.125rem 0.5rem;
     font-size: 0.75rem;
-    font-variation-settings: "wght" 600;
+    font-variation-settings: "wght" 540;
     letter-spacing: 0.01em;
     line-height: 1.25;
 }
@@ -1825,7 +1825,7 @@ kbd {
 
 .gommo-form-section__title {
     font-size: 0.8125rem;
-    font-variation-settings: "wght" 650;
+    font-variation-settings: "wght" 580;
     letter-spacing: 0;
     color: var(--gommo-primary-dark);
 }

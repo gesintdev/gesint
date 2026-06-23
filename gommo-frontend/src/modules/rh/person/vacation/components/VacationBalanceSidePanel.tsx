@@ -56,7 +56,7 @@ export function VacationBalanceSidePanel({
                     readOnly={readOnlyAbsences}
                 />
                 <InputNumber
-                    label="Abono pecuniário (dias vendidos)"
+                    label="Abono pecuniário"
                     integer
                     align="left"
                     value={pecuniaryAllowanceDays}

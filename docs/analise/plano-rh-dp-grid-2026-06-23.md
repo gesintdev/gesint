@@ -115,6 +115,11 @@ Impacto: grande.
   - `QueryPagedTablePanel`;
   - paginacao de rodape;
   - filtros por coluna com opcoes vindas do backend.
+- [x] Aba adicional de historico de ferias na tela de admissao:
+  - aba extra "Historico de ferias" em `collaborator/admission`;
+  - separacao entre "Ferias atuais" e "Ferias gozadas";
+  - reutilizacao do status visual de ferias do RH;
+  - botao de rodape para lancamento de ferias quando o colaborador estiver apto.
 - [~] Ponto movido para DP:
   - removido do menu RH/Pessoas;
   - adicionado em DP/Organizacao;
@@ -134,7 +139,6 @@ Impacto: grande.
   de banco dedicadas antes de escalar para bases grandes.
 - Implementar configuracoes/notificacoes de ferias a vencer.
 - Investigar refresh token/tempo de sessao.
-- Criar aba adicional de historico de ferias no cadastro do colaborador.
 - Melhorar tipos de afastamento CLT apos validacao juridica/produto.
 
 ## Arquivos ja identificados

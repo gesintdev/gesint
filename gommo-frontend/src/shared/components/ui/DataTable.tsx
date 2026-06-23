@@ -62,7 +62,7 @@ function renderCellContent(
                     <div
                         className={clsx(
                             "truncate text-base-content",
-                            denseProfile ? "text-sm font-semibold" : "font-bold",
+                            denseProfile ? "text-sm font-medium" : "font-semibold",
                         )}
                     >
                         {name}
@@ -186,7 +186,7 @@ export function DataTable<T extends object>({
                                                     alignClass(col.align),
                                                     col.dataType !== TableDataType.AVATAR_PROFILE &&
                                                         isPrimary &&
-                                                        "font-semibold text-base-content",
+                                                        "font-medium text-base-content",
                                                     col.dataType !== TableDataType.AVATAR_PROFILE &&
                                                         !isPrimary &&
                                                         "text-base-content/70",
