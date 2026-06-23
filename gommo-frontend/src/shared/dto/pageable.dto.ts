@@ -4,4 +4,5 @@ export type PageableResponseDto<T> = {
     size: number;
     totalElements: number;
     totalPages: number;
+    filterOptions?: Record<string, string[]>;
 };

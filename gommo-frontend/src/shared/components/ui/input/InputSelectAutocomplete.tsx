@@ -13,15 +13,22 @@ const MAX_VISIBLE = 6;
 const REMOTE_MIN_CHARS = 2;
 const DEBOUNCE_MS = 300;
 
+function normalizeText(value: string): string {
+    return value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+}
+
 function filterItems(items: SelectItem[], query: string): SelectItem[] {
-    const q = query.trim().toLowerCase();
+    const q = normalizeText(query.trim());
     if (!q) return items.slice(0, MAX_VISIBLE);
     return items
         .filter(
             (item) =>
-                item.label.toLowerCase().includes(q) ||
-                item.description?.toLowerCase().includes(q) ||
-                item.value.toLowerCase().includes(q),
+                normalizeText(item.label).includes(q) ||
+                (item.description ? normalizeText(item.description).includes(q) : false) ||
+                normalizeText(item.value).includes(q),
         )
         .slice(0, MAX_VISIBLE);
 }
@@ -38,7 +45,9 @@ export type InputSelectAutocompleteProps = InputFieldChromeProps & {
     items?: SelectItem[];
     onSearch?: SelectSearchFn;
     value?: string;
-    onValueChange: (value: string, item?: SelectItem) => void;
+    /** Rótulo exibido quando o valor selecionado ainda não está na lista carregada. */
+    selectedLabel?: string;
+    onValueChange: (_value: string, _item?: SelectItem) => void;
     placeholder?: string;
     clearable?: boolean;
     remoteMinChars?: number;
@@ -49,6 +58,7 @@ export function InputSelectAutocomplete({
     items: staticItems = [],
     onSearch,
     value,
+    selectedLabel,
     onValueChange,
     placeholder = "Selecione ou busque...",
     clearable = true,
@@ -66,6 +76,7 @@ export function InputSelectAutocomplete({
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const listId = `${id}-listbox`;
     const rootRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
@@ -84,8 +95,9 @@ export function InputSelectAutocomplete({
         () =>
             staticItems.find((i) => i.value === value) ??
             remoteItems.find((i) => i.value === value) ??
-            (pickedItem?.value === value ? pickedItem : undefined),
-        [pickedItem, remoteItems, staticItems, value],
+            (pickedItem?.value === value ? pickedItem : undefined) ??
+            (value && selectedLabel ? { value, label: selectedLabel } : undefined),
+        [pickedItem, remoteItems, selectedLabel, staticItems, value],
     );
     const close = useCallback(() => {
         setOpen(false);
@@ -133,6 +145,10 @@ export function InputSelectAutocomplete({
         };
     }, []);
 
+    useEffect(() => {
+        if (open) inputRef.current?.select();
+    }, [open]);
+
     const pick = useCallback(
         (item: SelectItem) => {
             setPickedItem(item);
@@ -143,8 +159,22 @@ export function InputSelectAutocomplete({
     );
     const { activeIndex, setActiveIndex, onKeyDown } = useListboxKeyboard(visibleItems, open, pick, close);
     const openPanel = () => {
-        if (disabled) return;
+        if (disabled || open) return;
+        const seed = selected?.label ?? "";
+        setQuery(seed);
         setOpen(true);
+        scheduleRemote(seed);
+    };
+    const togglePanel = () => {
+        if (disabled) return;
+        if (open) {
+            close();
+            return;
+        }
+        const seed = selected?.label ?? "";
+        setQuery(seed);
+        setOpen(true);
+        scheduleRemote(seed);
     };
     const handleInputChange = (next: string) => {
         setQuery(next);
@@ -191,6 +221,7 @@ export function InputSelectAutocomplete({
                     )}
                 >
                     <input
+                        ref={inputRef}
                         id={id}
                         type="text"
                         role="combobox"
@@ -226,7 +257,7 @@ export function InputSelectAutocomplete({
                         className="text-base-content/40"
                         aria-label="Abrir lista"
                         disabled={disabled}
-                        onClick={() => setOpen((v) => !v)}
+                        onClick={togglePanel}
                     >
                         <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")} />
                     </button>

@@ -45,8 +45,6 @@ public class AdmissionProcessMapper {
                 .number(dto.getNumber())
                 .complement(dto.getComplement())
                 .district(dto.getDistrict())
-                .city(dto.getCity())
-                .stateCode(dto.getStateCode())
                 .expectedStartDate(dto.getExpectedStartDate())
                 .companyId(dto.getCompanyId())
                 .departmentId(dto.getDepartmentId())
@@ -100,8 +98,6 @@ public class AdmissionProcessMapper {
         entity.setNumber(dto.getNumber());
         entity.setComplement(dto.getComplement());
         entity.setDistrict(dto.getDistrict());
-        entity.setCity(dto.getCity());
-        entity.setStateCode(dto.getStateCode());
         entity.setExpectedStartDate(dto.getExpectedStartDate());
         entity.setCompanyId(dto.getCompanyId());
         entity.setDepartmentId(dto.getDepartmentId());
@@ -150,6 +146,16 @@ public class AdmissionProcessMapper {
             int completedStepCount,
             int requiredStepCount,
             List<String> completedStepIds) {
+        return toResponse(entity, admissionStatus, completedStepCount, requiredStepCount, completedStepIds, null);
+    }
+
+    public AdmissionProcessResponseDto toResponse(
+            AdmissionProcess entity,
+            AdmissionStatusEnum admissionStatus,
+            int completedStepCount,
+            int requiredStepCount,
+            List<String> completedStepIds,
+            String departmentName) {
         return AdmissionProcessResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
@@ -183,11 +189,15 @@ public class AdmissionProcessMapper {
                 .number(entity.getNumber())
                 .complement(entity.getComplement())
                 .district(entity.getDistrict())
-                .city(entity.getCity())
-                .stateCode(entity.getStateCode())
+                .cityId(entity.getCity() != null ? entity.getCity().getId() : null)
+                .cityName(entity.getCity() != null ? entity.getCity().getName() : null)
+                .stateId(entity.getState() != null ? entity.getState().getId() : null)
+                .stateCode(entity.getState() != null ? entity.getState().getAbbreviation() : null)
+                .stateName(entity.getState() != null ? entity.getState().getName() : null)
                 .expectedStartDate(entity.getExpectedStartDate())
                 .companyId(entity.getCompanyId())
                 .departmentId(entity.getDepartmentId())
+                .departmentName(departmentName)
                 .jobPositionId(entity.getJobPositionId())
                 .contractType(entity.getContractType())
                 .baseSalary(entity.getBaseSalary())

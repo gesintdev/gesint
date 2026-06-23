@@ -72,9 +72,8 @@ public class AdmissionProcessRequestDto {
 
     @Size(max = 100) private String district;
 
-    @Size(max = 100) private String city;
-
-    @Size(max = 2) private String stateCode;
+    private UUID cityId;
+    private UUID stateId;
 
     @NotNull private LocalDate expectedStartDate;
 

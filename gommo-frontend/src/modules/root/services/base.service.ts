@@ -18,7 +18,13 @@ export abstract class BaseService<T, CreateDto = Partial<T>, UpdateDto = Partial
     remove(id: string): Promise<void> {
         return apiFetch<void>(`${this.basePath}/${id}`, { method: "DELETE" });
     }
-    getPage(page = 0, size = 20): Promise<PageableResponseDto<T>> {
-        return apiFetch<PageableResponseDto<T>>(`${this.basePath}/page?page=${page}&size=${size}`);
+    getPage(page = 0, size = 20, filters: Record<string, string[]> = {}): Promise<PageableResponseDto<T>> {
+        const params = new URLSearchParams({ page: String(page), size: String(size) });
+        Object.entries(filters).forEach(([field, values]) => {
+            values.forEach((value) => {
+                if (value) params.append(`filter.${field}`, value);
+            });
+        });
+        return apiFetch<PageableResponseDto<T>>(`${this.basePath}/page?${params.toString()}`);
     }
 }

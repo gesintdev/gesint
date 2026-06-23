@@ -27,8 +27,12 @@ export function formatPhone(value: string): string {
     return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
 }
 
-function parseDateInput(value: unknown): Date | null {
+function parseDateInput(value: unknown, localDateOnly = false): Date | null {
     if (value == null || value === "") return null;
+    if (localDateOnly && typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [year, month, day] = value.split("-").map(Number);
+        return new Date(year, month - 1, day);
+    }
     const date = new Date(String(value));
     return Number.isNaN(date.getTime()) ? null : date;
 }
@@ -45,7 +49,7 @@ export function formatCellValue(value: unknown, dataType: TableDataType = TableD
         case TableDataType.EMAIL:
             return String(value);
         case TableDataType.DATE: {
-            const date = parseDateInput(value);
+            const date = parseDateInput(value, true);
             if (!date) return String(value);
             return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(date);
         }
@@ -124,6 +128,7 @@ export function formatBadgeCellValue(value: unknown, labels?: Record<string, str
 export function badgeClassForStatus(value: unknown, labels?: Record<string, string>): string {
     const normalized = String(value).toUpperCase();
     if (labels && labels !== BADGE_LABELS) {
+        if (normalized === "IN_VACATION") return "gommo-badge--success";
         if (normalized === "COMPLETED") return "gommo-badge--success";
         if (normalized === "CANCELLED" || normalized === "DELETED") return "gommo-badge--error";
         if (normalized === "DRAFT" || normalized === "IN_PROGRESS") return "gommo-badge--info";

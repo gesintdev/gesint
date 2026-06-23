@@ -22,10 +22,10 @@ export function isAdmissionStepComplete(
         case "endereco":
             return isStepFilled([
                 { value: form.zipCode },
-                { value: form.stateCode },
+                { value: form.stateId },
                 { value: form.street },
                 { value: form.number },
-                { value: form.city },
+                { value: form.cityId },
             ]);
         case "documentos":
             return context.documentCount > 0;

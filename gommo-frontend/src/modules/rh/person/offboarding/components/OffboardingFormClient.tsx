@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type SubmitEvent,useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { collaboratorKeys } from "@/modules/rh/person/collaborators/people/collaborator.query";
 import type { OffboardingCreateDto } from "@/modules/rh/person/offboarding/dto/offboarding.dto";
 import { OFFBOARDING_CLIENT_MESSAGES } from "@/modules/rh/person/offboarding/exceptions/offboarding.messages";
 import { emptyOffboardingForm, offboardingToFormDto } from "@/modules/rh/person/offboarding/lib/offboarding.mapper";
@@ -70,6 +71,7 @@ export function OffboardingFormClient() {
         },
         onSuccess: async (result) => {
             await queryClient.invalidateQueries({ queryKey: offboardingKeys.all });
+            await queryClient.invalidateQueries({ queryKey: collaboratorKeys.all });
             await queryClient.invalidateQueries({ queryKey: offboardingKeys.detail(result.id) });
             toast.success(isEditing ? "Desligamento atualizado" : "Desligamento cadastrado");
             startEdit(result.id);

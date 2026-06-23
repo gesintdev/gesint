@@ -53,12 +53,16 @@ public class AdmissionProcessResponseDto {
     private final String number;
     private final String complement;
     private final String district;
-    private final String city;
+    private final UUID cityId;
+    private final String cityName;
+    private final UUID stateId;
     private final String stateCode;
+    private final String stateName;
 
     private final LocalDate expectedStartDate;
     private final UUID companyId;
     private final UUID departmentId;
+    private final String departmentName;
     private final UUID jobPositionId;
     private final ContractTypeEnum contractType;
     private final BigDecimal baseSalary;

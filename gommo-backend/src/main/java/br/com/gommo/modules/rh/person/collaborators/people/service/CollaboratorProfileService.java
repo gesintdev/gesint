@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
+import br.com.gommo.modules.rh.person.collaborators.address.service.AddressReferenceResolver;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.CollaboratorAddress;
@@ -24,16 +25,19 @@ public class CollaboratorProfileService {
     private final CollaboratorMapper collaboratorMapper;
     private final CollaboratorAddressRepository addressRepository;
     private final CollaboratorContactRepository contactRepository;
+    private final AddressReferenceResolver addressReferenceResolver;
 
     public CollaboratorProfileService(
             CollaboratorRepository collaboratorRepository,
             CollaboratorMapper collaboratorMapper,
             CollaboratorAddressRepository addressRepository,
-            CollaboratorContactRepository contactRepository) {
+            CollaboratorContactRepository contactRepository,
+            AddressReferenceResolver addressReferenceResolver) {
         this.collaboratorRepository = collaboratorRepository;
         this.collaboratorMapper = collaboratorMapper;
         this.addressRepository = addressRepository;
         this.contactRepository = contactRepository;
+        this.addressReferenceResolver = addressReferenceResolver;
     }
 
     /**
@@ -109,8 +113,9 @@ public class CollaboratorProfileService {
         address.setNumber(request.getNumber());
         address.setComplement(request.getComplement());
         address.setDistrict(request.getDistrict());
-        address.setCity(request.getCity());
-        address.setStateCode(request.getStateCode());
+        var reference = addressReferenceResolver.resolve(request.getStateId(), request.getCityId());
+        address.setCity(reference.city());
+        address.setState(reference.state());
         addressRepository.save(address);
     }
 

@@ -42,8 +42,7 @@ export function LeavePendingRequestsClient() {
             setDialog(null);
         },
         onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível concluir a revisão." });
-            toast.error(ex.displayMessage);
+            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível concluir a revisão." });
         },
     });
 

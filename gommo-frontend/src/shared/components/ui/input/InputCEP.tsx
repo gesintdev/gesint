@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { type KeyboardEvent, useState } from "react";
 
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { InputBase } from "@/shared/components/ui/input/InputBase";
@@ -10,6 +10,9 @@ export type InputCEPProps = InputFieldChromeProps & {
     value: string;
     onValueChange: (cep: string) => void;
     validate?: boolean;
+    /** Exibe spinner enquanto uma busca assíncrona (ex.: ViaCEP) está em andamento. */
+    loading?: boolean;
+    onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
 };
 
 export function InputCEP({ value, onValueChange, validate = true, ...chrome }: InputCEPProps) {

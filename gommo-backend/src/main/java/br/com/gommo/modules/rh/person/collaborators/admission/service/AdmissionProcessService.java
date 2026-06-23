@@ -2,7 +2,10 @@ package br.com.gommo.modules.rh.person.collaborators.admission.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +19,8 @@ import org.springframework.util.StringUtils;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.dp.organization.department.entity.Department;
+import br.com.gommo.modules.dp.organization.department.repository.DepartmentRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessResponseDto;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProgress;
@@ -24,6 +29,7 @@ import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionSt
 import br.com.gommo.modules.rh.person.collaborators.admission.exception.AdmissionProcessException;
 import br.com.gommo.modules.rh.person.collaborators.admission.mapper.AdmissionProcessMapper;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
+import br.com.gommo.modules.rh.person.collaborators.address.service.AddressReferenceResolver;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.service.CollaboratorProfileService;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
@@ -41,6 +47,8 @@ public class AdmissionProcessService
     private final CollaboratorProfileService collaboratorProfileService;
     private final StorageObjectLinkRepository storageObjectLinkRepository;
     private final ContractRecessProvisioningService contractRecessProvisioningService;
+    private final AddressReferenceResolver addressReferenceResolver;
+    private final DepartmentRepository departmentRepository;
 
     public AdmissionProcessService(
             AdmissionProcessRepository repository,
@@ -48,7 +56,9 @@ public class AdmissionProcessService
             CollaboratorRepository collaboratorRepository,
             CollaboratorProfileService collaboratorProfileService,
             StorageObjectLinkRepository storageObjectLinkRepository,
-            ContractRecessProvisioningService contractRecessProvisioningService) {
+            ContractRecessProvisioningService contractRecessProvisioningService,
+            AddressReferenceResolver addressReferenceResolver,
+            DepartmentRepository departmentRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -56,6 +66,8 @@ public class AdmissionProcessService
         this.collaboratorProfileService = collaboratorProfileService;
         this.storageObjectLinkRepository = storageObjectLinkRepository;
         this.contractRecessProvisioningService = contractRecessProvisioningService;
+        this.addressReferenceResolver = addressReferenceResolver;
+        this.departmentRepository = departmentRepository;
     }
 
     @Override
@@ -95,6 +107,7 @@ public class AdmissionProcessService
         normalizeRequest(request);
         assertCpfAvailable(request.getCpf(), null);
         AdmissionProcess entity = mapper.toEntity(request);
+        applyAddressReferences(entity, request);
         entity.setStatus(StatusEnum.ACTIVE);
         applyDefaults(entity);
         applyComputedStatus(entity, null);
@@ -114,6 +127,7 @@ public class AdmissionProcessService
         assertCpfAvailable(request.getCpf(), id);
         AdmissionProcess entity = findEntity(id);
         mapper.updateEntity(entity, request);
+        applyAddressReferences(entity, request);
         applyDefaults(entity);
         applyComputedStatus(entity, id);
         UUID collaboratorId = collaboratorProfileService.syncFromAdmission(request, entity.getCollaboratorId());
@@ -151,9 +165,6 @@ public class AdmissionProcessService
         if (request.getZipCode() != null) {
             request.setZipCode(request.getZipCode().replaceAll("\\D", ""));
         }
-        if (request.getStateCode() != null) {
-            request.setStateCode(request.getStateCode().trim().toUpperCase());
-        }
         if (request.getRgIssuer() != null) {
             request.setRgIssuer(request.getRgIssuer().trim());
         }
@@ -164,6 +175,12 @@ public class AdmissionProcessService
             request.setProviderCnpj(request.getProviderCnpj().replaceAll("\\D", ""));
         }
         applyContractTypeRules(request);
+    }
+
+    private void applyAddressReferences(AdmissionProcess entity, AdmissionProcessRequestDto request) {
+        var reference = addressReferenceResolver.resolve(request.getStateId(), request.getCityId());
+        entity.setState(reference.state());
+        entity.setCity(reference.city());
     }
 
     private void applyContractTypeRules(AdmissionProcessRequestDto request) {
@@ -260,6 +277,7 @@ public class AdmissionProcessService
             return List.of();
         }
         List<UUID> ids = entities.stream().map(AdmissionProcess::getId).toList();
+        Map<UUID, Department> departments = loadDepartments(entities);
         var links = storageObjectLinkRepository.findAllByEntityTypeAndEntityIdInAndStatusNot(
                 "admission_process", ids, StatusEnum.DELETED);
         return entities.stream()
@@ -267,14 +285,45 @@ public class AdmissionProcessService
                     AdmissionAttachmentCounts counts = AdmissionAttachmentCounts.fromLinks(links, entity.getId());
                     AdmissionProgress progress = AdmissionProgressEvaluator.evaluate(
                             entity, counts.documentCount(), counts.contractDocumentCount());
-                    return mapper.toResponse(entity, progress);
+                    return mapper.toResponse(
+                            entity,
+                            progress.status(),
+                            progress.completedStepCount(),
+                            progress.requiredStepCount(),
+                            progress.completedStepIds(),
+                            departmentName(entity, departments));
                 })
                 .toList();
     }
 
     private AdmissionProcessResponseDto toEnrichedResponse(AdmissionProcess entity) {
         AdmissionProgress progress = evaluateProgress(entity, entity.getId());
-        return mapper.toResponse(entity, progress);
+        Map<UUID, Department> departments = loadDepartments(List.of(entity));
+        return mapper.toResponse(
+                entity,
+                progress.status(),
+                progress.completedStepCount(),
+                progress.requiredStepCount(),
+                progress.completedStepIds(),
+                departmentName(entity, departments));
+    }
+
+    private Map<UUID, Department> loadDepartments(List<AdmissionProcess> entities) {
+        List<UUID> departmentIds = entities.stream()
+                .map(AdmissionProcess::getDepartmentId)
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+        if (departmentIds.isEmpty()) {
+            return Map.of();
+        }
+        return departmentRepository.findAllById(departmentIds).stream()
+                .collect(Collectors.toMap(Department::getId, Function.identity()));
+    }
+
+    private static String departmentName(AdmissionProcess entity, Map<UUID, Department> departments) {
+        Department department = entity.getDepartmentId() != null ? departments.get(entity.getDepartmentId()) : null;
+        return department != null && department.getStatus() != StatusEnum.DELETED ? department.getName() : null;
     }
 
     private AdmissionAttachmentCounts loadAttachmentCounts(UUID admissionId) {

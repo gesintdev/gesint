@@ -27,6 +27,7 @@ export type DataTableProps<T extends object> = {
     renderActions?: (row: T) => ReactNode;
     actionsHeader?: string;
     actionsClassName?: string;
+    renderColumnHeader?: (column: TableColumnConfig) => ReactNode;
 };
 
 function resolveRowInteraction<T extends object>(props: DataTableProps<T>) {
@@ -122,6 +123,7 @@ export function DataTable<T extends object>({
     renderActions,
     actionsHeader = "Ações",
     actionsClassName,
+    renderColumnHeader,
 }: DataTableProps<T>) {
     const { mode, handler, interactive } = resolveRowInteraction({
         data,
@@ -147,7 +149,7 @@ export function DataTable<T extends object>({
                                 key={col.id}
                                 className={clsx("bg-transparent", alignClass(col.align), col.headerClassName)}
                             >
-                                {col.columnName}
+                                {renderColumnHeader?.(col) ?? col.columnName}
                             </th>
                         ))}
                         {hasActions && (

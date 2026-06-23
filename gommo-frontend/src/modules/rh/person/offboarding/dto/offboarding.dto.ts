@@ -5,6 +5,7 @@ export class Offboarding {
     code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
+    collaboratorName?: string;
     dismissalDate!: string;
     dismissalType!: DismissalType;
     dismissalNotes?: string;

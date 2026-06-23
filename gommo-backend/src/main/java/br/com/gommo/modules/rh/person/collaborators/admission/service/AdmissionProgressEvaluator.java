@@ -57,8 +57,8 @@ public final class AdmissionProgressEvaluator {
         return hasText(entity.getZipCode())
                 && hasText(entity.getStreet())
                 && hasText(entity.getNumber())
-                && hasText(entity.getCity())
-                && hasText(entity.getStateCode());
+                && entity.getCity() != null
+                && entity.getState() != null;
     }
 
     private static boolean isContratoComplete(AdmissionProcess entity, long contractDocumentCount) {

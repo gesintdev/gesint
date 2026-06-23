@@ -46,11 +46,15 @@ export class AdmissionProcess {
     number?: string;
     complement?: string;
     district?: string;
-    city?: string;
+    cityId?: string;
+    cityName?: string;
+    stateId?: string;
     stateCode?: string;
+    stateName?: string;
     expectedStartDate!: string;
     companyId?: string;
     departmentId?: string;
+    departmentName?: string;
     jobPositionId?: string;
     contractType!: ContractType;
     baseSalary?: number;
@@ -101,8 +105,8 @@ export class AdmissionProcessCreateDto {
     number?: string;
     complement?: string;
     district?: string;
-    city?: string;
-    stateCode?: string;
+    cityId?: string;
+    stateId?: string;
     expectedStartDate!: string;
     companyId?: string;
     departmentId?: string;

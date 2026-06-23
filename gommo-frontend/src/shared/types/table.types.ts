@@ -36,4 +36,6 @@ export type TableColumnConfig = {
     avatarSize?: "sm" | "md" | "lg";
     /** Rótulos customizados para células BADGE (sobrescreve o mapa global) */
     badgeLabels?: Record<string, string>;
+    /** Exibe filtro server-side no painel paginado. */
+    filterable?: boolean;
 };
