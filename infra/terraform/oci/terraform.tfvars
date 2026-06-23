@@ -10,7 +10,7 @@ allowed_ssh_cidr = "0.0.0.0/0"
 # Oracle Free Tier Ampere - ate 2 OCPU / 12 GB gratis na conta
 shape                   = "VM.Standard.A1.Flex"
 instance_ocpus          = 1
-instance_memory_in_gbs  = 8
+instance_memory_in_gbs  = 6
 boot_volume_size_in_gbs = 100
 
 install_docker_on_boot  = true
