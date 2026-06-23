@@ -24,6 +24,7 @@ export function emptyVacationForm(): VacationFormState {
         acquisitionPeriodEnd: "",
         baseSalarySnapshot: undefined,
         vacationDaysEntitled: 30,
+        recessPeriodId: undefined,
     };
 }
 
@@ -56,7 +57,9 @@ export function vacationFormToLeaveDtos(
     form: VacationRequestFormSchema,
     splitGroupId: string,
 ): LeaveRequestCreateDto[] {
-    const entitled = vacationDaysEntitled(form.unjustifiedAbsences);
+    const entitled = form.recessPeriodId
+        ? (form.vacationDaysEntitled ?? 0)
+        : vacationDaysEntitled(form.unjustifiedAbsences);
     return form.periods
         .filter((p) => p.startDate && p.days > 0)
         .map((period, index) => {
@@ -78,6 +81,7 @@ export function vacationFormToLeaveDtos(
                 splitSequence: index + 1,
                 baseSalarySnapshot: form.baseSalarySnapshot,
                 reviewStatus: form.approved ? ("APPROVED" as const) : ("PENDING" as const),
+                recessPeriodId: form.recessPeriodId,
             };
         });
 }

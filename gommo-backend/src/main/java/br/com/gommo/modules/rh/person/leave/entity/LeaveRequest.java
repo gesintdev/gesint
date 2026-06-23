@@ -19,6 +19,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
 
 @Entity
 @Table(name = "leave_request")
@@ -81,4 +82,15 @@ public class LeaveRequest extends AuditEntity {
 
     @Column(name = "review_reason", columnDefinition = "TEXT")
     private String reviewReason;
+
+    @Column(name = "recess_period_id")
+    private UUID recessPeriodId;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "recess_financial_mode", columnDefinition = "recess_financial_mode_enum")
+    private RecessFinancialModeEnum recessFinancialMode;
+
+    @Column(name = "recess_paid_percentage", precision = 5, scale = 2)
+    private BigDecimal recessPaidPercentage;
 }

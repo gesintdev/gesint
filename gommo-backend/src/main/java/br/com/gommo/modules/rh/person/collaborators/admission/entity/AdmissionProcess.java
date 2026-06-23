@@ -4,6 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,9 +25,12 @@ import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.entity.AuditEntity;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
+import br.com.gommo.modules.rh.person.collaborators.address.entity.City;
+import br.com.gommo.modules.rh.person.collaborators.address.entity.State;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.GenderEnum;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.MaritalStatusEnum;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
+import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
 
 @Entity
 @Table(name = "admission_process")
@@ -119,11 +125,13 @@ public class AdmissionProcess extends AuditEntity {
     @Column(length = 100)
     private String district;
 
-    @Column(length = 100)
-    private String city;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city_id")
+    private City city;
 
-    @Column(name = "state_code", length = 2)
-    private String stateCode;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "state_id")
+    private State state;
 
     @Column(name = "expected_start_date")
     private LocalDate expectedStartDate;
@@ -167,4 +175,29 @@ public class AdmissionProcess extends AuditEntity {
 
     @Column(name = "provider_trade_name", length = 200)
     private String providerTradeName;
+
+    @Column(name = "recess_enabled", nullable = false)
+    private boolean recessEnabled;
+    @Column(name = "recess_total_days_per_cycle")
+    private Integer recessTotalDaysPerCycle;
+    @Column(name = "recess_cycle_months")
+    private Integer recessCycleMonths;
+    @Column(name = "recess_eligibility_after_months")
+    private Integer recessEligibilityAfterMonths;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "recess_financial_mode", columnDefinition = "recess_financial_mode_enum")
+    private RecessFinancialModeEnum recessFinancialMode;
+    @Column(name = "recess_paid_percentage", precision = 5, scale = 2)
+    private BigDecimal recessPaidPercentage;
+    @Column(name = "recess_allow_split", nullable = false)
+    private boolean recessAllowSplit;
+    @Column(name = "recess_max_split_periods")
+    private Integer recessMaxSplitPeriods;
+    @Column(name = "recess_minimum_split_days")
+    private Integer recessMinimumSplitDays;
+    @Column(name = "recess_advance_notice_days", nullable = false)
+    private int recessAdvanceNoticeDays;
+    @Column(name = "recess_notes", columnDefinition = "TEXT")
+    private String recessNotes;
 }

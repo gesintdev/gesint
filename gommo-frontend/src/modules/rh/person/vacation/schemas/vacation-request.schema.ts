@@ -24,9 +24,16 @@ export const vacationRequestFormSchema = z
         acquisitionPeriodStart: z.string().optional(),
         acquisitionPeriodEnd: z.string().optional(),
         baseSalarySnapshot: z.coerce.number().optional(),
+        vacationDaysEntitled: z.coerce.number().int().nonnegative().optional(),
+        recessPeriodId: z.string().uuid().optional(),
+        recessAllowSplit: z.boolean().optional(),
+        recessMaxSplitPeriods: z.coerce.number().int().positive().nullish(),
+        recessMinimumSplitDays: z.coerce.number().int().positive().nullish(),
     })
     .superRefine((data, ctx) => {
-        const splitCheck = validateSplitPeriods(data.periods);
+        const splitCheck = data.recessPeriodId
+            ? { valid: data.periods.every((period) => period.days > 0 && Boolean(period.startDate)) }
+            : validateSplitPeriods(data.periods);
         if (!splitCheck.valid) {
             ctx.addIssue({ code: "custom", message: splitCheck.message ?? "Períodos inválidos", path: ["periods"] });
         }
@@ -56,15 +63,44 @@ export const vacationRequestFormSchema = z
                 path: ["periods"],
             });
         }
-        const entitledDays = vacationDaysEntitled(data.unjustifiedAbsences);
+        if (data.recessPeriodId && !data.recessAllowSplit && activePeriods.length > 1) {
+            ctx.addIssue({
+                code: "custom",
+                message: "A política contratual não permite fracionamento",
+                path: ["periods"],
+            });
+        }
+        if (data.recessPeriodId && data.recessMaxSplitPeriods && activePeriods.length > data.recessMaxSplitPeriods) {
+            ctx.addIssue({
+                code: "custom",
+                message: `Máximo de ${data.recessMaxSplitPeriods} parcelas`,
+                path: ["periods"],
+            });
+        }
+        if (
+            data.recessPeriodId &&
+            data.recessMinimumSplitDays &&
+            activePeriods.some((p) => p.days < data.recessMinimumSplitDays!)
+        ) {
+            ctx.addIssue({
+                code: "custom",
+                message: `Cada parcela deve ter ao menos ${data.recessMinimumSplitDays} dias`,
+                path: ["periods"],
+            });
+        }
+        const entitledDays = data.recessPeriodId
+            ? (data.vacationDaysEntitled ?? 0)
+            : vacationDaysEntitled(data.unjustifiedAbsences);
         if (entitledDays <= 0) {
             ctx.addIssue({
                 code: "custom",
-                message: "Sem direito a férias neste período (faltas injustificadas)",
-                path: ["unjustifiedAbsences"],
+                message: data.recessPeriodId
+                    ? "Sem saldo de recesso contratual disponível"
+                    : "Sem direito a férias neste período (faltas injustificadas)",
+                path: [data.recessPeriodId ? "periods" : "unjustifiedAbsences"],
             });
         }
-        const maxPec = maxPecuniaryDays(entitledDays);
+        const maxPec = data.recessPeriodId ? 0 : maxPecuniaryDays(entitledDays);
         if (data.pecuniaryAllowanceDays > maxPec) {
             ctx.addIssue({
                 code: "custom",

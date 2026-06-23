@@ -45,8 +45,6 @@ public class AdmissionProcessMapper {
                 .number(dto.getNumber())
                 .complement(dto.getComplement())
                 .district(dto.getDistrict())
-                .city(dto.getCity())
-                .stateCode(dto.getStateCode())
                 .expectedStartDate(dto.getExpectedStartDate())
                 .companyId(dto.getCompanyId())
                 .departmentId(dto.getDepartmentId())
@@ -60,6 +58,17 @@ public class AdmissionProcessMapper {
                 .providerCnpj(dto.getProviderCnpj())
                 .providerLegalName(dto.getProviderLegalName())
                 .providerTradeName(dto.getProviderTradeName())
+                .recessEnabled(dto.isRecessEnabled())
+                .recessTotalDaysPerCycle(dto.getRecessTotalDaysPerCycle())
+                .recessCycleMonths(dto.getRecessCycleMonths())
+                .recessEligibilityAfterMonths(dto.getRecessEligibilityAfterMonths())
+                .recessFinancialMode(dto.getRecessFinancialMode())
+                .recessPaidPercentage(dto.getRecessPaidPercentage())
+                .recessAllowSplit(dto.isRecessAllowSplit())
+                .recessMaxSplitPeriods(dto.getRecessMaxSplitPeriods())
+                .recessMinimumSplitDays(dto.getRecessMinimumSplitDays())
+                .recessAdvanceNoticeDays(dto.getRecessAdvanceNoticeDays() != null ? dto.getRecessAdvanceNoticeDays() : 0)
+                .recessNotes(dto.getRecessNotes())
                 .photoObjectId(dto.getPhotoObjectId())
                 .build();
     }
@@ -89,8 +98,6 @@ public class AdmissionProcessMapper {
         entity.setNumber(dto.getNumber());
         entity.setComplement(dto.getComplement());
         entity.setDistrict(dto.getDistrict());
-        entity.setCity(dto.getCity());
-        entity.setStateCode(dto.getStateCode());
         entity.setExpectedStartDate(dto.getExpectedStartDate());
         entity.setCompanyId(dto.getCompanyId());
         entity.setDepartmentId(dto.getDepartmentId());
@@ -106,6 +113,17 @@ public class AdmissionProcessMapper {
         entity.setProviderCnpj(dto.getProviderCnpj());
         entity.setProviderLegalName(dto.getProviderLegalName());
         entity.setProviderTradeName(dto.getProviderTradeName());
+        entity.setRecessEnabled(dto.isRecessEnabled());
+        entity.setRecessTotalDaysPerCycle(dto.getRecessTotalDaysPerCycle());
+        entity.setRecessCycleMonths(dto.getRecessCycleMonths());
+        entity.setRecessEligibilityAfterMonths(dto.getRecessEligibilityAfterMonths());
+        entity.setRecessFinancialMode(dto.getRecessFinancialMode());
+        entity.setRecessPaidPercentage(dto.getRecessPaidPercentage());
+        entity.setRecessAllowSplit(dto.isRecessAllowSplit());
+        entity.setRecessMaxSplitPeriods(dto.getRecessMaxSplitPeriods());
+        entity.setRecessMinimumSplitDays(dto.getRecessMinimumSplitDays());
+        entity.setRecessAdvanceNoticeDays(dto.getRecessAdvanceNoticeDays() != null ? dto.getRecessAdvanceNoticeDays() : 0);
+        entity.setRecessNotes(dto.getRecessNotes());
         entity.setPhotoObjectId(dto.getPhotoObjectId());
     }
 
@@ -128,6 +146,16 @@ public class AdmissionProcessMapper {
             int completedStepCount,
             int requiredStepCount,
             List<String> completedStepIds) {
+        return toResponse(entity, admissionStatus, completedStepCount, requiredStepCount, completedStepIds, null);
+    }
+
+    public AdmissionProcessResponseDto toResponse(
+            AdmissionProcess entity,
+            AdmissionStatusEnum admissionStatus,
+            int completedStepCount,
+            int requiredStepCount,
+            List<String> completedStepIds,
+            String departmentName) {
         return AdmissionProcessResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
@@ -161,11 +189,15 @@ public class AdmissionProcessMapper {
                 .number(entity.getNumber())
                 .complement(entity.getComplement())
                 .district(entity.getDistrict())
-                .city(entity.getCity())
-                .stateCode(entity.getStateCode())
+                .cityId(entity.getCity() != null ? entity.getCity().getId() : null)
+                .cityName(entity.getCity() != null ? entity.getCity().getName() : null)
+                .stateId(entity.getState() != null ? entity.getState().getId() : null)
+                .stateCode(entity.getState() != null ? entity.getState().getAbbreviation() : null)
+                .stateName(entity.getState() != null ? entity.getState().getName() : null)
                 .expectedStartDate(entity.getExpectedStartDate())
                 .companyId(entity.getCompanyId())
                 .departmentId(entity.getDepartmentId())
+                .departmentName(departmentName)
                 .jobPositionId(entity.getJobPositionId())
                 .contractType(entity.getContractType())
                 .baseSalary(entity.getBaseSalary())
@@ -176,6 +208,17 @@ public class AdmissionProcessMapper {
                 .providerCnpj(entity.getProviderCnpj())
                 .providerLegalName(entity.getProviderLegalName())
                 .providerTradeName(entity.getProviderTradeName())
+                .recessEnabled(entity.isRecessEnabled())
+                .recessTotalDaysPerCycle(entity.getRecessTotalDaysPerCycle())
+                .recessCycleMonths(entity.getRecessCycleMonths())
+                .recessEligibilityAfterMonths(entity.getRecessEligibilityAfterMonths())
+                .recessFinancialMode(entity.getRecessFinancialMode())
+                .recessPaidPercentage(entity.getRecessPaidPercentage())
+                .recessAllowSplit(entity.isRecessAllowSplit())
+                .recessMaxSplitPeriods(entity.getRecessMaxSplitPeriods())
+                .recessMinimumSplitDays(entity.getRecessMinimumSplitDays())
+                .recessAdvanceNoticeDays(entity.getRecessAdvanceNoticeDays())
+                .recessNotes(entity.getRecessNotes())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

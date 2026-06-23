@@ -15,6 +15,7 @@ public class OffboardingResponseDto {
     private final Integer code;
     private final StatusEnum status;
     private final UUID collaboratorId;
+    private final String collaboratorName;
     private final LocalDate dismissalDate;
     private final DismissalTypeEnum dismissalType;
     private final String dismissalNotes;

@@ -1,4 +1,8 @@
-import type { LeaveRequest, LeaveRequestCreateDto } from "@/modules/rh/person/leave/dto/leave-request.dto";
+import type {
+    LeaveRequest,
+    LeaveRequestCreateDto,
+    VacationEligibleCollaborator,
+} from "@/modules/rh/person/leave/dto/leave-request.dto";
 import { BaseService } from "@/modules/root/services/base.service";
 import { apiFetch } from "@/shared/lib/api.client";
 
@@ -37,6 +41,10 @@ class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestCreateDt
             method: "POST",
             body: payload,
         });
+    }
+
+    async getVacationEligibleCollaborators(): Promise<VacationEligibleCollaborator[]> {
+        return apiFetch<VacationEligibleCollaborator[]>(`${this.basePath}/vacation/eligible-collaborators`);
     }
 }
 

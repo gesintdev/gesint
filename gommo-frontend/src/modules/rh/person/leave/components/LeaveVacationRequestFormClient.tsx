@@ -1,6 +1,6 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent,useEffect, useState } from "react";
+import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { LEAVE_CLIENT_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
@@ -16,7 +16,7 @@ import {
     type VacationFormState,
     vacationFormToRhLeaveDtos,
 } from "@/modules/rh/person/vacation/lib/vacation-request.mapper";
-import { maxPecuniaryDays, vacationDaysEntitled } from "@/modules/rh/person/vacation/lib/vacation-rules";
+import { maxPecuniaryDays, totalGozoDays, vacationDaysEntitled } from "@/modules/rh/person/vacation/lib/vacation-rules";
 import {
     type VacationRequestFormSchema,
     vacationRequestFormSchema,
@@ -52,6 +52,8 @@ export function LeaveVacationRequestFormClient() {
     const [periodContext, setPeriodContext] = useState<VacationPeriodContext | null>(null);
     const [contextLoading, setContextLoading] = useState(false);
     const [absenceLoading, setAbsenceLoading] = useState(false);
+    const acquisitionStart = periodContext?.acquisition?.start;
+    const acquisitionEnd = periodContext?.acquisition?.end;
 
     useEffect(() => {
         if (isEditing) return;
@@ -64,7 +66,9 @@ export function LeaveVacationRequestFormClient() {
                 ...prev,
                 ...prefill,
                 approved: false,
-                vacationDaysEntitled: vacationDaysEntitled(prefill.unjustifiedAbsences ?? 0),
+                vacationDaysEntitled: prefill.recessPeriodId
+                    ? prefill.vacationDaysEntitled
+                    : vacationDaysEntitled(prefill.unjustifiedAbsences ?? 0),
             }));
         } catch {
             // ignore invalid prefill
@@ -78,13 +82,13 @@ export function LeaveVacationRequestFormClient() {
         }
         let cancelled = false;
         setContextLoading(true);
-        void loadCollaboratorVacationContext(form.collaboratorId, form.unjustifiedAbsences)
+        void loadCollaboratorVacationContext(form.collaboratorId, form.unjustifiedAbsences, form.acquisitionPeriodStart)
             .then((ctx) => {
                 if (cancelled) return;
                 setPeriodContext(ctx);
                 setForm((prev) => ({
                     ...prev,
-                    vacationDaysEntitled: ctx.entitledDays,
+                    vacationDaysEntitled: prev.recessPeriodId ? prev.vacationDaysEntitled : ctx.entitledDays,
                     acquisitionPeriodStart: ctx.acquisition?.start ?? prev.acquisitionPeriodStart,
                     acquisitionPeriodEnd: ctx.acquisition?.end ?? prev.acquisitionPeriodEnd,
                     baseSalarySnapshot: ctx.baseSalary ?? prev.baseSalarySnapshot,
@@ -96,15 +100,14 @@ export function LeaveVacationRequestFormClient() {
         return () => {
             cancelled = true;
         };
-    }, [form.collaboratorId, form.unjustifiedAbsences]);
+    }, [form.acquisitionPeriodStart, form.collaboratorId, form.unjustifiedAbsences]);
 
     useEffect(() => {
-        const acquisition = periodContext?.acquisition;
-        if (!form.collaboratorId || !acquisition?.start || !acquisition.end) return;
+        if (!form.collaboratorId || !acquisitionStart || !acquisitionEnd) return;
         let cancelled = false;
         setAbsenceLoading(true);
         void leaverequestService
-            .absenceSummary(form.collaboratorId, acquisition.start, acquisition.end)
+            .absenceSummary(form.collaboratorId, acquisitionStart, acquisitionEnd)
             .then((summary) => {
                 if (cancelled) return;
                 setForm((prev) => ({
@@ -120,7 +123,38 @@ export function LeaveVacationRequestFormClient() {
         return () => {
             cancelled = true;
         };
-    }, [form.collaboratorId, periodContext?.acquisition?.start, periodContext?.acquisition?.end]);
+    }, [acquisitionEnd, acquisitionStart, form.collaboratorId]);
+
+    useEffect(() => {
+        if (periodContext?.contractType !== "PJ" || !form.collaboratorId || form.recessPeriodId) return;
+        let cancelled = false;
+        setContextLoading(true);
+        void leaverequestService
+            .getVacationEligibleCollaborators()
+            .then((rows) => {
+                if (cancelled) return;
+                const recess = rows.find(
+                    (row) => row.collaboratorId === form.collaboratorId && row.periodStatus === "CONTRACT_RECESS",
+                );
+                if (!recess) return;
+                setForm((prev) => ({
+                    ...prev,
+                    acquisitionPeriodStart: recess.acquisitionStart,
+                    acquisitionPeriodEnd: recess.acquisitionEnd,
+                    vacationDaysEntitled: recess.entitledDays,
+                    recessPeriodId: recess.recessPeriodId,
+                    recessAllowSplit: recess.recessAllowSplit,
+                    recessMaxSplitPeriods: recess.recessMaxSplitPeriods,
+                    recessMinimumSplitDays: recess.recessMinimumSplitDays,
+                }));
+            })
+            .finally(() => {
+                if (!cancelled) setContextLoading(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [form.collaboratorId, form.recessPeriodId, periodContext?.contractType]);
 
     const saveMutation = useMutation({
         mutationFn: async (payload: { parsed: VacationRequestFormSchema; groupId: string }) => {
@@ -164,7 +198,7 @@ export function LeaveVacationRequestFormClient() {
         const parsed = vacationRequestFormSchema.safeParse(form);
         if (!parsed.success) {
             setFieldErrors(mapZodFieldErrors<FormField>(parsed.error));
-            setError("Verifique os campos destacados.");
+            setError(parsed.error.issues[0]?.message ?? "Não foi possível validar a solicitação.");
             return;
         }
         if (periodContext?.contractType === "PJ") {
@@ -177,6 +211,8 @@ export function LeaveVacationRequestFormClient() {
     const maxPecuniary = maxPecuniaryDays(form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences));
     const entitledDays = form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences);
     const isClt = periodContext?.contractType !== "PJ";
+    const requestedDays = totalGozoDays(form.periods);
+    const remainingDays = Math.max(0, entitledDays - requestedDays);
 
     if (isEditing) {
         return (
@@ -217,7 +253,9 @@ export function LeaveVacationRequestFormClient() {
             >
                 {periodContext?.contractType === "PJ" ? <VacationPjNotice /> : null}
                 {absenceLoading ? (
-                    <p className="text-sm text-base-content/55">Atualizando faltas e atestados do período aquisitivo...</p>
+                    <p className="text-sm text-base-content/55">
+                        Atualizando faltas e atestados do período aquisitivo...
+                    </p>
                 ) : null}
                 {isClt || !form.collaboratorId ? (
                     <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 sm:items-start">
@@ -249,11 +287,30 @@ export function LeaveVacationRequestFormClient() {
                         </div>
                     </div>
                 ) : (
-                    <VacationSplitPeriodsEditor
-                        periods={form.periods}
-                        onChange={(periods) => update("periods", periods)}
-                        fieldError={fieldErrors.periods}
-                    />
+                    <div className="grid gap-4">
+                        <div className="grid gap-3 rounded-lg border border-base-300/60 bg-base-200/20 p-4 sm:grid-cols-3">
+                            <div>
+                                <p className="text-xs text-base-content/55">Saldo contratual disponível</p>
+                                <p className="mt-1 text-lg font-semibold text-base-content">{entitledDays} dias</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-base-content/55">Dias solicitados</p>
+                                <p className="mt-1 text-lg font-semibold text-base-content">{requestedDays} dias</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-base-content/55">Saldo após esta solicitação</p>
+                                <p className="mt-1 text-lg font-semibold text-primary">{remainingDays} dias</p>
+                            </div>
+                        </div>
+                        <VacationSplitPeriodsEditor
+                            periods={form.periods}
+                            onChange={(periods) => update("periods", periods)}
+                            fieldError={fieldErrors.periods}
+                            policy="CONTRACT_RECESS"
+                            maxPeriods={form.recessAllowSplit ? (form.recessMaxSplitPeriods ?? undefined) : 1}
+                            minimumPeriodDays={form.recessMinimumSplitDays ?? undefined}
+                        />
+                    </div>
                 )}
             </FormSection>
             <FormSection id="registro" title="Solicitação" bodyClassName="!grid-cols-1">

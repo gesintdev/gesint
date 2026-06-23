@@ -16,6 +16,8 @@
 export { DataRequest } from "@/shared/components/data/DataRequest";
 export { AsyncResult, useAsyncData } from "@/shared/components/data/DataResult";
 export {
+    QueryPagedTablePanel,
+    type QueryPagedTablePanelProps,
     QueryPanel,
     type QueryPanelRenderProps,
     QueryTablePanel,

@@ -1,12 +1,15 @@
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";
-import { type TableColumnConfig,TableDataType } from "@/shared/types/table.types";
+import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
 
 export const VACATION_ELIGIBLE_TABLE_COLUMNS: TableColumnConfig[] = [
     {
         id: "collaboratorName",
         columnName: "Colaborador",
         fieldValue: "collaboratorName",
-        dataType: TableDataType.TEXT,
+        dataType: TableDataType.AVATAR_PROFILE,
+        avatarImageField: "photoObjectId",
+        avatarSubtitleField: "cpf",
+        avatarSize: "sm",
     },
     {
         id: "hireDate",
@@ -16,16 +19,21 @@ export const VACATION_ELIGIBLE_TABLE_COLUMNS: TableColumnConfig[] = [
     },
     {
         id: "periodStatus",
-        columnName: LEAVE_VACATION_CRUD_LABELS.columnPeriod,
+        columnName: "Situação",
         fieldValue: "periodStatus",
         dataType: TableDataType.BADGE,
         badgeLabels: {
-            AVAILABLE: "Apto",
-            CONCESSIVE: "Concessivo",
-            ACQUIRING: "Aquisitivo",
-            EXPIRED: "Vencido",
-            FORFEITED: "Perdido",
+            CONCESSIVE: "Apto",
+            EXPIRED: "Férias vencidas",
         },
+    },
+    {
+        id: "acquisitionStart",
+        columnName: LEAVE_VACATION_CRUD_LABELS.columnPeriod,
+        fieldValue: "acquisitionStart",
+        dataType: TableDataType.DATE,
+        className: "hidden md:table-cell",
+        headerClassName: "hidden md:table-cell",
     },
     {
         id: "entitledDays",
@@ -35,20 +43,18 @@ export const VACATION_ELIGIBLE_TABLE_COLUMNS: TableColumnConfig[] = [
     },
     {
         id: "unjustifiedAbsences",
-        columnName: "Faltas injust.",
+        columnName: "Faltas",
         fieldValue: "unjustifiedAbsences",
         dataType: TableDataType.TEXT,
-    },
-    {
-        id: "justifiedAbsences",
-        columnName: "Atestados",
-        fieldValue: "justifiedAbsences",
-        dataType: TableDataType.TEXT,
+        className: "hidden lg:table-cell",
+        headerClassName: "hidden lg:table-cell",
     },
     {
         id: "concessiveEnd",
         columnName: "Limite concessivo",
         fieldValue: "concessiveEnd",
         dataType: TableDataType.DATE,
+        className: "hidden lg:table-cell",
+        headerClassName: "hidden lg:table-cell",
     },
 ];

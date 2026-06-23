@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { collaboratorKeys } from "@/modules/rh/person/collaborators/people/collaborator.query";
 import { OFFBOARDING_TABLE_COLUMNS } from "@/modules/rh/person/offboarding/config/offboarding.table-columns";
 import type { Offboarding } from "@/modules/rh/person/offboarding/dto/offboarding.dto";
 import { OFFBOARDING_CLIENT_MESSAGES } from "@/modules/rh/person/offboarding/exceptions/offboarding.messages";
@@ -20,6 +21,7 @@ export function OffboardingListClient() {
         mutationFn: (id: string) => offboardingService.remove(id),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: offboardingKeys.all });
+            await queryClient.invalidateQueries({ queryKey: collaboratorKeys.all });
             toast.success("Desligamento excluído");
         },
         onError: (err: unknown) =>

@@ -28,11 +28,16 @@ public class OffboardingMapper {
     }
 
     public OffboardingResponseDto toResponse(Offboarding entity) {
+        return toResponse(entity, null);
+    }
+
+    public OffboardingResponseDto toResponse(Offboarding entity, String collaboratorName) {
         return OffboardingResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
                 .collaboratorId(entity.getCollaboratorId())
+                .collaboratorName(collaboratorName)
                 .dismissalDate(entity.getDismissalDate())
                 .dismissalType(entity.getDismissalType())
                 .dismissalNotes(entity.getDismissalNotes())

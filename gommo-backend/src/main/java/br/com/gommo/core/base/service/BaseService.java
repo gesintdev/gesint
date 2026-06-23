@@ -94,6 +94,7 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
                 .size(size)
                 .totalElements(result.getTotalElements())
                 .totalPages(result.getTotalPages())
+                .filterOptions(java.util.Map.of())
                 .build();
     }
 

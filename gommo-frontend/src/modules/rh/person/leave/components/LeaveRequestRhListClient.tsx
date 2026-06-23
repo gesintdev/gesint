@@ -7,11 +7,15 @@ import { leaverequestService } from "@/modules/rh/person/leave/services/leave-re
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
 
 type RhVacationRow = LeaveRequest & {
-    rhVacationStatus: "PENDING" | "APPROVED" | "RETURNED" | "REJECTED";
+    rhVacationStatus: "PENDING" | "APPROVED" | "IN_VACATION" | "RETURNED" | "REJECTED";
 };
 
 function mapRhVacationStatus(row: LeaveRequest): RhVacationRow["rhVacationStatus"] {
-    if (row.approved === true || row.reviewStatus === "APPROVED") return "APPROVED";
+    if (row.approved === true || row.reviewStatus === "APPROVED") {
+        const today = new Date().toISOString().slice(0, 10);
+        if (row.startDate <= today && today <= row.endDate) return "IN_VACATION";
+        return "APPROVED";
+    }
     if (row.reviewStatus === "RETURNED") return "RETURNED";
     if (row.reviewStatus === "REJECTED") return "REJECTED";
     return "PENDING";

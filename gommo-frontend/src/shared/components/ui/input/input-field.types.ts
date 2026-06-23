@@ -1,4 +1,4 @@
-import type { HTMLAttributes, HTMLInputTypeAttribute, ReactNode } from "react";
+import type { HTMLAttributes, HTMLInputTypeAttribute, KeyboardEvent, ReactNode } from "react";
 
 export type InputFieldChromeProps = {
     label?: string;
@@ -29,7 +29,10 @@ export type InputBaseProps = InputFieldChromeProps & {
     max?: string;
     step?: string | number;
     maxLength?: number;
+    /** Exibe um indicador de carregamento (ex.: busca assíncrona em andamento). */
+    loading?: boolean;
     onBlur?: () => void;
     onFocus?: () => void;
+    onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
     "aria-invalid"?: boolean;
 };

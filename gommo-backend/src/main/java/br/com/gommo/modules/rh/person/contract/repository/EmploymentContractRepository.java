@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EmploymentContractRepository extends IBaseRepository<EmploymentContract> {
+    java.util.Optional<EmploymentContract> findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(
+            UUID collaboratorId, StatusEnum status);
 
     @Query("""
             SELECT c FROM EmploymentContract c

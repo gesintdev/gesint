@@ -16,6 +16,8 @@ public final class TenantSchemaTableCatalog {
             "collaborator_address",
             "collaborator_contact",
             "employment_contract",
+            "contract_recess_policy",
+            "contract_recess_period",
             "admission_process",
             "attendance_record",
             "benefit_plan",

@@ -14,6 +14,7 @@ import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionSt
 import br.com.gommo.modules.rh.person.collaborators.people.entity.GenderEnum;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.MaritalStatusEnum;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
+import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
 
 @Getter
 @Builder
@@ -52,12 +53,16 @@ public class AdmissionProcessResponseDto {
     private final String number;
     private final String complement;
     private final String district;
-    private final String city;
+    private final UUID cityId;
+    private final String cityName;
+    private final UUID stateId;
     private final String stateCode;
+    private final String stateName;
 
     private final LocalDate expectedStartDate;
     private final UUID companyId;
     private final UUID departmentId;
+    private final String departmentName;
     private final UUID jobPositionId;
     private final ContractTypeEnum contractType;
     private final BigDecimal baseSalary;
@@ -68,6 +73,17 @@ public class AdmissionProcessResponseDto {
     private final String providerCnpj;
     private final String providerLegalName;
     private final String providerTradeName;
+    private final boolean recessEnabled;
+    private final Integer recessTotalDaysPerCycle;
+    private final Integer recessCycleMonths;
+    private final Integer recessEligibilityAfterMonths;
+    private final RecessFinancialModeEnum recessFinancialMode;
+    private final BigDecimal recessPaidPercentage;
+    private final boolean recessAllowSplit;
+    private final Integer recessMaxSplitPeriods;
+    private final Integer recessMinimumSplitDays;
+    private final Integer recessAdvanceNoticeDays;
+    private final String recessNotes;
 
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;

@@ -46,8 +46,8 @@ export function admissionprocessToFormDto(entity: AdmissionProcess): AdmissionPr
         number: entity.number ?? "",
         complement: entity.complement ?? "",
         district: entity.district ?? "",
-        city: entity.city ?? "",
-        stateCode: entity.stateCode ?? "",
+        cityId: entity.cityId ?? "",
+        stateId: entity.stateId ?? "",
         expectedStartDate: toDateInput(entity.expectedStartDate),
         companyId: entity.companyId ?? "",
         departmentId: entity.departmentId ?? "",
@@ -61,6 +61,17 @@ export function admissionprocessToFormDto(entity: AdmissionProcess): AdmissionPr
         providerCnpj: entity.providerCnpj ?? "",
         providerLegalName: entity.providerLegalName ?? "",
         providerTradeName: entity.providerTradeName ?? "",
+        recessEnabled: entity.recessEnabled ?? false,
+        recessTotalDaysPerCycle: entity.recessTotalDaysPerCycle ?? "",
+        recessCycleMonths: entity.recessCycleMonths ?? "",
+        recessEligibilityAfterMonths: entity.recessEligibilityAfterMonths ?? "",
+        recessFinancialMode: entity.recessFinancialMode,
+        recessPaidPercentage: entity.recessPaidPercentage ?? "",
+        recessAllowSplit: entity.recessAllowSplit ?? false,
+        recessMaxSplitPeriods: entity.recessMaxSplitPeriods ?? "",
+        recessMinimumSplitDays: entity.recessMinimumSplitDays ?? "",
+        recessAdvanceNoticeDays: entity.recessAdvanceNoticeDays ?? 0,
+        recessNotes: entity.recessNotes ?? "",
     };
 }
 
@@ -81,6 +92,8 @@ export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
     companyId: "",
     departmentId: "",
     jobPositionId: "",
+    cityId: "",
+    stateId: "",
     workloadSchedule: "",
     emergencyContacts: normalizeEmergencyContacts(),
     contractStartDate: "",
@@ -88,6 +101,16 @@ export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
     providerCnpj: "",
     providerLegalName: "",
     providerTradeName: "",
+    recessEnabled: false,
+    recessTotalDaysPerCycle: "",
+    recessCycleMonths: "",
+    recessEligibilityAfterMonths: "",
+    recessPaidPercentage: "",
+    recessAllowSplit: false,
+    recessMaxSplitPeriods: "",
+    recessMinimumSplitDays: "",
+    recessAdvanceNoticeDays: 0,
+    recessNotes: "",
 });
 
 export function admissionFormToPayload(
@@ -100,7 +123,8 @@ export function admissionFormToPayload(
         phone: form.phone ? digitsOnly(form.phone) : undefined,
         zipCode: form.zipCode ? digitsOnly(form.zipCode) : undefined,
         emergencyContacts,
-        stateCode: form.stateCode?.trim().toUpperCase() || undefined,
+        cityId: form.cityId?.trim() || undefined,
+        stateId: form.stateId?.trim() || undefined,
         companyId: form.companyId?.trim() || undefined,
         departmentId: form.departmentId?.trim() || undefined,
         jobPositionId: form.jobPositionId?.trim() || undefined,
@@ -121,7 +145,19 @@ export function admissionFormToPayload(
         providerLegalName: form.providerLegalName?.trim() || undefined,
         providerTradeName: form.providerTradeName?.trim() || undefined,
         baseSalary: form.baseSalary != null && form.baseSalary !== "" ? Number(form.baseSalary) : undefined,
+        recessTotalDaysPerCycle: toOptionalNumber(form.recessTotalDaysPerCycle),
+        recessCycleMonths: toOptionalNumber(form.recessCycleMonths),
+        recessEligibilityAfterMonths: toOptionalNumber(form.recessEligibilityAfterMonths),
+        recessPaidPercentage: toOptionalNumber(form.recessPaidPercentage),
+        recessMaxSplitPeriods: toOptionalNumber(form.recessMaxSplitPeriods),
+        recessMinimumSplitDays: toOptionalNumber(form.recessMinimumSplitDays),
+        recessAdvanceNoticeDays: toOptionalNumber(form.recessAdvanceNoticeDays) ?? 0,
+        recessNotes: form.recessNotes?.trim() || undefined,
     };
+}
+
+function toOptionalNumber(value?: string | number): number | undefined {
+    return value == null || value === "" ? undefined : Number(value);
 }
 
 function sanitizeEmergencyContacts(contacts?: AdmissionEmergencyContact[]): AdmissionEmergencyContact[] {

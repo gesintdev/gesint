@@ -63,7 +63,7 @@ export function SystemShell({
                     >
                         <GommoLogo variant={collapsed ? "icon" : "full"} />
                     </div>
-                    <header className="surface-header flex min-w-0 flex-1 items-center justify-between gap-3 px-4 sm:gap-5 sm:px-6 lg:px-8">
+                    <header className="surface-header flex min-w-0 flex-1 items-center justify-between gap-3 px-4 sm:gap-5 sm:px-6 lg:px-2">
                         <button
                             type="button"
                             aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
@@ -84,7 +84,7 @@ export function SystemShell({
                                 className="pe-2 placeholder:text-base-content/32"
                             />
                             <kbd className="ms-auto hidden shrink-0 sm:flex">
-                                <Command className="size-2.5" strokeWidth={2.5} />K
+                                Alt+S
                             </kbd>
                         </label>
                         <div className="flex items-center gap-1 sm:gap-1.5">

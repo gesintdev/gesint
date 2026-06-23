@@ -300,8 +300,8 @@ export function EntityAttachments({
     const isLoading = deferUpload ? serverLinksQuery.isLoading : linksQuery.isLoading;
 
     return (
-        <div className="grid gap-3">
-            <div className="flex flex-wrap items-end gap-2">
+        <div className="grid gap-4">
+            <div className="flex flex-wrap items-end gap-4">
                 {documentTypeItems ? (
                     <InputSelect
                         label="Tipo de documento"

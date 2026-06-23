@@ -1,5 +1,6 @@
 "use client";
 import clsx from "clsx";
+import { Loader2 } from "lucide-react";
 import { useId } from "react";
 
 import type { InputBaseProps } from "@/shared/components/ui/input/input-field.types";
@@ -28,8 +29,10 @@ export function InputBase({
     max,
     step,
     maxLength,
+    loading,
     onBlur,
     onFocus,
+    onKeyDown,
     "aria-invalid": ariaInvalid,
 }: InputBaseProps) {
     const autoId = useId();
@@ -72,7 +75,9 @@ export function InputBase({
                     onChange={(e) => onDisplayChange(e.target.value)}
                     onBlur={onBlur}
                     onFocus={onFocus}
+                    onKeyDown={onKeyDown}
                 />
+                {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}
                 {rightSlot}
             </div>
         </InputFieldChrome>

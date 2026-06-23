@@ -2,6 +2,9 @@ package br.com.gommo.modules.rh.person.collaborators.people.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +15,8 @@ import lombok.experimental.SuperBuilder;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.modules.rh.person.collaborators.address.entity.City;
+import br.com.gommo.modules.rh.person.collaborators.address.entity.State;
 
 @Entity
 @Table(name = "collaborator_address")
@@ -40,11 +45,13 @@ public class CollaboratorAddress extends AuditEntity {
     @Column(length = 100)
     private String district;
 
-    @Column(length = 100)
-    private String city;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city_id")
+    private City city;
 
-    @Column(name = "state_code", length = 2)
-    private String stateCode;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "state_id")
+    private State state;
 
     @Column(name = "is_primary", nullable = false)
     private boolean primaryAddress = true;
