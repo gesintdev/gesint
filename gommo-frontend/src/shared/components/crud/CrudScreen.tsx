@@ -252,7 +252,15 @@ export function CrudScreen({
                                   : "overflow-y-auto",
                         )}
                     >
-                        {activeTab === CRUD_TAB_LIST ? list : null}
+                        <div
+                            className={clsx(
+                                "min-h-0 flex-1 flex-col",
+                                activeTab === CRUD_TAB_LIST ? "flex" : "hidden",
+                            )}
+                            aria-hidden={activeTab !== CRUD_TAB_LIST}
+                        >
+                            {list}
+                        </div>
                         {activeTab !== CRUD_TAB_LIST && activeTab !== CRUD_TAB_FORM ? extraTabPanel : null}
                         {formSessionActive ? (
                             <div

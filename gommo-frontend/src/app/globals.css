@@ -45,11 +45,13 @@
     --gommo-surface-muted: #f0f2f8;
     --gommo-surface-accent: var(--gommo-primary-50);
     --gommo-content: #0f172a;
+    --gommo-skeleton-base: color-mix(in srgb, var(--color-base-content) 7%, var(--color-base-100));
+    --gommo-skeleton-highlight: color-mix(in srgb, var(--color-base-content) 3%, var(--color-base-100));
 
     /* Bordas — neutras suaves (accent só no focus) */
-    --gommo-border: #ececf3;
-    --gommo-border-subtle: #f1f2f6;
-    --gommo-border-strong: #d1d5db;
+    --gommo-border: #cfd6e2;
+    --gommo-border-subtle: #dce2ec;
+    --gommo-border-strong: #aeb8c8;
     --gommo-border-focus: var(--gommo-primary);
 
     /* Sombras super suaves */
@@ -69,6 +71,8 @@
     --gommo-border: color-mix(in srgb, var(--color-base-content) 11%, transparent);
     --gommo-border-subtle: color-mix(in srgb, var(--color-base-content) 6%, transparent);
     --gommo-border-strong: color-mix(in srgb, var(--color-base-content) 16%, transparent);
+    --gommo-skeleton-base: color-mix(in srgb, var(--color-base-content) 7%, var(--color-base-100));
+    --gommo-skeleton-highlight: color-mix(in srgb, var(--color-base-content) 12%, var(--color-base-100));
     --gommo-shadow-xs: 0 1px 2px color-mix(in srgb, black 18%, transparent);
     --gommo-shadow-sm: 0 1px 3px color-mix(in srgb, black 22%, transparent);
     --gommo-shadow-md: 0 4px 12px color-mix(in srgb, black 28%, transparent);
@@ -1488,9 +1492,9 @@ aside[data-collapsed="true"] .sidebar-copy,
     border-radius: var(--gommo-control-radius);
     background: linear-gradient(
         90deg,
-        color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 0%,
-        var(--color-base-100) 40%,
-        color-mix(in srgb, var(--gommo-primary-100) 45%, var(--color-base-100)) 100%
+        var(--gommo-skeleton-base) 0%,
+        var(--gommo-skeleton-highlight) 42%,
+        var(--gommo-skeleton-base) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;

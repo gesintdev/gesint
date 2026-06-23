@@ -1,6 +1,6 @@
 import { type QueryKey, useQuery, type UseQueryResult } from "@tanstack/react-query";
 import clsx from "clsx";
-import { Funnel } from "lucide-react";
+import { Funnel, X } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -182,6 +182,7 @@ function ColumnFilterHeader({
 }: ColumnFilterHeaderProps) {
     const active = value.length > 0;
     const triggerRef = useRef<HTMLButtonElement | null>(null);
+    const popoverRef = useRef<HTMLDivElement | null>(null);
     const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
     useEffect(() => {
@@ -202,6 +203,27 @@ function ColumnFilterHeader({
             window.removeEventListener("resize", updatePosition);
         };
     }, [open]);
+
+    useEffect(() => {
+        if (!open) return;
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) return;
+            if (triggerRef.current?.contains(target) || popoverRef.current?.contains(target)) return;
+            onOpenChange(false);
+        };
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                onOpenChange(false);
+            }
+        };
+        document.addEventListener("pointerdown", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [onOpenChange, open]);
 
     if (!column.filterable) {
         return column.columnName;
@@ -228,19 +250,31 @@ function ColumnFilterHeader({
             {open && position
                 ? createPortal(
                 <div
+                    ref={popoverRef}
                     className="fixed z-[400] w-72 rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 p-3 text-sm text-base-content shadow-lg"
                     style={{ top: position.top, left: position.left }}
                     onClick={(event) => event.stopPropagation()}
                 >
-                    <label className="flex cursor-pointer items-center gap-3 border-b border-[var(--gommo-border-subtle)] px-1 pb-3 text-sm font-medium normal-case tracking-normal text-base-content/75">
-                        <input
-                            type="checkbox"
-                            className="checkbox checkbox-sm rounded-md border-[var(--gommo-border-strong)]"
-                            checked={!active}
-                            onChange={() => onChange([])}
-                        />
-                        <span>Selecionar todos</span>
-                    </label>
+                    <div className="flex items-center gap-2 border-b border-[var(--gommo-border-subtle)] pb-3">
+                        <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-1 text-sm font-medium normal-case tracking-normal text-base-content/75">
+                            <input
+                                type="checkbox"
+                                className="checkbox checkbox-sm rounded-md border-[var(--gommo-border-strong)]"
+                                checked={!active}
+                                onChange={() => onChange([])}
+                            />
+                            <span className="truncate">Selecionar todos</span>
+                        </label>
+                        <button
+                            type="button"
+                            className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium normal-case tracking-normal text-base-content/45 transition-colors hover:bg-base-200 hover:text-primary disabled:pointer-events-none disabled:opacity-40"
+                            disabled={!active}
+                            onClick={() => onChange([])}
+                        >
+                            <X className="size-3" />
+                            Limpar
+                        </button>
+                    </div>
                     <div className="mt-2 max-h-64 overflow-y-auto">
                         {options.map((option) => {
                             const checked = value.includes(option);
@@ -289,6 +323,10 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     const [size, setSize] = useState(pageSize);
     const [filters, setFilters] = useState<Record<string, string[]>>({});
     const [openFilterField, setOpenFilterField] = useState<string | null>(null);
+    const activeFilterCount = useMemo(
+        () => Object.values(filters).filter((value) => value.length > 0).length,
+        [filters],
+    );
     const query = useQuery({
         queryKey: [...queryKey, "page", page, size, filters],
         queryFn: () => request(page, size, filters),
@@ -327,10 +365,40 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
 
     if (!query.data) return null;
 
+    const updateColumnFilter = (fieldValue: string, value: string[]) => {
+        setPage(0);
+        setFilters((current) => {
+            const next = { ...current };
+            if (value.length === 0) {
+                delete next[fieldValue];
+            } else {
+                next[fieldValue] = value;
+            }
+            return next;
+        });
+    };
+    const clearFilters = () => {
+        setPage(0);
+        setOpenFilterField(null);
+        setFilters({});
+    };
+
     return (
         <QueryRefreshProvider value={refreshValue}>
             <div className="min-h-0 flex-1 p-2">
                 <div className="overflow-visible rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 shadow-sm">
+                    {activeFilterCount > 0 ? (
+                        <div className="flex items-center justify-end border-b border-[var(--gommo-border-subtle)] px-4 py-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                leftIcon={<X className="size-3.5" />}
+                                onClick={clearFilters}
+                            >
+                                Limpar filtros
+                            </Button>
+                        </div>
+                    ) : null}
                     <DataTable<TRow>
                         data={query.data.content}
                         columns={columns}
@@ -342,13 +410,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
                                 value={filters[column.fieldValue] ?? []}
                                 open={openFilterField === column.fieldValue}
                                 onOpenChange={(open) => setOpenFilterField(open ? column.fieldValue : null)}
-                                onChange={(value) => {
-                                    setPage(0);
-                                    setFilters((current) => ({
-                                        ...current,
-                                        [column.fieldValue]: value,
-                                    }));
-                                }}
+                                onChange={(value) => updateColumnFilter(column.fieldValue, value)}
                             />
                         )}
                         {...tableProps}
