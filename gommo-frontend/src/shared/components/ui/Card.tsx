@@ -36,7 +36,7 @@ export function Card({
     const inner = (
         <>
             {(title || subtitle || headerAction) && (
-                <div className="flex items-center justify-between gap-4 border-b border-[var(--gommo-border-subtle)] px-5 py-4 md:px-6">
+                <div className="flex items-center justify-between gap-3 border-b border-[var(--gommo-border-subtle)] px-4 py-3 md:px-5">
                     <div className="min-w-0 flex-1">
                         {title && (
                             <h3 className="truncate text-[13px] font-bold tracking-tight text-base-content">{title}</h3>
@@ -46,7 +46,7 @@ export function Card({
                     {headerAction && <div className="shrink-0">{headerAction}</div>}
                 </div>
             )}
-            <div className={clsx("p-5 md:p-6", bodyClassName)}>{children}</div>
+            <div className={clsx("p-4 md:p-5", bodyClassName)}>{children}</div>
         </>
     );
 

@@ -17,17 +17,17 @@ export type DataTableProps<T extends object> = {
     striped?: boolean;
     stickyHeader?: boolean;
     /** Ação ao ativar a linha (ver `rowActivateOn`) */
-    onRowActivate?: (row: T) => void;
+    onRowActivate?: (_row: T) => void;
     /** `click` (padrão) ou `doubleclick` */
     rowActivateOn?: DataTableRowActivateOn;
     /** @deprecated Use `onRowActivate` + `rowActivateOn="click"` */
-    onRowClick?: (row: T) => void;
+    onRowClick?: (_row: T) => void;
     /** @deprecated Use `onRowActivate` + `rowActivateOn="doubleclick"` */
-    onRowDoubleClick?: (row: T) => void;
-    renderActions?: (row: T) => ReactNode;
+    onRowDoubleClick?: (_row: T) => void;
+    renderActions?: (_row: T) => ReactNode;
     actionsHeader?: string;
     actionsClassName?: string;
-    renderColumnHeader?: (column: TableColumnConfig) => ReactNode;
+    renderColumnHeader?: (_column: TableColumnConfig) => ReactNode;
 };
 
 function resolveRowInteraction<T extends object>(props: DataTableProps<T>) {
@@ -56,7 +56,7 @@ function renderCellContent(
         const avatarSize = col.avatarSize ?? "lg";
         const denseProfile = avatarSize === "sm";
         return (
-            <div className={clsx("flex items-center", denseProfile ? "gap-2" : "gap-3")}>
+            <div className={clsx("flex items-center", denseProfile ? "gap-2" : "gap-2.5")}>
                 <ProfileAvatar name={name} photoObjectId={photoObjectId} size={avatarSize} shape="squircle" />
                 <div className="min-w-0">
                     <div
@@ -160,7 +160,7 @@ export function DataTable<T extends object>({
                 <tbody>
                     {data.length === 0 ? (
                         <tr>
-                            <td colSpan={colSpan} className="py-20 text-center text-sm text-base-content/38">
+                            <td colSpan={colSpan} className="py-16 text-center text-sm text-base-content/38">
                                 {emptyMessage}
                             </td>
                         </tr>

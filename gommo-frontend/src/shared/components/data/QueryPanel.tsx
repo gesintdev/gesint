@@ -23,9 +23,9 @@ export type QueryPanelRenderProps<TRow> = {
 type QueryPanelProps<TRow extends object> = {
     queryKey: QueryKey;
     request: () => Promise<TRow[]>;
-    children: (props: QueryPanelRenderProps<TRow>) => ReactNode;
+    children: (_props: QueryPanelRenderProps<TRow>) => ReactNode;
     fallback?: ReactNode;
-    errorFallback?: (error: Error, retry: () => void) => ReactNode;
+    errorFallback?: (_error: Error, _retry: () => void) => ReactNode;
     showRefresh?: boolean;
 };
 
@@ -35,13 +35,13 @@ export type QueryTablePanelTableProps<TRow extends object> = {
     compact?: boolean;
     striped?: boolean;
     stickyHeader?: boolean;
-    onRowActivate?: (row: TRow) => void;
+    onRowActivate?: (_row: TRow) => void;
     rowActivateOn?: DataTableRowActivateOn;
     /** @deprecated Use `onRowActivate` + `rowActivateOn="click"` */
-    onRowClick?: (row: TRow) => void;
+    onRowClick?: (_row: TRow) => void;
     /** @deprecated Use `onRowActivate` + `rowActivateOn="doubleclick"` */
-    onRowDoubleClick?: (row: TRow) => void;
-    renderActions?: (row: TRow) => ReactNode;
+    onRowDoubleClick?: (_row: TRow) => void;
+    renderActions?: (_row: TRow) => ReactNode;
     actionsHeader?: string;
     actionsClassName?: string;
 };
@@ -52,22 +52,22 @@ export type QueryTablePanelProps<TRow extends object> = QueryTablePanelTableProp
     columns: TableColumnConfig[];
     showRefresh?: boolean;
     fallback?: ReactNode;
-    errorFallback?: (error: Error, retry: () => void) => ReactNode;
+    errorFallback?: (_error: Error, _retry: () => void) => ReactNode;
 };
 
 export type QueryPagedTablePanelProps<TRow extends object> = QueryTablePanelTableProps<TRow> & {
     queryKey: QueryKey;
-    request: (page: number, size: number, filters: Record<string, string[]>) => Promise<PageableResponseDto<TRow>>;
+    request: (_page: number, _size: number, _filters: Record<string, string[]>) => Promise<PageableResponseDto<TRow>>;
     columns: TableColumnConfig[];
     pageSize?: number;
     pageSizeOptions?: number[];
     fallback?: ReactNode;
-    errorFallback?: (error: Error, retry: () => void) => ReactNode;
+    errorFallback?: (_error: Error, _retry: () => void) => ReactNode;
 };
 
 function TableSkeleton() {
     return (
-        <div className="grid gap-2 p-5">
+        <div className="grid gap-2 p-4">
             {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="skeleton-shimmer h-10 w-full" style={{ animationDelay: `${i * 70}ms` }} />
             ))}
@@ -104,7 +104,7 @@ export function QueryPanel<TRow extends object>({
         return (
             <QueryRefreshProvider value={null}>
                 {errorFallback?.(error, () => void query.refetch()) ?? (
-                    <div className="m-5 rounded-xl bg-error/8 p-5">
+                    <div className="m-4 rounded-xl bg-error/8 p-4">
                         <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
                         <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
                             Tentar novamente
@@ -119,7 +119,7 @@ export function QueryPanel<TRow extends object>({
 
     return (
         <QueryRefreshProvider value={refreshValue}>
-            <div className="min-h-0 flex-1 p-2">
+            <div className="min-h-0 flex-1 p-1.5">
                 {children({ data: query.data, refetch: query.refetch, isFetching: query.isFetching })}
             </div>
         </QueryRefreshProvider>
@@ -168,8 +168,8 @@ type ColumnFilterHeaderProps = {
     options: string[];
     value: string[];
     open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onChange: (value: string[]) => void;
+    onOpenChange: (_open: boolean) => void;
+    onChange: (_value: string[]) => void;
 };
 
 function ColumnFilterHeader({
@@ -352,7 +352,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         return (
             <QueryRefreshProvider value={null}>
                 {errorFallback?.(error, () => void query.refetch()) ?? (
-                    <div className="m-5 rounded-xl bg-error/8 p-5">
+                    <div className="m-4 rounded-xl bg-error/8 p-4">
                         <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
                         <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
                             Tentar novamente
@@ -385,10 +385,10 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
 
     return (
         <QueryRefreshProvider value={refreshValue}>
-            <div className="min-h-0 flex-1 p-2">
+            <div className="min-h-0 flex-1 p-1.5">
                 <div className="overflow-visible rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 shadow-sm">
                     {activeFilterCount > 0 ? (
-                        <div className="flex items-center justify-end border-b border-[var(--gommo-border-subtle)] px-4 py-2">
+                        <div className="flex items-center justify-end border-b border-[var(--gommo-border-subtle)] px-3 py-1.5">
                             <Button
                                 variant="ghost"
                                 size="sm"
