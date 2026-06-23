@@ -64,10 +64,11 @@ export function LeavePendingRequestsClient() {
                 emptyMessage="Nenhuma solicitação de férias pendente."
                 renderActions={(row) => (
                     <div className="flex flex-wrap justify-end gap-1.5">
-                        <Button type="button" size="sm" variant="outline" onClick={() => handleRegister(row)}>
+                        <Button className={'text-[8pt]! p-2.5!'} type="button" size="sm" variant="outline" onClick={() => handleRegister(row)}>
                             Analisar
                         </Button>
                         <Button
+                            className={'text-[8pt]! p-2.5!'}
                             type="button"
                             size="sm"
                             variant="success"
@@ -77,6 +78,7 @@ export function LeavePendingRequestsClient() {
                             Aprovar
                         </Button>
                         <Button
+                            className={'text-[8pt]! p-2.5!'}
                             type="button"
                             size="sm"
                             variant="outline"
@@ -85,6 +87,7 @@ export function LeavePendingRequestsClient() {
                             Devolver
                         </Button>
                         <Button
+                            className={'text-[8pt]! p-2.5!'}
                             type="button"
                             size="sm"
                             variant="danger"

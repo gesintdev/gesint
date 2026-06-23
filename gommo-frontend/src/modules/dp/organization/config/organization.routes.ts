@@ -90,7 +90,7 @@ export const organizationRoutes: AppRoute[] = [
                 extraTabs: [
                     {
                         id: "pending-requests",
-                        label: "Solicita\u00e7\u00f5es do RH",
+                        label: "Solicitações do RH",
                         permission: "leave:write",
                         content: lazyNamed(
                             () => import("@/modules/rh/person/leave/components/LeavePendingRequestsClient"),

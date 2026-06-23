@@ -52,13 +52,13 @@ function SidebarToolbar({
     collapsed: boolean;
     onCollapsedToggle?: () => void;
     query: string;
-    onQueryChange: (value: string) => void;
+    onQueryChange: (_value: string) => void;
 }) {
     return (
         <div
             className={clsx(
-                "sidebar-toolbar flex items-center px-3 py-3",
-                panelCollapsed ? "justify-center" : "gap-2.5",
+                "sidebar-toolbar flex items-center px-2.5 py-2",
+                panelCollapsed ? "justify-center" : "gap-2",
             )}
         >
             {panelCollapsed ? (
@@ -257,18 +257,18 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
             />
             {/* Nav */}
             <div className="sidebar-nav-wrap min-h-0 flex-1">
-                <nav className="sidebar-nav space-y-4 px-3 py-2" aria-label="Navegacao principal">
+                <nav className="sidebar-nav space-y-3 px-2.5 py-1.5" aria-label="Navegacao principal">
                     {filteredSections.map((section) => (
                         <div key={section.id}>
                             <div className="flex flex-col">
-                                <div className="flex min-h-6 items-center px-3">
+                                <div className="flex min-h-5 items-center px-2.5">
                                     {panelCollapsed ? (
                                         <div className="nav-section-rule" aria-hidden="true" />
                                     ) : (
                                         <p className="nav-section-label">{section.label}</p>
                                     )}
                                 </div>
-                                <ul className="space-y-1 px-2">{section.routes.map(renderRoute)}</ul>
+                                <ul className="space-y-0.5 px-1.5">{section.routes.map(renderRoute)}</ul>
                             </div>
                         </div>
                     ))}

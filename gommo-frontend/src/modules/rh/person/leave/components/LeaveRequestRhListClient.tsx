@@ -1,25 +1,13 @@
 "use client";
 import { LEAVE_HISTORY_TABLE_COLUMNS } from "@/modules/rh/person/leave/config/leave-history.table-columns";
-import type { LeaveRequest } from "@/modules/rh/person/leave/dto/leave-request.dto";
 import { leaverequestKeys } from "@/modules/rh/person/leave/leave.query";
-import { isRhVacationListing } from "@/modules/rh/person/leave/lib/leave-request.filters";
+import {
+    isRhVacationListing,
+    type RhVacationRow,
+    toRhVacationRow,
+} from "@/modules/rh/person/leave/lib/leave-request.filters";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-
-type RhVacationRow = LeaveRequest & {
-    rhVacationStatus: "PENDING" | "APPROVED" | "IN_VACATION" | "RETURNED" | "REJECTED";
-};
-
-function mapRhVacationStatus(row: LeaveRequest): RhVacationRow["rhVacationStatus"] {
-    if (row.approved === true || row.reviewStatus === "APPROVED") {
-        const today = new Date().toISOString().slice(0, 10);
-        if (row.startDate <= today && today <= row.endDate) return "IN_VACATION";
-        return "APPROVED";
-    }
-    if (row.reviewStatus === "RETURNED") return "RETURNED";
-    if (row.reviewStatus === "REJECTED") return "REJECTED";
-    return "PENDING";
-}
 
 export function LeaveRequestRhListClient() {
     return (
@@ -27,10 +15,7 @@ export function LeaveRequestRhListClient() {
             queryKey={[...leaverequestKeys.all, "rh-vacation"]}
             request={async () => {
                 const rows = await leaverequestService.getAll();
-                return rows.filter(isRhVacationListing).map((row) => ({
-                    ...row,
-                    rhVacationStatus: mapRhVacationStatus(row),
-                }));
+                return rows.filter(isRhVacationListing).map(toRhVacationRow);
             }}
             columns={LEAVE_HISTORY_TABLE_COLUMNS}
             rowKey="id"

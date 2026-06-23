@@ -1,5 +1,5 @@
 "use client";
-import { Bell, Command, Menu, Search } from "lucide-react";
+import { Bell, Menu, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { type ReactNode, Suspense, useCallback, useEffect, useState } from "react";
 
@@ -54,7 +54,7 @@ export function SystemShell({
                     style={{ borderColor: "var(--sidebar-border)" }}
                 >
                     <div
-                        className="hidden shrink-0 items-center border-r px-4 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
+                        className="hidden shrink-0 items-center border-r px-3 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
                         style={{
                             width: "var(--layout-offset)",
                             background: "var(--sidebar-bg)",
@@ -63,7 +63,7 @@ export function SystemShell({
                     >
                         <GommoLogo variant={collapsed ? "icon" : "full"} />
                     </div>
-                    <header className="surface-header flex min-w-0 flex-1 items-center justify-between gap-3 px-4 sm:gap-5 sm:px-6 lg:px-2">
+                    <header className="surface-header flex min-w-0 flex-1 items-center justify-between gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
                         <button
                             type="button"
                             aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}

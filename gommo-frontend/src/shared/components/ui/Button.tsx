@@ -23,7 +23,7 @@ const variantClass: Record<ButtonVariant, string> = {
     success: "gommo-btn--success",
 };
 /**
- * sm/md/lg — altura unificada via --gommo-control-h (40px).
+ * sm/md/lg — altura unificada via --gommo-control-h.
  * lg só aumenta padding e fonte.
  */
 const sizeClass: Record<ButtonSize, string> = {
