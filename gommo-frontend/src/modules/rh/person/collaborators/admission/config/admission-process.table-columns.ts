@@ -13,10 +13,12 @@ export const ADMISSION_TABLE_COLUMNS: TableColumnConfig[] = [
         avatarSubtitleField: "cpf",
         avatarTagsField: "admissionTags",
         avatarTagLabels: {
+            DISMISSED: "Desligado",
             IN_VACATION: "Em Férias",
             ON_LEAVE: "Afastado",
         },
         avatarTagClassNames: {
+            DISMISSED: "border-error/25 bg-error/12 text-error dark:border-error/35 dark:bg-error/18",
             IN_VACATION: "border-success/25 bg-success/12 text-success dark:border-success/35 dark:bg-success/18",
             ON_LEAVE: "border-warning/25 bg-warning/12 text-warning dark:border-warning/35 dark:bg-warning/18",
         },

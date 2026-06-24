@@ -16,7 +16,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
 type AdmissionStatusFilter = "ACTIVE" | "INACTIVE" | "ALL";
-type AdmissionProfileTag = "IN_VACATION" | "ON_LEAVE";
+type AdmissionProfileTag = "DISMISSED" | "IN_VACATION" | "ON_LEAVE";
 type AdmissionListingRow = AdmissionProcess & { admissionTags: AdmissionProfileTag[] };
 
 const STATUS_FILTERS: Array<{ value: AdmissionStatusFilter; label: string }> = [
@@ -27,6 +27,7 @@ const STATUS_FILTERS: Array<{ value: AdmissionStatusFilter; label: string }> = [
 
 function admissionTags(row: AdmissionProcess): AdmissionProfileTag[] {
     const tags: AdmissionProfileTag[] = [];
+    if (row.collaboratorStatus === "INACTIVE") tags.push("DISMISSED");
     if (row.inVacation) tags.push("IN_VACATION");
     if (row.onLeave) tags.push("ON_LEAVE");
     return tags;

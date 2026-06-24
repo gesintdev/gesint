@@ -65,42 +65,42 @@ function renderCellContent(
         return (
             <div className={clsx("flex items-center", denseProfile ? "gap-2" : "gap-2.5")}>
                 <ProfileAvatar name={name} photoObjectId={photoObjectId} size={avatarSize} shape="squircle" />
-                <div className="min-w-0">
-                    <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="min-w-0">
                         <span
                             className={clsx(
-                                "truncate text-base-content",
+                                "block truncate text-base-content",
                                 denseProfile ? "text-sm font-medium" : "font-semibold",
                             )}
                         >
                             {name}
                         </span>
-                        {tags.length > 0 ? (
-                            <span className="flex shrink-0 items-center gap-1.5">
-                                {tags.map((tag) => (
-                                    <span
-                                        key={tag}
-                                        className={clsx(
-                                            "inline-flex h-5 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none",
-                                            col.avatarTagClassNames?.[tag] ??
-                                                "border-base-content/10 bg-base-content/5 text-base-content/55",
-                                        )}
-                                    >
-                                        {col.avatarTagLabels?.[tag] ?? tag}
-                                    </span>
-                                ))}
-                            </span>
+                        {subtitle != null && subtitle !== "" ? (
+                            <div
+                                className={clsx(
+                                    "truncate opacity-50 tabular-nums",
+                                    denseProfile ? "text-xs" : "text-sm",
+                                )}
+                            >
+                                {formatCellValue(subtitle, TableDataType.CPF)}
+                            </div>
                         ) : null}
                     </div>
-                    {subtitle != null && subtitle !== "" ? (
-                        <div
-                            className={clsx(
-                                "truncate opacity-50 tabular-nums",
-                                denseProfile ? "text-xs" : "text-sm",
-                            )}
-                        >
-                            {formatCellValue(subtitle, TableDataType.CPF)}
-                        </div>
+                    {tags.length > 0 ? (
+                        <span className="flex shrink-0 items-center gap-1.5">
+                            {tags.map((tag) => (
+                                <span
+                                    key={tag}
+                                    className={clsx(
+                                        "inline-flex h-5 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none",
+                                        col.avatarTagClassNames?.[tag] ??
+                                            "border-base-content/10 bg-base-content/5 text-base-content/55",
+                                    )}
+                                >
+                                    {col.avatarTagLabels?.[tag] ?? tag}
+                                </span>
+                            ))}
+                        </span>
                     ) : null}
                 </div>
             </div>
