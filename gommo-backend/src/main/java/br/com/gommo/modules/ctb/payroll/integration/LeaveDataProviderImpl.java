@@ -21,15 +21,16 @@ public class LeaveDataProviderImpl implements LeaveDataProvider {
 
     @Override
     public LeaveDataSnapshot loadLeaveData(UUID collaboratorId, LocalDate periodStart, LocalDate periodEnd) {
-        List<LeaveRequest> unpaidLeaves = leaveRequestRepository.findApprovedByCollaboratorAndTypeOverlapping(
-                collaboratorId, LeaveTypeEnum.UNPAID, periodStart, periodEnd, StatusEnum.DELETED);
-
         int unpaidDays = 0;
-        for (LeaveRequest leave : unpaidLeaves) {
-            LocalDate overlapStart = leave.getStartDate().isBefore(periodStart) ? periodStart : leave.getStartDate();
-            LocalDate overlapEnd = leave.getEndDate().isAfter(periodEnd) ? periodEnd : leave.getEndDate();
-            if (!overlapEnd.isBefore(overlapStart)) {
-                unpaidDays += (int) ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
+        for (LeaveTypeEnum type : List.of(LeaveTypeEnum.UNPAID, LeaveTypeEnum.UNPAID_LEAVE, LeaveTypeEnum.SUSPENSION)) {
+            List<LeaveRequest> unpaidLeaves = leaveRequestRepository.findApprovedByCollaboratorAndTypeOverlapping(
+                    collaboratorId, type, periodStart, periodEnd, StatusEnum.DELETED);
+            for (LeaveRequest leave : unpaidLeaves) {
+                LocalDate overlapStart = leave.getStartDate().isBefore(periodStart) ? periodStart : leave.getStartDate();
+                LocalDate overlapEnd = leave.getEndDate().isAfter(periodEnd) ? periodEnd : leave.getEndDate();
+                if (!overlapEnd.isBefore(overlapStart)) {
+                    unpaidDays += (int) ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
+                }
             }
         }
         return new LeaveDataSnapshot(collaboratorId, unpaidDays);

@@ -170,7 +170,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('leave:read')")
+    @PreAuthorize("hasAuthority('leave:read') or hasAuthority('notification:read')")
     public List<VacationEligibleCollaboratorDto> findVacationEligibleCollaborators() {
         LocalDate referenceDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
         Map<UUID, List<EmploymentContract>> contractsByCollaborator = employmentContractRepository.findAll().stream()

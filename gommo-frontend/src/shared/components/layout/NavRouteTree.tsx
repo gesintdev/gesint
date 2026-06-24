@@ -14,7 +14,7 @@ export type NavRouteTreeProps = {
     sections: NavSection[];
     selectedRouteId?: string | null;
     markedRouteIds?: ReadonlySet<string>;
-    onRouteSelect: (route: AppRoute) => void;
+    onRouteSelect: (_route: AppRoute) => void;
     className?: string;
     embedded?: boolean;
 };
@@ -103,7 +103,7 @@ export function NavRouteTree({
             );
         }
         return (
-            <li key={route.id} className="grid gap-1">
+            <li key={route.id} className="grid gap-0">
                 <button
                     type="button"
                     onClick={() => toggleGroup(route.id)}

@@ -1,7 +1,7 @@
-import { Shield, Users } from "lucide-react";
+import { Bell, Shield, Users } from "lucide-react";
 
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { lazyNamed, tabbedCrudRoute } from "@/shared/routing";
+import { customWorkspaceRoute, lazyNamed, tabbedCrudRoute } from "@/shared/routing";
 
 export const settingsRoutes: AppRoute[] = [
     tabbedCrudRoute({
@@ -27,5 +27,13 @@ export const settingsRoutes: AppRoute[] = [
         fieldTabName: "username",
         list: lazyNamed(() => import("@/modules/cfg/settings/appuser/components/AppUserListClient"), "AppUserListClient"),
         form: lazyNamed(() => import("@/modules/cfg/settings/appuser/components/AppUserFormClient"), "AppUserFormClient"),
+    }),
+    customWorkspaceRoute({
+        id: "settings-notifications",
+        href: "/settings/notifications",
+        label: "Notificações",
+        icon: Bell,
+        permission: "notification:read",
+        load: () => import("@/modules/cfg/settings/notification/components/NotificationSettingsPage"),
     }),
 ];

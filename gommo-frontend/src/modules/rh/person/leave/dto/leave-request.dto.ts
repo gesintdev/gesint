@@ -1,10 +1,12 @@
+import type { LeaveType } from "@/modules/rh/person/leave/lib/leave-types";
+
 export class LeaveRequest {
     id!: string;
     code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
     collaboratorName?: string;
-    leaveType?: "VACATION" | "MEDICAL" | "MATERNITY" | "PATERNITY" | "UNPAID" | "OTHER";
+    leaveType?: LeaveType;
     startDate!: string;
     endDate!: string;
     approved?: boolean;
@@ -29,7 +31,7 @@ export class LeaveRequest {
 
 export class LeaveRequestCreateDto {
     collaboratorId!: string;
-    leaveType?: "VACATION" | "MEDICAL" | "MATERNITY" | "PATERNITY" | "UNPAID" | "OTHER";
+    leaveType?: LeaveType;
     startDate!: string;
     endDate!: string;
     approved?: boolean;

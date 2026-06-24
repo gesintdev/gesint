@@ -1,12 +1,13 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent,useCallback, useEffect, useMemo, useState } from "react";
+import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import type { LeaveRequestCreateDto } from "@/modules/rh/person/leave/dto/leave-request.dto";
 import { LEAVE_CLIENT_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
 import { leaverequestKeys } from "@/modules/rh/person/leave/leave.query";
 import { emptyLeaveRequestForm, leaverequestToFormDto } from "@/modules/rh/person/leave/lib/leave-request.mapper";
+import { ABSENCE_TYPE_ITEMS } from "@/modules/rh/person/leave/lib/leave-types";
 import { leaveAbsenceFormSchema } from "@/modules/rh/person/leave/schemas/leave-absence.schema";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { storageService } from "@/modules/storage/services/storage.service";
@@ -27,13 +28,6 @@ import { ExceptionCapture } from "@/shared/exceptions";
 import { sectionHasChanges } from "@/shared/lib/form-step.util";
 import { mapZodFieldErrors } from "@/shared/lib/zod-field-errors";
 
-const ABSENCE_TYPE_ITEMS: SelectItem[] = [
-    { value: "MEDICAL", label: "Afastamento médico" },
-    { value: "MATERNITY", label: "Maternidade" },
-    { value: "PATERNITY", label: "Paternidade" },
-    { value: "UNPAID", label: "Não remunerado" },
-    { value: "OTHER", label: "Outro" },
-];
 const APPROVAL_ITEMS: SelectItem[] = [
     { value: "true", label: "Aprovado" },
     { value: "false", label: "Pendente" },
@@ -53,7 +47,7 @@ export function LeaveAbsenceFormClient() {
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<LeaveFormField, string>>>({});
     const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
-    const emptyDefaults = useMemo(() => ({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL" as const }), []);
+    const emptyDefaults = useMemo(() => ({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL_CERTIFICATE" as const }), []);
     const detailQuery = useQuery({
         queryKey: leaverequestKeys.detail(editingId ?? ""),
         queryFn: () => leaverequestService.getById(editingId!),
@@ -70,7 +64,7 @@ export function LeaveAbsenceFormClient() {
 
     useEffect(() => {
         if (!isEditing) {
-            setForm({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL" });
+            setForm({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL_CERTIFICATE" });
             setError(null);
             setFieldErrors({});
             clearPendingAttachments();
@@ -97,7 +91,7 @@ export function LeaveAbsenceFormClient() {
             }
 
             if (!savedId) {
-                throw new Error("N\u00e3o foi poss\u00edvel identificar o registro salvo.");
+                throw new Error("Não foi possível identificar o registro salvo.");
             }
 
             await flushPendingAttachments({
@@ -116,7 +110,7 @@ export function LeaveAbsenceFormClient() {
                 queryKey: ["storage-links", LEAVE_ABSENCE_ENTITY_TYPE, savedId],
             });
             toast.success(isEditing ? "Afastamento salvo" : "Afastamento cadastrado");
-            setForm({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL" });
+            setForm({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL_CERTIFICATE" });
             goToList();
         },
         onError: (err: unknown) => {

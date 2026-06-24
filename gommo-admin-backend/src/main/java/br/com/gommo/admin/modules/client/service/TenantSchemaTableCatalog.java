@@ -23,6 +23,8 @@ public final class TenantSchemaTableCatalog {
             "benefit_plan",
             "benefit_enrollment",
             "leave_request",
+            "system_setting",
+            "system_notification",
             "offboarding",
             "exit_interview",
             "performance_review",

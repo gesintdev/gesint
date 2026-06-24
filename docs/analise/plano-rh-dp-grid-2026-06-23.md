@@ -62,8 +62,15 @@ Impacto: grande.
 
 ### Afastamento / Absence
 
-- Melhorar cadastro de afastamento com tipos CLT.
-- Separar regras diretamente ligadas a ponto/banco de horas.
+- [x] Melhorar cadastro de afastamento com tipos CLT:
+  - tipos centralizados no frontend em `leave-types.ts`;
+  - enum do backend ampliado preservando tipos legados;
+  - labels ajustados para tabela/dashboard;
+  - sem migration, pois `leave_type` ja e persistido como string.
+- [x] Separar regras diretamente ligadas a ponto/banco de horas:
+  - `UNJUSTIFIED_ABSENCE` passa a representar falta injustificada para calculo de ferias;
+  - licencas/atestados CLT entram como ausencias justificadas;
+  - licenca nao remunerada/suspensao ficam fora do calculo de faltas de ferias e seguem no impacto de folha.
 
 Impacto: medio/grande.
 
@@ -128,7 +135,20 @@ Impacto: grande.
 - [~] Validacoes executadas:
   - `npm.cmd run lint --prefix gommo-frontend`: passou com avisos existentes;
   - `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou;
-  - backend nao compilado porque `mvn` nao esta no PATH e nao ha wrapper `mvnw`.
+  - backend nao compilado porque `mvn` nao esta no PATH e o wrapper `gommo-backend/mvnw.cmd`
+    falhou com `Cannot start maven from wrapper`;
+  - `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou apos ajuste de Tipos de Afastamento.
+- [x] Configuracoes/notificacoes de ferias a vencer implementadas:
+  - tabela/configuracao `system_setting` para antecedencia de ferias a vencer;
+  - tabela `system_notification` para notificacoes do sistema;
+  - endpoint de resumo/nao lidas com geracao idempotente de avisos de ferias a vencer;
+  - tela CFG > Notificacoes para ajustar antecedencia;
+  - sino do header com popover, contador, marcar como lida e animacao a cada 2 segundos quando houver nao lidas.
+- [~] Validacoes executadas apos notificacoes:
+  - `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou;
+  - `npm.cmd run lint` em `gommo-frontend`: passou com avisos existentes;
+  - backend nao compilado porque `mvn` nao esta no PATH e o wrapper `gommo-backend/mvnw.cmd`
+    falhou com `Cannot start maven from wrapper`.
 
 ## Pendencias importantes
 
@@ -137,9 +157,13 @@ Impacto: grande.
   atualizando imports do payroll.
 - Trocar a implementacao inicial de filtros de `collaborator/people` para queries
   de banco dedicadas antes de escalar para bases grandes.
-- Implementar configuracoes/notificacoes de ferias a vencer.
 - Investigar refresh token/tempo de sessao.
 - Melhorar tipos de afastamento CLT apos validacao juridica/produto.
+
+## Proximo plano
+
+- Depois de concluir as pendencias acima, continuar pelo plano detalhado de
+  afastamentos em `docs/analise/plano-afastamentos-2026-06-24.md`.
 
 ## Arquivos ja identificados
 

@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-const leaveTypes = ["VACATION", "MEDICAL", "MATERNITY", "PATERNITY", "UNPAID", "OTHER"] as const;
+import { LEAVE_TYPE_VALUES } from "@/modules/rh/person/leave/lib/leave-types";
+
 export const leaveRequestFormSchema = z
     .object({
         collaboratorId: z.string().min(1, "Selecione o colaborador").uuid("Colaborador inválido"),
-        leaveType: z.enum(leaveTypes, {
+        leaveType: z.enum(LEAVE_TYPE_VALUES, {
             message: "Selecione o tipo de afastamento",
         }),
         startDate: z.string().min(1, "Informe a data de início"),

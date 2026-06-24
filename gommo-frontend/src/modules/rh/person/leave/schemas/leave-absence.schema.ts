@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-const absenceTypes = ["MEDICAL", "MATERNITY", "PATERNITY", "UNPAID", "OTHER"] as const;
+import { LEAVE_TYPE_VALUES } from "@/modules/rh/person/leave/lib/leave-types";
+
+const absenceTypes = LEAVE_TYPE_VALUES.filter((type) => type !== "VACATION") as [
+    Exclude<(typeof LEAVE_TYPE_VALUES)[number], "VACATION">,
+    ...Exclude<(typeof LEAVE_TYPE_VALUES)[number], "VACATION">[],
+];
+
 export const leaveAbsenceFormSchema = z
     .object({
         collaboratorId: z.string().min(1, "Selecione o colaborador").uuid("Colaborador inválido"),

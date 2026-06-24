@@ -218,9 +218,22 @@ public class DashboardService implements IDashboardService {
         return switch (type) {
             case VACATION -> "Férias";
             case MEDICAL -> "Afastamento médico";
+            case MEDICAL_CERTIFICATE -> "Atestado médico";
+            case SICK_LEAVE_INSS -> "Auxílio-doença / INSS";
+            case OCCUPATIONAL_ACCIDENT -> "Acidente de trabalho";
             case MATERNITY -> "Maternidade";
             case PATERNITY -> "Paternidade";
+            case BEREAVEMENT -> "Falecimento";
+            case MARRIAGE -> "Casamento";
+            case BLOOD_DONATION -> "Doação de sangue";
+            case ELECTORAL_SERVICE -> "Serviço eleitoral";
+            case MILITARY_SERVICE -> "Serviço militar";
+            case JURY_DUTY -> "Júri / audiência";
+            case UNION_REPRESENTATION -> "Representação sindical";
             case UNPAID -> "Não remunerado";
+            case UNPAID_LEAVE -> "Licença não remunerada";
+            case SUSPENSION -> "Suspensão do contrato";
+            case UNJUSTIFIED_ABSENCE -> "Falta injustificada";
             case OTHER -> "Outro";
         };
     }

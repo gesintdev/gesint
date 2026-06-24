@@ -195,7 +195,7 @@
     --gommo-tab-radius: 6px;
     --gommo-control-h: 36px;
     --gommo-control-px: 12px;
-    --gommo-control-font-size: 12.5px;
+    --gommo-control-font-size: 12.25px;
     --gommo-control-radius: var(--gommo-tab-radius);
     --gommo-autofill-bg: var(--color-base-100);
 
@@ -258,10 +258,10 @@ html {
 
 body {
     font-family: var(--font-sans), system-ui, sans-serif;
-    font-size: 14px;
+    font-size: 13.5px;
     line-height: 1.5;
     letter-spacing: 0;
-    font-variation-settings: "wght" 450;
+    font-variation-settings: "wght" 430;
     background: var(--color-page);
     color: var(--color-base-content);
 }
@@ -587,7 +587,7 @@ body {
     border: 0;
     font-family: inherit;
     font-size: var(--gommo-control-font-size);
-    font-variation-settings: "wght" 540;
+    font-variation-settings: "wght" 500;
     line-height: 1;
     white-space: nowrap;
     cursor: pointer;
@@ -731,7 +731,7 @@ body {
 .gommo-btn--sm {
     padding: 0 var(--gommo-control-px);
     font-size: var(--gommo-control-font-size);
-    font-variation-settings: "wght" 540;
+    font-variation-settings: "wght" 500;
 }
 
 /* ─── Icon-only ─── */
@@ -786,7 +786,7 @@ body {
 .nav-section-label {
     width: 100%;
     font-size: 0.625rem;
-    font-variation-settings: "wght" 700;
+    font-variation-settings: "wght" 620;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--color-base-content) 30%, transparent);
@@ -815,8 +815,8 @@ body {
     background: transparent;
     border-radius: var(--gommo-control-radius);
     font: inherit;
-    font-size: 0.8125rem;
-    font-variation-settings: "wght" 500;
+    font-size: 0.78125rem;
+    font-variation-settings: "wght" 460;
     line-height: 1.25;
     text-align: left;
     color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
@@ -949,9 +949,9 @@ aside[data-collapsed="true"] .sidebar-copy,
     gap: 0.5rem;
     padding: 0.4375rem 0.625rem;
     text-align: left;
-    font-size: 0.8125rem;
+    font-size: 0.78125rem;
     line-height: 1.25;
-    font-variation-settings: "wght" 500;
+    font-variation-settings: "wght" 460;
     color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
     transition:
         background 0.13s ease,
@@ -966,7 +966,7 @@ aside[data-collapsed="true"] .sidebar-copy,
 .gommo-listbox-option--active {
     background: color-mix(in srgb, var(--gommo-primary) 8%, var(--color-base-100));
     color: var(--gommo-primary-dark);
-    font-variation-settings: "wght" 620;
+    font-variation-settings: "wght" 560;
 }
 
 .gommo-listbox-option--selected {
@@ -1023,9 +1023,9 @@ aside[data-collapsed="true"] .sidebar-copy,
     background: transparent;
     padding: 0.375rem 0.625rem;
     font: inherit;
-    font-size: 0.75rem;
+    font-size: 0.71875rem;
     letter-spacing: 0;
-    font-variation-settings: "wght" 500;
+    font-variation-settings: "wght" 460;
     color: color-mix(in srgb, var(--color-base-content) 45%, transparent);
     transition: color 0.12s ease;
 }
@@ -1035,7 +1035,7 @@ aside[data-collapsed="true"] .sidebar-copy,
 }
 
 .gommo-crud-tab--active {
-    font-variation-settings: "wght" 540;
+    font-variation-settings: "wght" 520;
     color: var(--gommo-primary);
 }
 
@@ -1366,7 +1366,7 @@ aside[data-collapsed="true"] .sidebar-copy,
         var(--gommo-primary-50) 100%
     );
     color: var(--gommo-primary);
-    font-variation-settings: "wght" 620;
+    font-variation-settings: "wght" 560;
     border-color: color-mix(in srgb, var(--gommo-primary) 22%, transparent);
     box-shadow: 0 2px 10px color-mix(in srgb, var(--gommo-primary) 10%, transparent);
     transition:
@@ -1432,7 +1432,7 @@ aside[data-collapsed="true"] .sidebar-copy,
 }
 
 .nav-group-children {
-    margin: 0.125rem 0 0.25rem 0.625rem;
+    margin: 0.125rem 0 0.125rem 0.625rem;
     padding: 0.125rem 0 0.125rem 0.625rem;
     border-left: 1px solid var(--gommo-border-subtle);
 }
@@ -1443,7 +1443,7 @@ aside[data-collapsed="true"] .sidebar-copy,
 
 .nav-item-child {
     padding-left: 0.875rem;
-    font-size: 0.8125rem;
+    font-size: 0.78125rem;
 }
 
 .nav-route-tree--embedded .nav-section-label {
@@ -1453,12 +1453,12 @@ aside[data-collapsed="true"] .sidebar-copy,
 .nav-route-tree--embedded .nav-item {
     height: auto;
     min-height: 1.9375rem;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     padding: 0.3125rem 0.625rem;
 }
 
 .nav-route-tree--embedded .nav-item-child {
-    font-size: 0.8125rem;
+    font-size: 0.78125rem;
 }
 
 .nav-route-tree--embedded .nav-group-children {
@@ -1499,7 +1499,7 @@ aside[data-collapsed="true"] .sidebar-copy,
     width: 100%;
     min-width: 640px;
     border-collapse: collapse;
-    font-size: 0.8125rem;
+    font-size: 0.78125rem;
 }
 
 .gommo-table th,
@@ -1519,8 +1519,8 @@ aside[data-collapsed="true"] .sidebar-copy,
 }
 
 .gommo-table th {
-    font-size: 0.65625rem;
-    font-variation-settings: "wght" 600;
+    font-size: 0.625rem;
+    font-variation-settings: "wght" 560;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--color-base-content) 38%, transparent);
@@ -2035,9 +2035,9 @@ html.gommo-workspace-active body {
     border: 1px solid transparent;
     border-radius: var(--gommo-tab-radius);
     background: transparent;
-    font-size: 0.8125rem;
+    font-size: 0.78125rem;
     letter-spacing: 0;
-    font-variation-settings: "wght" 500;
+    font-variation-settings: "wght" 460;
     color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
     transition:
         color 0.12s ease,
@@ -2055,7 +2055,7 @@ html.gommo-workspace-active body {
     border-color: var(--gommo-primary-300);
     background: var(--color-base-100);
     color: var(--color-base-content);
-    font-variation-settings: "wght" 600;
+    font-variation-settings: "wght" 560;
     box-shadow: var(--gommo-shadow-xs);
 }
 

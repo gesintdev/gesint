@@ -30,10 +30,22 @@ public final class VacationAbsenceCalculator {
                 continue;
             }
             switch (leave.getLeaveType()) {
-                case UNPAID -> unjustified += days;
-                case MEDICAL, MATERNITY, PATERNITY -> justified += days;
+                case UNJUSTIFIED_ABSENCE -> unjustified += days;
+                case MEDICAL,
+                        MEDICAL_CERTIFICATE,
+                        SICK_LEAVE_INSS,
+                        OCCUPATIONAL_ACCIDENT,
+                        MATERNITY,
+                        PATERNITY,
+                        BEREAVEMENT,
+                        MARRIAGE,
+                        BLOOD_DONATION,
+                        ELECTORAL_SERVICE,
+                        MILITARY_SERVICE,
+                        JURY_DUTY,
+                        UNION_REPRESENTATION -> justified += days;
                 default -> {
-                    // OTHER leave types are ignored
+                    // Contract suspensions and generic leave types are handled outside vacation absence math.
                 }
             }
         }

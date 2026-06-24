@@ -1,5 +1,5 @@
 "use client";
-import { Bell, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { type ReactNode, Suspense, useCallback, useEffect, useState } from "react";
 
@@ -8,6 +8,7 @@ import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { HeaderUserMenu } from "@/shared/components/layout/HeaderUserMenu";
 import { Sidebar } from "@/shared/components/layout/Sidebar";
 import { ThemeToggle } from "@/shared/components/layout/ThemeToggle";
+import { HeaderNotifications } from "@/shared/components/notifications/HeaderNotifications";
 import { ActiveSystemProvider } from "@/shared/context/ActiveSystemContext";
 import { setAuthToken } from "@/shared/lib/api.client";
 import { WorkspaceNavigationProvider } from "@/shared/workspace/WorkspaceNavigationProvider";
@@ -90,14 +91,7 @@ export function SystemShell({
                         <div className="flex items-center gap-1 sm:gap-1.5">
                             <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block" />
                             <ThemeToggle />
-                            <button
-                                type="button"
-                                aria-label="Notificações"
-                                className="gommo-btn gommo-btn--ghost gommo-btn--icon-only relative text-base-content/50"
-                            >
-                                <Bell className="size-4.25" strokeWidth={2} />
-                                <span className="absolute right-2 top-2 size-1.75 rounded-full bg-error ring-2 ring-base-100" />
-                            </button>
+                            <HeaderNotifications />
                             <HeaderUserMenu />
                         </div>
                     </header>

@@ -105,7 +105,7 @@ function renderCellContent(
         dataType === TableDataType.FLOAT ||
         dataType === TableDataType.CURRENCY ||
         dataType === TableDataType.PERCENT;
-    return <span className={clsx("text-sm", isNumeric && "tabular-nums")}>{formatted}</span>;
+    return <span className={clsx("text-[0.78125rem]", isNumeric && "tabular-nums")}>{formatted}</span>;
 }
 
 export function DataTable<T extends object>({

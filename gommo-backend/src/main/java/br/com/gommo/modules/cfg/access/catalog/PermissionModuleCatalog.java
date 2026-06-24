@@ -19,6 +19,7 @@ public final class PermissionModuleCatalog {
                         "department",
                         "jobposition",
                         "payment",
+                        "notification",
                         "leave",
                         "storage",
                         "role",
@@ -32,6 +33,7 @@ public final class PermissionModuleCatalog {
                         "benefit",
                         "benefitenrollment",
                         "tax",
+                        "notification",
                         "storage",
                         "role",
                         "user"));
@@ -46,6 +48,7 @@ public final class PermissionModuleCatalog {
                         "attendance",
                         "leave",
                         "performance",
+                        "notification",
                         "storage",
                         "role",
                         "user"));

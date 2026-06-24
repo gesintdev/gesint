@@ -7,6 +7,7 @@ import type { LeaveRequestCreateDto } from "@/modules/rh/person/leave/dto/leave-
 import { LEAVE_CLIENT_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
 import { leaverequestKeys } from "@/modules/rh/person/leave/leave.query";
 import { emptyLeaveRequestForm, leaverequestToFormDto } from "@/modules/rh/person/leave/lib/leave-request.mapper";
+import { LEAVE_TYPE_ITEMS } from "@/modules/rh/person/leave/lib/leave-types";
 import { leaveRequestFormSchema } from "@/modules/rh/person/leave/schemas/leave-request.schema";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
@@ -20,14 +21,6 @@ import type { SelectItem } from "@/shared/components/ui/input/select-item.types"
 import { ExceptionCapture } from "@/shared/exceptions";
 import { mapZodFieldErrors } from "@/shared/lib/zod-field-errors";
 
-const LEAVE_TYPE_ITEMS: SelectItem[] = [
-    { value: "VACATION", label: "Férias" },
-    { value: "MEDICAL", label: "Afastamento médico" },
-    { value: "MATERNITY", label: "Maternidade" },
-    { value: "PATERNITY", label: "Paternidade" },
-    { value: "UNPAID", label: "Não remunerado" },
-    { value: "OTHER", label: "Outro" },
-];
 const APPROVAL_ITEMS: SelectItem[] = [
     { value: "true", label: "Aprovado" },
     { value: "false", label: "Pendente" },
