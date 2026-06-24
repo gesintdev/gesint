@@ -33,6 +33,22 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
     @Query("""
             SELECT l FROM LeaveRequest l
             WHERE l.status <> :deletedStatus
+              AND l.collaboratorId IN :collaboratorIds
+              AND l.approved = TRUE
+              AND l.leaveType = :leaveType
+              AND l.startDate <= :periodEnd
+              AND l.endDate >= :periodStart
+            """)
+    List<LeaveRequest> findApprovedByCollaboratorInAndTypeOverlapping(
+            @Param("collaboratorIds") List<UUID> collaboratorIds,
+            @Param("leaveType") LeaveTypeEnum leaveType,
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
+
+    @Query("""
+            SELECT l FROM LeaveRequest l
+            WHERE l.status <> :deletedStatus
               AND l.collaboratorId = :collaboratorId
               AND l.leaveType <> :vacationType
               AND l.approved = TRUE
@@ -41,6 +57,22 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             """)
     List<LeaveRequest> findApprovedAbsencesOverlapping(
             @Param("collaboratorId") UUID collaboratorId,
+            @Param("vacationType") LeaveTypeEnum vacationType,
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
+
+    @Query("""
+            SELECT l FROM LeaveRequest l
+            WHERE l.status <> :deletedStatus
+              AND l.collaboratorId IN :collaboratorIds
+              AND l.leaveType <> :vacationType
+              AND l.approved = TRUE
+              AND l.startDate <= :periodEnd
+              AND l.endDate >= :periodStart
+            """)
+    List<LeaveRequest> findApprovedAbsencesByCollaboratorInOverlapping(
+            @Param("collaboratorIds") List<UUID> collaboratorIds,
             @Param("vacationType") LeaveTypeEnum vacationType,
             @Param("periodStart") LocalDate periodStart,
             @Param("periodEnd") LocalDate periodEnd,

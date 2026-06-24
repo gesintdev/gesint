@@ -1,8 +1,10 @@
 package br.com.gommo.modules.rh.person.collaborators.admission.service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -30,16 +32,22 @@ import br.com.gommo.modules.rh.person.collaborators.admission.exception.Admissio
 import br.com.gommo.modules.rh.person.collaborators.admission.mapper.AdmissionProcessMapper;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.rh.person.collaborators.address.service.AddressReferenceResolver;
+import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.service.CollaboratorProfileService;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.rh.person.contract.recess.service.ContractRecessProvisioningService;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
+import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
+import br.com.gommo.modules.rh.person.offboarding.repository.OffboardingRepository;
 import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
 
 @Service
 public class AdmissionProcessService
         extends BaseService<AdmissionProcess, AdmissionProcessRequestDto, AdmissionProcessResponseDto>
         implements IAdmissionProcessService {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final AdmissionProcessRepository repository;
     private final AdmissionProcessMapper mapper;
@@ -49,6 +57,8 @@ public class AdmissionProcessService
     private final ContractRecessProvisioningService contractRecessProvisioningService;
     private final AddressReferenceResolver addressReferenceResolver;
     private final DepartmentRepository departmentRepository;
+    private final LeaveRequestRepository leaveRequestRepository;
+    private final OffboardingRepository offboardingRepository;
 
     public AdmissionProcessService(
             AdmissionProcessRepository repository,
@@ -58,7 +68,9 @@ public class AdmissionProcessService
             StorageObjectLinkRepository storageObjectLinkRepository,
             ContractRecessProvisioningService contractRecessProvisioningService,
             AddressReferenceResolver addressReferenceResolver,
-            DepartmentRepository departmentRepository) {
+            DepartmentRepository departmentRepository,
+            LeaveRequestRepository leaveRequestRepository,
+            OffboardingRepository offboardingRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -68,6 +80,8 @@ public class AdmissionProcessService
         this.contractRecessProvisioningService = contractRecessProvisioningService;
         this.addressReferenceResolver = addressReferenceResolver;
         this.departmentRepository = departmentRepository;
+        this.leaveRequestRepository = leaveRequestRepository;
+        this.offboardingRepository = offboardingRepository;
     }
 
     @Override
@@ -278,6 +292,11 @@ public class AdmissionProcessService
         }
         List<UUID> ids = entities.stream().map(AdmissionProcess::getId).toList();
         Map<UUID, Department> departments = loadDepartments(entities);
+        Map<UUID, Collaborator> collaborators = loadCollaborators(entities);
+        List<UUID> collaboratorIds = collaboratorIds(entities);
+        var inVacationIds = loadActiveVacationCollaboratorIds(collaboratorIds);
+        var onLeaveIds = loadActiveAbsenceCollaboratorIds(collaboratorIds);
+        var offboardedIds = loadOffboardedCollaboratorIds(collaboratorIds);
         var links = storageObjectLinkRepository.findAllByEntityTypeAndEntityIdInAndStatusNot(
                 "admission_process", ids, StatusEnum.DELETED);
         return entities.stream()
@@ -291,7 +310,10 @@ public class AdmissionProcessService
                             progress.completedStepCount(),
                             progress.requiredStepCount(),
                             progress.completedStepIds(),
-                            departmentName(entity, departments));
+                            departmentName(entity, departments),
+                            collaboratorStatus(entity, collaborators, offboardedIds),
+                            entity.getCollaboratorId() != null && inVacationIds.contains(entity.getCollaboratorId()),
+                            entity.getCollaboratorId() != null && onLeaveIds.contains(entity.getCollaboratorId()));
                 })
                 .toList();
     }
@@ -299,13 +321,21 @@ public class AdmissionProcessService
     private AdmissionProcessResponseDto toEnrichedResponse(AdmissionProcess entity) {
         AdmissionProgress progress = evaluateProgress(entity, entity.getId());
         Map<UUID, Department> departments = loadDepartments(List.of(entity));
+        Map<UUID, Collaborator> collaborators = loadCollaborators(List.of(entity));
+        List<UUID> collaboratorIds = collaboratorIds(List.of(entity));
+        var inVacationIds = loadActiveVacationCollaboratorIds(collaboratorIds);
+        var onLeaveIds = loadActiveAbsenceCollaboratorIds(collaboratorIds);
+        var offboardedIds = loadOffboardedCollaboratorIds(collaboratorIds);
         return mapper.toResponse(
                 entity,
                 progress.status(),
                 progress.completedStepCount(),
                 progress.requiredStepCount(),
                 progress.completedStepIds(),
-                departmentName(entity, departments));
+                departmentName(entity, departments),
+                collaboratorStatus(entity, collaborators, offboardedIds),
+                entity.getCollaboratorId() != null && inVacationIds.contains(entity.getCollaboratorId()),
+                entity.getCollaboratorId() != null && onLeaveIds.contains(entity.getCollaboratorId()));
     }
 
     private Map<UUID, Department> loadDepartments(List<AdmissionProcess> entities) {
@@ -324,6 +354,68 @@ public class AdmissionProcessService
     private static String departmentName(AdmissionProcess entity, Map<UUID, Department> departments) {
         Department department = entity.getDepartmentId() != null ? departments.get(entity.getDepartmentId()) : null;
         return department != null && department.getStatus() != StatusEnum.DELETED ? department.getName() : null;
+    }
+
+    private Map<UUID, Collaborator> loadCollaborators(List<AdmissionProcess> entities) {
+        List<UUID> collaboratorIds = collaboratorIds(entities);
+        if (collaboratorIds.isEmpty()) {
+            return Map.of();
+        }
+        return collaboratorRepository.findAllById(collaboratorIds).stream()
+                .filter(collaborator -> collaborator.getStatus() != StatusEnum.DELETED)
+                .collect(Collectors.toMap(Collaborator::getId, Function.identity()));
+    }
+
+    private static List<UUID> collaboratorIds(List<AdmissionProcess> entities) {
+        return entities.stream()
+                .map(AdmissionProcess::getCollaboratorId)
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+    }
+
+    private Set<UUID> loadActiveVacationCollaboratorIds(List<UUID> collaboratorIds) {
+        if (collaboratorIds.isEmpty()) {
+            return Set.of();
+        }
+        LocalDate today = LocalDate.now(BUSINESS_ZONE);
+        return leaveRequestRepository
+                .findApprovedByCollaboratorInAndTypeOverlapping(
+                        collaboratorIds, LeaveTypeEnum.VACATION, today, today, StatusEnum.DELETED)
+                .stream()
+                .map(LeaveRequest::getCollaboratorId)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<UUID> loadActiveAbsenceCollaboratorIds(List<UUID> collaboratorIds) {
+        if (collaboratorIds.isEmpty()) {
+            return Set.of();
+        }
+        LocalDate today = LocalDate.now(BUSINESS_ZONE);
+        return leaveRequestRepository
+                .findApprovedAbsencesByCollaboratorInOverlapping(
+                        collaboratorIds, LeaveTypeEnum.VACATION, today, today, StatusEnum.DELETED)
+                .stream()
+                .map(LeaveRequest::getCollaboratorId)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<UUID> loadOffboardedCollaboratorIds(List<UUID> collaboratorIds) {
+        if (collaboratorIds.isEmpty()) {
+            return Set.of();
+        }
+        return offboardingRepository.findOffboardedCollaboratorIdsIn(collaboratorIds, StatusEnum.DELETED).stream()
+                .collect(Collectors.toSet());
+    }
+
+    private static StatusEnum collaboratorStatus(
+            AdmissionProcess entity, Map<UUID, Collaborator> collaborators, Set<UUID> offboardedIds) {
+        if (entity.getCollaboratorId() != null && offboardedIds.contains(entity.getCollaboratorId())) {
+            return StatusEnum.INACTIVE;
+        }
+        Collaborator collaborator =
+                entity.getCollaboratorId() != null ? collaborators.get(entity.getCollaboratorId()) : null;
+        return collaborator != null ? collaborator.getStatus() : null;
     }
 
     private AdmissionAttachmentCounts loadAttachmentCounts(UUID admissionId) {

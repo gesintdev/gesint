@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessResponseDto;
@@ -156,13 +157,38 @@ public class AdmissionProcessMapper {
             int requiredStepCount,
             List<String> completedStepIds,
             String departmentName) {
+        return toResponse(
+                entity,
+                admissionStatus,
+                completedStepCount,
+                requiredStepCount,
+                completedStepIds,
+                departmentName,
+                null,
+                false,
+                false);
+    }
+
+    public AdmissionProcessResponseDto toResponse(
+            AdmissionProcess entity,
+            AdmissionStatusEnum admissionStatus,
+            int completedStepCount,
+            int requiredStepCount,
+            List<String> completedStepIds,
+            String departmentName,
+            StatusEnum collaboratorStatus,
+            boolean inVacation,
+            boolean onLeave) {
         return AdmissionProcessResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
                 .collaboratorId(entity.getCollaboratorId())
+                .collaboratorStatus(collaboratorStatus)
                 .photoObjectId(entity.getPhotoObjectId())
                 .admissionStatus(admissionStatus)
+                .inVacation(inVacation)
+                .onLeave(onLeave)
                 .completedStepCount(completedStepCount)
                 .requiredStepCount(requiredStepCount)
                 .completedStepIds(completedStepIds)

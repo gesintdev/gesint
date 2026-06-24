@@ -24,8 +24,11 @@ public class AdmissionProcessResponseDto {
     private final Integer code;
     private final StatusEnum status;
     private final UUID collaboratorId;
+    private final StatusEnum collaboratorStatus;
     private final UUID photoObjectId;
     private final AdmissionStatusEnum admissionStatus;
+    private final boolean inVacation;
+    private final boolean onLeave;
     private final int completedStepCount;
     private final int requiredStepCount;
     private final List<String> completedStepIds;

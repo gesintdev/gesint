@@ -18,8 +18,11 @@ export class AdmissionProcess {
     code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId?: string;
+    collaboratorStatus?: "ACTIVE" | "INACTIVE" | "DELETED";
     photoObjectId?: string;
     admissionStatus!: AdmissionStatus;
+    inVacation?: boolean;
+    onLeave?: boolean;
     completedStepCount?: number;
     requiredStepCount?: number;
     completedStepIds?: string[];

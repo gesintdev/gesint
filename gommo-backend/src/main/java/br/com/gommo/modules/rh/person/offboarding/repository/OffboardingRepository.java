@@ -22,5 +22,14 @@ public interface OffboardingRepository extends IBaseRepository<Offboarding> {
             """)
     List<UUID> findOffboardedCollaboratorIds(@Param("deleted") StatusEnum deleted);
 
+    @Query(
+            """
+            SELECT DISTINCT o.collaboratorId FROM Offboarding o
+            WHERE o.collaboratorId IN :collaboratorIds
+              AND o.status <> :deleted
+            """)
+    List<UUID> findOffboardedCollaboratorIdsIn(
+            @Param("collaboratorIds") List<UUID> collaboratorIds, @Param("deleted") StatusEnum deleted);
+
     boolean existsByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
 }

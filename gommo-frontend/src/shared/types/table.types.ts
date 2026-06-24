@@ -32,6 +32,12 @@ export type TableColumnConfig = {
     avatarImageField?: string;
     /** Subtítulo abaixo do nome (AVATAR_PROFILE) */
     avatarSubtitleField?: string;
+    /** Campo com tags exibidas ao lado do nome (AVATAR_PROFILE). */
+    avatarTagsField?: string;
+    /** Rótulos customizados para tags de perfil. */
+    avatarTagLabels?: Record<string, string>;
+    /** Classes customizadas para tags de perfil. */
+    avatarTagClassNames?: Record<string, string>;
     /** Tamanho do avatar; listas mais densas podem usar `sm`. */
     avatarSize?: "sm" | "md" | "lg";
     /** Rótulos customizados para células BADGE (sobrescreve o mapa global) */

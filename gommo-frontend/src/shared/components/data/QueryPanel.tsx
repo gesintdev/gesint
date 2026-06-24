@@ -44,6 +44,7 @@ export type QueryTablePanelTableProps<TRow extends object> = {
     renderActions?: (_row: TRow) => ReactNode;
     actionsHeader?: string;
     actionsClassName?: string;
+    getRowClassName?: (_row: TRow) => string | undefined;
 };
 
 export type QueryTablePanelProps<TRow extends object> = QueryTablePanelTableProps<TRow> & {

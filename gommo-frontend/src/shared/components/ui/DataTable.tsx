@@ -28,6 +28,7 @@ export type DataTableProps<T extends object> = {
     actionsHeader?: string;
     actionsClassName?: string;
     renderColumnHeader?: (_column: TableColumnConfig) => ReactNode;
+    getRowClassName?: (_row: T) => string | undefined;
 };
 
 function resolveRowInteraction<T extends object>(props: DataTableProps<T>) {
@@ -43,6 +44,11 @@ function alignClass(align?: TableColumnConfig["align"]) {
     return "text-left";
 }
 
+function normalizeProfileTags(value: unknown): string[] {
+    if (!Array.isArray(value)) return [];
+    return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+}
+
 function renderCellContent(
     value: unknown,
     dataType: TableDataType | undefined,
@@ -53,19 +59,38 @@ function renderCellContent(
         const name = value != null && value !== "" ? String(value) : "—";
         const photoObjectId = col.avatarImageField ? (get(row, col.avatarImageField) as string | undefined) : undefined;
         const subtitle = col.avatarSubtitleField ? get(row, col.avatarSubtitleField) : undefined;
+        const tags = col.avatarTagsField ? normalizeProfileTags(get(row, col.avatarTagsField)) : [];
         const avatarSize = col.avatarSize ?? "lg";
         const denseProfile = avatarSize === "sm";
         return (
             <div className={clsx("flex items-center", denseProfile ? "gap-2" : "gap-2.5")}>
                 <ProfileAvatar name={name} photoObjectId={photoObjectId} size={avatarSize} shape="squircle" />
                 <div className="min-w-0">
-                    <div
-                        className={clsx(
-                            "truncate text-base-content",
-                            denseProfile ? "text-sm font-medium" : "font-semibold",
-                        )}
-                    >
-                        {name}
+                    <div className="flex min-w-0 items-center gap-2.5">
+                        <span
+                            className={clsx(
+                                "truncate text-base-content",
+                                denseProfile ? "text-sm font-medium" : "font-semibold",
+                            )}
+                        >
+                            {name}
+                        </span>
+                        {tags.length > 0 ? (
+                            <span className="flex shrink-0 items-center gap-1.5">
+                                {tags.map((tag) => (
+                                    <span
+                                        key={tag}
+                                        className={clsx(
+                                            "inline-flex h-5 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none",
+                                            col.avatarTagClassNames?.[tag] ??
+                                                "border-base-content/10 bg-base-content/5 text-base-content/55",
+                                        )}
+                                    >
+                                        {col.avatarTagLabels?.[tag] ?? tag}
+                                    </span>
+                                ))}
+                            </span>
+                        ) : null}
                     </div>
                     {subtitle != null && subtitle !== "" ? (
                         <div
@@ -124,6 +149,7 @@ export function DataTable<T extends object>({
     actionsHeader = "Ações",
     actionsClassName,
     renderColumnHeader,
+    getRowClassName,
 }: DataTableProps<T>) {
     const { mode, handler, interactive } = resolveRowInteraction({
         data,
@@ -174,7 +200,7 @@ export function DataTable<T extends object>({
                                     onDoubleClick={
                                         interactive && mode === "doubleclick" ? () => handler?.(row) : undefined
                                     }
-                                    className={clsx(interactive && "cursor-pointer")}
+                                    className={clsx(interactive && "cursor-pointer", getRowClassName?.(row))}
                                 >
                                     {columns.map((col) => {
                                         const raw = get(row, col.fieldValue);
