@@ -144,19 +144,43 @@ export function HeaderNotifications() {
                 )}
                 onClick={() => setOpen((value) => !value)}
             >
-                <motion.span
-                    animate={
-                        ringing
-                            ? {
-                                  rotate: [0, -22, 20, -15, 11, -6, 0],
-                                  scale: [1, 1.22, 1.22, 1.16, 1.1, 1.04, 1],
-                              }
-                            : { rotate: 0, scale: 1 }
-                    }
-                    transition={{ duration: 0.82, ease: "easeInOut" }}
-                    className="flex origin-top"
-                >
-                    <Bell className="size-4.25" strokeWidth={2} />
+                <motion.span className="relative -m-0.75 flex size-6 items-center justify-center">
+                    <AnimatePresence>
+                        {ringing ? (
+                            <>
+                                <motion.span
+                                    aria-hidden="true"
+                                    initial={{ opacity: 0, x: 0, scale: 0.7, rotate: -18 }}
+                                    animate={{ opacity: [0, 0.65, 0], x: [-2, -6, -9], scale: [0.7, 1, 1.12] }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.62, ease: "easeOut" }}
+                                    className="pointer-events-none absolute left-0 top-1.5 h-2.5 w-1.5 rounded-l-full border-y border-l border-current"
+                                />
+                                <motion.span
+                                    aria-hidden="true"
+                                    initial={{ opacity: 0, x: 0, scale: 0.7, rotate: 18 }}
+                                    animate={{ opacity: [0, 0.65, 0], x: [2, 6, 9], scale: [0.7, 1, 1.12] }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.62, ease: "easeOut" }}
+                                    className="pointer-events-none absolute right-0 top-1.5 h-2.5 w-1.5 rounded-r-full border-y border-r border-current"
+                                />
+                            </>
+                        ) : null}
+                    </AnimatePresence>
+                    <motion.span
+                        animate={
+                            ringing
+                                ? {
+                                      rotate: [0, -18, 17, -14, 11, -7, 4, 0],
+                                      scale: [1, 1.26, 1.18, 1.22, 1.13, 1.08, 1.03, 1],
+                                  }
+                                : { rotate: 0, scale: 1 }
+                        }
+                        transition={{ duration: 0.78, ease: [0.34, 1.56, 0.64, 1] }}
+                        className="flex origin-center"
+                    >
+                        <Bell className="size-4.25" strokeWidth={2} />
+                    </motion.span>
                 </motion.span>
                 {unreadCount > 0 ? (
                     <span className="absolute -right-1 -top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-error px-1 text-[9px] font-semibold leading-none text-white ring-2 ring-base-100">
