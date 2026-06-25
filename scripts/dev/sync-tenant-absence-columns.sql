@@ -12,7 +12,7 @@ BEGIN
     LOOP
         EXECUTE format(
             'ALTER TABLE %I.leave_request
-                ADD COLUMN IF NOT EXISTS absence_status public.leave_absence_status_enum,
+                ADD COLUMN IF NOT EXISTS absence_status VARCHAR(30),
                 ADD COLUMN IF NOT EXISTS duration_days INT,
                 ADD COLUMN IF NOT EXISTS cid VARCHAR(20),
                 ADD COLUMN IF NOT EXISTS physician_name VARCHAR(180),
@@ -27,11 +27,18 @@ BEGIN
         );
 
         EXECUTE format(
+            'ALTER TABLE %I.leave_request
+                ALTER COLUMN absence_status TYPE VARCHAR(30)
+                USING absence_status::text',
+            tenant_schema
+        );
+
+        EXECUTE format(
             'UPDATE %I.leave_request
              SET absence_status = CASE
                     WHEN leave_type = ''VACATION'' THEN NULL
-                    WHEN approved = TRUE THEN ''VALIDATED''::public.leave_absence_status_enum
-                    ELSE ''PENDING''::public.leave_absence_status_enum
+                    WHEN approved = TRUE THEN ''VALIDATED''
+                    ELSE ''PENDING''
                  END,
                  duration_days = (end_date - start_date + 1),
                  requires_inss = CASE
@@ -44,13 +51,22 @@ BEGIN
 
         EXECUTE format(
             'ALTER TABLE %I.attendance_record
-                ADD COLUMN IF NOT EXISTS occurrence_type public.attendance_occurrence_type_enum NOT NULL DEFAULT ''NORMAL_WORK'',
-                ADD COLUMN IF NOT EXISTS occurrence_origin public.attendance_occurrence_origin_enum NOT NULL DEFAULT ''MANUAL'',
+                ADD COLUMN IF NOT EXISTS occurrence_type VARCHAR(40) NOT NULL DEFAULT ''NORMAL_WORK'',
+                ADD COLUMN IF NOT EXISTS occurrence_origin VARCHAR(40) NOT NULL DEFAULT ''MANUAL'',
                 ADD COLUMN IF NOT EXISTS reference_id UUID,
                 ADD COLUMN IF NOT EXISTS expected_hours NUMERIC(5, 2),
                 ADD COLUMN IF NOT EXISTS worked_hours NUMERIC(5, 2),
                 ADD COLUMN IF NOT EXISTS impacts_hour_bank BOOLEAN NOT NULL DEFAULT true,
                 ADD COLUMN IF NOT EXISTS impacts_payroll BOOLEAN NOT NULL DEFAULT true',
+            tenant_schema
+        );
+
+        EXECUTE format(
+            'ALTER TABLE %I.attendance_record
+                ALTER COLUMN occurrence_type TYPE VARCHAR(40)
+                    USING occurrence_type::text,
+                ALTER COLUMN occurrence_origin TYPE VARCHAR(40)
+                    USING occurrence_origin::text',
             tenant_schema
         );
     END LOOP;

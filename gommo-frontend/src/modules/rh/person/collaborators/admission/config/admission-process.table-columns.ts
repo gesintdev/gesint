@@ -22,6 +22,7 @@ export const ADMISSION_TABLE_COLUMNS: TableColumnConfig[] = [
             IN_VACATION: "border-success/25 bg-success/12 text-success dark:border-success/35 dark:bg-success/18",
             ON_LEAVE: "border-warning/25 bg-warning/12 text-warning dark:border-warning/35 dark:bg-warning/18",
         },
+        filterable: true,
     },
     {
         id: "admissionStatus",
@@ -29,12 +30,14 @@ export const ADMISSION_TABLE_COLUMNS: TableColumnConfig[] = [
         fieldValue: "admissionStatus",
         dataType: TableDataType.BADGE,
         badgeLabels: ADMISSION_STATUS_LABELS,
+        filterable: true,
     },
     {
         id: "expectedStartDate",
         columnName: "Data de início",
         fieldValue: "expectedStartDate",
         dataType: TableDataType.DATE,
+        filterable: true,
     },
     {
         id: "departmentName",
@@ -43,5 +46,6 @@ export const ADMISSION_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.TEXT,
         className: "hidden lg:table-cell",
         headerClassName: "hidden lg:table-cell",
+        filterable: true,
     },
 ];

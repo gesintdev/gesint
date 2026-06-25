@@ -44,8 +44,7 @@ public class LeaveRequest extends AuditEntity {
     private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "absence_status", columnDefinition = "leave_absence_status_enum")
+    @Column(name = "absence_status", length = 30)
     private LeaveAbsenceStatusEnum absenceStatus;
 
     @Column(name = "duration_days")

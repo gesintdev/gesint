@@ -350,7 +350,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         request.setDurationDays(durationDays);
 
         LeaveAbsenceStatusEnum absenceStatus =
-                request.getAbsenceStatus() != null ? request.getAbsenceStatus() : LeaveAbsenceStatusEnum.PENDING;
+                request.getAbsenceStatus() != null ? request.getAbsenceStatus() : LeaveAbsenceStatusEnum.VALIDATED;
         request.setAbsenceStatus(absenceStatus);
         request.setApproved(LeaveAbsenceRules.isApprovedAbsenceStatus(absenceStatus));
 

@@ -54,5 +54,5 @@ export function isApprovedVacation(row: LeaveRequest): boolean {
 }
 
 export function isAbsenceLeave(row: LeaveRequest): boolean {
-    return row.leaveType !== "VACATION" && row.approved === true;
+    return row.leaveType !== "VACATION";
 }

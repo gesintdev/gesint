@@ -15,8 +15,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.entity.AuditEntity;
 
@@ -44,13 +42,11 @@ public class AttendanceRecord extends AuditEntity {
     private Integer breakMinutes;
 
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "occurrence_type", nullable = false, columnDefinition = "attendance_occurrence_type_enum")
+    @Column(name = "occurrence_type", nullable = false, length = 40)
     private AttendanceOccurrenceTypeEnum occurrenceType;
 
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "occurrence_origin", nullable = false, columnDefinition = "attendance_occurrence_origin_enum")
+    @Column(name = "occurrence_origin", nullable = false, length = 40)
     private AttendanceOccurrenceOriginEnum occurrenceOrigin;
 
     @Column(name = "reference_id")

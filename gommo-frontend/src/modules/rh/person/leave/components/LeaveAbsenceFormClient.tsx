@@ -25,7 +25,7 @@ import {
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { InputDate, InputInfo, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { sectionHasChanges } from "@/shared/lib/form-step.util";
@@ -46,6 +46,15 @@ const FORM_STEPS: FormStepNavItem[] = [
 
 type LeaveFormField = keyof LeaveRequestCreateDto | "notes";
 
+function emptyLeaveAbsenceForm(): LeaveRequestCreateDto {
+    return {
+        ...emptyLeaveRequestForm(),
+        leaveType: "MEDICAL_CERTIFICATE",
+        absenceStatus: "VALIDATED",
+        approved: true,
+    };
+}
+
 function inclusiveDays(startDate?: string, endDate?: string) {
     if (!startDate || !endDate || endDate < startDate) return undefined;
     const start = new Date(`${startDate}T00:00:00`);
@@ -61,7 +70,7 @@ export function LeaveAbsenceFormClient() {
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<LeaveFormField, string>>>({});
     const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
-    const emptyDefaults = useMemo(() => ({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL_CERTIFICATE" as const }), []);
+    const emptyDefaults = useMemo(() => emptyLeaveAbsenceForm(), []);
     const detailQuery = useQuery({
         queryKey: leaverequestKeys.detail(editingId ?? ""),
         queryFn: () => leaverequestService.getById(editingId!),
@@ -78,7 +87,7 @@ export function LeaveAbsenceFormClient() {
 
     useEffect(() => {
         if (!isEditing) {
-            setForm({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL_CERTIFICATE" });
+            setForm(emptyLeaveAbsenceForm());
             setError(null);
             setFieldErrors({});
             clearPendingAttachments();
@@ -124,7 +133,7 @@ export function LeaveAbsenceFormClient() {
                 queryKey: ["storage-links", LEAVE_ABSENCE_ENTITY_TYPE, savedId],
             });
             toast.success(isEditing ? "Afastamento salvo" : "Afastamento cadastrado");
-            setForm({ ...emptyLeaveRequestForm(), leaveType: "MEDICAL_CERTIFICATE" });
+            setForm(emptyLeaveAbsenceForm());
             goToList();
         },
         onError: (err: unknown) => {
@@ -272,9 +281,9 @@ export function LeaveAbsenceFormClient() {
                 <InputSelect
                     label="Status"
                     items={LEAVE_ABSENCE_STATUS_ITEMS}
-                    value={form.absenceStatus ?? "PENDING"}
+                    value={form.absenceStatus ?? "VALIDATED"}
                     onValueChange={(v) =>
-                        update("absenceStatus", (v || "PENDING") as LeaveRequestCreateDto["absenceStatus"])
+                        update("absenceStatus", (v || "VALIDATED") as LeaveRequestCreateDto["absenceStatus"])
                     }
                     wrapperClassName="sm:col-span-3"
                     required
@@ -357,13 +366,15 @@ export function LeaveAbsenceFormClient() {
                     integer
                     readOnly
                 />
-                <div className="sm:col-span-10">
-                    <div className="rounded-lg border border-base-content/10 bg-base-100 px-3 py-2 text-xs leading-5 text-base-content/65">
-                        {form.cid
+                <InputInfo
+                    label="Orientação"
+                    value={
+                        form.cid
                             ? "Periodos validados do mesmo colaborador com o mesmo CID sao somados para sinalizar possivel encaminhamento ao INSS."
-                            : "CID e CRM seguem opcionais, mas ajudam a identificar atestados relacionados e auditoria do afastamento."}
-                    </div>
-                </div>
+                            : "CID e CRM seguem opcionais, mas ajudam a identificar atestados relacionados e auditoria do afastamento."
+                    }
+                    wrapperClassName="sm:col-span-10"
+                />
             </FormSection>
 
             <FormSection id="impactos" title="Impactos legais e operacionais">
@@ -390,19 +401,14 @@ export function LeaveAbsenceFormClient() {
                     wrapperClassName="sm:col-span-3"
                     error={fieldErrors.workAccidentStability}
                 />
-                {needsInssAttention ? (
-                    <div className="sm:col-span-12 rounded-lg border border-warning/25 bg-warning/8 px-3 py-2 text-sm text-base-content/75">
-                        Afastamento acima de 15 dias ou periodos relacionados acima do limite: registrar encaminhamento ao INSS.
-                    </div>
-                ) : null}
-                {isWorkAccident ? (
-                    <div className="sm:col-span-12 rounded-lg border border-info/25 bg-info/8 px-3 py-2 text-sm text-base-content/75">
-                        Acidente de trabalho deve permanecer sinalizado para avaliacao de estabilidade apos retorno.
-                    </div>
-                ) : null}
-                <div className="sm:col-span-12 rounded-lg border border-base-content/10 bg-base-100 px-3 py-2 text-sm text-base-content/65">
-                    Para prestadores PJ, o registro documenta a indisponibilidade operacional; efeitos financeiros dependem do contrato de prestacao de servicos.
-                </div>
+                <InputInfo
+                    value={
+                        needsInssAttention ? 'Afastamento acima de 15 dias ou periodos relacionados acima do limite: registrar encaminhamento ao INSS.'
+                            : isWorkAccident ? 'Acidente de trabalho deve permanecer sinalizado para avaliacao de estabilidade apos retorno.'
+                            : 'Para prestadores PJ, o registro documenta a indisponibilidade operacional; efeitos financeiros dependem do contrato de prestacao de servicos.'
+                    }
+                    wrapperClassName={'sm:col-span-12'}
+                />
             </FormSection>
 
             <FormSection
