@@ -51,11 +51,11 @@ import {
     InputSelect,
     InputSelectAutocomplete,
     InputString,
-    RgIdentityFields,
 } from "@/shared/components/ui/input/index";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 import {ProfilePhotoField} from "@/shared/components/ui/ProfilePhotoField";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {digitsOnly} from "@/shared/lib/input/digits";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 const GENDER_ITEMS: SelectItem[] = [
@@ -341,8 +341,8 @@ export function AdmissionProcessFormClient() {
                 description="Identificação pessoal e contato do colaborador."
                 bodyClassName="!block"
             >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-                    <div className="flex flex-col gap-4 lg:h-full lg:max-w-[15rem] lg:shrink-0">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+                    <div className="flex flex-col gap-4 lg:h-full lg:max-w-60 lg:shrink-0">
                         <ProfilePhotoField
                             photoObjectId={form.photoObjectId || undefined}
                             pendingPreviewUrl={pendingPreviewUrl}
@@ -360,32 +360,71 @@ export function AdmissionProcessFormClient() {
                             />
                         </div>
                     </div>
-                    <div className="grid min-w-0 flex-1 gap-4 sm:grid-cols-2">
+                    <div className="grid min-w-0 flex-1 content-start gap-x-4 gap-y-2.5 sm:grid-cols-12">
                         <InputString
                             label="Nome completo"
                             value={form.fullName}
                             onValueChange={(v) => update("fullName", v)}
                             required
-                            wrapperClassName="sm:col-span-2"
+                            wrapperClassName="sm:col-span-6"
                         />
                         <InputString
                             label="Nome social"
                             value={form.socialName ?? ""}
                             onValueChange={(v) => update("socialName", v)}
+                            wrapperClassName="sm:col-span-6"
                         />
-                        <InputCPF label="CPF" value={form.cpf} onValueChange={(v) => update("cpf", v)} required/>
-                        <RgIdentityFields
-                            rg={form.rg ?? ""}
-                            rgIssuer={form.rgIssuer}
-                            rgStateCode={form.rgStateCode}
-                            onRgChange={(v) => update("rg", v)}
-                            onRgIssuerChange={(v) => update("rgIssuer", v)}
-                            onRgStateCodeChange={(v) => update("rgStateCode", v)}
+                        <InputString
+                            label="Nome da mãe"
+                            value={form.motherName ?? ""}
+                            onValueChange={(v) => update("motherName", v)}
+                            wrapperClassName="sm:col-span-6"
+                        />
+                        <InputString
+                            label="Nome do pai"
+                            value={form.fatherName ?? ""}
+                            onValueChange={(v) => update("fatherName", v)}
+                            wrapperClassName="sm:col-span-6"
+                        />
+                        <InputCPF label="CPF"
+                                  value={form.cpf}
+                                  onValueChange={(v) => update("cpf", v)}
+                                  wrapperClassName="sm:col-span-2"
+                                  required/>
+                        <InputString
+                            label="RG"
+                            value={form.rg ?? ""}
+                            onValueChange={(v) => update("rg", digitsOnly(v).slice(0, 7))}
+                            maxLength={7}
+                            wrapperClassName="sm:col-span-2"
+                        />
+                        <InputString
+                            label="Órgão emissor"
+                            value={form.rgIssuer ?? ""}
+                            onValueChange={(v) => update("rgIssuer", v)}
+                            maxLength={4}
+                            wrapperClassName="sm:col-span-2"
+                        />
+                        <InputString
+                            label="UF emissão"
+                            value={form.rgStateCode ?? ""}
+                            onValueChange={(v) =>
+                                update(
+                                    "rgStateCode",
+                                    v
+                                        .toUpperCase()
+                                        .replace(/[^A-Z]/g, "")
+                                        .slice(0, 2),
+                                )
+                            }
+                            maxLength={2}
+                            wrapperClassName="sm:col-span-2"
                         />
                         <InputDate
                             label="Data de nascimento"
                             value={form.birthDate}
                             onValueChange={(v) => update("birthDate", v)}
+                            wrapperClassName="sm:col-span-2"
                             required
                         />
                         <InputSelect
@@ -396,6 +435,7 @@ export function AdmissionProcessFormClient() {
                                 update("gender", (v || undefined) as AdmissionProcessCreateDto["gender"])
                             }
                             placeholder="Não informado"
+                            wrapperClassName="sm:col-span-2"
                             clearable
                         />
                         <InputSelect
@@ -406,42 +446,36 @@ export function AdmissionProcessFormClient() {
                                 update("maritalStatus", (v || undefined) as AdmissionProcessCreateDto["maritalStatus"])
                             }
                             placeholder="Não informado"
+                            wrapperClassName="sm:col-span-2"
                             clearable
                         />
                         <InputString
                             label="Nacionalidade"
                             value={form.nationality ?? ""}
                             onValueChange={(v) => update("nationality", v)}
+                            wrapperClassName="sm:col-span-2"
                         />
                         {!isPj ? (
                             <InputString
                                 label="PIS/PASEP"
                                 value={form.pisPasep ?? ""}
                                 onValueChange={(v) => update("pisPasep", v)}
+                                wrapperClassName="sm:col-span-2"
                             />
                         ) : null}
                         <InputString
-                            label="Nome da mãe"
-                            value={form.motherName ?? ""}
-                            onValueChange={(v) => update("motherName", v)}
-                            wrapperClassName="sm:col-span-2"
-                        />
-                        <InputString
-                            label="Nome do pai"
-                            value={form.fatherName ?? ""}
-                            onValueChange={(v) => update("fatherName", v)}
+                            label="Telefone / WhatsApp"
+                            value={form.phone ?? ""}
+                            onValueChange={(v) => update("phone", v)}
                             wrapperClassName="sm:col-span-2"
                         />
                         <InputString
                             label="E-mail"
                             value={form.email ?? ""}
                             onValueChange={(v) => update("email", v)}
+                            wrapperClassName="sm:col-span-4"
                         />
-                        <InputString
-                            label="Telefone / WhatsApp"
-                            value={form.phone ?? ""}
-                            onValueChange={(v) => update("phone", v)}
-                        />
+
                     </div>
                 </div>
             </FormSection>
@@ -558,12 +592,15 @@ export function AdmissionProcessFormClient() {
                     label="Data de início"
                     value={form.expectedStartDate}
                     onValueChange={updateExpectedStartDate}
+                    wrapperClassName="sm:col-span-2"
                     required
+
                 />
                 <InputSelect
                     label="Tipo de contrato"
                     items={CONTRACT_TYPE_ITEMS}
                     value={form.contractType ?? "CLT"}
+                    wrapperClassName="sm:col-span-2"
                     onValueChange={(v) => {
                         const next = (v || "CLT") as AdmissionProcessCreateDto["contractType"];
                         setForm((prev) =>
@@ -592,18 +629,20 @@ export function AdmissionProcessFormClient() {
                             value={form.providerCnpj ?? ""}
                             onValueChange={(v) => update("providerCnpj", v)}
                             required
+                            wrapperClassName="sm:col-span-2"
                         />
                         <InputString
                             label="Razão social"
                             value={form.providerLegalName ?? ""}
                             onValueChange={(v) => update("providerLegalName", v)}
                             required
+                            wrapperClassName="sm:col-span-3"
                         />
                         <InputString
                             label="Nome fantasia"
                             value={form.providerTradeName ?? ""}
                             onValueChange={(v) => update("providerTradeName", v)}
-                            wrapperClassName="sm:col-span-2"
+                            wrapperClassName="sm:col-span-3"
                         />
                     </>
                 ) : null}
@@ -612,6 +651,7 @@ export function AdmissionProcessFormClient() {
                     value={form.baseSalary != null ? String(form.baseSalary) : ""}
                     onValueChange={(v) => update("baseSalary", v)}
                     emitAsDecimal
+                    wrapperClassName="sm:col-span-2"
                 />
                 {!isPj ? (
                     <InputSelect
@@ -620,6 +660,7 @@ export function AdmissionProcessFormClient() {
                         value={form.workloadSchedule ?? ""}
                         onValueChange={(v) => update("workloadSchedule", v)}
                         placeholder="Selecione"
+                        wrapperClassName="sm:col-span-2"
                         required
                     />
                 ) : null}
@@ -627,6 +668,7 @@ export function AdmissionProcessFormClient() {
                     label="ID empresa (opcional)"
                     value={form.companyId ?? ""}
                     onValueChange={(v) => update("companyId", v)}
+                    wrapperClassName="sm:col-span-4"
                 />
                 <DepartmentPickerField
                     value={form.departmentId ?? ""}
@@ -634,12 +676,13 @@ export function AdmissionProcessFormClient() {
                         update("departmentId", v);
                         update("jobPositionId", "");
                     }}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <JobPositionPickerField
                     value={form.jobPositionId ?? ""}
                     departmentId={form.departmentId}
                     onValueChange={(v) => update("jobPositionId", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-6"
                 />
             </FormSection>
             <FormSection
@@ -683,43 +726,62 @@ export function AdmissionProcessFormClient() {
                         items={YES_NO_ITEMS}
                         value={String(form.recessEnabled ?? false)}
                         onValueChange={(v) => update("recessEnabled", v === "true")}
+                        wrapperClassName="sm:col-span-2"
                     />
                     {form.recessEnabled ? (
                         <>
-                            <InputString label="Dias por ciclo" value={String(form.recessTotalDaysPerCycle ?? "")}
-                                         onValueChange={(v) => update("recessTotalDaysPerCycle", v)} required/>
-                            <InputString label="Duração do ciclo (meses)" value={String(form.recessCycleMonths ?? "")}
-                                         onValueChange={(v) => update("recessCycleMonths", v)} required/>
+                            <InputString label="Dias por ciclo"
+                                         value={String(form.recessTotalDaysPerCycle ?? "")}
+                                         onValueChange={(v) => update("recessTotalDaysPerCycle", v)}
+                                         required
+                                         wrapperClassName="sm:col-span-2"/>
+                            <InputString label="Duração do ciclo (meses)"
+                                         value={String(form.recessCycleMonths ?? "")}
+                                         onValueChange={(v) => update("recessCycleMonths", v)}
+                                         required
+                                         wrapperClassName="sm:col-span-2"/>
                             <InputString label="Carência (meses)"
                                          value={String(form.recessEligibilityAfterMonths ?? "")}
-                                         onValueChange={(v) => update("recessEligibilityAfterMonths", v)} required/>
+                                         onValueChange={(v) => update("recessEligibilityAfterMonths", v)}
+                                         required
+                                         wrapperClassName="sm:col-span-2"/>
                             <InputSelect label="Efeito no valor contratual" items={RECESS_FINANCIAL_ITEMS}
                                          value={form.recessFinancialMode ?? ""}
                                          onValueChange={(v) => update("recessFinancialMode", v as AdmissionProcessCreateDto["recessFinancialMode"])}
-                                         required/>
+                                         required
+                                         wrapperClassName="sm:col-span-2"/>
                             {form.recessFinancialMode === "PROPORTIONAL" ? (
-                                <InputString label="Percentual mantido" value={String(form.recessPaidPercentage ?? "")}
-                                             onValueChange={(v) => update("recessPaidPercentage", v)} required/>
+                                <InputString label="Percentual mantido"
+                                             value={String(form.recessPaidPercentage ?? "")}
+                                             onValueChange={(v) => update("recessPaidPercentage", v)}
+                                             required
+                                             wrapperClassName="sm:col-span-2"/>
                             ) : null}
-                            <InputSelect label="Permite fracionamento?" items={YES_NO_ITEMS}
+                            <InputSelect label="Permite fracionamento?"
+                                         items={YES_NO_ITEMS}
                                          value={String(form.recessAllowSplit ?? false)}
-                                         onValueChange={(v) => update("recessAllowSplit", v === "true")}/>
+                                         onValueChange={(v) => update("recessAllowSplit", v === "true")}
+                                         wrapperClassName="sm:col-span-2"/>
                             {form.recessAllowSplit ? (
                                 <>
                                     <InputString label="Máximo de parcelas"
                                                  value={String(form.recessMaxSplitPeriods ?? "")}
-                                                 onValueChange={(v) => update("recessMaxSplitPeriods", v)} required/>
+                                                 onValueChange={(v) => update("recessMaxSplitPeriods", v)}
+                                                 required
+                                                 wrapperClassName="sm:col-span-2"/>
                                     <InputString label="Mínimo de dias por parcela"
                                                  value={String(form.recessMinimumSplitDays ?? "")}
-                                                 onValueChange={(v) => update("recessMinimumSplitDays", v)} required/>
+                                                 onValueChange={(v) => update("recessMinimumSplitDays", v)}
+                                                 wrapperClassName="sm:col-span-2"required/>
                                 </>
                             ) : null}
                             <InputString label="Antecedência mínima (dias)"
                                          value={String(form.recessAdvanceNoticeDays ?? 0)}
-                                         onValueChange={(v) => update("recessAdvanceNoticeDays", v)}/>
+                                         onValueChange={(v) => update("recessAdvanceNoticeDays", v)}
+                                         wrapperClassName="sm:col-span-2"/>
                             <InputString label="Cláusula ou observações" value={form.recessNotes ?? ""}
                                          onValueChange={(v) => update("recessNotes", v)}
-                                         wrapperClassName="sm:col-span-2"/>
+                                         wrapperClassName="sm:col-span-10"/>
                         </>
                     ) : null}
                 </FormSection>
@@ -733,7 +795,7 @@ export function AdmissionProcessFormClient() {
                     label="Observações internas"
                     value={form.notes ?? ""}
                     onValueChange={(v) => update("notes", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

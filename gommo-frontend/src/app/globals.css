@@ -1707,12 +1707,12 @@ kbd {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.15rem 0.45rem;
+    padding: 0.13rem 0.43rem;
     border-radius: var(--gommo-radius-xs);
     border: 1px solid color-mix(in srgb, var(--color-base-content) 13%, transparent);
     background: color-mix(in srgb, var(--color-base-content) 5%, transparent);
     font-family: inherit;
-    font-size: 0.75rem;
+    font-size: 0.60rem;
     font-variation-settings: "wght" 550;
     color: color-mix(in srgb, var(--color-base-content) 60%, transparent);
     line-height: 1.5;
@@ -1853,7 +1853,7 @@ kbd {
 
 @media (min-width: 640px) {
     .gommo-form-section__body {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(12, minmax(0, 1fr));
     }
 }
 

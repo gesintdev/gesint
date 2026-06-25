@@ -37,7 +37,7 @@ export function AdmissionEmergencyContactsField({ contacts, onChange }: Admissio
     };
 
     return (
-        <div className="grid gap-3 sm:col-span-2">
+        <div className="grid gap-3 sm:col-span-12">
             {contacts.map((contact, index) => {
                 const showLabels = index === 0;
                 const isLastRow = index === contacts.length - 1;

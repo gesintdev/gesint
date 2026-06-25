@@ -23,23 +23,23 @@ export function RgIdentityFields({
     wrapperClassName,
 }: RgIdentityFieldsProps) {
     return (
-        <div className={clsx("grid min-w-0 grid-cols-[1fr_1fr_minmax(0,4.75rem)] items-end gap-2", wrapperClassName)}>
+        <div className={clsx("grid min-w-0 grid-cols-12 items-end gap-2", wrapperClassName)}>
             <InputString
                 label="RG"
                 value={rg}
                 onValueChange={(v) => onRgChange(digitsOnly(v).slice(0, 7))}
                 maxLength={7}
-                wrapperClassName="min-w-0"
+                wrapperClassName="min-w-0 sm:col-span-4"
             />
             <InputString
-                label={"\u00d3rg\u00e3o emissor"}
+                label={"Órgão emissor"}
                 value={rgIssuer}
                 onValueChange={onRgIssuerChange}
                 maxLength={4}
-                wrapperClassName="min-w-0"
+                wrapperClassName="min-w-0 sm:col-span-4"
             />
             <InputString
-                label={"UF emiss\u00e3o"}
+                label={"UF emissão"}
                 value={rgStateCode}
                 onValueChange={(v) =>
                     onRgStateCodeChange(
@@ -50,7 +50,7 @@ export function RgIdentityFields({
                     )
                 }
                 maxLength={2}
-                wrapperClassName="min-w-0"
+                wrapperClassName="min-w-0 sm:col-span-4"
             />
         </div>
     );
