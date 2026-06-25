@@ -3,9 +3,13 @@ package br.com.gommo.modules.rh.person.attendance.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
+
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
 
 @Getter
 @Setter
@@ -20,5 +24,12 @@ public class AttendanceRecordRequestDto {
     private LocalTime clockIn;
     private LocalTime clockOut;
     private Integer breakMinutes;
+    private AttendanceOccurrenceTypeEnum occurrenceType;
+    private AttendanceOccurrenceOriginEnum occurrenceOrigin;
+    private UUID referenceId;
+    private BigDecimal expectedHours;
+    private BigDecimal workedHours;
+    private Boolean impactsHourBank;
+    private Boolean impactsPayroll;
     private String notes;
 }

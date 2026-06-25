@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.person.leave.entity.VacationReviewStatusEnum;
 import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
@@ -24,6 +25,18 @@ public class LeaveRequestResponseDto {
     private final LeaveTypeEnum leaveType;
     private final LocalDate startDate;
     private final LocalDate endDate;
+    private final LeaveAbsenceStatusEnum absenceStatus;
+    private final Integer durationDays;
+    private final String cid;
+    private final String physicianName;
+    private final String physicianCrm;
+    private final String certificateSource;
+    private final Boolean requiresInss;
+    private final LocalDate inssReferralDate;
+    private final LocalDate returnDate;
+    private final Boolean workAccidentStability;
+    private final Integer relatedCertificateDays;
+    private final Boolean hasRelatedCidPeriods;
     private final Boolean approved;
     private final String notes;
     private final Integer pecuniaryAllowanceDays;

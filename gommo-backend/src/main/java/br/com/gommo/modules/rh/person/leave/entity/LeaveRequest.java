@@ -43,6 +43,41 @@ public class LeaveRequest extends AuditEntity {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "absence_status", columnDefinition = "leave_absence_status_enum")
+    private LeaveAbsenceStatusEnum absenceStatus;
+
+    @Column(name = "duration_days")
+    private Integer durationDays;
+
+    @Column(name = "cid", length = 20)
+    private String cid;
+
+    @Column(name = "physician_name", length = 180)
+    private String physicianName;
+
+    @Column(name = "physician_crm", length = 40)
+    private String physicianCrm;
+
+    @Column(name = "certificate_source", length = 80)
+    private String certificateSource;
+
+    @Column(name = "requires_inss", nullable = false)
+    private Boolean requiresInss;
+
+    @Column(name = "inss_referral_date")
+    private LocalDate inssReferralDate;
+
+    @Column(name = "return_date")
+    private LocalDate returnDate;
+
+    @Column(name = "work_accident_stability", nullable = false)
+    private Boolean workAccidentStability;
+
+    @Column(name = "related_certificate_days")
+    private Integer relatedCertificateDays;
+
     @Column(nullable = false)
     private Boolean approved;
 

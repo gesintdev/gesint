@@ -2,9 +2,11 @@ package br.com.gommo.modules.rh.person.attendance.repository;
 
 import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +27,10 @@ public interface AttendanceRecordRepository extends IBaseRepository<AttendanceRe
             @Param("periodStart") LocalDate periodStart,
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
+
+    List<AttendanceRecord> findByOccurrenceOriginAndReferenceIdAndStatusNot(
+            AttendanceOccurrenceOriginEnum occurrenceOrigin, UUID referenceId, StatusEnum status);
+
+    Optional<AttendanceRecord> findByCollaboratorIdAndWorkDateAndStatusNot(
+            UUID collaboratorId, LocalDate workDate, StatusEnum status);
 }

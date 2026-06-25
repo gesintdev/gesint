@@ -1,6 +1,7 @@
 # Plano de Acao - Modulo de Afastamentos - 2026-06-24
 
-> Documento de planejamento. Nao houve alteracao de codigo.
+> Documento de planejamento/continuidade. A implementacao inicial foi realizada
+> na branch `codex/implementa-afastamentos-clt-pj`.
 > Sequencia: implementar este plano depois de concluir as pendencias de
 > `docs/analise/plano-rh-dp-grid-2026-06-23.md`.
 
@@ -331,3 +332,36 @@ A implementacao sera considerada correta quando:
 - a implementacao seguir os padroes arquiteturais e visuais ja existentes no
   sistema;
 - nao houver implementacao desnecessaria do modulo completo de ponto.
+
+## Status da implementacao
+
+- [x] `LeaveRequest` mantido como agregado unico de ferias/afastamentos.
+- [x] Migration `V43__leave_absence_rules_and_attendance_occurrence.sql` criada:
+  - status proprio de afastamento;
+  - campos de CID, medico, CRM, INSS, retorno, estabilidade e dias relacionados;
+  - metadados minimos em `attendance_record` para ocorrencia/origem/impactos.
+- [x] Script dev `scripts/dev/sync-tenant-absence-columns.sql` criado para tenants
+  existentes.
+- [x] Regras automaticas no backend:
+  - duracao inclusiva;
+  - afastamento acima de 15 dias sinaliza INSS;
+  - periodos validados com mesmo CID podem somar dias relacionados;
+  - status validado/INSS/finalizado gera ocorrencias minimas de ponto;
+  - atestado medico validado nao impacta banco de horas nem desconto em folha;
+  - falta injustificada segue impactando banco de horas e folha;
+  - acidente de trabalho sinaliza estabilidade futura.
+- [x] Tela de afastamentos ampliada com FormSection em grid de 12 colunas:
+  - cadastro/status;
+  - atestado/origem;
+  - impactos legais e operacionais;
+  - documentos.
+- [x] Listagem ajustada para colaborador por nome, status, periodo, dias e INSS.
+- [x] Testes unitarios adicionados para regras puras em `LeaveAbsenceRulesTest`.
+
+## Validacoes executadas
+
+- [x] `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou.
+- [x] `npm.cmd run lint` em `gommo-frontend`: passou com avisos existentes.
+- [x] `git diff --check`: passou.
+- [~] Backend nao executado: `mvn` nao esta no PATH e `mvnw.cmd test` falha com
+  `Cannot start maven from wrapper`.

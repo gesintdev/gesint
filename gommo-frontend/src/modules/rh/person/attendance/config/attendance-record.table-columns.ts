@@ -16,6 +16,12 @@ export const ATTENDANCE_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.DATE,
     },
     {
+        id: "occurrenceType",
+        columnName: "Ocorrencia",
+        fieldValue: "occurrenceType",
+        dataType: TableDataType.BADGE,
+    },
+    {
         id: "clockIn",
         columnName: "Entrada",
         fieldValue: "clockIn",

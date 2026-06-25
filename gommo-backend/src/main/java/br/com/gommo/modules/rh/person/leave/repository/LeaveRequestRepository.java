@@ -77,4 +77,42 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             @Param("periodStart") LocalDate periodStart,
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
+
+    @Query("""
+            SELECT l FROM LeaveRequest l
+            WHERE l.status <> :deletedStatus
+              AND l.collaboratorId = :collaboratorId
+              AND l.leaveType <> :vacationType
+              AND (:ignoredId IS NULL OR l.id <> :ignoredId)
+              AND (l.absenceStatus IS NULL OR l.absenceStatus <> br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum.CANCELLED)
+              AND l.startDate <= :periodEnd
+              AND l.endDate >= :periodStart
+            """)
+    List<LeaveRequest> findConflictingAbsences(
+            @Param("collaboratorId") UUID collaboratorId,
+            @Param("vacationType") LeaveTypeEnum vacationType,
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("ignoredId") UUID ignoredId,
+            @Param("deletedStatus") StatusEnum deletedStatus);
+
+    @Query("""
+            SELECT l FROM LeaveRequest l
+            WHERE l.status <> :deletedStatus
+              AND l.collaboratorId = :collaboratorId
+              AND l.leaveType <> :vacationType
+              AND (:ignoredId IS NULL OR l.id <> :ignoredId)
+              AND l.approved = TRUE
+              AND l.cid = :cid
+              AND l.startDate >= :periodStart
+              AND l.endDate <= :periodEnd
+            """)
+    List<LeaveRequest> findApprovedAbsencesByCidWithinPeriod(
+            @Param("collaboratorId") UUID collaboratorId,
+            @Param("vacationType") LeaveTypeEnum vacationType,
+            @Param("cid") String cid,
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("ignoredId") UUID ignoredId,
+            @Param("deletedStatus") StatusEnum deletedStatus);
 }

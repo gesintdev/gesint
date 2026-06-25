@@ -1,4 +1,4 @@
-import type { LeaveType } from "@/modules/rh/person/leave/lib/leave-types";
+import type { LeaveAbsenceStatus, LeaveType } from "@/modules/rh/person/leave/lib/leave-types";
 
 export class LeaveRequest {
     id!: string;
@@ -9,6 +9,18 @@ export class LeaveRequest {
     leaveType?: LeaveType;
     startDate!: string;
     endDate!: string;
+    absenceStatus?: LeaveAbsenceStatus;
+    durationDays?: number;
+    cid?: string;
+    physicianName?: string;
+    physicianCrm?: string;
+    certificateSource?: string;
+    requiresInss?: boolean;
+    inssReferralDate?: string;
+    returnDate?: string;
+    workAccidentStability?: boolean;
+    relatedCertificateDays?: number;
+    hasRelatedCidPeriods?: boolean;
     approved?: boolean;
     notes?: string;
     pecuniaryAllowanceDays?: number;
@@ -34,6 +46,17 @@ export class LeaveRequestCreateDto {
     leaveType?: LeaveType;
     startDate!: string;
     endDate!: string;
+    absenceStatus?: LeaveAbsenceStatus;
+    durationDays?: number;
+    cid?: string;
+    physicianName?: string;
+    physicianCrm?: string;
+    certificateSource?: string;
+    requiresInss?: boolean;
+    inssReferralDate?: string;
+    returnDate?: string;
+    workAccidentStability?: boolean;
+    relatedCertificateDays?: number;
     approved?: boolean;
     notes?: string;
     pecuniaryAllowanceDays?: number;
