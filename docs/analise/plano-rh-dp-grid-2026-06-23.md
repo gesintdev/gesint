@@ -149,6 +149,12 @@ Impacto: grande.
   - `npm.cmd run lint` em `gommo-frontend`: passou com avisos existentes;
   - backend nao compilado porque `mvn` nao esta no PATH e o wrapper `gommo-backend/mvnw.cmd`
     falhou com `Cannot start maven from wrapper`.
+- [x] Autenticacao/sessao investigada:
+  - expiracao configurada segue em 15 minutos para access token e 7 dias para refresh token;
+  - causa provavel do logout curto era refresh manual em `api.client.ts`, que rotacionava o refresh token no backend sem persistir o novo refresh token no JWT do NextAuth;
+  - cliente HTTP passou a delegar refresh para `getSession()`/NextAuth, evitando invalidar a sessao por refresh token antigo;
+  - `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou;
+  - `npm.cmd run lint` em `gommo-frontend`: passou com avisos existentes.
 
 ## Pendencias importantes
 
@@ -157,7 +163,7 @@ Impacto: grande.
   atualizando imports do payroll.
 - Trocar a implementacao inicial de filtros de `collaborator/people` para queries
   de banco dedicadas antes de escalar para bases grandes.
-- Investigar refresh token/tempo de sessao.
+- Monitorar em uso real se a sessao permanece ativa apos expiracao do access token.
 - Melhorar tipos de afastamento CLT apos validacao juridica/produto.
 
 ## Proximo plano

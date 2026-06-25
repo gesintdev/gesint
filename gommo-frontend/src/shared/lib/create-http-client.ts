@@ -18,7 +18,6 @@ export type DoRequestOptions = {
 export type HttpClientConfig = {
     baseUrl: string;
     resolveExtraHeaders?: (headers?: Record<string, string>) => Promise<Record<string, string>>;
-    refreshAccessToken?: (refreshToken: string) => Promise<string | null>;
     onSessionExpired?: () => void;
 };
 
@@ -37,7 +36,7 @@ export function createHttpClient(config: HttpClientConfig) {
         if (token) setAuthToken(token);
         return token;
     }
-    async function refreshSessionTokens(options?: { forceBackendRefresh?: boolean }): Promise<string | null> {
+    async function refreshSessionTokens(): Promise<string | null> {
         authToken = null;
         if (typeof window === "undefined") return null;
         const { getSession } = await import("next-auth/react");
@@ -47,17 +46,6 @@ export function createHttpClient(config: HttpClientConfig) {
             return null;
         }
 
-        if (session?.refreshToken && config.refreshAccessToken) {
-            const refreshed = await config.refreshAccessToken(session.refreshToken);
-            if (refreshed) {
-                setAuthToken(refreshed);
-                return refreshed;
-            }
-        }
-
-        if (options?.forceBackendRefresh) {
-            return null;
-        }
         const token = session?.accessToken ?? null;
         if (token) setAuthToken(token);
         return token;
@@ -130,11 +118,12 @@ export function createHttpClient(config: HttpClientConfig) {
             typeof window !== "undefined" &&
             !path.startsWith("/api/v1/auth/")
         ) {
-            const newToken = await refreshSessionTokens({
-                forceBackendRefresh: response.status === 403,
-            });
+            const newToken = await refreshSessionTokens();
             if (!newToken) {
-                throw AppException.client("AUTH_SESSION_EXPIRED", AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED, 401);
+                if (response.status === 401) {
+                    throw AppException.client("AUTH_SESSION_EXPIRED", AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED, 401);
+                }
+                return handleErrorResponse(response);
             }
 
             if (newToken !== bearer) {

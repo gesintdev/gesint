@@ -40,29 +40,6 @@ const httpClient = createHttpClient({
     baseUrl: API_BASE_URL,
     resolveExtraHeaders: resolveClientTenantHeaders,
     onSessionExpired: () => signOutToTenantLogin(),
-    refreshAccessToken: async (refreshToken) => {
-        const tenantSlug =
-            typeof window !== "undefined"
-                ? (resolveTenantSlugFromHostname() ??
-                  (await import("next-auth/react").then((m) => m.getSession()))?.tenantSlug)
-                : undefined;
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...buildTenantRequestHeaders(tenantSlug),
-                },
-                body: JSON.stringify({ refreshToken }),
-                cache: "no-store",
-            });
-            if (!response.ok) return null;
-            const data = (await response.json()) as { accessToken?: string };
-            return data.accessToken ?? null;
-        } catch {
-            return null;
-        }
-    },
 });
 /**
  * Ponto unico de saida HTTP do HR frontend.
