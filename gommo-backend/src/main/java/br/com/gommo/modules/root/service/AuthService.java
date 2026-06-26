@@ -165,7 +165,7 @@ public class AuthService implements IAuthService {
         String refreshToken = jwtService.generateRefreshToken(user.getId(), tenantId, tenantSlug);
         persistRefreshToken(user.getId(), refreshToken);
 
-        boolean platformAdmin = platformAdminUserLookup.isPlatformAdmin(user.getUsername());
+        boolean platformAdmin = multiTenantProperties.isEnabled() && platformAdminUserLookup.isPlatformAdmin(user.getUsername());
 
         return TokenResponseDto.builder()
                 .accessToken(accessToken)

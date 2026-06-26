@@ -78,7 +78,7 @@ class VacationEligibilityEvaluatorTest {
     void skipsPeriodWithoutEntitlementAndReturnsNextAcquiredPeriod() {
         LeaveRequest unpaidAbsence = LeaveRequest.builder()
                 .status(StatusEnum.ACTIVE)
-                .leaveType(LeaveTypeEnum.UNPAID)
+                .leaveType(LeaveTypeEnum.UNJUSTIFIED_ABSENCE)
                 .approved(true)
                 .startDate(LocalDate.of(2024, 7, 1))
                 .endDate(LocalDate.of(2024, 8, 2))

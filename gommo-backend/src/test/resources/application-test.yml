@@ -19,6 +19,8 @@ gommo:
       refresh-token-days: 7
   cors:
     allowed-origins: http://localhost:3000
+  multi-tenant:
+    enabled: false
   dev:
     admin-username: admin
     admin-password: ${DEV_ADMIN_PASSWORD:${TEST_ADMIN_PASSWORD:test-integration-password}}
