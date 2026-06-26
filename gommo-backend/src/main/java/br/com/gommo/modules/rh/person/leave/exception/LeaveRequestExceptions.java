@@ -20,4 +20,9 @@ public final class LeaveRequestExceptions {
     public static final String VACATION_REVIEW_NOT_VACATION_MSG = "A revisão só se aplica a solicitações de férias";
     public static final String VACATION_REVIEW_REASON_REQUIRED_MSG =
             "Informe o motivo para devolver ou reprovar a solicitação";
+    public static final String ABSENCE_INVALID_CODE = "LEAVE_ABSENCE_INVALID";
+    public static final String ABSENCE_CONFLICT_MSG =
+            "Ja existe afastamento conflitante para este colaborador no periodo informado";
+    public static final String ABSENCE_INSS_DATE_REQUIRED_MSG =
+            "Informe a data de encaminhamento ao INSS para afastamentos encaminhados";
 }

@@ -41,6 +41,18 @@ export const personRoutes: AppRoute[] = [
                             "AdmissionVacationHistoryTab",
                         ),
                     },
+                    {
+                        id: "absence-history",
+                        label: "Histórico de afastamento",
+                        permission: "leave:read",
+                        content: lazyNamed(
+                            () =>
+                                import(
+                                    "@/modules/rh/person/collaborators/admission/components/AdmissionAbsenceHistoryTab"
+                                ),
+                            "AdmissionAbsenceHistoryTab",
+                        ),
+                    },
                 ],
             }),
             tabbedCrudRoute({

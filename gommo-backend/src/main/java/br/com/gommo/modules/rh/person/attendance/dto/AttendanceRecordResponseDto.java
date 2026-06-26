@@ -2,10 +2,13 @@ package br.com.gommo.modules.rh.person.attendance.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.*;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
 
 @Getter
 @Builder
@@ -18,6 +21,13 @@ public class AttendanceRecordResponseDto {
     private final LocalTime clockIn;
     private final LocalTime clockOut;
     private final Integer breakMinutes;
+    private final AttendanceOccurrenceTypeEnum occurrenceType;
+    private final AttendanceOccurrenceOriginEnum occurrenceOrigin;
+    private final UUID referenceId;
+    private final BigDecimal expectedHours;
+    private final BigDecimal workedHours;
+    private final Boolean impactsHourBank;
+    private final Boolean impactsPayroll;
     private final String notes;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;

@@ -125,6 +125,17 @@ const BADGE_LABELS: Record<string, string> = {
     SUSPENSION: "Suspensão do contrato",
     UNJUSTIFIED_ABSENCE: "Falta injustificada",
     OTHER: "Outro",
+    PENDING: "Pendente",
+    VALIDATED: "Validado",
+    REFERRED_INSS: "Encaminhado ao INSS",
+    APPROVED_INSS: "Aprovado pelo INSS",
+    FINALIZED: "Finalizado",
+    NORMAL_WORK: "Trabalho normal",
+    LEAVE_ABSENCE: "Afastamento",
+    LATE_ARRIVAL: "Atraso",
+    LICENSE: "Licença",
+    MANUAL: "Manual",
+    LEAVE_REQUEST: "Afastamento",
 };
 
 function formatBadgeLabel(value: unknown, labels?: Record<string, string>): string {
@@ -142,17 +153,22 @@ export function badgeClassForStatus(value: unknown, labels?: Record<string, stri
     const normalized = String(value).toUpperCase();
     if (labels && labels !== BADGE_LABELS) {
         if (normalized === "IN_VACATION") return "gommo-badge--success";
-        if (normalized === "COMPLETED") return "gommo-badge--success";
+        if (normalized === "COMPLETED" || normalized === "VALIDATED" || normalized === "FINALIZED")
+            return "gommo-badge--success";
+        if (normalized === "REFERRED_INSS" || normalized === "APPROVED_INSS") return "gommo-badge--warning";
         if (normalized === "CANCELLED" || normalized === "DELETED") return "gommo-badge--error";
-        if (normalized === "DRAFT" || normalized === "IN_PROGRESS") return "gommo-badge--info";
+        if (normalized === "DRAFT" || normalized === "IN_PROGRESS" || normalized === "PENDING")
+            return "gommo-badge--info";
         return "gommo-badge--neutral";
     }
 
     if (normalized === "ACTIVE") return "gommo-badge--success";
     if (normalized === "INACTIVE") return "gommo-badge--warning";
     if (normalized === "DELETED") return "gommo-badge--error";
-    if (normalized === "DRAFT" || normalized === "IN_PROGRESS") return "gommo-badge--info";
-    if (normalized === "COMPLETED") return "gommo-badge--success";
+    if (normalized === "DRAFT" || normalized === "IN_PROGRESS" || normalized === "PENDING") return "gommo-badge--info";
+    if (normalized === "COMPLETED" || normalized === "VALIDATED" || normalized === "FINALIZED")
+        return "gommo-badge--success";
+    if (normalized === "REFERRED_INSS" || normalized === "APPROVED_INSS") return "gommo-badge--warning";
     if (normalized === "CANCELLED") return "gommo-badge--error";
     return "gommo-badge--neutral";
 }

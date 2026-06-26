@@ -24,6 +24,17 @@ export const LEAVE_TYPE_VALUES = [
 
 export type LeaveType = (typeof LEAVE_TYPE_VALUES)[number];
 
+export const LEAVE_ABSENCE_STATUS_VALUES = [
+    "PENDING",
+    "VALIDATED",
+    "REFERRED_INSS",
+    "APPROVED_INSS",
+    "FINALIZED",
+    "CANCELLED",
+] as const;
+
+export type LeaveAbsenceStatus = (typeof LEAVE_ABSENCE_STATUS_VALUES)[number];
+
 export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
     VACATION: "Férias",
     MEDICAL: "Afastamento médico",
@@ -52,3 +63,17 @@ export const LEAVE_TYPE_ITEMS: SelectItem[] = LEAVE_TYPE_VALUES.map((value) => (
 }));
 
 export const ABSENCE_TYPE_ITEMS: SelectItem[] = LEAVE_TYPE_ITEMS.filter((item) => item.value !== "VACATION");
+
+export const LEAVE_ABSENCE_STATUS_LABELS: Record<LeaveAbsenceStatus, string> = {
+    PENDING: "Pendente",
+    VALIDATED: "Validado",
+    REFERRED_INSS: "Encaminhado ao INSS",
+    APPROVED_INSS: "Aprovado pelo INSS",
+    FINALIZED: "Finalizado",
+    CANCELLED: "Cancelado",
+};
+
+export const LEAVE_ABSENCE_STATUS_ITEMS: SelectItem[] = LEAVE_ABSENCE_STATUS_VALUES.map((value) => ({
+    value,
+    label: LEAVE_ABSENCE_STATUS_LABELS[value],
+}));

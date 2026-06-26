@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
+import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRecordRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
@@ -30,6 +33,7 @@ import br.com.gommo.modules.rh.person.contract.recess.entity.ContractRecessPolic
 import br.com.gommo.modules.rh.person.contract.recess.entity.RecessPeriodStatusEnum;
 import br.com.gommo.modules.rh.person.contract.recess.repository.ContractRecessPeriodRepository;
 import br.com.gommo.modules.rh.person.contract.recess.repository.ContractRecessPolicyRepository;
+import br.com.gommo.modules.rh.person.leave.domain.LeaveAbsenceRules;
 import br.com.gommo.modules.rh.person.leave.domain.VacationAbsenceCalculator;
 import br.com.gommo.modules.rh.person.leave.domain.VacationEligibilityEvaluator;
 import br.com.gommo.modules.rh.person.leave.domain.VacationRules;
@@ -38,6 +42,7 @@ import br.com.gommo.modules.rh.person.leave.dto.LeaveRequestResponseDto;
 import br.com.gommo.modules.rh.person.leave.dto.VacationAbsenceSummaryDto;
 import br.com.gommo.modules.rh.person.leave.dto.VacationEligibleCollaboratorDto;
 import br.com.gommo.modules.rh.person.leave.dto.VacationReviewRequestDto;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.person.leave.entity.VacationReviewActionEnum;
@@ -58,6 +63,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     private final AdmissionProcessRepository admissionProcessRepository;
     private final ContractRecessPeriodRepository recessPeriodRepository;
     private final ContractRecessPolicyRepository recessPolicyRepository;
+    private final AttendanceRecordRepository attendanceRecordRepository;
 
     public LeaveRequestService(
             LeaveRequestRepository repository,
@@ -66,7 +72,8 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
             EmploymentContractRepository employmentContractRepository,
             AdmissionProcessRepository admissionProcessRepository,
             ContractRecessPeriodRepository recessPeriodRepository,
-            ContractRecessPolicyRepository recessPolicyRepository) {
+            ContractRecessPolicyRepository recessPolicyRepository,
+            AttendanceRecordRepository attendanceRecordRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -75,6 +82,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         this.admissionProcessRepository = admissionProcessRepository;
         this.recessPeriodRepository = recessPeriodRepository;
         this.recessPolicyRepository = recessPolicyRepository;
+        this.attendanceRecordRepository = attendanceRecordRepository;
     }
 
     @Override
@@ -138,10 +146,12 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @PreAuthorize("hasAuthority('leave:write')")
     public LeaveRequestResponseDto create(LeaveRequestRequestDto request) {
         prepareRecessRequest(request);
-        validateRequest(request);
+        prepareAbsenceRequest(request, null);
+        validateRequest(request, null);
         LeaveRequest entity = mapper.toEntity(request);
         applyVacationDefaultsOnCreate(entity, request);
         LeaveRequest saved = repository.save(entity);
+        syncAttendanceOccurrences(saved);
         return findById(saved.getId());
     }
 
@@ -242,9 +252,13 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @Transactional
     @PreAuthorize("hasAuthority('leave:write')")
     public LeaveRequestResponseDto update(UUID id, LeaveRequestRequestDto request) {
-        validateRequest(request);
-        LeaveRequestResponseDto updated = super.update(id, request);
-        return findById(updated.getId());
+        LeaveRequest entity = findEntity(id);
+        prepareAbsenceRequest(request, id);
+        validateRequest(request, id);
+        mapper.updateEntity(entity, request);
+        LeaveRequest saved = repository.save(entity);
+        syncAttendanceOccurrences(saved);
+        return findById(saved.getId());
     }
 
     @Override
@@ -255,6 +269,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         if (entity.getRecessPeriodId() != null && entity.getReviewStatus() == VacationReviewStatusEnum.PENDING) {
             releaseRecessReservation(entity);
         }
+        removeAttendanceOccurrences(entity.getId());
         super.delete(id);
     }
 
@@ -291,13 +306,14 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         return reason.trim();
     }
 
-    private void validateRequest(LeaveRequestRequestDto request) {
+    private void validateRequest(LeaveRequestRequestDto request, UUID ignoredId) {
         if (request.getEndDate().isBefore(request.getStartDate())) {
             throw LeaveRequestException.vacationInvalid(LeaveRequestExceptions.VACATION_INVALID_DATES_MSG);
         }
 
         LeaveTypeEnum type = request.getLeaveType() != null ? request.getLeaveType() : LeaveTypeEnum.VACATION;
         if (type != LeaveTypeEnum.VACATION) {
+            validateAbsenceRequest(request, ignoredId);
             return;
         }
 
@@ -324,6 +340,119 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
             throw LeaveRequestException.vacationInvalid(LeaveRequestExceptions.VACATION_START_RESTRICTED_MSG);
         }
     }
+
+    private void prepareAbsenceRequest(LeaveRequestRequestDto request, UUID ignoredId) {
+        LeaveTypeEnum type = request.getLeaveType() != null ? request.getLeaveType() : LeaveTypeEnum.VACATION;
+        if (type == LeaveTypeEnum.VACATION) {
+            return;
+        }
+        int durationDays = LeaveAbsenceRules.inclusiveDays(request.getStartDate(), request.getEndDate());
+        request.setDurationDays(durationDays);
+
+        LeaveAbsenceStatusEnum absenceStatus =
+                request.getAbsenceStatus() != null ? request.getAbsenceStatus() : LeaveAbsenceStatusEnum.VALIDATED;
+        request.setAbsenceStatus(absenceStatus);
+        request.setApproved(LeaveAbsenceRules.isApprovedAbsenceStatus(absenceStatus));
+
+        int relatedDays = calculateRelatedCertificateDays(request, ignoredId, durationDays);
+        request.setRelatedCertificateDays(relatedDays);
+
+        boolean requiresInss = LeaveAbsenceRules.requiresInss(
+                durationDays, relatedDays, absenceStatus, Boolean.TRUE.equals(request.getRequiresInss()));
+        request.setRequiresInss(requiresInss);
+        request.setWorkAccidentStability(type == LeaveTypeEnum.OCCUPATIONAL_ACCIDENT
+                || Boolean.TRUE.equals(request.getWorkAccidentStability()));
+        request.setPecuniaryAllowanceDays(0);
+    }
+
+    private void validateAbsenceRequest(LeaveRequestRequestDto request, UUID ignoredId) {
+        if (request.getAbsenceStatus() == LeaveAbsenceStatusEnum.CANCELLED) {
+            return;
+        }
+        if (!repository
+                .findConflictingAbsences(
+                        request.getCollaboratorId(),
+                        LeaveTypeEnum.VACATION,
+                        request.getStartDate(),
+                        request.getEndDate(),
+                        ignoredId,
+                        StatusEnum.DELETED)
+                .isEmpty()) {
+            throw LeaveRequestException.absenceInvalid(LeaveRequestExceptions.ABSENCE_CONFLICT_MSG);
+        }
+
+        if ((request.getAbsenceStatus() == LeaveAbsenceStatusEnum.REFERRED_INSS
+                        || request.getAbsenceStatus() == LeaveAbsenceStatusEnum.APPROVED_INSS)
+                && request.getInssReferralDate() == null) {
+            throw LeaveRequestException.absenceInvalid(LeaveRequestExceptions.ABSENCE_INSS_DATE_REQUIRED_MSG);
+        }
+    }
+
+    private int calculateRelatedCertificateDays(
+            LeaveRequestRequestDto request, UUID ignoredId, int currentDurationDays) {
+        String cid = request.getCid();
+        if (cid == null || cid.isBlank()) {
+            return currentDurationDays;
+        }
+        LocalDate windowStart = request.getStartDate().minusDays(60);
+        LocalDate windowEnd = request.getEndDate();
+        int related = currentDurationDays;
+        for (LeaveRequest leave : repository.findApprovedAbsencesByCidWithinPeriod(
+                request.getCollaboratorId(),
+                LeaveTypeEnum.VACATION,
+                cid.trim().toUpperCase(),
+                windowStart,
+                windowEnd,
+                ignoredId,
+                StatusEnum.DELETED)) {
+            related += VacationAbsenceCalculator.overlapInclusiveDays(
+                    leave.getStartDate(), leave.getEndDate(), windowStart, windowEnd);
+        }
+        return related;
+    }
+
+    private void syncAttendanceOccurrences(LeaveRequest leave) {
+        if (leave.getLeaveType() == LeaveTypeEnum.VACATION) {
+            return;
+        }
+        removeAttendanceOccurrences(leave.getId());
+        if (!Boolean.TRUE.equals(leave.getApproved())) {
+            return;
+        }
+        LocalDate current = leave.getStartDate();
+        while (!current.isAfter(leave.getEndDate())) {
+            LocalDate workDate = current;
+            AttendanceRecord record = attendanceRecordRepository
+                    .findByCollaboratorIdAndWorkDateAndStatusNot(leave.getCollaboratorId(), workDate, StatusEnum.DELETED)
+                    .orElseGet(() -> AttendanceRecord.builder()
+                            .status(StatusEnum.ACTIVE)
+                            .collaboratorId(leave.getCollaboratorId())
+                            .workDate(workDate)
+                            .breakMinutes(0)
+                            .build());
+            record.setOccurrenceType(LeaveAbsenceRules.occurrenceType(leave.getLeaveType()));
+            record.setOccurrenceOrigin(AttendanceOccurrenceOriginEnum.LEAVE_REQUEST);
+            record.setReferenceId(leave.getId());
+            record.setExpectedHours(null);
+            record.setWorkedHours(null);
+            record.setImpactsHourBank(LeaveAbsenceRules.impactsHourBank(leave.getLeaveType()));
+            record.setImpactsPayroll(LeaveAbsenceRules.impactsPayroll(leave.getLeaveType()));
+            record.setNotes("Gerado por afastamento " + leave.getCode());
+            attendanceRecordRepository.save(record);
+            current = current.plusDays(1);
+        }
+    }
+
+    private void removeAttendanceOccurrences(UUID leaveId) {
+        attendanceRecordRepository
+                .findByOccurrenceOriginAndReferenceIdAndStatusNot(
+                        AttendanceOccurrenceOriginEnum.LEAVE_REQUEST, leaveId, StatusEnum.DELETED)
+                .forEach(record -> {
+                    record.setStatus(StatusEnum.DELETED);
+                    attendanceRecordRepository.save(record);
+                });
+    }
+
 
     private Optional<VacationEligibleCollaboratorDto> buildEligibleCollaborator(
             Collaborator collaborator,

@@ -13,6 +13,8 @@ import { ExceptionCapture } from "@/shared/exceptions";
 import { formatBadgeCellValue, formatCellValue } from "@/shared/lib/table/format-cell-value";
 import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
 import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
+
+const EMPTY_FILTERS: Record<string, string[]> = {};
 /** Props do render prop de {@link QueryPanel} (lista: `data` é sempre `TRow[]`). */
 export type QueryPanelRenderProps<TRow> = {
     data: TRow[];
@@ -60,6 +62,8 @@ export type QueryPagedTablePanelProps<TRow extends object> = QueryTablePanelTabl
     queryKey: QueryKey;
     request: (_page: number, _size: number, _filters: Record<string, string[]>) => Promise<PageableResponseDto<TRow>>;
     columns: TableColumnConfig[];
+    baseFilters?: Record<string, string[]>;
+    paginationMode?: "pages" | "load-more";
     pageSize?: number;
     pageSizeOptions?: number[];
     fallback?: ReactNode;
@@ -161,6 +165,7 @@ export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps
 
 function filterOptionLabel(col: TableColumnConfig, value: string): string {
     if (col.dataType === TableDataType.BADGE) return formatBadgeCellValue(value, col.badgeLabels);
+    if (col.avatarTagLabels?.[value]) return col.avatarTagLabels[value];
     return formatCellValue(value, col.dataType);
 }
 
@@ -313,6 +318,8 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         queryKey,
         request,
         columns,
+        baseFilters = EMPTY_FILTERS,
+        paginationMode = "pages",
         pageSize = 20,
         pageSizeOptions,
         fallback,
@@ -324,13 +331,15 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     const [size, setSize] = useState(pageSize);
     const [filters, setFilters] = useState<Record<string, string[]>>({});
     const [openFilterField, setOpenFilterField] = useState<string | null>(null);
+    const didMountRef = useRef(false);
     const activeFilterCount = useMemo(
         () => Object.values(filters).filter((value) => value.length > 0).length,
         [filters],
     );
     const query = useQuery({
-        queryKey: [...queryKey, "page", page, size, filters],
-        queryFn: () => request(page, size, filters),
+        queryKey: [...queryKey, "page", page, size, filters, baseFilters],
+        queryFn: () => request(page, size, { ...baseFilters, ...filters }),
+        placeholderData: (previousData) => previousData,
     });
     const refreshValue = useMemo(
         () =>
@@ -342,6 +351,18 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
                 : null,
         [query],
     );
+
+    // Base filters come from external segmented chips; changing them should start a fresh feed.
+    useEffect(() => {
+        if (!didMountRef.current) {
+            didMountRef.current = true;
+            return;
+        }
+        setPage(0);
+        setSize(pageSize);
+        setOpenFilterField(null);
+        setFilters({});
+    }, [baseFilters, pageSize]);
 
     if (query.isLoading) {
         return <QueryRefreshProvider value={null}>{fallback ?? <TableSkeleton />}</QueryRefreshProvider>;
@@ -368,6 +389,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
 
     const updateColumnFilter = (fieldValue: string, value: string[]) => {
         setPage(0);
+        setSize(pageSize);
         setFilters((current) => {
             const next = { ...current };
             if (value.length === 0) {
@@ -380,6 +402,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     };
     const clearFilters = () => {
         setPage(0);
+        setSize(pageSize);
         setOpenFilterField(null);
         setFilters({});
     };
@@ -421,6 +444,8 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
                         totalPages={query.data.totalPages}
                         totalElements={query.data.totalElements}
                         size={query.data.size}
+                        mode={paginationMode}
+                        loading={query.isFetching}
                         pageSizeOptions={pageSizeOptions}
                         onPageChange={setPage}
                         onPageSizeChange={(nextSize) => {

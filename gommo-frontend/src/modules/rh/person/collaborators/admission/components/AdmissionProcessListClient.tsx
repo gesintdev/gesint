@@ -1,7 +1,7 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { admissionprocessKeys } from "@/modules/rh/person/collaborators/admission/admission.query";
@@ -11,17 +11,19 @@ import { ADMISSION_CLIENT_MESSAGES } from "@/modules/rh/person/collaborators/adm
 import { admissionprocessService } from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
-type AdmissionStatusFilter = "ACTIVE" | "INACTIVE" | "ALL";
-type AdmissionProfileTag = "DISMISSED" | "IN_VACATION" | "ON_LEAVE";
+type AdmissionProfileFilter = "ACTIVE" | "IN_VACATION" | "ON_LEAVE" | "DISMISSED" | "ALL";
+type AdmissionProfileTag = string;
 type AdmissionListingRow = AdmissionProcess & { admissionTags: AdmissionProfileTag[] };
 
-const STATUS_FILTERS: Array<{ value: AdmissionStatusFilter; label: string }> = [
+const PROFILE_FILTERS: Array<{ value: AdmissionProfileFilter; label: string }> = [
     { value: "ACTIVE", label: "Ativos" },
-    { value: "INACTIVE", label: "Desligados" },
+    { value: "IN_VACATION", label: "Férias" },
+    { value: "ON_LEAVE", label: "Afastamento" },
+    { value: "DISMISSED", label: "Desligado" },
     { value: "ALL", label: "Todos" },
 ];
 
@@ -31,12 +33,6 @@ function admissionTags(row: AdmissionProcess): AdmissionProfileTag[] {
     if (row.inVacation) tags.push("IN_VACATION");
     if (row.onLeave) tags.push("ON_LEAVE");
     return tags;
-}
-
-function matchesStatusFilter(row: AdmissionProcess, filter: AdmissionStatusFilter) {
-    if (filter === "ALL") return row.status !== "DELETED";
-    if (filter === "INACTIVE") return row.collaboratorStatus === "INACTIVE";
-    return row.collaboratorStatus !== "INACTIVE";
 }
 
 function admissionRowClassName(row: AdmissionListingRow) {
@@ -55,7 +51,15 @@ function admissionRowClassName(row: AdmissionListingRow) {
 export function AdmissionProcessListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-    const [statusFilter, setStatusFilter] = useState<AdmissionStatusFilter>("ACTIVE");
+    const [profileFilter, setProfileFilter] = useState<AdmissionProfileFilter>("ACTIVE");
+    const baseFilters = useMemo(() => {
+        const next: Record<string, string[]> = {};
+        if (profileFilter === "ACTIVE") next.profileStatus = ["ACTIVE"];
+        if (profileFilter === "IN_VACATION") next.admissionTags = ["IN_VACATION"];
+        if (profileFilter === "ON_LEAVE") next.admissionTags = ["ON_LEAVE"];
+        if (profileFilter === "DISMISSED") next.admissionTags = ["DISMISSED"];
+        return next;
+    }, [profileFilter]);
     const deleteMutation = useMutation({
         mutationFn: (id: string) => admissionprocessService.remove(id),
         onSuccess: async () => {
@@ -72,15 +76,17 @@ export function AdmissionProcessListClient() {
 
     return (
         <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] gap-2">
-            <div className="flex flex-wrap items-center gap-2 px-1 pt-3">
-                {STATUS_FILTERS.map((filter) => (
+            <div className="flex flex-wrap items-center gap-2 px-1 pt-3" role="radiogroup" aria-label="Filtrar admissões">
+                {PROFILE_FILTERS.map((filter) => (
                     <button
                         key={filter.value}
                         type="button"
-                        onClick={() => setStatusFilter(filter.value)}
+                        role="radio"
+                        aria-checked={profileFilter === filter.value}
+                        onClick={() => setProfileFilter(filter.value)}
                         className={clsx(
                             "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
-                            statusFilter === filter.value
+                            profileFilter === filter.value
                                 ? "bg-primary/12 text-primary"
                                 : "bg-base-content/5 text-base-content/60 hover:bg-base-content/8",
                         )}
@@ -89,13 +95,16 @@ export function AdmissionProcessListClient() {
                     </button>
                 ))}
             </div>
-            <QueryTablePanel<AdmissionListingRow>
-                queryKey={[...admissionprocessKeys.all, statusFilter]}
-                request={async () => {
-                    const rows = await admissionprocessService.getAll();
-                    return rows
-                        .filter((row) => matchesStatusFilter(row, statusFilter))
-                        .map((row) => ({ ...row, admissionTags: admissionTags(row) }));
+            <QueryPagedTablePanel<AdmissionListingRow>
+                queryKey={[...admissionprocessKeys.all, profileFilter]}
+                baseFilters={baseFilters}
+                paginationMode="load-more"
+                request={async (page, size, filters) => {
+                    const result = await admissionprocessService.getPage(page, size, filters);
+                    return {
+                        ...result,
+                        content: result.content.map((row) => ({ ...row, admissionTags: admissionTags(row) })),
+                    };
                 }}
                 columns={ADMISSION_TABLE_COLUMNS}
                 rowKey="id"

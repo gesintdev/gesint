@@ -164,7 +164,7 @@ Impacto: grande.
 - Trocar a implementacao inicial de filtros de `collaborator/people` para queries
   de banco dedicadas antes de escalar para bases grandes.
 - Monitorar em uso real se a sessao permanece ativa apos expiracao do access token.
-- Melhorar tipos de afastamento CLT apos validacao juridica/produto.
+- Monitorar a implementacao inicial do plano de afastamentos CLT/PJ em uso real.
 
 ## Proximo plano
 

@@ -18,6 +18,17 @@ public class LeaveRequestMapper {
                 .leaveType(dto.getLeaveType() != null ? dto.getLeaveType() : LeaveTypeEnum.VACATION)
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
+                .absenceStatus(dto.getAbsenceStatus())
+                .durationDays(dto.getDurationDays())
+                .cid(normalizeCid(dto.getCid()))
+                .physicianName(blankToNull(dto.getPhysicianName()))
+                .physicianCrm(blankToNull(dto.getPhysicianCrm()))
+                .certificateSource(blankToNull(dto.getCertificateSource()))
+                .requiresInss(dto.getRequiresInss() != null ? dto.getRequiresInss() : Boolean.FALSE)
+                .inssReferralDate(dto.getInssReferralDate())
+                .returnDate(dto.getReturnDate())
+                .workAccidentStability(dto.getWorkAccidentStability() != null ? dto.getWorkAccidentStability() : Boolean.FALSE)
+                .relatedCertificateDays(dto.getRelatedCertificateDays())
                 .approved(dto.getApproved() != null ? dto.getApproved() : Boolean.FALSE)
                 .notes(dto.getNotes())
                 .pecuniaryAllowanceDays(defaultPecuniary(dto.getPecuniaryAllowanceDays()))
@@ -44,6 +55,17 @@ public class LeaveRequestMapper {
         }
         entity.setStartDate(dto.getStartDate());
         entity.setEndDate(dto.getEndDate());
+        entity.setAbsenceStatus(dto.getAbsenceStatus());
+        entity.setDurationDays(dto.getDurationDays());
+        entity.setCid(normalizeCid(dto.getCid()));
+        entity.setPhysicianName(blankToNull(dto.getPhysicianName()));
+        entity.setPhysicianCrm(blankToNull(dto.getPhysicianCrm()));
+        entity.setCertificateSource(blankToNull(dto.getCertificateSource()));
+        entity.setRequiresInss(dto.getRequiresInss() != null ? dto.getRequiresInss() : Boolean.FALSE);
+        entity.setInssReferralDate(dto.getInssReferralDate());
+        entity.setReturnDate(dto.getReturnDate());
+        entity.setWorkAccidentStability(dto.getWorkAccidentStability() != null ? dto.getWorkAccidentStability() : Boolean.FALSE);
+        entity.setRelatedCertificateDays(dto.getRelatedCertificateDays());
         if (dto.getApproved() != null) {
             entity.setApproved(dto.getApproved());
         }
@@ -82,6 +104,18 @@ public class LeaveRequestMapper {
                 .leaveType(entity.getLeaveType())
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
+                .absenceStatus(entity.getAbsenceStatus())
+                .durationDays(entity.getDurationDays())
+                .cid(entity.getCid())
+                .physicianName(entity.getPhysicianName())
+                .physicianCrm(entity.getPhysicianCrm())
+                .certificateSource(entity.getCertificateSource())
+                .requiresInss(entity.getRequiresInss())
+                .inssReferralDate(entity.getInssReferralDate())
+                .returnDate(entity.getReturnDate())
+                .workAccidentStability(entity.getWorkAccidentStability())
+                .relatedCertificateDays(entity.getRelatedCertificateDays())
+                .hasRelatedCidPeriods(entity.getRelatedCertificateDays() != null && entity.getRelatedCertificateDays() > defaultDuration(entity))
                 .approved(entity.getApproved())
                 .notes(entity.getNotes())
                 .pecuniaryAllowanceDays(entity.getPecuniaryAllowanceDays())
@@ -105,5 +139,20 @@ public class LeaveRequestMapper {
 
     private static int defaultPecuniary(Integer value) {
         return value != null ? value : 0;
+    }
+
+    private static String normalizeCid(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim().toUpperCase();
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private static int defaultDuration(LeaveRequest entity) {
+        return entity.getDurationDays() != null ? entity.getDurationDays() : 0;
     }
 }
