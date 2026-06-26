@@ -127,16 +127,18 @@ export function JobPositionFormClient() {
                     value={form.title ?? ""}
                     onValueChange={(v) => update("title", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Código CBO"
                     value={form.cboCode ?? ""}
                     onValueChange={(v) => update("cboCode", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <DepartmentPickerField
                     value={form.departmentId ?? ""}
                     onValueChange={(v) => update("departmentId", v || undefined)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

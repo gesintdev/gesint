@@ -144,12 +144,12 @@ export function LeaveRequestFormClient() {
         >
             <FormSection id="cadastro" title="Afastamento">
                 {isEditing && detailQuery.data?.approved !== true ? (
-                    <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75 sm:col-span-2">
+                    <p className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-base-content/75 sm:col-span-12">
                         Solicitação de férias vinda do RH. Revise os dados, marque como aprovado e salve para concluir o
                         cadastro.
                     </p>
                 ) : null}
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-12">
                     <CollaboratorPickerField
                         value={form.collaboratorId ?? ""}
                         onValueChange={(v) => update("collaboratorId", v)}
@@ -165,6 +165,7 @@ export function LeaveRequestFormClient() {
                     placeholder="Selecione"
                     required
                     error={fieldErrors.leaveType}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputSelect
                     label="Situação"
@@ -173,6 +174,7 @@ export function LeaveRequestFormClient() {
                     onValueChange={(v) => update("approved", v === "true")}
                     placeholder="Selecione"
                     clearable
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Data de início"
@@ -180,6 +182,7 @@ export function LeaveRequestFormClient() {
                     onValueChange={(v) => update("startDate", v)}
                     required
                     error={fieldErrors.startDate}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Data de fim"
@@ -187,6 +190,7 @@ export function LeaveRequestFormClient() {
                     onValueChange={(v) => update("endDate", v)}
                     required
                     error={fieldErrors.endDate}
+                    wrapperClassName="sm:col-span-6"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

@@ -2,6 +2,7 @@ package br.com.gommo.modules.rh.person.collaborators.admission.service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import org.springframework.util.StringUtils;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
 import br.com.gommo.modules.dp.organization.department.entity.Department;
 import br.com.gommo.modules.dp.organization.department.repository.DepartmentRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
@@ -34,10 +36,11 @@ import br.com.gommo.modules.rh.person.collaborators.people.repository.Collaborat
 import br.com.gommo.modules.rh.person.collaborators.people.service.CollaboratorProfileService;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.rh.person.contract.recess.service.ContractRecessProvisioningService;
+import br.com.gommo.modules.rh.person.leave.domain.LeaveAbsenceRules;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
-import br.com.gommo.modules.rh.person.offboarding.repository.OffboardingRepository;
 import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
 
 @Service
@@ -489,11 +492,22 @@ public class AdmissionProcessService
         }
         LocalDate today = LocalDate.now(BUSINESS_ZONE);
         return leaveRequestRepository
-                .findApprovedAbsencesByCollaboratorInOverlapping(
-                        collaboratorIds, LeaveTypeEnum.VACATION, today, today, StatusEnum.DELETED)
+                .findActiveAbsencesByCollaboratorInOverlapping(
+                        collaboratorIds,
+                        LeaveTypeEnum.VACATION,
+                        approvedAbsenceStatuses(),
+                        today,
+                        today,
+                        StatusEnum.DELETED)
                 .stream()
                 .map(LeaveRequest::getCollaboratorId)
                 .collect(Collectors.toSet());
+    }
+
+    private static List<LeaveAbsenceStatusEnum> approvedAbsenceStatuses() {
+        return Arrays.stream(LeaveAbsenceStatusEnum.values())
+                .filter(LeaveAbsenceRules::isApprovedAbsenceStatus)
+                .toList();
     }
 
     private Set<UUID> loadOffboardedCollaboratorIds(List<UUID> collaboratorIds) {

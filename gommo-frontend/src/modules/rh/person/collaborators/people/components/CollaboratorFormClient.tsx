@@ -179,12 +179,13 @@ export function CollaboratorFormClient() {
                     value={form.fullName}
                     onValueChange={(v) => update("fullName", v)}
                     required
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
                 <InputString
                     label="Nome social"
                     value={form.socialName ?? ""}
                     onValueChange={(v) => update("socialName", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputCPF
                     label="CPF"
@@ -192,6 +193,7 @@ export function CollaboratorFormClient() {
                     onValueChange={(v) => update("cpf", v)}
                     required
                     hint="Salvo apenas com dígitos"
+                    wrapperClassName="sm:col-span-6"
                 />
                 <RgIdentityFields
                     rg={form.rg ?? ""}
@@ -200,12 +202,14 @@ export function CollaboratorFormClient() {
                     onRgChange={(v) => update("rg", v)}
                     onRgIssuerChange={(v) => update("rgIssuer", v)}
                     onRgStateCodeChange={(v) => update("rgStateCode", v)}
+                    wrapperClassName="sm:col-span-12"
                 />
                 <InputDate
                     label="Data de nascimento"
                     value={form.birthDate}
                     onValueChange={(v) => update("birthDate", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputSelect
                     label="Gênero"
@@ -214,6 +218,7 @@ export function CollaboratorFormClient() {
                     onValueChange={(v) => update("gender", (v || undefined) as CollaboratorCreateDto["gender"])}
                     placeholder="Não informado"
                     clearable
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputSelect
                     label="Estado civil"
@@ -224,6 +229,7 @@ export function CollaboratorFormClient() {
                     }
                     placeholder="Não informado"
                     clearable
+                    wrapperClassName="sm:col-span-6"
                 />
             </FormSection>
             <FormSection id="filiacao" title="Filiação" description="Nacionalidade, documentos e filiação.">
@@ -231,23 +237,25 @@ export function CollaboratorFormClient() {
                     label="Nacionalidade"
                     value={form.nationality ?? ""}
                     onValueChange={(v) => update("nationality", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="PIS/PASEP"
                     value={form.pisPasep ?? ""}
                     onValueChange={(v) => update("pisPasep", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Nome da mãe"
                     value={form.motherName ?? ""}
                     onValueChange={(v) => update("motherName", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
                 <InputString
                     label="Nome do pai"
                     value={form.fatherName ?? ""}
                     onValueChange={(v) => update("fatherName", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

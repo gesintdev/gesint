@@ -1,6 +1,5 @@
 "use client";
 import { useCallback, useState } from "react";
-import { collaboratorService } from "@/modules/collaborator/services/collaborator.service";
 import { Card } from "@/shared/components/ui/Card";
 import {
     InputAutocomplete,
@@ -18,6 +17,8 @@ import {
 } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 
+const PAGE_SIZE = 6;
+
 const GENDER_ITEMS: SelectItem[] = [
     { value: "MALE", label: "Masculino" },
     { value: "FEMALE", label: "Feminino" },
@@ -30,6 +31,17 @@ const MARITAL_ITEMS: SelectItem[] = [
     { value: "DIVORCED", label: "Divorciado(a)" },
     { value: "WIDOWED", label: "Viúvo(a)" },
     { value: "OTHER", label: "Outro" },
+];
+
+const DEMO_AUTOCOMPLETE_ITEMS: SelectItem[] = [
+    { value: "client-gommo", label: "Gommo Tecnologia", description: "Cliente plataforma" },
+    { value: "client-acme", label: "Acme Brasil", description: "Cliente plataforma" },
+    { value: "client-nova", label: "Nova Contabilidade", description: "Cliente plataforma" },
+    { value: "client-alpha", label: "Alpha Servicos", description: "Cliente plataforma" },
+    { value: "client-beta", label: "Beta Consultoria", description: "Cliente plataforma" },
+    { value: "client-delta", label: "Delta Logistica", description: "Cliente plataforma" },
+    { value: "admin-ana", label: "Ana Admin", description: "Usuario admin" },
+    { value: "admin-bruno", label: "Bruno Operacoes", description: "Usuario admin" },
 ];
 
 type FormState = {
@@ -46,8 +58,8 @@ type FormState = {
     integerNumber: number | null;
     decimalWithSep: number | null;
     currencyCents: string;
-    collaboratorId: string;
-    hybridCollaboratorId: string;
+    demoAutocompleteId: string;
+    hybridDemoId: string;
 };
 
 const initial: FormState = {
@@ -64,8 +76,8 @@ const initial: FormState = {
     integerNumber: null,
     decimalWithSep: null,
     currencyCents: "",
-    collaboratorId: "",
-    hybridCollaboratorId: "",
+    demoAutocompleteId: "",
+    hybridDemoId: "",
 };
 
 function ValuesPreview({ values }: { values: FormState }) {
@@ -81,19 +93,30 @@ export function InputsPlaygroundClient() {
     const patch = useCallback((partial: Partial<FormState>) => {
         setValues((prev) => ({ ...prev, ...partial }));
     }, []);
-    const searchCollaborators = useCallback(
-        (query: string, page: number) => collaboratorService.searchForAutocomplete(query, page),
-        [],
-    );
+    const searchDemoItems = useCallback(async (query: string, page: number) => {
+        const normalized = query.trim().toLowerCase();
+        const filtered = DEMO_AUTOCOMPLETE_ITEMS.filter(
+            (item) =>
+                item.label.toLowerCase().includes(normalized) ||
+                item.description?.toLowerCase().includes(normalized),
+        );
+        const start = page * PAGE_SIZE;
+
+        return {
+            items: filtered.slice(start, start + PAGE_SIZE),
+            hasMore: start + PAGE_SIZE < filtered.length,
+            page,
+        };
+    }, []);
 
     return (
         <div className="grid gap-6 lg:grid-cols-2">
             <Card title="Campos tipados" bodyClassName="space-y-4">
                 <InputString
-                    label="Nome completo"
+                    label="Nome"
                     value={values.fullName}
                     onValueChange={(fullName) => patch({ fullName })}
-                    placeholder="Como em Collaborator.fullName"
+                    placeholder="Nome exibido"
                     required
                 />
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -145,7 +168,7 @@ export function InputsPlaygroundClient() {
             </Card>
             <Card title="Select, Autocomplete e híbrido" bodyClassName="space-y-4">
                 <InputSelect
-                    label="Gênero (Colaborador)"
+                    label="Gênero (demo)"
                     items={GENDER_ITEMS}
                     value={values.gender}
                     onValueChange={(gender) => patch({ gender })}
@@ -153,28 +176,28 @@ export function InputsPlaygroundClient() {
                     clearable
                 />
                 <InputSelect
-                    label="Estado civil (Colaborador)"
+                    label="Estado civil (demo)"
                     items={MARITAL_ITEMS}
                     value={values.maritalStatus}
                     onValueChange={(maritalStatus) => patch({ maritalStatus })}
                     clearable
                 />
                 <InputAutocomplete
-                    label="Colaborador (autocomplete)"
-                    hint="Busca em colaboradores — máx. 6 por página"
-                    value={values.collaboratorId}
-                    onValueChange={(collaboratorId) => patch({ collaboratorId })}
-                    onSearch={searchCollaborators}
-                    placeholder="Digite nome ou CPF..."
+                    label="Cliente ou admin (autocomplete)"
+                    hint="Busca local de demonstração"
+                    value={values.demoAutocompleteId}
+                    onValueChange={(demoAutocompleteId) => patch({ demoAutocompleteId })}
+                    onSearch={searchDemoItems}
+                    placeholder="Digite cliente ou admin..."
                 />
                 <InputSelectAutocomplete
-                    label="Híbrido: gênero local + colaborador remoto"
-                    hint="Digite 'Mas' para filtrar gêneros; 'Maria' para buscar colaboradores"
+                    label="Híbrido: gênero local + busca demo"
+                    hint="Digite 'Mas' para filtrar gêneros; 'Cliente' para buscar exemplos"
                     items={GENDER_ITEMS}
-                    onSearch={searchCollaborators}
-                    value={values.hybridCollaboratorId}
-                    onValueChange={(hybridCollaboratorId) => patch({ hybridCollaboratorId })}
-                    placeholder="Lista fixa ou busca colaboradores..."
+                    onSearch={searchDemoItems}
+                    value={values.hybridDemoId}
+                    onValueChange={(hybridDemoId) => patch({ hybridDemoId })}
+                    placeholder="Lista fixa ou busca demo..."
                 />
             </Card>
             <Card title="Valores enviados (sem máscara)" className="lg:col-span-2">

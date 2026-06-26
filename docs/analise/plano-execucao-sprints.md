@@ -10,6 +10,7 @@
 - Toda tabela nova segue o protocolo multi-tenant: migration Flyway no `gommo-backend` + inclusão em `TenantSchemaTableCatalog.HR_DATA_TABLES` + espelho no `seed-tenant-empresa-a.sql`.
 - Regra de ouro do PDF: **tudo que muda no tempo tem vigência**; **folha fechada é imutável**; **mudança crítica gera trilha de auditoria com motivo**.
 - "Pronto" = backend (entidade + migration + service + RBAC) + frontend (rota + lista + form) + teste da regra pura + critério de aceite do roteiro validado.
+- Navegacao atual: no DP, Ferias, Afastamento e Desligamento sao menus diretos e separados; no RH fica a solicitacao/visao de ferias e a entrevista de desligamento.
 
 ## Visão geral das fases
 
@@ -166,7 +167,7 @@
 **Objetivo:** desligamento com verbas, documentos e efeitos colaterais.
 
 - Backend: `processo_rescisao` + `verba_rescisoria` (saldo salário, férias vencidas/proporcionais, 13º proporcional, descontos); aviso prévio (trabalhado/indenizado); multa FGTS; geração de TRCT/demonstrativo; status Desligada no colaborador; bloqueio de `AppUser`; exclusão de folhas futuras; reabertura com justificativa.
-- Frontend: assistente de rescisão; demonstrativo de verbas; checklist demissional.
+- Frontend: menu DP > Desligamento; assistente de rescisao; demonstrativo de verbas; checklist demissional.
 - Migrations: `processo_rescisao`, `verba_rescisoria`, `checklist_demissional`.
 
 **Aceite (roteiro):** Mês 18; TC-010. Dependência: Sprints 2, 9, 11, 1.

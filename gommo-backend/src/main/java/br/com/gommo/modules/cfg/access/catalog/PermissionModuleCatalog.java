@@ -19,6 +19,7 @@ public final class PermissionModuleCatalog {
                         "department",
                         "jobposition",
                         "payment",
+                        "offboarding",
                         "notification",
                         "leave",
                         "storage",
@@ -42,7 +43,6 @@ public final class PermissionModuleCatalog {
                 Set.of(
                         "collaborator",
                         "admission",
-                        "offboarding",
                         "exitinterview",
                         "contract",
                         "attendance",

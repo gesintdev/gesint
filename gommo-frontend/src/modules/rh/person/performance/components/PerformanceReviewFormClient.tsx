@@ -131,7 +131,7 @@ export function PerformanceReviewFormClient() {
             }
         >
             <FormSection id="cadastro" title="Avaliação">
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-12">
                     <CollaboratorPickerField
                         value={form.collaboratorId}
                         onValueChange={(v) => update("collaboratorId", v)}
@@ -143,12 +143,14 @@ export function PerformanceReviewFormClient() {
                     value={form.periodStart}
                     onValueChange={(v) => update("periodStart", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Período — fim"
                     value={form.periodEnd}
                     onValueChange={(v) => update("periodEnd", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputSelect
                     label="Classificação"
@@ -157,23 +159,25 @@ export function PerformanceReviewFormClient() {
                     onValueChange={(v) => update("rating", (v || undefined) as PerformanceReviewCreateDto["rating"])}
                     placeholder="Selecione"
                     clearable
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Avaliador"
                     value={form.reviewerName ?? ""}
                     onValueChange={(v) => update("reviewerName", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Metas e objetivos"
                     value={form.goalsSummary ?? ""}
                     onValueChange={(v) => update("goalsSummary", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
                 <InputString
                     label="Feedback"
                     value={form.feedback ?? ""}
                     onValueChange={(v) => update("feedback", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

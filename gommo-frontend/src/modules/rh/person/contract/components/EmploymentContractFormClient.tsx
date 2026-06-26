@@ -132,7 +132,7 @@ export function EmploymentContractFormClient() {
             }
         >
             <FormSection id="cadastro" title="Contrato">
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-12">
                     <CollaboratorPickerField
                         value={form.collaboratorId ?? ""}
                         onValueChange={(v) => update("collaboratorId", v)}
@@ -148,20 +148,28 @@ export function EmploymentContractFormClient() {
                     }
                     placeholder="Selecione"
                     clearable
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputCurrency
                     label="Salário base"
                     value={form.baseSalary ?? ""}
                     onValueChange={(v) => update("baseSalary", v)}
                     emitAsDecimal
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Data de início"
                     value={form.startDate ?? ""}
                     onValueChange={(v) => update("startDate", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
-                <InputDate label="Data de fim" value={form.endDate ?? ""} onValueChange={(v) => update("endDate", v)} />
+                <InputDate
+                    label="Data de fim"
+                    value={form.endDate ?? ""}
+                    onValueChange={(v) => update("endDate", v)}
+                    wrapperClassName="sm:col-span-6"
+                />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>

@@ -13,8 +13,8 @@ Monorepo ERP para RH, Departamento Pessoal e Contabilidade, com backends Spring 
 
 | Sistema | Uso atual |
 |---|---|
-| DP | Departamento Pessoal: Organização e Pagamentos |
-| RH | Pessoas, férias/afastamentos, performance, insights |
+| DP | Departamento Pessoal: Organizacao, Ferias, Afastamento, Desligamento e Pagamentos |
+| RH | Pessoas, solicitacoes de ferias, entrevista de desligamento, performance, insights |
 | CTB | Contabilidade: Folha de Pagamento |
 | CFG | Configurações: perfis e usuários |
 

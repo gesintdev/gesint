@@ -170,7 +170,7 @@ export function ProfileFormClient() {
             }
         >
             <FormSection id="identificacao" title="Identificação">
-                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-3">
+                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-12 sm:grid-cols-3">
                     <InputString
                         label="Nome do perfil"
                         value={form.name}
@@ -195,7 +195,7 @@ export function ProfileFormClient() {
                 </div>
             </FormSection>
             <FormSection id="permissoes" title="Permissões por menu" bodyClassName="!p-0 !gap-0">
-                <div className="grid min-h-[26rem] w-full grid-cols-2 overflow-hidden sm:col-span-2">
+                <div className="grid min-h-[26rem] w-full grid-cols-2 overflow-hidden sm:col-span-12">
                     <NavRouteTree
                         sections={navSections}
                         selectedRouteId={selectedRoute?.id ?? null}

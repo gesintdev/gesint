@@ -144,6 +144,7 @@ export function BenefitEnrollmentFormClient() {
                     value={form.collaboratorId}
                     onValueChange={(v) => update("collaboratorId", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <EntityPickerField
                     label="Plano de benefício"
@@ -152,17 +153,20 @@ export function BenefitEnrollmentFormClient() {
                     onSearch={searchBenefitPlans}
                     resolveLabel={resolveBenefitPlanLabel}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Vigência — início"
                     value={form.startDate}
                     onValueChange={(v) => update("startDate", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Vigência — fim"
                     value={form.endDate ?? ""}
                     onValueChange={(v) => update("endDate", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputCurrency
                     label="Valor mensal"
@@ -170,12 +174,13 @@ export function BenefitEnrollmentFormClient() {
                     onValueChange={(v) => update("monthlyValue", v)}
                     emitAsDecimal
                     hint="Opcional — sobrescreve o valor do plano"
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Observações"
                     value={form.notes ?? ""}
                     onValueChange={(v) => update("notes", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

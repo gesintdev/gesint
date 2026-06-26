@@ -153,11 +153,11 @@ export function AppUserFormClient() {
                     value={form.collaboratorId}
                     onValueChange={handleCollaboratorChange}
                     required
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
             <FormSection id="credenciais" title="Credenciais">
-                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
+                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-12 sm:grid-cols-2">
                     <InputString
                         label="Nome de usuário"
                         value={form.username}
@@ -185,7 +185,7 @@ export function AppUserFormClient() {
                 </div>
             </FormSection>
             <FormSection id="perfis" title="Perfis por sistema">
-                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
+                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-12 sm:grid-cols-2">
                     <ProfileRolePicker
                         label="Perfis DP"
                         system="DP"

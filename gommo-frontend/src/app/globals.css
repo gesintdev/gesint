@@ -828,13 +828,23 @@ body {
 }
 
 .nav-item-collapsed {
-    grid-template-columns: 1rem minmax(0, 1fr) auto;
-    padding-inline: 0.8125rem;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0;
+}
+
+.nav-item-collapsed .sidebar-copy {
+    position: absolute;
 }
 
 .sidebar-copy {
     min-width: 0;
+    overflow: hidden;
     opacity: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     transition:
         opacity 0.2s ease,
         transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
@@ -849,6 +859,24 @@ aside[data-collapsed="true"] .sidebar-copy,
 
 .sidebar-toolbar {
     gap: 0.75rem;
+}
+
+aside[data-collapsed="true"] .sidebar-toolbar {
+    width: var(--sidebar-collapsed);
+}
+
+aside[data-collapsed="true"] .sidebar-nav,
+aside[data-collapsed="true"] .sidebar-nav-wrap {
+    width: var(--sidebar-collapsed);
+}
+
+.sidebar-routes-content {
+    display: flex;
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
 }
 
 /* Rail de domínios (estilo ClickUp — ícone + sigla) */
@@ -1116,6 +1144,9 @@ aside[data-collapsed="true"] .sidebar-copy,
 }
 
 .gommo-form-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: start;
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;

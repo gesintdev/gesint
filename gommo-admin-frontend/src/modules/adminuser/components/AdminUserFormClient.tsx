@@ -1,18 +1,11 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type SubmitEvent } from "react";
+import { type SubmitEvent,useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ADMIN_USER_CLIENT_MESSAGES } from "@/modules/adminuser/exceptions/adminuser.messages";
-import type { AdminUserCreateDto } from "@/modules/adminuser/dto/adminuser.dto";
+
 import { adminUserKeys } from "@/modules/adminuser/adminuser.query";
-import { adminUserService } from "@/modules/adminuser/services/adminuser.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
-import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { Button } from "@/shared/components/ui/Button";
-import { InputPassword, InputString } from "@/shared/components/ui/input/index";
+import type { AdminUserCreateDto } from "@/modules/adminuser/dto/adminuser.dto";
+import { ADMIN_USER_CLIENT_MESSAGES } from "@/modules/adminuser/exceptions/adminuser.messages";
 import {
     ADMIN_USER_PASSWORD_MIN_LENGTH,
     adminUserToFormDto,
@@ -20,6 +13,14 @@ import {
     toAdminUserSavePayload,
     validateAdminUserForm,
 } from "@/modules/adminuser/lib/adminuser.mapper";
+import { adminUserService } from "@/modules/adminuser/services/adminuser.service";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
+import { Button } from "@/shared/components/ui/Button";
+import { InputPassword, InputString } from "@/shared/components/ui/input/index";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 export function AdminUserFormClient() {
     const { editingId, isEditing, goToList } = useCrudScreen();

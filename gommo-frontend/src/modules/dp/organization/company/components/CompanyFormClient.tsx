@@ -125,16 +125,39 @@ export function CompanyFormClient() {
                     value={form.legalName ?? ""}
                     onValueChange={(v) => update("legalName", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Trade Name"
                     value={form.tradeName ?? ""}
                     onValueChange={(v) => update("tradeName", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
-                <InputCNPJ label="Cnpj" value={form.cnpj} onValueChange={(v) => update("cnpj", v)} required />
-                <InputString label="Email" value={form.email ?? ""} onValueChange={(v) => update("email", v)} />
-                <InputString label="Phone" value={form.phone ?? ""} onValueChange={(v) => update("phone", v)} />
-                <InputString label="City" value={form.city ?? ""} onValueChange={(v) => update("city", v)} />
+                <InputCNPJ
+                    label="Cnpj"
+                    value={form.cnpj}
+                    onValueChange={(v) => update("cnpj", v)}
+                    required
+                    wrapperClassName="sm:col-span-6"
+                />
+                <InputString
+                    label="Email"
+                    value={form.email ?? ""}
+                    onValueChange={(v) => update("email", v)}
+                    wrapperClassName="sm:col-span-6"
+                />
+                <InputString
+                    label="Phone"
+                    value={form.phone ?? ""}
+                    onValueChange={(v) => update("phone", v)}
+                    wrapperClassName="sm:col-span-6"
+                />
+                <InputString
+                    label="City"
+                    value={form.city ?? ""}
+                    onValueChange={(v) => update("city", v)}
+                    wrapperClassName="sm:col-span-6"
+                />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>

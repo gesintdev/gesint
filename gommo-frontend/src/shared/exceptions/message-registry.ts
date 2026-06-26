@@ -5,6 +5,10 @@ import {
 import { PAYROLL_CLIENT_MESSAGES, PAYROLL_MESSAGES } from "@/modules/ctb/payroll/exceptions/payroll-run.messages";
 import { PAYSLIP_CLIENT_MESSAGES, PAYSLIP_MESSAGES } from "@/modules/ctb/payroll/payslip/exceptions/payslip.messages";
 import {
+    OFFBOARDING_CLIENT_MESSAGES,
+    OFFBOARDING_MESSAGES,
+} from "@/modules/dp/offboarding/exceptions/offboarding.messages";
+import {
     COMPANY_CLIENT_MESSAGES,
     COMPANY_MESSAGES,
 } from "@/modules/dp/organization/company/exceptions/company.messages";
@@ -38,10 +42,6 @@ import {
     EXITINTERVIEW_MESSAGES,
 } from "@/modules/rh/person/exitinterview/exceptions/exit-interview.messages";
 import { LEAVE_CLIENT_MESSAGES, LEAVE_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
-import {
-    OFFBOARDING_CLIENT_MESSAGES,
-    OFFBOARDING_MESSAGES,
-} from "@/modules/rh/person/offboarding/exceptions/offboarding.messages";
 import { AUTH_CLIENT_MESSAGES, AUTH_MESSAGES } from "@/modules/root/exceptions/auth.messages";
 import { CORE_MESSAGES } from "@/shared/exceptions/core.messages";
 
