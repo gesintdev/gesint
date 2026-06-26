@@ -2,6 +2,7 @@ package br.com.gommo.modules.rh.person.leave.repository;
 
 import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import java.time.LocalDate;
@@ -74,6 +75,23 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
     List<LeaveRequest> findApprovedAbsencesByCollaboratorInOverlapping(
             @Param("collaboratorIds") List<UUID> collaboratorIds,
             @Param("vacationType") LeaveTypeEnum vacationType,
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
+
+    @Query("""
+            SELECT l FROM LeaveRequest l
+            WHERE l.status <> :deletedStatus
+              AND l.collaboratorId IN :collaboratorIds
+              AND l.leaveType <> :vacationType
+              AND (l.approved = TRUE OR l.absenceStatus IN :approvedStatuses)
+              AND l.startDate <= :periodEnd
+              AND l.endDate >= :periodStart
+            """)
+    List<LeaveRequest> findActiveAbsencesByCollaboratorInOverlapping(
+            @Param("collaboratorIds") List<UUID> collaboratorIds,
+            @Param("vacationType") LeaveTypeEnum vacationType,
+            @Param("approvedStatuses") List<LeaveAbsenceStatusEnum> approvedStatuses,
             @Param("periodStart") LocalDate periodStart,
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);

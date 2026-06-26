@@ -121,35 +121,39 @@ export function BenefitPlanFormClient() {
             }
         >
             <FormSection id="cadastro" title="Benefício">
-                <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
+                <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required wrapperClassName="sm:col-span-6" />
                 <InputString
                     label="Tipo de benefício"
                     value={form.benefitType ?? ""}
                     onValueChange={(v) => update("benefitType", v)}
                     required
                     hint="Ex.: SAUDE, VR, VT"
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputCurrency
                     label="Valor mensal"
                     value={form.monthlyValue ?? ""}
                     onValueChange={(v) => update("monthlyValue", v)}
                     emitAsDecimal
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Vigência — início"
                     value={form.startDate ?? ""}
                     onValueChange={(v) => update("startDate", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Vigência — fim"
                     value={form.endDate ?? ""}
                     onValueChange={(v) => update("endDate", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Descrição"
                     value={form.description ?? ""}
                     onValueChange={(v) => update("description", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

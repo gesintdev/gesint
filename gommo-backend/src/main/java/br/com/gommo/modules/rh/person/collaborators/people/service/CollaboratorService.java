@@ -22,7 +22,7 @@ import br.com.gommo.modules.rh.person.collaborators.people.exception.Collaborato
 import br.com.gommo.modules.rh.person.collaborators.people.mapper.CollaboratorMapper;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorContactRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
-import br.com.gommo.modules.rh.person.offboarding.repository.OffboardingRepository;
+import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
 
 @Service
 public class CollaboratorService extends BaseService<Collaborator, CollaboratorRequestDto, CollaboratorResponseDto>

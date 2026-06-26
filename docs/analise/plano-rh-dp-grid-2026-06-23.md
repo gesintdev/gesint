@@ -127,6 +127,12 @@ Impacto: grande.
   - separacao entre "Ferias atuais" e "Ferias gozadas";
   - reutilizacao do status visual de ferias do RH;
   - botao de rodape para lancamento de ferias quando o colaborador estiver apto.
+- [x] Desligamento movido para DP:
+  - removido do menu RH/Pessoas;
+  - adicionado como menu direto em DP, ao lado de Ferias e Afastamento;
+  - pacote frontend movido para `gommo-frontend/src/modules/dp/offboarding/**`;
+  - pacote backend movido para `br.com.gommo.modules.dp.offboarding`;
+  - permissao `offboarding:*` passou para o escopo DP no catalogo de permissoes.
 - [~] Ponto movido para DP:
   - removido do menu RH/Pessoas;
   - adicionado em DP/Organizacao;
@@ -177,8 +183,8 @@ Impacto: grande.
 - `gommo-backend/src/main/java/br/com/gommo/modules/rh/person/collaborators/admission/**`
 - `gommo-frontend/src/modules/rh/person/collaborators/people/**`
 - `gommo-backend/src/main/java/br/com/gommo/modules/rh/person/collaborators/people/**`
-- `gommo-frontend/src/modules/rh/person/offboarding/**`
-- `gommo-backend/src/main/java/br/com/gommo/modules/rh/person/offboarding/**`
+- `gommo-frontend/src/modules/dp/offboarding/**`
+- `gommo-backend/src/main/java/br/com/gommo/modules/dp/offboarding/**`
 - `gommo-frontend/src/shared/components/ui/DataTable.tsx`
 - `gommo-frontend/src/shared/components/data/QueryPanel.tsx`
 - `gommo-backend/src/main/java/br/com/gommo/core/base/**`

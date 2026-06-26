@@ -148,45 +148,66 @@ export function DepartmentFormClient() {
             }
         >
             <FormSection id="cadastro" title="Departamento">
-                <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required />
+                <InputString
+                    label="Nome"
+                    value={form.name ?? ""}
+                    onValueChange={(v) => update("name", v)}
+                    required
+                    wrapperClassName="sm:col-span-6"
+                />
                 <InputString
                     label="Centro de custo"
                     value={form.costCenter ?? ""}
                     onValueChange={(v) => update("costCenter", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <DescriptionTextarea
                     label="Descrição"
                     value={form.description ?? ""}
                     onValueChange={(v) => update("description", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
                 <CollaboratorMultiPickerField
                     selectedIds={form.responsibleCollaboratorIds ?? []}
                     onChange={(ids) => update("responsibleCollaboratorIds", ids)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
                 <InputCurrency
                     label="Orçamento mensal"
                     value={form.monthlyBudget != null ? String(form.monthlyBudget) : ""}
                     onValueChange={(v) => update("monthlyBudget", v)}
                     emitAsDecimal
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Localização"
                     value={form.location ?? ""}
                     onValueChange={(v) => update("location", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
-                <InputPhone label="Telefone" value={form.phone ?? ""} onValueChange={(v) => update("phone", v)} />
-                <InputPhone label="Fax" value={form.fax ?? ""} onValueChange={(v) => update("fax", v)} />
+                <InputPhone
+                    label="Telefone"
+                    value={form.phone ?? ""}
+                    onValueChange={(v) => update("phone", v)}
+                    wrapperClassName="sm:col-span-6"
+                />
+                <InputPhone
+                    label="Fax"
+                    value={form.fax ?? ""}
+                    onValueChange={(v) => update("fax", v)}
+                    wrapperClassName="sm:col-span-6"
+                />
                 <InputString
                     label="Ramal"
                     value={form.phoneExtension ?? ""}
                     onValueChange={(v) => update("phoneExtension", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Email"
                     value={form.email ?? ""}
                     onValueChange={(v) => update("email", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

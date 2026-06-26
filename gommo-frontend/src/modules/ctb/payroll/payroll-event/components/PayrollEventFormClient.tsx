@@ -147,13 +147,14 @@ export function PayrollEventFormClient() {
           onValueChange={(v) => update("eventCode", v)}
           required
           hint="Identificador único do evento (ex.: SAL_BASE)"
+          wrapperClassName="sm:col-span-6"
         />
         <InputString
           label="Descrição"
           value={form.description ?? ""}
           onValueChange={(v) => update("description", v)}
           required
-          wrapperClassName="sm:col-span-2"
+          wrapperClassName="sm:col-span-12"
         />
         <InputSelect
           label="Tipo de evento"
@@ -162,31 +163,35 @@ export function PayrollEventFormClient() {
           onValueChange={(v) => update("eventType", (v || "EARNING") as PayrollEventCreateDto["eventType"])}
           placeholder="Selecione"
           required
+          wrapperClassName="sm:col-span-6"
         />
         <InputSelect
           label="Incide INSS"
           items={BOOL_SELECT_ITEMS}
           value={boolToSelect(form.incidesInss)}
           onValueChange={(v) => update("incidesInss", selectToBool(v))}
+          wrapperClassName="sm:col-span-6"
         />
         <InputSelect
           label="Incide FGTS"
           items={BOOL_SELECT_ITEMS}
           value={boolToSelect(form.incidesFgts)}
           onValueChange={(v) => update("incidesFgts", selectToBool(v))}
+          wrapperClassName="sm:col-span-6"
         />
         <InputSelect
           label="Incide IRRF"
           items={BOOL_SELECT_ITEMS}
           value={boolToSelect(form.incidesIrrf)}
           onValueChange={(v) => update("incidesIrrf", selectToBool(v))}
+          wrapperClassName="sm:col-span-6"
         />
         <FormulaTextarea
           label="Fórmula"
           hint="Expressão avaliada na etapa de processamento (Etapa 3)"
           value={form.formula ?? ""}
           onValueChange={(v) => update("formula", v)}
-          wrapperClassName="sm:col-span-2"
+          wrapperClassName="sm:col-span-12"
         />
       </FormSection>
       {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

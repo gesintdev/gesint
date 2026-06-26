@@ -5,6 +5,11 @@ export function buildLocationKey(pathname: string, search: URLSearchParams | str
     return qs ? `${pathname}?${qs}` : pathname;
 }
 
+function browserLocationKey(): string | null {
+    if (typeof window === "undefined") return null;
+    return buildLocationKey(window.location.pathname, window.location.search.slice(1));
+}
+
 export function locationsEqual(current: string, target: string): boolean {
     if (current === target) return true;
     try {
@@ -29,9 +34,13 @@ export function replaceUrlIfNeeded(
     searchParams: URLSearchParams,
     targetUrl: string,
 ): void {
-    const current = buildLocationKey(pathname, searchParams);
+    const current = browserLocationKey() ?? buildLocationKey(pathname, searchParams);
     if (locationsEqual(current, targetUrl)) return;
-    router.replace(targetUrl, { scroll: false });
+    if (typeof window !== "undefined") {
+        window.history.replaceState(window.history.state, "", targetUrl);
+    } else {
+        router.replace(targetUrl, { scroll: false });
+    }
     writeLastWorkspaceInitLocation(targetUrl);
 }
 

@@ -120,6 +120,7 @@ export function PayrollRunFormClient() {
             onValueChange={() => undefined}
             readOnly
             hint="Alterado pelas ações Processar, Revisar, Fechar e Reabrir na listagem"
+            wrapperClassName="sm:col-span-6"
           />
         ) : null}
         <InputMonth
@@ -128,24 +129,24 @@ export function PayrollRunFormClient() {
           onValueChange={(v) => update("referenceDate", v)}
           required
           readOnly={readOnly}
-          wrapperClassName="sm:col-span-2"
+          wrapperClassName="sm:col-span-12"
           hint="Mês/ano de referência da folha"
         />
         {isEditing && detailQuery.data?.openedAt ? (
-          <InputDate label="Data de abertura" value={detailQuery.data.openedAt.slice(0, 10)} onValueChange={() => undefined} readOnly />
+          <InputDate label="Data de abertura" value={detailQuery.data.openedAt.slice(0, 10)} onValueChange={() => undefined} readOnly wrapperClassName="sm:col-span-6" />
         ) : null}
         {isEditing && detailQuery.data?.closedAt ? (
-          <InputDate label="Data de fechamento" value={detailQuery.data.closedAt.slice(0, 10)} onValueChange={() => undefined} readOnly />
+          <InputDate label="Data de fechamento" value={detailQuery.data.closedAt.slice(0, 10)} onValueChange={() => undefined} readOnly wrapperClassName="sm:col-span-6" />
         ) : null}
         <InputString
           label="Observações"
           value={form.notes ?? ""}
           onValueChange={(v) => update("notes", v)}
-          wrapperClassName="sm:col-span-2"
+          wrapperClassName="sm:col-span-12"
           readOnly={readOnly}
         />
         {isEditing && isPayrollRunLocked(currentStatus) ? (
-          <p className="sm:col-span-2 text-sm text-base-content/60">
+          <p className="sm:col-span-12 text-sm text-base-content/60">
             Competência fechada: dados bloqueados para edição. Use Reabrir na listagem para ajustes.
           </p>
         ) : null}

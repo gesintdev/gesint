@@ -66,14 +66,14 @@ function SidebarToolbar({
             ) : (
                 <>
                     <div className="min-w-0 flex-1">
-                        <label className="gommo-field sidebar-shell-control w-full text-sm!">
-                            <Search className="size-3.5 shrink-0 text-primary/60" strokeWidth={2} />
+                        <label className="gommo-field sidebar-shell-control relative w-full cursor-text">
+                            <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2} />
                             <input
                                 type="search"
                                 placeholder="Buscar no menu..."
                                 value={query}
                                 onChange={(e) => onQueryChange(e.target.value)}
-                                className="text-sm!"
+                                className="pe-2 placeholder:text-base-content/32"
                             />
                         </label>
                     </div>
@@ -289,7 +289,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
                     borderColor: "var(--sidebar-border)",
                 }}
             >
-                {sidebarPanel(opts)}
+                <div className="sidebar-routes-content">{sidebarPanel(opts)}</div>
             </div>
         </div>
     );

@@ -125,30 +125,32 @@ export function AttendanceRecordFormClient() {
             }
         >
             <FormSection id="cadastro" title="Ponto">
-                <div className="sm:col-span-2">
-                    <CollaboratorPickerField
-                        value={form.collaboratorId ?? ""}
-                        onValueChange={(v) => update("collaboratorId", v)}
-                        required
-                    />
-                </div>
+                <CollaboratorPickerField
+                    value={form.collaboratorId ?? ""}
+                    onValueChange={(v) => update("collaboratorId", v)}
+                    required
+                    wrapperClassName="sm:col-span-12"
+                />
                 <InputDate
                     label="Data de trabalho"
                     value={form.workDate ?? ""}
                     onValueChange={(v) => update("workDate", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Entrada"
                     value={form.clockIn ?? ""}
                     onValueChange={(v) => update("clockIn", v)}
                     hint="HH:mm"
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Saída"
                     value={form.clockOut ?? ""}
                     onValueChange={(v) => update("clockOut", v)}
                     hint="HH:mm"
+                    wrapperClassName="sm:col-span-6"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

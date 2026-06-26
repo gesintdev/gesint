@@ -129,7 +129,7 @@ export function TaxObligationFormClient() {
             }
         >
             <FormSection id="cadastro" title="Obrigação">
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-12">
                     <CollaboratorPickerField
                         value={form.collaboratorId}
                         onValueChange={(v) => update("collaboratorId", v)}
@@ -145,40 +145,46 @@ export function TaxObligationFormClient() {
                     }
                     placeholder="Selecione"
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Código de referência"
                     value={form.referenceCode ?? ""}
                     onValueChange={(v) => update("referenceCode", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Vigência — início"
                     value={form.startDate}
                     onValueChange={(v) => update("startDate", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputDate
                     label="Vigência — fim"
                     value={form.endDate ?? ""}
                     onValueChange={(v) => update("endDate", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputCurrency
                     label="Base de cálculo"
                     value={form.baseAmount ?? ""}
                     onValueChange={(v) => update("baseAmount", v)}
                     emitAsDecimal
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Alíquota (%)"
                     value={form.ratePercent ?? ""}
                     onValueChange={(v) => update("ratePercent", v)}
                     hint="Ex.: 7.5"
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Observações"
                     value={form.notes ?? ""}
                     onValueChange={(v) => update("notes", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

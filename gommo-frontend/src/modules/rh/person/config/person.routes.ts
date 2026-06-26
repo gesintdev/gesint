@@ -1,4 +1,4 @@
-import { CalendarDays, MessageSquare, Target, UserMinus, UserPlus, UserRound, Users } from "lucide-react";
+import { CalendarDays, MessageSquare, Target, UserPlus, UserRound, Users } from "lucide-react";
 
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
@@ -108,23 +108,6 @@ export const personRoutes: AppRoute[] = [
         formTabLabel: LEAVE_VACATION_CRUD_LABELS.formTabLabel,
         listToFormLabel: LEAVE_VACATION_CRUD_LABELS.listToFormLabel,
         showListToFormButton: true,
-    }),
-    tabbedCrudRoute({
-        id: "offboarding",
-        href: "/offboarding",
-        label: "Desligamento",
-        icon: UserMinus,
-        permission: "offboarding:read",
-        routeId: "offboarding",
-        tabShortLabel: "Desl",
-        list: lazyNamed(
-            () => import("@/modules/rh/person/offboarding/components/OffboardingListClient"),
-            "OffboardingListClient",
-        ),
-        form: lazyNamed(
-            () => import("@/modules/rh/person/offboarding/components/OffboardingFormClient"),
-            "OffboardingFormClient",
-        ),
     }),
     tabbedCrudRoute({
         id: "exit-interview",

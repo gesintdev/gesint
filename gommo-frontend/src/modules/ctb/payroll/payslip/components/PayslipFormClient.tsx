@@ -143,6 +143,7 @@ export function PayslipFormClient() {
           resolveLabel={resolvePayrollRunLabel}
           required
           disabled={readOnly}
+          wrapperClassName="sm:col-span-6"
         />
         <CollaboratorPickerField
           value={form.collaboratorId ?? ""}
@@ -151,12 +152,13 @@ export function PayslipFormClient() {
             update("collaboratorId", v);
           }}
           required
+          wrapperClassName="sm:col-span-6"
         />
-        <InputCurrency label="Valor bruto" value={form.grossAmount ?? ""} onValueChange={(v) => update("grossAmount", v)} emitAsDecimal readOnly={readOnly} />
-        <InputCurrency label="Descontos" value={form.deductionsAmount ?? ""} onValueChange={(v) => update("deductionsAmount", v)} emitAsDecimal readOnly={readOnly} />
-        <InputCurrency label="Valor líquido" value={form.netAmount ?? ""} onValueChange={(v) => update("netAmount", v)} emitAsDecimal readOnly={readOnly} />
+        <InputCurrency label="Valor bruto" value={form.grossAmount ?? ""} onValueChange={(v) => update("grossAmount", v)} emitAsDecimal readOnly={readOnly} wrapperClassName="sm:col-span-6" />
+        <InputCurrency label="Descontos" value={form.deductionsAmount ?? ""} onValueChange={(v) => update("deductionsAmount", v)} emitAsDecimal readOnly={readOnly} wrapperClassName="sm:col-span-6" />
+        <InputCurrency label="Valor líquido" value={form.netAmount ?? ""} onValueChange={(v) => update("netAmount", v)} emitAsDecimal readOnly={readOnly} wrapperClassName="sm:col-span-6" />
         {readOnly ? (
-          <p className="sm:col-span-2 text-sm text-base-content/60">
+          <p className="sm:col-span-12 text-sm text-base-content/60">
             {isPayrollRunLocked(payrollRunStatus)
               ? "Competência fechada: holerite bloqueado para edição."
               : "Competência em processamento: holerite bloqueado para edição."}

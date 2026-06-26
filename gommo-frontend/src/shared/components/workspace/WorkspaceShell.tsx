@@ -35,7 +35,7 @@ export function WorkspaceShell() {
     const tabs = useWorkspaceStore((s) => s.tabs);
     const activeTabId = useWorkspaceStore((s) => s.activeTabId);
     const hasHydrated = useWorkspaceStore((s) => s._hasHydrated);
-    const { focusTabById, openFromHref, openRouteRecord } = useWorkspaceNavigation();
+    const { focusTabById, openFromHref, openRouteCreate, openRouteRecord } = useWorkspaceNavigation();
     const closeTab = useWorkspaceStore((s) => s.closeTab);
     const [mountedTabIds, setMountedTabIds] = useState<Set<string>>(() => new Set());
     const dashboardTab = useMemo(() => getDashboardTab(), []);
@@ -58,6 +58,43 @@ export function WorkspaceShell() {
         const currentKey = buildLocationKey(pathname, searchParams);
         if (readLastWorkspaceInitLocation() === currentKey) return;
         const state = useWorkspaceStore.getState();
+
+        const parsed = parseWorkspaceLocation(pathname, searchParams.toString());
+        const route = parsed ? findRouteByHref(parsed.href) : undefined;
+
+        if (parsed && route) {
+            if (route.id === DASHBOARD_ROUTE_ID) {
+                focusTabById(DASHBOARD_TAB_ID);
+                writeLastWorkspaceInitLocation(DASHBOARD_HREF);
+                return;
+            }
+
+            if (parsed.editingId) {
+                const targetUrl = workspaceUrlWithCrud(parsed.href, { editingId: parsed.editingId });
+                openRouteRecord(route, parsed.editingId);
+                writeLastWorkspaceInitLocation(targetUrl);
+                return;
+            }
+
+            if (parsed.isNew) {
+                const targetUrl = workspaceUrlWithCrud(parsed.href, { isNew: true });
+                openRouteCreate(route);
+                writeLastWorkspaceInitLocation(targetUrl);
+                return;
+            }
+
+            const listTabId = buildWorkspaceTabId(route.id, "list");
+            const existingList = state.tabs.find((t) => t.id === listTabId);
+            if (existingList) {
+                focusTabById(existingList.id);
+                writeLastWorkspaceInitLocation(currentKey);
+                return;
+            }
+            openFromHref(parsed.href);
+            writeLastWorkspaceInitLocation(parsed.href);
+            return;
+        }
+
         if (state.activeTabId && isDashboardTabId(state.activeTabId)) {
             writeLastWorkspaceInitLocation(DASHBOARD_HREF);
             return;
@@ -72,47 +109,8 @@ export function WorkspaceShell() {
                 return;
             }
         }
-        const parsed = parseWorkspaceLocation(pathname, searchParams.toString());
-        if (!parsed) {
-            writeLastWorkspaceInitLocation(currentKey);
-            return;
-        }
-        const route = findRouteByHref(parsed.href);
-        if (!route) {
-            writeLastWorkspaceInitLocation(currentKey);
-            return;
-        }
-
-        if (route.id === DASHBOARD_ROUTE_ID) {
-            focusTabById(DASHBOARD_TAB_ID);
-            writeLastWorkspaceInitLocation(DASHBOARD_HREF);
-            return;
-        }
-
-        if (parsed.editingId) {
-            const targetUrl = workspaceUrlWithCrud(parsed.href, { editingId: parsed.editingId });
-            openRouteRecord(route, parsed.editingId);
-            writeLastWorkspaceInitLocation(targetUrl);
-            return;
-        }
-        const listTabId = buildWorkspaceTabId(route.id, "list");
-        const existingList = state.tabs.find((t) => t.id === listTabId);
-        if (existingList) {
-            focusTabById(existingList.id);
-            const targetUrl = parsed.isNew ? workspaceUrlWithCrud(parsed.href, { isNew: true }) : currentKey;
-            if (parsed.isNew) {
-                replaceUrlIfNeeded(router, pathname, searchParams, targetUrl);
-            }
-            writeLastWorkspaceInitLocation(targetUrl);
-            return;
-        }
-        openFromHref(parsed.href);
-        const targetUrl = parsed.isNew ? workspaceUrlWithCrud(parsed.href, { isNew: true }) : parsed.href;
-        if (parsed.isNew) {
-            replaceUrlIfNeeded(router, pathname, searchParams, targetUrl);
-        }
-        writeLastWorkspaceInitLocation(targetUrl);
-    }, [focusTabById, hasHydrated, openFromHref, openRouteRecord, pathname, router, searchParams]);
+        writeLastWorkspaceInitLocation(currentKey);
+    }, [focusTabById, hasHydrated, openFromHref, openRouteCreate, openRouteRecord, pathname, router, searchParams]);
 
     return (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

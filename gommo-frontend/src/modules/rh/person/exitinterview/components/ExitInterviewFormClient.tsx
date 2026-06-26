@@ -127,7 +127,7 @@ export function ExitInterviewFormClient() {
             }
         >
             <FormSection id="cadastro" title="Entrevista">
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-12">
                     <CollaboratorPickerField
                         value={form.collaboratorId ?? ""}
                         onValueChange={(v) => update("collaboratorId", v)}
@@ -139,17 +139,19 @@ export function ExitInterviewFormClient() {
                     value={form.interviewDate ?? ""}
                     onValueChange={(v) => update("interviewDate", v)}
                     required
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Motivo da saída"
                     value={form.departureReason ?? ""}
                     onValueChange={(v) => update("departureReason", v)}
+                    wrapperClassName="sm:col-span-6"
                 />
                 <InputString
                     label="Feedback"
                     value={form.feedback ?? ""}
                     onValueChange={(v) => update("feedback", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
