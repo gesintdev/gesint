@@ -1,12 +1,13 @@
 "use client";
-import { useQuery, type QueryKey, type UseQueryResult } from "@tanstack/react-query";
-import { useMemo, type ReactNode } from "react";
-import { ExceptionCapture } from "@/shared/exceptions";
+import { type QueryKey, useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { type ReactNode,useMemo } from "react";
+
+import { QueryRefreshProvider } from "@/shared/components/data/QueryRefreshContext";
 import { Button } from "@/shared/components/ui/Button";
 import { DataTable, type DataTableRowActivateOn } from "@/shared/components/ui/DataTable";
-import type { TableColumnConfig } from "@/shared/types/table.types";
-import { QueryRefreshProvider } from "@/shared/components/data/QueryRefreshContext";
+import { ExceptionCapture } from "@/shared/exceptions";
 import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
+import type { TableColumnConfig } from "@/shared/types/table.types";
 
 export type QueryPanelRenderProps<TRow> = {
     data: TRow[];

@@ -1,7 +1,8 @@
 "use client";
-import { createContext, useContext, useMemo, type ReactNode } from "react";
-import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
+import { createContext, type ReactNode,useContext, useMemo } from "react";
+
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
 
 type WorkspaceTabContextValue = {
     tab: WorkspaceTab;

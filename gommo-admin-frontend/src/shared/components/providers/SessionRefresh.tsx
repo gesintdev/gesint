@@ -2,6 +2,7 @@
 import { signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { toast } from "sonner";
+
 import { setAuthToken } from "@/shared/lib/api.client";
 
 export function SessionRefresh() {

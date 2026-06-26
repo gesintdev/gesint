@@ -1,5 +1,5 @@
-import { hrApiFetch } from "@/shared/lib/hr-api.client";
 import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
+import { hrApiFetch } from "@/shared/lib/hr-api.client";
 
 export abstract class HrBaseService<T, CreateDto = Partial<T>, UpdateDto = Partial<T>> {
     constructor(protected readonly basePath: string) {}

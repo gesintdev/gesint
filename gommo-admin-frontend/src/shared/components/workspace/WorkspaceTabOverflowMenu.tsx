@@ -3,10 +3,11 @@
 import clsx from "clsx";
 import {ChevronDown, X} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
+
+import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
+import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
 import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
 import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
-import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
 
 type WorkspaceTabOverflowMenuProps = {
     moduleTabs: WorkspaceTab[];

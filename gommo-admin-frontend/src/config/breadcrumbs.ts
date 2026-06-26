@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
+
 import { APP_ROUTES, NAV_SECTIONS } from "@/config/routes";
+import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 
 export type BreadcrumbItem = {
     label: string;

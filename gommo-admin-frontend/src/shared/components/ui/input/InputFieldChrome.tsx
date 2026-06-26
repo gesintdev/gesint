@@ -1,6 +1,7 @@
 "use client";
-import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import clsx from "clsx";
+
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 
 export function InputFieldChrome({
     label,

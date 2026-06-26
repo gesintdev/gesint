@@ -1,5 +1,5 @@
-import { ChevronLeft } from "lucide-react";
 import clsx from "clsx";
+import { ChevronLeft } from "lucide-react";
 
 type SidebarCollapseTriggerProps = {
     collapsed: boolean;

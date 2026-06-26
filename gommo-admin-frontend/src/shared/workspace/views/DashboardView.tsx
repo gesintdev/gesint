@@ -1,8 +1,8 @@
 "use client";
 
-import type {CSSProperties} from "react";
 import {useQuery} from "@tanstack/react-query";
 import clsx from "clsx";
+import type {LucideIcon} from "lucide-react";
 import {
     ArrowUpRight,
     ClipboardList,
@@ -13,7 +13,8 @@ import {
     Users,
     Wallet,
 } from "lucide-react";
-import type {LucideIcon} from "lucide-react";
+import type {CSSProperties} from "react";
+
 import {dashboardKeys} from "@/modules/dashboard/dashboard.query";
 import type {
     DashboardDistributionItem,

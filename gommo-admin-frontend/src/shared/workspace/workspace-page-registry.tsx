@@ -1,7 +1,8 @@
 "use client";
-import { collectWorkspacePages, createWorkspacePageLookup } from "@/shared/workspace/build-workspace-registry";
 import type { ComponentType } from "react";
+
 import { modules } from "@/config/routes";
+import { collectWorkspacePages, createWorkspacePageLookup } from "@/shared/workspace/build-workspace-registry";
 
 export type { WorkspacePageEntry } from "@/shared/workspace/workspace-page.types";
 

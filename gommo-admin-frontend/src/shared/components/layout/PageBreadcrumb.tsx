@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+
 import { getBreadcrumbs } from "@/config/breadcrumbs";
 
 type PageBreadcrumbProps = {

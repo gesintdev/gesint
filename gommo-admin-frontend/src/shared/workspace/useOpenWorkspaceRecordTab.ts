@@ -1,7 +1,7 @@
 "use client";
-import { findRouteById } from "@/shared/workspace/workspace-routes";
 import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
+import { findRouteById } from "@/shared/workspace/workspace-routes";
 
 export function useOpenWorkspaceRecordTab() {
     const cfg = useTabbedCrudConfigOptional();

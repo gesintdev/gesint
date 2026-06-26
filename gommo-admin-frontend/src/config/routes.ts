@@ -1,8 +1,8 @@
+import { clientsModule } from "@/modules/clients/clients.module";
+import { dashboardModule } from "@/modules/dashboard/dashboard.module";
+import { platformModule } from "@/modules/platform/platform.module";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
-import { dashboardModule } from "@/modules/dashboard/dashboard.module";
-import { clientsModule } from "@/modules/clients/clients.module";
-import { platformModule } from "@/modules/platform/platform.module";
 /**
  * routes.ts — navegação do painel administrativo (gestão de clientes / plataforma).
  *
@@ -13,7 +13,6 @@ import { platformModule } from "@/modules/platform/platform.module";
  *   4. Incluir em `modules` abaixo
  */
 export type { AppRoute, NavSection, TModule, TModuleInfos } from "@/modules/root/enum/ModuleEnum";
-
 export { ModuleEnum, ModuleEnumHelper } from "@/modules/root/enum/ModuleEnum";
 
 export const modules: TModule[] = [dashboardModule, clientsModule, platformModule];

@@ -1,7 +1,8 @@
 "use client";
 import { Pencil, Trash2 } from "lucide-react";
-import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
+
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
+import { OpenInWorkspaceTabButton } from "@/shared/components/workspace/OpenInWorkspaceTabButton";
 
 type CrudTableActionsProps<T extends { id: string }> = {
     row: T;

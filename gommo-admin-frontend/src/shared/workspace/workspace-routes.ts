@@ -1,4 +1,4 @@
-import { APP_ROUTES, flattenRoutes, type AppRoute } from "@/config/routes";
+import { APP_ROUTES, type AppRoute,flattenRoutes } from "@/config/routes";
 
 const FLAT_ROUTES = flattenRoutes(APP_ROUTES);
 

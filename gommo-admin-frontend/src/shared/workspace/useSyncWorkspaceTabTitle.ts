@@ -1,8 +1,9 @@
 "use client";
 import { useEffect } from "react";
+
 import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
-import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
 
 export function useSyncWorkspaceTabTitle<T extends object>(data: T | undefined | null) {
     const cfg = useTabbedCrudConfigOptional();

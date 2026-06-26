@@ -1,17 +1,18 @@
 "use client";
-import { useEffect, useState, type SubmitEvent } from "react";
-import { emptyClientForm, clientToFormDto, tenantSchemaFromSlug } from "@/modules/client/lib/client.mapper";
-import { InputSelect, InputString, InputCNPJ } from "@/shared/components/ui/input/index";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type SubmitEvent,useEffect, useState } from "react";
 import { toast } from "sonner";
+
 import { clientKeys } from "@/modules/client/client.query";
 import type { ClientCreateDto } from "@/modules/client/dto/client.dto";
 import { CLIENT_CLIENT_MESSAGES } from "@/modules/client/exceptions/client.messages";
+import { clientToFormDto, emptyClientForm, tenantSchemaFromSlug } from "@/modules/client/lib/client.mapper";
 import { clientService } from "@/modules/client/services/client.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { Button } from "@/shared/components/ui/Button";
+import { InputCNPJ,InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { digitsOnly } from "@/shared/lib/input/digits";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";

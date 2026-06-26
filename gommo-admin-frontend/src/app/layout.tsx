@@ -1,6 +1,8 @@
 import "./globals.css";
+
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+
 import { AppProviders } from "@/shared/components/providers/AppProviders";
 import { ThemeInitScript } from "@/shared/components/providers/ThemeInitScript";
 

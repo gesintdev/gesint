@@ -1,17 +1,18 @@
 "use client";
+import clsx from "clsx";
+import type { ReactNode } from "react";
+
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
+import { InputBase } from "@/shared/components/ui/input/InputBase";
 import {
     defaultNumberPlaceholder,
     maskNumber,
+    type MaskNumberOptions,
     numberMaskOptions,
     numberToMaskInput,
-    unmaskNumber,
     unmaskedStringToNumber,
-    type MaskNumberOptions,
+    unmaskNumber,
 } from "@/shared/lib/input/number";
-import clsx from "clsx";
-import type { ReactNode } from "react";
-import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
-import { InputBase } from "@/shared/components/ui/input/InputBase";
 
 export type InputNumberAlign = "left" | "right";
 

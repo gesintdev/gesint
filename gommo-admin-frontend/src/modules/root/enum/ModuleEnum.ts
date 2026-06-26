@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+
 import type { WorkspacePageLoader } from "@/shared/workspace/workspace-page.types";
 
 export type AppRoute = {

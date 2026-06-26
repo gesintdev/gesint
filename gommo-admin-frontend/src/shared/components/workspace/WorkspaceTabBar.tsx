@@ -3,11 +3,12 @@
 import clsx from "clsx";
 import {X} from "lucide-react";
 import {useRef} from "react";
+
+import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
+import {WorkspaceTabOverflowMenu} from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
 import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
 import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
 import {isDashboardTabId} from "@/shared/workspace/workspace-dashboard";
-import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
-import {WorkspaceTabOverflowMenu} from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
 
 type WorkspaceTabBarProps = {
     dashboardTab: WorkspaceTab;

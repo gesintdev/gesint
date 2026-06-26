@@ -1,4 +1,5 @@
 import { Building2, CreditCard, KeyRound, ToggleLeft, Users } from "lucide-react";
+
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { comingSoonRoute, lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
 /** Gestão de clientes (tenants) que contratam o Gommo */

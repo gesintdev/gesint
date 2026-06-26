@@ -3,17 +3,18 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
     createContext,
+    type ReactNode,
     useCallback,
     useContext,
     useMemo,
-    type ReactNode,
 } from "react";
+
 import type { AppRoute } from "@/config/routes";
+import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import { replaceUrlIfNeeded } from "@/shared/workspace/workspace-location";
+import { workspaceUrl, workspaceUrlWithCrud } from "@/shared/workspace/workspace-navigation-url";
 import { defaultShortLabel, findRouteByHref } from "@/shared/workspace/workspace-routes";
 import { buildWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
-import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
-import { workspaceUrl, workspaceUrlWithCrud } from "@/shared/workspace/workspace-navigation-url";
 
 function routeToInput(route: AppRoute, shortLabel?: string) {
     if (!route.href) throw new Error(`Rota ${route.id} sem href`);

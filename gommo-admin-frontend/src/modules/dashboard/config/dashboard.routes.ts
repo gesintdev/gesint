@@ -1,5 +1,6 @@
 import { FlaskConical, LayoutDashboard } from "lucide-react";
 import { createElement } from "react";
+
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { customWorkspaceRoute } from "@/shared/routing";
 

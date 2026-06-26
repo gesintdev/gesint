@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+
 import type { CrudScreenProps } from "@/shared/components/crud/CrudScreen";
 import type { LazyComponent } from "@/shared/routing/resolve-lazy-component";
 

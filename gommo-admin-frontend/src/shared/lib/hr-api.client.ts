@@ -1,12 +1,8 @@
-import { AppException } from "@/shared/exceptions/app.exception";
-import type { ErrorResponseDto } from "@/shared/exceptions/error-response.dto";
-import { AUTH_CLIENT_MESSAGES } from "@/modules/root/exceptions/auth.messages";
 import { createHttpClient } from "@/shared/lib/create-http-client";
 
 const HR_API_BASE_URL = process.env.NEXT_PUBLIC_HR_API_URL ?? "http://localhost:8081";
 
 export { ApiError, AppException } from "@/shared/exceptions/app.exception";
-
 export type { DoRequestOptions } from "@/shared/lib/create-http-client";
 
 const httpClient = createHttpClient({

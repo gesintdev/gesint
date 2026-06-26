@@ -1,10 +1,11 @@
 "use client";
+import clsx from "clsx";
 import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 import { useEffect, useRef } from "react";
+
 import { Button } from "@/shared/components/ui/Button";
 import { useSystemAlertStore } from "@/shared/system-alert/system-alert.store";
 import type { SystemAlertVariant } from "@/shared/system-alert/system-alert.types";
-import clsx from "clsx";
 
 const VARIANT_META: Record<SystemAlertVariant, { icon: typeof Info; bannerClass: string; iconClass: string }> = {
     warning: {

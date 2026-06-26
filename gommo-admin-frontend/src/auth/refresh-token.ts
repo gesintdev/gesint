@@ -1,4 +1,5 @@
 import type { JWT } from "next-auth/jwt";
+
 import { doRequest } from "@/shared/lib/api.client";
 /** Renova o access token ~60s antes de expirar */
 export const ACCESS_TOKEN_REFRESH_BUFFER_MS = 60_000;

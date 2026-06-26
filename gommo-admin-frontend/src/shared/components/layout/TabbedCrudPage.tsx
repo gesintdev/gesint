@@ -1,6 +1,7 @@
 "use client";
 
 import {useMemo} from "react";
+
 import {
     CRUD_TAB_FORM,
     CRUD_TAB_LIST,
@@ -8,10 +9,10 @@ import {
     type CrudScreenProps,
 } from "@/shared/components/crud/CrudScreen";
 import {CrudPageCard, CrudPageLayout} from "@/shared/components/layout/CrudPageLayout";
-import {TabbedCrudConfigProvider, type TabbedCrudConfig} from "@/shared/workspace/TabbedCrudConfigContext";
-import {useWorkspaceTab} from "@/shared/workspace/WorkspaceTabContext";
+import {type TabbedCrudConfig,TabbedCrudConfigProvider} from "@/shared/workspace/TabbedCrudConfigContext";
 import type {WorkspaceEntityKey} from "@/shared/workspace/workspace-tab-id";
 import {isModuleListTab} from "@/shared/workspace/workspace-tab-id";
+import {useWorkspaceTab} from "@/shared/workspace/WorkspaceTabContext";
 
 export type TabbedCrudPageProps<TEntity extends object> = Omit<
     CrudScreenProps,

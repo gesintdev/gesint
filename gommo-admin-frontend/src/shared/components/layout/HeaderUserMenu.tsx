@@ -5,6 +5,7 @@ import {AnimatePresence, motion} from "framer-motion";
 import {ChevronDown, LogOut, Settings} from "lucide-react";
 import {signOut, useSession} from "next-auth/react";
 import {useEffect, useRef, useState} from "react";
+
 import {userInitials} from "@/shared/lib/user-display";
 
 function UserIdentity({

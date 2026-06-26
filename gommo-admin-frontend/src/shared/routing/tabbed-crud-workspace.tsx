@@ -1,9 +1,10 @@
 "use client";
 
-import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
+import { type ComponentType, lazy, type ReactNode,Suspense } from "react";
+
 import { TabbedCrudPage } from "@/shared/components/layout/TabbedCrudPage";
-import type { TabbedCrudRouteConfig } from "@/shared/routing/tabbed-crud-route.types";
 import { resolveLazyComponent } from "@/shared/routing/resolve-lazy-component";
+import type { TabbedCrudRouteConfig } from "@/shared/routing/tabbed-crud-route.types";
 
 function toLazy(loader: TabbedCrudRouteConfig["list"]) {
     return lazy(() => resolveLazyComponent(loader).then((defaultExport) => ({ default: defaultExport })));

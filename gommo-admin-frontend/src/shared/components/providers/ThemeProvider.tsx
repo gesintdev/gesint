@@ -1,7 +1,7 @@
 "use client";
 
-import {ThemeProvider as NextThemesProvider} from "next-themes";
 import type {ThemeProviderProps} from "next-themes";
+import {ThemeProvider as NextThemesProvider} from "next-themes";
 
 const GOMMO_THEME_PROPS = {
     attribute: "data-theme" as const,

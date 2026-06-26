@@ -1,6 +1,7 @@
-import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+
+import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import { apiFetch, setAuthToken } from "@/shared/lib/api.client";
 class TokenResponse {
     accessToken!: string;

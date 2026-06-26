@@ -1,13 +1,14 @@
+import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { type MouseEvent,useEffect, useMemo, useRef, useState } from "react";
+
 import { APP_ROUTES, type AppRoute, flattenRoutes, NAV_SECTIONS } from "@/config/routes";
-import { SidebarFlyout } from "@/shared/components/layout/SidebarFlyout";
-import { SidebarCollapseTrigger } from "@/shared/components/layout/SidebarCollapseTrigger";
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
+import { SidebarCollapseTrigger } from "@/shared/components/layout/SidebarCollapseTrigger";
+import { SidebarFlyout } from "@/shared/components/layout/SidebarFlyout";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
-import clsx from "clsx";
 
 type SidebarProps = {
     collapsed: boolean;

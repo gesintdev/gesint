@@ -1,12 +1,13 @@
 "use client";
 import { Bell, Command, Menu, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
+import { type ReactNode,Suspense, useCallback, useEffect, useState } from "react";
+
 import { HeaderUserMenu } from "@/shared/components/layout/HeaderUserMenu";
 import { Sidebar } from "@/shared/components/layout/Sidebar";
 import { ThemeToggle } from "@/shared/components/layout/ThemeToggle";
-import { WorkspaceNavigationProvider } from "@/shared/workspace/WorkspaceNavigationProvider";
 import { setAuthToken } from "@/shared/lib/api.client";
+import { WorkspaceNavigationProvider } from "@/shared/workspace/WorkspaceNavigationProvider";
 
 export function SystemShell({ children }: { children: ReactNode }) {
     const [collapsed, setCollapsed] = useState(false);

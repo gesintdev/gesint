@@ -1,9 +1,10 @@
 "use client";
-import type { MouseEvent, ReactNode } from "react";
-import { badgeClassForStatus, formatCellValue } from "@/shared/lib/table/format-cell-value";
-import { TableDataType, type TableColumnConfig } from "@/shared/types/table.types";
 import clsx from "clsx";
 import get from "lodash/get";
+import type { MouseEvent, ReactNode } from "react";
+
+import { badgeClassForStatus, formatCellValue } from "@/shared/lib/table/format-cell-value";
+import { type TableColumnConfig,TableDataType } from "@/shared/types/table.types";
 
 export type DataTableRowActivateOn = "click" | "doubleclick";
 

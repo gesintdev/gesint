@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
+
 import { normalizeMonthIso } from "@/shared/lib/input/date";
 
 const MONTH_LABELS = [
