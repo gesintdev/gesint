@@ -1,0 +1,25 @@
+# Normaliza fim de linha em todo o repositorio.
+# LF tanto no repositorio quanto no working tree — sobrepoe core.autocrlf,
+# garantindo que prettier (endOfLine: "lf") e spotless passem em qualquer SO.
+* text=auto eol=lf
+
+# Arquivos do Windows que precisam de CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Maven wrapper (shell) sempre em LF
+mvnw text eol=lf
+
+# Binarios: nunca normalizar fim de linha nem gerar diff textual
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.jar binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

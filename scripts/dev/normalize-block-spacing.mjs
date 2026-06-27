@@ -48,16 +48,18 @@ function stripIncorrectBlanks(sourceText) {
                 nextTrim.startsWith("case ") ||
                 nextTrim.startsWith("default"));
 
-        const keepAfterImports =
-            (prevTrim.startsWith("import ") || prevTrim.includes("} from ")) &&
-            nextIndent === 0 &&
-            (nextTrim.startsWith("const ") ||
-                nextTrim.startsWith("export ") ||
-                nextTrim.startsWith("type ") ||
-                nextTrim.startsWith("interface ") ||
-                nextTrim.startsWith('"use '));
+        const prevIsImport = prevTrim.startsWith("import ") || prevTrim.includes("} from ");
+        const prevIsDirective = prevTrim.startsWith('"use ') || prevTrim.startsWith("'use ");
+        const nextIsImport = nextTrim.startsWith("import ");
 
-        if (keepAfterBrace || keepAfterImports) {
+        // Preserva a linha em branco que separa o bloco de imports do entorno:
+        // diretiva ("use client") -> imports, e ultimo import -> primeira declaracao.
+        const keepImportBoundary =
+            nextIndent === 0 &&
+            nextTrim !== "" &&
+            ((prevIsImport && !nextIsImport) || (prevIsDirective && nextIsImport));
+
+        if (keepAfterBrace || keepImportBoundary) {
             out.push("");
         }
     }
@@ -138,6 +140,15 @@ function collectSpacingEdits(statements, sourceFile, sourceText) {
         const curr = groups[i][0];
         const prevEnd = prev.getEnd();
         const currStart = curr.getStart();
+
+        // Seguranca: nunca editar um intervalo que contenha outra instrucao (ex.:
+        // imports, que sao ignorados ao montar os grupos). Sem isso, o slice entre
+        // dois grupos nao adjacentes engole o codigo intermediario — apagando imports.
+        const spansOtherStatement = statements.some(
+            (stmt) => stmt !== prev && stmt !== curr && stmt.getStart() >= prevEnd && stmt.getEnd() <= currStart,
+        );
+        if (spansOtherStatement) continue;
+
         const between = sourceText.slice(prevEnd, currStart);
 
         if (!between.includes("\n\n")) {
