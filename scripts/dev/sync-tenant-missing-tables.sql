@@ -28,6 +28,7 @@ DECLARE
         'system_notification',
         'offboarding',
         'exit_interview',
+        'exit_interview_return_checklist_item',
         'performance_review',
         'payroll_run',
         'payroll_event',
@@ -68,6 +69,28 @@ BEGIN
                 RAISE NOTICE 'Created %.%', tenant_record.schema_name, tbl;
             END IF;
         END LOOP;
+
+        IF EXISTS (
+            SELECT 1 FROM information_schema.tables
+            WHERE table_schema = tenant_record.schema_name
+              AND table_name = 'exit_interview_return_checklist_item'
+        ) THEN
+            EXECUTE format($sql$
+                INSERT INTO %I.exit_interview_return_checklist_item (
+                    id, status, item_key, description, display_order, code, created_at
+                )
+                SELECT p.id, p.status, p.item_key, p.description, p.display_order, p.code, now()
+                FROM public.exit_interview_return_checklist_item p
+                WHERE p.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM %I.exit_interview_return_checklist_item t
+                      WHERE LOWER(t.item_key) = LOWER(p.item_key)
+                        AND t.status <> 'DELETED'
+                  )
+                ON CONFLICT (id) DO NOTHING
+            $sql$, tenant_record.schema_name, tenant_record.schema_name);
+        END IF;
     END LOOP;
 END
 $sync$;

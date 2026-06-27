@@ -10,6 +10,7 @@ type CollaboratorPickerFieldProps = {
     onValueChange: (collaboratorId: string) => void;
     required?: boolean;
     error?: string;
+    disabled?: boolean;
     wrapperClassName?: string;
 };
 
@@ -20,6 +21,7 @@ export function CollaboratorPickerField({
     onValueChange,
     required,
     error,
+    disabled,
     wrapperClassName,
 }: CollaboratorPickerFieldProps) {
     const [selectedLabel, setSelectedLabel] = useState("");
@@ -64,6 +66,8 @@ export function CollaboratorPickerField({
             autoComplete="off"
             required={required}
             error={error}
+            disabled={disabled}
+            labelFor={false}
             wrapperClassName={wrapperClassName}
         />
     );

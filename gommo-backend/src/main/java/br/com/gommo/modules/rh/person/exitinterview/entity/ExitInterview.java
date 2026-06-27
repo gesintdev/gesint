@@ -66,8 +66,14 @@ public class ExitInterview extends AuditEntity {
     @Column(name = "job_position_name", length = 160)
     private String jobPositionName;
 
+    @Column(name = "job_position_id")
+    private UUID jobPositionId;
+
     @Column(name = "department_name", length = 160)
     private String departmentName;
+
+    @Column(name = "department_id")
+    private UUID departmentId;
 
     @Column(name = "company_name", length = 200)
     private String companyName;

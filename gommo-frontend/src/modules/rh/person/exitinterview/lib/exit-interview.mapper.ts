@@ -13,7 +13,10 @@ import {
 
 function cloneRatings(values?: ExitInterviewRatingDto[]): ExitInterviewRatingDto[] {
     const current = new Map((values ?? []).map((item) => [item.key, item]));
-    return DEFAULT_RATINGS.map((item) => ({ ...item, ...(current.get(item.key) ?? {}) }));
+    return DEFAULT_RATINGS.map((item) => {
+        const saved = current.get(item.key);
+        return { ...item, ...(saved ?? {}), score: saved?.score ?? item.score ?? 1 };
+    });
 }
 
 function cloneAnswers(values?: ExitInterviewAnswerDto[]): ExitInterviewAnswerDto[] {
@@ -38,7 +41,9 @@ export function exitinterviewToFormDto(entity: ExitInterview): ExitInterviewCrea
         collaboratorName: entity.collaboratorName ?? "",
         registrationNumber: entity.registrationNumber ?? "",
         jobPositionName: entity.jobPositionName ?? "",
+        jobPositionId: entity.jobPositionId ?? "",
         departmentName: entity.departmentName ?? "",
+        departmentId: entity.departmentId ?? "",
         companyName: entity.companyName ?? "",
         managerName: entity.managerName ?? "",
         admissionOrContractStartDate: entity.admissionOrContractStartDate?.slice(0, 10) ?? "",
@@ -71,7 +76,9 @@ export const emptyExitInterviewForm = (): ExitInterviewCreateDto => ({
     collaboratorName: "",
     registrationNumber: "",
     jobPositionName: "",
+    jobPositionId: "",
     departmentName: "",
+    departmentId: "",
     companyName: "",
     managerName: "",
     admissionOrContractStartDate: "",

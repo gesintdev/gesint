@@ -108,17 +108,17 @@ export const EXIT_INTERVIEW_DOCUMENT_TYPE_ITEMS: SelectItem[] = [
 ];
 
 export const DEFAULT_RATINGS: ExitInterviewRatingDto[] = [
-    { key: "work_environment", label: "Ambiente de trabalho", score: null },
-    { key: "communication", label: "Comunicacao", score: null },
-    { key: "compensation", label: "Remuneracao", score: null },
-    { key: "benefits", label: "Beneficios", score: null },
-    { key: "tools", label: "Equipamentos/ferramentas", score: null },
-    { key: "development", label: "Desenvolvimento profissional", score: null },
-    { key: "recognition", label: "Reconhecimento", score: null },
-    { key: "culture", label: "Cultura", score: null },
-    { key: "internal_processes", label: "Processos internos", score: null },
-    { key: "workload", label: "Carga de trabalho", score: null },
-    { key: "team_relationship", label: "Relacionamento com equipe", score: null },
+    { key: "work_environment", label: "Ambiente de trabalho", score: 1 },
+    { key: "communication", label: "Comunicacao", score: 1 },
+    { key: "compensation", label: "Remuneracao", score: 1 },
+    { key: "benefits", label: "Beneficios", score: 1 },
+    { key: "tools", label: "Equipamentos/ferramentas", score: 1 },
+    { key: "development", label: "Desenvolvimento profissional", score: 1 },
+    { key: "recognition", label: "Reconhecimento", score: 1 },
+    { key: "culture", label: "Cultura", score: 1 },
+    { key: "internal_processes", label: "Processos internos", score: 1 },
+    { key: "workload", label: "Carga de trabalho", score: 1 },
+    { key: "team_relationship", label: "Relacionamento com equipe", score: 1 },
 ];
 
 export const DEFAULT_OPEN_ANSWERS: ExitInterviewAnswerDto[] = [

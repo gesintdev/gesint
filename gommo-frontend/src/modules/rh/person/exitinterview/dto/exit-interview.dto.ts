@@ -1,4 +1,4 @@
-export type ExitInterviewStatus = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELED";
+﻿export type ExitInterviewStatus = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELED";
 export type ExitInterviewRelationshipType = "CLT" | "PJ";
 export type ExitInterviewRehireAnswer = "YES" | "NO" | "MAYBE";
 export type ReturnItemStatus = "PENDING" | "RETURNED" | "NOT_APPLICABLE" | "DAMAGED" | "LOST";
@@ -82,7 +82,9 @@ export class ExitInterview {
     collaboratorName?: string;
     registrationNumber?: string;
     jobPositionName?: string;
+    jobPositionId?: string;
     departmentName?: string;
+    departmentId?: string;
     companyName?: string;
     managerName?: string;
     admissionOrContractStartDate?: string;
@@ -120,7 +122,9 @@ export class ExitInterviewCreateDto {
     collaboratorName?: string;
     registrationNumber?: string;
     jobPositionName?: string;
+    jobPositionId?: string;
     departmentName?: string;
+    departmentId?: string;
     companyName?: string;
     managerName?: string;
     admissionOrContractStartDate?: string;

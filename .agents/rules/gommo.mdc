@@ -81,6 +81,10 @@ Novos módulos devem seguir o mesmo caminho do menu lateral. Exemplo: se a sideb
 - Rotas e menus em arquivos `.routes.ts` tipados; não hardcoded em JSX.
 - Workspace por abas via `tabbedCrudRoute`, registry e componentes lazy.
 - Listas usam `QueryTablePanel`/`DataTable`; forms usam `CrudFormShell`, `FormSection` e inputs compartilhados.
+- Campos de selecao devem reutilizar os componentes existentes do sistema:
+  - escolha simples: `InputSelect`
+  - busca/autocomplete: `InputSelectAutocomplete` ou `InputAutocomplete`
+  - nao usar `<select>` nativo nem criar novo componente quando ja existir equivalente compartilhado
 - Sidebar esquerda com expand/retract, busca, flyout no modo retraído.
 - Login em layout próprio; dark mode com `next-themes`.
 - Inputs com foco por borda/ring suave; sem outline bruto.

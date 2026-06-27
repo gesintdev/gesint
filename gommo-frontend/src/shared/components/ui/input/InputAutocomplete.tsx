@@ -40,6 +40,7 @@ export function InputAutocomplete({
     error,
     required,
     disabled,
+    labelFor,
     id: idProp,
     wrapperClassName,
     className,
@@ -162,6 +163,7 @@ export function InputAutocomplete({
             error={error}
             required={required}
             disabled={disabled}
+            labelFor={labelFor}
             id={id}
             wrapperClassName={wrapperClassName}
         >

@@ -27,6 +27,7 @@ public final class TenantSchemaTableCatalog {
             "system_notification",
             "offboarding",
             "exit_interview",
+            "exit_interview_return_checklist_item",
             "performance_review",
             "payroll_run",
             "payroll_event",

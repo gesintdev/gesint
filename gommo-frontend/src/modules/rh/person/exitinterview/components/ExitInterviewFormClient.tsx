@@ -4,6 +4,13 @@ import clsx from "clsx";
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import type { ExitInterviewReturnChecklistConfig } from "@/modules/cfg/settings/exitinterviewchecklist/dto/exit-interview-return-checklist-config.dto";
+import { exitInterviewReturnChecklistConfigKeys } from "@/modules/cfg/settings/exitinterviewchecklist/exitinterviewchecklist.query";
+import { exitInterviewReturnChecklistConfigService } from "@/modules/cfg/settings/exitinterviewchecklist/services/exit-interview-return-checklist-config.service";
+import { DepartmentPickerField } from "@/modules/dp/organization/department/components/DepartmentPickerField";
+import { departmentService } from "@/modules/dp/organization/department/services/department.service";
+import { JobPositionPickerField } from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
+import { jobpositionService } from "@/modules/dp/organization/jobposition/services/jobposition.service";
 import type {
     ExitInterviewCreateDto,
     ExitInterviewReason,
@@ -14,6 +21,7 @@ import type {
 } from "@/modules/rh/person/exitinterview/dto/exit-interview.dto";
 import { EXITINTERVIEW_CLIENT_MESSAGES } from "@/modules/rh/person/exitinterview/exceptions/exit-interview.messages";
 import { exitinterviewKeys } from "@/modules/rh/person/exitinterview/exitinterview.query";
+import { loadCollaboratorExitInterviewContext } from "@/modules/rh/person/exitinterview/lib/collaborator-exit-interview-context";
 import {
     emptyExitInterviewForm,
     exitinterviewToFormDto,
@@ -52,10 +60,10 @@ const EXIT_INTERVIEW_ENTITY_TYPE = "exit_interview";
 const FORM_STEPS: FormStepNavItem[] = [
     { id: "dados", label: "Dados" },
     { id: "motivos", label: "Motivos" },
-    { id: "avaliacao", label: "Avaliacao" },
+    { id: "avaliacao", label: "Avaliação" },
     { id: "perguntas", label: "Perguntas" },
-    { id: "recontratacao", label: "Recontratacao" },
-    { id: "devolucoes", label: "Devolucoes" },
+    { id: "recontratacao", label: "Recontratação" },
+    { id: "devolucoes", label: "Devoluções" },
     { id: "documentos", label: "Documentos" },
 ];
 
@@ -86,6 +94,44 @@ function TextAreaField({ label, value, onValueChange, wrapperClassName, placehol
     );
 }
 
+type RatingFieldProps = {
+    label: string;
+    name: string;
+    value?: number | null;
+    onValueChange: (_value: number) => void;
+    disabled?: boolean;
+    wrapperClassName?: string;
+};
+
+function RatingField({ label, name, value, onValueChange, disabled, wrapperClassName }: RatingFieldProps) {
+    const ratingValue = value ?? 1;
+    return (
+        <div className={clsx("grid gap-2 rounded-lg border border-base-300/60 bg-base-100 px-3 py-3", wrapperClassName)}>
+            <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-base-content">{label}</span>
+                <span className="text-xs font-medium text-base-content/55">{ratingValue}/5</span>
+            </div>
+            <div className={clsx("rating rating-sm", disabled && "opacity-60")}>
+                {Array.from({ length: 5 }, (_, index) => {
+                    const score = index + 1;
+                    return (
+                        <input
+                            key={score}
+                            type="radio"
+                            name={name}
+                            className="mask mask-star-2 bg-orange-400"
+                            aria-label={`${score} estrela${score > 1 ? "s" : ""}`}
+                            checked={ratingValue === score}
+                            disabled={disabled}
+                            onChange={() => onValueChange(score)}
+                        />
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 function inclusiveTenureDays(startDate?: string, endDate?: string) {
     if (!startDate || !endDate || endDate < startDate) return undefined;
     const start = new Date(`${startDate}T00:00:00`);
@@ -99,11 +145,27 @@ function trimEmpty<T extends Record<string, unknown>>(payload: T): T {
     ) as T;
 }
 
+function configuredChecklistToReturnItems(
+    items?: ExitInterviewReturnChecklistConfig[],
+): ExitInterviewReturnChecklistItemDto[] {
+    return (items ?? []).map((item) => ({
+        key: item.itemKey,
+        description: item.description,
+        status: "PENDING" as const,
+        returnedAt: "",
+        notes: "",
+    }));
+}
+
 function toPayload(form: ExitInterviewCreateDto): ExitInterviewCreateDto {
     const tenureDays = inclusiveTenureDays(form.admissionOrContractStartDate, form.terminationOrContractEndDate);
     return trimEmpty({
         ...form,
+        registrationNumber: undefined,
+        companyName: undefined,
+        managerName: undefined,
         tenureDays,
+        ratings: form.ratings.map((item) => ({ ...item, score: item.score ?? 1 })),
         returnChecklist: form.returnChecklist.map((item) => ({
             ...item,
             returnedAt: item.returnedAt || undefined,
@@ -114,6 +176,16 @@ function toPayload(form: ExitInterviewCreateDto): ExitInterviewCreateDto {
             answer: item.answer || undefined,
         })),
     });
+}
+
+function validateBeforeSave(form: ExitInterviewCreateDto): string | null {
+    if (!form.collaboratorId?.trim()) return "Selecione o colaborador antes de salvar.";
+    if (!form.interviewDate) return "Informe a data da entrevista antes de salvar.";
+    if (!form.relationshipType) return "Selecione o tipo de vínculo antes de salvar.";
+    if (form.terminationType && !form.terminationType.startsWith(`${form.relationshipType}_`)) {
+        return "O tipo de desligamento selecionado não é compatível com o vínculo informado.";
+    }
+    return null;
 }
 
 export function ExitInterviewFormClient() {
@@ -134,11 +206,20 @@ export function ExitInterviewFormClient() {
         queryFn: () => storageService.listLinks(EXIT_INTERVIEW_ENTITY_TYPE, editingId!),
         enabled: Boolean(editingId),
     });
+    const returnChecklistConfigQuery = useQuery({
+        queryKey: exitInterviewReturnChecklistConfigKeys.all,
+        queryFn: () => exitInterviewReturnChecklistConfigService.getAll(),
+    });
     const clearPendingAttachments = useCallback(() => setPendingAttachments([]), []);
 
     useEffect(() => {
         if (!isEditing) {
-            setForm(emptyExitInterviewForm());
+            const next = emptyExitInterviewForm();
+            const configuredChecklist = configuredChecklistToReturnItems(returnChecklistConfigQuery.data);
+            if (configuredChecklist.length > 0) {
+                next.returnChecklist = configuredChecklist;
+            }
+            setForm(next);
             setError(null);
             setCancelReason("");
             clearPendingAttachments();
@@ -151,7 +232,7 @@ export function ExitInterviewFormClient() {
             setCancelReason(detailQuery.data.cancelReason ?? "");
             clearPendingAttachments();
         }
-    }, [isEditing, detailQuery.data, clearPendingAttachments]);
+    }, [isEditing, detailQuery.data, clearPendingAttachments, returnChecklistConfigQuery.data]);
 
     const isFinal = detailQuery.data?.interviewStatus === "COMPLETED" || detailQuery.data?.interviewStatus === "CANCELED";
     const terminationItems = form.relationshipType === "PJ" ? PJ_TERMINATION_ITEMS : CLT_TERMINATION_ITEMS;
@@ -240,7 +321,91 @@ export function ExitInterviewFormClient() {
         });
     };
 
-    const updateRating = (key: string, score: number | null) => {
+    const handleCollaboratorChange = useCallback((collaboratorId: string) => {
+        if (!collaboratorId) {
+            setForm((prev) => ({
+                ...prev,
+                collaboratorId: "",
+                collaboratorName: "",
+                departmentId: "",
+                departmentName: "",
+                jobPositionId: "",
+                jobPositionName: "",
+                admissionOrContractStartDate: "",
+                tenureDays: inclusiveTenureDays("", prev.terminationOrContractEndDate),
+            }));
+            return;
+        }
+
+        setForm((prev) => ({ ...prev, collaboratorId }));
+        void loadCollaboratorExitInterviewContext(collaboratorId)
+            .then((ctx) => {
+                setForm((prev) => {
+                    if (prev.collaboratorId !== collaboratorId) return prev;
+                    const admissionOrContractStartDate =
+                        ctx.admissionOrContractStartDate ?? prev.admissionOrContractStartDate;
+                    const terminationOrContractEndDate =
+                        ctx.terminationOrContractEndDate ?? prev.terminationOrContractEndDate;
+                    return {
+                        ...prev,
+                        collaboratorId,
+                        collaboratorName: ctx.collaboratorName ?? prev.collaboratorName,
+                        relationshipType: ctx.relationshipType ?? prev.relationshipType,
+                        departmentId: ctx.departmentId ?? "",
+                        departmentName: ctx.departmentName ?? "",
+                        jobPositionId: ctx.jobPositionId ?? "",
+                        jobPositionName: ctx.jobPositionName ?? "",
+                        admissionOrContractStartDate,
+                        terminationOrContractEndDate,
+                        tenureDays: inclusiveTenureDays(admissionOrContractStartDate, terminationOrContractEndDate),
+                    };
+                });
+            })
+            .catch(() => undefined);
+    }, []);
+
+    const handleDepartmentChange = useCallback((departmentId: string) => {
+        setForm((prev) => ({
+            ...prev,
+            departmentId,
+            departmentName: "",
+            jobPositionId: "",
+            jobPositionName: "",
+        }));
+        if (!departmentId) return;
+        void departmentService
+            .getById(departmentId)
+            .then((department) => {
+                setForm((prev) =>
+                    prev.departmentId === departmentId ? { ...prev, departmentName: department.name } : prev,
+                );
+            })
+            .catch(() => undefined);
+    }, []);
+
+    const handleJobPositionChange = useCallback((jobPositionId: string) => {
+        setForm((prev) => ({ ...prev, jobPositionId, jobPositionName: "" }));
+        if (!jobPositionId) return;
+        void jobpositionService
+            .getById(jobPositionId)
+            .then(async (jobPosition) => {
+                const department = jobPosition.departmentId
+                    ? await departmentService.getById(jobPosition.departmentId).catch(() => null)
+                    : null;
+                setForm((prev) => {
+                    if (prev.jobPositionId !== jobPositionId) return prev;
+                    const departmentId = prev.departmentId || jobPosition.departmentId || "";
+                    return {
+                        ...prev,
+                        jobPositionName: jobPosition.title,
+                        departmentId,
+                        departmentName: department?.name ?? prev.departmentName,
+                    };
+                });
+            })
+            .catch(() => undefined);
+    }, []);
+    const updateRating = (key: string, score: number) => {
         setForm((prev) => ({
             ...prev,
             ratings: prev.ratings.map((item) => (item.key === key ? { ...item, score } : item)),
@@ -279,6 +444,12 @@ export function ExitInterviewFormClient() {
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
+        const validationMessage = validateBeforeSave(form);
+        if (validationMessage) {
+            setError(validationMessage);
+            toast.error(validationMessage);
+            return;
+        }
         saveMutation.mutate(form);
     };
 
@@ -332,7 +503,7 @@ export function ExitInterviewFormClient() {
         if (sectionHasChanges(form, emptyDefaults, ["mainReason", "secondaryReasons", "detailedReason"])) {
             filled.push("motivos");
         }
-        if (form.ratings.some((item) => item.score != null)) filled.push("avaliacao");
+        if (form.ratings.some((item) => (item.score ?? 1) !== 1)) filled.push("avaliacao");
         if (form.openAnswers.some((item) => item.answer?.trim())) filled.push("perguntas");
         if (sectionHasChanges(form, emptyDefaults, ["wouldReturn", "companyWouldRehire", "rehireNotes"])) {
             filled.push("recontratacao");
@@ -421,16 +592,16 @@ export function ExitInterviewFormClient() {
                 </>
             }
         >
-            <FormSection id="dados" title="Dados basicos">
-                <div className="sm:col-span-6">
-                    <CollaboratorPickerField
-                        value={form.collaboratorId ?? ""}
-                        onValueChange={(v) => update("collaboratorId", v)}
-                        required
-                    />
-                </div>
+            <FormSection id="dados" title="Dados básicos">
+                <CollaboratorPickerField
+                    value={form.collaboratorId ?? ""}
+                    onValueChange={handleCollaboratorChange}
+                    wrapperClassName="sm:col-span-6"
+                    required
+                    disabled={isFinal}
+                />
                 <InputSelect
-                    label="Tipo de vinculo"
+                    label="Tipo de vínculo"
                     items={RELATIONSHIP_TYPE_ITEMS}
                     value={form.relationshipType}
                     onValueChange={(v) => update("relationshipType", v as ExitInterviewRelationshipType)}
@@ -455,50 +626,21 @@ export function ExitInterviewFormClient() {
                     required
                     disabled={isFinal}
                 />
-                <InputString
-                    label={form.relationshipType === "PJ" ? "Prestador" : "Colaborador"}
-                    value={form.collaboratorName ?? ""}
-                    onValueChange={(v) => update("collaboratorName", v)}
+                <DepartmentPickerField
+                    value={form.departmentId ?? ""}
+                    onValueChange={handleDepartmentChange}
+                    wrapperClassName="sm:col-span-4"
+                    disabled={isFinal}
+                />
+                <JobPositionPickerField
+                    value={form.jobPositionId ?? ""}
+                    departmentId={form.departmentId}
+                    onValueChange={handleJobPositionChange}
                     wrapperClassName="sm:col-span-4"
                     disabled={isFinal}
                 />
                 <InputString
-                    label="Matricula"
-                    value={form.registrationNumber ?? ""}
-                    onValueChange={(v) => update("registrationNumber", v)}
-                    wrapperClassName="sm:col-span-2"
-                    disabled={isFinal}
-                />
-                <InputString
-                    label="Cargo/funcao"
-                    value={form.jobPositionName ?? ""}
-                    onValueChange={(v) => update("jobPositionName", v)}
-                    wrapperClassName="sm:col-span-3"
-                    disabled={isFinal}
-                />
-                <InputString
-                    label="Departamento/setor"
-                    value={form.departmentName ?? ""}
-                    onValueChange={(v) => update("departmentName", v)}
-                    wrapperClassName="sm:col-span-3"
-                    disabled={isFinal}
-                />
-                <InputString
-                    label="Empresa/unidade"
-                    value={form.companyName ?? ""}
-                    onValueChange={(v) => update("companyName", v)}
-                    wrapperClassName="sm:col-span-4"
-                    disabled={isFinal}
-                />
-                <InputString
-                    label="Gestor/responsavel"
-                    value={form.managerName ?? ""}
-                    onValueChange={(v) => update("managerName", v)}
-                    wrapperClassName="sm:col-span-4"
-                    disabled={isFinal}
-                />
-                <InputString
-                    label="Responsavel pela entrevista"
+                    label="Responsável pela entrevista"
                     value={form.interviewerName ?? ""}
                     onValueChange={(v) => update("interviewerName", v)}
                     wrapperClassName="sm:col-span-4"
@@ -506,7 +648,7 @@ export function ExitInterviewFormClient() {
                     disabled={isFinal}
                 />
                 <InputDate
-                    label={form.relationshipType === "PJ" ? "Inicio do contrato" : "Data de admissao"}
+                    label={form.relationshipType === "PJ" ? "Início do contrato" : "Data de admissão"}
                     value={form.admissionOrContractStartDate ?? ""}
                     onValueChange={(v) => update("admissionOrContractStartDate", v)}
                     wrapperClassName="sm:col-span-3"
@@ -521,7 +663,11 @@ export function ExitInterviewFormClient() {
                 />
                 <InputNumber
                     label="Tempo em dias"
-                    value={form.tenureDays ?? inclusiveTenureDays(form.admissionOrContractStartDate, form.terminationOrContractEndDate) ?? null}
+                    value={
+                        form.tenureDays ??
+                        inclusiveTenureDays(form.admissionOrContractStartDate, form.terminationOrContractEndDate) ??
+                        null
+                    }
                     onValueChange={(v) => update("tenureDays", v ?? undefined)}
                     wrapperClassName="sm:col-span-2"
                     integer
@@ -557,11 +703,17 @@ export function ExitInterviewFormClient() {
                     wrapperClassName="sm:col-span-8"
                     disabled={isFinal}
                 />
-                <div className="sm:col-span-12">
-                    <span className="gommo-label">Motivos secundarios</span>
+                <section className="sm:col-span-12 rounded-lg border border-base-300/70 bg-base-100 p-4 shadow-sm">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <h4 className="text-sm font-semibold text-base-content">Motivos secundários</h4>
+                        <span className="text-xs text-base-content/55">{form.secondaryReasons.length} selecionado(s)</span>
+                    </div>
                     <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
                         {EXIT_REASON_ITEMS.map((item) => (
-                            <label key={item.value} className="flex items-center gap-2 text-sm text-base-content/75">
+                            <label
+                                key={item.value}
+                                className="flex min-h-9 items-center gap-2 rounded-lg border border-base-300/50 bg-base-200/20 px-3 py-2 text-sm text-base-content/75 transition-colors hover:bg-base-200/40"
+                            >
                                 <input
                                     type="checkbox"
                                     className="checkbox checkbox-xs"
@@ -573,7 +725,7 @@ export function ExitInterviewFormClient() {
                             </label>
                         ))}
                     </div>
-                </div>
+                </section>
                 <TextAreaField
                     label="Descricao detalhada"
                     value={form.detailedReason ?? ""}
@@ -583,15 +735,15 @@ export function ExitInterviewFormClient() {
                 />
             </FormSection>
 
-            <FormSection id="avaliacao" title="Avaliacao da empresa">
+            <FormSection id="avaliacao" title="Avaliação da empresa">
                 {form.ratings.map((item) => (
-                    <InputNumber
+                    <RatingField
                         key={item.key}
                         label={item.label}
-                        value={item.score ?? null}
-                        onValueChange={(v) => updateRating(item.key, v)}
-                        wrapperClassName="sm:col-span-3"
-                        integer
+                        name={`exit-interview-rating-${item.key}`}
+                        value={item.score}
+                        onValueChange={(value) => updateRating(item.key, value)}
+                        wrapperClassName="sm:col-span-4 xl:col-span-3"
                         disabled={isFinal}
                     />
                 ))}
@@ -610,7 +762,7 @@ export function ExitInterviewFormClient() {
                 ))}
             </FormSection>
 
-            <FormSection id="recontratacao" title="Recontratacao">
+            <FormSection id="recontratacao" title="Recontratação">
                 <InputSelect
                     label={form.relationshipType === "PJ" ? "Prestador aceitaria retornar?" : "Colaborador aceitaria retornar?"}
                     items={REHIRE_ANSWER_ITEMS}
@@ -644,7 +796,7 @@ export function ExitInterviewFormClient() {
                     disabled={isFinal}
                 />
                 <TextAreaField
-                    label="Observacoes sobre recontratacao"
+                    label="Observações sobre recontratação"
                     value={form.rehireNotes ?? ""}
                     onValueChange={(v) => update("rehireNotes", v)}
                     wrapperClassName="sm:col-span-12"
@@ -652,48 +804,77 @@ export function ExitInterviewFormClient() {
                 />
             </FormSection>
 
-            <FormSection id="devolucoes" title="Checklist de devolucoes">
-                <div className="grid gap-3 sm:col-span-12">
-                    {form.returnChecklist.map((item) => (
-                        <div key={item.key} className="grid gap-3 rounded-lg border border-base-300 p-3 sm:grid-cols-12">
-                            <InputString
-                                label="Item"
-                                value={item.description ?? ""}
-                                onValueChange={(v) => updateChecklist(item.key, "description", v)}
-                                wrapperClassName="sm:col-span-3"
-                                disabled={isFinal}
-                            />
-                            <InputSelect
-                                label="Status"
-                                items={RETURN_STATUS_ITEMS}
-                                value={item.status ?? "PENDING"}
-                                onValueChange={(v) => updateChecklist(item.key, "status", v as ReturnItemStatus)}
-                                wrapperClassName="sm:col-span-3"
-                                disabled={isFinal}
-                            />
-                            <InputDate
-                                label="Data da devolucao"
-                                value={item.returnedAt ?? ""}
-                                onValueChange={(v) => updateChecklist(item.key, "returnedAt", v)}
-                                wrapperClassName="sm:col-span-2"
-                                disabled={isFinal}
-                            />
-                            <InputString
-                                label="Observacao"
-                                value={item.notes ?? ""}
-                                onValueChange={(v) => updateChecklist(item.key, "notes", v)}
-                                wrapperClassName="sm:col-span-4"
-                                disabled={isFinal}
-                            />
-                        </div>
-                    ))}
+            <FormSection id="devolucoes" title="Checklist de devoluções" bodyClassName="!block">
+                <div className="overflow-hidden rounded-lg border border-base-300/70 bg-base-100 shadow-sm">
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[760px] text-sm">
+                            <thead className="border-b border-base-300/70 bg-base-200/40 text-left text-xs font-semibold uppercase text-base-content/55">
+                                <tr>
+                                    <th className="px-3 py-2">Item</th>
+                                    <th className="px-3 py-2">Status</th>
+                                    <th className="px-3 py-2">Data da devolução</th>
+                                    <th className="px-3 py-2">Observação</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-base-300/60">
+                                {form.returnChecklist.length === 0 ? (
+                                    <tr>
+                                        <td className="px-3 py-4 text-sm text-base-content/60" colSpan={4}>
+                                            Nenhum item configurado.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    form.returnChecklist.map((item) => (
+                                        <tr key={item.key} className="align-top">
+                                            <td className="px-3 py-2 font-medium text-base-content">
+                                                {item.description}
+                                            </td>
+                                            <td className="px-3 py-2 align-top">
+                                                <InputSelect
+                                                    items={RETURN_STATUS_ITEMS}
+                                                    value={item.status ?? "PENDING"}
+                                                    onValueChange={(value) =>
+                                                        updateChecklist(item.key, "status", value as ReturnItemStatus)
+                                                    }
+                                                    wrapperClassName="min-w-40"
+                                                    disabled={isFinal}
+                                                />
+                                            </td>
+                                            <td className="px-3 py-2 align-top">
+                                                <InputDate
+                                                    value={item.returnedAt ?? ""}
+                                                    onValueChange={(value) => updateChecklist(item.key, "returnedAt", value)}
+                                                    wrapperClassName="min-w-44"
+                                                    disabled={isFinal}
+                                                />
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                <input
+                                                    type="text"
+                                                    className={clsx(
+                                                        "gommo-control h-10 w-full px-3 text-sm",
+                                                        fieldClass(isFinal),
+                                                    )}
+                                                    value={item.notes ?? ""}
+                                                    disabled={isFinal}
+                                                    onChange={(event) =>
+                                                        updateChecklist(item.key, "notes", event.target.value)
+                                                    }
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 {isEditing && !isFinal ? (
                     <InputString
                         label="Motivo do cancelamento"
                         value={cancelReason}
                         onValueChange={setCancelReason}
-                        wrapperClassName="sm:col-span-12"
+                        wrapperClassName="mt-4 sm:col-span-12"
                     />
                 ) : null}
             </FormSection>

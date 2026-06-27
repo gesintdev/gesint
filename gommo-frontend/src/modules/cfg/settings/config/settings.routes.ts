@@ -1,4 +1,4 @@
-import { Bell, Shield, Users } from "lucide-react";
+import { Bell, ClipboardList, Shield, Users } from "lucide-react";
 
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { customWorkspaceRoute, lazyNamed, tabbedCrudRoute } from "@/shared/routing";
@@ -36,4 +36,27 @@ export const settingsRoutes: AppRoute[] = [
         permission: "notification:read",
         load: () => import("@/modules/cfg/settings/notification/components/NotificationSettingsPage"),
     }),
-];
+    tabbedCrudRoute({
+        id: "settings-exit-interview-return-checklist",
+        href: "/settings/exit-interview-return-checklist",
+        label: "Checklist de devoluções",
+        icon: ClipboardList,
+        permission: "exitinterview:read",
+        routeId: "settings-exit-interview-return-checklist",
+        tabShortLabel: "Item de devolução",
+        fieldTabName: "description",
+        list: lazyNamed(
+            () =>
+                import(
+                    "@/modules/cfg/settings/exitinterviewchecklist/components/ExitInterviewReturnChecklistConfigListClient"
+                ),
+            "ExitInterviewReturnChecklistConfigListClient",
+        ),
+        form: lazyNamed(
+            () =>
+                import(
+                    "@/modules/cfg/settings/exitinterviewchecklist/components/ExitInterviewReturnChecklistConfigFormClient"
+                ),
+            "ExitInterviewReturnChecklistConfigFormClient",
+        ),
+    }),];

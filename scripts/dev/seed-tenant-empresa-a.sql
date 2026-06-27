@@ -40,6 +40,7 @@ DECLARE
         'system_notification',
         'offboarding',
         'exit_interview',
+        'exit_interview_return_checklist_item',
         'performance_review',
         'payroll_run',
         'payroll_event',
@@ -306,6 +307,22 @@ BEGIN
         p.incides_inss, p.incides_fgts, p.incides_irrf, p.formula, p.code, now()
     FROM public.payroll_event p
     WHERE p.status <> 'DELETED'
+    ON CONFLICT (id) DO NOTHING;
+
+    -- 8. Checklist padrao da entrevista de desligamento (isolado no schema do tenant)
+    INSERT INTO tenant_empresa_a.exit_interview_return_checklist_item (
+        id, status, item_key, description, display_order, code, created_at
+    )
+    SELECT
+        p.id, p.status, p.item_key, p.description, p.display_order, p.code, now()
+    FROM public.exit_interview_return_checklist_item p
+    WHERE p.status <> 'DELETED'
+      AND NOT EXISTS (
+          SELECT 1
+          FROM tenant_empresa_a.exit_interview_return_checklist_item t
+          WHERE LOWER(t.item_key) = LOWER(p.item_key)
+            AND t.status <> 'DELETED'
+      )
     ON CONFLICT (id) DO NOTHING;
 END;
 $seed$;

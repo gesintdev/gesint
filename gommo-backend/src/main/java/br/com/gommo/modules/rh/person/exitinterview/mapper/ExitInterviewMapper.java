@@ -23,7 +23,9 @@ public class ExitInterviewMapper {
                 .collaboratorName(dto.getCollaboratorName())
                 .registrationNumber(dto.getRegistrationNumber())
                 .jobPositionName(dto.getJobPositionName())
+                .jobPositionId(dto.getJobPositionId())
                 .departmentName(dto.getDepartmentName())
+                .departmentId(dto.getDepartmentId())
                 .companyName(dto.getCompanyName())
                 .managerName(dto.getManagerName())
                 .admissionOrContractStartDate(dto.getAdmissionOrContractStartDate())
@@ -57,7 +59,9 @@ public class ExitInterviewMapper {
         entity.setCollaboratorName(dto.getCollaboratorName());
         entity.setRegistrationNumber(dto.getRegistrationNumber());
         entity.setJobPositionName(dto.getJobPositionName());
+        entity.setJobPositionId(dto.getJobPositionId());
         entity.setDepartmentName(dto.getDepartmentName());
+        entity.setDepartmentId(dto.getDepartmentId());
         entity.setCompanyName(dto.getCompanyName());
         entity.setManagerName(dto.getManagerName());
         entity.setAdmissionOrContractStartDate(dto.getAdmissionOrContractStartDate());
@@ -94,7 +98,9 @@ public class ExitInterviewMapper {
                 .collaboratorName(entity.getCollaboratorName())
                 .registrationNumber(entity.getRegistrationNumber())
                 .jobPositionName(entity.getJobPositionName())
+                .jobPositionId(entity.getJobPositionId())
                 .departmentName(entity.getDepartmentName())
+                .departmentId(entity.getDepartmentId())
                 .companyName(entity.getCompanyName())
                 .managerName(entity.getManagerName())
                 .admissionOrContractStartDate(entity.getAdmissionOrContractStartDate())

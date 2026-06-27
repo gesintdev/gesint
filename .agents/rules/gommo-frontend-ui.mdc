@@ -17,3 +17,4 @@ alwaysApply: false
 - Definição de rotas: `src/config/routes.ts` (tipado `AppRoute`)
 - Login: 2 colunas (brand | form); dark mode toggle global
 - Performance: evitar animações pesadas; preferir CSS transitions leves
+- Selects: reusar sempre os componentes compartilhados do projeto (`InputSelect`, `InputSelectAutocomplete`, `InputAutocomplete`); evitar `<select>` nativo e novos componentes de seleção quando já existir equivalente no design system

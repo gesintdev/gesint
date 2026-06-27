@@ -31,7 +31,9 @@ public class ExitInterviewResponseDto {
     private final String collaboratorName;
     private final String registrationNumber;
     private final String jobPositionName;
+    private final UUID jobPositionId;
     private final String departmentName;
+    private final UUID departmentId;
     private final String companyName;
     private final String managerName;
     private final LocalDate admissionOrContractStartDate;

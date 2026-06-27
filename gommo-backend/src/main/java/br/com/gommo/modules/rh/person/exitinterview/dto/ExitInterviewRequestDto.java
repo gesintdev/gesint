@@ -26,13 +26,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExitInterviewRequestDto {
-    @NotNull
+    @NotNull(message = "Selecione o colaborador.")
     private UUID collaboratorId;
 
-    @NotNull
+    @NotNull(message = "Informe a data da entrevista.")
     private LocalDate interviewDate;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "Motivo resumido deve ter no máximo 255 caracteres.")
     private String departureReason;
 
     private String feedback;
@@ -40,25 +40,29 @@ public class ExitInterviewRequestDto {
 
     private ExitInterviewStatusEnum interviewStatus;
 
-    @NotNull
+    @NotNull(message = "Selecione o tipo de vínculo.")
     private ExitInterviewRelationshipTypeEnum relationshipType;
 
-    @Size(max = 200)
+    @Size(max = 200, message = "Nome do colaborador deve ter no máximo 200 caracteres.")
     private String collaboratorName;
 
-    @Size(max = 60)
+    @Size(max = 60, message = "Matrícula deve ter no máximo 60 caracteres.")
     private String registrationNumber;
 
-    @Size(max = 160)
+    @Size(max = 160, message = "Cargo deve ter no máximo 160 caracteres.")
     private String jobPositionName;
 
-    @Size(max = 160)
+    private UUID jobPositionId;
+
+    @Size(max = 160, message = "Departamento deve ter no máximo 160 caracteres.")
     private String departmentName;
 
-    @Size(max = 200)
+    private UUID departmentId;
+
+    @Size(max = 200, message = "Empresa/unidade deve ter no máximo 200 caracteres.")
     private String companyName;
 
-    @Size(max = 200)
+    @Size(max = 200, message = "Gestor/responsável deve ter no máximo 200 caracteres.")
     private String managerName;
 
     private LocalDate admissionOrContractStartDate;
@@ -66,7 +70,7 @@ public class ExitInterviewRequestDto {
     private Integer tenureDays;
     private ExitInterviewTerminationTypeEnum terminationType;
 
-    @Size(max = 200)
+    @Size(max = 200, message = "Responsável pela entrevista deve ter no máximo 200 caracteres.")
     private String interviewerName;
 
     private ExitInterviewReasonEnum mainReason;
@@ -92,7 +96,7 @@ public class ExitInterviewRequestDto {
     @Builder.Default
     private List<ExitInterviewReturnChecklistItemDto> returnChecklist = new ArrayList<>();
 
-    @Size(max = 100)
+    @Size(max = 100, message = "Modelo da entrevista deve ter no máximo 100 caracteres.")
     private String templateKey;
 
     private Integer templateVersion;

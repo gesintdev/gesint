@@ -1,9 +1,12 @@
 package br.com.gommo.modules.rh.person.exitinterview.service;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +21,9 @@ import br.com.gommo.modules.dp.organization.department.entity.Department;
 import br.com.gommo.modules.dp.organization.department.repository.DepartmentRepository;
 import br.com.gommo.modules.dp.organization.jobposition.entity.JobPosition;
 import br.com.gommo.modules.dp.organization.jobposition.repository.JobPositionRepository;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
@@ -37,6 +43,7 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         implements IExitInterviewService {
     private final ExitInterviewRepository repository;
     private final ExitInterviewMapper mapper;
+    private final AdmissionProcessRepository admissionProcessRepository;
     private final CollaboratorRepository collaboratorRepository;
     private final EmploymentContractRepository contractRepository;
     private final CompanyRepository companyRepository;
@@ -46,6 +53,7 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
     public ExitInterviewService(
             ExitInterviewRepository repository,
             ExitInterviewMapper mapper,
+            AdmissionProcessRepository admissionProcessRepository,
             CollaboratorRepository collaboratorRepository,
             EmploymentContractRepository contractRepository,
             CompanyRepository companyRepository,
@@ -54,6 +62,7 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
+        this.admissionProcessRepository = admissionProcessRepository;
         this.collaboratorRepository = collaboratorRepository;
         this.contractRepository = contractRepository;
         this.companyRepository = companyRepository;
@@ -162,9 +171,7 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         if (entity.getSecondaryReasons() == null) {
             entity.setSecondaryReasons(List.of());
         }
-        if (entity.getRatings() == null) {
-            entity.setRatings(List.of());
-        }
+        normalizeRatings(entity);
         if (entity.getOpenAnswers() == null) {
             entity.setOpenAnswers(List.of());
         }
@@ -177,7 +184,27 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         calculateTenure(entity);
     }
 
+    private void normalizeRatings(ExitInterview entity) {
+        if (entity.getRatings() == null) {
+            entity.setRatings(List.of());
+            return;
+        }
+        entity.setRatings(entity.getRatings().stream()
+                .filter(Objects::nonNull)
+                .map(rating -> {
+                    if (rating.getScore() == null) {
+                        rating.setScore(1);
+                    }
+                    return rating;
+                })
+                .toList());
+    }
+
     private void applySnapshotDefaults(ExitInterview entity) {
+        if (entity.getCollaboratorId() == null) {
+            return;
+        }
+
         collaboratorRepository.findByIdAndStatusNot(entity.getCollaboratorId(), StatusEnum.DELETED).ifPresent(c -> {
             if (isBlank(entity.getCollaboratorName())) {
                 entity.setCollaboratorName(c.getSocialName() != null && !c.getSocialName().isBlank()
@@ -186,9 +213,52 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
             }
         });
 
+        latestCompletedAdmission(entity.getCollaboratorId()).ifPresent(admission -> enrichFromAdmission(entity, admission));
         contractRepository
                 .findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(entity.getCollaboratorId(), StatusEnum.DELETED)
                 .ifPresent(contract -> enrichFromContract(entity, contract));
+        resolveOrganizationSnapshot(entity);
+    }
+
+    private Optional<AdmissionProcess> latestCompletedAdmission(UUID collaboratorId) {
+        return admissionProcessRepository
+                .findByCollaboratorIdAndAdmissionStatusAndStatusNot(
+                        collaboratorId, AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED)
+                .stream()
+                .max(Comparator.comparing((AdmissionProcess admission) -> {
+                    LocalDate date = admissionStartDate(admission);
+                    return date == null ? LocalDate.MIN : date;
+                }).thenComparing(admission -> admission.getCreatedAt() == null ? OffsetDateTime.MIN : admission.getCreatedAt()));
+    }
+
+    private LocalDate admissionStartDate(AdmissionProcess admission) {
+        return admission.getContractStartDate() != null ? admission.getContractStartDate() : admission.getExpectedStartDate();
+    }
+
+    private void enrichFromAdmission(ExitInterview entity, AdmissionProcess admission) {
+        if (admission.getContractType() == ContractTypeEnum.PJ) {
+            entity.setRelationshipType(ExitInterviewRelationshipTypeEnum.PJ);
+        } else if (entity.getRelationshipType() == null) {
+            entity.setRelationshipType(ExitInterviewRelationshipTypeEnum.CLT);
+        }
+        if (entity.getAdmissionOrContractStartDate() == null) {
+            entity.setAdmissionOrContractStartDate(admissionStartDate(admission));
+        }
+        if (entity.getTerminationOrContractEndDate() == null) {
+            entity.setTerminationOrContractEndDate(admission.getContractEndDate());
+        }
+        if (isBlank(entity.getCompanyName()) && admission.getCompanyId() != null) {
+            companyRepository.findByIdAndStatusNot(admission.getCompanyId(), StatusEnum.DELETED).ifPresent(company -> {
+                entity.setCompanyName(!isBlank(company.getTradeName()) ? company.getTradeName() : company.getLegalName());
+            });
+        }
+        if (entity.getDepartmentId() == null) {
+            entity.setDepartmentId(admission.getDepartmentId());
+        }
+        if (entity.getJobPositionId() == null) {
+            entity.setJobPositionId(admission.getJobPositionId());
+        }
+        calculateTenure(entity);
     }
 
     private void enrichFromContract(ExitInterview entity, EmploymentContract contract) {
@@ -216,21 +286,48 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         calculateTenure(entity);
     }
 
+    private void resolveOrganizationSnapshot(ExitInterview entity) {
+        if (entity.getJobPositionId() != null) {
+            jobPositionRepository
+                    .findByIdAndStatusNot(entity.getJobPositionId(), StatusEnum.DELETED)
+                    .ifPresent(job -> enrichFromJobPosition(entity, job));
+            return;
+        }
+        if (entity.getDepartmentId() != null) {
+            departmentRepository
+                    .findByIdAndStatusNot(entity.getDepartmentId(), StatusEnum.DELETED)
+                    .ifPresent(department -> enrichFromDepartment(entity, department));
+        }
+    }
+
     private void enrichFromJobPosition(ExitInterview entity, JobPosition job) {
+        if (entity.getJobPositionId() == null) {
+            entity.setJobPositionId(job.getId());
+        }
         if (isBlank(entity.getJobPositionName())) {
             entity.setJobPositionName(job.getTitle());
         }
         if (job.getDepartmentId() == null) {
             return;
         }
-        departmentRepository.findByIdAndStatusNot(job.getDepartmentId(), StatusEnum.DELETED).ifPresent(department -> {
-            if (isBlank(entity.getDepartmentName())) {
-                entity.setDepartmentName(department.getName());
-            }
-            if (isBlank(entity.getManagerName())) {
-                resolveDepartmentManagerName(department).ifPresent(entity::setManagerName);
-            }
-        });
+        if (entity.getDepartmentId() == null) {
+            entity.setDepartmentId(job.getDepartmentId());
+        }
+        departmentRepository
+                .findByIdAndStatusNot(job.getDepartmentId(), StatusEnum.DELETED)
+                .ifPresent(department -> enrichFromDepartment(entity, department));
+    }
+
+    private void enrichFromDepartment(ExitInterview entity, Department department) {
+        if (entity.getDepartmentId() == null) {
+            entity.setDepartmentId(department.getId());
+        }
+        if (isBlank(entity.getDepartmentName())) {
+            entity.setDepartmentName(department.getName());
+        }
+        if (isBlank(entity.getManagerName())) {
+            resolveDepartmentManagerName(department).ifPresent(entity::setManagerName);
+        }
     }
 
     private java.util.Optional<String> resolveDepartmentManagerName(Department department) {
