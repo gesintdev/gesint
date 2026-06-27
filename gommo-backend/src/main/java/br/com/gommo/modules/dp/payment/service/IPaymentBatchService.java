@@ -1,12 +1,14 @@
 package br.com.gommo.modules.dp.payment.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.web.multipart.MultipartFile;
+
 import br.com.gommo.modules.dp.payment.dto.PaymentBatchProcessResponseDto;
 import br.com.gommo.modules.dp.payment.dto.PaymentBatchResponseDto;
 import br.com.gommo.modules.dp.payment.dto.PaymentSlipSendResponseDto;
 import br.com.gommo.modules.dp.payment.entity.PaymentSlipStatusEnum;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.web.multipart.MultipartFile;
 
 public interface IPaymentBatchService {
 
@@ -16,7 +18,8 @@ public interface IPaymentBatchService {
 
     void delete(UUID batchId);
 
-    List<br.com.gommo.modules.dp.payment.dto.PaymentSlipResponseDto> findSlips(UUID batchId, PaymentSlipStatusEnum status);
+    List<br.com.gommo.modules.dp.payment.dto.PaymentSlipResponseDto> findSlips(
+            UUID batchId, PaymentSlipStatusEnum status);
 
     PaymentSlipSendResponseDto sendEmail(UUID slipId);
 

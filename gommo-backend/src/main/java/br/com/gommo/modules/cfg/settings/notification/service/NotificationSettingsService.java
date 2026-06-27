@@ -1,13 +1,14 @@
 package br.com.gommo.modules.cfg.settings.notification.service;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.cfg.settings.notification.dto.NotificationSettingsRequestDto;
 import br.com.gommo.modules.cfg.settings.notification.dto.NotificationSettingsResponseDto;
 import br.com.gommo.modules.cfg.settings.notification.entity.SystemSetting;
 import br.com.gommo.modules.cfg.settings.notification.repository.SystemSettingRepository;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class NotificationSettingsService {

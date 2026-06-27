@@ -8,7 +8,8 @@ public final class AddressException {
     private AddressException() {}
 
     public static BusinessException invalidPostalCode() {
-        return new BusinessException(AddressExceptions.INVALID_POSTAL_CODE_CODE, AddressExceptions.INVALID_POSTAL_CODE_MSG);
+        return new BusinessException(
+                AddressExceptions.INVALID_POSTAL_CODE_CODE, AddressExceptions.INVALID_POSTAL_CODE_MSG);
     }
 
     public static BusinessException postalCodeNotFound() {

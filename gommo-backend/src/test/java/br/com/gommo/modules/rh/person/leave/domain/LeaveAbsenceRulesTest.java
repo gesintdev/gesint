@@ -2,11 +2,13 @@ package br.com.gommo.modules.rh.person.leave.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDate;
+
+import org.junit.jupiter.api.Test;
+
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
-import java.time.LocalDate;
-import org.junit.jupiter.api.Test;
 
 class LeaveAbsenceRulesTest {
 
@@ -19,8 +21,7 @@ class LeaveAbsenceRulesTest {
 
     @Test
     void flagsInssWhenDurationExceedsFifteenDays() {
-        boolean requiresInss =
-                LeaveAbsenceRules.requiresInss(16, 16, LeaveAbsenceStatusEnum.VALIDATED, false);
+        boolean requiresInss = LeaveAbsenceRules.requiresInss(16, 16, LeaveAbsenceStatusEnum.VALIDATED, false);
 
         assertThat(requiresInss).isTrue();
     }

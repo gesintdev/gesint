@@ -1,8 +1,8 @@
 "use client";
 import clsx from "clsx";
-import {type ReactNode, useCallback, useEffect, useRef, useState} from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import {EntityCodeField} from "@/shared/components/crud/EntityCodeField";
+import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 
 export type FormStepNavItem = {
     id: string;
@@ -16,7 +16,7 @@ type FormStepperProps = {
     children: ReactNode;
 };
 
-export function FormStepper({steps, filledStepIds = [], entityCode, children}: FormStepperProps) {
+export function FormStepper({ steps, filledStepIds = [], entityCode, children }: FormStepperProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const pinnedIdRef = useRef<string | null>(null);
     const scrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -44,7 +44,7 @@ export function FormStepper({steps, filledStepIds = [], entityCode, children}: F
                 const topId = visible[0]?.target.id;
                 if (topId) setActiveId(topId);
             },
-            {root, rootMargin: "-6% 0px -70% 0px", threshold: [0, 0.15, 0.4]},
+            { root, rootMargin: "-6% 0px -70% 0px", threshold: [0, 0.15, 0.4] },
         );
         sectionElements.forEach((el) => observer.observe(el));
         return () => observer.disconnect();
@@ -59,7 +59,7 @@ export function FormStepper({steps, filledStepIds = [], entityCode, children}: F
                 pinnedIdRef.current = null;
             }, 450);
         };
-        root.addEventListener("scroll", onScroll, {passive: true});
+        root.addEventListener("scroll", onScroll, { passive: true });
         return () => {
             root.removeEventListener("scroll", onScroll);
             if (scrollEndTimerRef.current) clearTimeout(scrollEndTimerRef.current);
@@ -74,7 +74,7 @@ export function FormStepper({steps, filledStepIds = [], entityCode, children}: F
         pinnedIdRef.current = id;
         setActiveId(id);
         const top = section.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop;
-        root.scrollTo({top: Math.max(0, top - 8), behavior: "smooth"});
+        root.scrollTo({ top: Math.max(0, top - 8), behavior: "smooth" });
     }, []);
     const activeIndex = steps.findIndex((step) => step.id === activeId);
 
@@ -89,13 +89,11 @@ export function FormStepper({steps, filledStepIds = [], entityCode, children}: F
                 >
                     {entityCode != null ? (
                         <div className="form-stepper__code">
-                            <EntityCodeField code={entityCode} codeOnly/>
+                            <EntityCodeField code={entityCode} codeOnly />
                         </div>
                     ) : null}
                     <nav className="gommo-form-stepper" aria-label="Seções do formulário">
-                        <ol
-                            className={"gommo-form-stepper__list gommo-form-stepper__list--spread"}
-                        >
+                        <ol className={"gommo-form-stepper__list gommo-form-stepper__list--spread"}>
                             {steps.map((step, index) => {
                                 const isActive = step.id === activeId;
                                 const isDone = activeIndex >= 0 && index < activeIndex;
@@ -113,11 +111,11 @@ export function FormStepper({steps, filledStepIds = [], entityCode, children}: F
                                                 className={clsx(
                                                     "gommo-form-stepper__line",
                                                     (isDone || isActive || isFilled) &&
-                                                    "gommo-form-stepper__line--active",
+                                                        "gommo-form-stepper__line--active",
                                                     isFilled &&
-                                                    !isActive &&
-                                                    !isDone &&
-                                                    "gommo-form-stepper__line--filled",
+                                                        !isActive &&
+                                                        !isDone &&
+                                                        "gommo-form-stepper__line--filled",
                                                 )}
                                                 aria-hidden
                                             />

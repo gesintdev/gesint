@@ -1,6 +1,6 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent,useEffect, useMemo, useState } from "react";
+import { type SubmitEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import type { OffboardingCreateDto } from "@/modules/dp/offboarding/dto/offboarding.dto";
@@ -158,7 +158,7 @@ export function OffboardingFormClient() {
                     label="Data do desligamento"
                     value={form.dismissalDate}
                     onValueChange={(v) => update("dismissalDate", v)}
-                    wrapperClassName={'sm:col-span-2'}
+                    wrapperClassName={"sm:col-span-2"}
                     required
                 />
                 <InputSelect
@@ -169,7 +169,7 @@ export function OffboardingFormClient() {
                         update("dismissalType", (v || undefined) as OffboardingCreateDto["dismissalType"])
                     }
                     placeholder="Selecione"
-                    wrapperClassName={'sm:col-span-2'}
+                    wrapperClassName={"sm:col-span-2"}
                     clearable
                 />
                 <InputString

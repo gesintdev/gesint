@@ -1,30 +1,30 @@
 "use client";
 
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import {AnimatePresence, motion} from "framer-motion";
-import {Bell, Check, Clock} from "lucide-react";
-import {useEffect, useRef, useState} from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bell, Check, Clock } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
-import type {SystemNotification} from "@/modules/cfg/settings/notification/dto/notification.dto";
-import {notificationKeys} from "@/modules/cfg/settings/notification/notification.query";
-import {systemNotificationService} from "@/modules/cfg/settings/notification/services/notification.service";
-import {useHasPermission} from "@/shared/auth/permissions";
-import {Button} from "@/shared/components/ui/Button";
-import {ExceptionCapture} from "@/shared/exceptions";
+import type { SystemNotification } from "@/modules/cfg/settings/notification/dto/notification.dto";
+import { notificationKeys } from "@/modules/cfg/settings/notification/notification.query";
+import { systemNotificationService } from "@/modules/cfg/settings/notification/services/notification.service";
+import { useHasPermission } from "@/shared/auth/permissions";
+import { Button } from "@/shared/components/ui/Button";
+import { ExceptionCapture } from "@/shared/exceptions";
 
 function formatDueDate(value?: string) {
     if (!value) return null;
-    return new Intl.DateTimeFormat("pt-BR", {day: "2-digit", month: "2-digit", year: "numeric"}).format(
+    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(
         new Date(`${value}T00:00:00`),
     );
 }
 
 function NotificationRow({
-                             notification,
-                             onRead,
-                             loading,
-                         }: {
+    notification,
+    onRead,
+    loading,
+}: {
     notification: SystemNotification;
     onRead: (_id: string) => void;
     loading: boolean;
@@ -36,17 +36,14 @@ function NotificationRow({
         <div className="grid gap-2 rounded-lg px-3 py-2.5 transition-colors hover:bg-base-200/60">
             <div className="flex items-start gap-2.5">
                 <span
-                    className={clsx(
-                        "mt-1 size-2 shrink-0 rounded-full",
-                        unread ? "bg-error" : "bg-base-content/18",
-                    )}
+                    className={clsx("mt-1 size-2 shrink-0 rounded-full", unread ? "bg-error" : "bg-base-content/18")}
                 />
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-semibold text-base-content">{notification.title}</p>
                     <p className="mt-0.5 text-xs leading-5 text-base-content/58">{notification.message}</p>
                     {dueDate ? (
                         <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-base-content/45">
-                            <Clock className="size-3" strokeWidth={2}/>
+                            <Clock className="size-3" strokeWidth={2} />
                             Vencimento em {dueDate}
                         </span>
                     ) : null}
@@ -59,7 +56,7 @@ function NotificationRow({
                         size="sm"
                         variant="ghost"
                         loading={loading}
-                        leftIcon={<Check className="size-3.5" strokeWidth={2}/>}
+                        leftIcon={<Check className="size-3.5" strokeWidth={2} />}
                         onClick={() => onRead(notification.id)}
                     >
                         Marcar como lida
@@ -90,10 +87,10 @@ export function HeaderNotifications() {
     const markReadMutation = useMutation({
         mutationFn: (id: string) => systemNotificationService.markAsRead(id),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: notificationKeys.summary});
+            await queryClient.invalidateQueries({ queryKey: notificationKeys.summary });
         },
         onError: (err: unknown) => {
-            ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível atualizar a notificação."});
+            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível atualizar a notificação." });
         },
     });
 
@@ -150,34 +147,34 @@ export function HeaderNotifications() {
                             <>
                                 <motion.span
                                     aria-hidden="true"
-                                    initial={{opacity: 0, x: 0, scale: 0.7, rotate: -18}}
-                                    animate={{opacity: [0, 0.65, 0], x: [-2, -6, -9], scale: [0.7, 1, 1.12]}}
-                                    exit={{opacity: 0}}
-                                    transition={{duration: 0.52, ease: "easeOut"}}
+                                    initial={{ opacity: 0, x: 0, scale: 0.7, rotate: -18 }}
+                                    animate={{ opacity: [0, 0.65, 0], x: [-2, -6, -9], scale: [0.7, 1, 1.12] }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.52, ease: "easeOut" }}
                                     className="pointer-events-none absolute left-0 top-1.5 h-2.5 w-1.5 rounded-l-full border-y border-l border-current"
                                 />
                                 <motion.span
                                     aria-hidden="true"
-                                    initial={{opacity: 0, x: 0, scale: 0.7, rotate: -18}}
-                                    animate={{opacity: [0, 0.65, 0], x: [-2, -6, -9], scale: [0.7, 1, 1.12]}}
-                                    exit={{opacity: 0}}
-                                    transition={{duration: 0.52, ease: "easeOut", delay: 0.22}}
+                                    initial={{ opacity: 0, x: 0, scale: 0.7, rotate: -18 }}
+                                    animate={{ opacity: [0, 0.65, 0], x: [-2, -6, -9], scale: [0.7, 1, 1.12] }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.52, ease: "easeOut", delay: 0.22 }}
                                     className="pointer-events-none absolute left-0 top-1.5 h-2.5 w-1.5 rounded-l-full border-y border-l border-current"
                                 />
                                 <motion.span
                                     aria-hidden="true"
-                                    initial={{opacity: 0, x: 0, scale: 0.7, rotate: 18}}
-                                    animate={{opacity: [0, 0.65, 0], x: [2, 6, 9], scale: [0.7, 1, 1.12]}}
-                                    exit={{opacity: 0}}
-                                    transition={{duration: 0.52, ease: "easeOut"}}
+                                    initial={{ opacity: 0, x: 0, scale: 0.7, rotate: 18 }}
+                                    animate={{ opacity: [0, 0.65, 0], x: [2, 6, 9], scale: [0.7, 1, 1.12] }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.52, ease: "easeOut" }}
                                     className="pointer-events-none absolute right-0 top-1.5 h-2.5 w-1.5 rounded-r-full border-y border-r border-current"
                                 />
                                 <motion.span
                                     aria-hidden="true"
-                                    initial={{opacity: 0, x: 0, scale: 0.7, rotate: 18}}
-                                    animate={{opacity: [0, 0.65, 0], x: [2, 6, 9], scale: [0.7, 1, 1.12]}}
-                                    exit={{opacity: 0}}
-                                    transition={{duration: 0.52, ease: "easeOut", delay: 0.22}}
+                                    initial={{ opacity: 0, x: 0, scale: 0.7, rotate: 18 }}
+                                    animate={{ opacity: [0, 0.65, 0], x: [2, 6, 9], scale: [0.7, 1, 1.12] }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.52, ease: "easeOut", delay: 0.22 }}
                                     className="pointer-events-none absolute right-0 top-1.5 h-2.5 w-1.5 rounded-r-full border-y border-r border-current"
                                 />
                             </>
@@ -187,20 +184,19 @@ export function HeaderNotifications() {
                         animate={
                             ringing
                                 ? {
-                                    rotate: [0, -18, 17, -14, 11, -7, 4, 0],
-                                    scale: [1, 1.26, 1.18, 1.22, 1.13, 1.08, 1.03, 1],
-                                }
-                                : {rotate: 0, scale: 1}
+                                      rotate: [0, -18, 17, -14, 11, -7, 4, 0],
+                                      scale: [1, 1.26, 1.18, 1.22, 1.13, 1.08, 1.03, 1],
+                                  }
+                                : { rotate: 0, scale: 1 }
                         }
-                        transition={{duration: 0.78, ease: [0.34, 1.56, 0.64, 1]}}
+                        transition={{ duration: 0.78, ease: [0.34, 1.56, 0.64, 1] }}
                         className="flex origin-center"
                     >
-                        <Bell className="size-4.25" strokeWidth={2}/>
+                        <Bell className="size-4.25" strokeWidth={2} />
                     </motion.span>
                 </motion.span>
                 {unreadCount > 0 ? (
-                    <span
-                        className="absolute -right-1 -top-0.5 grid min-h-[1.2rem] min-w-[1.2rem] place-items-center rounded-full bg-error px-1 text-[9px] font-semibold leading-none text-white ring-2 ring-base-100">
+                    <span className="absolute -right-1 -top-0.5 grid min-h-[1.2rem] min-w-[1.2rem] place-items-center rounded-full bg-error px-1 text-[9px] font-semibold leading-none text-white ring-2 ring-base-100">
                         {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                 ) : null}
@@ -211,10 +207,10 @@ export function HeaderNotifications() {
                     <motion.div
                         role="menu"
                         aria-label="Notificações"
-                        initial={{opacity: 0, y: -5, scale: 0.97}}
-                        animate={{opacity: 1, y: 0, scale: 1}}
-                        exit={{opacity: 0, y: -5, scale: 0.97}}
-                        transition={{duration: 0.18, ease: [0.22, 1, 0.36, 1]}}
+                        initial={{ opacity: 0, y: -5, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -5, scale: 0.97 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                         className="surface-popover absolute right-0 z-50 mt-2 flex max-h-[28rem] w-[22rem] origin-top-right flex-col overflow-hidden p-1.5"
                     >
                         <div className="flex items-center justify-between gap-3 px-3 py-2">
@@ -227,12 +223,12 @@ export function HeaderNotifications() {
                                 </p>
                             </div>
                         </div>
-                        <div className="h-px bg-base-content/8"/>
+                        <div className="h-px bg-base-content/8" />
                         <div className="min-h-0 overflow-auto py-1">
                             {summaryQuery.isLoading ? (
                                 <div className="grid gap-2 p-3">
-                                    {Array.from({length: 3}).map((_, index) => (
-                                        <div key={index} className="skeleton-shimmer h-12 rounded-lg"/>
+                                    {Array.from({ length: 3 }).map((_, index) => (
+                                        <div key={index} className="skeleton-shimmer h-12 rounded-lg" />
                                     ))}
                                 </div>
                             ) : notifications.length > 0 ? (

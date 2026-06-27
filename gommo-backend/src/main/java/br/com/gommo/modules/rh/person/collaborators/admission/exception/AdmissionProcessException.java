@@ -27,6 +27,7 @@ public final class AdmissionProcessException {
                 AdmissionProcessExceptions.PJ_PROVIDER_REQUIRED_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
     public static BusinessException pjRecessInvalid() {
         return new BusinessException(
                 AdmissionProcessExceptions.PJ_RECESS_INVALID_CODE,

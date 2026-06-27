@@ -1,17 +1,17 @@
 package br.com.gommo.modules.ctb.payroll.calculation;
 
-import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEvent;
-import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEvent;
+import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
 
 public class PayrollCalculationContext {
 
@@ -253,11 +253,6 @@ public class PayrollCalculationContext {
         BigDecimal deductions = sumByType(PayrollEventTypeEnum.DEDUCTION);
         BigDecimal net = gross.subtract(deductions);
         return new PayrollCalculationResult(
-                collaboratorId,
-                adjustedBaseSalary,
-                gross,
-                deductions,
-                net.max(BigDecimal.ZERO),
-                List.copyOf(lines));
+                collaboratorId, adjustedBaseSalary, gross, deductions, net.max(BigDecimal.ZERO), List.copyOf(lines));
     }
 }

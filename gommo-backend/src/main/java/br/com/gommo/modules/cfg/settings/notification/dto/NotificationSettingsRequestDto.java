@@ -10,8 +10,5 @@ import lombok.Setter;
 @Setter
 public class NotificationSettingsRequestDto {
 
-    @NotNull
-    @Min(1)
-    @Max(365)
-    private Integer vacationDueNoticeDays;
+    @NotNull @Min(1) @Max(365) private Integer vacationDueNoticeDays;
 }

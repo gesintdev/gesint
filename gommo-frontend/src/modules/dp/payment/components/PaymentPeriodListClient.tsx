@@ -9,10 +9,7 @@ import { PAYMENT_CLIENT_MESSAGES } from "@/modules/dp/payment/exceptions/payment
 import { formatPaymentReference } from "@/modules/dp/payment/lib/payment.mapper";
 import { paymentPeriodKeys } from "@/modules/dp/payment/payment.query";
 import { paymentPeriodService } from "@/modules/dp/payment/services/payment-period.service";
-import {
-    deriveWritePermission,
-    useSessionPermissions,
-} from "@/shared/auth/permissions";
+import { deriveWritePermission, useSessionPermissions } from "@/shared/auth/permissions";
 import { canWriteRoute } from "@/shared/auth/route-access";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";

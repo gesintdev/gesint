@@ -84,9 +84,7 @@ export function SystemShell({
                                 placeholder="Buscar no sistema…"
                                 className="pe-2 placeholder:text-base-content/32"
                             />
-                            <kbd className="ms-auto hidden shrink-0 sm:flex">
-                                Alt+S
-                            </kbd>
+                            <kbd className="ms-auto hidden shrink-0 sm:flex">Alt+S</kbd>
                         </label>
                         <div className="flex items-center gap-1 sm:gap-1.5">
                             <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block" />

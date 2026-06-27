@@ -1,5 +1,16 @@
 package br.com.gommo.modules.ctb.payroll.payslip.pdf;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.ctb.payroll.entity.PayrollRun;
 import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEvent;
@@ -15,15 +26,6 @@ import br.com.gommo.modules.ctb.payroll.payslip.entry.repository.PayslipEntryRep
 import br.com.gommo.modules.ctb.payroll.payslip.exception.PayslipException;
 import br.com.gommo.modules.ctb.payroll.payslip.repository.PayslipRepository;
 import br.com.gommo.modules.ctb.payroll.repository.PayrollRunRepository;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import org.springframework.stereotype.Component;
 
 @Component
 public class PayslipPdfDataLoader {
@@ -67,9 +69,9 @@ public class PayslipPdfDataLoader {
                 .findPrimary()
                 .orElse(new CompanyDisplaySnapshot(null, "Empresa", "", "", "", ""));
 
-        Map<UUID, PayrollEvent> eventsById = payrollEventRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED)
-                .stream()
-                .collect(Collectors.toMap(PayrollEvent::getId, Function.identity(), (left, right) -> left));
+        Map<UUID, PayrollEvent> eventsById =
+                payrollEventRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+                        .collect(Collectors.toMap(PayrollEvent::getId, Function.identity(), (left, right) -> left));
 
         List<PayslipEntry> entries =
                 payslipEntryRepository.findAllByPayslipIdAndStatusNot(payslip.getId(), StatusEnum.DELETED);

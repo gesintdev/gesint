@@ -1,7 +1,20 @@
 package br.com.gommo.modules.dp.payment.service;
 
-import br.com.gommo.core.exception.BusinessException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.core.exception.BusinessException;
 import br.com.gommo.modules.dp.payment.dto.PaymentBatchProcessResponseDto;
 import br.com.gommo.modules.dp.payment.dto.PaymentBatchResponseDto;
 import br.com.gommo.modules.dp.payment.dto.PaymentSlipResponseDto;
@@ -21,17 +34,6 @@ import br.com.gommo.modules.dp.payment.repository.PaymentPeriodRepository;
 import br.com.gommo.modules.dp.payment.repository.PaymentSlipRepository;
 import br.com.gommo.modules.dp.payment.storage.PaymentFileStorageHelper;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class PaymentBatchService implements IPaymentBatchService {
@@ -78,7 +80,9 @@ public class PaymentBatchService implements IPaymentBatchService {
     @PreAuthorize("hasAuthority('payment:read')")
     public List<PaymentBatchResponseDto> findByPeriod(UUID periodId) {
         findPeriod(periodId);
-        return batchRepository.findByPaymentPeriodIdAndStatusNotOrderByCreatedAtDesc(periodId, StatusEnum.DELETED).stream()
+        return batchRepository
+                .findByPaymentPeriodIdAndStatusNotOrderByCreatedAtDesc(periodId, StatusEnum.DELETED)
+                .stream()
                 .map(mapper::toBatchResponse)
                 .toList();
     }
@@ -195,9 +199,7 @@ public class PaymentBatchService implements IPaymentBatchService {
         slipRepository.save(slip);
         refreshBatchCounters(slip.getPaymentBatchId());
 
-        return PaymentSlipSendResponseDto.builder()
-                .slip(toSlipResponse(slip))
-                .build();
+        return PaymentSlipSendResponseDto.builder().slip(toSlipResponse(slip)).build();
     }
 
     @Override
@@ -212,8 +214,8 @@ public class PaymentBatchService implements IPaymentBatchService {
         PaymentCollaboratorResolver.ContactInfo contact = collaboratorResolver.resolveContact(collaborator.getId());
         PaymentPeriod period = findPeriod(findBatch(slip.getPaymentBatchId()).getPaymentPeriodId());
         String periodLabel = PERIOD_LABEL.format(period.getReferenceDate());
-        String whatsappUrl = notificationService.buildWhatsappUrl(
-                contact.phone(), collaborator.getFullName(), periodLabel);
+        String whatsappUrl =
+                notificationService.buildWhatsappUrl(contact.phone(), collaborator.getFullName(), periodLabel);
 
         OffsetDateTime now = OffsetDateTime.now();
         slip.setWhatsappSentAt(now);
@@ -267,7 +269,8 @@ public class PaymentBatchService implements IPaymentBatchService {
             var collaborator = collaboratorResolver.findEntity(slip.getCollaboratorId());
             if (collaborator.isPresent()) {
                 name = collaborator.get().getFullName();
-                var contact = collaboratorResolver.resolveContact(collaborator.get().getId());
+                var contact =
+                        collaboratorResolver.resolveContact(collaborator.get().getId());
                 email = contact.email();
                 phone = contact.phone();
             }
@@ -318,11 +321,15 @@ public class PaymentBatchService implements IPaymentBatchService {
     }
 
     private PaymentPeriod findPeriod(UUID periodId) {
-        return periodRepository.findByIdAndStatusNot(periodId, StatusEnum.DELETED).orElseThrow(PaymentException::notFound);
+        return periodRepository
+                .findByIdAndStatusNot(periodId, StatusEnum.DELETED)
+                .orElseThrow(PaymentException::notFound);
     }
 
     private PaymentBatch findBatch(UUID batchId) {
-        return batchRepository.findByIdAndStatusNot(batchId, StatusEnum.DELETED).orElseThrow(PaymentException::notFound);
+        return batchRepository
+                .findByIdAndStatusNot(batchId, StatusEnum.DELETED)
+                .orElseThrow(PaymentException::notFound);
     }
 
     private PaymentSlip findSlip(UUID slipId) {

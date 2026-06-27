@@ -41,9 +41,8 @@ public final class VacationEligibilityEvaluator {
             int entitledDays = VacationRules.vacationDaysEntitled(absences.unjustifiedAbsences());
 
             if (entitledDays > 0 && !hasBlockingRequest(safeLeaves, acquisition, concessive)) {
-                String status = VacationRules.isConcessiveExpired(concessive.end(), referenceDate)
-                        ? "EXPIRED"
-                        : "CONCESSIVE";
+                String status =
+                        VacationRules.isConcessiveExpired(concessive.end(), referenceDate) ? "EXPIRED" : "CONCESSIVE";
                 return Optional.of(new EligiblePeriod(
                         periodIndex,
                         acquisition,
@@ -57,9 +56,7 @@ public final class VacationEligibilityEvaluator {
     }
 
     private static boolean hasBlockingRequest(
-            List<LeaveRequest> leaves,
-            VacationRules.DateRange acquisition,
-            VacationRules.DateRange concessive) {
+            List<LeaveRequest> leaves, VacationRules.DateRange acquisition, VacationRules.DateRange concessive) {
         return leaves.stream()
                 .filter(VacationEligibilityEvaluator::isOpenOrConfirmedVacation)
                 .anyMatch(leave -> belongsToPeriod(leave, acquisition, concessive));
@@ -75,9 +72,7 @@ public final class VacationEligibilityEvaluator {
     }
 
     private static boolean belongsToPeriod(
-            LeaveRequest leave,
-            VacationRules.DateRange acquisition,
-            VacationRules.DateRange concessive) {
+            LeaveRequest leave, VacationRules.DateRange acquisition, VacationRules.DateRange concessive) {
         if (leave.getAcquisitionPeriodStart() != null) {
             return leave.getAcquisitionPeriodStart().equals(acquisition.start());
         }

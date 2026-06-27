@@ -1,13 +1,13 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { type SubmitEvent,useEffect, useId, useState } from "react";
+import { type SubmitEvent, useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 
 import { departmentKeys } from "@/modules/dp/organization/department/department.query";
 import type { DepartmentCreateDto } from "@/modules/dp/organization/department/dto/department.dto";
 import { DEPARTMENT_CLIENT_MESSAGES } from "@/modules/dp/organization/department/exceptions/department.messages";
-import { departmentToFormDto,emptyDepartmentForm } from "@/modules/dp/organization/department/lib/department.mapper";
+import { departmentToFormDto, emptyDepartmentForm } from "@/modules/dp/organization/department/lib/department.mapper";
 import { departmentService } from "@/modules/dp/organization/department/services/department.service";
 import { CollaboratorMultiPickerField } from "@/shared/components/crud/CollaboratorMultiPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";

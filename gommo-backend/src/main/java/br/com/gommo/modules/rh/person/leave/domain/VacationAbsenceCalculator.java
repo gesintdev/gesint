@@ -12,8 +12,7 @@ public final class VacationAbsenceCalculator {
 
     private VacationAbsenceCalculator() {}
 
-    public static Summary summarize(
-            List<LeaveRequest> leaves, LocalDate periodStart, LocalDate periodEnd) {
+    public static Summary summarize(List<LeaveRequest> leaves, LocalDate periodStart, LocalDate periodEnd) {
         int unjustified = 0;
         int justified = 0;
         for (LeaveRequest leave : leaves) {
@@ -23,9 +22,7 @@ public final class VacationAbsenceCalculator {
             if (!Boolean.TRUE.equals(leave.getApproved())) {
                 continue;
             }
-            int days =
-                    overlapInclusiveDays(
-                            leave.getStartDate(), leave.getEndDate(), periodStart, periodEnd);
+            int days = overlapInclusiveDays(leave.getStartDate(), leave.getEndDate(), periodStart, periodEnd);
             if (days <= 0) {
                 continue;
             }
@@ -52,8 +49,7 @@ public final class VacationAbsenceCalculator {
         return new Summary(unjustified, justified);
     }
 
-    public static int overlapInclusiveDays(
-            LocalDate aStart, LocalDate aEnd, LocalDate bStart, LocalDate bEnd) {
+    public static int overlapInclusiveDays(LocalDate aStart, LocalDate aEnd, LocalDate bStart, LocalDate bEnd) {
         LocalDate start = aStart.isAfter(bStart) ? aStart : bStart;
         LocalDate end = aEnd.isBefore(bEnd) ? aEnd : bEnd;
         if (end.isBefore(start)) {

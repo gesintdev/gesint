@@ -1,17 +1,19 @@
 package br.com.gommo.modules.ctb.payroll.payslip.entity;
 
-import br.com.gommo.core.entity.AuditEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import br.com.gommo.core.entity.AuditEntity;
 
 @Entity
 @Table(name = "payslip")

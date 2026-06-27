@@ -1,6 +1,6 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent,useEffect, useState } from "react";
+import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import type { PerformanceReviewCreateDto } from "@/modules/rh/person/performance/dto/performance-review.dto";
@@ -17,7 +17,7 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputDate, InputSelect,InputString } from "@/shared/components/ui/input/index";
+import { InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Avaliação" }];

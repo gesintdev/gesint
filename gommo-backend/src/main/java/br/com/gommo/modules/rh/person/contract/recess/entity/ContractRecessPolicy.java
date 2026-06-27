@@ -1,5 +1,9 @@
 package br.com.gommo.modules.rh.person.contract.recess.entity;
 
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -8,9 +12,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.entity.AuditEntity;
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "contract_recess_policy")

@@ -45,7 +45,8 @@ public final class AdmissionProgressEvaluator {
         return new AdmissionProgress(status, completedStepCount, REQUIRED_STEP_COUNT, List.copyOf(completedStepIds));
     }
 
-    public static AdmissionStatusEnum resolveStatus(AdmissionProcess entity, long documentCount, long contractDocumentCount) {
+    public static AdmissionStatusEnum resolveStatus(
+            AdmissionProcess entity, long documentCount, long contractDocumentCount) {
         return evaluate(entity, documentCount, contractDocumentCount).status();
     }
 

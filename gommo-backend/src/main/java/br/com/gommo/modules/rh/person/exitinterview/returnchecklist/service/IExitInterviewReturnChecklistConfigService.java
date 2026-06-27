@@ -5,4 +5,5 @@ import br.com.gommo.modules.rh.person.exitinterview.returnchecklist.dto.ExitInte
 import br.com.gommo.modules.rh.person.exitinterview.returnchecklist.dto.ExitInterviewReturnChecklistConfigResponseDto;
 
 public interface IExitInterviewReturnChecklistConfigService
-        extends IBaseService<ExitInterviewReturnChecklistConfigRequestDto, ExitInterviewReturnChecklistConfigResponseDto> {}
+        extends IBaseService<
+                ExitInterviewReturnChecklistConfigRequestDto, ExitInterviewReturnChecklistConfigResponseDto> {}

@@ -11,10 +11,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
-import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
-import br.com.gommo.modules.rh.person.leave.entity.VacationReviewStatusEnum;
 import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
+import br.com.gommo.modules.rh.person.leave.entity.VacationReviewStatusEnum;
 
 @Getter
 @Setter

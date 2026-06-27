@@ -205,17 +205,22 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
             return;
         }
 
-        collaboratorRepository.findByIdAndStatusNot(entity.getCollaboratorId(), StatusEnum.DELETED).ifPresent(c -> {
-            if (isBlank(entity.getCollaboratorName())) {
-                entity.setCollaboratorName(c.getSocialName() != null && !c.getSocialName().isBlank()
-                        ? c.getSocialName()
-                        : c.getFullName());
-            }
-        });
+        collaboratorRepository
+                .findByIdAndStatusNot(entity.getCollaboratorId(), StatusEnum.DELETED)
+                .ifPresent(c -> {
+                    if (isBlank(entity.getCollaboratorName())) {
+                        entity.setCollaboratorName(
+                                c.getSocialName() != null && !c.getSocialName().isBlank()
+                                        ? c.getSocialName()
+                                        : c.getFullName());
+                    }
+                });
 
-        latestCompletedAdmission(entity.getCollaboratorId()).ifPresent(admission -> enrichFromAdmission(entity, admission));
+        latestCompletedAdmission(entity.getCollaboratorId())
+                .ifPresent(admission -> enrichFromAdmission(entity, admission));
         contractRepository
-                .findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(entity.getCollaboratorId(), StatusEnum.DELETED)
+                .findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(
+                        entity.getCollaboratorId(), StatusEnum.DELETED)
                 .ifPresent(contract -> enrichFromContract(entity, contract));
         resolveOrganizationSnapshot(entity);
     }
@@ -226,13 +231,17 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
                         collaboratorId, AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED)
                 .stream()
                 .max(Comparator.comparing((AdmissionProcess admission) -> {
-                    LocalDate date = admissionStartDate(admission);
-                    return date == null ? LocalDate.MIN : date;
-                }).thenComparing(admission -> admission.getCreatedAt() == null ? OffsetDateTime.MIN : admission.getCreatedAt()));
+                            LocalDate date = admissionStartDate(admission);
+                            return date == null ? LocalDate.MIN : date;
+                        })
+                        .thenComparing(admission ->
+                                admission.getCreatedAt() == null ? OffsetDateTime.MIN : admission.getCreatedAt()));
     }
 
     private LocalDate admissionStartDate(AdmissionProcess admission) {
-        return admission.getContractStartDate() != null ? admission.getContractStartDate() : admission.getExpectedStartDate();
+        return admission.getContractStartDate() != null
+                ? admission.getContractStartDate()
+                : admission.getExpectedStartDate();
     }
 
     private void enrichFromAdmission(ExitInterview entity, AdmissionProcess admission) {
@@ -248,9 +257,12 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
             entity.setTerminationOrContractEndDate(admission.getContractEndDate());
         }
         if (isBlank(entity.getCompanyName()) && admission.getCompanyId() != null) {
-            companyRepository.findByIdAndStatusNot(admission.getCompanyId(), StatusEnum.DELETED).ifPresent(company -> {
-                entity.setCompanyName(!isBlank(company.getTradeName()) ? company.getTradeName() : company.getLegalName());
-            });
+            companyRepository
+                    .findByIdAndStatusNot(admission.getCompanyId(), StatusEnum.DELETED)
+                    .ifPresent(company -> {
+                        entity.setCompanyName(
+                                !isBlank(company.getTradeName()) ? company.getTradeName() : company.getLegalName());
+                    });
         }
         if (entity.getDepartmentId() == null) {
             entity.setDepartmentId(admission.getDepartmentId());
@@ -274,9 +286,12 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
             entity.setTerminationOrContractEndDate(contract.getEndDate());
         }
         if (isBlank(entity.getCompanyName()) && contract.getCompanyId() != null) {
-            companyRepository.findByIdAndStatusNot(contract.getCompanyId(), StatusEnum.DELETED).ifPresent(company -> {
-                entity.setCompanyName(!isBlank(company.getTradeName()) ? company.getTradeName() : company.getLegalName());
-            });
+            companyRepository
+                    .findByIdAndStatusNot(contract.getCompanyId(), StatusEnum.DELETED)
+                    .ifPresent(company -> {
+                        entity.setCompanyName(
+                                !isBlank(company.getTradeName()) ? company.getTradeName() : company.getLegalName());
+                    });
         }
         if (contract.getJobPositionId() != null) {
             jobPositionRepository
@@ -331,7 +346,8 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
     }
 
     private java.util.Optional<String> resolveDepartmentManagerName(Department department) {
-        if (department.getResponsibleCollaboratorIds() == null || department.getResponsibleCollaboratorIds().isEmpty()) {
+        if (department.getResponsibleCollaboratorIds() == null
+                || department.getResponsibleCollaboratorIds().isEmpty()) {
             return java.util.Optional.empty();
         }
         return department.getResponsibleCollaboratorIds().stream()
@@ -355,7 +371,8 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         boolean hasRequiredDates = entity.getInterviewDate() != null
                 && entity.getTerminationOrContractEndDate() != null
                 && (entity.getAdmissionOrContractStartDate() == null
-                        || !entity.getTerminationOrContractEndDate().isBefore(entity.getAdmissionOrContractStartDate()));
+                        || !entity.getTerminationOrContractEndDate()
+                                .isBefore(entity.getAdmissionOrContractStartDate()));
         if (entity.getCollaboratorId() == null
                 || entity.getRelationshipType() == null
                 || !hasRequiredDates
@@ -391,8 +408,8 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
             entity.setTenureDays(null);
             return;
         }
-        entity.setTenureDays(
-                (int) ChronoUnit.DAYS.between(entity.getAdmissionOrContractStartDate(), entity.getTerminationOrContractEndDate()));
+        entity.setTenureDays((int) ChronoUnit.DAYS.between(
+                entity.getAdmissionOrContractStartDate(), entity.getTerminationOrContractEndDate()));
     }
 
     private boolean isBlank(String value) {

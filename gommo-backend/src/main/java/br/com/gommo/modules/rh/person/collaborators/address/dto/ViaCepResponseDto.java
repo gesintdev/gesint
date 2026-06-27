@@ -1,8 +1,9 @@
 package br.com.gommo.modules.rh.person.collaborators.address.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Getter
 @NoArgsConstructor

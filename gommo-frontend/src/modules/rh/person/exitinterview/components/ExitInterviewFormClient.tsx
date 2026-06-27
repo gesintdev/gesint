@@ -106,7 +106,9 @@ type RatingFieldProps = {
 function RatingField({ label, name, value, onValueChange, disabled, wrapperClassName }: RatingFieldProps) {
     const ratingValue = value ?? 1;
     return (
-        <div className={clsx("grid gap-2 rounded-lg border border-base-300/60 bg-base-100 px-3 py-3", wrapperClassName)}>
+        <div
+            className={clsx("grid gap-2 rounded-lg border border-base-300/60 bg-base-100 px-3 py-3", wrapperClassName)}
+        >
             <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-base-content">{label}</span>
                 <span className="text-xs font-medium text-base-content/55">{ratingValue}/5</span>
@@ -234,7 +236,8 @@ export function ExitInterviewFormClient() {
         }
     }, [isEditing, detailQuery.data, clearPendingAttachments, returnChecklistConfigQuery.data]);
 
-    const isFinal = detailQuery.data?.interviewStatus === "COMPLETED" || detailQuery.data?.interviewStatus === "CANCELED";
+    const isFinal =
+        detailQuery.data?.interviewStatus === "COMPLETED" || detailQuery.data?.interviewStatus === "CANCELED";
     const terminationItems = form.relationshipType === "PJ" ? PJ_TERMINATION_ITEMS : CLT_TERMINATION_ITEMS;
 
     const saveMutation = useMutation({
@@ -315,7 +318,10 @@ export function ExitInterviewFormClient() {
                 }
             }
             if (field === "admissionOrContractStartDate" || field === "terminationOrContractEndDate") {
-                next.tenureDays = inclusiveTenureDays(next.admissionOrContractStartDate, next.terminationOrContractEndDate);
+                next.tenureDays = inclusiveTenureDays(
+                    next.admissionOrContractStartDate,
+                    next.terminationOrContractEndDate,
+                );
             }
             return next;
         });
@@ -508,11 +514,7 @@ export function ExitInterviewFormClient() {
         if (sectionHasChanges(form, emptyDefaults, ["wouldReturn", "companyWouldRehire", "rehireNotes"])) {
             filled.push("recontratacao");
         }
-        if (
-            form.returnChecklist.some(
-                (item) => item.status !== "PENDING" || item.returnedAt || item.notes?.trim(),
-            )
-        ) {
+        if (form.returnChecklist.some((item) => item.status !== "PENDING" || item.returnedAt || item.notes?.trim())) {
             filled.push("devolucoes");
         }
         if ((attachmentsQuery.data?.length ?? 0) > 0 || pendingAttachments.length > 0) filled.push("documentos");
@@ -706,7 +708,9 @@ export function ExitInterviewFormClient() {
                 <section className="sm:col-span-12 rounded-lg border border-base-300/70 bg-base-100 p-4 shadow-sm">
                     <div className="mb-3 flex items-center justify-between gap-3">
                         <h4 className="text-sm font-semibold text-base-content">Motivos secundários</h4>
-                        <span className="text-xs text-base-content/55">{form.secondaryReasons.length} selecionado(s)</span>
+                        <span className="text-xs text-base-content/55">
+                            {form.secondaryReasons.length} selecionado(s)
+                        </span>
                     </div>
                     <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
                         {EXIT_REASON_ITEMS.map((item) => (
@@ -764,10 +768,16 @@ export function ExitInterviewFormClient() {
 
             <FormSection id="recontratacao" title="Recontratação">
                 <InputSelect
-                    label={form.relationshipType === "PJ" ? "Prestador aceitaria retornar?" : "Colaborador aceitaria retornar?"}
+                    label={
+                        form.relationshipType === "PJ"
+                            ? "Prestador aceitaria retornar?"
+                            : "Colaborador aceitaria retornar?"
+                    }
                     items={REHIRE_ANSWER_ITEMS}
                     value={form.wouldReturn ?? ""}
-                    onValueChange={(v) => update("wouldReturn", (v || undefined) as ExitInterviewCreateDto["wouldReturn"])}
+                    onValueChange={(v) =>
+                        update("wouldReturn", (v || undefined) as ExitInterviewCreateDto["wouldReturn"])
+                    }
                     wrapperClassName="sm:col-span-3"
                     placeholder="Selecione"
                     clearable
@@ -843,7 +853,9 @@ export function ExitInterviewFormClient() {
                                             <td className="px-3 py-2 align-top">
                                                 <InputDate
                                                     value={item.returnedAt ?? ""}
-                                                    onValueChange={(value) => updateChecklist(item.key, "returnedAt", value)}
+                                                    onValueChange={(value) =>
+                                                        updateChecklist(item.key, "returnedAt", value)
+                                                    }
                                                     wrapperClassName="min-w-44"
                                                     disabled={isFinal}
                                                 />

@@ -1,11 +1,13 @@
 package br.com.gommo.modules.ctb.payroll.calculation;
 
-import br.com.gommo.modules.ctb.payroll.calculation.strategy.PayrollCalculationStrategy;
 import java.util.Comparator;
 import java.util.List;
+
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import br.com.gommo.modules.ctb.payroll.calculation.strategy.PayrollCalculationStrategy;
 
 @Component
 public class PayrollCalculationOrchestrator {

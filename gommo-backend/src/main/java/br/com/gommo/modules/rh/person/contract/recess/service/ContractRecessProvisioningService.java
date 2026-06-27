@@ -34,7 +34,8 @@ public class ContractRecessProvisioningService {
                 ? admission.getContractStartDate()
                 : admission.getExpectedStartDate();
         EmploymentContract contract = contractRepository
-                .findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(admission.getCollaboratorId(), StatusEnum.DELETED)
+                .findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(
+                        admission.getCollaboratorId(), StatusEnum.DELETED)
                 .orElseGet(() -> EmploymentContract.builder()
                         .collaboratorId(admission.getCollaboratorId())
                         .status(StatusEnum.ACTIVE)
@@ -83,24 +84,31 @@ public class ContractRecessProvisioningService {
 
     private void validate(AdmissionProcess admission) {
         if (!admission.isRecessEnabled()) return;
-        boolean invalid = admission.getRecessTotalDaysPerCycle() == null || admission.getRecessTotalDaysPerCycle() <= 0
-                || admission.getRecessCycleMonths() == null || admission.getRecessCycleMonths() <= 0
-                || admission.getRecessEligibilityAfterMonths() == null || admission.getRecessEligibilityAfterMonths() < 0
+        boolean invalid = admission.getRecessTotalDaysPerCycle() == null
+                || admission.getRecessTotalDaysPerCycle() <= 0
+                || admission.getRecessCycleMonths() == null
+                || admission.getRecessCycleMonths() <= 0
+                || admission.getRecessEligibilityAfterMonths() == null
+                || admission.getRecessEligibilityAfterMonths() < 0
                 || admission.getRecessFinancialMode() == null
                 || admission.getRecessAdvanceNoticeDays() < 0
                 || (admission.getRecessFinancialMode() == RecessFinancialModeEnum.PROPORTIONAL
-                    && (admission.getRecessPaidPercentage() == null
-                        || admission.getRecessPaidPercentage().signum() < 0
-                        || admission.getRecessPaidPercentage().compareTo(java.math.BigDecimal.valueOf(100)) > 0))
+                        && (admission.getRecessPaidPercentage() == null
+                                || admission.getRecessPaidPercentage().signum() < 0
+                                || admission.getRecessPaidPercentage().compareTo(java.math.BigDecimal.valueOf(100))
+                                        > 0))
                 || (admission.isRecessAllowSplit()
-                    && (admission.getRecessMaxSplitPeriods() == null || admission.getRecessMaxSplitPeriods() <= 1
-                        || admission.getRecessMinimumSplitDays() == null || admission.getRecessMinimumSplitDays() <= 0));
+                        && (admission.getRecessMaxSplitPeriods() == null
+                                || admission.getRecessMaxSplitPeriods() <= 1
+                                || admission.getRecessMinimumSplitDays() == null
+                                || admission.getRecessMinimumSplitDays() <= 0));
         if (invalid) throw AdmissionProcessException.pjRecessInvalid();
     }
 
     private void ensureFirstPeriod(ContractRecessPolicy policy, AdmissionProcess admission, LocalDate startDate) {
         if (policy == null || !policy.isEnabled()) return;
-        periodRepository.findByPolicyIdAndCycleStartAndStatusNot(policy.getId(), startDate, StatusEnum.DELETED)
+        periodRepository
+                .findByPolicyIdAndCycleStartAndStatusNot(policy.getId(), startDate, StatusEnum.DELETED)
                 .orElseGet(() -> periodRepository.save(ContractRecessPeriod.builder()
                         .status(StatusEnum.ACTIVE)
                         .policyId(policy.getId())
@@ -110,9 +118,10 @@ public class ContractRecessProvisioningService {
                         .entitledDays(policy.getTotalDaysPerCycle())
                         .usedDays(0)
                         .reservedDays(0)
-                        .periodStatus(LocalDate.now().isBefore(startDate.plusMonths(policy.getEligibilityAfterMonths()))
-                                ? RecessPeriodStatusEnum.ACCRUING
-                                : RecessPeriodStatusEnum.AVAILABLE)
+                        .periodStatus(
+                                LocalDate.now().isBefore(startDate.plusMonths(policy.getEligibilityAfterMonths()))
+                                        ? RecessPeriodStatusEnum.ACCRUING
+                                        : RecessPeriodStatusEnum.AVAILABLE)
                         .build()));
     }
 

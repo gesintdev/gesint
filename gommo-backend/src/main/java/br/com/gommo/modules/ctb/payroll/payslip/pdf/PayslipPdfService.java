@@ -1,6 +1,16 @@
 package br.com.gommo.modules.ctb.payroll.payslip.pdf;
 
-import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
+import java.awt.Color;
+import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
@@ -12,15 +22,8 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import java.awt.Color;
-import java.io.ByteArrayOutputStream;
-import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-import java.util.UUID;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+
+import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
 
 @Service
 public class PayslipPdfService implements IPayslipPdfService {
@@ -77,9 +80,7 @@ public class PayslipPdfService implements IPayslipPdfService {
         document.add(spacedParagraph(
                 "Holerite No. "
                         + (data.payslipCode() != null ? data.payslipCode() : "-")
-                        + (data.generatedAt() != null
-                                ? " - Gerado em " + GENERATED_AT.format(data.generatedAt())
-                                : ""),
+                        + (data.generatedAt() != null ? " - Gerado em " + GENERATED_AT.format(data.generatedAt()) : ""),
                 SMALL_FONT));
         document.add(spacedParagraph(" ", BODY_FONT));
 

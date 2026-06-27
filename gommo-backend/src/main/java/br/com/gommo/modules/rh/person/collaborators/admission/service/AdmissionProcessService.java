@@ -22,6 +22,7 @@ import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
 import br.com.gommo.modules.dp.organization.department.entity.Department;
 import br.com.gommo.modules.dp.organization.department.repository.DepartmentRepository;
+import br.com.gommo.modules.rh.person.collaborators.address.service.AddressReferenceResolver;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessResponseDto;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProgress;
@@ -30,7 +31,6 @@ import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionSt
 import br.com.gommo.modules.rh.person.collaborators.admission.exception.AdmissionProcessException;
 import br.com.gommo.modules.rh.person.collaborators.admission.mapper.AdmissionProcessMapper;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
-import br.com.gommo.modules.rh.person.collaborators.address.service.AddressReferenceResolver;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.service.CollaboratorProfileService;
@@ -109,7 +109,8 @@ public class AdmissionProcessService
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('admission:read')")
-    public PageableResponseDto<AdmissionProcessResponseDto> findPage(int page, int size, Map<String, List<String>> filters) {
+    public PageableResponseDto<AdmissionProcessResponseDto> findPage(
+            int page, int size, Map<String, List<String>> filters) {
         List<AdmissionProcess> entities = repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED);
         List<AdmissionProcessResponseDto> allRows = mapToResponses(entities);
         Map<String, List<String>> filterOptions = admissionFilterOptions(allRows);
@@ -289,8 +290,8 @@ public class AdmissionProcessService
                     .filter(l -> "CONTRACT".equalsIgnoreCase(l.getLinkRole()))
                     .count();
         }
-        entity.setAdmissionStatus(
-                AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount).status());
+        entity.setAdmissionStatus(AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount)
+                .status());
     }
 
     private AdmissionProgress evaluateProgress(AdmissionProcess entity, UUID admissionId) {
@@ -358,20 +359,30 @@ public class AdmissionProcessService
 
     private Map<String, List<String>> admissionFilterOptions(List<AdmissionProcessResponseDto> rows) {
         return Map.of(
-                "code", distinctFilterValues(rows, row -> row.getCode() != null ? row.getCode().toString() : null),
+                "code",
+                        distinctFilterValues(
+                                rows,
+                                row -> row.getCode() != null ? row.getCode().toString() : null),
                 "fullName", distinctFilterValues(rows, AdmissionProcessResponseDto::getFullName),
-                "admissionStatus", distinctFilterValues(rows, row -> row.getAdmissionStatus() != null
-                        ? row.getAdmissionStatus().name()
-                        : null),
-                "expectedStartDate", distinctFilterValues(rows, row -> row.getExpectedStartDate() != null
-                        ? row.getExpectedStartDate().toString()
-                        : null),
+                "admissionStatus",
+                        distinctFilterValues(
+                                rows,
+                                row -> row.getAdmissionStatus() != null
+                                        ? row.getAdmissionStatus().name()
+                                        : null),
+                "expectedStartDate",
+                        distinctFilterValues(
+                                rows,
+                                row -> row.getExpectedStartDate() != null
+                                        ? row.getExpectedStartDate().toString()
+                                        : null),
                 "departmentName", distinctFilterValues(rows, AdmissionProcessResponseDto::getDepartmentName),
-                "admissionTags", rows.stream()
-                        .flatMap(row -> admissionTags(row).stream())
-                        .distinct()
-                        .sorted()
-                        .toList());
+                "admissionTags",
+                        rows.stream()
+                                .flatMap(row -> admissionTags(row).stream())
+                                .distinct()
+                                .sorted()
+                                .toList());
     }
 
     private static List<String> distinctFilterValues(
@@ -384,12 +395,12 @@ public class AdmissionProcessService
                 .toList();
     }
 
-    private static boolean matchesAdmissionFilters(
-            AdmissionProcessResponseDto row, Map<String, List<String>> filters) {
+    private static boolean matchesAdmissionFilters(AdmissionProcessResponseDto row, Map<String, List<String>> filters) {
         if (filters == null || filters.isEmpty()) {
             return true;
         }
-        return filters.entrySet().stream().allMatch(entry -> matchesAdmissionFilter(row, entry.getKey(), entry.getValue()));
+        return filters.entrySet().stream()
+                .allMatch(entry -> matchesAdmissionFilter(row, entry.getKey(), entry.getValue()));
     }
 
     private static boolean matchesAdmissionFilter(
@@ -400,14 +411,15 @@ public class AdmissionProcessService
         return switch (field) {
             case "profileStatus" -> acceptedValues.stream().anyMatch(value -> matchesProfileStatus(row, value));
             case "admissionTags" -> admissionTags(row).stream().anyMatch(acceptedValues::contains);
-            case "code" -> acceptedValues.contains(row.getCode() != null ? row.getCode().toString() : null);
+            case "code" -> acceptedValues.contains(
+                    row.getCode() != null ? row.getCode().toString() : null);
             case "fullName" -> acceptedValues.contains(row.getFullName());
-            case "admissionStatus" -> acceptedValues.contains(row.getAdmissionStatus() != null
-                    ? row.getAdmissionStatus().name()
-                    : null);
-            case "expectedStartDate" -> acceptedValues.contains(row.getExpectedStartDate() != null
-                    ? row.getExpectedStartDate().toString()
-                    : null);
+            case "admissionStatus" -> acceptedValues.contains(
+                    row.getAdmissionStatus() != null ? row.getAdmissionStatus().name() : null);
+            case "expectedStartDate" -> acceptedValues.contains(
+                    row.getExpectedStartDate() != null
+                            ? row.getExpectedStartDate().toString()
+                            : null);
             case "departmentName" -> acceptedValues.contains(row.getDepartmentName());
             default -> true;
         };

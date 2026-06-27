@@ -36,7 +36,8 @@ export const payrollRoutes: AppRoute[] = [
                 routeId: "payroll-event",
                 tabShortLabel: "Eventos",
                 fieldTabName: "eventCode",
-                listToolbar: "Rubricas parametrizáveis (proventos, descontos e informativos) usadas no cálculo da folha.",
+                listToolbar:
+                    "Rubricas parametrizáveis (proventos, descontos e informativos) usadas no cálculo da folha.",
                 list: lazyNamed(
                     () => import("@/modules/ctb/payroll/payroll-event/components/PayrollEventListClient"),
                     "PayrollEventListClient",

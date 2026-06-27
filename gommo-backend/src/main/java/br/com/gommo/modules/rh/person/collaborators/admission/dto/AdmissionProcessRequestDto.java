@@ -96,6 +96,7 @@ public class AdmissionProcessRequestDto {
     @Size(max = 200) private String providerLegalName;
 
     @Size(max = 200) private String providerTradeName;
+
     private boolean recessEnabled;
     private Integer recessTotalDaysPerCycle;
     private Integer recessCycleMonths;

@@ -1,15 +1,5 @@
 package br.com.gommo.modules.dp.payment.service;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
-import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
-import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
-import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
-import br.com.gommo.modules.rh.person.collaborators.people.entity.CollaboratorContact;
-import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorContactRepository;
-import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
-import br.com.gommo.modules.dp.payment.pdf.PaymentReceiptPdfParser;
-import br.com.gommo.modules.dp.payment.service.PaymentNameMatcher.NamedCollaborator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +11,19 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.dp.payment.pdf.PaymentReceiptPdfParser;
+import br.com.gommo.modules.dp.payment.service.PaymentNameMatcher.NamedCollaborator;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
+import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
+import br.com.gommo.modules.rh.person.collaborators.people.entity.CollaboratorContact;
+import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorContactRepository;
+import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 
 @Component
 public class PaymentCollaboratorResolver {
@@ -54,8 +56,8 @@ public class PaymentCollaboratorResolver {
     }
 
     public List<NamedCollaborator> buildNamedCandidates() {
-        List<AdmissionProcess> admissions = admissionProcessRepository
-                .findByAdmissionStatusAndCollaboratorIdIsNotNullAndStatusNot(
+        List<AdmissionProcess> admissions =
+                admissionProcessRepository.findByAdmissionStatusAndCollaboratorIdIsNotNullAndStatusNot(
                         AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED);
         if (admissions.isEmpty()) {
             return List.of();
@@ -128,14 +130,15 @@ public class PaymentCollaboratorResolver {
     }
 
     public ContactInfo resolveContact(UUID collaboratorId) {
-        Optional<CollaboratorContact> contact = contactRepository.findFirstByCollaboratorIdAndPrimaryContactTrueAndStatusNot(
-                collaboratorId, StatusEnum.DELETED);
+        Optional<CollaboratorContact> contact =
+                contactRepository.findFirstByCollaboratorIdAndPrimaryContactTrueAndStatusNot(
+                        collaboratorId, StatusEnum.DELETED);
         String email = contact.map(CollaboratorContact::getEmail).orElse(null);
         String phone = contact.map(CollaboratorContact::getPhone).orElse(null);
 
         if ((email == null || email.isBlank()) || (phone == null || phone.isBlank())) {
-            Optional<AdmissionProcess> admission = admissionProcessRepository
-                    .findByCollaboratorIdAndStatusNot(collaboratorId, StatusEnum.DELETED);
+            Optional<AdmissionProcess> admission =
+                    admissionProcessRepository.findByCollaboratorIdAndStatusNot(collaboratorId, StatusEnum.DELETED);
             if (admission.isPresent()) {
                 if (email == null || email.isBlank()) {
                     email = admission.get().getEmail();

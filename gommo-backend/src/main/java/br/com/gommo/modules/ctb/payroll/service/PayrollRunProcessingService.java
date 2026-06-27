@@ -1,5 +1,17 @@
 package br.com.gommo.modules.ctb.payroll.service;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.YearMonth;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.ctb.payroll.calculation.CalculatedPayrollLine;
 import br.com.gommo.modules.ctb.payroll.calculation.PayrollCalculationContext;
@@ -11,28 +23,18 @@ import br.com.gommo.modules.ctb.payroll.entity.PayrollStatusEnum;
 import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEvent;
 import br.com.gommo.modules.ctb.payroll.event.repository.PayrollEventRepository;
 import br.com.gommo.modules.ctb.payroll.exception.PayrollRunException;
-import br.com.gommo.modules.ctb.payroll.lifecycle.PayrollRunStateMachine;
 import br.com.gommo.modules.ctb.payroll.integration.AttendanceHoursProvider;
 import br.com.gommo.modules.ctb.payroll.integration.AttendanceHoursSnapshot;
 import br.com.gommo.modules.ctb.payroll.integration.ContractSalaryProvider;
 import br.com.gommo.modules.ctb.payroll.integration.ContractSalarySnapshot;
 import br.com.gommo.modules.ctb.payroll.integration.LeaveDataProvider;
 import br.com.gommo.modules.ctb.payroll.integration.LeaveDataSnapshot;
+import br.com.gommo.modules.ctb.payroll.lifecycle.PayrollRunStateMachine;
 import br.com.gommo.modules.ctb.payroll.payslip.entity.Payslip;
 import br.com.gommo.modules.ctb.payroll.payslip.entry.entity.PayslipEntry;
 import br.com.gommo.modules.ctb.payroll.payslip.entry.repository.PayslipEntryRepository;
 import br.com.gommo.modules.ctb.payroll.payslip.repository.PayslipRepository;
 import br.com.gommo.modules.ctb.payroll.repository.PayrollRunRepository;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.YearMonth;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PayrollRunProcessingService implements IPayrollRunProcessingService {
@@ -92,8 +94,8 @@ public class PayrollRunProcessingService implements IPayrollRunProcessingService
 
         int processed = 0;
         for (ContractSalarySnapshot contract : contracts) {
-            PayrollCalculationContext context = buildContext(
-                    payrollRun, contract, periodStart, periodEnd, eventsByCode);
+            PayrollCalculationContext context =
+                    buildContext(payrollRun, contract, periodStart, periodEnd, eventsByCode);
             PayrollCalculationResult result = orchestrator.calculate(context);
             persistPayslip(payrollRun.getId(), result);
             processed++;
@@ -132,8 +134,7 @@ public class PayrollRunProcessingService implements IPayrollRunProcessingService
             Map<String, PayrollEvent> eventsByCode) {
         AttendanceHoursSnapshot attendance =
                 attendanceHoursProvider.loadHours(contract.collaboratorId(), periodStart, periodEnd);
-        LeaveDataSnapshot leave =
-                leaveDataProvider.loadLeaveData(contract.collaboratorId(), periodStart, periodEnd);
+        LeaveDataSnapshot leave = leaveDataProvider.loadLeaveData(contract.collaboratorId(), periodStart, periodEnd);
 
         PayrollCalculationContext context = new PayrollCalculationContext(
                 payrollRun.getId(),
@@ -184,7 +185,8 @@ public class PayrollRunProcessingService implements IPayrollRunProcessingService
     }
 
     private void softDeleteEntries(UUID payslipId) {
-        for (PayslipEntry entry : payslipEntryRepository.findAllByPayslipIdAndStatusNot(payslipId, StatusEnum.DELETED)) {
+        for (PayslipEntry entry :
+                payslipEntryRepository.findAllByPayslipIdAndStatusNot(payslipId, StatusEnum.DELETED)) {
             entry.setStatus(StatusEnum.DELETED);
             payslipEntryRepository.save(entry);
         }

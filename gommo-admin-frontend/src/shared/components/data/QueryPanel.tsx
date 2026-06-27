@@ -1,6 +1,6 @@
 "use client";
 import { type QueryKey, useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { type ReactNode,useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 
 import { QueryRefreshProvider } from "@/shared/components/data/QueryRefreshContext";
 import { Button } from "@/shared/components/ui/Button";

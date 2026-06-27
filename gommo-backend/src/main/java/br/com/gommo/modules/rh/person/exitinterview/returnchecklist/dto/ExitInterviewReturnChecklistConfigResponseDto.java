@@ -1,11 +1,12 @@
 package br.com.gommo.modules.rh.person.exitinterview.returnchecklist.dto;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
-import lombok.Builder;
-import lombok.Getter;
 
 @Getter
 @Builder

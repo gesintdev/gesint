@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -25,8 +26,7 @@ public class PaymentReceiptPdfParser {
     private static final int MAX_NAME_WORDS = 10;
     private static final int MAX_HEADER_LINES = 18;
 
-    private static final Set<String> NAME_PARTICLES =
-            Set.of("DA", "DE", "DO", "DOS", "DAS", "E", "DEL", "VON", "VAN");
+    private static final Set<String> NAME_PARTICLES = Set.of("DA", "DE", "DO", "DOS", "DAS", "E", "DEL", "VON", "VAN");
 
     private static final Pattern[] INLINE_NAME_PATTERNS = {
         Pattern.compile("(?i)nome\\s+(?:do\\s+)?funcion\\w*\\s*:?\\s+(.+)"),
@@ -57,11 +57,42 @@ public class PaymentReceiptPdfParser {
     };
 
     private static final String[] PAYROLL_KEYWORDS = {
-        "SALARIO", "SALAR", "SAL.", "BASE", "INSS", "FGTS", "IRRF", "CALC", "CALCULO",
-        "CONTR", "CONTR.", "FAIXA", "VENCIMENT", "DESCONT", "PROVENT", "LIQUIDO", "BRUTO",
-        "FERIAS", "MENSAL", "DEPEND", "PIS", "PASEP", "REFEREN", "HORAS", "VALOR",
-        "TOTAL", "LIQUID", "PROVENTO", "DESCONTO", "CONTRIB", "PREVID", "IMPOSTO",
-        "F.G.T.S", "F G T S", "I.N.S.S", "I.R.R.F"
+        "SALARIO",
+        "SALAR",
+        "SAL.",
+        "BASE",
+        "INSS",
+        "FGTS",
+        "IRRF",
+        "CALC",
+        "CALCULO",
+        "CONTR",
+        "CONTR.",
+        "FAIXA",
+        "VENCIMENT",
+        "DESCONT",
+        "PROVENT",
+        "LIQUIDO",
+        "BRUTO",
+        "FERIAS",
+        "MENSAL",
+        "DEPEND",
+        "PIS",
+        "PASEP",
+        "REFEREN",
+        "HORAS",
+        "VALOR",
+        "TOTAL",
+        "LIQUID",
+        "PROVENTO",
+        "DESCONTO",
+        "CONTRIB",
+        "PREVID",
+        "IMPOSTO",
+        "F.G.T.S",
+        "F G T S",
+        "I.N.S.S",
+        "I.R.R.F"
     };
 
     private static final String[] JOB_TITLE_WORDS = {
@@ -120,10 +151,7 @@ public class PaymentReceiptPdfParser {
         String headerText = extractHeaderRegion(normalizePageText(text));
         String extractedName = extractEmployeeName(headerText);
         if (extractedName == null && hasEnoughText(text)) {
-            log.debug(
-                    "Payment PDF page {} name not found. Header sample: {}",
-                    pageIndex + 1,
-                    textSample(headerText));
+            log.debug("Payment PDF page {} name not found. Header sample: {}", pageIndex + 1, textSample(headerText));
         } else if (!hasEnoughText(text)) {
             log.warn(
                     "Payment PDF page {} has no readable text layer. OCR available: {}",
@@ -228,7 +256,8 @@ public class PaymentReceiptPdfParser {
     }
 
     private String extractFromFullTextPatterns(String normalized) {
-        String singleLine = normalized.replace('\n', ' ').replaceAll("\\s+", " ").trim();
+        String singleLine =
+                normalized.replace('\n', ' ').replaceAll("\\s+", " ").trim();
         for (Pattern pattern : FULLTEXT_NAME_PATTERNS) {
             Matcher matcher = pattern.matcher(singleLine);
             if (!matcher.find()) {
@@ -243,7 +272,8 @@ public class PaymentReceiptPdfParser {
     }
 
     private String extractFirstUppercaseNameAfterLabel(String normalized) {
-        String singleLine = normalized.replace('\n', ' ').replaceAll("\\s+", " ").trim();
+        String singleLine =
+                normalized.replace('\n', ' ').replaceAll("\\s+", " ").trim();
         int funcionarioIndex = indexOfFuncionarioLabel(singleLine);
         Matcher matcher = UPPERCASE_NAME_PATTERN.matcher(singleLine);
         while (matcher.find()) {

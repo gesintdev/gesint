@@ -1,9 +1,9 @@
 package br.com.gommo.modules.dp.payment.notification;
 
-import br.com.gommo.modules.dp.payment.exception.PaymentException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -12,6 +12,8 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import br.com.gommo.modules.dp.payment.exception.PaymentException;
 
 @Service
 public class PaymentSlipNotificationService {
@@ -66,15 +68,12 @@ public class PaymentSlipNotificationService {
             digits = "55" + digits;
         }
         String message = String.format(
-                Locale.ROOT,
-                "Ola %s, segue seu recibo de pagamento referente a %s.",
-                collaboratorName,
-                periodLabel);
+                Locale.ROOT, "Ola %s, segue seu recibo de pagamento referente a %s.", collaboratorName, periodLabel);
         return whatsappBaseUrl + digits + "?text=" + java.net.URLEncoder.encode(message, StandardCharsets.UTF_8);
     }
 
     private String buildEmailBody(String collaboratorName, String periodLabel) {
-        return "Ola " + collaboratorName + ",\n\nSegue em anexo seu recibo de pagamento referente a "
-                + periodLabel + ".\n\nDepartamento Pessoal";
+        return "Ola " + collaboratorName + ",\n\nSegue em anexo seu recibo de pagamento referente a " + periodLabel
+                + ".\n\nDepartamento Pessoal";
     }
 }

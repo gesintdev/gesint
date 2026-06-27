@@ -1,13 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-    createContext,
-    type ReactNode,
-    useCallback,
-    useContext,
-    useMemo,
-} from "react";
+import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react";
 
 import type { AppRoute } from "@/config/routes";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
@@ -74,11 +68,7 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
     );
 
     const openRouteRecord = useCallback(
-        (
-            route: AppRoute,
-            entityId: string,
-            options?: { titleSuffix?: string; shortLabel?: string },
-        ) => {
+        (route: AppRoute, entityId: string, options?: { titleSuffix?: string; shortLabel?: string }) => {
             const input = routeToInput(route, options?.shortLabel);
             const tabId = buildWorkspaceTabId(input.routeId, entityId);
             const existing = useWorkspaceStore.getState().tabs.find((t) => t.id === tabId);
@@ -167,9 +157,7 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
         ],
     );
 
-    return (
-        <WorkspaceNavigationContext.Provider value={value}>{children}</WorkspaceNavigationContext.Provider>
-    );
+    return <WorkspaceNavigationContext.Provider value={value}>{children}</WorkspaceNavigationContext.Provider>;
 }
 
 export function useWorkspaceNavigation(): WorkspaceNavigationApi {

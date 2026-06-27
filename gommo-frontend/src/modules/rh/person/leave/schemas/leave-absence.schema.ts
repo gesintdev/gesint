@@ -12,9 +12,7 @@ const absentWhenNull = (value: unknown) => (value == null ? undefined : value);
 
 const requiredText = (message: string) => z.preprocess(emptyWhenNull, z.string().min(1, message));
 const optionalText = (maxLength?: number) => {
-    const base = maxLength
-        ? z.string().max(maxLength, `Informe no maximo ${maxLength} caracteres`)
-        : z.string();
+    const base = maxLength ? z.string().max(maxLength, `Informe no maximo ${maxLength} caracteres`) : z.string();
     return z.preprocess(absentWhenNull, base.optional());
 };
 const optionalNumber = () => z.preprocess(absentWhenNull, z.number().optional());
@@ -45,9 +43,7 @@ export const leaveAbsenceFormSchema = z
         path: ["endDate"],
     })
     .refine(
-        (data) =>
-            !["REFERRED_INSS", "APPROVED_INSS"].includes(data.absenceStatus) ||
-            Boolean(data.inssReferralDate),
+        (data) => !["REFERRED_INSS", "APPROVED_INSS"].includes(data.absenceStatus) || Boolean(data.inssReferralDate),
         {
             message: "Informe a data de encaminhamento ao INSS",
             path: ["inssReferralDate"],

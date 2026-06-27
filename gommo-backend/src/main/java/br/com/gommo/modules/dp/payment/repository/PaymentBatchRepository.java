@@ -1,10 +1,11 @@
 package br.com.gommo.modules.dp.payment.repository;
 
+import java.util.List;
+import java.util.UUID;
+
 import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.dp.payment.entity.PaymentBatch;
-import java.util.List;
-import java.util.UUID;
 
 public interface PaymentBatchRepository extends IBaseRepository<PaymentBatch> {
 

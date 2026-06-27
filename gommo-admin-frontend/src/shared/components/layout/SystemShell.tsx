@@ -1,7 +1,7 @@
 "use client";
 import { Bell, Command, Menu, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { type ReactNode,Suspense, useCallback, useEffect, useState } from "react";
+import { type ReactNode, Suspense, useCallback, useEffect, useState } from "react";
 
 import { HeaderUserMenu } from "@/shared/components/layout/HeaderUserMenu";
 import { Sidebar } from "@/shared/components/layout/Sidebar";

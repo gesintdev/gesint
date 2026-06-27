@@ -64,10 +64,7 @@ export function PaymentSlipReviewDialog({
         return null;
     }
 
-    const title =
-        slip?.extractedNameDisplay ??
-        formatPersonName(slip?.extractedName) ??
-        "Holerite";
+    const title = slip?.extractedNameDisplay ?? formatPersonName(slip?.extractedName) ?? "Holerite";
 
     return createPortal(
         <dialog ref={dialogRef} className="modal" onClose={onClose}>

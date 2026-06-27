@@ -253,10 +253,7 @@ export function CrudScreen({
                         )}
                     >
                         <div
-                            className={clsx(
-                                "min-h-0 flex-1 flex-col",
-                                activeTab === CRUD_TAB_LIST ? "flex" : "hidden",
-                            )}
+                            className={clsx("min-h-0 flex-1 flex-col", activeTab === CRUD_TAB_LIST ? "flex" : "hidden")}
                             aria-hidden={activeTab !== CRUD_TAB_LIST}
                         >
                             {list}

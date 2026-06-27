@@ -1,11 +1,11 @@
 package br.com.gommo.modules.dp.payment.repository;
 
+import java.time.LocalDate;
+import java.util.Optional;
+
 import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.dp.payment.entity.PaymentPeriod;
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.UUID;
 
 public interface PaymentPeriodRepository extends IBaseRepository<PaymentPeriod> {
 

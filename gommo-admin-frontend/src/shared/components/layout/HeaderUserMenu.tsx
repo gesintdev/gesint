@@ -1,38 +1,26 @@
 "use client";
 
 import clsx from "clsx";
-import {AnimatePresence, motion} from "framer-motion";
-import {ChevronDown, LogOut, Settings} from "lucide-react";
-import {signOut, useSession} from "next-auth/react";
-import {useEffect, useRef, useState} from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown, LogOut, Settings } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { useEffect, useRef, useState } from "react";
 
-import {userInitials} from "@/shared/lib/user-display";
+import { userInitials } from "@/shared/lib/user-display";
 
-function UserIdentity({
-                          name,
-                          email,
-                          compact = false,
-                      }: {
-    name: string;
-    email?: string | null;
-    compact?: boolean;
-}) {
+function UserIdentity({ name, email, compact = false }: { name: string; email?: string | null; compact?: boolean }) {
     return (
         <span className={clsx("min-w-0 text-left", compact ? "hidden sm:block" : "block")}>
-            <span className="block truncate text-[13px] font-semibold leading-tight text-base-content">
-                {name}
-            </span>
+            <span className="block truncate text-[13px] font-semibold leading-tight text-base-content">{name}</span>
             {email ? (
-                <span className="mt-0.5 block truncate text-[11px] leading-tight text-base-content/45">
-                    {email}
-                </span>
+                <span className="mt-0.5 block truncate text-[11px] leading-tight text-base-content/45">{email}</span>
             ) : null}
         </span>
     );
 }
 
 export function HeaderUserMenu() {
-    const {data: session} = useSession();
+    const { data: session } = useSession();
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +70,7 @@ export function HeaderUserMenu() {
                 >
                     {initials}
                 </span>
-                <UserIdentity name={name} email={email} compact/>
+                <UserIdentity name={name} email={email} compact />
                 <ChevronDown
                     className={clsx(
                         "hidden size-3 shrink-0 text-base-content/35 transition-transform duration-200 sm:block",
@@ -96,10 +84,10 @@ export function HeaderUserMenu() {
                     <motion.div
                         role="menu"
                         aria-label="Conta do usuário"
-                        initial={{opacity: 0, y: -5, scale: 0.97}}
-                        animate={{opacity: 1, y: 0, scale: 1}}
-                        exit={{opacity: 0, y: -5, scale: 0.97}}
-                        transition={{duration: 0.18, ease: [0.22, 1, 0.36, 1]}}
+                        initial={{ opacity: 0, y: -5, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -5, scale: 0.97 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                         className="surface-popover absolute right-0 z-50 mt-2 min-w-[14rem] origin-top-right p-1.5"
                     >
                         <div className="flex items-center gap-3 rounded-[10px] px-3 py-2.5">
@@ -113,29 +101,25 @@ export function HeaderUserMenu() {
                             >
                                 {initials}
                             </span>
-                            <UserIdentity name={name} email={email}/>
+                            <UserIdentity name={name} email={email} />
                         </div>
 
-                        <div className="my-1 h-px bg-base-content/8"/>
+                        <div className="my-1 h-px bg-base-content/8" />
 
-                        <button
-                            type="button"
-                            role="menuitem"
-                            className="nav-item gap-2.5 !px-3 text-left text-[13px]"
-                        >
-                            <Settings className="size-[15px] shrink-0 text-base-content/38" strokeWidth={2}/>
+                        <button type="button" role="menuitem" className="nav-item gap-2.5 !px-3 text-left text-[13px]">
+                            <Settings className="size-[15px] shrink-0 text-base-content/38" strokeWidth={2} />
                             Configurações
                         </button>
 
-                        <div className="my-1 h-px bg-base-content/8"/>
+                        <div className="my-1 h-px bg-base-content/8" />
 
                         <button
                             type="button"
                             role="menuitem"
                             className="nav-item gap-2.5 !px-3 text-left text-[13px] text-error hover:bg-error/8 hover:text-error"
-                            onClick={() => signOut({callbackUrl: "/login"})}
+                            onClick={() => signOut({ callbackUrl: "/login" })}
                         >
-                            <LogOut className="size-[15px] shrink-0" strokeWidth={2}/>
+                            <LogOut className="size-[15px] shrink-0" strokeWidth={2} />
                             Sair da conta
                         </button>
                     </motion.div>

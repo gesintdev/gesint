@@ -1,14 +1,14 @@
 "use client";
 
 import clsx from "clsx";
-import {X} from "lucide-react";
-import {useRef} from "react";
+import { X } from "lucide-react";
+import { useRef } from "react";
 
-import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
-import {WorkspaceTabOverflowMenu} from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
-import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
-import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
-import {isDashboardTabId} from "@/shared/workspace/workspace-dashboard";
+import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
+import { WorkspaceTabOverflowMenu } from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
+import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
+import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
+import { isDashboardTabId } from "@/shared/workspace/workspace-dashboard";
 
 type WorkspaceTabBarProps = {
     dashboardTab: WorkspaceTab;
@@ -47,9 +47,7 @@ function WorkspaceTabButton({
                 tab={tab}
                 className={clsx(
                     "size-3.5 shrink-0 transition-colors",
-                    active
-                        ? "text-primary"
-                        : "text-base-content/40 group-hover/tab:text-base-content/60",
+                    active ? "text-primary" : "text-base-content/40 group-hover/tab:text-base-content/60",
                 )}
             />
             <span className="min-w-0 flex-1 truncate text-left tracking-tight">{title}</span>
@@ -78,13 +76,7 @@ function WorkspaceTabButton({
     );
 }
 
-export function WorkspaceTabBar({
-    dashboardTab,
-    moduleTabs,
-    activeTabId,
-    onSelect,
-    onClose,
-}: WorkspaceTabBarProps) {
+export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelect, onClose }: WorkspaceTabBarProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const dashboardActive = isDashboardTabId(activeTabId);
 
@@ -122,11 +114,7 @@ export function WorkspaceTabBar({
             </div>
 
             <div className="workspace-tabbar-actions flex shrink-0 items-stretch">
-                <WorkspaceTabOverflowMenu
-                    moduleTabs={moduleTabs}
-                    activeTabId={activeTabId}
-                    onSelect={onSelect}
-                />
+                <WorkspaceTabOverflowMenu moduleTabs={moduleTabs} activeTabId={activeTabId} onSelect={onSelect} />
             </div>
         </div>
     );

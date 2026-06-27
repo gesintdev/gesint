@@ -1,11 +1,13 @@
 package br.com.gommo.modules.ctb.payroll.lifecycle;
 
+import java.util.UUID;
+
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.ctb.payroll.entity.PayrollRun;
 import br.com.gommo.modules.ctb.payroll.exception.PayrollRunException;
 import br.com.gommo.modules.ctb.payroll.repository.PayrollRunRepository;
-import java.util.UUID;
-import org.springframework.stereotype.Component;
 
 @Component
 public class PayrollRunLockService {

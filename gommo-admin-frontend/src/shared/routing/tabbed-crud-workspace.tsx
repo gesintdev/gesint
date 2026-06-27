@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentType, lazy, type ReactNode,Suspense } from "react";
+import { type ComponentType, lazy, type ReactNode, Suspense } from "react";
 
 import { TabbedCrudPage } from "@/shared/components/layout/TabbedCrudPage";
 import { resolveLazyComponent } from "@/shared/routing/resolve-lazy-component";

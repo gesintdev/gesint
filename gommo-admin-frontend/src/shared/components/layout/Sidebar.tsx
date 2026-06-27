@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { type MouseEvent,useEffect, useMemo, useRef, useState } from "react";
+import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { APP_ROUTES, type AppRoute, flattenRoutes, NAV_SECTIONS } from "@/config/routes";
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";

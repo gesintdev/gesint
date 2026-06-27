@@ -178,14 +178,7 @@ type ColumnFilterHeaderProps = {
     onChange: (_value: string[]) => void;
 };
 
-function ColumnFilterHeader({
-    column,
-    options,
-    value,
-    open,
-    onOpenChange,
-    onChange,
-}: ColumnFilterHeaderProps) {
+function ColumnFilterHeader({ column, options, value, open, onOpenChange, onChange }: ColumnFilterHeaderProps) {
     const active = value.length > 0;
     const triggerRef = useRef<HTMLButtonElement | null>(null);
     const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -255,59 +248,59 @@ function ColumnFilterHeader({
             </button>
             {open && position
                 ? createPortal(
-                <div
-                    ref={popoverRef}
-                    className="fixed z-[400] w-72 rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 p-3 text-sm text-base-content shadow-lg"
-                    style={{ top: position.top, left: position.left }}
-                    onClick={(event) => event.stopPropagation()}
-                >
-                    <div className="flex items-center gap-2 border-b border-[var(--gommo-border-subtle)] pb-3">
-                        <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-1 text-sm font-medium normal-case tracking-normal text-base-content/75">
-                            <input
-                                type="checkbox"
-                                className="checkbox checkbox-sm rounded-md border-[var(--gommo-border-strong)]"
-                                checked={!active}
-                                onChange={() => onChange([])}
-                            />
-                            <span className="truncate">Selecionar todos</span>
-                        </label>
-                        <button
-                            type="button"
-                            className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium normal-case tracking-normal text-base-content/45 transition-colors hover:bg-base-200 hover:text-primary disabled:pointer-events-none disabled:opacity-40"
-                            disabled={!active}
-                            onClick={() => onChange([])}
-                        >
-                            <X className="size-3" />
-                            Limpar
-                        </button>
-                    </div>
-                    <div className="mt-2 max-h-64 overflow-y-auto">
-                        {options.map((option) => {
-                            const checked = value.includes(option);
-                            return (
-                                <label
-                                    key={option}
-                                    className="flex cursor-pointer items-center gap-3 border-b border-[var(--gommo-border-subtle)] px-1 py-2.5 text-sm font-normal normal-case tracking-normal text-base-content/75 last:border-b-0 hover:text-base-content"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        className="checkbox checkbox-sm rounded-md border-[var(--gommo-border-strong)]"
-                                        checked={checked}
-                                        onChange={() => {
-                                            const next = checked
-                                                ? value.filter((item) => item !== option)
-                                                : [...value, option];
-                                            onChange(next.length === options.length ? [] : next);
-                                        }}
-                                    />
-                                    <span className="truncate">{filterOptionLabel(column, option)}</span>
-                                </label>
-                            );
-                        })}
-                    </div>
-                </div>,
-                  document.body,
-              )
+                      <div
+                          ref={popoverRef}
+                          className="fixed z-[400] w-72 rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 p-3 text-sm text-base-content shadow-lg"
+                          style={{ top: position.top, left: position.left }}
+                          onClick={(event) => event.stopPropagation()}
+                      >
+                          <div className="flex items-center gap-2 border-b border-[var(--gommo-border-subtle)] pb-3">
+                              <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-1 text-sm font-medium normal-case tracking-normal text-base-content/75">
+                                  <input
+                                      type="checkbox"
+                                      className="checkbox checkbox-sm rounded-md border-[var(--gommo-border-strong)]"
+                                      checked={!active}
+                                      onChange={() => onChange([])}
+                                  />
+                                  <span className="truncate">Selecionar todos</span>
+                              </label>
+                              <button
+                                  type="button"
+                                  className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium normal-case tracking-normal text-base-content/45 transition-colors hover:bg-base-200 hover:text-primary disabled:pointer-events-none disabled:opacity-40"
+                                  disabled={!active}
+                                  onClick={() => onChange([])}
+                              >
+                                  <X className="size-3" />
+                                  Limpar
+                              </button>
+                          </div>
+                          <div className="mt-2 max-h-64 overflow-y-auto">
+                              {options.map((option) => {
+                                  const checked = value.includes(option);
+                                  return (
+                                      <label
+                                          key={option}
+                                          className="flex cursor-pointer items-center gap-3 border-b border-[var(--gommo-border-subtle)] px-1 py-2.5 text-sm font-normal normal-case tracking-normal text-base-content/75 last:border-b-0 hover:text-base-content"
+                                      >
+                                          <input
+                                              type="checkbox"
+                                              className="checkbox checkbox-sm rounded-md border-[var(--gommo-border-strong)]"
+                                              checked={checked}
+                                              onChange={() => {
+                                                  const next = checked
+                                                      ? value.filter((item) => item !== option)
+                                                      : [...value, option];
+                                                  onChange(next.length === options.length ? [] : next);
+                                              }}
+                                          />
+                                          <span className="truncate">{filterOptionLabel(column, option)}</span>
+                                      </label>
+                                  );
+                              })}
+                          </div>
+                      </div>,
+                      document.body,
+                  )
                 : null}
         </div>
     );

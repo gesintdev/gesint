@@ -1,21 +1,24 @@
 package br.com.gommo.modules.rh.person.leave.repository;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
 import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
 
-    @Query("""
+    @Query(
+            """
             SELECT l FROM LeaveRequest l
             WHERE l.status <> :deletedStatus
               AND l.collaboratorId = :collaboratorId
@@ -31,7 +34,8 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
 
-    @Query("""
+    @Query(
+            """
             SELECT l FROM LeaveRequest l
             WHERE l.status <> :deletedStatus
               AND l.collaboratorId IN :collaboratorIds
@@ -47,7 +51,8 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
 
-    @Query("""
+    @Query(
+            """
             SELECT l FROM LeaveRequest l
             WHERE l.status <> :deletedStatus
               AND l.collaboratorId = :collaboratorId
@@ -63,7 +68,8 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
 
-    @Query("""
+    @Query(
+            """
             SELECT l FROM LeaveRequest l
             WHERE l.status <> :deletedStatus
               AND l.collaboratorId IN :collaboratorIds
@@ -79,7 +85,8 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
 
-    @Query("""
+    @Query(
+            """
             SELECT l FROM LeaveRequest l
             WHERE l.status <> :deletedStatus
               AND l.collaboratorId IN :collaboratorIds
@@ -96,7 +103,8 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
 
-    @Query("""
+    @Query(
+            """
             SELECT l FROM LeaveRequest l
             WHERE l.status <> :deletedStatus
               AND l.collaboratorId = :collaboratorId
@@ -114,7 +122,8 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             @Param("ignoredId") UUID ignoredId,
             @Param("deletedStatus") StatusEnum deletedStatus);
 
-    @Query("""
+    @Query(
+            """
             SELECT l FROM LeaveRequest l
             WHERE l.status <> :deletedStatus
               AND l.collaboratorId = :collaboratorId

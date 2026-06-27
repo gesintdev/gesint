@@ -13,6 +13,5 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExitInterviewCancelRequestDto {
-    @Size(max = 1000)
-    private String reason;
+    @Size(max = 1000) private String reason;
 }

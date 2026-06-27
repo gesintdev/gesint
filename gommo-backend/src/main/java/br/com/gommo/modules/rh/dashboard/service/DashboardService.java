@@ -14,8 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
-import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.dashboard.dto.DashboardDistributionItemResponseDto;
 import br.com.gommo.modules.rh.dashboard.dto.DashboardMetricResponseDto;
 import br.com.gommo.modules.rh.dashboard.dto.DashboardModuleHealthResponseDto;
@@ -23,6 +21,8 @@ import br.com.gommo.modules.rh.dashboard.dto.DashboardModuleStatusResponseDto;
 import br.com.gommo.modules.rh.dashboard.dto.DashboardMovementPointResponseDto;
 import br.com.gommo.modules.rh.dashboard.dto.DashboardSummaryResponseDto;
 import br.com.gommo.modules.rh.dashboard.repository.DashboardMetricsDao;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 
 @Service
 public class DashboardService implements IDashboardService {

@@ -1,5 +1,7 @@
 package br.com.gommo.modules.dp.payment.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.dp.payment.dto.PaymentBatchResponseDto;
 import br.com.gommo.modules.dp.payment.dto.PaymentPeriodRequestDto;
 import br.com.gommo.modules.dp.payment.dto.PaymentPeriodResponseDto;
@@ -7,13 +9,15 @@ import br.com.gommo.modules.dp.payment.dto.PaymentSlipResponseDto;
 import br.com.gommo.modules.dp.payment.entity.PaymentBatch;
 import br.com.gommo.modules.dp.payment.entity.PaymentPeriod;
 import br.com.gommo.modules.dp.payment.entity.PaymentSlip;
-import org.springframework.stereotype.Component;
 
 @Component
 public class PaymentMapper {
 
     public PaymentPeriod toEntity(PaymentPeriodRequestDto dto) {
-        return PaymentPeriod.builder().referenceDate(dto.getReferenceDate()).notes(dto.getNotes()).build();
+        return PaymentPeriod.builder()
+                .referenceDate(dto.getReferenceDate())
+                .notes(dto.getNotes())
+                .build();
     }
 
     public void updatePeriod(PaymentPeriod entity, PaymentPeriodRequestDto dto) {

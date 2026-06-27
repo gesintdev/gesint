@@ -1,5 +1,15 @@
 package br.com.gommo.modules.cfg.settings.notification.service;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.UUID;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.cfg.settings.notification.dto.NotificationSummaryResponseDto;
 import br.com.gommo.modules.cfg.settings.notification.dto.SystemNotificationResponseDto;
@@ -8,14 +18,6 @@ import br.com.gommo.modules.cfg.settings.notification.exception.NotificationExce
 import br.com.gommo.modules.cfg.settings.notification.repository.SystemNotificationRepository;
 import br.com.gommo.modules.rh.person.leave.dto.VacationEligibleCollaboratorDto;
 import br.com.gommo.modules.rh.person.leave.service.ILeaveRequestService;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.util.UUID;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SystemNotificationService {
@@ -43,19 +45,20 @@ public class SystemNotificationService {
         syncVacationDueNotifications();
         return NotificationSummaryResponseDto.builder()
                 .unreadCount(repository.countByStatusNotAndReadAtIsNull(StatusEnum.DELETED))
-                .notifications(repository.findByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED, PageRequest.of(0, 20))
-                        .stream()
-                        .map(this::toResponse)
-                        .toList())
+                .notifications(
+                        repository
+                                .findByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED, PageRequest.of(0, 20))
+                                .stream()
+                                .map(this::toResponse)
+                                .toList())
                 .build();
     }
 
     @Transactional
     @PreAuthorize("hasAuthority('notification:write')")
     public SystemNotificationResponseDto markAsRead(UUID id) {
-        SystemNotification notification = repository
-                .findByIdAndStatusNot(id, StatusEnum.DELETED)
-                .orElseThrow(NotificationException::notFound);
+        SystemNotification notification =
+                repository.findByIdAndStatusNot(id, StatusEnum.DELETED).orElseThrow(NotificationException::notFound);
         if (notification.getReadAt() == null) {
             notification.setReadAt(OffsetDateTime.now(BUSINESS_ZONE));
             repository.save(notification);

@@ -18,18 +18,18 @@ import br.com.gommo.modules.rh.person.exitinterview.returnchecklist.mapper.ExitI
 import br.com.gommo.modules.rh.person.exitinterview.returnchecklist.repository.ExitInterviewReturnChecklistConfigRepository;
 
 @Service
-public class ExitInterviewReturnChecklistConfigService extends BaseService<
-        ExitInterviewReturnChecklistConfig,
-        ExitInterviewReturnChecklistConfigRequestDto,
-        ExitInterviewReturnChecklistConfigResponseDto>
+public class ExitInterviewReturnChecklistConfigService
+        extends BaseService<
+                ExitInterviewReturnChecklistConfig,
+                ExitInterviewReturnChecklistConfigRequestDto,
+                ExitInterviewReturnChecklistConfigResponseDto>
         implements IExitInterviewReturnChecklistConfigService {
 
     private final ExitInterviewReturnChecklistConfigRepository repository;
     private final ExitInterviewReturnChecklistConfigMapper mapper;
 
     public ExitInterviewReturnChecklistConfigService(
-            ExitInterviewReturnChecklistConfigRepository repository,
-            ExitInterviewReturnChecklistConfigMapper mapper) {
+            ExitInterviewReturnChecklistConfigRepository repository, ExitInterviewReturnChecklistConfigMapper mapper) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;

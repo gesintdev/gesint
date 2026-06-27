@@ -82,7 +82,12 @@ export function NotificationSettingsPage() {
                         />
                         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
                         <div className="flex justify-end">
-                            <Button type="submit" variant="primary" loading={saveMutation.isPending} disabled={!canWrite}>
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                loading={saveMutation.isPending}
+                                disabled={!canWrite}
+                            >
                                 Salvar configurações
                             </Button>
                         </div>

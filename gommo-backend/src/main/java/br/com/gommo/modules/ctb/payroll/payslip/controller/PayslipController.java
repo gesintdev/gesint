@@ -1,11 +1,7 @@
 package br.com.gommo.modules.ctb.payroll.payslip.controller;
 
-import br.com.gommo.core.base.controller.BaseController;
-import br.com.gommo.modules.ctb.payroll.payslip.dto.PayslipRequestDto;
-import br.com.gommo.modules.ctb.payroll.payslip.dto.PayslipResponseDto;
-import br.com.gommo.modules.ctb.payroll.payslip.pdf.IPayslipPdfService;
-import br.com.gommo.modules.ctb.payroll.payslip.service.IPayslipService;
 import java.util.UUID;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import br.com.gommo.core.base.controller.BaseController;
+import br.com.gommo.modules.ctb.payroll.payslip.dto.PayslipRequestDto;
+import br.com.gommo.modules.ctb.payroll.payslip.dto.PayslipResponseDto;
+import br.com.gommo.modules.ctb.payroll.payslip.pdf.IPayslipPdfService;
+import br.com.gommo.modules.ctb.payroll.payslip.service.IPayslipService;
 
 @RestController
 @RequestMapping("/api/v1/payslips")

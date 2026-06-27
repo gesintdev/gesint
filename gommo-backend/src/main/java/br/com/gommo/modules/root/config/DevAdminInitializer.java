@@ -77,7 +77,8 @@ public class DevAdminInitializer implements ApplicationRunner {
         if (!passwordEncoder.matches(devAdminPassword, user.getPasswordHash())) {
             user.setPasswordHash(passwordEncoder.encode(devAdminPassword));
             changed = true;
-            log.warn("Usuario '{}' existia com senha diferente; senha de desenvolvimento sincronizada.",
+            log.warn(
+                    "Usuario '{}' existia com senha diferente; senha de desenvolvimento sincronizada.",
                     user.getUsername());
         }
 

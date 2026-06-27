@@ -30,11 +30,8 @@ class VacationEligibilityEvaluatorTest {
 
     @Test
     void advancesToNextAcquiredPeriodWhenPreviousOneIsConfirmed() {
-        LeaveRequest confirmed = vacation(
-                LocalDate.of(2024, 6, 17),
-                LocalDate.of(2025, 7, 1),
-                true,
-                VacationReviewStatusEnum.APPROVED);
+        LeaveRequest confirmed =
+                vacation(LocalDate.of(2024, 6, 17), LocalDate.of(2025, 7, 1), true, VacationReviewStatusEnum.APPROVED);
 
         var result = VacationEligibilityEvaluator.findFirstEligiblePeriod(
                 LocalDate.of(2024, 6, 17), REFERENCE_DATE, List.of(confirmed));
@@ -47,11 +44,8 @@ class VacationEligibilityEvaluatorTest {
 
     @Test
     void hidesCollaboratorWhenOnlyAcquiredPeriodHasPendingRequest() {
-        LeaveRequest pending = vacation(
-                LocalDate.of(2025, 6, 17),
-                LocalDate.of(2026, 7, 1),
-                false,
-                VacationReviewStatusEnum.PENDING);
+        LeaveRequest pending =
+                vacation(LocalDate.of(2025, 6, 17), LocalDate.of(2026, 7, 1), false, VacationReviewStatusEnum.PENDING);
 
         var result = VacationEligibilityEvaluator.findFirstEligiblePeriod(
                 LocalDate.of(2025, 6, 17), REFERENCE_DATE, List.of(pending));
@@ -61,11 +55,8 @@ class VacationEligibilityEvaluatorTest {
 
     @Test
     void rejectedRequestDoesNotBlockANewRequestForTheSamePeriod() {
-        LeaveRequest rejected = vacation(
-                LocalDate.of(2025, 6, 17),
-                LocalDate.of(2026, 7, 1),
-                false,
-                VacationReviewStatusEnum.REJECTED);
+        LeaveRequest rejected =
+                vacation(LocalDate.of(2025, 6, 17), LocalDate.of(2026, 7, 1), false, VacationReviewStatusEnum.REJECTED);
 
         var result = VacationEligibilityEvaluator.findFirstEligiblePeriod(
                 LocalDate.of(2025, 6, 17), REFERENCE_DATE, List.of(rejected));

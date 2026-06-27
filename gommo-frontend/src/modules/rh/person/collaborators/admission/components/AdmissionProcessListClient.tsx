@@ -76,7 +76,11 @@ export function AdmissionProcessListClient() {
 
     return (
         <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] gap-2">
-            <div className="flex flex-wrap items-center gap-2 px-1 pt-3" role="radiogroup" aria-label="Filtrar admissões">
+            <div
+                className="flex flex-wrap items-center gap-2 px-1 pt-3"
+                role="radiogroup"
+                aria-label="Filtrar admissões"
+            >
                 {PROFILE_FILTERS.map((filter) => (
                     <button
                         key={filter.value}

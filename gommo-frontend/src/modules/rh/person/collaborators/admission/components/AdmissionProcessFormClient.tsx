@@ -1,20 +1,16 @@
 "use client";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type SubmitEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {toast} from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type SubmitEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
-import {DepartmentPickerField} from "@/modules/dp/organization/department/components/DepartmentPickerField";
-import {JobPositionPickerField} from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
-import {admissionprocessKeys} from "@/modules/rh/person/collaborators/admission/admission.query";
-import {
-    AdmissionEmergencyContactsField
-} from "@/modules/rh/person/collaborators/admission/components/AdmissionEmergencyContactsField";
-import {AdmissionSummary} from "@/modules/rh/person/collaborators/admission/components/AdmissionSummary";
-import type {AdmissionProcessCreateDto} from "@/modules/rh/person/collaborators/admission/dto/admission-process.dto";
-import {
-    ADMISSION_CLIENT_MESSAGES
-} from "@/modules/rh/person/collaborators/admission/exceptions/admission-process.messages";
-import {isAdmissionPj} from "@/modules/rh/person/collaborators/admission/lib/admission-contract.util";
+import { DepartmentPickerField } from "@/modules/dp/organization/department/components/DepartmentPickerField";
+import { JobPositionPickerField } from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
+import { admissionprocessKeys } from "@/modules/rh/person/collaborators/admission/admission.query";
+import { AdmissionEmergencyContactsField } from "@/modules/rh/person/collaborators/admission/components/AdmissionEmergencyContactsField";
+import { AdmissionSummary } from "@/modules/rh/person/collaborators/admission/components/AdmissionSummary";
+import type { AdmissionProcessCreateDto } from "@/modules/rh/person/collaborators/admission/dto/admission-process.dto";
+import { ADMISSION_CLIENT_MESSAGES } from "@/modules/rh/person/collaborators/admission/exceptions/admission-process.messages";
+import { isAdmissionPj } from "@/modules/rh/person/collaborators/admission/lib/admission-contract.util";
 import {
     ADMISSION_DOCUMENT_TYPE_ITEMS,
     CONTRACT_TYPE_ITEMS,
@@ -26,22 +22,20 @@ import {
     admissionprocessToFormDto,
     emptyAdmissionProcessForm,
 } from "@/modules/rh/person/collaborators/admission/lib/admission-process.mapper";
-import {
-    computeFilledAdmissionSteps,
-} from "@/modules/rh/person/collaborators/admission/lib/admission-status.util";
-import {addressService} from "@/modules/rh/person/collaborators/admission/services/address.service";
-import {admissionprocessService} from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
-import {storageService} from "@/modules/storage/services/storage.service";
-import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
-import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import { computeFilledAdmissionSteps } from "@/modules/rh/person/collaborators/admission/lib/admission-status.util";
+import { addressService } from "@/modules/rh/person/collaborators/admission/services/address.service";
+import { admissionprocessService } from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
+import { storageService } from "@/modules/storage/services/storage.service";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import {
     EntityAttachments,
     flushPendingAttachments,
     type PendingAttachment,
 } from "@/shared/components/storage/EntityAttachments";
-import {Button} from "@/shared/components/ui/Button";
-import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import { Button } from "@/shared/components/ui/Button";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import {
     InputCEP,
     InputCNPJ,
@@ -52,47 +46,47 @@ import {
     InputSelectAutocomplete,
     InputString,
 } from "@/shared/components/ui/input/index";
-import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
-import {ProfilePhotoField} from "@/shared/components/ui/ProfilePhotoField";
-import {ExceptionCapture} from "@/shared/exceptions";
-import {digitsOnly} from "@/shared/lib/input/digits";
-import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { ProfilePhotoField } from "@/shared/components/ui/ProfilePhotoField";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { digitsOnly } from "@/shared/lib/input/digits";
+import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 const GENDER_ITEMS: SelectItem[] = [
-    {value: "MALE", label: "Masculino"},
-    {value: "FEMALE", label: "Feminino"},
-    {value: "OTHER", label: "Outro"},
-    {value: "NOT_INFORMED", label: "Prefere não informar"},
+    { value: "MALE", label: "Masculino" },
+    { value: "FEMALE", label: "Feminino" },
+    { value: "OTHER", label: "Outro" },
+    { value: "NOT_INFORMED", label: "Prefere não informar" },
 ];
 const MARITAL_ITEMS: SelectItem[] = [
-    {value: "SINGLE", label: "Solteiro(a)"},
-    {value: "MARRIED", label: "Casado(a)"},
-    {value: "DIVORCED", label: "Divorciado(a)"},
-    {value: "WIDOWED", label: "Viúvo(a)"},
-    {value: "OTHER", label: "Outro"},
+    { value: "SINGLE", label: "Solteiro(a)" },
+    { value: "MARRIED", label: "Casado(a)" },
+    { value: "DIVORCED", label: "Divorciado(a)" },
+    { value: "WIDOWED", label: "Viúvo(a)" },
+    { value: "OTHER", label: "Outro" },
 ];
 const YES_NO_ITEMS: SelectItem[] = [
-    {value: "false", label: "Não"},
-    {value: "true", label: "Sim"},
+    { value: "false", label: "Não" },
+    { value: "true", label: "Sim" },
 ];
 const RECESS_FINANCIAL_ITEMS: SelectItem[] = [
-    {value: "FULLY_PAID", label: "Valor contratual integral"},
-    {value: "UNPAID", label: "Sem faturamento no período"},
-    {value: "PROPORTIONAL", label: "Valor contratual proporcional"},
-    {value: "CUSTOM", label: "Tratamento contratual específico"},
+    { value: "FULLY_PAID", label: "Valor contratual integral" },
+    { value: "UNPAID", label: "Sem faturamento no período" },
+    { value: "PROPORTIONAL", label: "Valor contratual proporcional" },
+    { value: "CUSTOM", label: "Tratamento contratual específico" },
 ];
 const ADMISSION_FORM_STEPS: FormStepNavItem[] = [
-    {id: "dados-basicos", label: "Dados básicos"},
-    {id: "contatos-emergencia", label: "Contatos de emergência"},
-    {id: "endereco", label: "Endereço"},
-    {id: "documentos", label: "Documentos"},
-    {id: "vinculo", label: "Vínculo"},
-    {id: "contrato", label: "Contrato"},
-    {id: "observacoes", label: "Observações"},
+    { id: "dados-basicos", label: "Dados básicos" },
+    { id: "contatos-emergencia", label: "Contatos de emergência" },
+    { id: "endereco", label: "Endereço" },
+    { id: "documentos", label: "Documentos" },
+    { id: "vinculo", label: "Vínculo" },
+    { id: "contrato", label: "Contrato" },
+    { id: "observacoes", label: "Observações" },
 ];
 
 export function AdmissionProcessFormClient() {
-    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessCreateDto>(emptyAdmissionProcessForm);
     const [error, setError] = useState<string | null>(null);
@@ -128,11 +122,7 @@ export function AdmissionProcessFormClient() {
                 (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "CONTRACT").length +
                 pendingContractAttachments.length,
         }),
-        [
-            attachmentsQuery.data,
-            pendingContractAttachments.length,
-            pendingDocumentAttachments.length,
-        ],
+        [attachmentsQuery.data, pendingContractAttachments.length, pendingDocumentAttachments.length],
     );
     const clearPendingPhoto = useCallback(() => {
         setPendingPreviewUrl((current) => {
@@ -143,7 +133,7 @@ export function AdmissionProcessFormClient() {
     }, []);
     const lookedUpZipRef = useRef("");
     const update = <K extends keyof AdmissionProcessCreateDto>(field: K, value: AdmissionProcessCreateDto[K]) => {
-        setForm((prev) => ({...prev, [field]: value}));
+        setForm((prev) => ({ ...prev, [field]: value }));
     };
     const updateExpectedStartDate = (value: string) => {
         setForm((prev) => ({
@@ -211,9 +201,9 @@ export function AdmissionProcessFormClient() {
         mutationFn: async (dto: AdmissionProcessCreateDto) => {
             let payload = admissionFormToPayload(dto);
             if (pendingPhotoBlob) {
-                const file = new File([pendingPhotoBlob], "profile-photo.jpg", {type: "image/jpeg"});
+                const file = new File([pendingPhotoBlob], "profile-photo.jpg", { type: "image/jpeg" });
                 const object = await storageService.upload(file);
-                payload = {...payload, photoObjectId: object.id};
+                payload = { ...payload, photoObjectId: object.id };
             }
             let savedId = editingId ?? null;
             if (isEditing && editingId) {
@@ -245,9 +235,9 @@ export function AdmissionProcessFormClient() {
         onSuccess: async (savedId) => {
             clearPendingPhoto();
             clearPendingAttachments();
-            await queryClient.invalidateQueries({queryKey: admissionprocessKeys.all});
-            await queryClient.invalidateQueries({queryKey: admissionprocessKeys.detail(savedId)});
-            await queryClient.invalidateQueries({queryKey: ["storage-links", "admission_process", savedId]});
+            await queryClient.invalidateQueries({ queryKey: admissionprocessKeys.all });
+            await queryClient.invalidateQueries({ queryKey: admissionprocessKeys.detail(savedId) });
+            await queryClient.invalidateQueries({ queryKey: ["storage-links", "admission_process", savedId] });
             toast.success(isEditing ? "Admissão atualizada" : "Admissão registrada");
             setForm(emptyAdmissionProcessForm());
             goToList();
@@ -269,10 +259,10 @@ export function AdmissionProcessFormClient() {
         () =>
             isPj
                 ? [
-                    ...ADMISSION_FORM_STEPS.slice(0, -1),
-                    {id: "recesso-contratual", label: "Recesso contratual"},
-                    ADMISSION_FORM_STEPS.at(-1)!,
-                ]
+                      ...ADMISSION_FORM_STEPS.slice(0, -1),
+                      { id: "recesso-contratual", label: "Recesso contratual" },
+                      ADMISSION_FORM_STEPS.at(-1)!,
+                  ]
                 : ADMISSION_FORM_STEPS,
         [isPj],
     );
@@ -280,15 +270,14 @@ export function AdmissionProcessFormClient() {
     const filledStepIds = computeFilledAdmissionSteps(form, stepContext, activeStepIds);
     const contractDocTypeItems = useMemo(() => contractDocumentTypeItems(form.contractType), [form.contractType]);
     const summaryAdmissionStatus = detailQuery.data?.admissionStatus ?? "IN_PROGRESS";
-    const summaryCompletedStepCount =
-        detailQuery.data?.completedStepCount ?? filledStepIds.length;
+    const summaryCompletedStepCount = detailQuery.data?.completedStepCount ?? filledStepIds.length;
     const summaryRequiredStepCount = detailQuery.data?.requiredStepCount ?? 6;
 
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({length: 6}).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full" />
                 ))}
             </div>
         );
@@ -386,11 +375,13 @@ export function AdmissionProcessFormClient() {
                             onValueChange={(v) => update("fatherName", v)}
                             wrapperClassName="sm:col-span-6"
                         />
-                        <InputCPF label="CPF"
-                                  value={form.cpf}
-                                  onValueChange={(v) => update("cpf", v)}
-                                  wrapperClassName="sm:col-span-2"
-                                  required/>
+                        <InputCPF
+                            label="CPF"
+                            value={form.cpf}
+                            onValueChange={(v) => update("cpf", v)}
+                            wrapperClassName="sm:col-span-2"
+                            required
+                        />
                         <InputString
                             label="RG"
                             value={form.rg ?? ""}
@@ -475,7 +466,6 @@ export function AdmissionProcessFormClient() {
                             onValueChange={(v) => update("email", v)}
                             wrapperClassName="sm:col-span-4"
                         />
-
                     </div>
                 </div>
             </FormSection>
@@ -594,7 +584,6 @@ export function AdmissionProcessFormClient() {
                     onValueChange={updateExpectedStartDate}
                     wrapperClassName="sm:col-span-2"
                     required
-
                 />
                 <InputSelect
                     label="Tipo de contrato"
@@ -606,18 +595,18 @@ export function AdmissionProcessFormClient() {
                         setForm((prev) =>
                             next === "PJ"
                                 ? {
-                                    ...prev,
-                                    contractType: next,
-                                    workloadSchedule: "",
-                                    pisPasep: "",
-                                }
+                                      ...prev,
+                                      contractType: next,
+                                      workloadSchedule: "",
+                                      pisPasep: "",
+                                  }
                                 : {
-                                    ...prev,
-                                    contractType: next,
-                                    providerCnpj: "",
-                                    providerLegalName: "",
-                                    providerTradeName: "",
-                                },
+                                      ...prev,
+                                      contractType: next,
+                                      providerCnpj: "",
+                                      providerLegalName: "",
+                                      providerTradeName: "",
+                                  },
                         );
                     }}
                     required
@@ -730,58 +719,83 @@ export function AdmissionProcessFormClient() {
                     />
                     {form.recessEnabled ? (
                         <>
-                            <InputString label="Dias por ciclo"
-                                         value={String(form.recessTotalDaysPerCycle ?? "")}
-                                         onValueChange={(v) => update("recessTotalDaysPerCycle", v)}
-                                         required
-                                         wrapperClassName="sm:col-span-2"/>
-                            <InputString label="Duração do ciclo (meses)"
-                                         value={String(form.recessCycleMonths ?? "")}
-                                         onValueChange={(v) => update("recessCycleMonths", v)}
-                                         required
-                                         wrapperClassName="sm:col-span-2"/>
-                            <InputString label="Carência (meses)"
-                                         value={String(form.recessEligibilityAfterMonths ?? "")}
-                                         onValueChange={(v) => update("recessEligibilityAfterMonths", v)}
-                                         required
-                                         wrapperClassName="sm:col-span-2"/>
-                            <InputSelect label="Efeito no valor contratual" items={RECESS_FINANCIAL_ITEMS}
-                                         value={form.recessFinancialMode ?? ""}
-                                         onValueChange={(v) => update("recessFinancialMode", v as AdmissionProcessCreateDto["recessFinancialMode"])}
-                                         required
-                                         wrapperClassName="sm:col-span-2"/>
+                            <InputString
+                                label="Dias por ciclo"
+                                value={String(form.recessTotalDaysPerCycle ?? "")}
+                                onValueChange={(v) => update("recessTotalDaysPerCycle", v)}
+                                required
+                                wrapperClassName="sm:col-span-2"
+                            />
+                            <InputString
+                                label="Duração do ciclo (meses)"
+                                value={String(form.recessCycleMonths ?? "")}
+                                onValueChange={(v) => update("recessCycleMonths", v)}
+                                required
+                                wrapperClassName="sm:col-span-2"
+                            />
+                            <InputString
+                                label="Carência (meses)"
+                                value={String(form.recessEligibilityAfterMonths ?? "")}
+                                onValueChange={(v) => update("recessEligibilityAfterMonths", v)}
+                                required
+                                wrapperClassName="sm:col-span-2"
+                            />
+                            <InputSelect
+                                label="Efeito no valor contratual"
+                                items={RECESS_FINANCIAL_ITEMS}
+                                value={form.recessFinancialMode ?? ""}
+                                onValueChange={(v) =>
+                                    update("recessFinancialMode", v as AdmissionProcessCreateDto["recessFinancialMode"])
+                                }
+                                required
+                                wrapperClassName="sm:col-span-2"
+                            />
                             {form.recessFinancialMode === "PROPORTIONAL" ? (
-                                <InputString label="Percentual mantido"
-                                             value={String(form.recessPaidPercentage ?? "")}
-                                             onValueChange={(v) => update("recessPaidPercentage", v)}
-                                             required
-                                             wrapperClassName="sm:col-span-2"/>
+                                <InputString
+                                    label="Percentual mantido"
+                                    value={String(form.recessPaidPercentage ?? "")}
+                                    onValueChange={(v) => update("recessPaidPercentage", v)}
+                                    required
+                                    wrapperClassName="sm:col-span-2"
+                                />
                             ) : null}
-                            <InputSelect label="Permite fracionamento?"
-                                         items={YES_NO_ITEMS}
-                                         value={String(form.recessAllowSplit ?? false)}
-                                         onValueChange={(v) => update("recessAllowSplit", v === "true")}
-                                         wrapperClassName="sm:col-span-2"/>
+                            <InputSelect
+                                label="Permite fracionamento?"
+                                items={YES_NO_ITEMS}
+                                value={String(form.recessAllowSplit ?? false)}
+                                onValueChange={(v) => update("recessAllowSplit", v === "true")}
+                                wrapperClassName="sm:col-span-2"
+                            />
                             {form.recessAllowSplit ? (
                                 <>
-                                    <InputString label="Máximo de parcelas"
-                                                 value={String(form.recessMaxSplitPeriods ?? "")}
-                                                 onValueChange={(v) => update("recessMaxSplitPeriods", v)}
-                                                 required
-                                                 wrapperClassName="sm:col-span-2"/>
-                                    <InputString label="Mínimo de dias por parcela"
-                                                 value={String(form.recessMinimumSplitDays ?? "")}
-                                                 onValueChange={(v) => update("recessMinimumSplitDays", v)}
-                                                 wrapperClassName="sm:col-span-2"required/>
+                                    <InputString
+                                        label="Máximo de parcelas"
+                                        value={String(form.recessMaxSplitPeriods ?? "")}
+                                        onValueChange={(v) => update("recessMaxSplitPeriods", v)}
+                                        required
+                                        wrapperClassName="sm:col-span-2"
+                                    />
+                                    <InputString
+                                        label="Mínimo de dias por parcela"
+                                        value={String(form.recessMinimumSplitDays ?? "")}
+                                        onValueChange={(v) => update("recessMinimumSplitDays", v)}
+                                        wrapperClassName="sm:col-span-2"
+                                        required
+                                    />
                                 </>
                             ) : null}
-                            <InputString label="Antecedência mínima (dias)"
-                                         value={String(form.recessAdvanceNoticeDays ?? 0)}
-                                         onValueChange={(v) => update("recessAdvanceNoticeDays", v)}
-                                         wrapperClassName="sm:col-span-2"/>
-                            <InputString label="Cláusula ou observações" value={form.recessNotes ?? ""}
-                                         onValueChange={(v) => update("recessNotes", v)}
-                                         wrapperClassName="sm:col-span-10"/>
+                            <InputString
+                                label="Antecedência mínima (dias)"
+                                value={String(form.recessAdvanceNoticeDays ?? 0)}
+                                onValueChange={(v) => update("recessAdvanceNoticeDays", v)}
+                                wrapperClassName="sm:col-span-2"
+                            />
+                            <InputString
+                                label="Cláusula ou observações"
+                                value={form.recessNotes ?? ""}
+                                onValueChange={(v) => update("recessNotes", v)}
+                                wrapperClassName="sm:col-span-10"
+                            />
                         </>
                     ) : null}
                 </FormSection>

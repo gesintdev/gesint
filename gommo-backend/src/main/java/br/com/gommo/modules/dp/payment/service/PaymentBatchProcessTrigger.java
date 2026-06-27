@@ -1,11 +1,13 @@
 package br.com.gommo.modules.dp.payment.service;
 
-import br.com.gommo.core.tenant.TenantContext;
-import br.com.gommo.core.tenant.TenantContextHolder;
 import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import br.com.gommo.core.tenant.TenantContext;
+import br.com.gommo.core.tenant.TenantContextHolder;
 
 @Component
 public class PaymentBatchProcessTrigger {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation,type UseMutationResult } from "@tanstack/react-query";
+import { useMutation, type UseMutationResult } from "@tanstack/react-query";
 import { FileUp } from "lucide-react";
 import { type ChangeEvent, type RefObject } from "react";
 import { toast } from "sonner";
@@ -27,12 +27,7 @@ type PaymentBatchUploadButtonProps = {
     fileInputRef: RefObject<HTMLInputElement | null>;
     handleFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
     handleUploadClick: () => void;
-    uploadMutation: UseMutationResult<
-        Awaited<ReturnType<typeof paymentBatchService.upload>>,
-        unknown,
-        File,
-        unknown
-    >;
+    uploadMutation: UseMutationResult<Awaited<ReturnType<typeof paymentBatchService.upload>>, unknown, File, unknown>;
     uploadProgress: ReturnType<typeof usePaymentBatchUpload>["uploadProgress"];
 };
 
@@ -78,12 +73,7 @@ type PaymentBatchPanelProps = {
     showUploadButton?: boolean;
 };
 
-export function PaymentBatchPanel({
-    periodId,
-    periodLabel,
-    upload,
-    showUploadButton = false,
-}: PaymentBatchPanelProps) {
+export function PaymentBatchPanel({ periodId, periodLabel, upload, showUploadButton = false }: PaymentBatchPanelProps) {
     const {
         canWrite,
         uploadProgress,

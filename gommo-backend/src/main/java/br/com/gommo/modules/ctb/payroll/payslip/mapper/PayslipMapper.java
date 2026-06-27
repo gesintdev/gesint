@@ -1,10 +1,12 @@
 package br.com.gommo.modules.ctb.payroll.payslip.mapper;
 
+import java.math.BigDecimal;
+
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.ctb.payroll.payslip.dto.PayslipRequestDto;
 import br.com.gommo.modules.ctb.payroll.payslip.dto.PayslipResponseDto;
 import br.com.gommo.modules.ctb.payroll.payslip.entity.Payslip;
-import java.math.BigDecimal;
-import org.springframework.stereotype.Component;
 
 @Component
 public class PayslipMapper {

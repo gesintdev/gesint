@@ -7,7 +7,14 @@ export class AttendanceRecord {
     clockIn!: string;
     clockOut!: string;
     breakMinutes?: number;
-    occurrenceType?: "NORMAL_WORK" | "MEDICAL_CERTIFICATE" | "LEAVE_ABSENCE" | "UNJUSTIFIED_ABSENCE" | "LATE_ARRIVAL" | "VACATION" | "LICENSE";
+    occurrenceType?:
+        | "NORMAL_WORK"
+        | "MEDICAL_CERTIFICATE"
+        | "LEAVE_ABSENCE"
+        | "UNJUSTIFIED_ABSENCE"
+        | "LATE_ARRIVAL"
+        | "VACATION"
+        | "LICENSE";
     occurrenceOrigin?: "MANUAL" | "LEAVE_REQUEST";
     referenceId?: string;
     expectedHours?: number;
@@ -25,7 +32,14 @@ export class AttendanceRecordCreateDto {
     clockIn?: string;
     clockOut?: string;
     breakMinutes?: number;
-    occurrenceType?: "NORMAL_WORK" | "MEDICAL_CERTIFICATE" | "LEAVE_ABSENCE" | "UNJUSTIFIED_ABSENCE" | "LATE_ARRIVAL" | "VACATION" | "LICENSE";
+    occurrenceType?:
+        | "NORMAL_WORK"
+        | "MEDICAL_CERTIFICATE"
+        | "LEAVE_ABSENCE"
+        | "UNJUSTIFIED_ABSENCE"
+        | "LATE_ARRIVAL"
+        | "VACATION"
+        | "LICENSE";
     occurrenceOrigin?: "MANUAL" | "LEAVE_REQUEST";
     referenceId?: string;
     expectedHours?: number;

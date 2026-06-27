@@ -1,5 +1,17 @@
 package br.com.gommo.modules.rh.person.exitinterview.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -14,17 +26,6 @@ import br.com.gommo.core.entity.AuditEntity;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewAnswerDto;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewRatingDto;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewReturnChecklistItemDto;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "exit_interview")

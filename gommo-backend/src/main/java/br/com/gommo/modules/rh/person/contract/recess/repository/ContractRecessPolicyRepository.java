@@ -12,7 +12,8 @@ import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.contract.recess.entity.ContractRecessPolicy;
 
 public interface ContractRecessPolicyRepository extends IBaseRepository<ContractRecessPolicy> {
-    @Query("""
+    @Query(
+            """
             select p from ContractRecessPolicy p
             where p.employmentContractId = :contractId and p.status <> :deletedStatus
               and p.effectiveFrom <= :date and (p.effectiveUntil is null or p.effectiveUntil >= :date)

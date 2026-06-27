@@ -1,18 +1,19 @@
 package br.com.gommo.modules.dp.payment.storage;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.storage.config.StorageProperties;
-import br.com.gommo.modules.storage.entity.StorageObject;
-import br.com.gommo.modules.storage.repository.StorageObjectRepository;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.UUID;
+
 import org.springframework.stereotype.Component;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.storage.config.StorageProperties;
+import br.com.gommo.modules.storage.entity.StorageObject;
+import br.com.gommo.modules.storage.repository.StorageObjectRepository;
 
 @Component
 public class PaymentFileStorageHelper {

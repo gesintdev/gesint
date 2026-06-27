@@ -1,13 +1,16 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent,useEffect, useState } from "react";
+import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { DepartmentPickerField } from "@/modules/dp/organization/department/components/DepartmentPickerField";
 import type { JobPositionCreateDto } from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
 import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
 import { jobpositionKeys } from "@/modules/dp/organization/jobposition/jobposition.query";
-import { emptyJobPositionForm, jobpositionToFormDto } from "@/modules/dp/organization/jobposition/lib/jobposition.mapper";
+import {
+    emptyJobPositionForm,
+    jobpositionToFormDto,
+} from "@/modules/dp/organization/jobposition/lib/jobposition.mapper";
 import { jobpositionService } from "@/modules/dp/organization/jobposition/services/jobposition.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";

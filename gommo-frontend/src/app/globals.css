@@ -1743,7 +1743,7 @@ kbd {
     border: 1px solid color-mix(in srgb, var(--color-base-content) 13%, transparent);
     background: color-mix(in srgb, var(--color-base-content) 5%, transparent);
     font-family: inherit;
-    font-size: 0.60rem;
+    font-size: 0.6rem;
     font-variation-settings: "wght" 550;
     color: color-mix(in srgb, var(--color-base-content) 60%, transparent);
     line-height: 1.5;

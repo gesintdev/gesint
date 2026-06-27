@@ -1,11 +1,13 @@
 package br.com.gommo.modules.ctb.payroll.integration;
 
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
-import java.util.Optional;
-import java.util.UUID;
-import org.springframework.stereotype.Component;
 
 @Component
 public class CollaboratorDisplayProviderImpl implements CollaboratorDisplayProvider {

@@ -7,10 +7,7 @@ import type { LeaveRequestCreateDto } from "@/modules/rh/person/leave/dto/leave-
 import { LEAVE_CLIENT_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
 import { leaverequestKeys } from "@/modules/rh/person/leave/leave.query";
 import { emptyLeaveRequestForm, leaverequestToFormDto } from "@/modules/rh/person/leave/lib/leave-request.mapper";
-import {
-    ABSENCE_TYPE_ITEMS,
-    LEAVE_ABSENCE_STATUS_ITEMS,
-} from "@/modules/rh/person/leave/lib/leave-types";
+import { ABSENCE_TYPE_ITEMS, LEAVE_ABSENCE_STATUS_ITEMS } from "@/modules/rh/person/leave/lib/leave-types";
 import { leaveAbsenceFormSchema } from "@/modules/rh/person/leave/schemas/leave-absence.schema";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { storageService } from "@/modules/storage/services/storage.service";
@@ -403,11 +400,13 @@ export function LeaveAbsenceFormClient() {
                 />
                 <InputInfo
                     value={
-                        needsInssAttention ? 'Afastamento acima de 15 dias ou periodos relacionados acima do limite: registrar encaminhamento ao INSS.'
-                            : isWorkAccident ? 'Acidente de trabalho deve permanecer sinalizado para avaliacao de estabilidade apos retorno.'
-                            : 'Para prestadores PJ, o registro documenta a indisponibilidade operacional; efeitos financeiros dependem do contrato de prestacao de servicos.'
+                        needsInssAttention
+                            ? "Afastamento acima de 15 dias ou periodos relacionados acima do limite: registrar encaminhamento ao INSS."
+                            : isWorkAccident
+                              ? "Acidente de trabalho deve permanecer sinalizado para avaliacao de estabilidade apos retorno."
+                              : "Para prestadores PJ, o registro documenta a indisponibilidade operacional; efeitos financeiros dependem do contrato de prestacao de servicos."
                     }
-                    wrapperClassName={'sm:col-span-12'}
+                    wrapperClassName={"sm:col-span-12"}
                 />
             </FormSection>
 

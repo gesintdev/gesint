@@ -1,9 +1,10 @@
 package br.com.gommo.modules.rh.person.leave.domain;
 
+import java.time.LocalDate;
+
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
-import java.time.LocalDate;
 
 public final class LeaveAbsenceRules {
 

@@ -11,7 +11,7 @@ import br.com.gommo.modules.rh.person.collaborators.admission.service.IAdmission
 @RestController
 @RequestMapping("/api/v1/admissions")
 public class AdmissionProcessController
-    extends BaseController<AdmissionProcessRequestDto, AdmissionProcessResponseDto> {
+        extends BaseController<AdmissionProcessRequestDto, AdmissionProcessResponseDto> {
     public AdmissionProcessController(IAdmissionProcessService service) {
         super(service);
     }

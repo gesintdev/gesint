@@ -1,7 +1,7 @@
 import clsx from "clsx";
-import type {ReactNode, SubmitEvent} from "react";
+import type { ReactNode, SubmitEvent } from "react";
 
-import {type FormStepNavItem, FormStepper} from "@/shared/components/ui/FormStepper";
+import { type FormStepNavItem, FormStepper } from "@/shared/components/ui/FormStepper";
 
 export type CrudFormStepperConfig = {
     steps: FormStepNavItem[];
@@ -21,14 +21,14 @@ type CrudFormShellProps = {
 };
 
 export function CrudFormShell({
-                                  children,
-                                  footer,
-                                  onSubmit,
-                                  className,
-                                  bodyClassName,
-                                  formId,
-                                  stepper,
-                              }: CrudFormShellProps) {
+    children,
+    footer,
+    onSubmit,
+    className,
+    bodyClassName,
+    formId,
+    stepper,
+}: CrudFormShellProps) {
     const bodyContent = stepper ? (
         <FormStepper
             key={stepper.resetKey ?? "new"}
@@ -43,9 +43,7 @@ export function CrudFormShell({
     );
 
     return (
-        <form id={formId}
-              onSubmit={onSubmit}
-              className={clsx("crud-form-shell", className)}>
+        <form id={formId} onSubmit={onSubmit} className={clsx("crud-form-shell", className)}>
             <div className={clsx("crud-form-shell__body", stepper && "overflow-hidden! p-0!", bodyClassName)}>
                 {bodyContent}
             </div>

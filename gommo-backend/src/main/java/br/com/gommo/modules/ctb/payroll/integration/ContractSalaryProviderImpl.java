@@ -1,8 +1,5 @@
 package br.com.gommo.modules.ctb.payroll.integration;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
-import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -10,7 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import org.springframework.stereotype.Component;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
+import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
 
 @Component
 public class ContractSalaryProviderImpl implements ContractSalaryProvider {

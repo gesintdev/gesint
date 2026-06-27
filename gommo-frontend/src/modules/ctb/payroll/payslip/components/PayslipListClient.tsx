@@ -13,10 +13,7 @@ import {
     payslipPdfFilename,
     payslipService,
 } from "@/modules/ctb/payroll/payslip/services/payslip.service";
-import {
-    hasPermission,
-    useSessionPermissions,
-} from "@/shared/auth/permissions";
+import { hasPermission, useSessionPermissions } from "@/shared/auth/permissions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
@@ -81,7 +78,11 @@ export function PayslipListClient() {
                                 aria-label="Baixar PDF"
                                 title="Baixar PDF"
                                 leftIcon={<Download className="size-3.5" />}
-                                loading={pdfMutation.isPending && pdfMutation.variables?.row.id === row.id && pdfMutation.variables.mode === "download"}
+                                loading={
+                                    pdfMutation.isPending &&
+                                    pdfMutation.variables?.row.id === row.id &&
+                                    pdfMutation.variables.mode === "download"
+                                }
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     pdfMutation.mutate({ row, mode: "download" });
@@ -92,7 +93,11 @@ export function PayslipListClient() {
                                 aria-label="Imprimir PDF"
                                 title="Imprimir PDF"
                                 leftIcon={<Printer className="size-3.5" />}
-                                loading={pdfMutation.isPending && pdfMutation.variables?.row.id === row.id && pdfMutation.variables.mode === "print"}
+                                loading={
+                                    pdfMutation.isPending &&
+                                    pdfMutation.variables?.row.id === row.id &&
+                                    pdfMutation.variables.mode === "print"
+                                }
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     pdfMutation.mutate({ row, mode: "print" });

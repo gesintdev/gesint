@@ -50,8 +50,7 @@ const TAB_ITEMS: Array<{ id: SlipTab; label: string; status: PaymentSlipStatus }
 function mapSlipRow(slip: PaymentSlip): PaymentSlipRow {
     const extractedNameDisplay =
         slip.extractedNameDisplay ?? formatPersonName(slip.extractedName) ?? slip.extractedName;
-    const matchedNameDisplay =
-        slip.collaboratorNameDisplay ?? formatPersonName(slip.collaboratorName) ?? "";
+    const matchedNameDisplay = slip.collaboratorNameDisplay ?? formatPersonName(slip.collaboratorName) ?? "";
     return {
         ...slip,
         extractedNameDisplay,
@@ -100,13 +99,11 @@ export function PaymentSlipPanel({
 
     const loadSlipRows = async (): Promise<PaymentSlipRow[]> => {
         const slips = await paymentBatchService.getSlips(batchId, tabConfig.status);
-        return slips
-            .map(mapSlipRow)
-            .sort((left, right) =>
-                slipSortKey(left, activeTab).localeCompare(slipSortKey(right, activeTab), "pt-BR", {
-                    sensitivity: "base",
-                }),
-            );
+        return slips.map(mapSlipRow).sort((left, right) =>
+            slipSortKey(left, activeTab).localeCompare(slipSortKey(right, activeTab), "pt-BR", {
+                sensitivity: "base",
+            }),
+        );
     };
 
     const columns = useMemo(() => {

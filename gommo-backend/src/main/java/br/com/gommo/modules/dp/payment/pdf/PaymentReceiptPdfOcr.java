@@ -1,5 +1,8 @@
 package br.com.gommo.modules.dp.payment.pdf;
 
+import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
+
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -8,8 +11,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import net.sourceforge.tess4j.Tesseract;
-import net.sourceforge.tess4j.TesseractException;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -28,8 +30,7 @@ public class PaymentReceiptPdfOcr {
     private final String configuredTessDataPath;
     private final Tesseract tesseract;
 
-    public PaymentReceiptPdfOcr(
-            @Value("${gommo.payment.ocr.tessdata-path:}") String configuredTessDataPath) {
+    public PaymentReceiptPdfOcr(@Value("${gommo.payment.ocr.tessdata-path:}") String configuredTessDataPath) {
         this.configuredTessDataPath = configuredTessDataPath == null ? "" : configuredTessDataPath.trim();
         this.tesseract = createTesseract();
     }
@@ -86,14 +87,13 @@ public class PaymentReceiptPdfOcr {
         }
         candidates.add(resolvePath("./data/tessdata"));
         candidates.add(resolvePath("../data/tessdata"));
-        candidates.addAll(
-                List.of(
-                        "/usr/share/tesseract-ocr/tessdata",
-                        "/usr/share/tessdata",
-                        "/usr/share/tesseract-ocr/5/tessdata",
-                        "/usr/share/tesseract-ocr/4.00/tessdata",
-                        "C:\\Program Files\\Tesseract-OCR\\tessdata",
-                        "C:\\Program Files (x86)\\Tesseract-OCR\\tessdata"));
+        candidates.addAll(List.of(
+                "/usr/share/tesseract-ocr/tessdata",
+                "/usr/share/tessdata",
+                "/usr/share/tesseract-ocr/5/tessdata",
+                "/usr/share/tesseract-ocr/4.00/tessdata",
+                "C:\\Program Files\\Tesseract-OCR\\tessdata",
+                "C:\\Program Files (x86)\\Tesseract-OCR\\tessdata"));
         for (String candidate : candidates) {
             if (isTessDataDir(candidate)) {
                 return candidate;
@@ -115,8 +115,8 @@ public class PaymentReceiptPdfOcr {
             return null;
         }
         try (Stream<Path> files = Files.walk(root, 6)) {
-            return files
-                    .filter(path -> "por.traineddata".equals(path.getFileName().toString()))
+            return files.filter(
+                            path -> "por.traineddata".equals(path.getFileName().toString()))
                     .map(path -> path.getParent().toString())
                     .findFirst()
                     .orElse(null);

@@ -32,14 +32,16 @@ public class AddressLookupService {
             StateRepository stateRepository, CityRepository cityRepository, RestClient.Builder restClientBuilder) {
         this.stateRepository = stateRepository;
         this.cityRepository = cityRepository;
-        this.viaCepClient = restClientBuilder.baseUrl("https://viacep.com.br/ws").build();
+        this.viaCepClient =
+                restClientBuilder.baseUrl("https://viacep.com.br/ws").build();
     }
 
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('admission:read')")
     public PageableResponseDto<LocationOptionDto> searchStates(String query, int page, int size) {
         String term = likePattern(query);
-        var pageable = PageRequest.of(Math.max(page, 0), normalizeSize(size), Sort.by("name").ascending());
+        var pageable = PageRequest.of(
+                Math.max(page, 0), normalizeSize(size), Sort.by("name").ascending());
         var result = stateRepository.searchByTerm(term, pageable);
         return PageableResponseDto.<LocationOptionDto>builder()
                 .content(result.getContent().stream().map(this::toOption).toList())
@@ -57,7 +59,8 @@ public class AddressLookupService {
             throw AddressException.stateNotFound();
         }
         String term = likePattern(query);
-        var pageable = PageRequest.of(Math.max(page, 0), normalizeSize(size), Sort.by("name").ascending());
+        var pageable = PageRequest.of(
+                Math.max(page, 0), normalizeSize(size), Sort.by("name").ascending());
         var result = cityRepository.searchByStateAndTerm(stateId, term, pageable);
         return PageableResponseDto.<LocationOptionDto>builder()
                 .content(result.getContent().stream().map(this::toOption).toList())
@@ -78,7 +81,11 @@ public class AddressLookupService {
 
         ViaCepResponseDto response;
         try {
-            response = viaCepClient.get().uri("/{postalCode}/json", normalized).retrieve().body(ViaCepResponseDto.class);
+            response = viaCepClient
+                    .get()
+                    .uri("/{postalCode}/json", normalized)
+                    .retrieve()
+                    .body(ViaCepResponseDto.class);
         } catch (RestClientException ex) {
             throw AddressException.providerUnavailable();
         }

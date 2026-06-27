@@ -1,6 +1,7 @@
 package br.com.gommo.core.tenant;
 
 import java.util.Map;
+
 import org.slf4j.MDC;
 import org.springframework.core.task.TaskDecorator;
 

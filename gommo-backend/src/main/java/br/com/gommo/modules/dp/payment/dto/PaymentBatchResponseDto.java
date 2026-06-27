@@ -1,15 +1,17 @@
 package br.com.gommo.modules.dp.payment.dto;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.dp.payment.entity.PaymentBatchStatusEnum;
-import br.com.gommo.modules.dp.payment.entity.PaymentBatchTypeEnum;
-import java.time.OffsetDateTime;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.dp.payment.entity.PaymentBatchStatusEnum;
+import br.com.gommo.modules.dp.payment.entity.PaymentBatchTypeEnum;
 
 @Getter
 @Setter

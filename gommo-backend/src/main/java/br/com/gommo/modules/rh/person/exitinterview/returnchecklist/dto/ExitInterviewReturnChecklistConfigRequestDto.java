@@ -16,14 +16,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ExitInterviewReturnChecklistConfigRequestDto {
 
-    @NotBlank
-    @Size(max = 80)
-    private String itemKey;
+    @NotBlank @Size(max = 80) private String itemKey;
 
-    @NotBlank
-    @Size(max = 160)
-    private String description;
+    @NotBlank @Size(max = 160) private String description;
 
-    @NotNull
-    private Integer displayOrder;
+    @NotNull private Integer displayOrder;
 }

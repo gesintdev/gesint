@@ -4,7 +4,7 @@ import get from "lodash/get";
 import type { MouseEvent, ReactNode } from "react";
 
 import { badgeClassForStatus, formatCellValue } from "@/shared/lib/table/format-cell-value";
-import { type TableColumnConfig,TableDataType } from "@/shared/types/table.types";
+import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
 
 export type DataTableRowActivateOn = "click" | "doubleclick";
 

@@ -1,14 +1,14 @@
 package br.com.gommo.modules.dp.payment.service;
 
-import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+
 import org.springframework.stereotype.Component;
+
+import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 
 @Component
 public class PaymentNameMatcher {
@@ -111,8 +111,7 @@ public class PaymentNameMatcher {
     }
 
     private boolean isParticle(String token) {
-        return PaymentPersonNameFormatter.stripParticles(token).isBlank()
-                && token.length() <= 4;
+        return PaymentPersonNameFormatter.stripParticles(token).isBlank() && token.length() <= 4;
     }
 
     private double bestScore(String extracted, List<String> candidateNames) {
@@ -176,8 +175,7 @@ public class PaymentNameMatcher {
             for (int col = 1; col <= right.length(); col++) {
                 int cost = left.charAt(row - 1) == right.charAt(col - 1) ? 0 : 1;
                 matrix[row][col] = Math.min(
-                        Math.min(matrix[row - 1][col] + 1, matrix[row][col - 1] + 1),
-                        matrix[row - 1][col - 1] + cost);
+                        Math.min(matrix[row - 1][col] + 1, matrix[row][col - 1] + 1), matrix[row - 1][col - 1] + cost);
             }
         }
         return matrix[left.length()][right.length()];

@@ -1,12 +1,13 @@
 package br.com.gommo.modules.rh.person.leave.dto;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
-import lombok.Builder;
-import lombok.Getter;
 
 @Getter
 @Builder

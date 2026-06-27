@@ -17,10 +17,7 @@ import {
 } from "@/modules/ctb/payroll/lib/payroll-run-lifecycle";
 import { payrollrunKeys } from "@/modules/ctb/payroll/payroll.query";
 import { payrollrunService } from "@/modules/ctb/payroll/services/payroll-run.service";
-import {
-    deriveWritePermission,
-    useSessionPermissions,
-} from "@/shared/auth/permissions";
+import { deriveWritePermission, useSessionPermissions } from "@/shared/auth/permissions";
 import { canWriteRoute } from "@/shared/auth/route-access";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
@@ -144,9 +141,9 @@ export function PayrollRunListClient() {
     };
 
     const lifecycleLoading = (row: PayrollRun, action: LifecycleAction) =>
-        lifecycleMutation.isPending
-        && lifecycleMutation.variables?.id === row.id
-        && lifecycleMutation.variables.action === action;
+        lifecycleMutation.isPending &&
+        lifecycleMutation.variables?.id === row.id &&
+        lifecycleMutation.variables.action === action;
 
     return (
         <QueryTablePanel<PayrollRunListRow>

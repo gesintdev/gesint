@@ -1,6 +1,5 @@
 package br.com.gommo.modules.ctb.payroll.event.dto;
 
-import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -10,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
+
 @Getter
 @Setter
 @Builder
@@ -17,16 +18,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PayrollEventRequestDto {
 
-    @NotBlank
-    @Size(max = 30)
-    private String eventCode;
+    @NotBlank @Size(max = 30) private String eventCode;
 
-    @NotBlank
-    @Size(max = 200)
-    private String description;
+    @NotBlank @Size(max = 200) private String description;
 
-    @NotNull
-    private PayrollEventTypeEnum eventType;
+    @NotNull private PayrollEventTypeEnum eventType;
 
     private Boolean incidesInss;
 

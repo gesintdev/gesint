@@ -15,11 +15,9 @@ import br.com.gommo.modules.rh.person.exitinterview.entity.ExitInterviewQuestion
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExitInterviewAnswerDto {
-    @Size(max = 80)
-    private String key;
+    @Size(max = 80) private String key;
 
-    @Size(max = 240)
-    private String question;
+    @Size(max = 240) private String question;
 
     private ExitInterviewQuestionTypeEnum type;
 

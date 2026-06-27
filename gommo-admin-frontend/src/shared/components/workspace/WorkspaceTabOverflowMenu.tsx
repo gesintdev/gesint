@@ -1,13 +1,13 @@
 "use client";
 
 import clsx from "clsx";
-import {ChevronDown, X} from "lucide-react";
-import {useEffect, useRef, useState} from "react";
+import { ChevronDown, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
-import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
-import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
-import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
-import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
+import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
+import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
+import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
 
 type WorkspaceTabOverflowMenuProps = {
     moduleTabs: WorkspaceTab[];
@@ -15,11 +15,7 @@ type WorkspaceTabOverflowMenuProps = {
     onSelect: (tabId: string) => void;
 };
 
-export function WorkspaceTabOverflowMenu({
-    moduleTabs,
-    activeTabId,
-    onSelect,
-}: WorkspaceTabOverflowMenuProps) {
+export function WorkspaceTabOverflowMenu({ moduleTabs, activeTabId, onSelect }: WorkspaceTabOverflowMenuProps) {
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
     const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
@@ -44,7 +40,7 @@ export function WorkspaceTabOverflowMenu({
                 onClick={() => setOpen((v) => !v)}
                 className="workspace-tabbar-menu-trigger flex cursor-pointer items-center gap-1.5 px-2.5"
             >
-                <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")}/>
+                <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")} />
                 <span className="tabular-nums text-[12px] font-semibold">{moduleTabs.length}</span>
             </button>
 
@@ -77,7 +73,10 @@ export function WorkspaceTabOverflowMenu({
                                                 setOpen(false);
                                             }}
                                         >
-                                            <WorkspaceTabIcon tab={tab} className="size-3.5 shrink-0 text-base-content/50"/>
+                                            <WorkspaceTabIcon
+                                                tab={tab}
+                                                className="size-3.5 shrink-0 text-base-content/50"
+                                            />
                                             <span className="truncate">{title}</span>
                                         </button>
                                         <button
@@ -86,7 +85,7 @@ export function WorkspaceTabOverflowMenu({
                                             className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-base-content/50 hover:bg-base-content/10"
                                             onClick={() => closeTab(tab.id)}
                                         >
-                                            <X className="size-3.5"/>
+                                            <X className="size-3.5" />
                                         </button>
                                     </div>
                                 </li>

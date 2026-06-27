@@ -1,8 +1,9 @@
 package br.com.gommo.modules.ctb.payroll.calculation;
 
-import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
 import java.math.BigDecimal;
 import java.util.UUID;
+
+import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
 
 public record CalculatedPayrollLine(
         UUID payrollEventId,

@@ -13,8 +13,14 @@ export const settingsRoutes: AppRoute[] = [
         routeId: "settings-profiles",
         tabShortLabel: "Perfil",
         fieldTabName: "name",
-        list: lazyNamed(() => import("@/modules/cfg/settings/profile/components/ProfileListClient"), "ProfileListClient"),
-        form: lazyNamed(() => import("@/modules/cfg/settings/profile/components/ProfileFormClient"), "ProfileFormClient"),
+        list: lazyNamed(
+            () => import("@/modules/cfg/settings/profile/components/ProfileListClient"),
+            "ProfileListClient",
+        ),
+        form: lazyNamed(
+            () => import("@/modules/cfg/settings/profile/components/ProfileFormClient"),
+            "ProfileFormClient",
+        ),
     }),
     tabbedCrudRoute({
         id: "settings-users",
@@ -25,8 +31,14 @@ export const settingsRoutes: AppRoute[] = [
         routeId: "settings-users",
         tabShortLabel: "Usuário",
         fieldTabName: "username",
-        list: lazyNamed(() => import("@/modules/cfg/settings/appuser/components/AppUserListClient"), "AppUserListClient"),
-        form: lazyNamed(() => import("@/modules/cfg/settings/appuser/components/AppUserFormClient"), "AppUserFormClient"),
+        list: lazyNamed(
+            () => import("@/modules/cfg/settings/appuser/components/AppUserListClient"),
+            "AppUserListClient",
+        ),
+        form: lazyNamed(
+            () => import("@/modules/cfg/settings/appuser/components/AppUserFormClient"),
+            "AppUserFormClient",
+        ),
     }),
     customWorkspaceRoute({
         id: "settings-notifications",
@@ -47,16 +59,13 @@ export const settingsRoutes: AppRoute[] = [
         fieldTabName: "description",
         list: lazyNamed(
             () =>
-                import(
-                    "@/modules/cfg/settings/exitinterviewchecklist/components/ExitInterviewReturnChecklistConfigListClient"
-                ),
+                import("@/modules/cfg/settings/exitinterviewchecklist/components/ExitInterviewReturnChecklistConfigListClient"),
             "ExitInterviewReturnChecklistConfigListClient",
         ),
         form: lazyNamed(
             () =>
-                import(
-                    "@/modules/cfg/settings/exitinterviewchecklist/components/ExitInterviewReturnChecklistConfigFormClient"
-                ),
+                import("@/modules/cfg/settings/exitinterviewchecklist/components/ExitInterviewReturnChecklistConfigFormClient"),
             "ExitInterviewReturnChecklistConfigFormClient",
         ),
-    }),];
+    }),
+];

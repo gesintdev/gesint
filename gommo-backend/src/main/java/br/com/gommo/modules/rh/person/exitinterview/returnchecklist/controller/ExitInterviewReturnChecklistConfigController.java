@@ -10,8 +10,9 @@ import br.com.gommo.modules.rh.person.exitinterview.returnchecklist.service.IExi
 
 @RestController
 @RequestMapping("/api/v1/exit-interview-return-checklist-items")
-public class ExitInterviewReturnChecklistConfigController extends BaseController<
-        ExitInterviewReturnChecklistConfigRequestDto, ExitInterviewReturnChecklistConfigResponseDto> {
+public class ExitInterviewReturnChecklistConfigController
+        extends BaseController<
+                ExitInterviewReturnChecklistConfigRequestDto, ExitInterviewReturnChecklistConfigResponseDto> {
 
     public ExitInterviewReturnChecklistConfigController(IExitInterviewReturnChecklistConfigService service) {
         super(service);

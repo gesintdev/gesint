@@ -98,8 +98,7 @@ export function InputsPlaygroundClient() {
         const normalized = query.trim().toLowerCase();
         const filtered = DEMO_AUTOCOMPLETE_ITEMS.filter(
             (item) =>
-                item.label.toLowerCase().includes(normalized) ||
-                item.description?.toLowerCase().includes(normalized),
+                item.label.toLowerCase().includes(normalized) || item.description?.toLowerCase().includes(normalized),
         );
         const start = page * PAGE_SIZE;
 

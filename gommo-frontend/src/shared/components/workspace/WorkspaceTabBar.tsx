@@ -1,13 +1,13 @@
 import clsx from "clsx";
-import {X} from "lucide-react";
-import {Fragment, useRef} from "react";
+import { X } from "lucide-react";
+import { Fragment, useRef } from "react";
 
-import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
-import {WorkspaceTabOverflowMenu} from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
-import {WorkspaceTabSystemBadge} from "@/shared/components/workspace/WorkspaceTabSystemBadge";
-import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
-import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
-import {isDashboardTabId} from "@/shared/workspace/workspace-dashboard";
+import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
+import { WorkspaceTabOverflowMenu } from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
+import { WorkspaceTabSystemBadge } from "@/shared/components/workspace/WorkspaceTabSystemBadge";
+import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
+import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
+import { isDashboardTabId } from "@/shared/workspace/workspace-dashboard";
 
 type WorkspaceTabBarProps = {
     dashboardTab: WorkspaceTab;
@@ -18,11 +18,11 @@ type WorkspaceTabBarProps = {
 };
 
 function WorkspaceTabButton({
-                                tab,
-                                active,
-                                onSelect,
-                                onClose,
-                            }: {
+    tab,
+    active,
+    onSelect,
+    onClose,
+}: {
     tab: WorkspaceTab;
     active: boolean;
     onSelect: () => void;
@@ -46,7 +46,7 @@ function WorkspaceTabButton({
                     active ? "text-primary" : "text-base-content/40 group-hover/tab:text-base-content/60",
                 )}
             />
-            <WorkspaceTabSystemBadge href={tab.href}/>
+            <WorkspaceTabSystemBadge href={tab.href} />
             <span className="min-w-0 flex-1 truncate text-left tracking-tight">{title}</span>
             {onClose ? (
                 <span
@@ -66,14 +66,14 @@ function WorkspaceTabButton({
                         }
                     }}
                 >
-                    <X className="size-3" strokeWidth={2.25}/>
+                    <X className="size-3" strokeWidth={2.25} />
                 </span>
             ) : null}
         </button>
     );
 }
 
-export function WorkspaceTabBar({dashboardTab, moduleTabs, activeTabId, onSelect, onClose}: WorkspaceTabBarProps) {
+export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelect, onClose }: WorkspaceTabBarProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const dashboardActive = isDashboardTabId(activeTabId);
 
@@ -88,7 +88,7 @@ export function WorkspaceTabBar({dashboardTab, moduleTabs, activeTabId, onSelect
 
                 {moduleTabs.length > 0 ? (
                     <>
-                        <span className="workspace-tabbar-divider" aria-hidden/>
+                        <span className="workspace-tabbar-divider" aria-hidden />
                         <div
                             ref={scrollRef}
                             className="workspace-tabbar-scroll flex min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden"
@@ -120,7 +120,7 @@ export function WorkspaceTabBar({dashboardTab, moduleTabs, activeTabId, onSelect
             </div>
 
             <div className="workspace-tabbar-actions flex shrink-0 items-stretch">
-                <WorkspaceTabOverflowMenu moduleTabs={moduleTabs} activeTabId={activeTabId} onSelect={onSelect}/>
+                <WorkspaceTabOverflowMenu moduleTabs={moduleTabs} activeTabId={activeTabId} onSelect={onSelect} />
             </div>
         </div>
     );

@@ -15,13 +15,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExitInterviewRatingDto {
-    @Size(max = 80, message = "Chave da avaliação deve ter no máximo 80 caracteres.")
-    private String key;
+    @Size(max = 80, message = "Chave da avaliação deve ter no máximo 80 caracteres.") private String key;
 
-    @Size(max = 120, message = "Rótulo da avaliação deve ter no máximo 120 caracteres.")
-    private String label;
+    @Size(max = 120, message = "Rótulo da avaliação deve ter no máximo 120 caracteres.") private String label;
 
-    @Min(value = 1, message = "Avaliação da empresa deve ser entre 1 e 5 estrelas.")
-    @Max(value = 5, message = "Avaliação da empresa deve ser entre 1 e 5 estrelas.")
-    private Integer score;
+    @Min(value = 1, message = "Avaliação da empresa deve ser entre 1 e 5 estrelas.") @Max(value = 5, message = "Avaliação da empresa deve ser entre 1 e 5 estrelas.") private Integer score;
 }

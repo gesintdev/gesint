@@ -37,8 +37,7 @@ public final class InssCalculator {
         return total.setScale(2, RoundingMode.HALF_UP);
     }
 
-    private static BigDecimal applyBracket(
-            BigDecimal remaining, BigDecimal min, BigDecimal maxSpan, BigDecimal rate) {
+    private static BigDecimal applyBracket(BigDecimal remaining, BigDecimal min, BigDecimal maxSpan, BigDecimal rate) {
         BigDecimal span = remaining.min(maxSpan);
         if (span.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;

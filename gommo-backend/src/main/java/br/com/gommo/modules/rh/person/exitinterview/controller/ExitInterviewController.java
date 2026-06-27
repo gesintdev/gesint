@@ -1,5 +1,7 @@
 package br.com.gommo.modules.rh.person.exitinterview.controller;
 
+import jakarta.validation.Valid;
+
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +15,6 @@ import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewCancelReque
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewRequestDto;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewResponseDto;
 import br.com.gommo.modules.rh.person.exitinterview.service.IExitInterviewService;
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/exit-interviews")

@@ -68,7 +68,8 @@ public class AdmissionProcessMapper {
                 .recessAllowSplit(dto.isRecessAllowSplit())
                 .recessMaxSplitPeriods(dto.getRecessMaxSplitPeriods())
                 .recessMinimumSplitDays(dto.getRecessMinimumSplitDays())
-                .recessAdvanceNoticeDays(dto.getRecessAdvanceNoticeDays() != null ? dto.getRecessAdvanceNoticeDays() : 0)
+                .recessAdvanceNoticeDays(
+                        dto.getRecessAdvanceNoticeDays() != null ? dto.getRecessAdvanceNoticeDays() : 0)
                 .recessNotes(dto.getRecessNotes())
                 .photoObjectId(dto.getPhotoObjectId())
                 .build();
@@ -123,7 +124,8 @@ public class AdmissionProcessMapper {
         entity.setRecessAllowSplit(dto.isRecessAllowSplit());
         entity.setRecessMaxSplitPeriods(dto.getRecessMaxSplitPeriods());
         entity.setRecessMinimumSplitDays(dto.getRecessMinimumSplitDays());
-        entity.setRecessAdvanceNoticeDays(dto.getRecessAdvanceNoticeDays() != null ? dto.getRecessAdvanceNoticeDays() : 0);
+        entity.setRecessAdvanceNoticeDays(
+                dto.getRecessAdvanceNoticeDays() != null ? dto.getRecessAdvanceNoticeDays() : 0);
         entity.setRecessNotes(dto.getRecessNotes());
         entity.setPhotoObjectId(dto.getPhotoObjectId());
     }

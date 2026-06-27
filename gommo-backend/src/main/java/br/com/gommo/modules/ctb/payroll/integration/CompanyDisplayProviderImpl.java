@@ -1,11 +1,13 @@
 package br.com.gommo.modules.ctb.payroll.integration;
 
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.dp.organization.company.entity.Company;
 import br.com.gommo.modules.dp.organization.company.repository.CompanyRepository;
-import java.util.Optional;
-import java.util.UUID;
-import org.springframework.stereotype.Component;
 
 @Component
 public class CompanyDisplayProviderImpl implements CompanyDisplayProvider {

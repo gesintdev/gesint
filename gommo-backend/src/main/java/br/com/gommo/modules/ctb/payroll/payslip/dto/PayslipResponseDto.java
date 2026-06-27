@@ -1,11 +1,13 @@
 package br.com.gommo.modules.ctb.payroll.payslip.dto;
 
-import br.com.gommo.core.entity.StatusEnum;
+import lombok.Builder;
+import lombok.Getter;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.Builder;
-import lombok.Getter;
+
+import br.com.gommo.core.entity.StatusEnum;
 
 @Getter
 @Builder

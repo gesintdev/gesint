@@ -1,6 +1,6 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent,useCallback, useEffect, useState } from "react";
+import { type SubmitEvent, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { benefitplanService } from "@/modules/ctb/payroll/benefit/services/benefit-plan.service";
@@ -19,7 +19,7 @@ import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputCurrency,InputDate, InputString } from "@/shared/components/ui/input/index";
+import { InputCurrency, InputDate, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Adesão" }];

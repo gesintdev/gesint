@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorRequestDto;
@@ -22,7 +23,6 @@ import br.com.gommo.modules.rh.person.collaborators.people.exception.Collaborato
 import br.com.gommo.modules.rh.person.collaborators.people.mapper.CollaboratorMapper;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorContactRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
-import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
 
 @Service
 public class CollaboratorService extends BaseService<Collaborator, CollaboratorRequestDto, CollaboratorResponseDto>
@@ -76,11 +76,13 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('collaborator:read')")
-    public PageableResponseDto<CollaboratorResponseDto> findPage(int page, int size, Map<String, List<String>> filters) {
+    public PageableResponseDto<CollaboratorResponseDto> findPage(
+            int page, int size, Map<String, List<String>> filters) {
         List<UUID> offboardedIds = offboardingRepository.findOffboardedCollaboratorIds(StatusEnum.DELETED);
-        List<Collaborator> allRows = CollaboratorRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
-                .filter(c -> !offboardedIds.contains(c.getId()))
-                .toList();
+        List<Collaborator> allRows =
+                CollaboratorRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+                        .filter(c -> !offboardedIds.contains(c.getId()))
+                        .toList();
         List<Collaborator> filteredRows = allRows.stream()
                 .filter(c -> matchesFilter(filters, "fullName", c.getFullName()))
                 .filter(c -> matchesFilter(filters, "cpf", c.getCpf()))

@@ -9,7 +9,10 @@ import { LEAVE_PENDING_TABLE_COLUMNS } from "@/modules/rh/person/leave/config/le
 import type { LeaveRequest } from "@/modules/rh/person/leave/dto/leave-request.dto";
 import { leaverequestKeys } from "@/modules/rh/person/leave/leave.query";
 import { isPendingVacationRequest } from "@/modules/rh/person/leave/lib/leave-request.filters";
-import { leaverequestService, type VacationReviewAction } from "@/modules/rh/person/leave/services/leave-request.service";
+import {
+    leaverequestService,
+    type VacationReviewAction,
+} from "@/modules/rh/person/leave/services/leave-request.service";
 import { CRUD_TAB_FORM, useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
 import { Button } from "@/shared/components/ui/Button";
@@ -64,11 +67,17 @@ export function LeavePendingRequestsClient() {
                 emptyMessage="Nenhuma solicitação de férias pendente."
                 renderActions={(row) => (
                     <div className="flex flex-wrap justify-end gap-1.5">
-                        <Button className={'text-[8pt]! p-2.5!'} type="button" size="sm" variant="outline" onClick={() => handleRegister(row)}>
+                        <Button
+                            className={"text-[8pt]! p-2.5!"}
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRegister(row)}
+                        >
                             Analisar
                         </Button>
                         <Button
-                            className={'text-[8pt]! p-2.5!'}
+                            className={"text-[8pt]! p-2.5!"}
                             type="button"
                             size="sm"
                             variant="success"
@@ -78,7 +87,7 @@ export function LeavePendingRequestsClient() {
                             Aprovar
                         </Button>
                         <Button
-                            className={'text-[8pt]! p-2.5!'}
+                            className={"text-[8pt]! p-2.5!"}
                             type="button"
                             size="sm"
                             variant="outline"
@@ -87,7 +96,7 @@ export function LeavePendingRequestsClient() {
                             Devolver
                         </Button>
                         <Button
-                            className={'text-[8pt]! p-2.5!'}
+                            className={"text-[8pt]! p-2.5!"}
                             type="button"
                             size="sm"
                             variant="danger"

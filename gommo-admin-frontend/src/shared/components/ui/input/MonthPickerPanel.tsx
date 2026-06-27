@@ -7,20 +7,7 @@ import { createPortal } from "react-dom";
 
 import { normalizeMonthIso } from "@/shared/lib/input/date";
 
-const MONTH_LABELS = [
-    "Jan",
-    "Fev",
-    "Mar",
-    "Abr",
-    "Mai",
-    "Jun",
-    "Jul",
-    "Ago",
-    "Set",
-    "Out",
-    "Nov",
-    "Dez",
-];
+const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 type MonthPickerPanelProps = {
     value: string;
@@ -117,10 +104,7 @@ export const MonthPickerPanel = forwardRef<HTMLDivElement, MonthPickerPanelProps
                             key={label}
                             type="button"
                             disabled={disabled}
-                            className={clsx(
-                                "btn btn-sm min-w-16",
-                                active ? "btn-primary" : "btn-ghost",
-                            )}
+                            className={clsx("btn btn-sm min-w-16", active ? "btn-primary" : "btn-ghost")}
                             onClick={() => onPick(normalizeMonthIso(`${year}-${String(month).padStart(2, "0")}-01`))}
                         >
                             {label}

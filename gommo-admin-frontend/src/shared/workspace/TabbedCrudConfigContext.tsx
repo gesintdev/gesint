@@ -1,5 +1,5 @@
 "use client";
-import { createContext, type ReactNode,useContext } from "react";
+import { createContext, type ReactNode, useContext } from "react";
 
 export type TabbedCrudConfig = {
     routeId: string;

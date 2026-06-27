@@ -1,5 +1,8 @@
 package br.com.gommo.modules.rh.person.exitinterview.dto;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -12,8 +15,6 @@ import br.com.gommo.modules.rh.person.exitinterview.entity.ExitInterviewRehireAn
 import br.com.gommo.modules.rh.person.exitinterview.entity.ExitInterviewRelationshipTypeEnum;
 import br.com.gommo.modules.rh.person.exitinterview.entity.ExitInterviewStatusEnum;
 import br.com.gommo.modules.rh.person.exitinterview.entity.ExitInterviewTerminationTypeEnum;
-import lombok.Builder;
-import lombok.Getter;
 
 @Getter
 @Builder

@@ -8,10 +8,7 @@ import type { PaymentBatch } from "@/modules/dp/payment/dto/payment.dto";
 import { PAYMENT_CLIENT_MESSAGES } from "@/modules/dp/payment/exceptions/payment.messages";
 import { paymentBatchKeys } from "@/modules/dp/payment/payment.query";
 import { paymentBatchService } from "@/modules/dp/payment/services/payment-batch.service";
-import {
-    deriveWritePermission,
-    useSessionPermissions,
-} from "@/shared/auth/permissions";
+import { deriveWritePermission, useSessionPermissions } from "@/shared/auth/permissions";
 import { canWriteRoute } from "@/shared/auth/route-access";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { findRouteById } from "@/shared/workspace/workspace-routes";

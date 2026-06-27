@@ -7,7 +7,6 @@ import br.com.gommo.modules.rh.person.leave.dto.LeaveRequestRequestDto;
 import br.com.gommo.modules.rh.person.leave.dto.LeaveRequestResponseDto;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
-import br.com.gommo.modules.rh.person.leave.entity.VacationReviewStatusEnum;
 
 @Component
 public class LeaveRequestMapper {
@@ -27,7 +26,8 @@ public class LeaveRequestMapper {
                 .requiresInss(dto.getRequiresInss() != null ? dto.getRequiresInss() : Boolean.FALSE)
                 .inssReferralDate(dto.getInssReferralDate())
                 .returnDate(dto.getReturnDate())
-                .workAccidentStability(dto.getWorkAccidentStability() != null ? dto.getWorkAccidentStability() : Boolean.FALSE)
+                .workAccidentStability(
+                        dto.getWorkAccidentStability() != null ? dto.getWorkAccidentStability() : Boolean.FALSE)
                 .relatedCertificateDays(dto.getRelatedCertificateDays())
                 .approved(dto.getApproved() != null ? dto.getApproved() : Boolean.FALSE)
                 .notes(dto.getNotes())
@@ -64,7 +64,8 @@ public class LeaveRequestMapper {
         entity.setRequiresInss(dto.getRequiresInss() != null ? dto.getRequiresInss() : Boolean.FALSE);
         entity.setInssReferralDate(dto.getInssReferralDate());
         entity.setReturnDate(dto.getReturnDate());
-        entity.setWorkAccidentStability(dto.getWorkAccidentStability() != null ? dto.getWorkAccidentStability() : Boolean.FALSE);
+        entity.setWorkAccidentStability(
+                dto.getWorkAccidentStability() != null ? dto.getWorkAccidentStability() : Boolean.FALSE);
         entity.setRelatedCertificateDays(dto.getRelatedCertificateDays());
         if (dto.getApproved() != null) {
             entity.setApproved(dto.getApproved());
@@ -115,7 +116,8 @@ public class LeaveRequestMapper {
                 .returnDate(entity.getReturnDate())
                 .workAccidentStability(entity.getWorkAccidentStability())
                 .relatedCertificateDays(entity.getRelatedCertificateDays())
-                .hasRelatedCidPeriods(entity.getRelatedCertificateDays() != null && entity.getRelatedCertificateDays() > defaultDuration(entity))
+                .hasRelatedCidPeriods(entity.getRelatedCertificateDays() != null
+                        && entity.getRelatedCertificateDays() > defaultDuration(entity))
                 .approved(entity.getApproved())
                 .notes(entity.getNotes())
                 .pecuniaryAllowanceDays(entity.getPecuniaryAllowanceDays())

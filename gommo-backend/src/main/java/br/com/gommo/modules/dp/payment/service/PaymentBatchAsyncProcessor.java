@@ -1,5 +1,17 @@
 package br.com.gommo.modules.dp.payment.service;
 
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.tenant.MultiTenantProperties;
 import br.com.gommo.core.tenant.TenantContext;
@@ -12,19 +24,8 @@ import br.com.gommo.modules.dp.payment.pdf.PaymentReceiptPdfParser.ParsedPayment
 import br.com.gommo.modules.dp.payment.repository.PaymentBatchRepository;
 import br.com.gommo.modules.dp.payment.repository.PaymentSlipRepository;
 import br.com.gommo.modules.dp.payment.service.PaymentNameMatcher.MatchResult;
-import br.com.gommo.modules.dp.payment.service.PaymentNameMatcher.MatchType;
 import br.com.gommo.modules.dp.payment.service.PaymentNameMatcher.NamedCollaborator;
 import br.com.gommo.modules.dp.payment.storage.PaymentFileStorageHelper;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
 
 @Service
 public class PaymentBatchAsyncProcessor {
@@ -151,29 +152,23 @@ public class PaymentBatchAsyncProcessor {
     }
 
     private void finalizeBatch(UUID batchId, int pageCount, int divergent, OffsetDateTime processedAt) {
-        batchRepository
-                .findByIdAndStatusNot(batchId, StatusEnum.DELETED)
-                .ifPresent(batch -> {
-                    batch.setItemCount(pageCount);
-                    batch.setDivergentCount(divergent);
-                    batch.setProcessedAt(processedAt);
-                    batch.setProcessingPage(pageCount);
-                    batch.setBatchStatus(PaymentBatchStatusEnum.PROCESSED);
-                    batchRepository.save(batch);
-                });
+        batchRepository.findByIdAndStatusNot(batchId, StatusEnum.DELETED).ifPresent(batch -> {
+            batch.setItemCount(pageCount);
+            batch.setDivergentCount(divergent);
+            batch.setProcessedAt(processedAt);
+            batch.setProcessingPage(pageCount);
+            batch.setBatchStatus(PaymentBatchStatusEnum.PROCESSED);
+            batchRepository.save(batch);
+        });
     }
 
     private void markBatchFailed(UUID batchId, String reason) {
-        batchRepository
-                .findByIdAndStatusNot(batchId, StatusEnum.DELETED)
-                .ifPresent(batch -> {
-                    batch.setBatchStatus(PaymentBatchStatusEnum.PROCESSED);
-                    batch.setDescription(
-                            batch.getDescription() == null
-                                    ? reason
-                                    : batch.getDescription() + " (" + reason + ")");
-                    batchRepository.save(batch);
-                });
+        batchRepository.findByIdAndStatusNot(batchId, StatusEnum.DELETED).ifPresent(batch -> {
+            batch.setBatchStatus(PaymentBatchStatusEnum.PROCESSED);
+            batch.setDescription(
+                    batch.getDescription() == null ? reason : batch.getDescription() + " (" + reason + ")");
+            batchRepository.save(batch);
+        });
     }
 
     private String buildSlipFilename(String extractedName, int pageNumber) {

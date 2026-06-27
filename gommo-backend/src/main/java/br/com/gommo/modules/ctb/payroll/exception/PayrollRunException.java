@@ -14,9 +14,7 @@ public final class PayrollRunException {
 
     public static BusinessException invalidStatus() {
         return new BusinessException(
-                PayrollRunExceptions.INVALID_STATUS_CODE,
-                PayrollRunExceptions.INVALID_STATUS_MSG,
-                HttpStatus.CONFLICT);
+                PayrollRunExceptions.INVALID_STATUS_CODE, PayrollRunExceptions.INVALID_STATUS_MSG, HttpStatus.CONFLICT);
     }
 
     public static BusinessException noEventsConfigured() {
@@ -28,16 +26,12 @@ public final class PayrollRunException {
 
     public static BusinessException locked() {
         return new BusinessException(
-                PayrollRunExceptions.LOCKED_CODE,
-                PayrollRunExceptions.LOCKED_MSG,
-                HttpStatus.CONFLICT);
+                PayrollRunExceptions.LOCKED_CODE, PayrollRunExceptions.LOCKED_MSG, HttpStatus.CONFLICT);
     }
 
     public static BusinessException processing() {
         return new BusinessException(
-                PayrollRunExceptions.PROCESSING_CODE,
-                PayrollRunExceptions.PROCESSING_MSG,
-                HttpStatus.CONFLICT);
+                PayrollRunExceptions.PROCESSING_CODE, PayrollRunExceptions.PROCESSING_MSG, HttpStatus.CONFLICT);
     }
 
     public static BusinessException invalidTransition() {

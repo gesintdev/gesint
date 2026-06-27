@@ -3,10 +3,10 @@ package br.com.gommo.modules.dp.payment.service;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
 
 @Component

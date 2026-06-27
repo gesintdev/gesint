@@ -1,11 +1,13 @@
 package br.com.gommo.modules.ctb.payroll.event.dto;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
-import java.time.OffsetDateTime;
-import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
 
 @Getter
 @Builder

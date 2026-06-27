@@ -1,5 +1,7 @@
 package br.com.gommo.modules.rh.person.leave.controller;
 
+import jakarta.validation.Valid;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +21,6 @@ import br.com.gommo.modules.rh.person.leave.dto.VacationAbsenceSummaryDto;
 import br.com.gommo.modules.rh.person.leave.dto.VacationEligibleCollaboratorDto;
 import br.com.gommo.modules.rh.person.leave.dto.VacationReviewRequestDto;
 import br.com.gommo.modules.rh.person.leave.service.ILeaveRequestService;
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/leave-requests")

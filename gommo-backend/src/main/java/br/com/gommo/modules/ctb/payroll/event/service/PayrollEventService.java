@@ -1,5 +1,12 @@
 package br.com.gommo.modules.ctb.payroll.event.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -9,11 +16,6 @@ import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEvent;
 import br.com.gommo.modules.ctb.payroll.event.exception.PayrollEventException;
 import br.com.gommo.modules.ctb.payroll.event.mapper.PayrollEventMapper;
 import br.com.gommo.modules.ctb.payroll.event.repository.PayrollEventRepository;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PayrollEventService extends BaseService<PayrollEvent, PayrollEventRequestDto, PayrollEventResponseDto>

@@ -10,7 +10,7 @@ import { Button } from "@/shared/components/ui/Button";
 import { DataTable } from "@/shared/components/ui/DataTable";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
-import { type TableColumnConfig,TableDataType } from "@/shared/types/table.types";
+import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
 
 const ATTACHMENT_COLUMNS: TableColumnConfig[] = [
     { id: "displayName", columnName: "Nome", fieldValue: "displayName", dataType: TableDataType.TEXT },

@@ -1,8 +1,5 @@
 package br.com.gommo.modules.ctb.payroll.integration;
 
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
-import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRecordRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -10,7 +7,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.stereotype.Component;
+
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
+import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRecordRepository;
 
 @Component
 public class AttendanceHoursProviderImpl implements AttendanceHoursProvider {
@@ -26,9 +28,8 @@ public class AttendanceHoursProviderImpl implements AttendanceHoursProvider {
 
     @Override
     public AttendanceHoursSnapshot loadHours(UUID collaboratorId, LocalDate periodStart, LocalDate periodEnd) {
-        List<AttendanceRecord> records =
-                attendanceRecordRepository.findByCollaboratorAndPeriod(
-                        collaboratorId, periodStart, periodEnd, StatusEnum.DELETED);
+        List<AttendanceRecord> records = attendanceRecordRepository.findByCollaboratorAndPeriod(
+                collaboratorId, periodStart, periodEnd, StatusEnum.DELETED);
 
         BigDecimal workedHours = BigDecimal.ZERO;
         BigDecimal nightShiftHours = BigDecimal.ZERO;
@@ -37,7 +38,8 @@ public class AttendanceHoursProviderImpl implements AttendanceHoursProvider {
             if (record.getClockIn() == null || record.getClockOut() == null) {
                 continue;
             }
-            long workedMinutes = Duration.between(record.getClockIn(), record.getClockOut()).toMinutes();
+            long workedMinutes =
+                    Duration.between(record.getClockIn(), record.getClockOut()).toMinutes();
             int breakMinutes = record.getBreakMinutes() != null ? record.getBreakMinutes() : 0;
             workedMinutes = Math.max(0, workedMinutes - breakMinutes);
             workedHours = workedHours.add(minutesToHours(workedMinutes));

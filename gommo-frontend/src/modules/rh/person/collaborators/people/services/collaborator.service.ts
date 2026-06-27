@@ -1,4 +1,7 @@
-import type { Collaborator, CollaboratorCreateDto } from "@/modules/rh/person/collaborators/people/dto/collaborator.dto";
+import type {
+    Collaborator,
+    CollaboratorCreateDto,
+} from "@/modules/rh/person/collaborators/people/dto/collaborator.dto";
 import { BaseService } from "@/modules/root/services/base.service";
 import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
 import { apiFetch } from "@/shared/lib/api.client";

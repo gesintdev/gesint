@@ -13,15 +13,15 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
-import br.com.gommo.modules.rh.person.collaborators.people.exception.CollaboratorException;
-import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.dp.offboarding.dto.OffboardingRequestDto;
 import br.com.gommo.modules.dp.offboarding.dto.OffboardingResponseDto;
 import br.com.gommo.modules.dp.offboarding.entity.Offboarding;
 import br.com.gommo.modules.dp.offboarding.exception.OffboardingException;
 import br.com.gommo.modules.dp.offboarding.mapper.OffboardingMapper;
 import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
+import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
+import br.com.gommo.modules.rh.person.collaborators.people.exception.CollaboratorException;
+import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 
 @Service
 public class OffboardingService extends BaseService<Offboarding, OffboardingRequestDto, OffboardingResponseDto>
@@ -116,7 +116,9 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
 
     private List<OffboardingResponseDto> mapToResponses(List<Offboarding> entities) {
         Map<UUID, Collaborator> collaborators = loadCollaborators(entities);
-        return entities.stream().map(entity -> mapper.toResponse(entity, collaboratorName(entity, collaborators))).toList();
+        return entities.stream()
+                .map(entity -> mapper.toResponse(entity, collaboratorName(entity, collaborators)))
+                .toList();
     }
 
     private OffboardingResponseDto toEnrichedResponse(Offboarding entity) {
@@ -138,7 +140,9 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
 
     private static String collaboratorName(Offboarding entity, Map<UUID, Collaborator> collaborators) {
         Collaborator collaborator = collaborators.get(entity.getCollaboratorId());
-        return collaborator != null && collaborator.getStatus() != StatusEnum.DELETED ? collaborator.getFullName() : null;
+        return collaborator != null && collaborator.getStatus() != StatusEnum.DELETED
+                ? collaborator.getFullName()
+                : null;
     }
 
     private void markCollaboratorOffboarded(UUID collaboratorId) {

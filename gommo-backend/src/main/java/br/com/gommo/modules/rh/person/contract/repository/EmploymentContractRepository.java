@@ -1,21 +1,24 @@
 package br.com.gommo.modules.rh.person.contract.repository;
 
-import br.com.gommo.core.base.repository.IBaseRepository;
-import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import br.com.gommo.core.base.repository.IBaseRepository;
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
 
 @Repository
 public interface EmploymentContractRepository extends IBaseRepository<EmploymentContract> {
     java.util.Optional<EmploymentContract> findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(
             UUID collaboratorId, StatusEnum status);
 
-    @Query("""
+    @Query(
+            """
             SELECT c FROM EmploymentContract c
             WHERE c.status <> :deletedStatus
               AND c.startDate <= :periodEnd

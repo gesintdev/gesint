@@ -75,8 +75,7 @@ class PaymentReceiptPdfParserTest {
 
     @Test
     void rejectsPayrollHeaderLine() {
-        String pageText =
-                "Salario Base Sal. Contr. INSS Base Calc. FGTS F.G.T.S do Mes Base Calc. IRRF Faixa IRRF";
+        String pageText = "Salario Base Sal. Contr. INSS Base Calc. FGTS F.G.T.S do Mes Base Calc. IRRF Faixa IRRF";
         assertNull(parser.extractEmployeeName(pageText));
     }
 

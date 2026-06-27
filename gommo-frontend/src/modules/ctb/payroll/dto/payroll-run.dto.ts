@@ -1,11 +1,4 @@
-export type PayrollStatus =
-    | "OPEN"
-    | "PROCESSING"
-    | "PROCESSED"
-    | "REVIEWED"
-    | "CLOSED"
-    | "CANCELLED"
-    | "DRAFT";
+export type PayrollStatus = "OPEN" | "PROCESSING" | "PROCESSED" | "REVIEWED" | "CLOSED" | "CANCELLED" | "DRAFT";
 
 export class PayrollRun {
     id!: string;

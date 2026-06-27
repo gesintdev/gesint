@@ -1,13 +1,13 @@
 package br.com.gommo.modules.rh.person.exitinterview.dto;
 
-import java.time.LocalDate;
-
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDate;
 
 import br.com.gommo.modules.rh.person.exitinterview.entity.ReturnItemStatusEnum;
 
@@ -17,11 +17,9 @@ import br.com.gommo.modules.rh.person.exitinterview.entity.ReturnItemStatusEnum;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExitInterviewReturnChecklistItemDto {
-    @Size(max = 80)
-    private String key;
+    @Size(max = 80) private String key;
 
-    @Size(max = 200)
-    private String description;
+    @Size(max = 200) private String description;
 
     private ReturnItemStatusEnum status;
     private LocalDate returnedAt;

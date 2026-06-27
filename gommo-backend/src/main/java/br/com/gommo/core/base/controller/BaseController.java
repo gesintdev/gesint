@@ -42,9 +42,7 @@ public abstract class BaseController<RequestDto, ResponseDto> {
     private static Map<String, List<String>> extractFilters(MultiValueMap<String, String> params) {
         return params.entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith("filter."))
-                .collect(Collectors.toMap(
-                        entry -> entry.getKey().substring("filter.".length()),
-                        Map.Entry::getValue));
+                .collect(Collectors.toMap(entry -> entry.getKey().substring("filter.".length()), Map.Entry::getValue));
     }
 
     private static final String UUID_PATH = "/{id:[0-9a-fA-F\\-]{36}}";

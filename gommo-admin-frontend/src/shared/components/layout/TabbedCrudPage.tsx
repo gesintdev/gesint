@@ -1,23 +1,15 @@
 "use client";
 
-import {useMemo} from "react";
+import { useMemo } from "react";
 
-import {
-    CRUD_TAB_FORM,
-    CRUD_TAB_LIST,
-    CrudScreen,
-    type CrudScreenProps,
-} from "@/shared/components/crud/CrudScreen";
-import {CrudPageCard, CrudPageLayout} from "@/shared/components/layout/CrudPageLayout";
-import {type TabbedCrudConfig,TabbedCrudConfigProvider} from "@/shared/workspace/TabbedCrudConfigContext";
-import type {WorkspaceEntityKey} from "@/shared/workspace/workspace-tab-id";
-import {isModuleListTab} from "@/shared/workspace/workspace-tab-id";
-import {useWorkspaceTab} from "@/shared/workspace/WorkspaceTabContext";
+import { CRUD_TAB_FORM, CRUD_TAB_LIST, CrudScreen, type CrudScreenProps } from "@/shared/components/crud/CrudScreen";
+import { CrudPageCard, CrudPageLayout } from "@/shared/components/layout/CrudPageLayout";
+import { type TabbedCrudConfig, TabbedCrudConfigProvider } from "@/shared/workspace/TabbedCrudConfigContext";
+import type { WorkspaceEntityKey } from "@/shared/workspace/workspace-tab-id";
+import { isModuleListTab } from "@/shared/workspace/workspace-tab-id";
+import { useWorkspaceTab } from "@/shared/workspace/WorkspaceTabContext";
 
-export type TabbedCrudPageProps<TEntity extends object> = Omit<
-    CrudScreenProps,
-    "defaultTab" | "initialEditingId"
-> & {
+export type TabbedCrudPageProps<TEntity extends object> = Omit<CrudScreenProps, "defaultTab" | "initialEditingId"> & {
     routeId: string;
     href: string;
     routeLabel: string;
@@ -35,15 +27,15 @@ function crudInitialState(
     initialEditingId: string | null;
 } {
     if (editOnly && (isModuleListTab(entityKey) || entityKey === "new")) {
-        return {defaultTab: CRUD_TAB_LIST, initialEditingId: null};
+        return { defaultTab: CRUD_TAB_LIST, initialEditingId: null };
     }
     if (isModuleListTab(entityKey)) {
-        return {defaultTab: CRUD_TAB_LIST, initialEditingId: null};
+        return { defaultTab: CRUD_TAB_LIST, initialEditingId: null };
     }
     if (entityKey === "new") {
-        return {defaultTab: CRUD_TAB_FORM, initialEditingId: null};
+        return { defaultTab: CRUD_TAB_FORM, initialEditingId: null };
     }
-    return {defaultTab: CRUD_TAB_FORM, initialEditingId: entityKey};
+    return { defaultTab: CRUD_TAB_FORM, initialEditingId: entityKey };
 }
 
 export function TabbedCrudPage<TEntity extends object>({
@@ -57,8 +49,8 @@ export function TabbedCrudPage<TEntity extends object>({
     editOnly,
     ...crudProps
 }: TabbedCrudPageProps<TEntity>) {
-    const {tab} = useWorkspaceTab();
-    const {defaultTab, initialEditingId} = useMemo(
+    const { tab } = useWorkspaceTab();
+    const { defaultTab, initialEditingId } = useMemo(
         () => crudInitialState(tab.entityKey, editOnly),
         [editOnly, tab.entityKey],
     );

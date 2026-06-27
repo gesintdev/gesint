@@ -35,9 +35,7 @@ export const personRoutes: AppRoute[] = [
                         permission: "leave:read",
                         content: lazyNamed(
                             () =>
-                                import(
-                                    "@/modules/rh/person/collaborators/admission/components/AdmissionVacationHistoryTab"
-                                ),
+                                import("@/modules/rh/person/collaborators/admission/components/AdmissionVacationHistoryTab"),
                             "AdmissionVacationHistoryTab",
                         ),
                     },
@@ -47,9 +45,7 @@ export const personRoutes: AppRoute[] = [
                         permission: "leave:read",
                         content: lazyNamed(
                             () =>
-                                import(
-                                    "@/modules/rh/person/collaborators/admission/components/AdmissionAbsenceHistoryTab"
-                                ),
+                                import("@/modules/rh/person/collaborators/admission/components/AdmissionAbsenceHistoryTab"),
                             "AdmissionAbsenceHistoryTab",
                         ),
                     },

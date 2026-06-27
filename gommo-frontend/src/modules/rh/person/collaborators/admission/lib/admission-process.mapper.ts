@@ -113,9 +113,7 @@ export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
     recessNotes: "",
 });
 
-export function admissionFormToPayload(
-    form: AdmissionProcessCreateDto,
-): AdmissionProcessCreateDto {
+export function admissionFormToPayload(form: AdmissionProcessCreateDto): AdmissionProcessCreateDto {
     const emergencyContacts = sanitizeEmergencyContacts(form.emergencyContacts);
     return {
         ...form,

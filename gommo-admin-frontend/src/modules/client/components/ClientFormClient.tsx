@@ -1,6 +1,6 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent,useEffect, useState } from "react";
+import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { clientKeys } from "@/modules/client/client.query";
@@ -12,7 +12,7 @@ import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 import { Button } from "@/shared/components/ui/Button";
-import { InputCNPJ,InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { InputCNPJ, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { digitsOnly } from "@/shared/lib/input/digits";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";

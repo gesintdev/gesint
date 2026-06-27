@@ -3,9 +3,9 @@ package br.com.gommo.modules.rh.person.attendance.mapper;
 import org.springframework.stereotype.Component;
 
 import br.com.gommo.modules.rh.person.attendance.dto.*;
-import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
 
 @Component
 public class AttendanceRecordMapper {
@@ -16,8 +16,14 @@ public class AttendanceRecordMapper {
                 .clockIn(dto.getClockIn())
                 .clockOut(dto.getClockOut())
                 .breakMinutes(dto.getBreakMinutes())
-                .occurrenceType(dto.getOccurrenceType() != null ? dto.getOccurrenceType() : AttendanceOccurrenceTypeEnum.NORMAL_WORK)
-                .occurrenceOrigin(dto.getOccurrenceOrigin() != null ? dto.getOccurrenceOrigin() : AttendanceOccurrenceOriginEnum.MANUAL)
+                .occurrenceType(
+                        dto.getOccurrenceType() != null
+                                ? dto.getOccurrenceType()
+                                : AttendanceOccurrenceTypeEnum.NORMAL_WORK)
+                .occurrenceOrigin(
+                        dto.getOccurrenceOrigin() != null
+                                ? dto.getOccurrenceOrigin()
+                                : AttendanceOccurrenceOriginEnum.MANUAL)
                 .referenceId(dto.getReferenceId())
                 .expectedHours(dto.getExpectedHours())
                 .workedHours(dto.getWorkedHours())
@@ -33,8 +39,10 @@ public class AttendanceRecordMapper {
         entity.setClockIn(dto.getClockIn());
         entity.setClockOut(dto.getClockOut());
         entity.setBreakMinutes(dto.getBreakMinutes());
-        entity.setOccurrenceType(dto.getOccurrenceType() != null ? dto.getOccurrenceType() : AttendanceOccurrenceTypeEnum.NORMAL_WORK);
-        entity.setOccurrenceOrigin(dto.getOccurrenceOrigin() != null ? dto.getOccurrenceOrigin() : AttendanceOccurrenceOriginEnum.MANUAL);
+        entity.setOccurrenceType(
+                dto.getOccurrenceType() != null ? dto.getOccurrenceType() : AttendanceOccurrenceTypeEnum.NORMAL_WORK);
+        entity.setOccurrenceOrigin(
+                dto.getOccurrenceOrigin() != null ? dto.getOccurrenceOrigin() : AttendanceOccurrenceOriginEnum.MANUAL);
         entity.setReferenceId(dto.getReferenceId());
         entity.setExpectedHours(dto.getExpectedHours());
         entity.setWorkedHours(dto.getWorkedHours());

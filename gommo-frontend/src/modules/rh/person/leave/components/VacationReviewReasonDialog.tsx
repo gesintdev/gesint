@@ -15,14 +15,7 @@ type Props = {
     loading?: boolean;
 };
 
-export function VacationReviewReasonDialog({
-    open,
-    title,
-    confirmLabel,
-    onClose,
-    onConfirm,
-    loading,
-}: Props) {
+export function VacationReviewReasonDialog({ open, title, confirmLabel, onClose, onConfirm, loading }: Props) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [reason, setReason] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -52,9 +45,7 @@ export function VacationReviewReasonDialog({
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
             <div className="modal-box max-w-md">
                 <h3 className="text-base font-semibold">{title}</h3>
-                <p className="mt-1 text-sm text-base-content/65">
-                    {LEAVE_VACATION_CRUD_LABELS.reviewReasonHint}
-                </p>
+                <p className="mt-1 text-sm text-base-content/65">{LEAVE_VACATION_CRUD_LABELS.reviewReasonHint}</p>
                 <div className="mt-4">
                     <InputString
                         label="Motivo"

@@ -1,19 +1,19 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent,useEffect, useState } from "react";
+import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { benefitplanKeys } from "@/modules/ctb/payroll/benefit/benefit.query";
 import type { BenefitPlanCreateDto } from "@/modules/ctb/payroll/benefit/dto/benefit-plan.dto";
 import { BENEFIT_CLIENT_MESSAGES } from "@/modules/ctb/payroll/benefit/exceptions/benefit-plan.messages";
-import { benefitplanToFormDto,emptyBenefitPlanForm } from "@/modules/ctb/payroll/benefit/lib/benefit-plan.mapper";
+import { benefitplanToFormDto, emptyBenefitPlanForm } from "@/modules/ctb/payroll/benefit/lib/benefit-plan.mapper";
 import { benefitplanService } from "@/modules/ctb/payroll/benefit/services/benefit-plan.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputCurrency, InputDate,InputString } from "@/shared/components/ui/input/index";
+import { InputCurrency, InputDate, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Benefício" }];
@@ -121,7 +121,13 @@ export function BenefitPlanFormClient() {
             }
         >
             <FormSection id="cadastro" title="Benefício">
-                <InputString label="Nome" value={form.name ?? ""} onValueChange={(v) => update("name", v)} required wrapperClassName="sm:col-span-6" />
+                <InputString
+                    label="Nome"
+                    value={form.name ?? ""}
+                    onValueChange={(v) => update("name", v)}
+                    required
+                    wrapperClassName="sm:col-span-6"
+                />
                 <InputString
                     label="Tipo de benefício"
                     value={form.benefitType ?? ""}

@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.gommo.core.entity.StatusEnum;
-import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.address.service.AddressReferenceResolver;
+import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.CollaboratorAddress;

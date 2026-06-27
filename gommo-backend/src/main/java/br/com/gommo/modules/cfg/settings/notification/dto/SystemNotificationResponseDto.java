@@ -1,10 +1,11 @@
 package br.com.gommo.modules.cfg.settings.notification.dto;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.Builder;
-import lombok.Getter;
 
 @Getter
 @Builder

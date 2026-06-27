@@ -1,10 +1,11 @@
 package br.com.gommo.modules.ctb.payroll.event.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.gommo.modules.ctb.payroll.event.dto.PayrollEventRequestDto;
 import br.com.gommo.modules.ctb.payroll.event.dto.PayrollEventResponseDto;
 import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEvent;
 import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
-import org.springframework.stereotype.Component;
 
 @Component
 public class PayrollEventMapper {

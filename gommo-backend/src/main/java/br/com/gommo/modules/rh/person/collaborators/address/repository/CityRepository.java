@@ -20,6 +20,5 @@ public interface CityRepository extends JpaRepository<City, UUID> {
             WHERE c.state.id = :stateId
               AND LOWER(FUNCTION('unaccent', c.name)) LIKE LOWER(FUNCTION('unaccent', :term))
             """)
-    Page<City> searchByStateAndTerm(
-            @Param("stateId") UUID stateId, @Param("term") String term, Pageable pageable);
+    Page<City> searchByStateAndTerm(@Param("stateId") UUID stateId, @Param("term") String term, Pageable pageable);
 }

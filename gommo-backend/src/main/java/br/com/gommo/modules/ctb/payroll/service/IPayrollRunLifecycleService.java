@@ -1,7 +1,8 @@
 package br.com.gommo.modules.ctb.payroll.service;
 
-import br.com.gommo.modules.ctb.payroll.dto.PayrollRunResponseDto;
 import java.util.UUID;
+
+import br.com.gommo.modules.ctb.payroll.dto.PayrollRunResponseDto;
 
 public interface IPayrollRunLifecycleService {
 

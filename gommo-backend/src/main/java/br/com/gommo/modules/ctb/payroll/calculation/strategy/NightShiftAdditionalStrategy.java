@@ -1,10 +1,12 @@
 package br.com.gommo.modules.ctb.payroll.calculation.strategy;
 
-import br.com.gommo.modules.ctb.payroll.calculation.PayrollCalculationContext;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import br.com.gommo.modules.ctb.payroll.calculation.PayrollCalculationContext;
 
 @Component
 @Order(30)
