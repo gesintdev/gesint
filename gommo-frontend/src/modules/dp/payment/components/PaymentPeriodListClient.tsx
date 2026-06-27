@@ -38,11 +38,9 @@ export function PaymentPeriodListClient() {
     const wsTab = useWorkspaceTabOptional();
     const route = wsTab ? findRouteById(wsTab.tab.routeId) : undefined;
     const canWrite = canWriteRoute(route, permissions, deriveWritePermission(route?.permission));
-
     const invalidate = async () => {
         await queryClient.invalidateQueries({ queryKey: paymentPeriodKeys.all });
     };
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => paymentPeriodService.remove(id),
         onSuccess: async () => {
@@ -52,7 +50,6 @@ export function PaymentPeriodListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYMENT_CLIENT_MESSAGES.PAYMENT_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: PaymentPeriod) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

@@ -1,4 +1,5 @@
 "use client";
+
 import { collaboratorKeys } from "@/modules/rh/person/collaborators/people/collaborator.query";
 import { COLLABORATOR_TABLE_COLUMNS } from "@/modules/rh/person/collaborators/people/config/people.table-columns";
 import type { Collaborator } from "@/modules/rh/person/collaborators/people/dto/collaborator.dto";

@@ -30,21 +30,17 @@ export function PayslipFormClient() {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayslipCreateDto>(() => emptyPayslipForm());
     const [error, setError] = useState<string | null>(null);
-
     const detailQuery = useQuery({
         queryKey: payslipKeys.detail(editingId ?? ""),
         queryFn: () => payslipService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
     });
-
     const payrollRunId = form.payrollRunId ?? detailQuery.data?.payrollRunId;
-
     const payrollRunQuery = useQuery({
         queryKey: payrollrunKeys.detail(payrollRunId ?? ""),
         queryFn: () => payrollrunService.getById(payrollRunId!),
         enabled: Boolean(payrollRunId),
     });
-
     const payrollRunStatus = payrollRunQuery.data?.payrollStatus;
     const readOnly = Boolean(payrollRunId) && !canEditPayrollRun(payrollRunStatus);
 
@@ -64,12 +60,10 @@ export function PayslipFormClient() {
         (query: string, page: number) => payrollrunService.searchForAutocomplete(query, page),
         [],
     );
-
     const resolvePayrollRunLabel = useCallback(async (id: string) => {
         const run = await payrollrunService.getById(id);
         return `Competência ${formatPayrollReference(run.referenceDate)}`;
     }, []);
-
     const saveMutation = useMutation({
         mutationFn: async (dto: PayslipCreateDto) => {
             const payload = {
@@ -93,11 +87,9 @@ export function PayslipFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends keyof PayslipCreateDto>(field: K, value: PayslipCreateDto[K]) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (readOnly) return;

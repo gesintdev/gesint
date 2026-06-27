@@ -43,7 +43,6 @@ export function WorkspaceTabOverflowMenu({ moduleTabs, activeTabId, onSelect }: 
                 <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")} />
                 <span className="tabular-nums text-[12px] font-semibold">{moduleTabs.length}</span>
             </button>
-
             {open && (
                 <div
                     role="menu"

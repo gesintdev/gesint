@@ -17,7 +17,6 @@ export function NotificationSettingsPage() {
     const canWrite = useHasPermission("notification:write");
     const [vacationDueNoticeDays, setVacationDueNoticeDays] = useState<number | null>(30);
     const [error, setError] = useState<string | null>(null);
-
     const settingsQuery = useQuery({
         queryKey: notificationKeys.settings,
         queryFn: () => notificationSettingsService.getSettings(),
@@ -47,7 +46,6 @@ export function NotificationSettingsPage() {
             setError(ex.displayMessage);
         },
     });
-
     const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
@@ -63,7 +61,6 @@ export function NotificationSettingsPage() {
                         Configure os avisos operacionais exibidos no sino do sistema.
                     </p>
                 </div>
-
                 <Card animate={false} title="Férias a vencer" subtitle="Antecedência para alertar o DP/RH">
                     <form onSubmit={handleSubmit} className="grid gap-4">
                         <InputNumber

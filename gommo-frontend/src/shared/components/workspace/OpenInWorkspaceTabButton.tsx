@@ -1,4 +1,5 @@
 "use client";
+
 import { SquareArrowOutUpRight } from "lucide-react";
 
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";

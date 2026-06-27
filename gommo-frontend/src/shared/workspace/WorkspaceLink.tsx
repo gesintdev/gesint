@@ -1,4 +1,5 @@
 "use client";
+
 import type { AppRoute } from "@/config/routes";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";

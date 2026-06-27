@@ -36,7 +36,6 @@ const METRIC_ICONS: Record<string, LucideIcon> = {
     payroll: Wallet,
     leave: Palmtree,
 };
-
 const numberFormatter = new Intl.NumberFormat("pt-BR");
 
 function toneClass(tone: DashboardMetricTone): string {
@@ -229,7 +228,6 @@ function DashboardContent({ data }: { data: DashboardSummary }) {
                     <MetricCard key={metric.key} metric={metric} index={index} />
                 ))}
             </div>
-
             <div className="mt-5 grid gap-4 xl:grid-cols-12">
                 <Card
                     animate={false}
@@ -240,10 +238,8 @@ function DashboardContent({ data }: { data: DashboardSummary }) {
                 >
                     <MovementChart points={data.movementLast7Days} />
                 </Card>
-
                 <ModuleHealthPanel moduleHealth={data.moduleHealth} />
             </div>
-
             <div className="mt-5 grid gap-4 xl:grid-cols-2">
                 <DistributionChart
                     title="Admissões por status"
@@ -289,10 +285,8 @@ export function DashboardView() {
                             Atualizar
                         </Button>
                     </div>
-
                     <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
                         {summaryQuery.isLoading && <MetricsSkeleton />}
-
                         {summaryQuery.isError && (
                             <Card animate={false} bodyClassName="!p-6">
                                 <p className="text-sm font-medium text-error">
@@ -311,7 +305,6 @@ export function DashboardView() {
                                 </Button>
                             </Card>
                         )}
-
                         {summaryQuery.data && <DashboardContent data={summaryQuery.data} />}
                     </div>
                 </div>

@@ -1,4 +1,5 @@
 "use client";
+
 import { create } from "zustand";
 
 import type { SystemAlertRequest } from "@/shared/system-alert/system-alert.types";

@@ -1,4 +1,5 @@
 "use client";
+
 import { use } from "react";
 
 import { COLLABORATOR_TABLE_COLUMNS } from "@/modules/rh/person/collaborators/people/config/people.table-columns";

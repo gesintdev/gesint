@@ -1,4 +1,5 @@
 "use client";
+
 import { useServerInsertedHTML } from "next/navigation";
 
 import { GOMMO_THEME_INIT_SCRIPT } from "@/shared/lib/theme-init-script";

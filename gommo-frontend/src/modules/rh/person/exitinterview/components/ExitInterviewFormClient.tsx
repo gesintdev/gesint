@@ -1,4 +1,5 @@
 "use client";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
@@ -80,6 +81,7 @@ type TextAreaProps = {
 
 function TextAreaField({ label, value, onValueChange, wrapperClassName, placeholder, disabled }: TextAreaProps) {
     const id = label.toLowerCase().replace(/\s+/g, "-");
+
     return (
         <InputFieldChrome label={label} id={id} wrapperClassName={wrapperClassName} disabled={disabled}>
             <textarea
@@ -105,6 +107,7 @@ type RatingFieldProps = {
 
 function RatingField({ label, name, value, onValueChange, disabled, wrapperClassName }: RatingFieldProps) {
     const ratingValue = value ?? 1;
+
     return (
         <div
             className={clsx("grid gap-2 rounded-lg border border-base-300/60 bg-base-100 px-3 py-3", wrapperClassName)}
@@ -239,7 +242,6 @@ export function ExitInterviewFormClient() {
     const isFinal =
         detailQuery.data?.interviewStatus === "COMPLETED" || detailQuery.data?.interviewStatus === "CANCELED";
     const terminationItems = form.relationshipType === "PJ" ? PJ_TERMINATION_ITEMS : CLT_TERMINATION_ITEMS;
-
     const saveMutation = useMutation({
         mutationFn: async (dto: ExitInterviewCreateDto) => {
             const payload = toPayload(dto);
@@ -275,7 +277,6 @@ export function ExitInterviewFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const completeMutation = useMutation({
         mutationFn: () => exitinterviewService.complete(editingId!),
         onSuccess: async (result) => {
@@ -291,7 +292,6 @@ export function ExitInterviewFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const cancelMutation = useMutation({
         mutationFn: () => exitinterviewService.cancel(editingId!, { reason: cancelReason || undefined }),
         onSuccess: async (result) => {
@@ -307,7 +307,6 @@ export function ExitInterviewFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends ExitInterviewFormField>(field: K, value: ExitInterviewCreateDto[K]) => {
         setForm((prev) => {
             const next = { ...prev, [field]: value };
@@ -326,7 +325,6 @@ export function ExitInterviewFormClient() {
             return next;
         });
     };
-
     const handleCollaboratorChange = useCallback((collaboratorId: string) => {
         if (!collaboratorId) {
             setForm((prev) => ({
@@ -342,7 +340,6 @@ export function ExitInterviewFormClient() {
             }));
             return;
         }
-
         setForm((prev) => ({ ...prev, collaboratorId }));
         void loadCollaboratorExitInterviewContext(collaboratorId)
             .then((ctx) => {
@@ -369,7 +366,6 @@ export function ExitInterviewFormClient() {
             })
             .catch(() => undefined);
     }, []);
-
     const handleDepartmentChange = useCallback((departmentId: string) => {
         setForm((prev) => ({
             ...prev,
@@ -388,7 +384,6 @@ export function ExitInterviewFormClient() {
             })
             .catch(() => undefined);
     }, []);
-
     const handleJobPositionChange = useCallback((jobPositionId: string) => {
         setForm((prev) => ({ ...prev, jobPositionId, jobPositionName: "" }));
         if (!jobPositionId) return;
@@ -417,14 +412,12 @@ export function ExitInterviewFormClient() {
             ratings: prev.ratings.map((item) => (item.key === key ? { ...item, score } : item)),
         }));
     };
-
     const updateAnswer = (key: string, answer: string) => {
         setForm((prev) => ({
             ...prev,
             openAnswers: prev.openAnswers.map((item) => (item.key === key ? { ...item, answer } : item)),
         }));
     };
-
     const updateChecklist = <K extends keyof ExitInterviewReturnChecklistItemDto>(
         key: string,
         field: K,
@@ -437,7 +430,6 @@ export function ExitInterviewFormClient() {
             ),
         }));
     };
-
     const toggleSecondaryReason = (reason: ExitInterviewReason) => {
         setForm((prev) => ({
             ...prev,
@@ -446,7 +438,6 @@ export function ExitInterviewFormClient() {
                 : [...prev.secondaryReasons, reason],
         }));
     };
-
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -458,7 +449,6 @@ export function ExitInterviewFormClient() {
         }
         saveMutation.mutate(form);
     };
-
     const handleComplete = async () => {
         if (!editingId) return;
         if (
@@ -475,7 +465,6 @@ export function ExitInterviewFormClient() {
         setError(null);
         completeMutation.mutate();
     };
-
     const handleCancelInterview = async () => {
         if (!editingId) return;
         if (
@@ -492,7 +481,6 @@ export function ExitInterviewFormClient() {
         setError(null);
         cancelMutation.mutate();
     };
-
     const filledStepIds = useMemo(() => {
         const filled: string[] = [];
         if (
@@ -686,7 +674,6 @@ export function ExitInterviewFormClient() {
                     disabled={isFinal}
                 />
             </FormSection>
-
             <FormSection id="motivos" title="Motivos do desligamento">
                 <InputSelect
                     label="Motivo principal"
@@ -738,7 +725,6 @@ export function ExitInterviewFormClient() {
                     disabled={isFinal}
                 />
             </FormSection>
-
             <FormSection id="avaliacao" title="Avaliação da empresa">
                 {form.ratings.map((item) => (
                     <RatingField
@@ -752,7 +738,6 @@ export function ExitInterviewFormClient() {
                     />
                 ))}
             </FormSection>
-
             <FormSection id="perguntas" title="Perguntas abertas">
                 {form.openAnswers.map((item) => (
                     <TextAreaField
@@ -765,7 +750,6 @@ export function ExitInterviewFormClient() {
                     />
                 ))}
             </FormSection>
-
             <FormSection id="recontratacao" title="Recontratação">
                 <InputSelect
                     label={
@@ -813,7 +797,6 @@ export function ExitInterviewFormClient() {
                     disabled={isFinal}
                 />
             </FormSection>
-
             <FormSection id="devolucoes" title="Checklist de devoluções" bodyClassName="!block">
                 <div className="overflow-hidden rounded-lg border border-base-300/70 bg-base-100 shadow-sm">
                     <div className="overflow-x-auto">
@@ -890,7 +873,6 @@ export function ExitInterviewFormClient() {
                     />
                 ) : null}
             </FormSection>
-
             <FormSection
                 id="documentos"
                 title="Documentos"

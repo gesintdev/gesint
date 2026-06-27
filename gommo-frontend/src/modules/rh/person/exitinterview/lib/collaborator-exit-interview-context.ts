@@ -41,12 +41,10 @@ export async function loadCollaboratorExitInterviewContext(
     const admissions = await admissionprocessService.getAll();
     const admission = latestCompletedAdmission(admissions, collaboratorId);
     if (!admission) return {};
-
     const [department, jobPosition] = await Promise.all([
         admission.departmentId ? departmentService.getById(admission.departmentId).catch(() => null) : null,
         admission.jobPositionId ? jobpositionService.getById(admission.jobPositionId).catch(() => null) : null,
     ]);
-
     return {
         collaboratorName: admission.socialName || admission.fullName,
         relationshipType: admission.contractType === "PJ" ? "PJ" : "CLT",

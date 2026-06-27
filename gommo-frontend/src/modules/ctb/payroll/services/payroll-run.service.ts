@@ -11,7 +11,6 @@ class PayrollRunService extends BaseService<PayrollRun, PayrollRunCreateDto, Pay
     constructor() {
         super("/api/v1/payroll-runs");
     }
-
     async searchForAutocomplete(query: string, page = 0): Promise<SelectSearchResult> {
         const all = await this.getAll();
         const q = query.trim().toLowerCase();
@@ -31,19 +30,15 @@ class PayrollRunService extends BaseService<PayrollRun, PayrollRunCreateDto, Pay
         const totalPages = Math.max(1, Math.ceil(filtered.length / AUTOCOMPLETE_PAGE_SIZE));
         return { items, page, hasMore: page + 1 < totalPages };
     }
-
     process(id: string): Promise<PayrollRunProcessResult> {
         return apiFetch<PayrollRunProcessResult>(`${this.basePath}/${id}/process`, { method: "POST" });
     }
-
     review(id: string): Promise<PayrollRun> {
         return apiFetch<PayrollRun>(`${this.basePath}/${id}/review`, { method: "POST" });
     }
-
     close(id: string): Promise<PayrollRun> {
         return apiFetch<PayrollRun>(`${this.basePath}/${id}/close`, { method: "POST" });
     }
-
     reopen(id: string): Promise<PayrollRun> {
         return apiFetch<PayrollRun>(`${this.basePath}/${id}/reopen`, { method: "POST" });
     }

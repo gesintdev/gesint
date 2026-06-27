@@ -6,7 +6,6 @@ export const PAYMENT_MESSAGES = {
     PAYMENT_SLIP_NOT_SENDABLE: "Holerite divergente ou já enviado.",
     PAYMENT_CONTACT_MISSING: "Colaborador sem contato cadastrado.",
 } as const;
-
 export const PAYMENT_CLIENT_MESSAGES = {
     PAYMENT_LOAD_FAILED: "Não foi possível carregar pagamentos.",
     PAYMENT_SAVE_FAILED: "Não foi possível salvar o período.",

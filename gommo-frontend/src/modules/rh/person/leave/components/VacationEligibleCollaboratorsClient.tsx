@@ -13,7 +13,6 @@ import { Button } from "@/shared/components/ui/Button";
 
 export function VacationEligibleCollaboratorsClient() {
     const { startCreate, goToTab } = useCrudScreen();
-
     const handleRequest = (row: VacationEligibleCollaborator) => {
         if (typeof window !== "undefined") {
             window.sessionStorage.setItem(

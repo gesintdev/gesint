@@ -78,7 +78,6 @@ export function PaymentSlipPanel({
     const [activeTab, setActiveTab] = useState<SlipTab>("PROCESSED");
     const [reviewSlip, setReviewSlip] = useState<PaymentSlip | null>(null);
     const tabConfig = TAB_ITEMS.find((tab) => tab.id === activeTab)!;
-
     const countsQuery = useQuery({
         queryKey: [...paymentBatchKeys.slips(batchId, "counts"), refreshToken],
         queryFn: async () => {
@@ -92,11 +91,9 @@ export function PaymentSlipPanel({
         },
         refetchInterval: isProcessing ? 800 : false,
     });
-
     const invalidate = async () => {
         await queryClient.invalidateQueries({ queryKey: ["payment-slip", batchId] });
     };
-
     const loadSlipRows = async (): Promise<PaymentSlipRow[]> => {
         const slips = await paymentBatchService.getSlips(batchId, tabConfig.status);
         return slips.map(mapSlipRow).sort((left, right) =>
@@ -105,7 +102,6 @@ export function PaymentSlipPanel({
             }),
         );
     };
-
     const columns = useMemo(() => {
         if (activeTab === "DIVERGENT") {
             return PAYMENT_SLIP_DIVERGENT_TABLE_COLUMNS;
@@ -115,7 +111,6 @@ export function PaymentSlipPanel({
         }
         return PAYMENT_SLIP_TABLE_COLUMNS;
     }, [activeTab]);
-
     const sendEmailMutation = useMutation({
         mutationFn: (slipId: string) => paymentBatchService.sendEmail(slipId),
         onSuccess: async () => {
@@ -125,7 +120,6 @@ export function PaymentSlipPanel({
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYMENT_CLIENT_MESSAGES.PAYMENT_SEND_FAILED }),
     });
-
     const sendWhatsappMutation = useMutation({
         mutationFn: (slipId: string) => paymentBatchService.sendWhatsapp(slipId),
         onSuccess: async (result) => {
@@ -138,7 +132,6 @@ export function PaymentSlipPanel({
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYMENT_CLIENT_MESSAGES.PAYMENT_SEND_FAILED }),
     });
-
     const sendAllMutation = useMutation({
         mutationFn: () => paymentBatchService.sendAll(batchId),
         onSuccess: async (result) => {
@@ -148,7 +141,6 @@ export function PaymentSlipPanel({
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYMENT_CLIENT_MESSAGES.PAYMENT_SEND_FAILED }),
     });
-
     const validateMutation = useMutation({
         mutationFn: (slipId: string) => paymentBatchService.validateSlip(slipId),
         onSuccess: async () => {
@@ -159,7 +151,6 @@ export function PaymentSlipPanel({
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYMENT_CLIENT_MESSAGES.PAYMENT_LOAD_FAILED }),
     });
-
     const handleSendAll = async () => {
         if (
             !(await SystemAlert.confirm({
@@ -172,7 +163,6 @@ export function PaymentSlipPanel({
         }
         sendAllMutation.mutate();
     };
-
     const handleValidate = async (slip: PaymentSlip) => {
         if (
             !(await SystemAlert.confirm({
@@ -185,12 +175,10 @@ export function PaymentSlipPanel({
         }
         validateMutation.mutate(slip.id);
     };
-
     const queryKey = useMemo(
         () => [...paymentBatchKeys.slips(batchId, tabConfig.status), refreshToken],
         [batchId, tabConfig.status, refreshToken],
     );
-
     const tabCount = (tabId: SlipTab) => countsQuery.data?.[tabId] ?? 0;
 
     return (

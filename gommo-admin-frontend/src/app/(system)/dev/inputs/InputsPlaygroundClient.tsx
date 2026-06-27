@@ -1,4 +1,5 @@
 "use client";
+
 import { useCallback, useState } from "react";
 
 import { Card } from "@/shared/components/ui/Card";
@@ -19,7 +20,6 @@ import {
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 
 const PAGE_SIZE = 6;
-
 const GENDER_ITEMS: SelectItem[] = [
     { value: "MALE", label: "Masculino" },
     { value: "FEMALE", label: "Feminino" },
@@ -33,7 +33,6 @@ const MARITAL_ITEMS: SelectItem[] = [
     { value: "WIDOWED", label: "Viúvo(a)" },
     { value: "OTHER", label: "Outro" },
 ];
-
 const DEMO_AUTOCOMPLETE_ITEMS: SelectItem[] = [
     { value: "client-gommo", label: "Gommo Tecnologia", description: "Cliente plataforma" },
     { value: "client-acme", label: "Acme Brasil", description: "Cliente plataforma" },
@@ -101,7 +100,6 @@ export function InputsPlaygroundClient() {
                 item.label.toLowerCase().includes(normalized) || item.description?.toLowerCase().includes(normalized),
         );
         const start = page * PAGE_SIZE;
-
         return {
             items: filtered.slice(start, start + PAGE_SIZE),
             hasMore: start + PAGE_SIZE < filtered.length,

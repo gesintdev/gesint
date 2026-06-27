@@ -56,14 +56,11 @@ export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
     UNJUSTIFIED_ABSENCE: "Falta injustificada",
     OTHER: "Outro",
 };
-
 export const LEAVE_TYPE_ITEMS: SelectItem[] = LEAVE_TYPE_VALUES.map((value) => ({
     value,
     label: LEAVE_TYPE_LABELS[value],
 }));
-
 export const ABSENCE_TYPE_ITEMS: SelectItem[] = LEAVE_TYPE_ITEMS.filter((item) => item.value !== "VACATION");
-
 export const LEAVE_ABSENCE_STATUS_LABELS: Record<LeaveAbsenceStatus, string> = {
     PENDING: "Pendente",
     VALIDATED: "Validado",
@@ -72,7 +69,6 @@ export const LEAVE_ABSENCE_STATUS_LABELS: Record<LeaveAbsenceStatus, string> = {
     FINALIZED: "Finalizado",
     CANCELLED: "Cancelado",
 };
-
 export const LEAVE_ABSENCE_STATUS_ITEMS: SelectItem[] = LEAVE_ABSENCE_STATUS_VALUES.map((value) => ({
     value,
     label: LEAVE_ABSENCE_STATUS_LABELS[value],

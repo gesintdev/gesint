@@ -28,16 +28,13 @@ export function PaymentPeriodFormClient() {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PaymentPeriodCreateDto>(() => emptyPaymentPeriodForm());
     const [error, setError] = useState<string | null>(null);
-
     const detailQuery = useQuery({
         queryKey: paymentPeriodKeys.detail(editingId ?? ""),
         queryFn: () => paymentPeriodService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
     });
-
     const periodId = editingId ?? detailQuery.data?.id;
     const batchUpload = usePaymentBatchUpload(periodId);
-
     const formSteps: FormStepNavItem[] = [{ id: "cadastro", label: "Per\u00edodo" }];
 
     useEffect(() => {
@@ -72,11 +69,9 @@ export function PaymentPeriodFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends keyof PaymentPeriodCreateDto>(field: K, value: PaymentPeriodCreateDto[K]) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);

@@ -90,7 +90,6 @@ export function PaymentBatchPanel({ periodId, periodLabel, upload, showUploadBut
         invalidate,
         clearSelectionIfBatch,
     } = upload;
-
     const loadBatchRows = async (): Promise<PaymentBatchRow[]> => {
         const batches = await paymentBatchService.getByPeriod(periodId);
         return batches.map((batch) => ({
@@ -98,7 +97,6 @@ export function PaymentBatchPanel({ periodId, periodLabel, upload, showUploadBut
             batchTypeLabel: batch.batchType === "SALARY" ? "Salário" : batch.batchType,
         }));
     };
-
     const deleteMutation = useMutation({
         mutationFn: (batchId: string) => paymentBatchService.remove(batchId),
         onSuccess: async (_data, batchId) => {
@@ -109,7 +107,6 @@ export function PaymentBatchPanel({ periodId, periodLabel, upload, showUploadBut
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYMENT_CLIENT_MESSAGES.PAYMENT_LOAD_FAILED }),
     });
-
     const handleDelete = async (batch: PaymentBatch) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(batch.id);

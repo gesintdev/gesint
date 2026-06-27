@@ -64,7 +64,6 @@ export function TabbedCrudPage<TEntity extends object>({
         () => crudInitialState(tab.entityKey, editOnly),
         [editOnly, tab.entityKey],
     );
-
     const config: TabbedCrudConfig = {
         routeId,
         href,

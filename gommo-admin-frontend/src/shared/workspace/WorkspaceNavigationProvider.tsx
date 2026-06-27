@@ -49,7 +49,6 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
     const openModuleTab = useWorkspaceStore((s) => s.openModuleTab);
     const openRecordTab = useWorkspaceStore((s) => s.openRecordTab);
     const focusTab = useWorkspaceStore((s) => s.focusTab);
-
     const syncUrl = useCallback(
         (href: string, crud?: { editingId?: string | null; isNew?: boolean }) => {
             const url = crud ? workspaceUrlWithCrud(href, crud) : workspaceUrl(href);
@@ -57,7 +56,6 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
         },
         [pathname, router, searchParams],
     );
-
     const openRouteModule = useCallback(
         (route: AppRoute, shortLabel?: string) => {
             const input = routeToInput(route, shortLabel);
@@ -66,7 +64,6 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
         },
         [openModuleTab, syncUrl],
     );
-
     const openRouteRecord = useCallback(
         (route: AppRoute, entityId: string, options?: { titleSuffix?: string; shortLabel?: string }) => {
             const input = routeToInput(route, options?.shortLabel);
@@ -88,7 +85,6 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
         },
         [focusTab, openRecordTab, syncUrl],
     );
-
     const openRouteCreate = useCallback(
         (route: AppRoute, shortLabel?: string) => {
             const input = routeToInput(route, shortLabel);
@@ -106,7 +102,6 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
         },
         [focusTab, openRecordTab, syncUrl],
     );
-
     const openFromHref = useCallback(
         (href: string) => {
             const route = findRouteByHref(href);
@@ -115,14 +110,12 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
         },
         [openRouteModule],
     );
-
     const focusTabById = useCallback(
         (tabId: string) => {
             focusTab(tabId);
         },
         [focusTab],
     );
-
     const syncCrudUrl = useCallback(
         (tabId: string, crud: { editingId?: string | null; isNew?: boolean }) => {
             const tab = useWorkspaceStore.getState().tabs.find((t) => t.id === tabId);
@@ -131,7 +124,6 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
         },
         [syncUrl],
     );
-
     const value = useMemo(
         (): WorkspaceNavigationContextValue => ({
             pathname,

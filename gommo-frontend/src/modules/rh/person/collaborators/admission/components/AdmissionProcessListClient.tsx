@@ -1,4 +1,5 @@
 "use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useMemo, useState } from "react";
@@ -16,7 +17,9 @@ import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
 type AdmissionProfileFilter = "ACTIVE" | "IN_VACATION" | "ON_LEAVE" | "DISMISSED" | "ALL";
+
 type AdmissionProfileTag = string;
+
 type AdmissionListingRow = AdmissionProcess & { admissionTags: AdmissionProfileTag[] };
 
 const PROFILE_FILTERS: Array<{ value: AdmissionProfileFilter; label: string }> = [

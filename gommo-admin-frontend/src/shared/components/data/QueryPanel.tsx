@@ -1,4 +1,5 @@
 "use client";
+
 import { type QueryKey, useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { type ReactNode, useMemo } from "react";
 

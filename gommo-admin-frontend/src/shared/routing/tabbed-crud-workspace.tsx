@@ -14,7 +14,6 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
     const List = toLazy(config.list);
     const Form = toLazy(config.form);
     const PrimaryAction = config.listPrimaryAction ? toLazy(config.listPrimaryAction) : null;
-
     const tabbedCrudProps = (({
         list: _list,
         form: _form,
@@ -26,7 +25,6 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
         void _listPrimaryAction;
         return rest;
     })(config);
-
     return function TabbedCrudWorkspacePage() {
         const list = (
             <Suspense fallback={null}>
@@ -47,7 +45,6 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
                 </Suspense>
             );
         }
-
         return (
             <TabbedCrudPage
                 {...tabbedCrudProps}

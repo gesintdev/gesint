@@ -7,7 +7,6 @@ export const EXITINTERVIEW_MESSAGES = {
     EXITINTERVIEW_RELATIONSHIP_MISMATCH:
         "O tipo de desligamento selecionado não é compatível com o vínculo. Revise Tipo de vínculo e Tipo de desligamento.",
 } as const;
-
 export const EXITINTERVIEW_CLIENT_MESSAGES = {
     EXITINTERVIEW_LOAD_FAILED: "Não foi possível carregar entrevista de desligamento.",
     EXITINTERVIEW_SAVE_FAILED: "Não foi possível salvar entrevista de desligamento.",

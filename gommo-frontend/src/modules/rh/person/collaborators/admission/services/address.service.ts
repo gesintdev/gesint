@@ -28,11 +28,9 @@ export type PostalCodeAddress = {
 
 class AddressService {
     private readonly basePath = "/api/v1/addresses";
-
     findByPostalCode(postalCode: string): Promise<PostalCodeAddress> {
         return apiFetch<PostalCodeAddress>(`${this.basePath}/postal-code/${postalCode}`);
     }
-
     async searchStates(query: string, page = 0): Promise<SelectSearchResult> {
         const params = new URLSearchParams({ query, page: String(page), size: String(PAGE_SIZE) });
         const result = await apiFetch<PageableResponseDto<LocationOption>>(`${this.basePath}/states?${params}`);
@@ -42,14 +40,12 @@ class AddressService {
             description: item.name,
         }));
     }
-
     async searchCities(stateId: string, query: string, page = 0): Promise<SelectSearchResult> {
         if (!stateId) return { items: [], page, hasMore: false };
         const params = new URLSearchParams({ stateId, query, page: String(page), size: String(PAGE_SIZE) });
         const result = await apiFetch<PageableResponseDto<LocationOption>>(`${this.basePath}/cities?${params}`);
         return this.toSearchResult(result, page, (item) => ({ value: item.id, label: item.name }));
     }
-
     private toSearchResult(
         result: PageableResponseDto<LocationOption>,
         page: number,

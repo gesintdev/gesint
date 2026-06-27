@@ -5,6 +5,7 @@ export type Gender = "MALE" | "FEMALE" | "OTHER" | "NOT_INFORMED";
 export type MaritalStatus = "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "OTHER";
 
 export type ContractType = "CLT" | "PJ" | "INTERMITTENT" | "APPRENTICE" | "INTERN";
+
 export type RecessFinancialMode = "FULLY_PAID" | "UNPAID" | "PROPORTIONAL" | "CUSTOM";
 
 export type AdmissionEmergencyContact = {

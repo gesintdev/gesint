@@ -59,7 +59,6 @@ function resolveHireProfile(contract: EmploymentContract | null, admission: Admi
 function resolveRequestedPeriodIndex(hireDate: string, acquisitionStart?: string): number {
     const requestedStart = acquisitionStart?.slice(0, 10);
     if (!requestedStart) return resolveActivePeriodIndex(hireDate);
-
     for (let index = 0; index < 100; index += 1) {
         const period = acquisitionPeriod(hireDate, index);
         if (period.start === requestedStart) return index;

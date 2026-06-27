@@ -1,4 +1,5 @@
 "use client";
+
 import { InputString } from "@/shared/components/ui/input/index";
 
 type EntityCodeFieldProps = {

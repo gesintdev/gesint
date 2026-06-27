@@ -1,4 +1,5 @@
 "use client";
+
 import { type ReactElement, use } from "react";
 
 export function useAsyncData<T>(promise: Promise<T>): T {

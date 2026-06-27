@@ -44,7 +44,6 @@ const registry: Record<SystemEnum, TSystemInfos> = {
 };
 const STORAGE_KEY = "gommo-active-system";
 const STORAGE_EVENT = "gommo-active-system-change";
-
 /** Rotas compartilhadas entre dominios — nao forcam o sistema pelo href. */
 const SYSTEM_NEUTRAL_PATHS = new Set(["/dashboard"]);
 

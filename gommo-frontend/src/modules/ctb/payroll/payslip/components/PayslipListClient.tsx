@@ -26,7 +26,6 @@ export function PayslipListClient() {
     const queryClient = useQueryClient();
     const permissions = useSessionPermissions();
     const canReadPdf = hasPermission(permissions, "payslip:read");
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => payslipService.remove(id),
         onSuccess: async () => {
@@ -36,7 +35,6 @@ export function PayslipListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYSLIP_CLIENT_MESSAGES.PAYSLIP_LOAD_FAILED }),
     });
-
     const pdfMutation = useMutation({
         mutationFn: async ({ row, mode }: { row: Payslip; mode: "download" | "print" }) => {
             const blob = await payslipService.downloadPdf(row.id);
@@ -55,7 +53,6 @@ export function PayslipListClient() {
             ExceptionCapture.handle(err, { fallbackMessage: PAYSLIP_CLIENT_MESSAGES.PAYSLIP_PDF_FAILED });
         },
     });
-
     const handleDelete = async (row: Payslip) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

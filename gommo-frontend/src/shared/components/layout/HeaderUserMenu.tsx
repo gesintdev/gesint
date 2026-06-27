@@ -25,14 +25,12 @@ export function HeaderUserMenu() {
     const { data: session } = useSession();
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
-
     const name = session?.user?.name ?? "Usuário";
     const email = session?.user?.email;
     const photoObjectId = session?.user?.photoObjectId;
 
     useEffect(() => {
         if (!open) return;
-
         const onPointerDown = (e: MouseEvent) => {
             if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
                 setOpen(false);
@@ -41,7 +39,6 @@ export function HeaderUserMenu() {
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") setOpen(false);
         };
-
         document.addEventListener("mousedown", onPointerDown);
         document.addEventListener("keydown", onKeyDown);
         return () => {
@@ -72,7 +69,6 @@ export function HeaderUserMenu() {
                     )}
                 />
             </button>
-
             <AnimatePresence>
                 {open && (
                     <motion.div
@@ -88,16 +84,12 @@ export function HeaderUserMenu() {
                             <ProfileAvatar name={name} photoObjectId={photoObjectId} size="md" shape="circle" />
                             <UserIdentity name={name} email={email} />
                         </div>
-
                         <div className="my-1 h-px bg-base-content/8" />
-
                         <button type="button" role="menuitem" className="nav-item gap-2.5 !px-3 text-left text-[13px]">
                             <Settings className="size-[15px] shrink-0 text-base-content/38" strokeWidth={2} />
                             Configurações
                         </button>
-
                         <div className="my-1 h-px bg-base-content/8" />
-
                         <button
                             type="button"
                             role="menuitem"

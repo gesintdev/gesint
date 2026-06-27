@@ -27,7 +27,6 @@ export function LeavePendingRequestsClient() {
     const { startEdit, goToTab } = useCrudScreen();
     const queryClient = useQueryClient();
     const [dialog, setDialog] = useState<ReviewDialogState>(null);
-
     const reviewMutation = useMutation({
         mutationFn: async (payload: { id: string; action: VacationReviewAction; reason?: string }) =>
             leaverequestService.reviewVacation(payload.id, {
@@ -48,7 +47,6 @@ export function LeavePendingRequestsClient() {
             ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível concluir a revisão." });
         },
     });
-
     const handleRegister = (row: LeaveRequest) => {
         startEdit(row.id, row);
         goToTab(CRUD_TAB_FORM);

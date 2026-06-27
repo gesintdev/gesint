@@ -1,4 +1,5 @@
 "use client";
+
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 
@@ -58,10 +59,8 @@ export function WorkspaceShell() {
         const currentKey = buildLocationKey(pathname, searchParams);
         if (readLastWorkspaceInitLocation() === currentKey) return;
         const state = useWorkspaceStore.getState();
-
         const parsed = parseWorkspaceLocation(pathname, searchParams.toString());
         const route = parsed ? findRouteByHref(parsed.href) : undefined;
-
         if (parsed && route) {
             if (route.id === DASHBOARD_ROUTE_ID) {
                 focusTabById(DASHBOARD_TAB_ID);
@@ -82,7 +81,6 @@ export function WorkspaceShell() {
                 writeLastWorkspaceInitLocation(targetUrl);
                 return;
             }
-
             const listTabId = buildWorkspaceTabId(route.id, "list");
             const existingList = state.tabs.find((t) => t.id === listTabId);
             if (existingList) {

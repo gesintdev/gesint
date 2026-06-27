@@ -30,7 +30,6 @@ export function CompanyPickerField({
         (query: string, page: number) => companyService.searchForAutocomplete(query, page),
         [],
     );
-
     const resolveLabel = useCallback(async (id: string) => {
         const company = await companyService.getById(id);
         return company.legalName;

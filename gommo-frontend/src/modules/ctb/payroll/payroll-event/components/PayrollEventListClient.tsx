@@ -17,7 +17,6 @@ import { SystemAlert } from "@/shared/system-alert";
 export function PayrollEventListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => payrollEventService.remove(id),
         onSuccess: async () => {
@@ -27,7 +26,6 @@ export function PayrollEventListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYROLL_EVENT_CLIENT_MESSAGES.PAYROLL_EVENT_LOAD_FAILED }),
     });
-
     const handleDelete = async (row: PayrollEvent) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);

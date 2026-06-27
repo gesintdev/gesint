@@ -21,12 +21,10 @@ export function SystemRail() {
     const { focusTabById } = useWorkspaceNavigation();
     const permissions = useSessionPermissions();
     const canOpenSettings = settingsRoutes.some((route) => canAccessRoute(route, permissions));
-
     const handleSelect = (system: SystemEnum) => {
         selectSystem(system);
         focusTabById(DASHBOARD_TAB_ID);
     };
-
     const handleOpenSettings = () => {
         openSettings();
     };

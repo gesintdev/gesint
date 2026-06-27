@@ -29,13 +29,11 @@ export function PayrollRunFormClient() {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayrollRunCreateDto>(() => emptyPayrollRunForm());
     const [error, setError] = useState<string | null>(null);
-
     const detailQuery = useQuery({
         queryKey: payrollrunKeys.detail(editingId ?? ""),
         queryFn: () => payrollrunService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
     });
-
     const currentStatus = detailQuery.data?.payrollStatus ?? form.payrollStatus;
     const readOnly = isEditing && !canEditPayrollRun(currentStatus);
 
@@ -72,11 +70,9 @@ export function PayrollRunFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends keyof PayrollRunCreateDto>(field: K, value: PayrollRunCreateDto[K]) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);

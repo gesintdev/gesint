@@ -15,6 +15,7 @@ import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created
 import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
 
 const EMPTY_FILTERS: Record<string, string[]> = {};
+
 /** Props do render prop de {@link QueryPanel} (lista: `data` é sempre `TRow[]`). */
 export type QueryPanelRenderProps<TRow> = {
     data: TRow[];

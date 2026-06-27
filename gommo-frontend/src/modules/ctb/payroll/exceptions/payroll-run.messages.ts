@@ -4,7 +4,6 @@ export const PAYROLL_MESSAGES = {
     PAYROLL_PROCESSING: "Competência em processamento não permite alterações",
     PAYROLL_INVALID_TRANSITION: "Transição de status da competência não permitida",
 } as const;
-
 export const PAYROLL_CLIENT_MESSAGES = {
     PAYROLL_LOAD_FAILED: "Não foi possível carregar folha",
     PAYROLL_SAVE_FAILED: "Não foi possível salvar folha",

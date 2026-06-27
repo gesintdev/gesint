@@ -1,4 +1,5 @@
 "use client";
+
 import type { ComponentType } from "react";
 
 import { ComingSoonView } from "@/shared/workspace/views/ComingSoonView";

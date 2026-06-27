@@ -10,21 +10,17 @@ export const PAYROLL_STATUS_ITEMS: { value: PayrollStatus; label: string }[] = [
     { value: "CANCELLED", label: "Cancelada" },
     { value: "DRAFT", label: "Rascunho (legado)" },
 ];
-
 export const PAYROLL_STATUS_LABELS: Record<string, string> = Object.fromEntries(
     PAYROLL_STATUS_ITEMS.map(({ value, label }) => [value, label]),
 );
-
 export const PAYROLL_EVENT_TYPE_ITEMS: { value: PayrollEventType; label: string }[] = [
     { value: "EARNING", label: "Provento" },
     { value: "DEDUCTION", label: "Desconto" },
     { value: "INFORMATIVE", label: "Informativo" },
 ];
-
 export const PAYROLL_EVENT_TYPE_LABELS: Record<string, string> = Object.fromEntries(
     PAYROLL_EVENT_TYPE_ITEMS.map(({ value, label }) => [value, label]),
 );
-
 export const BOOL_SELECT_ITEMS = [
     { value: "true", label: "Sim" },
     { value: "false", label: "Não" },

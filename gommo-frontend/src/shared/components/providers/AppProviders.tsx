@@ -1,4 +1,5 @@
 "use client";
+
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";

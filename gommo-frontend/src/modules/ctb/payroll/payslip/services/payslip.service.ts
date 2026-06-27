@@ -6,7 +6,6 @@ class PayslipService extends BaseService<Payslip, PayslipCreateDto, PayslipCreat
     constructor() {
         super("/api/v1/payslips");
     }
-
     downloadPdf(id: string): Promise<Blob> {
         return doRequest<Blob>(`${this.basePath}/${id}/pdf`, { responseType: "blob" });
     }
@@ -29,7 +28,6 @@ export async function openPayslipPdf(blob: Blob, mode: "download" | "print", fil
             anchor.click();
             return;
         }
-
         const popup = window.open(url, "_blank", "noopener,noreferrer");
         if (!popup) {
             throw new Error("POPUP_BLOCKED");

@@ -22,7 +22,6 @@ export const PAYMENT_PERIOD_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.DATETIME,
     },
 ];
-
 export const PAYMENT_BATCH_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {
@@ -68,7 +67,6 @@ export const PAYMENT_BATCH_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.DATETIME,
     },
 ];
-
 export const PAYMENT_SLIP_TABLE_COLUMNS: TableColumnConfig[] = [
     {
         id: "collaboratorName",
@@ -95,7 +93,6 @@ export const PAYMENT_SLIP_TABLE_COLUMNS: TableColumnConfig[] = [
         },
     },
 ];
-
 export const PAYMENT_SLIP_DIVERGENT_TABLE_COLUMNS: TableColumnConfig[] = [
     {
         id: "extractedNameDisplay",
@@ -110,7 +107,6 @@ export const PAYMENT_SLIP_DIVERGENT_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.TEXT,
     },
 ];
-
 export const PAYMENT_SLIP_NOT_FOUND_TABLE_COLUMNS: TableColumnConfig[] = [
     {
         id: "extractedNameDisplay",

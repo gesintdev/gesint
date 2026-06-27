@@ -6,7 +6,6 @@ const COLLABORATOR_STATUS_LABELS: Record<string, string> = {
     INACTIVE: "Desligado",
     DELETED: "Excluído",
 };
-
 export const COLLABORATOR_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {

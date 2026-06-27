@@ -8,11 +8,9 @@ import { apiFetch } from "@/shared/lib/api.client";
 
 class NotificationSettingsService {
     private readonly basePath = "/api/v1/notification-settings";
-
     getSettings(): Promise<NotificationSettings> {
         return apiFetch<NotificationSettings>(this.basePath);
     }
-
     updateSettings(payload: NotificationSettingsUpdateDto): Promise<NotificationSettings> {
         return apiFetch<NotificationSettings>(this.basePath, {
             method: "PUT",
@@ -23,11 +21,9 @@ class NotificationSettingsService {
 
 class SystemNotificationService {
     private readonly basePath = "/api/v1/notifications";
-
     getSummary(): Promise<NotificationSummary> {
         return apiFetch<NotificationSummary>(this.basePath);
     }
-
     markAsRead(id: string): Promise<SystemNotification> {
         return apiFetch<SystemNotification>(`${this.basePath}/${id}/read`, {
             method: "POST",

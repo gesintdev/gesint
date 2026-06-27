@@ -76,11 +76,9 @@ function useHydrationSafeExternalStore<T>(
     serverSnapshot: T,
 ): T {
     const [hydrated, setHydrated] = useState(false);
-
     useEffect(() => {
         setHydrated(true);
     }, []);
-
     return useSyncExternalStore(
         subscribe,
         () => (hydrated ? getClientSnapshot() : serverSnapshot),
@@ -145,13 +143,11 @@ export function ActiveSystemProvider({
     const { status: sessionStatus } = useSession();
     const permissions = useSessionPermissions();
     const permissionsReady = sessionStatus !== "loading";
-
     const storedSystem = useHydrationSafeExternalStore(
         SystemEnumHelper.subscribeStoredSystem,
         () => SystemEnumHelper.readStoredSystem(),
         initialStoredSystem,
     );
-
     const isSettingsMode = useHydrationSafeExternalStore(
         subscribeSettingsMode,
         () => readSettingsMode(),
@@ -167,7 +163,6 @@ export function ActiveSystemProvider({
     }, []);
 
     const activeSystem = useMemo(() => resolveActiveSystem(storedSystem), [storedSystem]);
-
     const systems = useMemo(() => {
         if (!permissionsReady) {
             return [];
@@ -179,7 +174,6 @@ export function ActiveSystemProvider({
             })
             .map((id) => SystemEnumHelper.getById(id));
     }, [permissions, permissionsReady]);
-
     const resolvedActiveSystem = useMemo(() => {
         if (isSettingsMode || systems.length === 0) {
             return activeSystem;
@@ -187,7 +181,6 @@ export function ActiveSystemProvider({
         const exists = systems.some((system) => system.id === activeSystem);
         return exists ? activeSystem : systems[0].id;
     }, [activeSystem, isSettingsMode, systems]);
-
     const navSections = useMemo(() => {
         if (!permissionsReady) {
             return [];
@@ -197,20 +190,16 @@ export function ActiveSystemProvider({
             permissions,
         );
     }, [resolvedActiveSystem, isSettingsMode, permissions, permissionsReady]);
-
     const selectSystem = useCallback((system: SystemEnum) => {
         persistSettingsMode(false);
         SystemEnumHelper.persistSystem(system);
     }, []);
-
     const openSettings = useCallback(() => {
         persistSettingsMode(true);
     }, []);
-
     const closeSettings = useCallback(() => {
         persistSettingsMode(false);
     }, []);
-
     const value = useMemo(
         () => ({
             activeSystem: resolvedActiveSystem,

@@ -25,7 +25,6 @@ export const MonthPickerPanel = forwardRef<HTMLDivElement, MonthPickerPanelProps
     const selectedMonth = value ? Number(value.slice(5, 7)) : new Date().getMonth() + 1;
     const [year, setYear] = useState(selectedYear);
     const [position, setPosition] = useState({ top: 0, left: 0 });
-
     const updatePosition = useCallback(() => {
         const anchor = anchorRef.current;
         if (!anchor) return;
@@ -35,11 +34,9 @@ export const MonthPickerPanel = forwardRef<HTMLDivElement, MonthPickerPanelProps
             left: rect.left,
         });
     }, [anchorRef]);
-
     useLayoutEffect(() => {
         updatePosition();
     }, [updatePosition]);
-
     useEffect(() => {
         updatePosition();
         window.addEventListener("resize", updatePosition);
@@ -49,20 +46,16 @@ export const MonthPickerPanel = forwardRef<HTMLDivElement, MonthPickerPanelProps
             window.removeEventListener("scroll", updatePosition, true);
         };
     }, [updatePosition]);
-
     useEffect(() => {
         setYear(selectedYear);
     }, [selectedYear]);
-
     if (typeof document === "undefined") return null;
-
     const isDisabled = (month: number) => {
         const iso = normalizeMonthIso(`${year}-${String(month).padStart(2, "0")}-01`);
         if (min && iso < min) return true;
         if (max && iso > max) return true;
         return false;
     };
-
     return createPortal(
         <div
             ref={ref}

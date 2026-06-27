@@ -64,7 +64,6 @@ export function PayrollEventFormClient() {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayrollEventCreateDto>(emptyPayrollEventForm);
     const [error, setError] = useState<string | null>(null);
-
     const detailQuery = useQuery({
         queryKey: payrollEventKeys.detail(editingId ?? ""),
         queryFn: () => payrollEventService.getById(editingId!),
@@ -102,11 +101,9 @@ export function PayrollEventFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends keyof PayrollEventCreateDto>(field: K, value: PayrollEventCreateDto[K]) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);

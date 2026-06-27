@@ -1,4 +1,5 @@
 "use client";
+
 import { UserPlus } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/Button";

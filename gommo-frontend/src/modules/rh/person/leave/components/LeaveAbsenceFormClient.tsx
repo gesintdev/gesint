@@ -1,4 +1,5 @@
 "use client";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -32,7 +33,6 @@ const YES_NO_ITEMS: SelectItem[] = [
     { value: "true", label: "Sim" },
     { value: "false", label: "Nao" },
 ];
-
 const LEAVE_ABSENCE_ENTITY_TYPE = "leave_request";
 const FORM_STEPS: FormStepNavItem[] = [
     { id: "cadastro", label: "Afastamento" },
@@ -113,7 +113,6 @@ export function LeaveAbsenceFormClient() {
             if (!savedId) {
                 throw new Error("Nao foi possivel identificar o registro salvo.");
             }
-
             await flushPendingAttachments({
                 entityType: LEAVE_ABSENCE_ENTITY_TYPE,
                 entityId: savedId,
@@ -138,7 +137,6 @@ export function LeaveAbsenceFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends LeaveFormField>(field: K, value: (LeaveRequestCreateDto & { notes?: string })[K]) => {
         setForm((prev) => {
             const next = { ...prev, [field]: value };
@@ -164,7 +162,6 @@ export function LeaveAbsenceFormClient() {
             return next;
         });
     };
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -183,7 +180,6 @@ export function LeaveAbsenceFormClient() {
         setFieldErrors({});
         saveMutation.mutate(parsed.data);
     };
-
     const durationDays = inclusiveDays(form.startDate, form.endDate);
     const relatedDays = form.relatedCertificateDays ?? durationDays ?? 0;
     const needsInssAttention = Boolean(form.requiresInss || (durationDays && durationDays > 15) || relatedDays > 15);
@@ -325,7 +321,6 @@ export function LeaveAbsenceFormClient() {
                     error={fieldErrors.notes}
                 />
             </FormSection>
-
             <FormSection id="atestado" title="Atestado e origem">
                 <InputString
                     label="CID"
@@ -373,7 +368,6 @@ export function LeaveAbsenceFormClient() {
                     wrapperClassName="sm:col-span-10"
                 />
             </FormSection>
-
             <FormSection id="impactos" title="Impactos legais e operacionais">
                 <InputSelect
                     label="Necessita INSS"
@@ -409,7 +403,6 @@ export function LeaveAbsenceFormClient() {
                     wrapperClassName={"sm:col-span-12"}
                 />
             </FormSection>
-
             <FormSection
                 id="documentos"
                 title="Documentos"

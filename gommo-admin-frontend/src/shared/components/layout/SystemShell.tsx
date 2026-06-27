@@ -1,4 +1,5 @@
 "use client";
+
 import { Bell, Command, Menu, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { type ReactNode, Suspense, useCallback, useEffect, useState } from "react";

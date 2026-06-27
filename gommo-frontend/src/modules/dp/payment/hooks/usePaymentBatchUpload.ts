@@ -31,17 +31,14 @@ export function usePaymentBatchUpload(periodId: string | undefined) {
     const wsTab = useWorkspaceTabOptional();
     const route = wsTab ? findRouteById(wsTab.tab.routeId) : undefined;
     const canWrite = canWriteRoute(route, permissions, deriveWritePermission(route?.permission));
-
     const invalidateSlips = async (batchId: string) => {
         await queryClient.invalidateQueries({ queryKey: ["payment-slip", batchId] });
         setSlipRefreshToken((value) => value + 1);
     };
-
     const invalidate = async () => {
         if (!periodId) return;
         await queryClient.invalidateQueries({ queryKey: paymentBatchKeys.byPeriod(periodId) });
     };
-
     const uploadMutation = useMutation({
         mutationFn: (file: File) => {
             if (!periodId) {
@@ -66,14 +63,11 @@ export function usePaymentBatchUpload(periodId: string | undefined) {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYMENT_CLIENT_MESSAGES.PAYMENT_UPLOAD_FAILED }),
     });
-
     useEffect(() => {
         if (!uploadProgress || !periodId) {
             return;
         }
-
         let cancelled = false;
-
         const poll = async () => {
             try {
                 const batches = await paymentBatchService.getByPeriod(periodId);
@@ -102,7 +96,6 @@ export function usePaymentBatchUpload(periodId: string | undefined) {
                 // keep polling on transient errors
             }
         };
-
         void poll();
         const intervalId = window.setInterval(() => void poll(), 800);
         return () => {
@@ -110,9 +103,7 @@ export function usePaymentBatchUpload(periodId: string | undefined) {
             window.clearInterval(intervalId);
         };
     }, [periodId, uploadProgress?.batchId, queryClient]);
-
     const handleUploadClick = () => fileInputRef.current?.click();
-
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         event.target.value = "";
@@ -123,7 +114,6 @@ export function usePaymentBatchUpload(periodId: string | undefined) {
         }
         uploadMutation.mutate(file);
     };
-
     const clearSelectionIfBatch = (batchId: string) => {
         if (selectedBatchId === batchId) {
             setSelectedBatchId(null);
@@ -132,12 +122,10 @@ export function usePaymentBatchUpload(periodId: string | undefined) {
             setUploadProgress(null);
         }
     };
-
     const progressPercent =
         uploadProgress && uploadProgress.total > 0
             ? Math.min(100, Math.round((uploadProgress.current / uploadProgress.total) * 100))
             : 0;
-
     return {
         fileInputRef,
         canWrite,

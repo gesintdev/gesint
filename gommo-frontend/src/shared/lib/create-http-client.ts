@@ -45,7 +45,6 @@ export function createHttpClient(config: HttpClientConfig) {
             config.onSessionExpired?.();
             return null;
         }
-
         const token = session?.accessToken ?? null;
         if (token) setAuthToken(token);
         return token;

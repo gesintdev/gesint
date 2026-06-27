@@ -6,10 +6,8 @@ const absenceTypes = LEAVE_TYPE_VALUES.filter((type) => type !== "VACATION") as 
     Exclude<(typeof LEAVE_TYPE_VALUES)[number], "VACATION">,
     ...Exclude<(typeof LEAVE_TYPE_VALUES)[number], "VACATION">[],
 ];
-
 const emptyWhenNull = (value: unknown) => (value == null ? "" : value);
 const absentWhenNull = (value: unknown) => (value == null ? undefined : value);
-
 const requiredText = (message: string) => z.preprocess(emptyWhenNull, z.string().min(1, message));
 const optionalText = (maxLength?: number) => {
     const base = maxLength ? z.string().max(maxLength, `Informe no maximo ${maxLength} caracteres`) : z.string();
@@ -17,7 +15,6 @@ const optionalText = (maxLength?: number) => {
 };
 const optionalNumber = () => z.preprocess(absentWhenNull, z.number().optional());
 const optionalBoolean = () => z.preprocess(absentWhenNull, z.boolean().optional());
-
 export const leaveAbsenceFormSchema = z
     .object({
         collaboratorId: requiredText("Selecione o colaborador").pipe(z.string().uuid("Colaborador invalido")),

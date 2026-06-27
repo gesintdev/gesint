@@ -1,4 +1,5 @@
 "use client";
+
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -37,7 +38,6 @@ export function CollaboratorMultiPickerField({
             setSelected([]);
             return;
         }
-
         let cancelled = false;
         setLoadingLabels(true);
         void collaboratorService
@@ -58,7 +58,6 @@ export function CollaboratorMultiPickerField({
             .finally(() => {
                 if (!cancelled) setLoadingLabels(false);
             });
-
         return () => {
             cancelled = true;
         };
@@ -75,12 +74,10 @@ export function CollaboratorMultiPickerField({
         },
         [selectedIds],
     );
-
     const addCollaborator = (collaboratorId: string) => {
         if (!collaboratorId || selectedIds.includes(collaboratorId)) return;
         onChange([...selectedIds, collaboratorId]);
     };
-
     const removeCollaborator = (collaboratorId: string) => {
         onChange(selectedIds.filter((id) => id !== collaboratorId));
     };

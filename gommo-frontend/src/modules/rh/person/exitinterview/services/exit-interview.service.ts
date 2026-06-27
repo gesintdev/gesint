@@ -10,11 +10,9 @@ class ExitInterviewService extends BaseService<ExitInterview, ExitInterviewCreat
     constructor() {
         super("/api/v1/exit-interviews");
     }
-
     complete(id: string): Promise<ExitInterview> {
         return apiFetch<ExitInterview>(`${this.basePath}/${id}/complete`, { method: "POST" });
     }
-
     cancel(id: string, dto: ExitInterviewCancelDto = {}): Promise<ExitInterview> {
         return apiFetch<ExitInterview>(`${this.basePath}/${id}/cancel`, { method: "POST", body: dto });
     }

@@ -26,7 +26,6 @@ export function LeaveVacationWorkspacePage() {
         queryKey: [...leaverequestKeys.all, "vacation-eligible"],
         queryFn: loadVacationEligibleCollaborators,
     });
-
     const extraTabs: CrudExtraTab[] = useMemo(
         () => [
             {

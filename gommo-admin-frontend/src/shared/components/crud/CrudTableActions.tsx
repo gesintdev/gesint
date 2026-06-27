@@ -1,4 +1,5 @@
 "use client";
+
 import { Pencil, Trash2 } from "lucide-react";
 
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";

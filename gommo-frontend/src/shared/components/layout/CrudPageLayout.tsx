@@ -1,4 +1,5 @@
 "use client";
+
 import type { ReactNode } from "react";
 
 import { PageTransition } from "@/shared/components/layout/PageTransition";

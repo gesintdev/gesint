@@ -9,13 +9,11 @@ export const DISMISSAL_TYPE_LABELS: Record<string, string> = {
     END_OF_CONTRACT: "Fim de contrato",
     OTHER: "Outro",
 };
-
 const OFFBOARDING_STATUS_LABELS: Record<string, string> = {
     ACTIVE: "Desligado",
     INACTIVE: "Inativo",
     DELETED: "Excluído",
 };
-
 export const OFFBOARDING_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {

@@ -1,4 +1,5 @@
 "use client";
+
 import { signOut } from "next-auth/react";
 
 import { flushLoggingOutOverlay, showLoggingOutOverlay } from "@/shared/lib/logging-out-overlay";

@@ -1,4 +1,5 @@
 ﻿"use client";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -75,14 +76,12 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends keyof ExitInterviewReturnChecklistConfigCreateDto>(
         field: K,
         value: ExitInterviewReturnChecklistConfigCreateDto[K],
     ) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
-
     const updateDescription = (value: string) => {
         setForm((prev) => ({
             ...prev,
@@ -90,7 +89,6 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
             itemKey: prev.itemKey || keyFromDescription(value),
         }));
     };
-
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);

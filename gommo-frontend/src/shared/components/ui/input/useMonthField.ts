@@ -15,7 +15,6 @@ export function useMonthField({ value, onValueChange, min, max }: UseMonthFieldO
     const [isEditing, setIsEditing] = useState(false);
     const [editText, setEditText] = useState("");
     const display = isEditing ? editText : isoToMonthBr(value);
-
     const commitDisplay = useCallback(
         (raw: string) => {
             const masked = maskMonthBr(raw);
@@ -29,7 +28,6 @@ export function useMonthField({ value, onValueChange, min, max }: UseMonthFieldO
                 setLocalError(undefined);
                 return;
             }
-
             const iso = parseMonthBrToIso(masked);
             if (!iso) {
                 setLocalError("Compet\u00eancia inv\u00e1lida");
@@ -45,13 +43,11 @@ export function useMonthField({ value, onValueChange, min, max }: UseMonthFieldO
                 setLocalError(`Compet\u00eancia m\u00e1xima: ${isoToMonthBr(max)}`);
                 return;
             }
-
             setLocalError(undefined);
             onValueChange(iso);
         },
         [max, min, onValueChange],
     );
-
     const handlePick = useCallback(
         (iso: string) => {
             const normalized = normalizeMonthIso(iso);
@@ -62,12 +58,10 @@ export function useMonthField({ value, onValueChange, min, max }: UseMonthFieldO
         },
         [onValueChange],
     );
-
     const startEditing = useCallback(() => {
         setIsEditing(true);
         setEditText(isoToMonthBr(value));
     }, [value]);
-
     const handleBlur = useCallback(
         (raw: string) => {
             commitDisplay(raw);
@@ -75,7 +69,6 @@ export function useMonthField({ value, onValueChange, min, max }: UseMonthFieldO
         },
         [commitDisplay],
     );
-
     return {
         open,
         setOpen,

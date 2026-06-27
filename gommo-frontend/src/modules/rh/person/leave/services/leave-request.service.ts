@@ -22,7 +22,6 @@ class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestCreateDt
     constructor() {
         super("/api/v1/leave-requests");
     }
-
     async absenceSummary(
         collaboratorId: string,
         acquisitionStart: string,
@@ -35,14 +34,12 @@ class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestCreateDt
         });
         return apiFetch<VacationAbsenceSummary>(`${this.basePath}/vacation/absence-summary?${params}`);
     }
-
     async reviewVacation(id: string, payload: VacationReviewRequest): Promise<LeaveRequest> {
         return apiFetch<LeaveRequest>(`${this.basePath}/${id}/vacation-review`, {
             method: "POST",
             body: payload,
         });
     }
-
     async getVacationEligibleCollaborators(): Promise<VacationEligibleCollaborator[]> {
         return apiFetch<VacationEligibleCollaborator[]>(`${this.basePath}/vacation/eligible-collaborators`);
     }

@@ -85,7 +85,6 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                     active={dashboardActive}
                     onSelect={() => onSelect(dashboardTab.id)}
                 />
-
                 {moduleTabs.length > 0 ? (
                     <>
                         <span className="workspace-tabbar-divider" aria-hidden />
@@ -98,7 +97,6 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                                 {moduleTabs.map((tab, index) => {
                                     const active = tab.id === activeTabId;
                                     const isLast = index === moduleTabs.length - 1;
-
                                     return (
                                         <Fragment key={tab.id}>
                                             <WorkspaceTabButton
@@ -118,7 +116,6 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                     </>
                 ) : null}
             </div>
-
             <div className="workspace-tabbar-actions flex shrink-0 items-stretch">
                 <WorkspaceTabOverflowMenu moduleTabs={moduleTabs} activeTabId={activeTabId} onSelect={onSelect} />
             </div>

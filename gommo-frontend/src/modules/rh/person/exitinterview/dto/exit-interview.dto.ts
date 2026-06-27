@@ -1,7 +1,11 @@
 ﻿export type ExitInterviewStatus = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELED";
+
 export type ExitInterviewRelationshipType = "CLT" | "PJ";
+
 export type ExitInterviewRehireAnswer = "YES" | "NO" | "MAYBE";
+
 export type ReturnItemStatus = "PENDING" | "RETURNED" | "NOT_APPLICABLE" | "DAMAGED" | "LOST";
+
 export type ExitInterviewQuestionType =
     | "SHORT_TEXT"
     | "LONG_TEXT"
@@ -13,6 +17,7 @@ export type ExitInterviewQuestionType =
     | "DATE"
     | "SELECT"
     | "LIKERT_SCALE";
+
 export type ExitInterviewTerminationType =
     | "CLT_RESIGNATION"
     | "CLT_DISMISSAL_WITHOUT_CAUSE"
@@ -30,6 +35,7 @@ export type ExitInterviewTerminationType =
     | "PJ_CONTRACT_BREACH"
     | "PJ_PROVIDER_REPLACEMENT"
     | "PJ_OTHER";
+
 export type ExitInterviewReason =
     | "COMPENSATION"
     | "BENEFITS"

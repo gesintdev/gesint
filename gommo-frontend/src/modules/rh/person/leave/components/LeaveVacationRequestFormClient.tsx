@@ -1,4 +1,5 @@
 "use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -175,7 +176,6 @@ export function LeaveVacationRequestFormClient() {
             setError(ex.displayMessage);
         },
     });
-
     const update = <K extends keyof VacationFormState>(field: K, value: VacationFormState[K]) => {
         setForm((prev) => {
             const next = { ...prev, [field]: value };
@@ -191,7 +191,6 @@ export function LeaveVacationRequestFormClient() {
             return next;
         });
     };
-
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -207,7 +206,6 @@ export function LeaveVacationRequestFormClient() {
         setFieldErrors({});
         saveMutation.mutate({ parsed: parsed.data, groupId: crypto.randomUUID() });
     };
-
     const maxPecuniary = maxPecuniaryDays(form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences));
     const entitledDays = form.vacationDaysEntitled ?? vacationDaysEntitled(form.unjustifiedAbsences);
     const isClt = periodContext?.contractType !== "PJ";

@@ -1,7 +1,6 @@
 import { createHttpClient } from "@/shared/lib/create-http-client";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL ?? "http://localhost:8082";
-
 export { ApiError, AppException } from "@/shared/exceptions/app.exception";
 export type { DoRequestOptions } from "@/shared/lib/create-http-client";
 

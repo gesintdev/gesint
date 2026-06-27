@@ -22,7 +22,6 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
         permission: tab.permission,
         Content: toLazy(tab.content),
     }));
-
     const {
         list: _omitList,
         form: _omitForm,
@@ -34,7 +33,6 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
     void _omitForm;
     void _omitPrimary;
     void _omitExtra;
-
     return function TabbedCrudWorkspacePage() {
         const list = (
             <Suspense fallback={null}>
@@ -69,7 +67,6 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
                 ),
             };
         });
-
         return (
             <TabbedCrudPage
                 {...tabbedCrudProps}

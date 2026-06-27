@@ -73,7 +73,6 @@ export function HeaderNotifications() {
     const [open, setOpen] = useState(false);
     const [ringing, setRinging] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
-
     const summaryQuery = useQuery({
         queryKey: notificationKeys.summary,
         queryFn: () => systemNotificationService.getSummary(),
@@ -83,7 +82,6 @@ export function HeaderNotifications() {
     });
     const unreadCount = summaryQuery.data?.unreadCount ?? 0;
     const notifications = summaryQuery.data?.notifications ?? [];
-
     const markReadMutation = useMutation({
         mutationFn: (id: string) => systemNotificationService.markAsRead(id),
         onSuccess: async () => {
@@ -201,7 +199,6 @@ export function HeaderNotifications() {
                     </span>
                 ) : null}
             </button>
-
             <AnimatePresence>
                 {open ? (
                     <motion.div

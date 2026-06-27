@@ -36,7 +36,6 @@ type LifecycleAction = "review" | "close" | "reopen";
 
 async function loadPayrollRunRows(): Promise<PayrollRunListRow[]> {
     const runs = await payrollrunService.getAll();
-
     return runs.map((run) => ({
         ...run,
         referencePeriod: formatPayrollReference(run.referenceDate),
@@ -50,11 +49,9 @@ export function PayrollRunListClient() {
     const wsTab = useWorkspaceTabOptional();
     const route = wsTab ? findRouteById(wsTab.tab.routeId) : undefined;
     const canWrite = canWriteRoute(route, permissions, deriveWritePermission(route?.permission));
-
     const invalidate = async () => {
         await queryClient.invalidateQueries({ queryKey: payrollrunKeys.all });
     };
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => payrollrunService.remove(id),
         onSuccess: async () => {
@@ -64,7 +61,6 @@ export function PayrollRunListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYROLL_CLIENT_MESSAGES.PAYROLL_LOAD_FAILED }),
     });
-
     const processMutation = useMutation({
         mutationFn: (id: string) => payrollrunService.process(id),
         onSuccess: async (result) => {
@@ -76,7 +72,6 @@ export function PayrollRunListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYROLL_CLIENT_MESSAGES.PAYROLL_PROCESS_FAILED }),
     });
-
     const lifecycleMutation = useMutation({
         mutationFn: ({ id, action }: { id: string; action: LifecycleAction }) => {
             if (action === "review") return payrollrunService.review(id);
@@ -96,12 +91,10 @@ export function PayrollRunListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: PAYROLL_CLIENT_MESSAGES.PAYROLL_LIFECYCLE_FAILED }),
     });
-
     const handleDelete = async (row: PayrollRun) => {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);
     };
-
     const handleProcess = async (row: PayrollRun) => {
         if (
             !(await SystemAlert.confirm({
@@ -114,7 +107,6 @@ export function PayrollRunListClient() {
         }
         processMutation.mutate(row.id);
     };
-
     const handleLifecycle = async (row: PayrollRun, action: LifecycleAction) => {
         const reference = formatPayrollReference(row.referenceDate);
         const config =
@@ -135,11 +127,9 @@ export function PayrollRunListClient() {
                         message: `Reabrir a competência ${reference} para novos ajustes?`,
                         confirmLabel: "Reabrir",
                     };
-
         if (!(await SystemAlert.confirm(config))) return;
         lifecycleMutation.mutate({ id: row.id, action });
     };
-
     const lifecycleLoading = (row: PayrollRun, action: LifecycleAction) =>
         lifecycleMutation.isPending &&
         lifecycleMutation.variables?.id === row.id &&

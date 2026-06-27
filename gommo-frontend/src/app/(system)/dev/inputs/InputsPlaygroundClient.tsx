@@ -1,4 +1,5 @@
 "use client";
+
 import { useCallback, useState } from "react";
 
 import { collaboratorService } from "@/modules/rh/person/collaborators/people/services/collaborator.service";
