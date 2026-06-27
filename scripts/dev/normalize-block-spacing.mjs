@@ -52,12 +52,11 @@ function stripIncorrectBlanks(sourceText) {
         const prevIsDirective = prevTrim.startsWith('"use ') || prevTrim.startsWith("'use ");
         const nextIsImport = nextTrim.startsWith("import ");
 
-        // Preserva a linha em branco que separa o bloco de imports do entorno:
-        // diretiva ("use client") -> imports, e ultimo import -> primeira declaracao.
+        // Preserva todas as linhas em branco do bloco de imports (entre grupos e
+        // ao redor dele). O agrupamento/espacamento de imports e responsabilidade do
+        // eslint (simple-import-sort); aqui apenas nao mexemos, para nao conflitar.
         const keepImportBoundary =
-            nextIndent === 0 &&
-            nextTrim !== "" &&
-            ((prevIsImport && !nextIsImport) || (prevIsDirective && nextIsImport));
+            nextIndent === 0 && nextTrim !== "" && (prevIsImport || (prevIsDirective && nextIsImport));
 
         if (keepAfterBrace || keepImportBoundary) {
             out.push("");
@@ -78,8 +77,6 @@ function walk(dir, files = []) {
 }
 
 function classifyStatement(stmt, sourceFile) {
-    const text = stmt.getText(sourceFile).trimStart();
-
     if (ts.isImportDeclaration(stmt) || ts.isImportEqualsDeclaration(stmt)) return "import";
     if (ts.isVariableStatement(stmt)) return "const";
 
@@ -93,7 +90,11 @@ function classifyStatement(stmt, sourceFile) {
     }
 
     if (ts.isExportDeclaration(stmt)) {
-        if (/^export\s+(const|let)\b/.test(text)) return "const";
+        // Re-export (export ... from "..."): faz parte da secao de imports, cujo
+        // espacamento e gerido pelo eslint (simple-import-sort/exports). Trata como
+        // "import" para ser ignorado no agrupamento — sem inserir linhas em branco
+        // entre re-exports nem ao redor deles.
+        if (stmt.moduleSpecifier) return "import";
         return "export";
     }
 
@@ -137,24 +138,21 @@ function collectSpacingEdits(statements, sourceFile, sourceText) {
 
     for (let i = 1; i < groups.length; i++) {
         const prev = groups[i - 1][groups[i - 1].length - 1];
-        const curr = groups[i][0];
         const prevEnd = prev.getEnd();
-        const currStart = curr.getStart();
 
-        // Seguranca: nunca editar um intervalo que contenha outra instrucao (ex.:
-        // imports, que sao ignorados ao montar os grupos). Sem isso, o slice entre
-        // dois grupos nao adjacentes engole o codigo intermediario — apagando imports.
-        const spansOtherStatement = statements.some(
-            (stmt) => stmt !== prev && stmt !== curr && stmt.getStart() >= prevEnd && stmt.getEnd() <= currStart,
-        );
-        if (spansOtherStatement) continue;
+        // Avanca apenas sobre o espaco em branco que segue a instrucao anterior.
+        // A edicao toca SOMENTE esse intervalo em branco — nunca comentarios/JSDoc
+        // (trivia inicial da proxima instrucao) nem imports/codigo entre grupos nao
+        // adjacentes, que de outro modo seriam englobados pelo slice e apagados.
+        let gapEnd = prevEnd;
+        while (gapEnd < sourceText.length && /\s/.test(sourceText[gapEnd])) gapEnd++;
 
-        const between = sourceText.slice(prevEnd, currStart);
+        const between = sourceText.slice(prevEnd, gapEnd);
 
         if (!between.includes("\n\n")) {
-            edits.push({ start: prevEnd, end: currStart, text: "\n\n" });
+            edits.push({ start: prevEnd, end: gapEnd, text: "\n\n" });
         } else if (/\n{3,}/.test(between)) {
-            edits.push({ start: prevEnd, end: currStart, text: "\n\n" });
+            edits.push({ start: prevEnd, end: gapEnd, text: "\n\n" });
         }
     }
 
