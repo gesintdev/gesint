@@ -34,7 +34,7 @@ function admissionTags(row: AdmissionProcess): AdmissionProfileTag[] {
     const tags: AdmissionProfileTag[] = [];
     if (row.collaboratorStatus === "INACTIVE") tags.push("DISMISSED");
     if (row.inVacation) tags.push("IN_VACATION");
-    if (row.onLeave) tags.push("ON_LEAVE");
+    if (row.onLeaveActive) tags.push("ON_LEAVE");
     return tags;
 }
 
@@ -42,7 +42,7 @@ function admissionRowClassName(row: AdmissionListingRow) {
     if (row.collaboratorStatus === "INACTIVE") {
         return "bg-error/10 hover:!bg-error/15 dark:bg-error/15 dark:hover:!bg-error/20";
     }
-    if (row.onLeave) {
+    if (row.onLeaveActive) {
         return "bg-warning/10 hover:!bg-warning/15 dark:bg-warning/15 dark:hover:!bg-warning/20";
     }
     if (row.inVacation) {

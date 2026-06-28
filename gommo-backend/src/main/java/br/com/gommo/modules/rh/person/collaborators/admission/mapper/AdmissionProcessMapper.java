@@ -168,6 +168,7 @@ public class AdmissionProcessMapper {
                 departmentName,
                 null,
                 false,
+                false,
                 false);
     }
 
@@ -180,7 +181,8 @@ public class AdmissionProcessMapper {
             String departmentName,
             StatusEnum collaboratorStatus,
             boolean inVacation,
-            boolean onLeave) {
+            boolean onLeave,
+            boolean onLeaveActive) {
         return AdmissionProcessResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
@@ -191,6 +193,7 @@ public class AdmissionProcessMapper {
                 .admissionStatus(admissionStatus)
                 .inVacation(inVacation)
                 .onLeave(onLeave)
+                .onLeaveActive(onLeaveActive)
                 .completedStepCount(completedStepCount)
                 .requiredStepCount(requiredStepCount)
                 .completedStepIds(completedStepIds)

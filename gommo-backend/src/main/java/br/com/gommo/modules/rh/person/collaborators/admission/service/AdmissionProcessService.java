@@ -314,7 +314,7 @@ public class AdmissionProcessService
         Map<UUID, Collaborator> collaborators = loadCollaborators(entities);
         List<UUID> collaboratorIds = collaboratorIds(entities);
         var inVacationIds = loadActiveVacationCollaboratorIds(collaboratorIds);
-        var onLeaveIds = loadActiveAbsenceCollaboratorIds(collaboratorIds);
+        var absenceFlags = loadAbsenceFlags(collaboratorIds);
         var offboardedIds = loadOffboardedCollaboratorIds(collaboratorIds);
         var links = storageObjectLinkRepository.findAllByEntityTypeAndEntityIdInAndStatusNot(
                 "admission_process", ids, StatusEnum.DELETED);
@@ -332,7 +332,10 @@ public class AdmissionProcessService
                             departmentName(entity, departments),
                             collaboratorStatus(entity, collaborators, offboardedIds),
                             entity.getCollaboratorId() != null && inVacationIds.contains(entity.getCollaboratorId()),
-                            entity.getCollaboratorId() != null && onLeaveIds.contains(entity.getCollaboratorId()));
+                            entity.getCollaboratorId() != null
+                                    && absenceFlags.registered().contains(entity.getCollaboratorId()),
+                            entity.getCollaboratorId() != null
+                                    && absenceFlags.active().contains(entity.getCollaboratorId()));
                 })
                 .toList();
     }
@@ -343,7 +346,7 @@ public class AdmissionProcessService
         Map<UUID, Collaborator> collaborators = loadCollaborators(List.of(entity));
         List<UUID> collaboratorIds = collaboratorIds(List.of(entity));
         var inVacationIds = loadActiveVacationCollaboratorIds(collaboratorIds);
-        var onLeaveIds = loadActiveAbsenceCollaboratorIds(collaboratorIds);
+        var absenceFlags = loadAbsenceFlags(collaboratorIds);
         var offboardedIds = loadOffboardedCollaboratorIds(collaboratorIds);
         return mapper.toResponse(
                 entity,
@@ -354,7 +357,10 @@ public class AdmissionProcessService
                 departmentName(entity, departments),
                 collaboratorStatus(entity, collaborators, offboardedIds),
                 entity.getCollaboratorId() != null && inVacationIds.contains(entity.getCollaboratorId()),
-                entity.getCollaboratorId() != null && onLeaveIds.contains(entity.getCollaboratorId()));
+                entity.getCollaboratorId() != null
+                        && absenceFlags.registered().contains(entity.getCollaboratorId()),
+                entity.getCollaboratorId() != null
+                        && absenceFlags.active().contains(entity.getCollaboratorId()));
     }
 
     private Map<String, List<String>> admissionFilterOptions(List<AdmissionProcessResponseDto> rows) {
@@ -443,7 +449,7 @@ public class AdmissionProcessService
         if (row.isInVacation()) {
             tags.add("IN_VACATION");
         }
-        if (row.isOnLeave()) {
+        if (row.isOnLeaveActive()) {
             tags.add("ON_LEAVE");
         }
         return tags;
@@ -498,22 +504,30 @@ public class AdmissionProcessService
                 .collect(Collectors.toSet());
     }
 
-    private Set<UUID> loadActiveAbsenceCollaboratorIds(List<UUID> collaboratorIds) {
+    /**
+     * @param registered colaboradores com qualquer afastamento aprovado/validado (qualquer data) — alimenta o flag
+     *     {@code onLeave}, preservado como informacao historica.
+     * @param active subconjunto cujo afastamento esta vigente hoje — alimenta o flag {@code onLeaveActive} e o filtro.
+     */
+    private record AbsenceFlags(Set<UUID> registered, Set<UUID> active) {}
+
+    private AbsenceFlags loadAbsenceFlags(List<UUID> collaboratorIds) {
         if (collaboratorIds.isEmpty()) {
-            return Set.of();
+            return new AbsenceFlags(Set.of(), Set.of());
         }
         LocalDate today = LocalDate.now(BUSINESS_ZONE);
-        return leaveRequestRepository
-                .findActiveAbsencesByCollaboratorInOverlapping(
-                        collaboratorIds,
-                        LeaveTypeEnum.VACATION,
-                        approvedAbsenceStatuses(),
-                        today,
-                        today,
-                        StatusEnum.DELETED)
-                .stream()
+        List<LeaveRequest> absences = leaveRequestRepository.findRegisteredAbsencesByCollaboratorIn(
+                collaboratorIds, LeaveTypeEnum.VACATION, approvedAbsenceStatuses(), StatusEnum.DELETED);
+        Set<UUID> registered =
+                absences.stream().map(LeaveRequest::getCollaboratorId).collect(Collectors.toSet());
+        Set<UUID> active = absences.stream()
+                .filter(absence -> absence.getStartDate() != null
+                        && absence.getEndDate() != null
+                        && !absence.getStartDate().isAfter(today)
+                        && !absence.getEndDate().isBefore(today))
                 .map(LeaveRequest::getCollaboratorId)
                 .collect(Collectors.toSet());
+        return new AbsenceFlags(registered, active);
     }
 
     private static List<LeaveAbsenceStatusEnum> approvedAbsenceStatuses() {

@@ -29,6 +29,7 @@ public class AdmissionProcessResponseDto {
     private final AdmissionStatusEnum admissionStatus;
     private final boolean inVacation;
     private final boolean onLeave;
+    private final boolean onLeaveActive;
     private final int completedStepCount;
     private final int requiredStepCount;
     private final List<String> completedStepIds;

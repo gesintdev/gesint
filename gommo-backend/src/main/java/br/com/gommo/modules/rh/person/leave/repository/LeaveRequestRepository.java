@@ -92,15 +92,11 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
               AND l.collaboratorId IN :collaboratorIds
               AND l.leaveType <> :vacationType
               AND (l.approved = TRUE OR l.absenceStatus IN :approvedStatuses)
-              AND l.startDate <= :periodEnd
-              AND l.endDate >= :periodStart
             """)
-    List<LeaveRequest> findActiveAbsencesByCollaboratorInOverlapping(
+    List<LeaveRequest> findRegisteredAbsencesByCollaboratorIn(
             @Param("collaboratorIds") List<UUID> collaboratorIds,
             @Param("vacationType") LeaveTypeEnum vacationType,
             @Param("approvedStatuses") List<LeaveAbsenceStatusEnum> approvedStatuses,
-            @Param("periodStart") LocalDate periodStart,
-            @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
 
     @Query(

@@ -24,6 +24,7 @@ export class AdmissionProcess {
     admissionStatus!: AdmissionStatus;
     inVacation?: boolean;
     onLeave?: boolean;
+    onLeaveActive?: boolean;
     completedStepCount?: number;
     requiredStepCount?: number;
     completedStepIds?: string[];

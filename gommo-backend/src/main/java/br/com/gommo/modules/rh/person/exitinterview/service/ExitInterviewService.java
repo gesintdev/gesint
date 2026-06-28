@@ -29,6 +29,7 @@ import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
 import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewCancelRequestDto;
+import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewInterviewerDto;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewRequestDto;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewResponseDto;
 import br.com.gommo.modules.rh.person.exitinterview.entity.ExitInterview;
@@ -37,6 +38,8 @@ import br.com.gommo.modules.rh.person.exitinterview.entity.ExitInterviewStatusEn
 import br.com.gommo.modules.rh.person.exitinterview.exception.ExitInterviewException;
 import br.com.gommo.modules.rh.person.exitinterview.mapper.ExitInterviewMapper;
 import br.com.gommo.modules.rh.person.exitinterview.repository.ExitInterviewRepository;
+import br.com.gommo.modules.root.entity.AppUser;
+import br.com.gommo.modules.root.repository.AppUserRepository;
 
 @Service
 public class ExitInterviewService extends BaseService<ExitInterview, ExitInterviewRequestDto, ExitInterviewResponseDto>
@@ -49,6 +52,7 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
     private final CompanyRepository companyRepository;
     private final DepartmentRepository departmentRepository;
     private final JobPositionRepository jobPositionRepository;
+    private final AppUserRepository appUserRepository;
 
     public ExitInterviewService(
             ExitInterviewRepository repository,
@@ -58,7 +62,8 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
             EmploymentContractRepository contractRepository,
             CompanyRepository companyRepository,
             DepartmentRepository departmentRepository,
-            JobPositionRepository jobPositionRepository) {
+            JobPositionRepository jobPositionRepository,
+            AppUserRepository appUserRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -68,6 +73,22 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         this.companyRepository = companyRepository;
         this.departmentRepository = departmentRepository;
         this.jobPositionRepository = jobPositionRepository;
+        this.appUserRepository = appUserRepository;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('exitinterview:read')")
+    public List<ExitInterviewInterviewerDto> listInterviewers() {
+        return appUserRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+                .map(user -> ExitInterviewInterviewerDto.builder()
+                        .id(user.getId())
+                        .label(resolveInterviewerLabel(user))
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .build())
+                .sorted(Comparator.comparing(ExitInterviewInterviewerDto::getLabel, String.CASE_INSENSITIVE_ORDER))
+                .toList();
     }
 
     @Override
@@ -367,7 +388,9 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
 
     private void validateForCompletion(ExitInterview entity) {
         assertTerminationTypeMatchesRelationship(entity);
-        boolean hasExitReason = entity.getMainReason() != null || !isBlank(entity.getDetailedReason());
+        boolean hasExitReason = entity.getMainReason() != null
+                || !isBlank(entity.getDepartureReason())
+                || !isBlank(entity.getDetailedReason());
         boolean hasRequiredDates = entity.getInterviewDate() != null
                 && entity.getTerminationOrContractEndDate() != null
                 && (entity.getAdmissionOrContractStartDate() == null
@@ -410,6 +433,27 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         }
         entity.setTenureDays((int) ChronoUnit.DAYS.between(
                 entity.getAdmissionOrContractStartDate(), entity.getTerminationOrContractEndDate()));
+    }
+
+    private String resolveInterviewerLabel(AppUser user) {
+        if (user.getCollaboratorId() != null) {
+            return collaboratorRepository
+                    .findByIdAndStatusNot(user.getCollaboratorId(), StatusEnum.DELETED)
+                    .map(c -> !isBlank(c.getSocialName()) ? c.getSocialName() : c.getFullName())
+                    .filter(name -> !isBlank(name))
+                    .orElseGet(() -> fallbackInterviewerLabel(user));
+        }
+        return fallbackInterviewerLabel(user);
+    }
+
+    private String fallbackInterviewerLabel(AppUser user) {
+        if (!isBlank(user.getUsername())) {
+            return user.getUsername();
+        }
+        if (!isBlank(user.getEmail())) {
+            return user.getEmail();
+        }
+        return "Usuário";
     }
 
     private boolean isBlank(String value) {

@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
+import { UserRoundCheck } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -14,6 +16,7 @@ import { JobPositionPickerField } from "@/modules/dp/organization/jobposition/co
 import { jobpositionService } from "@/modules/dp/organization/jobposition/services/jobposition.service";
 import type {
     ExitInterviewCreateDto,
+    ExitInterviewInterviewer,
     ExitInterviewReason,
     ExitInterviewRelationshipType,
     ExitInterviewReturnChecklistItemDto,
@@ -51,13 +54,15 @@ import {
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { InputAutocomplete, InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { sectionHasChanges } from "@/shared/lib/form-step.util";
 import { SystemAlert } from "@/shared/system-alert";
 
 const EXIT_INTERVIEW_ENTITY_TYPE = "exit_interview";
+const USER_AUTOCOMPLETE_PAGE_SIZE = 8;
 const FORM_STEPS: FormStepNavItem[] = [
     { id: "dados", label: "Dados" },
     { id: "motivos", label: "Motivos" },
@@ -162,6 +167,37 @@ function configuredChecklistToReturnItems(
     }));
 }
 
+function appUserToInterviewerItem(user: ExitInterviewInterviewer): SelectItem {
+    const label = user.label?.trim() || user.username?.trim() || user.email?.trim() || "Usuário";
+    const description = [user.username, user.email]
+        .map((value) => value?.trim())
+        .filter((value): value is string => Boolean(value) && value !== label)
+        .join(" • ");
+    return {
+        value: label,
+        label,
+        description: description || undefined,
+    };
+}
+
+async function searchTenantUsers(query: string, page: number): Promise<SelectSearchResult> {
+    const normalizedQuery = query.trim().toLowerCase();
+    const users = await exitinterviewService.listInterviewers();
+    const filtered = normalizedQuery
+        ? users.filter((user) =>
+              [user.label, user.username, user.email].some((value) =>
+                  value?.toLowerCase().includes(normalizedQuery),
+              ),
+          )
+        : users;
+    const start = page * USER_AUTOCOMPLETE_PAGE_SIZE;
+    const pageItems = filtered.slice(start, start + USER_AUTOCOMPLETE_PAGE_SIZE).map(appUserToInterviewerItem);
+    return {
+        items: pageItems,
+        hasMore: start + USER_AUTOCOMPLETE_PAGE_SIZE < filtered.length,
+        page,
+    };
+}
 function toPayload(form: ExitInterviewCreateDto): ExitInterviewCreateDto {
     const tenureDays = inclusiveTenureDays(form.admissionOrContractStartDate, form.terminationOrContractEndDate);
     return trimEmpty({
@@ -193,7 +229,25 @@ function validateBeforeSave(form: ExitInterviewCreateDto): string | null {
     return null;
 }
 
+function validateBeforeComplete(form: ExitInterviewCreateDto): string | null {
+    if (!form.collaboratorId?.trim()) return "Selecione o colaborador antes de concluir.";
+    if (!form.relationshipType) return "Selecione o tipo de vínculo antes de concluir.";
+    if (!form.interviewDate) return "Informe a data da entrevista antes de concluir.";
+    if (!form.terminationOrContractEndDate) return "Informe a data de desligamento antes de concluir.";
+    if (form.admissionOrContractStartDate && form.terminationOrContractEndDate < form.admissionOrContractStartDate) {
+        return "A data de desligamento não pode ser anterior à data de admissão.";
+    }
+    if (!form.terminationType) return "Selecione o tipo de desligamento antes de concluir.";
+    if (!form.terminationType.startsWith(`${form.relationshipType}_`)) {
+        return "O tipo de desligamento selecionado não é compatível com o vínculo informado.";
+    }
+    if (!form.interviewerName?.trim()) return "Informe o responsável pela entrevista antes de concluir.";
+    if (!form.mainReason) return "Selecione o motivo principal antes de concluir.";
+    return null;
+}
+
 export function ExitInterviewFormClient() {
+    const { data: session } = useSession();
     const { editingId, isEditing, goToList, startCreate, startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ExitInterviewCreateDto>(emptyExitInterviewForm);
@@ -278,11 +332,23 @@ export function ExitInterviewFormClient() {
         },
     });
     const completeMutation = useMutation({
-        mutationFn: () => exitinterviewService.complete(editingId!),
+        mutationFn: async (dto: ExitInterviewCreateDto) => {
+            const payload = toPayload(dto);
+            const updated = await exitinterviewService.update(editingId!, payload);
+            await flushPendingAttachments({
+                entityType: EXIT_INTERVIEW_ENTITY_TYPE,
+                entityId: updated.id,
+                linkRole: "DOCUMENT",
+                items: pendingAttachments,
+            });
+            return exitinterviewService.complete(updated.id);
+        },
         onSuccess: async (result) => {
+            clearPendingAttachments();
             setForm(exitinterviewToFormDto(result));
             await queryClient.invalidateQueries({ queryKey: exitinterviewKeys.all });
             await queryClient.invalidateQueries({ queryKey: exitinterviewKeys.detail(result.id) });
+            await queryClient.invalidateQueries({ queryKey: ["storage-links", EXIT_INTERVIEW_ENTITY_TYPE, result.id] });
             toast.success("Entrevista concluida");
         },
         onError: (err: unknown) => {
@@ -406,6 +472,15 @@ export function ExitInterviewFormClient() {
             })
             .catch(() => undefined);
     }, []);
+    const handleBindCurrentUser = useCallback(() => {
+        const currentUserName = session?.user?.name?.trim() || session?.user?.email?.trim() || "";
+        if (!currentUserName) {
+            toast.error("Não foi possível identificar o usuário logado.");
+            return;
+        }
+        update("interviewerName", currentUserName);
+    }, [session?.user?.email, session?.user?.name]);
+
     const updateRating = (key: string, score: number) => {
         setForm((prev) => ({
             ...prev,
@@ -451,6 +526,13 @@ export function ExitInterviewFormClient() {
     };
     const handleComplete = async () => {
         if (!editingId) return;
+        setError(null);
+        const validationMessage = validateBeforeComplete(form);
+        if (validationMessage) {
+            setError(validationMessage);
+            toast.error(validationMessage);
+            return;
+        }
         if (
             !(await SystemAlert.confirm({
                 title: "Concluir entrevista",
@@ -463,7 +545,7 @@ export function ExitInterviewFormClient() {
             return;
         }
         setError(null);
-        completeMutation.mutate();
+        completeMutation.mutate(form);
     };
     const handleCancelInterview = async () => {
         if (!editingId) return;
@@ -494,7 +576,7 @@ export function ExitInterviewFormClient() {
         ) {
             filled.push("dados");
         }
-        if (sectionHasChanges(form, emptyDefaults, ["mainReason", "secondaryReasons", "detailedReason"])) {
+        if (sectionHasChanges(form, emptyDefaults, ["mainReason", "secondaryReasons", "departureReason", "detailedReason"])) {
             filled.push("motivos");
         }
         if (form.ratings.some((item) => (item.score ?? 1) !== 1)) filled.push("avaliacao");
@@ -629,14 +711,29 @@ export function ExitInterviewFormClient() {
                     wrapperClassName="sm:col-span-4"
                     disabled={isFinal}
                 />
-                <InputString
-                    label="Responsável pela entrevista"
-                    value={form.interviewerName ?? ""}
-                    onValueChange={(v) => update("interviewerName", v)}
-                    wrapperClassName="sm:col-span-4"
-                    required
-                    disabled={isFinal}
-                />
+                <div className="grid gap-2 sm:col-span-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                    <InputAutocomplete
+                        label="Responsável pela entrevista"
+                        value={form.interviewerName ?? ""}
+                        selectedLabel={form.interviewerName ?? ""}
+                        onValueChange={(v) => update("interviewerName", v)}
+                        onSearch={searchTenantUsers}
+                        placeholder="Buscar usuário"
+                        required
+                        disabled={isFinal}
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-[var(--gommo-control-h)] whitespace-nowrap"
+                        leftIcon={<UserRoundCheck className="size-4" />}
+                        disabled={isFinal}
+                        onClick={handleBindCurrentUser}
+                    >
+                        Me Vincular
+                    </Button>
+                </div>
                 <InputDate
                     label={form.relationshipType === "PJ" ? "Início do contrato" : "Data de admissão"}
                     value={form.admissionOrContractStartDate ?? ""}
@@ -649,6 +746,7 @@ export function ExitInterviewFormClient() {
                     value={form.terminationOrContractEndDate ?? ""}
                     onValueChange={(v) => update("terminationOrContractEndDate", v)}
                     wrapperClassName="sm:col-span-3"
+                    required
                     disabled={isFinal}
                 />
                 <InputNumber
@@ -670,7 +768,7 @@ export function ExitInterviewFormClient() {
                     onValueChange={(v) => update("terminationType", (v || undefined) as ExitInterviewTerminationType)}
                     placeholder="Selecione"
                     wrapperClassName="sm:col-span-4"
-                    clearable
+                    required
                     disabled={isFinal}
                 />
             </FormSection>
@@ -682,7 +780,7 @@ export function ExitInterviewFormClient() {
                     onValueChange={(v) => update("mainReason", (v || undefined) as ExitInterviewReason)}
                     placeholder="Selecione"
                     wrapperClassName="sm:col-span-4"
-                    clearable
+                    required
                     disabled={isFinal}
                 />
                 <InputString

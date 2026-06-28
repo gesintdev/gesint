@@ -269,6 +269,11 @@ body {
 /* ──────────────────────────────────────────────
    Custom scrollbar — thin, subtle
 ────────────────────────────────────────────── */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--gommo-primary-300) 40%, transparent) transparent;
+}
+
 ::-webkit-scrollbar {
     width: 5px;
     height: 5px;

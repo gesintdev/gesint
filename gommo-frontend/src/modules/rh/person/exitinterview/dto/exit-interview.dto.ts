@@ -74,6 +74,12 @@ export class ExitInterviewReturnChecklistItemDto {
     notes?: string;
 }
 
+export class ExitInterviewInterviewer {
+    id!: string;
+    label!: string;
+    username?: string;
+    email?: string;
+}
 export class ExitInterview {
     id!: string;
     code!: number;

@@ -24,7 +24,7 @@ export function TableActionButton({ actionVariant, className, leftIcon, ...props
         <Button
             variant="ghost"
             size="sm"
-            className={clsx(VARIANT_CLASS[actionVariant], className)}
+            className={clsx("min-h-8 min-w-8 px-2 py-1.5", VARIANT_CLASS[actionVariant], className)}
             leftIcon={leftIcon}
             {...props}
         />

@@ -2,6 +2,7 @@ import type {
     ExitInterview,
     ExitInterviewCancelDto,
     ExitInterviewCreateDto,
+    ExitInterviewInterviewer,
 } from "@/modules/rh/person/exitinterview/dto/exit-interview.dto";
 import { BaseService } from "@/modules/root/services/base.service";
 import { apiFetch } from "@/shared/lib/api.client";
@@ -9,6 +10,9 @@ import { apiFetch } from "@/shared/lib/api.client";
 class ExitInterviewService extends BaseService<ExitInterview, ExitInterviewCreateDto, ExitInterviewCreateDto> {
     constructor() {
         super("/api/v1/exit-interviews");
+    }
+    listInterviewers(): Promise<ExitInterviewInterviewer[]> {
+        return apiFetch<ExitInterviewInterviewer[]>(`${this.basePath}/interviewers`);
     }
     complete(id: string): Promise<ExitInterview> {
         return apiFetch<ExitInterview>(`${this.basePath}/${id}/complete`, { method: "POST" });
