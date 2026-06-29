@@ -1689,31 +1689,104 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
     stroke: var(--gommo-success);
 }
 .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--open:hover:not(:disabled) {
-    background: var(--gommo-info);
+    border-color: color-mix(in srgb, var(--gommo-info) 34%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-info) 12%, var(--color-base-100));
 }
 
 .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--edit:hover:not(:disabled) {
-    background: var(--gommo-primary-light);
+    border-color: color-mix(in srgb, var(--gommo-primary-light) 34%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-primary-light) 12%, var(--color-base-100));
+}
+
+[data-theme="gommo"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--open:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--gommo-info) 48%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-info) 20%, var(--color-base-100));
 }
 
 [data-theme="gommo"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--edit:hover:not(:disabled) {
-    background: var(--gommo-primary);
+    border-color: color-mix(in srgb, var(--gommo-primary) 48%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-primary) 20%, var(--color-base-100));
+}
+
+[data-theme="gommo"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--delete:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--gommo-error) 50%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-error) 22%, var(--color-base-100));
+}
+
+[data-theme="gommo"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--download:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--gommo-success) 48%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-success) 20%, var(--color-base-100));
 }
 
 .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--delete:hover:not(:disabled) {
-    background: var(--gommo-error);
+    border-color: color-mix(in srgb, var(--gommo-error) 36%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-error) 13%, var(--color-base-100));
 }
 
 .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--download:hover:not(:disabled) {
-    background: var(--gommo-success);
+    border-color: color-mix(in srgb, var(--gommo-success) 34%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-success) 12%, var(--color-base-100));
 }
 
-.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action-button:hover:not(:disabled) {
-    border-color: #fff;
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--open:hover:not(:disabled) svg {
+    stroke: var(--gommo-info);
 }
 
-.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action-button:hover:not(:disabled) svg {
-    stroke: #fff;
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--edit:hover:not(:disabled) svg {
+    stroke: var(--gommo-primary-light);
+}
+
+[data-theme="gommo"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--edit:hover:not(:disabled) svg {
+    stroke: var(--gommo-primary);
+}
+
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--delete:hover:not(:disabled) svg {
+    stroke: var(--gommo-error);
+}
+
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--download:hover:not(:disabled) svg {
+    stroke: var(--gommo-success);
+}
+
+[data-theme="dark"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action-button {
+    border-color: color-mix(in srgb, var(--color-base-content) 8%, transparent);
+    background: color-mix(in srgb, var(--color-base-content) 4%, var(--color-base-100));
+}
+
+[data-theme="dark"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--open:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--gommo-info) 38%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-info) 18%, var(--color-base-100));
+}
+
+[data-theme="dark"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--edit:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--gommo-primary-light) 38%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-primary-light) 18%, var(--color-base-100));
+}
+
+[data-theme="dark"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--delete:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--gommo-error) 40%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-error) 20%, var(--color-base-100));
+}
+
+[data-theme="dark"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--download:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--gommo-success) 38%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-success) 18%, var(--color-base-100));
+}
+
+[data-theme="dark"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--open:hover:not(:disabled) svg {
+    stroke: var(--gommo-info);
+}
+
+[data-theme="dark"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--edit:hover:not(:disabled) svg {
+    stroke: var(--gommo-primary-light);
+}
+
+[data-theme="dark"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--delete:hover:not(:disabled) svg {
+    stroke: var(--gommo-error);
+}
+
+[data-theme="dark"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--download:hover:not(:disabled) svg {
+    stroke: var(--gommo-success);
 }
 
 .gommo-table tbody tr {

@@ -5,6 +5,10 @@ import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import { isPathAccessible } from "@/shared/auth/route-permissions";
 import { apiFetch, setAuthToken } from "@/shared/lib/api.client";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
+
+const SESSION_MAX_AGE_SECONDS = 24 * 60 * 60;
+const SESSION_UPDATE_AGE_SECONDS = 60 * 60;
+
 class TokenResponse {
     accessToken!: string;
     refreshToken!: string;
@@ -90,7 +94,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
         }),
     ],
-    session: { strategy: "jwt" },
+    session: {
+        strategy: "jwt",
+        maxAge: SESSION_MAX_AGE_SECONDS,
+        updateAge: SESSION_UPDATE_AGE_SECONDS,
+    },
     pages: { signIn: "/login" },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {

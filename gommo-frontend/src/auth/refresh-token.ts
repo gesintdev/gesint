@@ -16,6 +16,8 @@ type TokenResponse = {
 
 export type AuthTokenError = "RefreshAccessTokenError" | "RefreshTokenMissing";
 
+const refreshRequests = new Map<string, Promise<JWT>>();
+
 export function isAccessTokenExpired(token: JWT): boolean {
     const expires = token.accessTokenExpires;
     if (typeof expires !== "number") return true;
@@ -23,13 +25,30 @@ export function isAccessTokenExpired(token: JWT): boolean {
 }
 
 export async function refreshAccessToken(token: JWT): Promise<JWT> {
-    if (!token.refreshToken) {
+    const refreshToken = token.refreshToken as string | undefined;
+    if (!refreshToken) {
         return { ...token, error: "RefreshTokenMissing" };
     }
+
+    const pending = refreshRequests.get(refreshToken);
+    if (pending) {
+        return pending;
+    }
+
+    const request = refreshAccessTokenOnce(token, refreshToken);
+    refreshRequests.set(refreshToken, request);
+    try {
+        return await request;
+    } finally {
+        refreshRequests.delete(refreshToken);
+    }
+}
+
+async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise<JWT> {
     try {
         const data = await doRequest<TokenResponse>("/api/v1/auth/refresh", {
             method: "POST",
-            body: { refreshToken: token.refreshToken },
+            body: { refreshToken },
             skipAuthRetry: true,
             skipAuth: true,
             headers: buildTenantRequestHeaders(token.tenantSlug as string | undefined),

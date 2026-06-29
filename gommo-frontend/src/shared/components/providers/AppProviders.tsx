@@ -11,13 +11,13 @@ import { ThemeProvider } from "@/shared/components/providers/ThemeProvider";
 import { SystemAlertHost } from "@/shared/components/system-alert/SystemAlertHost";
 import { createQueryClient } from "@/shared/lib/query-client";
 
-const SESSION_REFETCH_MS = 4 * 60 * 1000;
+const SESSION_REFETCH_SECONDS = 4 * 60;
 
 export function AppProviders({ children, session }: { children: ReactNode; session: Session | null }) {
     const [queryClient] = useState(() => createQueryClient());
 
     return (
-        <SessionProvider session={session} refetchInterval={SESSION_REFETCH_MS} refetchOnWindowFocus={false}>
+        <SessionProvider session={session} refetchInterval={SESSION_REFETCH_SECONDS} refetchOnWindowFocus={false}>
             <SessionRefresh />
             <QueryClientProvider client={queryClient}>
                 <ThemeProvider>
