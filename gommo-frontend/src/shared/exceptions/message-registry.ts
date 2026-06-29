@@ -82,8 +82,7 @@ const REGISTRY: Record<string, string> = {
 export function resolveMessageByCode(code: string | undefined, fallback: string): string {
     if (!code) return fallback;
     const registered = REGISTRY[code];
-    if (code === "VALIDATION_ERROR" && fallback && fallback !== registered) return fallback;
-    return registered ?? fallback;
+    return registered ?? CORE_MESSAGES.UNKNOWN;
 }
 
 export function registerMessages(catalog: Record<string, string>): void {

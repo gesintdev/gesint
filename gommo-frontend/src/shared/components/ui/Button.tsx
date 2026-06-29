@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type {ButtonHTMLAttributes, ReactNode} from "react";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "danger" | "success";
 
@@ -34,17 +34,17 @@ const sizeClass: Record<ButtonSize, string> = {
 };
 
 export function Button({
-    variant = "primary",
-    size = "md",
-    loading = false,
-    leftIcon,
-    rightIcon,
-    className,
-    children,
-    disabled,
-    type = "button",
-    ...props
-}: ButtonProps) {
+                           variant = "primary",
+                           size = "md",
+                           loading = false,
+                           leftIcon,
+                           rightIcon,
+                           className,
+                           children,
+                           disabled,
+                           type = "button",
+                           ...props
+                       }: ButtonProps) {
     const iconOnly = !children && (leftIcon || rightIcon);
 
     return (
@@ -60,7 +60,7 @@ export function Button({
             disabled={disabled || loading}
             {...props}
         >
-            {loading && <span className="gommo-spinner" aria-hidden />}
+            {loading && <span className="gommo-spinner" aria-hidden/>}
             {!loading && leftIcon}
             {children}
             {!loading && rightIcon}

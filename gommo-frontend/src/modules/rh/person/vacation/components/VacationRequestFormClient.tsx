@@ -18,7 +18,11 @@ import {
     type VacationFormState,
     vacationFormToLeaveDtos,
 } from "@/modules/rh/person/vacation/lib/vacation-request.mapper";
-import { maxPecuniaryDays, vacationDaysEntitled } from "@/modules/rh/person/vacation/lib/vacation-rules";
+import {
+    maxPecuniaryDays,
+    syncPeriodsWithDefaultDays,
+    vacationDaysEntitled,
+} from "@/modules/rh/person/vacation/lib/vacation-rules";
 import {
     type VacationRequestFormSchema,
     vacationRequestFormSchema,
@@ -151,6 +155,10 @@ export function VacationRequestFormClient() {
             const next = { ...prev, [field]: value };
             if (field === "unjustifiedAbsences") {
                 next.vacationDaysEntitled = vacationDaysEntitled(Number(value));
+            }
+            if (field === "periods") {
+                const entitled = next.vacationDaysEntitled ?? vacationDaysEntitled(next.unjustifiedAbsences);
+                next.periods = syncPeriodsWithDefaultDays(next.periods, entitled - next.pecuniaryAllowanceDays);
             }
             return next;
         });

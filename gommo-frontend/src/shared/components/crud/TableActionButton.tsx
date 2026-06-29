@@ -24,9 +24,15 @@ export function TableActionButton({ actionVariant, className, leftIcon, ...props
         <Button
             variant="ghost"
             size="sm"
-            className={clsx("min-h-8 min-w-8 px-2 py-1.5", VARIANT_CLASS[actionVariant], className)}
-            leftIcon={leftIcon}
+            className={clsx(
+                "gommo-table-action-button",
+                VARIANT_CLASS[actionVariant],
+                className,
+            )}
             {...props}
-        />
+        >
+            {leftIcon}
+        </Button>
     );
 }
+

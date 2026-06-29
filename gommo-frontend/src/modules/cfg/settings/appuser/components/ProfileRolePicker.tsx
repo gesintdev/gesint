@@ -49,7 +49,7 @@ export function ProfileRolePicker({ label, system, profiles, selectedIds, onChan
         return (
             <div className="flex min-h-0 min-w-0 flex-col">
                 <p className="gommo-field__label mb-1.5">{label}</p>
-                <div className="skeleton-shimmer h-[7.5rem] w-full rounded-lg" />
+                <div className="skeleton-shimmer h-30 w-full rounded-lg" />
             </div>
         );
     }
@@ -70,7 +70,7 @@ export function ProfileRolePicker({ label, system, profiles, selectedIds, onChan
                         className="text-sm!"
                     />
                 </label>
-                <ul className="max-h-48 min-h-[2.25rem] overflow-y-auto rounded-lg border border-base-content/8 p-1">
+                <ul className="max-h-48 min-h-9 overflow-y-auto rounded-lg border border-base-content/8 p-1">
                     {filteredProfiles.length === 0 ? (
                         <li>
                             <div className={clsx(PROFILE_ROW_CLASS, "text-xs text-base-content/45")}>

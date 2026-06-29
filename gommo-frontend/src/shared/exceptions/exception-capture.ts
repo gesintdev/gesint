@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-import { ApiError, AppException } from "@/shared/exceptions/app.exception";
+import { AppException } from "@/shared/exceptions/app.exception";
 import type { ErrorResponseDto } from "@/shared/exceptions/error-response.dto";
 import { resolveMessageByCode } from "@/shared/exceptions/message-registry";
 
@@ -18,15 +18,8 @@ export class ExceptionCapture {
             return error.withDisplayMessage(resolveMessageByCode(error.code, error.displayMessage));
         }
 
-        if (error instanceof ApiError) {
-            return error.withDisplayMessage(resolveMessageByCode(error.code, error.displayMessage));
-        }
-
         if (error instanceof Error) {
-            return AppException.client(
-                "UNKNOWN",
-                error.message || fallbackMessage || AppException.unknown().displayMessage,
-            );
+            return AppException.unknown(fallbackMessage);
         }
         return AppException.unknown(fallbackMessage);
     }

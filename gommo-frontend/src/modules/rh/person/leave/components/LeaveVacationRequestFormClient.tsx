@@ -17,7 +17,12 @@ import {
     type VacationFormState,
     vacationFormToRhLeaveDtos,
 } from "@/modules/rh/person/vacation/lib/vacation-request.mapper";
-import { maxPecuniaryDays, totalGozoDays, vacationDaysEntitled } from "@/modules/rh/person/vacation/lib/vacation-rules";
+import {
+    maxPecuniaryDays,
+    syncPeriodsWithDefaultDays,
+    totalGozoDays,
+    vacationDaysEntitled,
+} from "@/modules/rh/person/vacation/lib/vacation-rules";
 import {
     type VacationRequestFormSchema,
     vacationRequestFormSchema,
@@ -182,6 +187,10 @@ export function LeaveVacationRequestFormClient() {
             if (field === "unjustifiedAbsences") {
                 next.vacationDaysEntitled = vacationDaysEntitled(Number(value));
             }
+            if (field === "periods") {
+                const entitled = next.vacationDaysEntitled ?? vacationDaysEntitled(next.unjustifiedAbsences);
+                next.periods = syncPeriodsWithDefaultDays(next.periods, entitled - next.pecuniaryAllowanceDays);
+            }
             return next;
         });
         setFieldErrors((prev) => {
@@ -197,7 +206,7 @@ export function LeaveVacationRequestFormClient() {
         const parsed = vacationRequestFormSchema.safeParse(form);
         if (!parsed.success) {
             setFieldErrors(mapZodFieldErrors<FormField>(parsed.error));
-            setError(parsed.error.issues[0]?.message ?? "Não foi possível validar a solicitação.");
+            setError("Verifique os campos destacados.");
             return;
         }
         if (periodContext?.contractType === "PJ") {

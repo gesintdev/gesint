@@ -1587,6 +1587,29 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
     padding: 0;
 }
 
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action-button {
+    width: var(--gommo-table-action-button-size, 2rem);
+    height: var(--gommo-table-action-button-size, 2rem);
+    min-width: var(--gommo-table-action-button-size, 2rem);
+    min-height: var(--gommo-table-action-button-size, 2rem);
+    padding: var(--gommo-table-action-button-padding, 0.4375rem);
+    border: 1px solid var(--gommo-border-subtle);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--color-base-100) 94%, var(--color-base-content) 6%);
+    box-shadow: var(--gommo-shadow-xs);
+}
+
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action-button:hover:not(:disabled) {
+    box-shadow: var(--gommo-shadow-sm);
+    transform: translateY(-1px);
+}
+
+
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action-button:active:not(:disabled) {
+    box-shadow: var(--gommo-shadow-xs);
+    transform: translateY(0);
+}
+
 .gommo-table .gommo-table-actions {
     display: flex;
     align-items: center;
@@ -1608,7 +1631,7 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
 }
 
 .gommo-table .gommo-btn.gommo-table-action--open:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--gommo-info) 14%, transparent);
+    background: var(--gommo-info);
     color: var(--gommo-info);
 }
 
@@ -1621,7 +1644,7 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
 }
 
 .gommo-table .gommo-btn.gommo-table-action--edit:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--gommo-primary-light) 14%, transparent);
+    background: var(--gommo-primary-light);
     color: var(--gommo-primary-light);
 }
 
@@ -1636,7 +1659,7 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
 }
 
 [data-theme="gommo"] .gommo-table .gommo-btn.gommo-table-action--edit:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--gommo-primary) 12%, transparent);
+    background: var(--gommo-primary);
     color: var(--gommo-primary);
 }
 
@@ -1645,7 +1668,7 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
 }
 
 .gommo-table .gommo-btn.gommo-table-action--delete:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--gommo-error) 14%, transparent);
+    background: var(--gommo-error);
     color: var(--gommo-error);
 }
 
@@ -1658,12 +1681,39 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
 }
 
 .gommo-table .gommo-btn.gommo-table-action--download:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--gommo-success) 14%, transparent);
+    background: var(--gommo-success);
     color: var(--gommo-success);
 }
 
 .gommo-table .gommo-btn.gommo-table-action--download svg {
     stroke: var(--gommo-success);
+}
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--open:hover:not(:disabled) {
+    background: var(--gommo-info);
+}
+
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--edit:hover:not(:disabled) {
+    background: var(--gommo-primary-light);
+}
+
+[data-theme="gommo"] .gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--edit:hover:not(:disabled) {
+    background: var(--gommo-primary);
+}
+
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--delete:hover:not(:disabled) {
+    background: var(--gommo-error);
+}
+
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action--download:hover:not(:disabled) {
+    background: var(--gommo-success);
+}
+
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action-button:hover:not(:disabled) {
+    border-color: #fff;
+}
+
+.gommo-table .gommo-table-actions .gommo-btn.gommo-table-action-button:hover:not(:disabled) svg {
+    stroke: #fff;
 }
 
 .gommo-table tbody tr {

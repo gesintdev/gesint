@@ -39,6 +39,23 @@ export function syncPeriodWithDays(period: VacationSplitPeriod): VacationSplitPe
     return { ...period, endDate: endDateFromStartAndDays(period.startDate, period.days) };
 }
 
+export function syncPeriodsWithDefaultDays(
+    periods: VacationSplitPeriod[],
+    availableDays: number,
+): VacationSplitPeriod[] {
+    return periods.map((period, index) => {
+        if (!period.startDate || period.days > 0) {
+            return syncPeriodWithDays(period);
+        }
+        const usedByOtherPeriods = periods.reduce((sum, current, currentIndex) => {
+            if (currentIndex === index) return sum;
+            return sum + Math.max(0, current.days);
+        }, 0);
+        const defaultDays = Math.max(0, availableDays - usedByOtherPeriods);
+        return syncPeriodWithDays({ ...period, days: defaultDays });
+    });
+}
+
 export function totalGozoDays(periods: VacationSplitPeriod[]): number {
     return periods.filter((p) => p.days > 0).reduce((sum, p) => sum + p.days, 0);
 }
