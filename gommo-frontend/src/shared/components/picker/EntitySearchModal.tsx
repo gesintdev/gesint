@@ -12,6 +12,7 @@ import type {
     EntityPickerFilterField,
     EntityPickerSearchParams,
 } from "@/shared/types/entity-picker.types";
+
 type EntitySearchModalProps<T extends object> = {
     open: boolean;
     config: EntityPickerAdvancedSearch<T>;
@@ -23,6 +24,10 @@ type EntitySearchModalProps<T extends object> = {
 
 function emptyFilters(fields: EntityPickerFilterField[]): Record<string, string> {
     return Object.fromEntries(fields.map((field) => [field.id, ""]));
+}
+
+function hasFilledFilter(filters: Record<string, string>): boolean {
+    return Object.values(filters).some((value) => value.trim().length > 0);
 }
 
 export function EntitySearchModal<T extends object>({
@@ -42,7 +47,9 @@ export function EntitySearchModal<T extends object>({
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [searched, setSearched] = useState(false);
     const mergedFilters = useMemo(() => ({ ...appliedFilters, ...fixedFilters }), [appliedFilters, fixedFilters]);
+    const actionLabel = hasFilledFilter(filters) ? "Buscar" : "Listar todos";
 
     useEffect(() => {
         setMounted(true);
@@ -58,6 +65,7 @@ export function EntitySearchModal<T extends object>({
     const runSearch = useCallback(
         async (nextPage: number, nextFilters: Record<string, string>) => {
             setLoading(true);
+            setSearched(true);
             try {
                 const params: EntityPickerSearchParams = {
                     page: nextPage,
@@ -74,6 +82,7 @@ export function EntitySearchModal<T extends object>({
                     fallbackMessage: "Não foi possível carregar os resultados.",
                 });
                 setRows([]);
+                setPage(0);
                 setTotalPages(0);
                 setTotalElements(0);
             } finally {
@@ -89,8 +98,12 @@ export function EntitySearchModal<T extends object>({
         setFilters(initial);
         setAppliedFilters(initial);
         setPage(0);
-        void runSearch(0, initial);
-    }, [open, config.filters, runSearch]);
+        setRows([]);
+        setTotalPages(0);
+        setTotalElements(0);
+        setLoading(false);
+        setSearched(false);
+    }, [open, config.filters]);
 
     const handleApplyFilters = () => {
         setAppliedFilters({ ...filters });
@@ -158,7 +171,7 @@ export function EntitySearchModal<T extends object>({
                             loading={loading}
                             onClick={handleApplyFilters}
                         >
-                            Pesquisar
+                            {actionLabel}
                         </Button>
                     </div>
                 </div>
@@ -173,7 +186,11 @@ export function EntitySearchModal<T extends object>({
                             data={rows}
                             columns={config.columns}
                             rowKey="id"
-                            emptyMessage={config.emptyMessage ?? "Nenhum registro encontrado."}
+                            emptyMessage={
+                                searched
+                                    ? config.emptyMessage ?? "Nenhum registro encontrado."
+                                    : "Informe filtros e clique em buscar."
+                            }
                             onRowActivate={handleSelectRow}
                             rowActivateOn="doubleclick"
                             stickyHeader={false}
@@ -184,14 +201,16 @@ export function EntitySearchModal<T extends object>({
                     <p className="text-xs text-base-content/45">
                         {totalElements > 0
                             ? `${totalElements} registro(s) · página ${page + 1} de ${Math.max(totalPages, 1)}`
-                            : "Nenhum resultado"}
+                            : searched
+                              ? "Nenhum resultado"
+                              : "Nenhuma busca executada"}
                     </p>
                     <div className="flex items-center gap-2">
                         <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            disabled={loading || page <= 0}
+                            disabled={loading || !searched || page <= 0}
                             leftIcon={<ChevronLeft className="size-3.5" />}
                             onClick={() => void runSearch(page - 1, mergedFilters)}
                         >
@@ -201,7 +220,7 @@ export function EntitySearchModal<T extends object>({
                             type="button"
                             variant="ghost"
                             size="sm"
-                            disabled={loading || page + 1 >= totalPages}
+                            disabled={loading || !searched || page + 1 >= totalPages}
                             leftIcon={<ChevronRight className="size-3.5" />}
                             onClick={() => void runSearch(page + 1, mergedFilters)}
                         >
