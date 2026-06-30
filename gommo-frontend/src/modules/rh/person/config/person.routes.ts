@@ -1,4 +1,4 @@
-import { CalendarDays, MessageSquare, Target, UserPlus, UserRound, Users } from "lucide-react";
+import { CalendarDays, ClipboardList, MessageSquare, Target, UserPlus, UserRound, Users } from "lucide-react";
 
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
@@ -120,6 +120,24 @@ export const personRoutes: AppRoute[] = [
         form: lazyNamed(
             () => import("@/modules/rh/person/exitinterview/components/ExitInterviewFormClient"),
             "ExitInterviewFormClient",
+        ),
+    }),
+    tabbedCrudRoute({
+        id: "development-plan",
+        href: "/development-plan",
+        label: "PDI",
+        icon: ClipboardList,
+        permission: "developmentplan:read",
+        routeId: "development-plan",
+        tabShortLabel: "PDI",
+        fieldTabName: "collaboratorName",
+        list: lazyNamed(
+            () => import("@/modules/rh/person/developmentplan/components/DevelopmentPlanListClient"),
+            "DevelopmentPlanListClient",
+        ),
+        form: lazyNamed(
+            () => import("@/modules/rh/person/developmentplan/components/DevelopmentPlanFormClient"),
+            "DevelopmentPlanFormClient",
         ),
     }),
     tabbedCrudRoute({

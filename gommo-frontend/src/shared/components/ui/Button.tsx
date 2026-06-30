@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import type {ButtonHTMLAttributes, ReactNode} from "react";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "danger" | "success";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "danger" | "warning" | "success";
 
 type ButtonSize = "sm" | "md" | "lg";
 
@@ -21,6 +21,7 @@ const variantClass: Record<ButtonVariant, string> = {
     ghost: "gommo-btn--ghost",
     outline: "gommo-btn--outline",
     danger: "gommo-btn--danger",
+    warning: "gommo-btn--warning",
     success: "gommo-btn--success",
 };
 /**

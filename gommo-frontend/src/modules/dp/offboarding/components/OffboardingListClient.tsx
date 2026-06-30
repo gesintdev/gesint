@@ -23,13 +23,13 @@ export function OffboardingListClient() {
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: offboardingKeys.all });
             await queryClient.invalidateQueries({ queryKey: collaboratorKeys.all });
-            toast.success("Desligamento excluÃ­do");
+            toast.success("Desligamento excluído");
         },
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, { fallbackMessage: OFFBOARDING_CLIENT_MESSAGES.OFFBOARDING_LOAD_FAILED }),
     });
     const handleDelete = async (row: Offboarding) => {
-        if (!(await SystemAlert.confirmDelete("Deseja excluir este desligamento? Esta aÃ§Ã£o nÃ£o pode ser desfeita.")))
+        if (!(await SystemAlert.confirmDelete("Deseja excluir este desligamento? Esta ação não pode ser desfeita.")))
             return;
         deleteMutation.mutate(row.id);
     };

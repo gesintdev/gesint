@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 
-import { collaboratorService } from "@/modules/rh/person/collaborators/people/services/collaborator.service";
-import { InputAutocomplete } from "@/shared/components/ui/input/index";
+import {
+    COLLABORATOR_PICKER_ADVANCED,
+    collaboratorService,
+} from "@/modules/rh/person/collaborators/people/services/collaborator.service";
+import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 
 type CollaboratorPickerFieldProps = {
-    label?: string;
-    hint?: string;
     value: string;
     onValueChange: (collaboratorId: string) => void;
+    label?: string;
+    hint?: string;
     required?: boolean;
     error?: string;
     disabled?: boolean;
@@ -15,60 +18,38 @@ type CollaboratorPickerFieldProps = {
 };
 
 export function CollaboratorPickerField({
-    label = "Colaborador",
-    hint = "Somente colaboradores com admissão concluída",
     value,
     onValueChange,
+    label = "Colaborador",
+    hint = "Somente colaboradores com admissão concluída",
     required,
     error,
     disabled,
     wrapperClassName,
 }: CollaboratorPickerFieldProps) {
-    const [selectedLabel, setSelectedLabel] = useState("");
-
-    useEffect(() => {
-        const id = value?.trim();
-        if (!id) {
-            setSelectedLabel("");
-            return;
-        }
-        let cancelled = false;
-        void collaboratorService
-            .getById(id)
-            .then((c) => {
-                if (!cancelled) setSelectedLabel(c.fullName);
-            })
-            .catch(() => {
-                if (!cancelled) setSelectedLabel("");
-            });
-        return () => {
-            cancelled = true;
-        };
-    }, [value]);
-
     const onSearch = useCallback(
         (query: string, page: number) => collaboratorService.searchForAutocomplete(query, page),
         [],
     );
+    const resolveLabel = useCallback(async (id: string) => {
+        const collaborator = await collaboratorService.getById(id);
+        return collaborator.fullName;
+    }, []);
 
     return (
-        <InputAutocomplete
+        <EntityPickerField
             label={label}
             hint={hint}
             value={value ?? ""}
-            selectedLabel={selectedLabel}
-            onValueChange={(v, item) => {
-                onValueChange(v);
-                setSelectedLabel(item?.label ?? "");
-            }}
+            onValueChange={(id) => onValueChange(id)}
             onSearch={onSearch}
-            placeholder="Digite nome ou CPF…"
-            autoComplete="off"
+            resolveLabel={resolveLabel}
+            placeholder="Digite nome ou CPF..."
             required={required}
             error={error}
             disabled={disabled}
-            labelFor={false}
             wrapperClassName={wrapperClassName}
+            advancedSearch={COLLABORATOR_PICKER_ADVANCED}
         />
     );
 }

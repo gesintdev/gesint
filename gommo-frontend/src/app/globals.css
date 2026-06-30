@@ -431,7 +431,7 @@ body {
 }
 
 .gommo-field:hover,
-.gommo-control:hover:not(:disabled):not(.gommo-btn--primary):not(.gommo-btn--danger) {
+.gommo-control:hover:not(:disabled):not(.gommo-btn--primary):not(.gommo-btn--danger):not(.gommo-btn--warning) {
     border-color: var(--gommo-border-strong);
 }
 
@@ -713,6 +713,26 @@ body {
     transform: translateY(1px);
 }
 
+
+/* --- Warning --- */
+.gommo-btn.gommo-btn--warning {
+    background: var(--gommo-warning);
+    color: var(--gommo-warning-content);
+    border-color: transparent;
+    box-shadow: var(--gommo-shadow-xs);
+}
+
+.gommo-btn.gommo-btn--warning:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--gommo-warning) 88%, black);
+    border-color: transparent;
+}
+
+.gommo-btn.gommo-btn--warning:active:not(:disabled) {
+    transform: translateY(1px);
+}
+.gommo-btn.gommo-btn--warning svg {
+    stroke: currentColor;
+}
 /* ─── Success (atualizar) ─── */
 .gommo-btn--success {
     background: var(--color-success);
