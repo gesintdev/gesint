@@ -5,6 +5,11 @@ import { Plus, Trash2 } from "lucide-react";
 import { type SubmitEvent, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { DepartmentPickerField } from "@/modules/dp/organization/department/components/DepartmentPickerField";
+import { departmentService } from "@/modules/dp/organization/department/services/department.service";
+import { JobPositionPickerField } from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
+import { jobpositionService } from "@/modules/dp/organization/jobposition/services/jobposition.service";
+import { collaboratorService } from "@/modules/rh/person/collaborators/people/services/collaborator.service";
 import { developmentPlanKeys } from "@/modules/rh/person/developmentplan/development-plan.query";
 import type {
     CheckinFrequency,
@@ -25,13 +30,15 @@ import {
     emptyDevelopmentPlanForm,
 } from "@/modules/rh/person/developmentplan/lib/development-plan.mapper";
 import { developmentPlanService } from "@/modules/rh/person/developmentplan/services/development-plan.service";
+import { developmentPlanDomainOptionsService } from "@/modules/rh/person/developmentplan/services/development-plan-domain-options.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { InputAutocomplete, InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [
@@ -74,6 +81,31 @@ const STATUS_ITEMS = [
     { value: "OVERDUE", label: "Atrasada" },
     { value: "CANCELED", label: "Cancelada" },
 ];
+const COMPETENCY_OPTIONS = {
+    endpoint: "/api/v1/development/competencies",
+    labelField: "name",
+    descriptionField: "type",
+} as const;
+const PROFICIENCY_LEVEL_OPTIONS = {
+    endpoint: "/api/v1/development/proficiency-levels",
+    labelField: "name",
+    descriptionField: "levelOrder",
+} as const;
+const TRACK_OPTIONS = {
+    endpoint: "/api/v1/development/tracks",
+    labelField: "name",
+    descriptionField: "description",
+} as const;
+const EVIDENCE_TYPE_OPTIONS = {
+    endpoint: "/api/v1/development/evidence-types",
+    labelField: "name",
+    descriptionField: "description",
+} as const;
+const ORIGIN_OPTIONS = {
+    endpoint: "/api/v1/development/plan-origins",
+    labelField: "name",
+    descriptionField: "description",
+} as const;
 
 export function DevelopmentPlanFormClient() {
     const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -165,6 +197,63 @@ export function DevelopmentPlanFormClient() {
             })
             .catch(() => undefined);
     }, []);
+    const handleJobPositionChange = useCallback((jobPositionId: string) => {
+        update("jobPositionId", jobPositionId || undefined);
+        if (!jobPositionId) {
+            update("jobPositionName", "");
+            return;
+        }
+        void jobpositionService.getById(jobPositionId)
+            .then((jobPosition) => update("jobPositionName", jobPosition.title))
+            .catch(() => undefined);
+    }, []);
+    const handleDepartmentChange = useCallback((departmentId: string) => {
+        update("departmentId", departmentId || undefined);
+        if (!departmentId) {
+            update("departmentName", "");
+            return;
+        }
+        void departmentService.getById(departmentId)
+            .then((department) => update("departmentName", department.name))
+            .catch(() => undefined);
+    }, []);
+    const handleTargetJobPositionChange = useCallback((targetJobPositionId: string) => {
+        update("targetJobPositionId", targetJobPositionId || undefined);
+        if (!targetJobPositionId) {
+            update("targetJobPositionName", "");
+            return;
+        }
+        void jobpositionService.getById(targetJobPositionId)
+            .then((jobPosition) => update("targetJobPositionName", jobPosition.title))
+            .catch(() => undefined);
+    }, []);
+    const handleManagerChange = useCallback((managerId: string) => {
+        update("managerId", managerId || undefined);
+        if (!managerId) {
+            update("managerName", "");
+            return;
+        }
+        void collaboratorService.getById(managerId)
+            .then((manager) => update("managerName", manager.fullName))
+            .catch(() => undefined);
+    }, []);
+    const searchCompetencies = useCallback((query: string, page: number) => developmentPlanDomainOptionsService.search(COMPETENCY_OPTIONS, query, page), []);
+    const searchProficiencyLevels = useCallback((query: string, page: number) => developmentPlanDomainOptionsService.search(PROFICIENCY_LEVEL_OPTIONS, query, page), []);
+    const searchTracks = useCallback((query: string, page: number) => developmentPlanDomainOptionsService.search(TRACK_OPTIONS, query, page), []);
+    const searchEvidenceTypes = useCallback((query: string, page: number) => developmentPlanDomainOptionsService.search(EVIDENCE_TYPE_OPTIONS, query, page), []);
+    const searchOrigins = useCallback((query: string, page: number) => developmentPlanDomainOptionsService.search(ORIGIN_OPTIONS, query, page), []);
+
+    const pickDomain = <T extends object>(item: T, idField: keyof T, nameField: keyof T, value: string, selected?: SelectItem): T => ({
+        ...item,
+        [idField]: value || undefined,
+        [nameField]: selected?.label ?? "",
+    });
+
+    const pickProficiencyLevel = (item: DevelopmentPlanCompetencyItem, idField: "currentLevelId" | "expectedLevelId", orderField: "currentLevelOrder" | "expectedLevelOrder", value: string, selected?: SelectItem): DevelopmentPlanCompetencyItem => ({
+        ...item,
+        [idField]: value || undefined,
+        [orderField]: selected ? Number(selected.description) || undefined : undefined,
+    });
     const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
@@ -189,16 +278,16 @@ export function DevelopmentPlanFormClient() {
         >
             <FormSection id="geral" title="Dados gerais">
                 <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={handleCollaboratorChange} wrapperClassName="sm:col-span-6" required />
-                <InputString label="Cargo atual" value={form.jobPositionName ?? ""} onValueChange={() => undefined} wrapperClassName="sm:col-span-3" disabled />
-                <InputString label="Departamento" value={form.departmentName ?? ""} onValueChange={() => undefined} wrapperClassName="sm:col-span-3" disabled />
-                <InputString label="Cargo alvo" value={form.targetJobPositionName ?? ""} onValueChange={(v) => update("targetJobPositionName", v)} wrapperClassName="sm:col-span-4" />
-                <InputString label="Gestor responsável" value={form.managerName ?? ""} onValueChange={(v) => update("managerName", v)} wrapperClassName="sm:col-span-4" />
-                <InputString label="Origem/motivo" value={form.originName ?? ""} onValueChange={(v) => update("originName", v)} wrapperClassName="sm:col-span-4" />
+                <JobPositionPickerField label="Cargo atual" value={form.jobPositionId ?? ""} onValueChange={handleJobPositionChange} wrapperClassName="sm:col-span-3" />
+                <DepartmentPickerField label="Departamento atual" value={form.departmentId ?? ""} onValueChange={handleDepartmentChange} wrapperClassName="sm:col-span-3" />
+                <JobPositionPickerField label="Cargo alvo" value={form.targetJobPositionId ?? ""} onValueChange={handleTargetJobPositionChange} wrapperClassName="sm:col-span-4" />
+                <CollaboratorPickerField label="Gestor responsável" hint="Somente colaboradores em cargos de gestão" value={form.managerId ?? ""} onValueChange={handleManagerChange} wrapperClassName="sm:col-span-4" managersOnly />
+                <InputAutocomplete label="Origem/motivo" value={form.originId ?? ""} selectedLabel={form.originName ?? ""} onValueChange={(v, item) => setForm((prev) => ({ ...prev, originId: v || undefined, originName: item?.label ?? "" }))} onSearch={searchOrigins} wrapperClassName="sm:col-span-4" />
                 <InputDate label="Data início" value={form.startDate ?? ""} onValueChange={(v) => update("startDate", v)} wrapperClassName="sm:col-span-4" />
                 <InputDate label="Data fim" value={form.endDate ?? ""} onValueChange={(v) => update("endDate", v)} wrapperClassName="sm:col-span-4" />
                 <InputSelect label="Frequência de check-in" items={FREQUENCY_ITEMS} value={form.checkinFrequency ?? ""} onValueChange={(v) => update("checkinFrequency", (v || undefined) as CheckinFrequency)} wrapperClassName="sm:col-span-4" />
                 <InputNumber label="Dias personalizados" value={form.checkinFrequencyDays ?? null} onValueChange={(v) => update("checkinFrequencyDays", v ?? undefined)} integer wrapperClassName="sm:col-span-4" />
-                <InputString label="Trilha" value={form.trackName ?? ""} onValueChange={(v) => update("trackName", v)} wrapperClassName="sm:col-span-4" />
+                <InputAutocomplete label="Trilha" value={form.trackId ?? ""} selectedLabel={form.trackName ?? ""} onValueChange={(v, item) => setForm((prev) => ({ ...prev, trackId: v || undefined, trackName: item?.label ?? "" }))} onSearch={searchTracks} wrapperClassName="sm:col-span-4" />
                 <InputString label="Observação" value={form.notes ?? ""} onValueChange={(v) => update("notes", v)} wrapperClassName="sm:col-span-12" />
             </FormSection>
 
@@ -206,10 +295,9 @@ export function DevelopmentPlanFormClient() {
                 <div className="sm:col-span-12 grid gap-3">
                     {form.competencies.map((item, index) => (
                         <div key={index} className="grid gap-3 rounded-xl border border-base-300 p-4 sm:grid-cols-12">
-                            <InputString label="Competência" value={item.competencyName ?? ""} onValueChange={(v) => updateArray("competencies", index, { ...item, competencyName: v })} wrapperClassName="sm:col-span-4" required />
-                            <InputString label="ID competência" value={item.competencyId ?? ""} onValueChange={(v) => updateArray("competencies", index, { ...item, competencyId: v })} wrapperClassName="sm:col-span-4" required />
-                            <InputNumber label="Nível atual" value={item.currentLevelOrder ?? null} onValueChange={(v) => updateArray("competencies", index, { ...item, currentLevelOrder: v ?? undefined })} integer wrapperClassName="sm:col-span-2" />
-                            <InputNumber label="Nível esperado" value={item.expectedLevelOrder ?? null} onValueChange={(v) => updateArray("competencies", index, { ...item, expectedLevelOrder: v ?? undefined })} integer wrapperClassName="sm:col-span-2" />
+                            <InputAutocomplete label="Competência" value={item.competencyId ?? ""} selectedLabel={item.competencyName ?? ""} onValueChange={(v, selected) => updateArray("competencies", index, pickDomain(item, "competencyId", "competencyName", v, selected))} onSearch={searchCompetencies} wrapperClassName="sm:col-span-4" required />
+                            <InputAutocomplete label="Nível atual" value={item.currentLevelId ?? ""} selectedLabel={item.currentLevelOrder ? `Ordem ${item.currentLevelOrder}` : ""} onValueChange={(v, selected) => updateArray("competencies", index, pickProficiencyLevel(item, "currentLevelId", "currentLevelOrder", v, selected))} onSearch={searchProficiencyLevels} wrapperClassName="sm:col-span-3" />
+                            <InputAutocomplete label="Nível esperado" value={item.expectedLevelId ?? ""} selectedLabel={item.expectedLevelOrder ? `Ordem ${item.expectedLevelOrder}` : ""} onValueChange={(v, selected) => updateArray("competencies", index, pickProficiencyLevel(item, "expectedLevelId", "expectedLevelOrder", v, selected))} onSearch={searchProficiencyLevels} wrapperClassName="sm:col-span-3" />
                             <InputString label="Observação" value={item.notes ?? ""} onValueChange={(v) => updateArray("competencies", index, { ...item, notes: v })} wrapperClassName="sm:col-span-10" />
                             <Button type="button" variant="warning" leftIcon={<Trash2 className="size-4" />} className="self-end sm:col-span-2" onClick={() => removeArray("competencies", index)}>Remover</Button>
                         </div>
@@ -223,8 +311,9 @@ export function DevelopmentPlanFormClient() {
                     {form.goals.map((goal, goalIndex) => (
                         <div key={goalIndex} className="grid gap-3 rounded-xl border border-base-300 p-4 sm:grid-cols-12">
                             <InputString label="Objetivo" value={goal.title ?? ""} onValueChange={(v) => updateArray("goals", goalIndex, { ...goal, title: v })} wrapperClassName="sm:col-span-6" required />
-                            <InputSelect label="Tipo" items={GOAL_TYPE_ITEMS} value={goal.type ?? ""} onValueChange={(v) => updateArray("goals", goalIndex, { ...goal, type: (v || undefined) as GoalType })} wrapperClassName="sm:col-span-3" />
+                            <InputAutocomplete label={"Compet\u00eancia"} value={goal.competencyId ?? ""} selectedLabel={goal.competencyName ?? ""} onValueChange={(v, selected) => updateArray("goals", goalIndex, pickDomain(goal, "competencyId", "competencyName", v, selected))} onSearch={searchCompetencies} wrapperClassName="sm:col-span-3" />
                             <InputNumber label="Peso" value={goal.weight ?? null} onValueChange={(v) => updateArray("goals", goalIndex, { ...goal, weight: v ?? undefined })} integer wrapperClassName="sm:col-span-3" />
+                            <InputSelect label="Tipo" items={GOAL_TYPE_ITEMS} value={goal.type ?? ""} onValueChange={(v) => updateArray("goals", goalIndex, { ...goal, type: (v || undefined) as GoalType })} wrapperClassName="sm:col-span-3" />
                             <InputString label="Descrição" value={goal.description ?? ""} onValueChange={(v) => updateArray("goals", goalIndex, { ...goal, description: v })} wrapperClassName="sm:col-span-6" />
                             <InputString label="Indicador de sucesso" value={goal.successIndicator ?? ""} onValueChange={(v) => updateArray("goals", goalIndex, { ...goal, successIndicator: v })} wrapperClassName="sm:col-span-4" />
                             <InputDate label="Prazo" value={goal.deadline ?? ""} onValueChange={(v) => updateArray("goals", goalIndex, { ...goal, deadline: v })} wrapperClassName="sm:col-span-2" />
@@ -272,7 +361,7 @@ export function DevelopmentPlanFormClient() {
                 <div className="sm:col-span-12 grid gap-3">
                     {form.evidences.map((item, index) => (
                         <div key={index} className="grid gap-3 rounded-xl border border-base-300 p-4 sm:grid-cols-12">
-                            <InputString label="Tipo" value={item.evidenceTypeName ?? ""} onValueChange={(v) => updateArray("evidences", index, { ...item, evidenceTypeName: v })} wrapperClassName="sm:col-span-3" />
+                            <InputAutocomplete label="Tipo" value={item.evidenceTypeId ?? ""} selectedLabel={item.evidenceTypeName ?? ""} onValueChange={(v, selected) => updateArray("evidences", index, pickDomain(item, "evidenceTypeId", "evidenceTypeName", v, selected))} onSearch={searchEvidenceTypes} wrapperClassName="sm:col-span-3" />
                             <InputDate label="Data" value={item.date ?? ""} onValueChange={(v) => updateArray("evidences", index, { ...item, date: v })} wrapperClassName="sm:col-span-3" />
                             <InputString label="Arquivo" value={item.file ?? ""} onValueChange={(v) => updateArray("evidences", index, { ...item, file: v })} wrapperClassName="sm:col-span-3" />
                             <InputString label="Link" value={item.link ?? ""} onValueChange={(v) => updateArray("evidences", index, { ...item, link: v })} wrapperClassName="sm:col-span-3" />

@@ -116,10 +116,10 @@ export class DevelopmentPlan {
 
 export class DevelopmentPlanCreateDto {
     collaboratorId!: string;
-
-
-
-
+    jobPositionId?: string;
+    jobPositionName?: string;
+    departmentId?: string;
+    departmentName?: string;
     targetJobPositionId?: string;
     targetJobPositionName?: string;
 
@@ -144,8 +144,4 @@ export class DevelopmentPlanCreateDto {
 export class DevelopmentPlanFormDto extends DevelopmentPlanCreateDto {
     collaboratorName?: string;
     registrationNumber?: string;
-    jobPositionId?: string;
-    jobPositionName?: string;
-    departmentId?: string;
-    departmentName?: string;
 }

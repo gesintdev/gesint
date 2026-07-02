@@ -119,6 +119,10 @@ public class DevelopmentPlanMapper {
 
     private void applyScalarFields(DevelopmentPlan entity, DevelopmentPlanRequestDto dto, boolean creating) {
         entity.setCollaboratorId(dto.getCollaboratorId());
+        entity.setJobPositionId(dto.getJobPositionId());
+        entity.setJobPositionName(dto.getJobPositionName());
+        entity.setDepartmentId(dto.getDepartmentId());
+        entity.setDepartmentName(dto.getDepartmentName());
         entity.setTargetJobPositionId(dto.getTargetJobPositionId());
         entity.setTargetJobPositionName(dto.getTargetJobPositionName());
         entity.setManagerId(dto.getManagerId());

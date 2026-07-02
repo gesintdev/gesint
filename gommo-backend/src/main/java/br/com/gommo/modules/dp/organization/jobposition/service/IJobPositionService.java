@@ -6,9 +6,10 @@ import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.IBaseService;
 import br.com.gommo.modules.dp.organization.jobposition.dto.JobPositionRequestDto;
 import br.com.gommo.modules.dp.organization.jobposition.dto.JobPositionResponseDto;
+import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNatureEnum;
 
 public interface IJobPositionService extends IBaseService<JobPositionRequestDto, JobPositionResponseDto> {
 
     PageableResponseDto<JobPositionResponseDto> search(
-            int page, int size, String title, String cboCode, UUID departmentId);
+            int page, int size, String title, String cboCode, UUID departmentId, JobPositionNatureEnum nature);
 }

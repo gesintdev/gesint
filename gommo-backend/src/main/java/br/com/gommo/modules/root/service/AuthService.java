@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +41,9 @@ import br.com.gommo.modules.root.repository.RefreshTokenRepository;
 
 @Service
 public class AuthService implements IAuthService {
+
+    private static final ZoneId SESSION_ZONE = ZoneId.of("America/Sao_Paulo");
+    private static final long REFRESH_REPLAY_GRACE_SECONDS = 30;
 
     private final AppUserRepository appUserRepository;
     private final PermissionRepository permissionRepository;
@@ -109,25 +114,29 @@ public class AuthService implements IAuthService {
             throw AuthException.invalidRefresh();
         }
 
+        OffsetDateTime now = OffsetDateTime.now();
         String tokenHash = hashToken(rawRefresh);
-        if (blacklistRepository.existsByTokenHash(tokenHash)) {
+        RefreshTokenBlacklist blacklisted = blacklistRepository.findByTokenHash(tokenHash).orElse(null);
+        boolean replayGrace = isWithinReplayGrace(blacklisted, now);
+        if (blacklisted != null && !replayGrace) {
             throw AuthException.revokedRefresh();
         }
 
         RefreshToken stored = refreshTokenRepository
-                .findByTokenHashAndRevokedFalse(tokenHash)
+                .findByTokenHashForUpdate(tokenHash)
                 .orElseThrow(AuthException::invalidRefresh);
 
-        if (stored.getExpiresAt().isBefore(OffsetDateTime.now())) {
-            throw AuthException.expiredRefresh();
+        if (stored.isRevoked() && !replayGrace) {
+            blacklisted = blacklistRepository.findByTokenHash(tokenHash).orElse(null);
+            replayGrace = isWithinReplayGrace(blacklisted, now);
+            if (!replayGrace) {
+                throw AuthException.revokedRefresh();
+            }
         }
 
-        stored.setRevoked(true);
-        refreshTokenRepository.save(stored);
-        blacklistRepository.save(RefreshTokenBlacklist.builder()
-                .tokenHash(tokenHash)
-                .revokedAt(OffsetDateTime.now())
-                .build());
+        if (stored.getExpiresAt().isBefore(now)) {
+            throw AuthException.expiredRefresh();
+        }
 
         UUID userId = jwtService.extractUserId(rawRefresh);
         if (multiTenantProperties.isEnabled()) {
@@ -145,10 +154,23 @@ public class AuthService implements IAuthService {
 
         assertTenantUserAccess(user.getId());
 
-        return buildTokenResponse(user);
+        if (stored.isRevoked()) {
+            return buildTokenResponse(user);
+        }
+
+        if (shouldRotateRefreshToken(stored, now)) {
+            revokeRefreshToken(stored, tokenHash, now);
+            return buildTokenResponse(user);
+        }
+
+        return buildTokenResponse(user, rawRefresh);
     }
 
     private TokenResponseDto buildTokenResponse(AppUser user) {
+        return buildTokenResponse(user, null);
+    }
+
+    private TokenResponseDto buildTokenResponse(AppUser user, String reusableRefreshToken) {
         List<String> permissions = resolvePermissions(user);
         UUID tenantId = null;
         String tenantSlug = null;
@@ -162,8 +184,11 @@ public class AuthService implements IAuthService {
 
         String accessToken =
                 jwtService.generateAccessToken(user.getId(), user.getUsername(), permissions, tenantId, tenantSlug);
-        String refreshToken = jwtService.generateRefreshToken(user.getId(), tenantId, tenantSlug);
-        persistRefreshToken(user.getId(), refreshToken);
+        String refreshToken = reusableRefreshToken;
+        if (refreshToken == null) {
+            refreshToken = jwtService.generateRefreshToken(user.getId(), tenantId, tenantSlug);
+            persistRefreshToken(user.getId(), refreshToken);
+        }
 
         boolean platformAdmin =
                 multiTenantProperties.isEnabled() && platformAdminUserLookup.isPlatformAdmin(user.getUsername());
@@ -235,13 +260,43 @@ public class AuthService implements IAuthService {
     }
 
     private void persistRefreshToken(UUID userId, String rawToken) {
+        OffsetDateTime now = OffsetDateTime.now();
         refreshTokenRepository.save(RefreshToken.builder()
                 .userId(userId)
                 .tokenHash(hashToken(rawToken))
-                .expiresAt(OffsetDateTime.now().plusDays(jwtProperties.refreshTokenDays()))
+                .expiresAt(nextSessionBoundary())
                 .revoked(false)
-                .createdAt(OffsetDateTime.now())
+                .createdAt(now)
                 .build());
+    }
+
+    private boolean shouldRotateRefreshToken(RefreshToken refreshToken, OffsetDateTime now) {
+        OffsetDateTime rotationAt = refreshToken.getCreatedAt().plusMinutes(jwtProperties.refreshTokenRotationMinutes());
+        return !now.isBefore(rotationAt);
+    }
+
+    private boolean isWithinReplayGrace(RefreshTokenBlacklist blacklisted, OffsetDateTime now) {
+        if (blacklisted == null) {
+            return false;
+        }
+        return !now.isAfter(blacklisted.getRevokedAt().plusSeconds(REFRESH_REPLAY_GRACE_SECONDS));
+    }
+
+    private void revokeRefreshToken(RefreshToken stored, String tokenHash, OffsetDateTime now) {
+        stored.setRevoked(true);
+        refreshTokenRepository.save(stored);
+        blacklistRepository.save(RefreshTokenBlacklist.builder()
+                .tokenHash(tokenHash)
+                .revokedAt(now)
+                .build());
+    }
+
+    private OffsetDateTime nextSessionBoundary() {
+        return ZonedDateTime.now(SESSION_ZONE)
+                .toLocalDate()
+                .plusDays(1)
+                .atStartOfDay(SESSION_ZONE)
+                .toOffsetDateTime();
     }
 
     private String hashToken(String token) {

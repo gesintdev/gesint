@@ -7,6 +7,7 @@ declare module "next-auth" {
     interface User {
         accessToken?: string;
         refreshToken?: string;
+        refreshTokenIssuedAt?: number;
         accessTokenExpires?: number;
         photoObjectId?: string;
         permissions?: string[];
@@ -30,7 +31,9 @@ declare module "next-auth/jwt" {
     interface JWT {
         accessToken?: string;
         refreshToken?: string;
+        refreshTokenIssuedAt?: number;
         accessTokenExpires?: number;
+        refreshRetryAfter?: number;
         error?: AuthTokenError;
         email?: string | null;
         photoObjectId?: string;

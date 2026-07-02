@@ -5,7 +5,7 @@ import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { DepartmentPickerField } from "@/modules/dp/organization/department/components/DepartmentPickerField";
-import type { JobPositionCreateDto } from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
+import type { JobPositionCreateDto, JobPositionNature } from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
 import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
 import { jobpositionKeys } from "@/modules/dp/organization/jobposition/jobposition.query";
 import {
@@ -18,10 +18,18 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputString } from "@/shared/components/ui/input/index";
+import { InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Cargo" }];
+
+const JOB_POSITION_NATURE_ITEMS = [
+    { value: "OPERATIONAL", label: "Operacional" },
+    { value: "TECHNICAL", label: "Técnico" },
+    { value: "SPECIALIST", label: "Especialista" },
+    { value: "LEADERSHIP", label: "Gestão" },
+    { value: "EXECUTIVE", label: "Executivo" },
+];
 
 export function JobPositionFormClient() {
     const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -139,10 +147,17 @@ export function JobPositionFormClient() {
                     onValueChange={(v) => update("cboCode", v)}
                     wrapperClassName="sm:col-span-6"
                 />
+                <InputSelect
+                    label="Natureza do cargo"
+                    items={JOB_POSITION_NATURE_ITEMS}
+                    value={form.nature ?? ""}
+                    onValueChange={(v) => update("nature", (v || undefined) as JobPositionNature | undefined)}
+                    wrapperClassName="sm:col-span-6"
+                />
                 <DepartmentPickerField
                     value={form.departmentId ?? ""}
                     onValueChange={(v) => update("departmentId", v || undefined)}
-                    wrapperClassName="sm:col-span-12"
+                    wrapperClassName="sm:col-span-6"
                 />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

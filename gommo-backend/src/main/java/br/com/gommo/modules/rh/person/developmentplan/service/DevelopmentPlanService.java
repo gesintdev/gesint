@@ -176,20 +176,29 @@ public class DevelopmentPlanService extends BaseService<DevelopmentPlan, Develop
 
     private void applyCollaboratorSnapshot(DevelopmentPlan entity) {
         AdmissionProcess admission = latestCompletedAdmission(entity.getCollaboratorId());
-        JobPosition jobPosition = admission.getJobPositionId() != null
-                ? jobPositionRepository.findByIdAndStatusNot(admission.getJobPositionId(), StatusEnum.DELETED).orElse(null)
+        UUID jobPositionId = entity.getJobPositionId() != null ? entity.getJobPositionId() : admission.getJobPositionId();
+        JobPosition jobPosition = jobPositionId != null
+                ? jobPositionRepository.findByIdAndStatusNot(jobPositionId, StatusEnum.DELETED).orElse(null)
                 : null;
-        UUID departmentId = admission.getDepartmentId() != null ? admission.getDepartmentId() : jobPositionDepartmentId(jobPosition);
+        UUID departmentId = entity.getDepartmentId() != null
+                ? entity.getDepartmentId()
+                : (admission.getDepartmentId() != null ? admission.getDepartmentId() : jobPositionDepartmentId(jobPosition));
         Department department = departmentId != null
                 ? departmentRepository.findByIdAndStatusNot(departmentId, StatusEnum.DELETED).orElse(null)
+                : null;
+        JobPosition targetJobPosition = entity.getTargetJobPositionId() != null
+                ? jobPositionRepository.findByIdAndStatusNot(entity.getTargetJobPositionId(), StatusEnum.DELETED).orElse(null)
                 : null;
 
         entity.setCollaboratorName(displayName(admission));
         entity.setRegistrationNumber(null);
-        entity.setJobPositionId(admission.getJobPositionId());
-        entity.setJobPositionName(jobPosition != null ? jobPosition.getTitle() : null);
+        entity.setJobPositionId(jobPositionId);
+        entity.setJobPositionName(jobPosition != null ? jobPosition.getTitle() : entity.getJobPositionName());
         entity.setDepartmentId(departmentId);
-        entity.setDepartmentName(department != null ? department.getName() : null);
+        entity.setDepartmentName(department != null ? department.getName() : entity.getDepartmentName());
+        if (targetJobPosition != null) {
+            entity.setTargetJobPositionName(targetJobPosition.getTitle());
+        }
     }
 
     private AdmissionProcess latestCompletedAdmission(UUID collaboratorId) {

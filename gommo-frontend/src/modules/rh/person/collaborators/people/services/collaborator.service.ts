@@ -29,6 +29,9 @@ class CollaboratorService extends BaseService<Collaborator, CollaboratorCreateDt
     getAdmitted(): Promise<Collaborator[]> {
         return apiFetch<Collaborator[]>(`${this.basePath}/admitted`);
     }
+    getAdmittedManagers(): Promise<Collaborator[]> {
+        return apiFetch<Collaborator[]>(`${this.basePath}/admitted-managers`);
+    }
     /** Busca paginada para autocomplete (máx. 6 por página). */
     async searchForAutocomplete(query: string, page = 0): Promise<SelectSearchResult> {
         const result = await this.searchAdmitted({ page, size: AUTOCOMPLETE_PAGE_SIZE, fullName: query, cpf: query });
@@ -39,7 +42,12 @@ class CollaboratorService extends BaseService<Collaborator, CollaboratorCreateDt
         };
     }
     async searchAdmitted(params: CollaboratorSearchParams): Promise<PageableResponseDto<Collaborator>> {
-        const all = await this.getAdmitted();
+        return this.searchCollaborators(await this.getAdmitted(), params);
+    }
+    async searchAdmittedManagers(params: CollaboratorSearchParams): Promise<PageableResponseDto<Collaborator>> {
+        return this.searchCollaborators(await this.getAdmittedManagers(), params);
+    }
+    private searchCollaborators(all: Collaborator[], params: CollaboratorSearchParams): PageableResponseDto<Collaborator> {
         const name = params.fullName?.trim().toLowerCase() ?? "";
         const cpfDigits = digitsOnly(params.cpf ?? "");
         const filtered = all.filter((p) => {
@@ -58,6 +66,22 @@ class CollaboratorService extends BaseService<Collaborator, CollaboratorCreateDt
             totalElements: filtered.length,
             totalPages: Math.max(1, Math.ceil(filtered.length / params.size)),
         };
+    }
+    async searchManagersForAutocomplete(query: string, page = 0): Promise<SelectSearchResult> {
+        const result = await this.searchAdmittedManagers({ page, size: AUTOCOMPLETE_PAGE_SIZE, fullName: query, cpf: query });
+        return {
+            items: result.content.map(toCollaboratorSelectItem),
+            page,
+            hasMore: page + 1 < result.totalPages,
+        };
+    }
+    searchManagersForPicker(params: EntityPickerSearchParams): Promise<PageableResponseDto<Collaborator>> {
+        return this.searchAdmittedManagers({
+            page: params.page,
+            size: params.size,
+            fullName: params.filters.fullName,
+            cpf: params.filters.cpf,
+        });
     }
     searchForPicker(params: EntityPickerSearchParams): Promise<PageableResponseDto<Collaborator>> {
         return this.searchAdmitted({

@@ -2,8 +2,11 @@ import type { JWT } from "next-auth/jwt";
 
 import { doRequest } from "@/shared/lib/api.client";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
+
 /** Renova o access token ~60s antes de expirar */
 export const ACCESS_TOKEN_REFRESH_BUFFER_MS = 60_000;
+export const REFRESH_TOKEN_ROTATION_INTERVAL_MS = 15 * 60_000;
+const REFRESH_FAILURE_RETRY_DELAY_MS = 15_000;
 
 type TokenResponse = {
     accessToken: string;
@@ -21,7 +24,20 @@ const refreshRequests = new Map<string, Promise<JWT>>();
 export function isAccessTokenExpired(token: JWT): boolean {
     const expires = token.accessTokenExpires;
     if (typeof expires !== "number") return true;
+    const retryAfter = token.refreshRetryAfter;
+    if (typeof retryAfter === "number" && Date.now() < retryAfter) return false;
+    if (isRefreshTokenRotationDue(token)) return true;
     return Date.now() >= expires - ACCESS_TOKEN_REFRESH_BUFFER_MS;
+}
+
+function isRefreshTokenRotationDue(token: JWT): boolean {
+    const issuedAt = token.refreshTokenIssuedAt;
+    return typeof issuedAt === "number" && Date.now() >= issuedAt + REFRESH_TOKEN_ROTATION_INTERVAL_MS;
+}
+
+function isAccessTokenHardExpired(token: JWT): boolean {
+    const expires = token.accessTokenExpires;
+    return typeof expires !== "number" || Date.now() >= expires;
 }
 
 export async function refreshAccessToken(token: JWT): Promise<JWT> {
@@ -53,16 +69,31 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
             skipAuth: true,
             headers: buildTenantRequestHeaders(token.tenantSlug as string | undefined),
         });
+        const refreshTokenChanged = data.refreshToken !== refreshToken;
         return {
             ...token,
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
+            refreshTokenIssuedAt: refreshTokenChanged ? Date.now() : token.refreshTokenIssuedAt ?? Date.now(),
             accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
             photoObjectId: data.photoObjectId,
             permissions: data.permissions ?? (token.permissions as string[] | undefined) ?? [],
+            refreshRetryAfter: undefined,
             error: undefined,
         };
-    } catch {
+    } catch (error) {
+        const code =
+            typeof error === "object" && error !== null && "code" in error
+                ? String((error as { code?: unknown }).code)
+                : "UNKNOWN";
+        console.warn(`Falha ao renovar access token (${code}).`);
+        if (!isAccessTokenHardExpired(token)) {
+            return {
+                ...token,
+                refreshRetryAfter: Date.now() + REFRESH_FAILURE_RETRY_DELAY_MS,
+                error: undefined,
+            };
+        }
         return { ...token, error: "RefreshAccessTokenError" };
     }
 }

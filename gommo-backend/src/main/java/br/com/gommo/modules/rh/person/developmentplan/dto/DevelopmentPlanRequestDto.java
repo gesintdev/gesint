@@ -19,6 +19,10 @@ import br.com.gommo.modules.rh.person.developmentplan.entity.DevelopmentPlanStat
 public class DevelopmentPlanRequestDto {
     @NotNull private UUID collaboratorId;
 
+    private UUID jobPositionId;
+    private String jobPositionName;
+    private UUID departmentId;
+    private String departmentName;
     private UUID targetJobPositionId;
     private String targetJobPositionName;
     private UUID managerId;

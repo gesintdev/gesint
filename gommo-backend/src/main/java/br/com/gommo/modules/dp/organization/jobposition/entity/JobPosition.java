@@ -2,6 +2,8 @@ package br.com.gommo.modules.dp.organization.jobposition.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,6 +32,10 @@ public class JobPosition extends AuditEntity {
 
     @Column(name = "cbo_code", length = 10)
     private String cboCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 32)
+    private JobPositionNatureEnum nature;
 
     @Column(columnDefinition = "TEXT")
     private String description;

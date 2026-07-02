@@ -14,6 +14,7 @@ public class JobPositionMapper {
                 .departmentId(dto.getDepartmentId())
                 .title(dto.getTitle())
                 .cboCode(dto.getCboCode())
+                .nature(dto.getNature())
                 .description(dto.getDescription())
                 .build();
     }
@@ -22,6 +23,7 @@ public class JobPositionMapper {
         entity.setDepartmentId(dto.getDepartmentId());
         entity.setTitle(dto.getTitle());
         entity.setCboCode(dto.getCboCode());
+        entity.setNature(dto.getNature());
         entity.setDescription(dto.getDescription());
     }
 
@@ -33,6 +35,7 @@ public class JobPositionMapper {
                 .departmentId(entity.getDepartmentId())
                 .title(entity.getTitle())
                 .cboCode(entity.getCboCode())
+                .nature(entity.getNature())
                 .description(entity.getDescription())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())

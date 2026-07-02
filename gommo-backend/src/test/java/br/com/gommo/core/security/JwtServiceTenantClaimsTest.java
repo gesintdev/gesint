@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class JwtServiceTenantClaimsTest {
 
     private final JwtService jwtService =
-            new JwtService(new JwtProperties("test-jwt-secret-only-for-unit-tests-min-32-chars", 15, 7));
+            new JwtService(new JwtProperties("test-jwt-secret-only-for-unit-tests-min-32-chars", 8, 15));
 
     @Test
     void accessTokenCarriesTenantClaims() {

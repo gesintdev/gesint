@@ -5,6 +5,7 @@ export function jobpositionToFormDto(entity: JobPosition): JobPositionCreateDto 
         title: entity.title ?? "",
         cboCode: entity.cboCode ?? "",
         departmentId: entity.departmentId ?? "",
+        nature: entity.nature ?? undefined,
     };
 }
 
@@ -12,4 +13,5 @@ export const emptyJobPositionForm = (): JobPositionCreateDto => ({
     title: "",
     cboCode: "",
     departmentId: "",
+    nature: undefined,
 });

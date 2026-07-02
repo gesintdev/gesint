@@ -17,6 +17,7 @@ import br.com.gommo.core.util.TextSearchUtils;
 import br.com.gommo.modules.dp.organization.jobposition.dto.JobPositionRequestDto;
 import br.com.gommo.modules.dp.organization.jobposition.dto.JobPositionResponseDto;
 import br.com.gommo.modules.dp.organization.jobposition.entity.JobPosition;
+import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNatureEnum;
 import br.com.gommo.modules.dp.organization.jobposition.exception.JobPositionException;
 import br.com.gommo.modules.dp.organization.jobposition.mapper.JobPositionMapper;
 import br.com.gommo.modules.dp.organization.jobposition.repository.JobPositionRepository;
@@ -59,13 +60,14 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('jobposition:read')")
     public PageableResponseDto<JobPositionResponseDto> search(
-            int page, int size, String title, String cboCode, UUID departmentId) {
+            int page, int size, String title, String cboCode, UUID departmentId, JobPositionNatureEnum nature) {
         Pageable pageable = PageRequest.of(page, size);
         Page<JobPosition> result = repository.search(
                 StatusEnum.DELETED,
                 TextSearchUtils.toLikePattern(title),
                 TextSearchUtils.toLikePattern(cboCode),
                 departmentId,
+                nature,
                 pageable);
         List<JobPositionResponseDto> content =
                 result.getContent().stream().map(mapper::toResponse).toList();

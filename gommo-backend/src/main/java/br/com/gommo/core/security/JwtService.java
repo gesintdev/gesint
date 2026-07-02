@@ -6,6 +6,8 @@ import io.jsonwebtoken.security.Keys;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +21,7 @@ public class JwtService {
 
     public static final String CLAIM_TENANT_ID = "tenantId";
     public static final String CLAIM_TENANT_SLUG = "tenantSlug";
+    private static final ZoneId SESSION_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final JwtProperties properties;
     private final SecretKey secretKey;
@@ -50,7 +53,7 @@ public class JwtService {
 
     public String generateRefreshToken(UUID userId, UUID tenantId, String tenantSlug) {
         Instant now = Instant.now();
-        Instant expiry = now.plusSeconds(properties.refreshTokenDays() * 24 * 60 * 60);
+        Instant expiry = nextSessionBoundary();
         var builder = Jwts.builder()
                 .subject(userId.toString())
                 .claim("type", "refresh")
@@ -95,6 +98,14 @@ public class JwtService {
         } catch (io.jsonwebtoken.JwtException ex) {
             return false;
         }
+    }
+
+    private Instant nextSessionBoundary() {
+        return ZonedDateTime.now(SESSION_ZONE)
+                .toLocalDate()
+                .plusDays(1)
+                .atStartOfDay(SESSION_ZONE)
+                .toInstant();
     }
 
     private static void applyTenantClaims(io.jsonwebtoken.JwtBuilder builder, UUID tenantId, String tenantSlug) {

@@ -4,8 +4,11 @@ export const emptyDevelopmentPlanForm = (): DevelopmentPlanFormDto => ({
     collaboratorId: "",
     collaboratorName: "",
     registrationNumber: "",
+    jobPositionId: "",
     jobPositionName: "",
+    targetJobPositionId: "",
     targetJobPositionName: "",
+    departmentId: "",
     departmentName: "",
     managerName: "",
     trackName: "",
@@ -52,10 +55,6 @@ export const developmentPlanToRequestDto = (form: DevelopmentPlanFormDto): Devel
     const {
         collaboratorName: _collaboratorName,
         registrationNumber: _registrationNumber,
-        jobPositionId: _jobPositionId,
-        jobPositionName: _jobPositionName,
-        departmentId: _departmentId,
-        departmentName: _departmentName,
         ...request
     } = form;
     return request;

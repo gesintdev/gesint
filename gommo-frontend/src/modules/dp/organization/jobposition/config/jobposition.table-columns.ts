@@ -16,6 +16,12 @@ export const JOBPOSITION_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.TEXT,
     },
     {
+        id: "nature",
+        columnName: "Natureza",
+        fieldValue: "nature",
+        dataType: TableDataType.TEXT,
+    },
+    {
         id: "departmentId",
         columnName: "Departamento",
         fieldValue: "departmentId",

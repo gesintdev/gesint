@@ -7,4 +7,6 @@ import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorRespo
 public interface ICollaboratorService extends IBaseService<CollaboratorRequestDto, CollaboratorResponseDto> {
 
     java.util.List<CollaboratorResponseDto> findAdmitted();
+
+    java.util.List<CollaboratorResponseDto> findAdmittedManagers();
 }

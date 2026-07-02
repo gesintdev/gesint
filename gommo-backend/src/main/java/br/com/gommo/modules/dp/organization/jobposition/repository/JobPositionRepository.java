@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.dp.organization.jobposition.entity.JobPosition;
+import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNatureEnum;
 
 @Repository
 public interface JobPositionRepository extends IBaseRepository<JobPosition> {
@@ -22,11 +23,13 @@ public interface JobPositionRepository extends IBaseRepository<JobPosition> {
               AND (:titlePattern IS NULL OR LOWER(j.title) LIKE :titlePattern)
               AND (:cboCodePattern IS NULL OR LOWER(j.cboCode) LIKE :cboCodePattern)
               AND (:departmentId IS NULL OR j.departmentId IS NULL OR j.departmentId = :departmentId)
+              AND (:nature IS NULL OR j.nature = :nature)
             """)
     Page<JobPosition> search(
             @Param("deleted") StatusEnum deleted,
             @Param("titlePattern") String titlePattern,
             @Param("cboCodePattern") String cboCodePattern,
             @Param("departmentId") UUID departmentId,
+            @Param("nature") JobPositionNatureEnum nature,
             Pageable pageable);
 }

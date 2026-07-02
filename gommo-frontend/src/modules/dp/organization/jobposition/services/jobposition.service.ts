@@ -1,5 +1,5 @@
 import { JOBPOSITION_TABLE_COLUMNS } from "@/modules/dp/organization/jobposition/config/jobposition.table-columns";
-import type { JobPosition, JobPositionCreateDto } from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
+import type { JobPosition, JobPositionCreateDto, JobPositionNature } from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
 import { BaseService } from "@/modules/root/services/base.service";
 import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
 import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
@@ -15,6 +15,7 @@ export type JobPositionSearchParams = {
     title?: string;
     cboCode?: string;
     departmentId?: string;
+    nature?: JobPositionNature;
 };
 
 class JobPositionService extends BaseService<JobPosition, JobPositionCreateDto, JobPositionCreateDto> {
@@ -28,6 +29,7 @@ class JobPositionService extends BaseService<JobPosition, JobPositionCreateDto, 
         if (params.title?.trim()) qs.set("title", params.title.trim());
         if (params.cboCode?.trim()) qs.set("cboCode", params.cboCode.trim());
         if (params.departmentId?.trim()) qs.set("departmentId", params.departmentId.trim());
+        if (params.nature) qs.set("nature", params.nature);
         return apiFetch<PageableResponseDto<JobPosition>>(`${this.basePath}/search?${qs}`);
     }
     async searchForAutocomplete(query: string, page = 0, departmentId?: string): Promise<SelectSearchResult> {

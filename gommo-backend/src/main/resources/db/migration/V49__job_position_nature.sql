@@ -1,0 +1,2 @@
+ALTER TABLE job_position
+    ADD COLUMN IF NOT EXISTS nature VARCHAR(32);

@@ -44,8 +44,8 @@ gommo:
   security:
     jwt:
       secret: ${JWT_SECRET}
-      access-token-minutes: 15
-      refresh-token-days: 7
+      access-token-minutes: 8
+      refresh-token-rotation-minutes: 15
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://*.localhost:3000}
   multi-tenant:

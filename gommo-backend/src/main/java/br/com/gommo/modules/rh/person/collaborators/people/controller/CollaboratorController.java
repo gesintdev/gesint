@@ -23,9 +23,15 @@ public class CollaboratorController extends BaseController<CollaboratorRequestDt
         this.collaboratorService = collaboratorService;
     }
 
-    /** Colaboradores gerados por admissões concluídas (seleção em outros módulos). */
+    /** Colaboradores gerados por admissoes concluidas (selecao em outros modulos). */
     @GetMapping("/admitted")
     public ResponseEntity<List<CollaboratorResponseDto>> findAdmitted() {
         return ResponseEntity.ok(collaboratorService.findAdmitted());
+    }
+
+    /** Colaboradores admitidos em cargos com natureza de gestao. */
+    @GetMapping("/admitted-managers")
+    public ResponseEntity<List<CollaboratorResponseDto>> findAdmittedManagers() {
+        return ResponseEntity.ok(collaboratorService.findAdmittedManagers());
     }
 }

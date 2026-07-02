@@ -3,6 +3,7 @@ package br.com.gommo.modules.rh.person.collaborators.people.service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,8 @@ import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
+import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNatureEnum;
+import br.com.gommo.modules.dp.organization.jobposition.repository.JobPositionRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorRequestDto;
@@ -33,19 +36,22 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
     private final CollaboratorContactRepository contactRepository;
     private final AdmissionProcessRepository admissionProcessRepository;
     private final OffboardingRepository offboardingRepository;
+    private final JobPositionRepository jobPositionRepository;
 
     public CollaboratorService(
             CollaboratorRepository CollaboratorRepository,
             CollaboratorMapper CollaboratorMapper,
             CollaboratorContactRepository contactRepository,
             AdmissionProcessRepository admissionProcessRepository,
-            OffboardingRepository offboardingRepository) {
+            OffboardingRepository offboardingRepository,
+            JobPositionRepository jobPositionRepository) {
         super(CollaboratorRepository, CollaboratorMapper::toResponse, CollaboratorMapper::toEntity);
         this.CollaboratorRepository = CollaboratorRepository;
         this.CollaboratorMapper = CollaboratorMapper;
         this.contactRepository = contactRepository;
         this.admissionProcessRepository = admissionProcessRepository;
         this.offboardingRepository = offboardingRepository;
+        this.jobPositionRepository = jobPositionRepository;
     }
 
     @Override
@@ -116,6 +122,39 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
         }
         List<UUID> offboardedIds = offboardingRepository.findOffboardedCollaboratorIds(StatusEnum.DELETED);
         return CollaboratorRepository.findAllById(ids).stream()
+                .filter(c -> c.getStatus() != StatusEnum.DELETED)
+                .filter(c -> !offboardedIds.contains(c.getId()))
+                .sorted(Comparator.comparing(Collaborator::getFullName, String.CASE_INSENSITIVE_ORDER))
+                .map(this::toResponseWithContact)
+                .toList();
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('collaborator:picker')")
+    public List<CollaboratorResponseDto> findAdmittedManagers() {
+        Set<UUID> managerJobPositionIds = jobPositionRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED)
+                .stream()
+                .filter(j -> j.getNature() == JobPositionNatureEnum.LEADERSHIP
+                        || j.getNature() == JobPositionNatureEnum.EXECUTIVE)
+                .map(j -> j.getId())
+                .collect(java.util.stream.Collectors.toSet());
+        if (managerJobPositionIds.isEmpty()) {
+            return List.of();
+        }
+        Set<UUID> managerCollaboratorIds = admissionProcessRepository
+                .findByAdmissionStatusAndCollaboratorIdIsNotNullAndStatusNot(
+                        AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED)
+                .stream()
+                .filter(a -> a.getJobPositionId() != null && managerJobPositionIds.contains(a.getJobPositionId()))
+                .map(a -> a.getCollaboratorId())
+                .collect(java.util.stream.Collectors.toSet());
+        if (managerCollaboratorIds.isEmpty()) {
+            return List.of();
+        }
+        List<UUID> offboardedIds = offboardingRepository.findOffboardedCollaboratorIds(StatusEnum.DELETED);
+        return CollaboratorRepository.findAllById(managerCollaboratorIds).stream()
                 .filter(c -> c.getStatus() != StatusEnum.DELETED)
                 .filter(c -> !offboardedIds.contains(c.getId()))
                 .sorted(Comparator.comparing(Collaborator::getFullName, String.CASE_INSENSITIVE_ORDER))

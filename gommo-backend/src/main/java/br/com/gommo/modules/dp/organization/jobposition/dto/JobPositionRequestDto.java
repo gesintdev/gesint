@@ -10,6 +10,8 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNatureEnum;
+
 @Getter
 @Setter
 @Builder
@@ -22,6 +24,8 @@ public class JobPositionRequestDto {
     @NotBlank @Size(max = 120) private String title;
 
     @Size(max = 10) private String cboCode;
+
+    private JobPositionNatureEnum nature;
 
     private String description;
 }

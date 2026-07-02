@@ -12,6 +12,7 @@ import br.com.gommo.core.base.controller.BaseController;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.modules.dp.organization.jobposition.dto.JobPositionRequestDto;
 import br.com.gommo.modules.dp.organization.jobposition.dto.JobPositionResponseDto;
+import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNatureEnum;
 import br.com.gommo.modules.dp.organization.jobposition.service.IJobPositionService;
 
 @RestController
@@ -31,7 +32,8 @@ public class JobPositionController extends BaseController<JobPositionRequestDto,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String cboCode,
-            @RequestParam(required = false) UUID departmentId) {
-        return ResponseEntity.ok(jobPositionService.search(page, size, title, cboCode, departmentId));
+            @RequestParam(required = false) UUID departmentId,
+            @RequestParam(required = false) JobPositionNatureEnum nature) {
+        return ResponseEntity.ok(jobPositionService.search(page, size, title, cboCode, departmentId, nature));
     }
 }

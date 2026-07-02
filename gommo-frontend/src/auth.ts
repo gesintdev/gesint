@@ -87,6 +87,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         accessToken: data.accessToken,
                         refreshToken: data.refreshToken,
                         accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
+                        refreshTokenIssuedAt: Date.now(),
                     };
                 } catch {
                     return null;
@@ -129,6 +130,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     tenantSlug: user.tenantSlug,
                     accessToken: user.accessToken,
                     refreshToken: user.refreshToken,
+                    refreshTokenIssuedAt: user.refreshTokenIssuedAt,
                     accessTokenExpires: user.accessTokenExpires,
                     error: undefined,
                 };

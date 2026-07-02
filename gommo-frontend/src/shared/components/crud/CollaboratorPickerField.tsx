@@ -15,6 +15,7 @@ type CollaboratorPickerFieldProps = {
     error?: string;
     disabled?: boolean;
     wrapperClassName?: string;
+    managersOnly?: boolean;
 };
 
 export function CollaboratorPickerField({
@@ -26,10 +27,14 @@ export function CollaboratorPickerField({
     error,
     disabled,
     wrapperClassName,
+    managersOnly,
 }: CollaboratorPickerFieldProps) {
     const onSearch = useCallback(
-        (query: string, page: number) => collaboratorService.searchForAutocomplete(query, page),
-        [],
+        (query: string, page: number) =>
+            managersOnly
+                ? collaboratorService.searchManagersForAutocomplete(query, page)
+                : collaboratorService.searchForAutocomplete(query, page),
+        [managersOnly],
     );
     const resolveLabel = useCallback(async (id: string) => {
         const collaborator = await collaboratorService.getById(id);
@@ -49,7 +54,16 @@ export function CollaboratorPickerField({
             error={error}
             disabled={disabled}
             wrapperClassName={wrapperClassName}
-            advancedSearch={COLLABORATOR_PICKER_ADVANCED}
+            advancedSearch={
+                managersOnly
+                    ? {
+                          ...COLLABORATOR_PICKER_ADVANCED,
+                          title: "Buscar gestor",
+                          search: (params) => collaboratorService.searchManagersForPicker(params),
+                          emptyMessage: "Nenhum gestor encontrado.",
+                      }
+                    : COLLABORATOR_PICKER_ADVANCED
+            }
         />
     );
 }
