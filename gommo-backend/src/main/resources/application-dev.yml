@@ -9,8 +9,11 @@ spring:
     show-sql: false
 
 gommo:
+  multi-tenant:
+    dev-tenant-slug: ${GOMMO_DEV_TENANT_SLUG:dev-public}
+    dev-public-company-code: ${GOMMO_DEV_PUBLIC_COMPANY_CODE:000000000}
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://*.localhost:3000,http://localhost:3001}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://*.localhost:3000,http://localhost:3001,http://localhost:8090}
   storage:
     local-base-path: ${STORAGE_LOCAL_PATH:./data/storage}
     bucket: gommo-local

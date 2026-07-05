@@ -45,24 +45,24 @@ export const organizationRoutes: AppRoute[] = [
                     "JobPositionFormClient",
                 ),
             }),
-            tabbedCrudRoute({
-                id: "attendance",
-                href: "/attendance",
-                label: "Ponto",
-                icon: CalendarDays,
-                permission: "attendance:read",
-                routeId: "attendance",
-                tabShortLabel: "Ponto",
-                list: lazyNamed(
-                    () => import("@/modules/rh/person/attendance/components/AttendanceRecordListClient"),
-                    "AttendanceRecordListClient",
-                ),
-                form: lazyNamed(
-                    () => import("@/modules/rh/person/attendance/components/AttendanceRecordFormClient"),
-                    "AttendanceRecordFormClient",
-                ),
-            }),
         ],
+    }),
+    tabbedCrudRoute({
+        id: "attendance",
+        href: "/attendance",
+        label: "Ponto",
+        icon: CalendarDays,
+        permission: "attendance:read",
+        routeId: "attendance",
+        tabShortLabel: "Ponto",
+        list: lazyNamed(
+            () => import("@/modules/rh/person/attendance/components/AttendanceRecordListClient"),
+            "AttendanceRecordListClient",
+        ),
+        form: lazyNamed(
+            () => import("@/modules/rh/person/attendance/components/AttendanceRecordFormClient"),
+            "AttendanceRecordFormClient",
+        ),
     }),
     tabbedCrudRoute({
         id: "leave",

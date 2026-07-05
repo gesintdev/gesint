@@ -16,6 +16,7 @@ public class TokenResponseDto {
     private final long expiresInSeconds;
     private final String username;
     private final String email;
+    private final String tenantSlug;
     private final UUID photoObjectId;
     private final List<String> permissions;
     /** Usuario operador do Gommo Admin (admin.admin_user), login em host plataforma. */

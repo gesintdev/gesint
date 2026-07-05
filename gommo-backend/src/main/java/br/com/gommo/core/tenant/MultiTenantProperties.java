@@ -14,6 +14,8 @@ public class MultiTenantProperties {
 
     private String devTenantSlug = "";
 
+    private String devPublicCompanyCode = "";
+
     private boolean headerEnabled = true;
 
     private String tenantHeader = "X-Tenant-Slug";

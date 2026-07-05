@@ -24,6 +24,10 @@ public class TenantResolver {
         }
 
         if (properties.isHeaderEnabled() && tenantHeaderValue != null && !tenantHeaderValue.isBlank()) {
+            Optional<TenantContext> developmentTenant = resolveDevelopmentPublicTenantBySlug(tenantHeaderValue);
+            if (developmentTenant.isPresent()) {
+                return developmentTenant;
+            }
             return findAndValidate(adminClientLookup.findBySlug(tenantHeaderValue.trim()));
         }
 
@@ -51,8 +55,41 @@ public class TenantResolver {
         return Optional.empty();
     }
 
+    public Optional<TenantContext> resolveByMobileLoginCode(String mobileLoginCode) {
+        if (!properties.isEnabled() || mobileLoginCode == null || mobileLoginCode.isBlank()) {
+            return Optional.empty();
+        }
+        Optional<TenantContext> developmentTenant = resolveDevelopmentPublicTenantByCompanyCode(mobileLoginCode);
+        if (developmentTenant.isPresent()) {
+            return developmentTenant;
+        }
+        return findAndValidate(adminClientLookup.findByMobileLoginCode(mobileLoginCode));
+    }
+
     public TenantContext resolveRequired(String hostHeader, String tenantHeaderValue) {
         return resolve(hostHeader, tenantHeaderValue).orElseThrow(TenantException::notFound);
+    }
+
+    private Optional<TenantContext> resolveDevelopmentPublicTenantBySlug(String tenantSlug) {
+        if (properties.getDevPublicCompanyCode().isBlank() || properties.getDevTenantSlug().isBlank()) {
+            return Optional.empty();
+        }
+        if (!properties.getDevTenantSlug().equalsIgnoreCase(tenantSlug.trim())) {
+            return Optional.empty();
+        }
+        return Optional.of(TenantContext.developmentPublic(properties.getDevTenantSlug()));
+    }
+
+    private Optional<TenantContext> resolveDevelopmentPublicTenantByCompanyCode(String companyCode) {
+        String expectedCode = normalizeCompanyCode(properties.getDevPublicCompanyCode());
+        if (expectedCode.isBlank() || !expectedCode.equals(normalizeCompanyCode(companyCode))) {
+            return Optional.empty();
+        }
+        return Optional.of(TenantContext.developmentPublic(properties.getDevTenantSlug()));
+    }
+
+    private String normalizeCompanyCode(String companyCode) {
+        return companyCode == null ? "" : companyCode.replaceAll("\\D", "");
     }
 
     private Optional<TenantContext> findAndValidate(Optional<TenantContext> candidate) {

@@ -9,4 +9,6 @@ import br.com.gommo.admin.modules.client.entity.Client;
 public interface ClientRepository extends IBaseRepository<Client> {
 
     Optional<Client> findBySlugAndStatusNot(String slug, StatusEnum status);
+
+    boolean existsByMobileLoginCodeAndStatusNot(String mobileLoginCode, StatusEnum status);
 }

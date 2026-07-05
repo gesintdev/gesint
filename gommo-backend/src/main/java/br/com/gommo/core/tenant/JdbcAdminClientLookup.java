@@ -55,6 +55,15 @@ public class JdbcAdminClientLookup implements AdminClientLookup {
         return findOne(BASE_SELECT + " AND c.custom_domain = ?", customDomain);
     }
 
+    @Override
+    public Optional<TenantContext> findByMobileLoginCode(String mobileLoginCode) {
+        return findOne(BASE_SELECT + " AND c.mobile_login_code = ?", normalizeMobileLoginCode(mobileLoginCode));
+    }
+
+    private String normalizeMobileLoginCode(String mobileLoginCode) {
+        return mobileLoginCode == null ? "" : mobileLoginCode.replaceAll("\\D", "");
+    }
+
     private Optional<TenantContext> findOne(String sql, String parameter) {
         try {
             return jdbcTemplate.query(sql, rs -> rs.next() ? Optional.of(mapRow(rs)) : Optional.empty(), parameter);

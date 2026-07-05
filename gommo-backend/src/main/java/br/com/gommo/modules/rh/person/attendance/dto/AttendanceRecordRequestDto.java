@@ -6,10 +6,13 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequestTypeEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceSourceEnum;
 
 @Getter
 @Setter
@@ -32,4 +35,8 @@ public class AttendanceRecordRequestDto {
     private Boolean impactsHourBank;
     private Boolean impactsPayroll;
     private String notes;
+    private AttendanceRequestTypeEnum requestType;
+    private AttendanceSourceEnum source;
+    private String clientRequestId;
+    private OffsetDateTime submittedAt;
 }

@@ -19,7 +19,7 @@ spring:
     enabled: true
     encoding: UTF-8
     locations: classpath:db/migration
-    # Histórico e DDL do HR ficam no schema public (independente do admin).
+    # Historico e DDL do HR ficam no schema public (independente do admin).
     schemas: public
     default-schema: public
     create-schemas: false
@@ -47,10 +47,11 @@ gommo:
       access-token-minutes: 8
       refresh-token-rotation-minutes: 15
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://*.localhost:3000}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://*.localhost:3000,http://localhost:8090}
   multi-tenant:
     enabled: ${GOMMO_MULTI_TENANT_ENABLED:false}
     dev-tenant-slug: ${GOMMO_DEV_TENANT_SLUG:}
+    dev-public-company-code: ${GOMMO_DEV_PUBLIC_COMPANY_CODE:}
     header-enabled: ${GOMMO_TENANT_HEADER_ENABLED:true}
     tenant-header: X-Tenant-Slug
     base-domain: ${GOMMO_TENANT_BASE_DOMAIN:localhost}

@@ -10,6 +10,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import br.com.gommo.core.tenant.PlatformAdminUserLookup;
 import br.com.gommo.core.tenant.TenantAuthValidator;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
+import br.com.gommo.core.tenant.TenantResolver;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.root.dto.LoginRequestDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
@@ -55,6 +57,7 @@ public class AuthService implements IAuthService {
     private final JwtProperties jwtProperties;
     private final MultiTenantProperties multiTenantProperties;
     private final TenantAuthValidator tenantAuthValidator;
+    private final TenantResolver tenantResolver;
     private final PlatformAdminUserLookup platformAdminUserLookup;
 
     public AuthService(
@@ -68,6 +71,7 @@ public class AuthService implements IAuthService {
             JwtProperties jwtProperties,
             MultiTenantProperties multiTenantProperties,
             TenantAuthValidator tenantAuthValidator,
+            TenantResolver tenantResolver,
             PlatformAdminUserLookup platformAdminUserLookup) {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
@@ -79,12 +83,15 @@ public class AuthService implements IAuthService {
         this.jwtProperties = jwtProperties;
         this.multiTenantProperties = multiTenantProperties;
         this.tenantAuthValidator = tenantAuthValidator;
+        this.tenantResolver = tenantResolver;
         this.platformAdminUserLookup = platformAdminUserLookup;
     }
 
     @Override
     @Transactional
     public TokenResponseDto login(LoginRequestDto request) {
+        resolveTenantFromCompanyCode(request);
+
         String login = request.getUsername() != null ? request.getUsername().trim() : "";
         if (!StringUtils.hasText(login)) {
             throw new BadCredentialsException("Invalid credentials");
@@ -166,6 +173,17 @@ public class AuthService implements IAuthService {
         return buildTokenResponse(user, rawRefresh);
     }
 
+    private void resolveTenantFromCompanyCode(LoginRequestDto request) {
+        if (!multiTenantProperties.isEnabled() || !StringUtils.hasText(request.getCompanyCode())) {
+            return;
+        }
+
+        TenantContext tenant = tenantResolver
+                .resolveByMobileLoginCode(request.getCompanyCode())
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        TenantContextHolder.set(tenant);
+    }
+
     private TokenResponseDto buildTokenResponse(AppUser user) {
         return buildTokenResponse(user, null);
     }
@@ -200,6 +218,7 @@ public class AuthService implements IAuthService {
                 .expiresInSeconds(jwtProperties.accessTokenMinutes() * 60)
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .tenantSlug(tenantSlug)
                 .photoObjectId(resolvePhotoObjectId(user))
                 .permissions(permissions)
                 .platformAdmin(platformAdmin)
@@ -255,7 +274,7 @@ public class AuthService implements IAuthService {
         return collaboratorRepository
                 .findById(user.getCollaboratorId())
                 .filter(c -> c.getStatus() != StatusEnum.DELETED)
-                .map(c -> c.getPhotoObjectId())
+                .map(Collaborator::getPhotoObjectId)
                 .orElse(null);
     }
 

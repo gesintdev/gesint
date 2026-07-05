@@ -13,6 +13,7 @@ import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceSourceEnum;
 
 @Repository
 public interface AttendanceRecordRepository extends IBaseRepository<AttendanceRecord> {
@@ -36,4 +37,7 @@ public interface AttendanceRecordRepository extends IBaseRepository<AttendanceRe
 
     Optional<AttendanceRecord> findByCollaboratorIdAndWorkDateAndStatusNot(
             UUID collaboratorId, LocalDate workDate, StatusEnum status);
+
+    Optional<AttendanceRecord> findBySourceAndClientRequestIdAndStatusNot(
+            AttendanceSourceEnum source, String clientRequestId, StatusEnum status);
 }
