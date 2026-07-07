@@ -30,6 +30,10 @@ public class AttendanceRecordMapper {
                 .impactsHourBank(dto.getImpactsHourBank() != null ? dto.getImpactsHourBank() : Boolean.TRUE)
                 .impactsPayroll(dto.getImpactsPayroll() != null ? dto.getImpactsPayroll() : Boolean.TRUE)
                 .notes(dto.getNotes())
+                .requestType(dto.getRequestType())
+                .source(dto.getSource())
+                .clientRequestId(dto.getClientRequestId())
+                .submittedAt(dto.getSubmittedAt())
                 .build();
     }
 
@@ -49,6 +53,10 @@ public class AttendanceRecordMapper {
         entity.setImpactsHourBank(dto.getImpactsHourBank() != null ? dto.getImpactsHourBank() : Boolean.TRUE);
         entity.setImpactsPayroll(dto.getImpactsPayroll() != null ? dto.getImpactsPayroll() : Boolean.TRUE);
         entity.setNotes(dto.getNotes());
+        entity.setRequestType(dto.getRequestType());
+        entity.setSource(dto.getSource());
+        entity.setClientRequestId(dto.getClientRequestId());
+        entity.setSubmittedAt(dto.getSubmittedAt());
     }
 
     public AttendanceRecordResponseDto toResponse(AttendanceRecord entity) {
@@ -69,6 +77,10 @@ public class AttendanceRecordMapper {
                 .impactsHourBank(entity.getImpactsHourBank())
                 .impactsPayroll(entity.getImpactsPayroll())
                 .notes(entity.getNotes())
+                .requestType(entity.getRequestType())
+                .source(entity.getSource())
+                .clientRequestId(entity.getClientRequestId())
+                .submittedAt(entity.getSubmittedAt())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

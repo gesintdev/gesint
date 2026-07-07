@@ -1,10 +1,10 @@
 package br.com.gommo.modules.root.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.UUID;
+
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 @Builder
@@ -17,6 +17,7 @@ public class TokenResponseDto {
     private final String name;
     private final String username;
     private final String email;
+    private final String tenantSlug;
     private final UUID collaboratorId;
     private final UUID photoObjectId;
     private final UUID jobPositionId;

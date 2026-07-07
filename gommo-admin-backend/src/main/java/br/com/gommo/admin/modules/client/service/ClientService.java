@@ -30,6 +30,7 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     private final TenantSchemaProvisioner schemaProvisioner;
     private final TenantUserProvisioner tenantUserProvisioner;
     private final TenantDatabaseDefaultsApplier tenantDatabaseDefaultsApplier;
+    private final MobileLoginCodeGenerator mobileLoginCodeGenerator;
 
     public ClientService(
             ClientRepository repository,
@@ -37,7 +38,8 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
             TenantDatabaseConnectionTester connectionTester,
             TenantSchemaProvisioner schemaProvisioner,
             TenantUserProvisioner tenantUserProvisioner,
-            TenantDatabaseDefaultsApplier tenantDatabaseDefaultsApplier) {
+            TenantDatabaseDefaultsApplier tenantDatabaseDefaultsApplier,
+            MobileLoginCodeGenerator mobileLoginCodeGenerator) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -45,6 +47,7 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
         this.schemaProvisioner = schemaProvisioner;
         this.tenantUserProvisioner = tenantUserProvisioner;
         this.tenantDatabaseDefaultsApplier = tenantDatabaseDefaultsApplier;
+        this.mobileLoginCodeGenerator = mobileLoginCodeGenerator;
     }
 
     @Override
@@ -76,6 +79,7 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
             throw ClientException.slugAlreadyExists();
         });
         Client entity = mapper.toEntity(request);
+        entity.setMobileLoginCode(generateUniqueMobileLoginCode());
         tenantDatabaseDefaultsApplier.apply(entity, request.getSlug());
         entity.setStatus(StatusEnum.ACTIVE);
         return mapper.toResponse(repository.save(entity));
@@ -110,6 +114,14 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     protected void updateEntity(Client entity, ClientRequestDto request) {
         mapper.updateEntity(entity, request);
         tenantDatabaseDefaultsApplier.apply(entity, request.getSlug());
+    }
+
+    private String generateUniqueMobileLoginCode() {
+        String mobileLoginCode;
+        do {
+            mobileLoginCode = mobileLoginCodeGenerator.generate();
+        } while (repository.existsByMobileLoginCodeAndStatusNot(mobileLoginCode, StatusEnum.DELETED));
+        return mobileLoginCode;
     }
 
     private Client prepareClientForDatabaseOps(Client client) {

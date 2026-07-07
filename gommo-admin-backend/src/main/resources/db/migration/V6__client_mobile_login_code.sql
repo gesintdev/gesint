@@ -1,4 +1,4 @@
-﻿ALTER TABLE admin.client ADD COLUMN IF NOT EXISTS mobile_login_code VARCHAR(9);
+ALTER TABLE admin.client ADD COLUMN IF NOT EXISTS mobile_login_code VARCHAR(9);
 
 CREATE OR REPLACE FUNCTION admin.mobile_login_luhn_check_digit(p_base text)
 RETURNS text

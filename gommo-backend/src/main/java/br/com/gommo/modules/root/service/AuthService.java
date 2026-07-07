@@ -26,6 +26,7 @@ import br.com.gommo.core.tenant.PlatformAdminUserLookup;
 import br.com.gommo.core.tenant.TenantAuthValidator;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
+import br.com.gommo.core.tenant.TenantResolver;
 import br.com.gommo.modules.dp.organization.department.repository.DepartmentRepository;
 import br.com.gommo.modules.dp.organization.jobposition.entity.JobPosition;
 import br.com.gommo.modules.dp.organization.jobposition.repository.JobPositionRepository;
@@ -69,6 +70,7 @@ public class AuthService implements IAuthService {
     private final JwtProperties jwtProperties;
     private final MultiTenantProperties multiTenantProperties;
     private final TenantAuthValidator tenantAuthValidator;
+    private final TenantResolver tenantResolver;
     private final PlatformAdminUserLookup platformAdminUserLookup;
 
     public AuthService(
@@ -86,6 +88,7 @@ public class AuthService implements IAuthService {
             JwtProperties jwtProperties,
             MultiTenantProperties multiTenantProperties,
             TenantAuthValidator tenantAuthValidator,
+            TenantResolver tenantResolver,
             PlatformAdminUserLookup platformAdminUserLookup) {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
@@ -101,12 +104,15 @@ public class AuthService implements IAuthService {
         this.jwtProperties = jwtProperties;
         this.multiTenantProperties = multiTenantProperties;
         this.tenantAuthValidator = tenantAuthValidator;
+        this.tenantResolver = tenantResolver;
         this.platformAdminUserLookup = platformAdminUserLookup;
     }
 
     @Override
     @Transactional
     public TokenResponseDto login(LoginRequestDto request) {
+        resolveTenantFromCompanyCode(request);
+
         String login = request.getUsername() != null ? request.getUsername().trim() : "";
         if (!StringUtils.hasText(login)) {
             throw new BadCredentialsException("Invalid credentials");
@@ -188,6 +194,17 @@ public class AuthService implements IAuthService {
         return buildTokenResponse(user, rawRefresh);
     }
 
+    private void resolveTenantFromCompanyCode(LoginRequestDto request) {
+        if (!multiTenantProperties.isEnabled() || !StringUtils.hasText(request.getCompanyCode())) {
+            return;
+        }
+
+        TenantContext tenant = tenantResolver
+                .resolveByMobileLoginCode(request.getCompanyCode())
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        TenantContextHolder.set(tenant);
+    }
+
     private TokenResponseDto buildTokenResponse(AppUser user) {
         return buildTokenResponse(user, null);
     }
@@ -224,6 +241,7 @@ public class AuthService implements IAuthService {
                 .name(user.getName())
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .tenantSlug(tenantSlug)
                 .collaboratorId(organization.collaboratorId)
                 .photoObjectId(organization.photoObjectId)
                 .jobPositionId(organization.jobPositionId)

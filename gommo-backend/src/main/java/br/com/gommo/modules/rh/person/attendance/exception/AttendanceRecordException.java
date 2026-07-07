@@ -13,4 +13,18 @@ public final class AttendanceRecordException {
                 AttendanceRecordExceptions.NOT_FOUND_MSG,
                 HttpStatus.NOT_FOUND);
     }
+
+    public static BusinessException collaboratorNotLinked() {
+        return new BusinessException(
+                AttendanceRecordExceptions.COLLABORATOR_NOT_LINKED_CODE,
+                AttendanceRecordExceptions.COLLABORATOR_NOT_LINKED_MSG,
+                HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    public static BusinessException invalidSubmission() {
+        return new BusinessException(
+                AttendanceRecordExceptions.INVALID_SUBMISSION_CODE,
+                AttendanceRecordExceptions.INVALID_SUBMISSION_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

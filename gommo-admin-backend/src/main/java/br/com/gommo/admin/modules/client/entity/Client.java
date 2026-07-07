@@ -28,6 +28,9 @@ public class Client extends AuditEntity {
     @Column(nullable = false, length = 100)
     private String slug;
 
+    @Column(name = "mobile_login_code", nullable = false, length = 9)
+    private String mobileLoginCode;
+
     @Column(length = 18)
     private String document;
 

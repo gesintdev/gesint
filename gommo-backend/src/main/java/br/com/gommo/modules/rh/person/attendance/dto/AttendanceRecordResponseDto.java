@@ -9,6 +9,8 @@ import java.util.UUID;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequestTypeEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceSourceEnum;
 
 @Getter
 @Builder
@@ -29,6 +31,10 @@ public class AttendanceRecordResponseDto {
     private final Boolean impactsHourBank;
     private final Boolean impactsPayroll;
     private final String notes;
+    private final AttendanceRequestTypeEnum requestType;
+    private final AttendanceSourceEnum source;
+    private final String clientRequestId;
+    private final OffsetDateTime submittedAt;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }
