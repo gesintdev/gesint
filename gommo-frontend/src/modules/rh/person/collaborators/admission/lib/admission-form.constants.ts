@@ -1,4 +1,5 @@
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import {FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 
 export const CONTRACT_TYPE_ITEMS: SelectItem[] = [
     { value: "CLT", label: "CLT" },
@@ -71,3 +72,40 @@ export function contractTypeLabel(value?: string | null): string {
 export function documentTypeLabel(value?: string | null, items = ADMISSION_DOCUMENT_TYPE_ITEMS): string {
     return items.find((item) => item.value === value)?.label ?? value ?? "—";
 }
+
+export const GENDER_ITEMS: SelectItem[] = [
+    { value: "MALE", label: "Masculino" },
+    { value: "FEMALE", label: "Feminino" },
+    { value: "OTHER", label: "Outro" },
+    { value: "NOT_INFORMED", label: "Prefere não informar" },
+];
+
+export const MARITAL_ITEMS: SelectItem[] = [
+    { value: "SINGLE", label: "Solteiro(a)" },
+    { value: "MARRIED", label: "Casado(a)" },
+    { value: "DIVORCED", label: "Divorciado(a)" },
+    { value: "WIDOWED", label: "Viúvo(a)" },
+    { value: "OTHER", label: "Outro" },
+];
+
+export const YES_NO_ITEMS: SelectItem[] = [
+    { value: "false", label: "Não" },
+    { value: "true", label: "Sim" },
+];
+
+export const RECESS_FINANCIAL_ITEMS: SelectItem[] = [
+    { value: "FULLY_PAID", label: "Valor contratual integral" },
+    { value: "UNPAID", label: "Sem faturamento no período" },
+    { value: "PROPORTIONAL", label: "Valor contratual proporcional" },
+    { value: "CUSTOM", label: "Tratamento contratual específico" },
+];
+
+export const ADMISSION_FORM_STEPS: FormStepNavItem[] = [
+    { id: "dados-basicos", label: "Dados básicos" },
+    { id: "contatos-emergencia", label: "Contatos de emergência" },
+    { id: "endereco", label: "Endereço" },
+    { id: "documentos", label: "Documentos" },
+    { id: "vinculo", label: "Vínculo" },
+    { id: "contrato", label: "Contrato" },
+    { id: "observacoes", label: "Observações" },
+];
