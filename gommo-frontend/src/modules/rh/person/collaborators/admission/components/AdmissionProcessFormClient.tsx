@@ -624,33 +624,15 @@ export function AdmissionProcessFormClient() {
                         value={form.workloadSchedule ?? ""}
                         onValueChange={(v) => update("workloadSchedule", v)}
                         placeholder="Selecione"
-                        wrapperClassName="sm:col-span-1"
+                        wrapperClassName="sm:col-span-2"
                         required
                     />
                 ) : null}
                 <InputString
-                    label="Entrada"
-                    value={form.companyId ?? ""}
-                    onValueChange={(v) => update("companyId", v)}
-                    wrapperClassName="sm:col-span-1"
-                />
-                <InputString
-                    label="Intervalo"
-                    value={form.companyId ?? ""}
-                    onValueChange={(v) => update("companyId", v)}
-                    wrapperClassName="sm:col-span-1"
-                />
-                <InputString
-                    label="Saída"
-                    value={form.companyId ?? ""}
-                    onValueChange={(v) => update("companyId", v)}
-                    wrapperClassName="sm:col-span-1"
-                />
-                <InputString
                     label="ID empresa (opcional)"
                     value={form.companyId ?? ""}
                     onValueChange={(v) => update("companyId", v)}
-                    wrapperClassName="sm:col-span-2"
+                    wrapperClassName="sm:col-span-4"
                 />
                 <DepartmentPickerField
                     value={form.departmentId ?? ""}
