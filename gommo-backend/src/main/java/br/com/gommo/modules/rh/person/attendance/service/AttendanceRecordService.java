@@ -1,14 +1,5 @@
 package br.com.gommo.modules.rh.person.attendance.service;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -26,11 +17,19 @@ import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRecordRepo
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.storage.service.IStorageService;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AttendanceRecordService
-        extends BaseService<AttendanceRecord, AttendanceRecordRequestDto, AttendanceRecordResponseDto>
-        implements IAttendanceRecordService {
+    extends BaseService<AttendanceRecord, AttendanceRecordRequestDto, AttendanceRecordResponseDto>
+    implements IAttendanceRecordService {
     private static final String STORAGE_ENTITY_TYPE = "attendance_record";
     private static final String ATTACHMENT_LINK_ROLE = "ATTACHMENT";
 
@@ -40,10 +39,10 @@ public class AttendanceRecordService
     private final IStorageService storageService;
 
     public AttendanceRecordService(
-            AttendanceRecordRepository repository,
-            AttendanceRecordMapper mapper,
-            AppUserRepository appUserRepository,
-            IStorageService storageService) {
+        AttendanceRecordRepository repository,
+        AttendanceRecordMapper mapper,
+        AppUserRepository appUserRepository,
+        IStorageService storageService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -92,9 +91,9 @@ public class AttendanceRecordService
     public AttendanceRecordResponseDto submit(AttendanceSubmissionRequestDto request) {
         AttendanceSourceEnum source = request.getSource() != null ? request.getSource() : AttendanceSourceEnum.MOBILE;
         return repository
-                .findBySourceAndClientRequestIdAndStatusNot(source, request.getClientRequestId(), StatusEnum.DELETED)
-                .map(mapper::toResponse)
-                .orElseGet(() -> createSubmission(request, source));
+            .findBySourceAndClientRequestIdAndStatusNot(source, request.getClientRequestId(), StatusEnum.DELETED)
+            .map(mapper::toResponse)
+            .orElseGet(() -> createSubmission(request, source));
     }
 
     @Override
@@ -115,13 +114,13 @@ public class AttendanceRecordService
     }
 
     private AttendanceRecordResponseDto createSubmission(
-            AttendanceSubmissionRequestDto request, AttendanceSourceEnum source) {
+        AttendanceSubmissionRequestDto request, AttendanceSourceEnum source) {
         validateSubmission(request);
         UUID collaboratorId = resolveCurrentCollaboratorId();
         AttendanceRecord entity = repository
-                .findByCollaboratorIdAndWorkDateAndStatusNot(
-                        collaboratorId, request.getRequestDate(), StatusEnum.DELETED)
-                .orElseGet(() -> newSubmissionRecord(collaboratorId, request));
+            .findByCollaboratorIdAndWorkDateAndStatusNot(
+                collaboratorId, request.getRequestDate(), StatusEnum.DELETED)
+            .orElseGet(() -> newSubmissionRecord(collaboratorId, request));
 
         applySubmission(entity, request, source);
         entity = repository.save(entity);
@@ -131,18 +130,18 @@ public class AttendanceRecordService
 
     private AttendanceRecord newSubmissionRecord(UUID collaboratorId, AttendanceSubmissionRequestDto request) {
         AttendanceRecord entity = AttendanceRecord.builder()
-                .collaboratorId(collaboratorId)
-                .workDate(request.getRequestDate())
-                .breakMinutes(0)
-                .impactsHourBank(Boolean.TRUE)
-                .impactsPayroll(Boolean.TRUE)
-                .build();
+            .collaboratorId(collaboratorId)
+            .workDate(request.getRequestDate())
+            .breakMinutes(0)
+            .impactsHourBank(Boolean.TRUE)
+            .impactsPayroll(Boolean.TRUE)
+            .build();
         entity.setStatus(StatusEnum.ACTIVE);
         return entity;
     }
 
     private void applySubmission(
-            AttendanceRecord entity, AttendanceSubmissionRequestDto request, AttendanceSourceEnum source) {
+        AttendanceRecord entity, AttendanceSubmissionRequestDto request, AttendanceSourceEnum source) {
         if (request.getClockIn() != null) {
             entity.setClockIn(request.getClockIn());
         }
@@ -157,9 +156,9 @@ public class AttendanceRecordService
         entity.setNotes(request.getDetails());
         entity.setOccurrenceType(AttendanceOccurrenceTypeEnum.TIME_ADJUSTMENT);
         entity.setOccurrenceOrigin(
-                source == AttendanceSourceEnum.MOBILE
-                        ? AttendanceOccurrenceOriginEnum.MOBILE
-                        : AttendanceOccurrenceOriginEnum.MANUAL);
+            source == AttendanceSourceEnum.MOBILE
+                ? AttendanceOccurrenceOriginEnum.MOBILE
+                : AttendanceOccurrenceOriginEnum.MANUAL);
         entity.setRequestType(request.getRequestType());
         entity.setSource(source);
         entity.setClientRequestId(request.getClientRequestId());
@@ -174,8 +173,8 @@ public class AttendanceRecordService
             throw AttendanceRecordException.collaboratorNotLinked();
         }
         AppUser user = appUserRepository
-                .findByIdAndStatusNot(userId, StatusEnum.DELETED)
-                .orElseThrow(AttendanceRecordException::collaboratorNotLinked);
+            .findByIdAndStatusNot(userId, StatusEnum.DELETED)
+            .orElseThrow(AttendanceRecordException::collaboratorNotLinked);
         if (user.getCollaboratorId() == null) {
             throw AttendanceRecordException.collaboratorNotLinked();
         }
@@ -187,12 +186,12 @@ public class AttendanceRecordService
             return;
         }
         storageService.linkToEntity(
-                STORAGE_ENTITY_TYPE,
-                entity.getId(),
-                attachment.getObjectId(),
-                ATTACHMENT_LINK_ROLE,
-                attachment.getFileName(),
-                attachment.getDocumentType());
+            STORAGE_ENTITY_TYPE,
+            entity.getId(),
+            attachment.getObjectId(),
+            ATTACHMENT_LINK_ROLE,
+            attachment.getFileName(),
+            attachment.getDocumentType());
     }
 
     private static void validateSubmission(AttendanceSubmissionRequestDto request) {

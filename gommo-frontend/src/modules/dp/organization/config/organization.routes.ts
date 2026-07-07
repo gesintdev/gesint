@@ -63,6 +63,18 @@ export const organizationRoutes: AppRoute[] = [
             () => import("@/modules/rh/person/attendance/components/AttendanceRecordFormClient"),
             "AttendanceRecordFormClient",
         ),
+        extraTabs: [
+            {
+                id: "adjustment-request",
+                label: "Solicitação de Ajustes",
+                permission: "attendance:read",
+                content: lazyNamed(
+                    () =>
+                        import("@/modules/rh/person/attendance/components/AttendanceRecordRequestsClient"),
+                    "AttendanceRecordRequestsClient",
+                ),
+            },
+        ],
     }),
     tabbedCrudRoute({
         id: "leave",
@@ -85,7 +97,7 @@ export const organizationRoutes: AppRoute[] = [
         extraTabs: [
             {
                 id: "pending-requests",
-                label: "Solicita\u00e7\u00f5es do RH",
+                label: "Solicitações do RH",
                 permission: "leave:write",
                 content: lazyNamed(
                     () => import("@/modules/rh/person/leave/components/LeavePendingRequestsClient"),
