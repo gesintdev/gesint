@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import java.util.UUID;
+
 @Repository
 public class JdbcTenantClientUserLookup implements TenantClientUserLookup {
 
@@ -18,6 +20,17 @@ public class JdbcTenantClientUserLookup implements TenantClientUserLookup {
                 SELECT 1
                 FROM admin.client_user
                 WHERE LOWER(username) = LOWER(?)
+                  AND status <> 'DELETED'
+            )
+            """;
+
+    private static final String SQL_LINKED_TO_CLIENT =
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM admin.client_user
+                WHERE client_id = ?
+                  AND tenant_app_user_id = ?
                   AND status <> 'DELETED'
             )
             """;
@@ -38,6 +51,20 @@ public class JdbcTenantClientUserLookup implements TenantClientUserLookup {
             return Boolean.TRUE.equals(exists);
         } catch (DataAccessException ex) {
             log.debug("admin.client_user username lookup failed: {}", ex.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isLinkedToClient(UUID clientId, UUID appUserId) {
+        if (clientId == null || appUserId == null) {
+            return false;
+        }
+        try {
+            Boolean exists = jdbcTemplate.queryForObject(SQL_LINKED_TO_CLIENT, Boolean.class, clientId, appUserId);
+            return Boolean.TRUE.equals(exists);
+        } catch (DataAccessException ex) {
+            log.debug("admin.client_user client linkage lookup failed: {}", ex.getMessage());
             return false;
         }
     }

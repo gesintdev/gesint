@@ -6,8 +6,10 @@ import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.authentication.BadCredentialsException;
@@ -24,7 +26,15 @@ import br.com.gommo.core.tenant.PlatformAdminUserLookup;
 import br.com.gommo.core.tenant.TenantAuthValidator;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
+import br.com.gommo.modules.dp.organization.department.repository.DepartmentRepository;
+import br.com.gommo.modules.dp.organization.jobposition.entity.JobPosition;
+import br.com.gommo.modules.dp.organization.jobposition.repository.JobPositionRepository;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
+import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
 import br.com.gommo.modules.root.dto.LoginRequestDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
 import br.com.gommo.modules.root.dto.TokenResponseDto;
@@ -48,6 +58,10 @@ public class AuthService implements IAuthService {
     private final AppUserRepository appUserRepository;
     private final PermissionRepository permissionRepository;
     private final CollaboratorRepository collaboratorRepository;
+    private final AdmissionProcessRepository admissionProcessRepository;
+    private final EmploymentContractRepository contractRepository;
+    private final DepartmentRepository departmentRepository;
+    private final JobPositionRepository jobPositionRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenBlacklistRepository blacklistRepository;
     private final PasswordEncoder passwordEncoder;
@@ -61,6 +75,10 @@ public class AuthService implements IAuthService {
             AppUserRepository appUserRepository,
             PermissionRepository permissionRepository,
             CollaboratorRepository collaboratorRepository,
+            AdmissionProcessRepository admissionProcessRepository,
+            EmploymentContractRepository contractRepository,
+            DepartmentRepository departmentRepository,
+            JobPositionRepository jobPositionRepository,
             RefreshTokenRepository refreshTokenRepository,
             RefreshTokenBlacklistRepository blacklistRepository,
             PasswordEncoder passwordEncoder,
@@ -72,6 +90,10 @@ public class AuthService implements IAuthService {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
         this.collaboratorRepository = collaboratorRepository;
+        this.admissionProcessRepository = admissionProcessRepository;
+        this.contractRepository = contractRepository;
+        this.departmentRepository = departmentRepository;
+        this.jobPositionRepository = jobPositionRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.blacklistRepository = blacklistRepository;
         this.passwordEncoder = passwordEncoder;
@@ -192,15 +214,22 @@ public class AuthService implements IAuthService {
 
         boolean platformAdmin =
                 multiTenantProperties.isEnabled() && platformAdminUserLookup.isPlatformAdmin(user.getUsername());
+        CollaboratorOrganizationSnapshot organization = resolveCollaboratorOrganization(user);
 
         return TokenResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresInSeconds(jwtProperties.accessTokenMinutes() * 60)
+                .name(user.getName())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .photoObjectId(resolvePhotoObjectId(user))
+                .collaboratorId(organization.collaboratorId)
+                .photoObjectId(organization.photoObjectId)
+                .jobPositionId(organization.jobPositionId)
+                .jobPositionName(organization.jobPositionName)
+                .departmentId(organization.departmentId)
+                .departmentName(organization.departmentName)
                 .permissions(permissions)
                 .platformAdmin(platformAdmin)
                 .build();
@@ -248,15 +277,96 @@ public class AuthService implements IAuthService {
                 .toList();
     }
 
-    private UUID resolvePhotoObjectId(AppUser user) {
+    private CollaboratorOrganizationSnapshot resolveCollaboratorOrganization(AppUser user) {
         if (user.getCollaboratorId() == null) {
-            return null;
+            return CollaboratorOrganizationSnapshot.empty();
         }
-        return collaboratorRepository
-                .findById(user.getCollaboratorId())
-                .filter(c -> c.getStatus() != StatusEnum.DELETED)
-                .map(c -> c.getPhotoObjectId())
-                .orElse(null);
+
+        CollaboratorOrganizationSnapshot snapshot = new CollaboratorOrganizationSnapshot();
+        collaboratorRepository
+                .findByIdAndStatusNot(user.getCollaboratorId(), StatusEnum.DELETED)
+                .ifPresentOrElse(
+                        collaborator -> {
+                            snapshot.collaboratorId = collaborator.getId();
+                            snapshot.photoObjectId = collaborator.getPhotoObjectId();
+                        },
+                        () -> snapshot.collaboratorId = null);
+        if (snapshot.collaboratorId == null) {
+            return snapshot;
+        }
+
+        contractRepository
+                .findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(
+                        snapshot.collaboratorId, StatusEnum.DELETED)
+                .ifPresent(contract -> applyContract(snapshot, contract));
+        latestCompletedAdmission(snapshot.collaboratorId)
+                .ifPresent(admission -> applyAdmissionFallback(snapshot, admission));
+        resolveOrganizationNames(snapshot);
+        return snapshot;
+    }
+
+    private void applyContract(CollaboratorOrganizationSnapshot snapshot, EmploymentContract contract) {
+        if (contract.getJobPositionId() != null) {
+            snapshot.jobPositionId = contract.getJobPositionId();
+        }
+    }
+
+    private Optional<AdmissionProcess> latestCompletedAdmission(UUID collaboratorId) {
+        return admissionProcessRepository
+                .findByCollaboratorIdAndAdmissionStatusAndStatusNot(
+                        collaboratorId, AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED)
+                .stream()
+                .max(Comparator.comparing((AdmissionProcess admission) -> {
+                            java.time.LocalDate date = admission.getContractStartDate() != null
+                                    ? admission.getContractStartDate()
+                                    : admission.getExpectedStartDate();
+                            return date == null ? java.time.LocalDate.MIN : date;
+                        })
+                        .thenComparing(admission ->
+                                admission.getCreatedAt() == null ? OffsetDateTime.MIN : admission.getCreatedAt()));
+    }
+
+    private void applyAdmissionFallback(CollaboratorOrganizationSnapshot snapshot, AdmissionProcess admission) {
+        if (snapshot.jobPositionId != null) {
+            return;
+        }
+        snapshot.jobPositionId = admission.getJobPositionId();
+        if (snapshot.departmentId == null) {
+            snapshot.departmentId = admission.getDepartmentId();
+        }
+    }
+
+    private void resolveOrganizationNames(CollaboratorOrganizationSnapshot snapshot) {
+        if (snapshot.jobPositionId != null) {
+            jobPositionRepository
+                    .findByIdAndStatusNot(snapshot.jobPositionId, StatusEnum.DELETED)
+                    .ifPresent(jobPosition -> applyJobPosition(snapshot, jobPosition));
+        }
+        if (snapshot.departmentId != null) {
+            departmentRepository
+                    .findByIdAndStatusNot(snapshot.departmentId, StatusEnum.DELETED)
+                    .ifPresent(department -> snapshot.departmentName = department.getName());
+        }
+    }
+
+    private void applyJobPosition(CollaboratorOrganizationSnapshot snapshot, JobPosition jobPosition) {
+        snapshot.jobPositionName = jobPosition.getTitle();
+        if (snapshot.departmentId == null) {
+            snapshot.departmentId = jobPosition.getDepartmentId();
+        }
+    }
+
+    private static final class CollaboratorOrganizationSnapshot {
+        private UUID collaboratorId;
+        private UUID photoObjectId;
+        private UUID jobPositionId;
+        private String jobPositionName;
+        private UUID departmentId;
+        private String departmentName;
+
+        private static CollaboratorOrganizationSnapshot empty() {
+            return new CollaboratorOrganizationSnapshot();
+        }
     }
 
     private void persistRefreshToken(UUID userId, String rawToken) {

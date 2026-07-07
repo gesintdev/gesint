@@ -46,6 +46,11 @@ public class JdbcAdminClientLookup implements AdminClientLookup {
     }
 
     @Override
+    public Optional<TenantContext> findByMobileLoginCode(String mobileLoginCode) {
+        return findOne(BASE_SELECT + " AND c.mobile_login_code = ?", mobileLoginCode);
+    }
+
+    @Override
     public Optional<TenantContext> findBySubdomain(String subdomain) {
         return findOne(BASE_SELECT + " AND c.subdomain = ?", subdomain);
     }

@@ -48,6 +48,19 @@ class TenantAuthValidatorTest {
     }
 
     @Test
+    void allowsLocalSchemaUserOnTenantHostWithoutAdminLink() {
+        UUID userId = UUID.randomUUID();
+        UUID clientId = UUID.randomUUID();
+        TenantContextHolder.set(
+                new TenantContext(clientId, "empresa-a", "tenant_a", "A", TenantProvisioningStatus.READY, "ACTIVE"));
+        when(platformAdminUserLookup.isPlatformAdmin("local-user")).thenReturn(false);
+        when(platformAdminUserLookup.isPlatformAdminAppUser(userId)).thenReturn(false);
+        when(tenantClientUserLookup.isLinkedToClient(clientId, userId)).thenReturn(false);
+
+        validator.assertLoginAllowed(userId, "local-user");
+    }
+
+    @Test
     void allowsPlatformAdminOnPlatformHostEvenWhenRegisteredClientUsernameExists() {
         UUID userId = UUID.randomUUID();
         TenantContextHolder.set(TenantContext.platform());

@@ -33,6 +33,8 @@ public class AppUser extends AuditEntity {
     @Column(name = "collaborator_id")
     private UUID collaboratorId;
 
+    private String name;
+
     @Column(nullable = false, unique = true, length = 100)
     private String username;
 

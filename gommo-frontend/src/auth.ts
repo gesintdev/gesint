@@ -16,7 +16,12 @@ class TokenResponse {
     expiresInSeconds!: number;
     username?: string;
     email?: string;
+    collaboratorId?: string;
     photoObjectId?: string;
+    jobPositionId?: string;
+    jobPositionName?: string;
+    departmentId?: string;
+    departmentName?: string;
     permissions?: string[];
     platformAdmin?: boolean;
 }
@@ -80,7 +85,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         id: credentials.username as string,
                         name: data.username ?? (credentials.username as string),
                         email: data.email,
+                        collaboratorId: data.collaboratorId,
                         photoObjectId: data.photoObjectId,
+                        jobPositionId: data.jobPositionId,
+                        jobPositionName: data.jobPositionName,
+                        departmentId: data.departmentId,
+                        departmentName: data.departmentName,
                         permissions: data.permissions ?? [],
                         platformAdmin: data.platformAdmin ?? false,
                         tenantSlug,
@@ -124,7 +134,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     sub: user.id,
                     name: user.name,
                     email: user.email,
+                    collaboratorId: user.collaboratorId,
                     photoObjectId: user.photoObjectId,
+                    jobPositionId: user.jobPositionId,
+                    jobPositionName: user.jobPositionName,
+                    departmentId: user.departmentId,
+                    departmentName: user.departmentName,
                     permissions: user.permissions,
                     platformAdmin: user.platformAdmin,
                     tenantSlug: user.tenantSlug,
@@ -150,7 +165,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             if (session.user) {
                 session.user.name = (token.name as string | undefined) ?? session.user.name;
                 session.user.email = (token.email as string | undefined) ?? session.user.email;
+                session.user.collaboratorId = token.collaboratorId as string | undefined;
                 session.user.photoObjectId = token.photoObjectId as string | undefined;
+                session.user.jobPositionId = token.jobPositionId as string | undefined;
+                session.user.jobPositionName = token.jobPositionName as string | undefined;
+                session.user.departmentId = token.departmentId as string | undefined;
+                session.user.departmentName = token.departmentName as string | undefined;
                 session.user.permissions = (token.permissions as string[] | undefined) ?? [];
             }
 

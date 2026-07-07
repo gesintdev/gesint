@@ -9,7 +9,12 @@ declare module "next-auth" {
         refreshToken?: string;
         refreshTokenIssuedAt?: number;
         accessTokenExpires?: number;
+        collaboratorId?: string;
         photoObjectId?: string;
+        jobPositionId?: string;
+        jobPositionName?: string;
+        departmentId?: string;
+        departmentName?: string;
         permissions?: string[];
         tenantSlug?: string;
         platformAdmin?: boolean;
@@ -21,7 +26,12 @@ declare module "next-auth" {
         platformAdmin?: boolean;
         error?: AuthTokenError;
         user: DefaultSession["user"] & {
+            collaboratorId?: string;
             photoObjectId?: string;
+            jobPositionId?: string;
+            jobPositionName?: string;
+            departmentId?: string;
+            departmentName?: string;
             permissions?: string[];
         };
     }
@@ -36,7 +46,12 @@ declare module "next-auth/jwt" {
         refreshRetryAfter?: number;
         error?: AuthTokenError;
         email?: string | null;
+        collaboratorId?: string;
         photoObjectId?: string;
+        jobPositionId?: string;
+        jobPositionName?: string;
+        departmentId?: string;
+        departmentName?: string;
         permissions?: string[];
         tenantSlug?: string;
         platformAdmin?: boolean;

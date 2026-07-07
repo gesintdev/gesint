@@ -6,6 +6,8 @@ public interface AdminClientLookup {
 
     Optional<TenantContext> findBySlug(String slug);
 
+    Optional<TenantContext> findByMobileLoginCode(String mobileLoginCode);
+
     Optional<TenantContext> findBySubdomain(String subdomain);
 
     Optional<TenantContext> findByCustomDomain(String customDomain);

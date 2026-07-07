@@ -1,9 +1,6 @@
 package br.com.gommo.modules.cfg.access.user.service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,11 +31,11 @@ public class TenantAppUserService implements ITenantAppUserService {
     private final PasswordEncoder passwordEncoder;
 
     public TenantAppUserService(
-            AppUserRepository appUserRepository,
-            RoleRepository roleRepository,
-            CollaboratorRepository collaboratorRepository,
-            TenantAppUserMapper mapper,
-            PasswordEncoder passwordEncoder) {
+        AppUserRepository appUserRepository,
+        RoleRepository roleRepository,
+        CollaboratorRepository collaboratorRepository,
+        TenantAppUserMapper mapper,
+        PasswordEncoder passwordEncoder) {
         this.appUserRepository = appUserRepository;
         this.roleRepository = roleRepository;
         this.collaboratorRepository = collaboratorRepository;
@@ -51,8 +48,8 @@ public class TenantAppUserService implements ITenantAppUserService {
     @PreAuthorize("hasAuthority('user:read')")
     public List<AppUserResponseDto> findAll() {
         return appUserRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
-                .map(user -> mapper.toResponse(user, resolveCollaborator(user.getCollaboratorId())))
-                .toList();
+            .map(user -> mapper.toResponse(user, resolveCollaborator(user.getCollaboratorId())))
+            .toList();
     }
 
     @Override
@@ -70,14 +67,15 @@ public class TenantAppUserService implements ITenantAppUserService {
         validateCreate(request);
         Collaborator collaborator = resolveActiveCollaborator(request.getCollaboratorId());
         AppUser user = AppUser.builder()
-                .collaboratorId(collaborator.getId())
-                .username(request.getUsername().trim())
-                .email(request.getEmail().trim().toLowerCase())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .status(StatusEnum.ACTIVE)
-                .mustChangePwd(true)
-                .roles(resolveAssignedRoles(request))
-                .build();
+            .collaboratorId(collaborator.getId())
+            .username(request.getUsername().trim())
+            .name(Objects.isNull(request.getName()) ? collaborator.getFullName() : request.getName().trim())
+            .email(request.getEmail().trim().toLowerCase())
+            .passwordHash(passwordEncoder.encode(request.getPassword()))
+            .status(StatusEnum.ACTIVE)
+            .mustChangePwd(true)
+            .roles(resolveAssignedRoles(request))
+            .build();
         AppUser saved = appUserRepository.save(user);
         return mapper.toResponse(saved, collaborator);
     }
@@ -112,14 +110,14 @@ public class TenantAppUserService implements ITenantAppUserService {
 
     private AppUser findUser(UUID id) {
         return appUserRepository
-                .findByIdWithRoles(id, StatusEnum.DELETED)
-                .orElseThrow(TenantAppUserException::notFound);
+            .findByIdWithRoles(id, StatusEnum.DELETED)
+            .orElseThrow(TenantAppUserException::notFound);
     }
 
     private Collaborator resolveActiveCollaborator(UUID collaboratorId) {
         return collaboratorRepository
-                .findByIdAndStatusNot(collaboratorId, StatusEnum.DELETED)
-                .orElseThrow(TenantAppUserException::notFound);
+            .findByIdAndStatusNot(collaboratorId, StatusEnum.DELETED)
+            .orElseThrow(TenantAppUserException::notFound);
     }
 
     private Collaborator resolveCollaborator(UUID collaboratorId) {
@@ -142,7 +140,7 @@ public class TenantAppUserService implements ITenantAppUserService {
     private void validateUpdate(AppUserRequestDto request, UUID id) {
         validateUnique(request, id);
         if (appUserRepository.existsByCollaboratorIdAndIdNotAndStatusNot(
-                request.getCollaboratorId(), id, StatusEnum.DELETED)) {
+            request.getCollaboratorId(), id, StatusEnum.DELETED)) {
             throw TenantAppUserException.collaboratorAlreadyLinked();
         }
     }
@@ -186,9 +184,9 @@ public class TenantAppUserService implements ITenantAppUserService {
 
     private Role loadAssignableRole(UUID roleId, SystemScopeEnum expectedSystem) {
         Role role = roleRepository
-                .findByIdWithPermissions(roleId, StatusEnum.DELETED)
-                .filter(r -> !r.isSystemRole() && r.getStatus() == StatusEnum.ACTIVE)
-                .orElseThrow(TenantAppUserException::invalidRoleForSystem);
+            .findByIdWithPermissions(roleId, StatusEnum.DELETED)
+            .filter(r -> !r.isSystemRole() && r.getStatus() == StatusEnum.ACTIVE)
+            .orElseThrow(TenantAppUserException::invalidRoleForSystem);
         if (role.getSystem() != expectedSystem) {
             throw TenantAppUserException.invalidRoleForSystem();
         }

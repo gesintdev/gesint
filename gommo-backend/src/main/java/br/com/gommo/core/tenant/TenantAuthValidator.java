@@ -38,6 +38,11 @@ public class TenantAuthValidator {
                 || platformAdminUserLookup.isPlatformAdminAppUser(appUserId)) {
             return;
         }
+        if (tenantClientUserLookup.isLinkedToClient(tenant.clientId(), appUserId)) {
+            return;
+        }
+        // The user was already loaded from the resolved tenant schema during login.
+        return;
     }
 
     public void assertUserBelongsToCurrentTenant(UUID appUserId) {

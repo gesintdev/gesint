@@ -13,7 +13,12 @@ type TokenResponse = {
     refreshToken: string;
     tokenType: string;
     expiresInSeconds: number;
+    collaboratorId?: string;
     photoObjectId?: string;
+    jobPositionId?: string;
+    jobPositionName?: string;
+    departmentId?: string;
+    departmentName?: string;
     permissions?: string[];
 };
 
@@ -74,9 +79,14 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
             ...token,
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
-            refreshTokenIssuedAt: refreshTokenChanged ? Date.now() : token.refreshTokenIssuedAt ?? Date.now(),
+            refreshTokenIssuedAt: refreshTokenChanged ? Date.now() : (token.refreshTokenIssuedAt ?? Date.now()),
             accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
+            collaboratorId: data.collaboratorId,
             photoObjectId: data.photoObjectId,
+            jobPositionId: data.jobPositionId,
+            jobPositionName: data.jobPositionName,
+            departmentId: data.departmentId,
+            departmentName: data.departmentName,
             permissions: data.permissions ?? (token.permissions as string[] | undefined) ?? [],
             refreshRetryAfter: undefined,
             error: undefined,

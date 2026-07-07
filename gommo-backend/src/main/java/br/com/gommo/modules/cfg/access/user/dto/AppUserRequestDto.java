@@ -4,11 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,13 +16,23 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AppUserRequestDto {
 
-    @NotNull private UUID collaboratorId;
+    @NotNull
+    private UUID collaboratorId;
 
-    @NotBlank @Size(max = 100) private String username;
+    @Size(max = 100)
+    private String name;
 
-    @NotBlank @Email @Size(max = 200) private String email;
+    @NotBlank
+    @Size(max = 100)
+    private String username;
 
-    @Size(min = 6, max = 100) private String password;
+    @NotBlank
+    @Email
+    @Size(max = 200)
+    private String email;
+
+    @Size(min = 6, max = 100)
+    private String password;
 
     private List<UUID> dpRoleIds;
 

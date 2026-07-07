@@ -24,7 +24,12 @@ public class TenantResolver {
         }
 
         if (properties.isHeaderEnabled() && tenantHeaderValue != null && !tenantHeaderValue.isBlank()) {
-            return findAndValidate(adminClientLookup.findBySlug(tenantHeaderValue.trim()));
+            String tenantKey = tenantHeaderValue.trim();
+            Optional<TenantContext> byMobileLoginCode = adminClientLookup.findByMobileLoginCode(tenantKey);
+            if (byMobileLoginCode.isPresent()) {
+                return findAndValidate(byMobileLoginCode);
+            }
+            return findAndValidate(adminClientLookup.findBySlug(tenantKey));
         }
 
         String host = hostParser.normalizeHost(hostHeader);

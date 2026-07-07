@@ -25,6 +25,7 @@ public class AppUserResponseDto {
     private StatusEnum status;
     private UUID collaboratorId;
     private String collaboratorName;
+    private String name;
     private String username;
     private String email;
     private List<ProfileResponseDto> dpRoles;
