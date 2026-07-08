@@ -26,6 +26,8 @@ public class AttendanceRecordRequestDto {
 
     private LocalTime clockIn;
     private LocalTime clockOut;
+    private LocalTime breakStart;
+    private LocalTime breakEnd;
     private Integer breakMinutes;
     private AttendanceOccurrenceTypeEnum occurrenceType;
     private AttendanceOccurrenceOriginEnum occurrenceOrigin;
@@ -39,4 +41,12 @@ public class AttendanceRecordRequestDto {
     private AttendanceSourceEnum source;
     private String clientRequestId;
     private OffsetDateTime submittedAt;
+    private String requestStatus;
+    private OffsetDateTime reviewedAt;
+    private UUID reviewedBy;
+    private String reviewReason;
+    private UUID photoObjectId;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
+    private BigDecimal locationAccuracyMeters;
 }

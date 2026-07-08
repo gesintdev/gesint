@@ -1,7 +1,7 @@
 import type {
     AttendanceRecord,
     AttendanceRecordCreateDto,
-} from "@/modules/rh/person/attendance/dto/attendance-record.dto";
+} from "@/modules/dp/organization/attendance/dto/attendance-record.dto";
 
 export function attendancerecordToFormDto(entity: AttendanceRecord): AttendanceRecordCreateDto {
     return {
@@ -18,3 +18,4 @@ export const emptyAttendanceRecordForm = (): AttendanceRecordCreateDto => ({
     clockIn: "",
     clockOut: "",
 });
+

@@ -39,6 +39,12 @@ public class AttendanceRecord extends AuditEntity {
     @Column(name = "clock_out")
     private LocalTime clockOut;
 
+    @Column(name = "break_start")
+    private LocalTime breakStart;
+
+    @Column(name = "break_end")
+    private LocalTime breakEnd;
+
     @Column(name = "break_minutes")
     private Integer breakMinutes;
 
@@ -81,4 +87,28 @@ public class AttendanceRecord extends AuditEntity {
 
     @Column(name = "submitted_at")
     private OffsetDateTime submittedAt;
+
+    @Column(name = "request_status", length = 40)
+    private String requestStatus;
+
+    @Column(name = "reviewed_at")
+    private OffsetDateTime reviewedAt;
+
+    @Column(name = "reviewed_by")
+    private UUID reviewedBy;
+
+    @Column(name = "review_reason", columnDefinition = "TEXT")
+    private String reviewReason;
+
+    @Column(name = "photo_object_id")
+    private UUID photoObjectId;
+
+    @Column(name = "latitude", precision = 10, scale = 7)
+    private BigDecimal latitude;
+
+    @Column(name = "longitude", precision = 10, scale = 7)
+    private BigDecimal longitude;
+
+    @Column(name = "location_accuracy_meters", precision = 10, scale = 2)
+    private BigDecimal locationAccuracyMeters;
 }

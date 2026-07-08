@@ -15,6 +15,8 @@ public class AttendanceRecordMapper {
                 .workDate(dto.getWorkDate())
                 .clockIn(dto.getClockIn())
                 .clockOut(dto.getClockOut())
+                .breakStart(dto.getBreakStart())
+                .breakEnd(dto.getBreakEnd())
                 .breakMinutes(dto.getBreakMinutes())
                 .occurrenceType(
                         dto.getOccurrenceType() != null
@@ -34,6 +36,14 @@ public class AttendanceRecordMapper {
                 .source(dto.getSource())
                 .clientRequestId(dto.getClientRequestId())
                 .submittedAt(dto.getSubmittedAt())
+                .requestStatus(dto.getRequestStatus())
+                .reviewedAt(dto.getReviewedAt())
+                .reviewedBy(dto.getReviewedBy())
+                .reviewReason(dto.getReviewReason())
+                .photoObjectId(dto.getPhotoObjectId())
+                .latitude(dto.getLatitude())
+                .longitude(dto.getLongitude())
+                .locationAccuracyMeters(dto.getLocationAccuracyMeters())
                 .build();
     }
 
@@ -42,6 +52,8 @@ public class AttendanceRecordMapper {
         entity.setWorkDate(dto.getWorkDate());
         entity.setClockIn(dto.getClockIn());
         entity.setClockOut(dto.getClockOut());
+        entity.setBreakStart(dto.getBreakStart());
+        entity.setBreakEnd(dto.getBreakEnd());
         entity.setBreakMinutes(dto.getBreakMinutes());
         entity.setOccurrenceType(
                 dto.getOccurrenceType() != null ? dto.getOccurrenceType() : AttendanceOccurrenceTypeEnum.NORMAL_WORK);
@@ -57,6 +69,14 @@ public class AttendanceRecordMapper {
         entity.setSource(dto.getSource());
         entity.setClientRequestId(dto.getClientRequestId());
         entity.setSubmittedAt(dto.getSubmittedAt());
+        entity.setRequestStatus(dto.getRequestStatus());
+        entity.setReviewedAt(dto.getReviewedAt());
+        entity.setReviewedBy(dto.getReviewedBy());
+        entity.setReviewReason(dto.getReviewReason());
+        entity.setPhotoObjectId(dto.getPhotoObjectId());
+        entity.setLatitude(dto.getLatitude());
+        entity.setLongitude(dto.getLongitude());
+        entity.setLocationAccuracyMeters(dto.getLocationAccuracyMeters());
     }
 
     public AttendanceRecordResponseDto toResponse(AttendanceRecord entity) {
@@ -68,6 +88,8 @@ public class AttendanceRecordMapper {
                 .workDate(entity.getWorkDate())
                 .clockIn(entity.getClockIn())
                 .clockOut(entity.getClockOut())
+                .breakStart(entity.getBreakStart())
+                .breakEnd(entity.getBreakEnd())
                 .breakMinutes(entity.getBreakMinutes())
                 .occurrenceType(entity.getOccurrenceType())
                 .occurrenceOrigin(entity.getOccurrenceOrigin())
@@ -81,6 +103,14 @@ public class AttendanceRecordMapper {
                 .source(entity.getSource())
                 .clientRequestId(entity.getClientRequestId())
                 .submittedAt(entity.getSubmittedAt())
+                .requestStatus(entity.getRequestStatus())
+                .reviewedAt(entity.getReviewedAt())
+                .reviewedBy(entity.getReviewedBy())
+                .reviewReason(entity.getReviewReason())
+                .photoObjectId(entity.getPhotoObjectId())
+                .latitude(entity.getLatitude())
+                .longitude(entity.getLongitude())
+                .locationAccuracyMeters(entity.getLocationAccuracyMeters())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

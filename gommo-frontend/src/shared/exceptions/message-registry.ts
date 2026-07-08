@@ -24,7 +24,7 @@ import { PAYMENT_CLIENT_MESSAGES, PAYMENT_MESSAGES } from "@/modules/dp/payment/
 import {
     ATTENDANCE_CLIENT_MESSAGES,
     ATTENDANCE_MESSAGES,
-} from "@/modules/rh/person/attendance/exceptions/attendance-record.messages";
+} from "@/modules/dp/organization/attendance/exceptions/attendance-record.messages";
 import {
     ADMISSION_CLIENT_MESSAGES,
     ADMISSION_MESSAGES,
@@ -88,3 +88,4 @@ export function resolveMessageByCode(code: string | undefined, fallback: string)
 export function registerMessages(catalog: Record<string, string>): void {
     Object.assign(REGISTRY, catalog);
 }
+

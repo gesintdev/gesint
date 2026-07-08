@@ -31,13 +31,31 @@ public interface AttendanceRecordRepository extends IBaseRepository<AttendanceRe
             @Param("periodStart") LocalDate periodStart,
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
-
+    @Query(
+            """
+            SELECT a FROM AttendanceRecord a
+            WHERE a.status <> :deletedStatus
+              AND a.collaboratorId = :collaboratorId
+              AND a.workDate BETWEEN :periodStart AND :periodEnd
+              AND a.requestStatus IS NULL
+            ORDER BY a.workDate DESC
+            """)
+    List<AttendanceRecord> findWorkdayByCollaboratorAndPeriod(
+            @Param("collaboratorId") UUID collaboratorId,
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
     List<AttendanceRecord> findByOccurrenceOriginAndReferenceIdAndStatusNot(
             AttendanceOccurrenceOriginEnum occurrenceOrigin, UUID referenceId, StatusEnum status);
+
+    Optional<AttendanceRecord> findByCollaboratorIdAndWorkDateAndRequestStatusIsNullAndStatusNot(
+            UUID collaboratorId, LocalDate workDate, StatusEnum status);
 
     Optional<AttendanceRecord> findByCollaboratorIdAndWorkDateAndStatusNot(
             UUID collaboratorId, LocalDate workDate, StatusEnum status);
 
     Optional<AttendanceRecord> findBySourceAndClientRequestIdAndStatusNot(
             AttendanceSourceEnum source, String clientRequestId, StatusEnum status);
+
+    List<AttendanceRecord> findByRequestStatusAndStatusNotOrderBySubmittedAtDesc(String requestStatus, StatusEnum status);
 }

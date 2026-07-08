@@ -22,6 +22,8 @@ public class AttendanceRecordResponseDto {
     private final LocalDate workDate;
     private final LocalTime clockIn;
     private final LocalTime clockOut;
+    private final LocalTime breakStart;
+    private final LocalTime breakEnd;
     private final Integer breakMinutes;
     private final AttendanceOccurrenceTypeEnum occurrenceType;
     private final AttendanceOccurrenceOriginEnum occurrenceOrigin;
@@ -35,6 +37,14 @@ public class AttendanceRecordResponseDto {
     private final AttendanceSourceEnum source;
     private final String clientRequestId;
     private final OffsetDateTime submittedAt;
+    private final String requestStatus;
+    private final OffsetDateTime reviewedAt;
+    private final UUID reviewedBy;
+    private final String reviewReason;
+    private final UUID photoObjectId;
+    private final BigDecimal latitude;
+    private final BigDecimal longitude;
+    private final BigDecimal locationAccuracyMeters;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

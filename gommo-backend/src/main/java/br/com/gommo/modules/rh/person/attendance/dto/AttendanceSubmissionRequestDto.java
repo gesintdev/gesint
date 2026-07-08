@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequestTypeEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceSourceEnum;
@@ -28,8 +29,12 @@ public class AttendanceSubmissionRequestDto {
 
     @NotNull private LocalDate requestDate;
 
+    private UUID targetRecordId;
+    private LocalTime manualPunchTime;
     private LocalTime clockIn;
     private LocalTime clockOut;
+    private LocalTime breakStart;
+    private LocalTime breakEnd;
     private Integer breakMinutes;
     private BigDecimal expectedHours;
     private BigDecimal workedHours;

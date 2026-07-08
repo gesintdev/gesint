@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
@@ -286,13 +287,23 @@ public class AuthService implements IAuthService {
                     .sorted()
                     .toList();
         }
-        return user.getRoles().stream()
+
+        List<String> permissions = user.getRoles().stream()
                 .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
                 .map(Role::getPermissions)
                 .flatMap(java.util.Set::stream)
                 .map(Permission::getAuthority)
                 .distinct()
                 .toList();
+
+        if (user.getCollaboratorId() == null) {
+            return permissions;
+        }
+
+        List<String> mobilePermissions = new ArrayList<>(permissions);
+        mobilePermissions.add("attendance:write");
+        mobilePermissions.add("storage:write");
+        return mobilePermissions.stream().distinct().toList();
     }
 
     private CollaboratorOrganizationSnapshot resolveCollaboratorOrganization(AppUser user) {

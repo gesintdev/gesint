@@ -56,21 +56,21 @@ export const organizationRoutes: AppRoute[] = [
         routeId: "attendance",
         tabShortLabel: "Ponto",
         list: lazyNamed(
-            () => import("@/modules/rh/person/attendance/components/AttendanceRecordListClient"),
+            () => import("@/modules/dp/organization/attendance/components/AttendanceRecordListClient"),
             "AttendanceRecordListClient",
         ),
         form: lazyNamed(
-            () => import("@/modules/rh/person/attendance/components/AttendanceRecordFormClient"),
+            () => import("@/modules/dp/organization/attendance/components/AttendanceRecordFormClient"),
             "AttendanceRecordFormClient",
         ),
         extraTabs: [
             {
                 id: "adjustment-request",
-                label: "Solicitação de Ajustes",
+                label: "Solicitações de ajuste",
                 permission: "attendance:read",
                 content: lazyNamed(
                     () =>
-                        import("@/modules/rh/person/attendance/components/AttendanceRecordRequestsClient"),
+                        import("@/modules/dp/organization/attendance/components/AttendanceRecordRequestsClient"),
                     "AttendanceRecordRequestsClient",
                 ),
             },
@@ -97,7 +97,7 @@ export const organizationRoutes: AppRoute[] = [
         extraTabs: [
             {
                 id: "pending-requests",
-                label: "Solicitações do RH",
+                label: "SolicitaÃ§Ãµes do RH",
                 permission: "leave:write",
                 content: lazyNamed(
                     () => import("@/modules/rh/person/leave/components/LeavePendingRequestsClient"),
@@ -141,3 +141,5 @@ export const organizationRoutes: AppRoute[] = [
         ),
     }),
 ];
+
+

@@ -1,4 +1,4 @@
-import { Bell, ClipboardList, Shield, Users } from "lucide-react";
+import { Bell, ClipboardList, Clock3, Shield, Users } from "lucide-react";
 
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { customWorkspaceRoute, lazyNamed, tabbedCrudRoute } from "@/shared/routing";
@@ -39,6 +39,14 @@ export const settingsRoutes: AppRoute[] = [
             () => import("@/modules/cfg/settings/appuser/components/AppUserFormClient"),
             "AppUserFormClient",
         ),
+    }),
+    customWorkspaceRoute({
+        id: "settings-attendance",
+        href: "/settings/attendance",
+        label: "Ponto",
+        icon: Clock3,
+        permission: "attendance:read",
+        load: () => import("@/modules/cfg/settings/attendance/components/AttendanceSettingsPage"),
     }),
     customWorkspaceRoute({
         id: "settings-notifications",
@@ -177,3 +185,7 @@ export const settingsRoutes: AppRoute[] = [
         ),
     }),
 ];
+
+
+
+
