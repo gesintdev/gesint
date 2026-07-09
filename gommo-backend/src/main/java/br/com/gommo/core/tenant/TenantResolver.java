@@ -58,7 +58,9 @@ public class TenantResolver {
         }
 
         if (hostParser.isBareLocalHost(host)) {
-            return Optional.of(TenantContext.platform());
+            Optional<TenantContext> developmentTenant =
+                    resolveDevelopmentPublicTenantBySlug(properties.getDevTenantSlug());
+            return developmentTenant.isPresent() ? developmentTenant : Optional.of(TenantContext.platform());
         }
 
         return Optional.empty();

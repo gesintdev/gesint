@@ -6,11 +6,7 @@ import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.cfg.settings.notification.entity.SystemSetting;
 import br.com.gommo.modules.cfg.settings.notification.repository.SystemSettingRepository;
 import br.com.gommo.modules.rh.person.attendance.dto.*;
-import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
-import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
-import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
-import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequestTypeEnum;
-import br.com.gommo.modules.rh.person.attendance.entity.AttendanceSourceEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.*;
 import br.com.gommo.modules.rh.person.attendance.exception.AttendanceRecordException;
 import br.com.gommo.modules.rh.person.attendance.mapper.AttendanceRecordMapper;
 import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRecordRepository;
@@ -28,11 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -181,6 +173,7 @@ public class AttendanceRecordService
             .todayRecord(todayRecord)
             .build();
     }
+
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('attendance:write')")
@@ -196,6 +189,23 @@ public class AttendanceRecordService
             .map(mapper::toResponse)
             .toList();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('attendance:write')")
+    public List<AttendanceRecordResponseDto> mobileSubmissions(LocalDate from, LocalDate to) {
+        UUID collaboratorId = resolveCurrentCollaboratorId();
+        LocalDate periodEnd = to != null ? to : LocalDate.now(BUSINESS_ZONE);
+        LocalDate periodStart = from != null ? from : periodEnd.minusDays(89);
+        if (periodEnd.isBefore(periodStart)) {
+            periodEnd = periodStart;
+        }
+        return repository.findRequestsByCollaboratorAndPeriod(collaboratorId, periodStart, periodEnd, StatusEnum.DELETED)
+            .stream()
+            .map(mapper::toResponse)
+            .toList();
+    }
+
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('attendance:read')")
@@ -331,8 +341,8 @@ public class AttendanceRecordService
 
     private void applyApprovedRequest(AttendanceRecord request) {
         if (request.getRequestType() == AttendanceRequestTypeEnum.DAY_ABSENCE_EXCUSE
-                || request.getRequestType() == AttendanceRequestTypeEnum.MEDICAL_CERTIFICATE
-                || request.getRequestType() == AttendanceRequestTypeEnum.LEAVE_ABSENCE) {
+            || request.getRequestType() == AttendanceRequestTypeEnum.MEDICAL_CERTIFICATE
+            || request.getRequestType() == AttendanceRequestTypeEnum.LEAVE_ABSENCE) {
             request.setWorkedHours(request.getExpectedHours());
             request.setImpactsHourBank(Boolean.FALSE);
             return;
@@ -340,8 +350,8 @@ public class AttendanceRecordService
         AttendanceRecord target = request.getReferenceId() != null
             ? findEntity(request.getReferenceId())
             : repository.findByCollaboratorIdAndWorkDateAndRequestStatusIsNullAndStatusNot(
-                    request.getCollaboratorId(), request.getWorkDate(), StatusEnum.DELETED)
-                .orElseGet(() -> newWorkdayRecord(request.getCollaboratorId(), request.getWorkDate(), request.getExpectedHours()));
+                request.getCollaboratorId(), request.getWorkDate(), StatusEnum.DELETED)
+            .orElseGet(() -> newWorkdayRecord(request.getCollaboratorId(), request.getWorkDate(), request.getExpectedHours()));
         if (request.getClockIn() != null) target.setClockIn(request.getClockIn());
         if (request.getBreakStart() != null) target.setBreakStart(request.getBreakStart());
         if (request.getBreakEnd() != null) target.setBreakEnd(request.getBreakEnd());
@@ -435,7 +445,8 @@ public class AttendanceRecordService
     }
 
     private AttendanceOccurrenceTypeEnum occurrenceFromRequestType(AttendanceRequestTypeEnum requestType) {
-        if (requestType == AttendanceRequestTypeEnum.MEDICAL_CERTIFICATE) return AttendanceOccurrenceTypeEnum.MEDICAL_CERTIFICATE;
+        if (requestType == AttendanceRequestTypeEnum.MEDICAL_CERTIFICATE)
+            return AttendanceOccurrenceTypeEnum.MEDICAL_CERTIFICATE;
         if (requestType == AttendanceRequestTypeEnum.LEAVE_ABSENCE || requestType == AttendanceRequestTypeEnum.DAY_ABSENCE_EXCUSE) {
             return AttendanceOccurrenceTypeEnum.LEAVE_ABSENCE;
         }
@@ -448,7 +459,7 @@ public class AttendanceRecordService
             return;
         }
         if (request.getClockIn() != null || request.getBreakStart() != null
-                || request.getBreakEnd() != null || request.getClockOut() != null) {
+            || request.getBreakEnd() != null || request.getClockOut() != null) {
             return;
         }
 
@@ -498,6 +509,7 @@ public class AttendanceRecordService
     private boolean isAfterOrEqual(LocalTime time, LocalTime previous) {
         return previous == null || !time.isBefore(previous);
     }
+
     private void linkAttachment(AttendanceRecord entity, AttendanceAttachmentReferenceDto attachment, String role) {
         if (attachment == null || attachment.getObjectId() == null) {
             return;

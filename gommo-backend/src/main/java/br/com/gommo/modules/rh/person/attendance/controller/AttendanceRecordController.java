@@ -33,12 +33,21 @@ public class AttendanceRecordController extends BaseController<AttendanceRecordR
     public AttendanceMobileContextResponseDto mobileContext() {
         return attendanceRecordService.mobileContext();
     }
+
     @GetMapping("/mobile/records")
     public List<AttendanceRecordResponseDto> mobileRecords(
-            @RequestParam LocalDate from,
-            @RequestParam LocalDate to) {
+        @RequestParam LocalDate from,
+        @RequestParam LocalDate to) {
         return attendanceRecordService.mobileRecords(from, to);
     }
+
+    @GetMapping("/mobile/submissions")
+    public List<AttendanceRecordResponseDto> mobileSubmissions(
+        @RequestParam(required = false) LocalDate from,
+        @RequestParam(required = false) LocalDate to) {
+        return attendanceRecordService.mobileSubmissions(from, to);
+    }
+
     @PostMapping("/clock")
     @ResponseStatus(HttpStatus.CREATED)
     public AttendanceRecordResponseDto clock(@Valid @RequestBody AttendanceClockRequestDto request) {

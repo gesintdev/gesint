@@ -58,4 +58,19 @@ public interface AttendanceRecordRepository extends IBaseRepository<AttendanceRe
             AttendanceSourceEnum source, String clientRequestId, StatusEnum status);
 
     List<AttendanceRecord> findByRequestStatusAndStatusNotOrderBySubmittedAtDesc(String requestStatus, StatusEnum status);
+
+    @Query(
+            """
+            SELECT a FROM AttendanceRecord a
+            WHERE a.status <> :deletedStatus
+              AND a.collaboratorId = :collaboratorId
+              AND a.requestStatus IS NOT NULL
+              AND a.workDate BETWEEN :periodStart AND :periodEnd
+            ORDER BY a.submittedAt DESC, a.workDate DESC
+            """)
+    List<AttendanceRecord> findRequestsByCollaboratorAndPeriod(
+            @Param("collaboratorId") UUID collaboratorId,
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
 }

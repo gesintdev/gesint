@@ -25,6 +25,8 @@ public interface IAttendanceRecordService
 
     List<AttendanceRecordResponseDto> mobileRecords(LocalDate from, LocalDate to);
 
+    List<AttendanceRecordResponseDto> mobileSubmissions(LocalDate from, LocalDate to);
+
     List<AttendanceRecordResponseDto> pendingRequests();
 
     AttendanceRecordResponseDto review(UUID id, AttendanceReviewRequestDto request);

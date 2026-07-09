@@ -53,6 +53,19 @@ class TenantResolverTest {
     }
 
     @Test
+    void resolvesDevelopmentPublicTenantOnBareLocalhostWhenConfigured() {
+        properties.setDevTenantSlug("dev-public");
+        properties.setDevPublicCompanyCode("000000000");
+
+        Optional<TenantContext> resolved = resolver.resolve("localhost:8081", null);
+
+        assertThat(resolved).isPresent();
+        assertThat(resolved.get().isPlatformAccess()).isFalse();
+        assertThat(resolved.get().slug()).isEqualTo("dev-public");
+        assertThat(resolved.get().schema()).isEqualTo("public");
+    }
+
+    @Test
     void resolvesByHeaderWhenEnabled() {
         properties.setHeaderEnabled(true);
         TenantContext context = readyTenant("empresa-b", "tenant_empresa_b");
