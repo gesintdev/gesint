@@ -25,4 +25,7 @@ public interface SystemNotificationRepository extends IBaseRepository<SystemNoti
             UUID referenceId,
             LocalDate referenceDueDate,
             StatusEnum status);
+
+    List<SystemNotification> findByNotificationTypeAndReferenceTypeAndStatusNot(
+            String notificationType, String referenceType, StatusEnum status);
 }

@@ -9,7 +9,7 @@ export class NotificationSettingsUpdateDto {
 export class SystemNotification {
     id!: string;
     code!: number;
-    notificationType!: "VACATION_DUE" | string;
+    notificationType!: "VACATION_DUE" | "ATTENDANCE_ADJUSTMENT_REQUEST" | string;
     title!: string;
     message!: string;
     referenceType?: string;

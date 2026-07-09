@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { notificationKeys } from "@/modules/cfg/settings/notification/notification.query";
 import { attendancerecordKeys } from "@/modules/dp/organization/attendance/attendance.query";
 import type {
     AttendanceRecord,
@@ -78,6 +79,7 @@ export function AttendanceRecordRequestsClient() {
         onSuccess: async (_data, variables) => {
             await queryClient.invalidateQueries({ queryKey: attendancerecordKeys.all });
             await queryClient.invalidateQueries({ queryKey: [...attendancerecordKeys.all, "pending-requests"] });
+            await queryClient.invalidateQueries({ queryKey: notificationKeys.summary });
             toast.success(variables.action === "APPROVE" ? "Solicitação aprovada" : "Solicitação reprovada");
             setDialog(null);
             setReason("");
