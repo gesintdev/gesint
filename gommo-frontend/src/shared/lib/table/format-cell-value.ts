@@ -131,6 +131,7 @@ const BADGE_LABELS: Record<string, string> = {
     APPROVED_INSS: "Aprovado pelo INSS",
     FINALIZED: "Finalizado",
     NORMAL_WORK: "Trabalho normal",
+    TIME_ADJUSTMENT: "Ajuste de ponto",
     LEAVE_ABSENCE: "Afastamento",
     LATE_ARRIVAL: "Atraso",
     LICENSE: "Licença",

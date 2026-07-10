@@ -50,4 +50,16 @@ public interface AttendanceRecordRepository extends IBaseRepository<AttendanceRe
 
     Optional<AttendanceRecord> findByCollaboratorIdAndWorkDateAndStatusNot(
             UUID collaboratorId, LocalDate workDate, StatusEnum status);
+
+    @Query(
+            """
+            SELECT a FROM AttendanceRecord a
+            WHERE a.status <> :deletedStatus
+              AND a.workDate BETWEEN :periodStart AND :periodEnd
+            ORDER BY a.workDate DESC, a.createdAt DESC
+            """)
+    List<AttendanceRecord> findByWorkDateBetweenAndStatusNot(
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
 }

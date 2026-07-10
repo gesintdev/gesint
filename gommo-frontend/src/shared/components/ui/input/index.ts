@@ -14,6 +14,8 @@ export type { InputDateProps } from "./InputDate";
 export { InputDate } from "./InputDate";
 export type { InputDatetimeProps } from "./InputDatetime";
 export { InputDatetime } from "./InputDatetime";
+export type { InputHourProps } from "./InputHour";
+export { InputHour } from "./InputHour";
 export type { InputInfoProps } from "./InputInfo";
 export { InputInfo } from "./InputInfo";
 export type { InputMonthProps } from "./InputMonth";

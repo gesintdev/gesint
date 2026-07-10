@@ -3,6 +3,7 @@ package br.com.gommo.modules.rh.person.attendance.service;
 import br.com.gommo.core.base.service.IBaseService;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceClockRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceMobileContextResponseDto;
+import br.com.gommo.modules.rh.person.attendance.dto.AttendancePresenceResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRequestResponseDto;
@@ -17,6 +18,8 @@ import java.util.UUID;
 
 public interface IAttendanceRecordService
         extends IBaseService<AttendanceRecordRequestDto, AttendanceRecordResponseDto> {
+
+    List<AttendancePresenceResponseDto> presence(LocalDate from, LocalDate to);
 
     AttendanceRequestResponseDto submit(AttendanceSubmissionRequestDto request);
 

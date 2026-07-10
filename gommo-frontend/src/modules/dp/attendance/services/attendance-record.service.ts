@@ -1,4 +1,5 @@
 import type {
+    AttendancePresenceRow,
     AttendanceRecord,
     AttendanceRecordCreateDto,
     AttendanceRequest,
@@ -15,6 +16,11 @@ class AttendanceRecordService extends BaseService<
 > {
     constructor() {
         super("/api/v1/attendance-records");
+    }
+
+    listPresence(from: string, to: string) {
+        const params = new URLSearchParams({ from, to });
+        return apiFetch<AttendancePresenceRow[]>(`${this.basePath}/presence?${params.toString()}`);
     }
 
     listRequests() {

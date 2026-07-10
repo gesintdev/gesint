@@ -3,6 +3,7 @@ package br.com.gommo.modules.rh.person.attendance.controller;
 import br.com.gommo.core.base.controller.BaseController;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceClockRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceMobileContextResponseDto;
+import br.com.gommo.modules.rh.person.attendance.dto.AttendancePresenceResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRequestResponseDto;
@@ -28,6 +29,13 @@ public class AttendanceRecordController extends BaseController<AttendanceRecordR
     public AttendanceRecordController(IAttendanceRecordService service) {
         super(service);
         this.attendanceRecordService = service;
+    }
+
+    @GetMapping("/presence")
+    public List<AttendancePresenceResponseDto> presence(
+        @RequestParam LocalDate from,
+        @RequestParam LocalDate to) {
+        return attendanceRecordService.presence(from, to);
     }
 
     @GetMapping("/mobile/context")

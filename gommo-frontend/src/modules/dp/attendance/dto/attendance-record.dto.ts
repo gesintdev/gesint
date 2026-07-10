@@ -48,6 +48,35 @@ export class AttendanceRecord {
     updatedAt?: string;
 }
 
+export class AttendancePresenceRow {
+    id!: string;
+    hasRecord!: boolean;
+    code?: number;
+    status?: "ACTIVE" | "INACTIVE" | "DELETED";
+    collaboratorId!: string;
+    collaboratorName?: string;
+    photoObjectId?: string;
+    workDate!: string;
+    clockIn?: string;
+    clockOut?: string;
+    breakStart?: string;
+    breakEnd?: string;
+    breakMinutes?: number;
+    occurrenceType?: AttendanceOccurrenceType;
+    occurrenceOrigin?: AttendanceOccurrenceOrigin;
+    referenceId?: string;
+    expectedHours?: number;
+    workedHours?: number;
+    impactsHourBank?: boolean;
+    impactsPayroll?: boolean;
+    notes?: string;
+    present!: boolean;
+    inVacation!: boolean;
+    onLeaveActive!: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export class AttendanceRecordCreateDto {
     collaboratorId!: string;
     workDate!: string;

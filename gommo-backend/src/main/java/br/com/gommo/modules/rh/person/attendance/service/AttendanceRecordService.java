@@ -18,6 +18,9 @@ import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionSt
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
+import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
+import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.storage.service.IStorageService;
@@ -30,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.*;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -60,6 +64,7 @@ public class AttendanceRecordService
     private final AppUserRepository appUserRepository;
     private final AdmissionProcessRepository admissionProcessRepository;
     private final CollaboratorRepository collaboratorRepository;
+    private final LeaveRequestRepository leaveRequestRepository;
     private final SystemSettingRepository settingRepository;
     private final SystemNotificationService notificationService;
     private final IStorageService storageService;
@@ -72,6 +77,7 @@ public class AttendanceRecordService
         AppUserRepository appUserRepository,
         AdmissionProcessRepository admissionProcessRepository,
         CollaboratorRepository collaboratorRepository,
+        LeaveRequestRepository leaveRequestRepository,
         SystemSettingRepository settingRepository,
         SystemNotificationService notificationService,
         IStorageService storageService) {
@@ -83,6 +89,7 @@ public class AttendanceRecordService
         this.appUserRepository = appUserRepository;
         this.admissionProcessRepository = admissionProcessRepository;
         this.collaboratorRepository = collaboratorRepository;
+        this.leaveRequestRepository = leaveRequestRepository;
         this.settingRepository = settingRepository;
         this.notificationService = notificationService;
         this.storageService = storageService;
@@ -93,6 +100,67 @@ public class AttendanceRecordService
     @PreAuthorize("hasAuthority('attendance:read')")
     public List<AttendanceRecordResponseDto> findAll() {
         return mapToResponses(repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('attendance:read')")
+    public List<AttendancePresenceResponseDto> presence(LocalDate from, LocalDate to) {
+        LocalDate periodStart = from != null && to != null && from.isAfter(to) ? to : from;
+        LocalDate periodEnd = from != null && to != null && from.isAfter(to) ? from : to;
+        if (periodStart == null || periodEnd == null) {
+            throw AttendanceRecordException.invalidSubmission();
+        }
+
+        List<Collaborator> collaborators = collaboratorRepository.findByStatusOrderByFullNameAsc(StatusEnum.ACTIVE);
+        if (collaborators.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> collaboratorIds = collaborators.stream().map(Collaborator::getId).toList();
+        Map<String, AttendanceRecord> recordsByKey = repository
+            .findByWorkDateBetweenAndStatusNot(periodStart, periodEnd, StatusEnum.DELETED)
+            .stream()
+            .collect(Collectors.toMap(
+                record -> presenceKey(record.getCollaboratorId(), record.getWorkDate()),
+                Function.identity(),
+                (left, right) -> left.getCreatedAt() != null
+                        && right.getCreatedAt() != null
+                        && left.getCreatedAt().isAfter(right.getCreatedAt())
+                    ? left
+                    : right));
+
+        Map<UUID, List<LeaveRequest>> vacationsByCollaborator = leaveRequestRepository
+            .findApprovedByCollaboratorInAndTypeOverlapping(
+                collaboratorIds, LeaveTypeEnum.VACATION, periodStart, periodEnd, StatusEnum.DELETED)
+            .stream()
+            .collect(Collectors.groupingBy(LeaveRequest::getCollaboratorId));
+
+        Map<UUID, List<LeaveRequest>> absencesByCollaborator = leaveRequestRepository
+            .findApprovedAbsencesByCollaboratorInOverlapping(
+                collaboratorIds, LeaveTypeEnum.VACATION, periodStart, periodEnd, StatusEnum.DELETED)
+            .stream()
+            .collect(Collectors.groupingBy(LeaveRequest::getCollaboratorId));
+
+        List<AttendancePresenceResponseDto> rows = new ArrayList<>();
+        for (LocalDate day = periodStart; !day.isAfter(periodEnd); day = day.plusDays(1)) {
+            for (Collaborator collaborator : collaborators) {
+                AttendanceRecord record = recordsByKey.get(presenceKey(collaborator.getId(), day));
+                boolean inVacation = coversDate(vacationsByCollaborator.get(collaborator.getId()), day)
+                    || isVacationOccurrence(record);
+                boolean onLeaveActive = coversDate(absencesByCollaborator.get(collaborator.getId()), day)
+                    || isJustifiedLeaveOccurrence(record);
+                boolean present = record != null && record.getClockIn() != null;
+                rows.add(toPresenceResponse(collaborator, day, record, present, inVacation, onLeaveActive));
+            }
+        }
+
+        rows.sort(Comparator
+            .comparing(AttendancePresenceResponseDto::getWorkDate, Comparator.reverseOrder())
+            .thenComparing(
+                row -> row.getCollaboratorName() != null ? row.getCollaboratorName() : "",
+                String.CASE_INSENSITIVE_ORDER));
+        return rows;
     }
 
     @Override
@@ -140,6 +208,7 @@ public class AttendanceRecordService
     public AttendanceRecordResponseDto create(AttendanceRecordRequestDto request) {
         AttendanceRecord entity = mapper.toEntity(request);
         entity.setStatus(StatusEnum.ACTIVE);
+        applyDerivedHours(entity);
         return toEnrichedResponse(repository.save(entity));
     }
 
@@ -149,6 +218,7 @@ public class AttendanceRecordService
     public AttendanceRecordResponseDto update(UUID id, AttendanceRecordRequestDto request) {
         AttendanceRecord entity = findEntity(id);
         updateEntity(entity, request);
+        applyDerivedHours(entity);
         return toEnrichedResponse(repository.save(entity));
     }
 
@@ -446,6 +516,86 @@ public class AttendanceRecordService
         return mapper.toResponse(entity, resolveCollaboratorName(entity.getCollaboratorId()));
     }
 
+    private AttendancePresenceResponseDto toPresenceResponse(
+        Collaborator collaborator,
+        LocalDate workDate,
+        AttendanceRecord record,
+        boolean present,
+        boolean inVacation,
+        boolean onLeaveActive) {
+        if (record != null) {
+            return AttendancePresenceResponseDto.builder()
+                .id(record.getId().toString())
+                .hasRecord(true)
+                .code(record.getCode())
+                .status(record.getStatus())
+                .collaboratorId(collaborator.getId())
+                .collaboratorName(collaborator.getFullName())
+                .photoObjectId(collaborator.getPhotoObjectId())
+                .workDate(workDate)
+                .clockIn(record.getClockIn())
+                .clockOut(record.getClockOut())
+                .breakStart(record.getBreakStart())
+                .breakEnd(record.getBreakEnd())
+                .breakMinutes(record.getBreakMinutes())
+                .occurrenceType(record.getOccurrenceType())
+                .occurrenceOrigin(record.getOccurrenceOrigin())
+                .referenceId(record.getReferenceId())
+                .expectedHours(record.getExpectedHours())
+                .workedHours(record.getWorkedHours())
+                .impactsHourBank(record.getImpactsHourBank())
+                .impactsPayroll(record.getImpactsPayroll())
+                .notes(record.getNotes())
+                .present(present)
+                .inVacation(inVacation)
+                .onLeaveActive(onLeaveActive)
+                .createdAt(record.getCreatedAt())
+                .updatedAt(record.getUpdatedAt())
+                .build();
+        }
+        return AttendancePresenceResponseDto.builder()
+            .id("absent:" + collaborator.getId() + ":" + workDate)
+            .hasRecord(false)
+            .status(StatusEnum.ACTIVE)
+            .collaboratorId(collaborator.getId())
+            .collaboratorName(collaborator.getFullName())
+            .photoObjectId(collaborator.getPhotoObjectId())
+            .workDate(workDate)
+            .present(false)
+            .inVacation(inVacation)
+            .onLeaveActive(onLeaveActive)
+            .build();
+    }
+
+    private static String presenceKey(UUID collaboratorId, LocalDate workDate) {
+        return collaboratorId + "|" + workDate;
+    }
+
+    private static boolean coversDate(List<LeaveRequest> leaves, LocalDate day) {
+        if (leaves == null || leaves.isEmpty() || day == null) {
+            return false;
+        }
+        return leaves.stream()
+            .anyMatch(leave -> leave.getStartDate() != null
+                && leave.getEndDate() != null
+                && !leave.getStartDate().isAfter(day)
+                && !leave.getEndDate().isBefore(day));
+    }
+
+    private static boolean isVacationOccurrence(AttendanceRecord record) {
+        return record != null && record.getOccurrenceType() == AttendanceOccurrenceTypeEnum.VACATION;
+    }
+
+    private static boolean isJustifiedLeaveOccurrence(AttendanceRecord record) {
+        if (record == null || record.getOccurrenceType() == null) {
+            return false;
+        }
+        return switch (record.getOccurrenceType()) {
+            case MEDICAL_CERTIFICATE, LEAVE_ABSENCE, LICENSE -> true;
+            default -> false;
+        };
+    }
+
     private AttendanceRequestResponseDto toEnrichedRequestResponse(AttendanceRequest entity) {
         return requestMapper.toResponse(entity, resolveCollaboratorName(entity.getCollaboratorId()));
     }
@@ -512,6 +662,19 @@ public class AttendanceRecordService
         }
         int netMinutes = Math.max(0, grossMinutes - Math.max(0, breakMinutes));
         return BigDecimal.valueOf(netMinutes).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+    }
+
+    private void applyDerivedHours(AttendanceRecord entity) {
+        if (entity.getBreakStart() != null && entity.getBreakEnd() != null) {
+            entity.setBreakMinutes(minutesBetween(entity.getBreakStart(), entity.getBreakEnd()));
+        }
+        entity.setWorkedHours(calculateWorkedHours(entity));
+        if (entity.getOccurrenceOrigin() == null) {
+            entity.setOccurrenceOrigin(AttendanceOccurrenceOriginEnum.MANUAL);
+        }
+        if (entity.getOccurrenceType() == null) {
+            entity.setOccurrenceType(AttendanceOccurrenceTypeEnum.NORMAL_WORK);
+        }
     }
 
     private int minutesBetween(LocalTime start, LocalTime end) {
