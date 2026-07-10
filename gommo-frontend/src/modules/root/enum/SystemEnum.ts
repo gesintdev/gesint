@@ -1,6 +1,6 @@
-import { Calculator, type LucideIcon, Users, Wallet } from "lucide-react";
+import {Calculator, type LucideIcon, Users, Wallet} from "lucide-react";
 
-import type { AppRoute, TModule } from "@/modules/root/enum/ModuleEnum";
+import type {AppRoute, TModule} from "@/modules/root/enum/ModuleEnum";
 
 export enum SystemEnum {
     DP = "dp",
@@ -55,40 +55,49 @@ export class SystemEnumHelper {
     static getInfos(): Record<SystemEnum, TSystemInfos> {
         return registry;
     }
+
     static getById(id: SystemEnum): TSystemInfos {
         return registry[id];
     }
+
     static isValid(value: string): value is SystemEnum {
         return Object.values(SystemEnum).includes(value as SystemEnum);
     }
+
     /** Ordem alfabética pela sigla — primeiro é o padrão na inicialização. */
     static getSortedSystems(): SystemEnum[] {
         return (Object.values(SystemEnum) as SystemEnum[]).sort((a, b) =>
             registry[a].acronym.localeCompare(registry[b].acronym, "pt-BR"),
         );
     }
+
     static getDefaultSystem(): SystemEnum {
         return SystemEnumHelper.getSortedSystems()[0];
     }
+
     static isSystemNeutralPath(pathname: string): boolean {
         return SYSTEM_NEUTRAL_PATHS.has(normalizePathname(pathname));
     }
+
     static parseStoredSystemCookie(value: string | undefined): SystemEnum | null {
         if (!value || !SystemEnumHelper.isValid(value)) return null;
         return value;
     }
+
     static readStoredSystemFromDocumentCookie(): SystemEnum | null {
         if (typeof document === "undefined") return null;
         const match = document.cookie.match(new RegExp(`(?:^|; )${STORAGE_KEY}=([^;]*)`));
         if (!match?.[1]) return null;
         return SystemEnumHelper.parseStoredSystemCookie(decodeURIComponent(match[1]));
     }
+
     static readStoredSystem(): SystemEnum | null {
         if (typeof window === "undefined") return null;
         const stored = window.localStorage.getItem(STORAGE_KEY);
         if (stored && SystemEnumHelper.isValid(stored)) return stored;
         return SystemEnumHelper.readStoredSystemFromDocumentCookie();
     }
+
     static syncStoredSystemCookieFromLocalStorage(): void {
         if (typeof window === "undefined") return;
         const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -97,14 +106,17 @@ export class SystemEnumHelper {
         if (fromCookie === stored) return;
         SystemEnumHelper.writeStoredSystemCookie(stored);
     }
+
     static persistSystem(system: SystemEnum): void {
         if (typeof window === "undefined") return;
         window.localStorage.setItem(STORAGE_KEY, system);
         SystemEnumHelper.writeStoredSystemCookie(system);
         window.dispatchEvent(new Event(STORAGE_EVENT));
     }
+
     static subscribeStoredSystem(onStoreChange: () => void): () => void {
-        if (typeof window === "undefined") return () => {};
+        if (typeof window === "undefined") return () => {
+        };
         const handler = () => onStoreChange();
         window.addEventListener(STORAGE_EVENT, handler);
         window.addEventListener("storage", handler);
@@ -113,10 +125,12 @@ export class SystemEnumHelper {
             window.removeEventListener("storage", handler);
         };
     }
+
     private static writeStoredSystemCookie(system: SystemEnum): void {
         if (typeof document === "undefined") return;
         document.cookie = `${STORAGE_KEY}=${encodeURIComponent(system)};path=/;max-age=31536000;SameSite=Lax`;
     }
+
     static findSystemForRouteId(routeId: string, groups: TSystemModuleGroup[]): SystemEnum | null {
         for (const group of groups) {
             for (const navModule of group.modules) {
@@ -125,6 +139,7 @@ export class SystemEnumHelper {
         }
         return null;
     }
+
     static findSystemForHref(pathname: string, groups: TSystemModuleGroup[]): SystemEnum | null {
         const normalized = normalizePathname(pathname);
         if (SystemEnumHelper.isSystemNeutralPath(normalized)) {
@@ -137,6 +152,7 @@ export class SystemEnumHelper {
         }
         return null;
     }
+
     static firstNavigableRoute(routes: AppRoute[]): AppRoute | null {
         for (const route of routes) {
             if (route.href) return route;
@@ -147,6 +163,7 @@ export class SystemEnumHelper {
         }
         return null;
     }
+
     static getDefaultRoute(groups: TSystemModuleGroup[], system: SystemEnum): AppRoute | null {
         const group = groups.find((g) => g.system === system);
         if (!group) return null;
@@ -156,10 +173,12 @@ export class SystemEnumHelper {
         }
         return null;
     }
+
     static getAcronymForHref(href: string, groups: TSystemModuleGroup[]): string | null {
         const system = SystemEnumHelper.findSystemForHref(href, groups);
         return system ? SystemEnumHelper.getById(system).acronym : null;
     }
+
     static getSystemForHref(href: string, groups: TSystemModuleGroup[]): SystemEnum | null {
         return SystemEnumHelper.findSystemForHref(href, groups);
     }

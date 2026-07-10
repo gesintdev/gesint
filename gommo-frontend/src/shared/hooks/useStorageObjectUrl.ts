@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 
-import { storageService } from "@/modules/storage/services/storage.service";
+import {storageService} from "@/modules/storage/services/storage.service";
 
 export function useStorageObjectUrl(objectId?: string | null): string | null {
     const [url, setUrl] = useState<string | null>(null);

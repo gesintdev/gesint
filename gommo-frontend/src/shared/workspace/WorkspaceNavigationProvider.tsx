@@ -1,15 +1,15 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import {createContext, type ReactNode, useCallback, useContext, useMemo} from "react";
 
-import type { AppRoute } from "@/config/routes";
-import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
-import { DASHBOARD_HREF, isDashboardTabId } from "@/shared/workspace/workspace-dashboard";
-import { replaceUrlIfNeeded } from "@/shared/workspace/workspace-location";
-import { workspaceUrl, workspaceUrlWithCrud } from "@/shared/workspace/workspace-navigation-url";
-import { defaultShortLabel, findRouteByHref } from "@/shared/workspace/workspace-routes";
-import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
+import type {AppRoute} from "@/config/routes";
+import {useWorkspaceStore} from "@/shared/workspace/workspace.store";
+import {DASHBOARD_HREF, isDashboardTabId} from "@/shared/workspace/workspace-dashboard";
+import {replaceUrlIfNeeded} from "@/shared/workspace/workspace-location";
+import {workspaceUrl, workspaceUrlWithCrud} from "@/shared/workspace/workspace-navigation-url";
+import {defaultShortLabel, findRouteByHref} from "@/shared/workspace/workspace-routes";
+import {buildWorkspaceTabId, parseWorkspaceTabId} from "@/shared/workspace/workspace-tab-id";
 
 function routeToInput(route: AppRoute, shortLabel?: string) {
     if (!route.href) throw new Error(`Rota ${route.id} sem href`);
@@ -43,7 +43,7 @@ type WorkspaceNavigationContextValue = WorkspaceNavigationApi & {
 
 const WorkspaceNavigationContext = createContext<WorkspaceNavigationContextValue | null>(null);
 
-export function WorkspaceNavigationProvider({ children }: { children: ReactNode }) {
+export function WorkspaceNavigationProvider({children}: { children: ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -82,7 +82,7 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
                     titleSuffix: options?.titleSuffix,
                 });
             }
-            syncUrl(input.href, { editingId: entityId });
+            syncUrl(input.href, {editingId: entityId});
         },
         [focusTab, openRecordTab, syncUrl],
     );
@@ -99,7 +99,7 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
                     entityKey: "new",
                 });
             }
-            syncUrl(input.href, { isNew: true });
+            syncUrl(input.href, {isNew: true});
         },
         [focusTab, openRecordTab, syncUrl],
     );
@@ -120,11 +120,11 @@ export function WorkspaceNavigationProvider({ children }: { children: ReactNode 
             }
             const tab = useWorkspaceStore.getState().tabs.find((t) => t.id === tabId);
             if (!tab) return;
-            const { entityKey } = parseWorkspaceTabId(tabId);
+            const {entityKey} = parseWorkspaceTabId(tabId);
             if (entityKey === "new") {
-                syncUrl(tab.href, { isNew: true });
+                syncUrl(tab.href, {isNew: true});
             } else if (entityKey !== "list") {
-                syncUrl(tab.href, { editingId: entityKey });
+                syncUrl(tab.href, {editingId: entityKey});
             } else {
                 syncUrl(tab.href);
             }

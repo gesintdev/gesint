@@ -25,6 +25,7 @@ export class AttendanceRecord {
     code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId!: string;
+    collaboratorName?: string;
     workDate!: string;
     clockIn?: string;
     clockOut?: string;
@@ -39,14 +40,6 @@ export class AttendanceRecord {
     impactsHourBank?: boolean;
     impactsPayroll?: boolean;
     notes?: string;
-    requestType?: AttendanceRequestType;
-    source?: "MOBILE" | "BACKOFFICE";
-    clientRequestId?: string;
-    submittedAt?: string;
-    requestStatus?: AttendanceRequestStatus;
-    reviewedAt?: string;
-    reviewedBy?: string;
-    reviewReason?: string;
     photoObjectId?: string;
     latitude?: number;
     longitude?: number;
@@ -71,9 +64,40 @@ export class AttendanceRecordCreateDto {
     impactsHourBank?: boolean;
     impactsPayroll?: boolean;
     notes?: string;
-    requestType?: AttendanceRequestType;
+}
+
+export class AttendanceRequest {
+    id!: string;
+    code!: number;
+    status!: "ACTIVE" | "INACTIVE" | "DELETED";
+    collaboratorId!: string;
+    collaboratorName?: string;
+    workDate!: string;
+    attendanceRecordId?: string;
+    originalClockIn?: string;
+    originalClockOut?: string;
+    originalBreakStart?: string;
+    originalBreakEnd?: string;
+    originalBreakMinutes?: number;
+    originalNotes?: string;
+    clockIn?: string;
+    clockOut?: string;
+    breakStart?: string;
+    breakEnd?: string;
+    breakMinutes?: number;
+    expectedHours?: number;
+    workedHours?: number;
+    notes?: string;
+    requestType!: AttendanceRequestType;
     source?: "MOBILE" | "BACKOFFICE";
-    requestStatus?: AttendanceRequestStatus;
+    clientRequestId?: string;
+    submittedAt?: string;
+    requestStatus!: AttendanceRequestStatus;
+    reviewedAt?: string;
+    reviewedBy?: string;
+    reviewReason?: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export type AttendanceReviewAction = "APPROVE" | "REJECT";

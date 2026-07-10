@@ -3,11 +3,11 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {toast} from "sonner";
 
-import {attendancerecordKeys} from "@/modules/dp/organization/attendance/attendance.query";
-import {ATTENDANCE_TABLE_COLUMNS} from "@/modules/dp/organization/attendance/config/attendance-record.table-columns";
-import type {AttendanceRecord} from "@/modules/dp/organization/attendance/dto/attendance-record.dto";
-import {ATTENDANCE_CLIENT_MESSAGES} from "@/modules/dp/organization/attendance/exceptions/attendance-record.messages";
-import {attendancerecordService} from "@/modules/dp/organization/attendance/services/attendance-record.service";
+import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
+import {ATTENDANCE_TABLE_COLUMNS} from "@/modules/dp/attendance/config/attendance-record.table-columns";
+import type {AttendanceRecord} from "@/modules/dp/attendance/dto/attendance-record.dto";
+import {ATTENDANCE_CLIENT_MESSAGES} from "@/modules/dp/attendance/exceptions/attendance-record.messages";
+import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudTableActions} from "@/shared/components/crud/CrudTableActions";
 import {QueryTablePanel} from "@/shared/components/data/DataPanel";

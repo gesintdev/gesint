@@ -42,6 +42,9 @@ public class SystemNotification extends AuditEntity {
     @Column(name = "reference_due_date")
     private LocalDate referenceDueDate;
 
+    @Column(name = "recipient_user_id")
+    private UUID recipientUserId;
+
     @Column(name = "read_at")
     private OffsetDateTime readAt;
 }

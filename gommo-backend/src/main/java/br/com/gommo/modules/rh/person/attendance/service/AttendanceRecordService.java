@@ -5,14 +5,19 @@ import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.cfg.settings.notification.entity.SystemSetting;
 import br.com.gommo.modules.cfg.settings.notification.repository.SystemSettingRepository;
+import br.com.gommo.modules.cfg.settings.notification.service.SystemNotificationService;
 import br.com.gommo.modules.rh.person.attendance.dto.*;
 import br.com.gommo.modules.rh.person.attendance.entity.*;
 import br.com.gommo.modules.rh.person.attendance.exception.AttendanceRecordException;
 import br.com.gommo.modules.rh.person.attendance.mapper.AttendanceRecordMapper;
+import br.com.gommo.modules.rh.person.attendance.mapper.AttendanceRequestMapper;
 import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRecordRepository;
+import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRequestRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
+import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
+import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.storage.service.IStorageService;
@@ -28,7 +33,10 @@ import java.time.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class AttendanceRecordService
@@ -36,6 +44,7 @@ public class AttendanceRecordService
     implements IAttendanceRecordService {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Sao_Paulo");
     private static final String STORAGE_ENTITY_TYPE = "attendance_record";
+    private static final String REQUEST_STORAGE_ENTITY_TYPE = "attendance_request";
     private static final String ATTACHMENT_LINK_ROLE = "ATTACHMENT";
     private static final String PHOTO_LINK_ROLE = "CLOCK_PHOTO";
     private static final String REQUEST_PENDING = "PENDING";
@@ -45,25 +54,37 @@ public class AttendanceRecordService
     private static final String REQUIRE_LOCATION_KEY = "ATTENDANCE_REQUIRE_LOCATION";
 
     private final AttendanceRecordRepository repository;
+    private final AttendanceRequestRepository requestRepository;
     private final AttendanceRecordMapper mapper;
+    private final AttendanceRequestMapper requestMapper;
     private final AppUserRepository appUserRepository;
     private final AdmissionProcessRepository admissionProcessRepository;
+    private final CollaboratorRepository collaboratorRepository;
     private final SystemSettingRepository settingRepository;
+    private final SystemNotificationService notificationService;
     private final IStorageService storageService;
 
     public AttendanceRecordService(
         AttendanceRecordRepository repository,
+        AttendanceRequestRepository requestRepository,
         AttendanceRecordMapper mapper,
+        AttendanceRequestMapper requestMapper,
         AppUserRepository appUserRepository,
         AdmissionProcessRepository admissionProcessRepository,
+        CollaboratorRepository collaboratorRepository,
         SystemSettingRepository settingRepository,
+        SystemNotificationService notificationService,
         IStorageService storageService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
+        this.requestRepository = requestRepository;
         this.mapper = mapper;
+        this.requestMapper = requestMapper;
         this.appUserRepository = appUserRepository;
         this.admissionProcessRepository = admissionProcessRepository;
+        this.collaboratorRepository = collaboratorRepository;
         this.settingRepository = settingRepository;
+        this.notificationService = notificationService;
         this.storageService = storageService;
     }
 
@@ -71,45 +92,74 @@ public class AttendanceRecordService
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('attendance:read')")
     public List<AttendanceRecordResponseDto> findAll() {
-        return super.findAll();
+        return mapToResponses(repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED));
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('attendance:read')")
     public AttendanceRecordResponseDto findById(UUID id) {
-        return super.findById(id);
+        return toEnrichedResponse(findEntity(id));
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('attendance:read')")
     public PageableResponseDto<AttendanceRecordResponseDto> findPage(int page, int size) {
-        return super.findPage(page, size);
+        PageableResponseDto<AttendanceRecordResponseDto> pageResult = super.findPage(page, size);
+        List<AttendanceRecordResponseDto> content = pageResult.getContent();
+        if (content.isEmpty()) {
+            return pageResult;
+        }
+        Map<UUID, String> collaboratorNames = collaboratorNamesById(content.stream()
+            .map(AttendanceRecordResponseDto::getCollaboratorId)
+            .distinct()
+            .toList());
+        Map<UUID, AttendanceRecord> entitiesById = repository
+            .findAllById(content.stream().map(AttendanceRecordResponseDto::getId).toList())
+            .stream()
+            .filter(entity -> entity.getStatus() != StatusEnum.DELETED)
+            .collect(Collectors.toMap(AttendanceRecord::getId, Function.identity()));
+        List<AttendanceRecordResponseDto> enriched = content.stream()
+            .map(dto -> mapper.toResponse(
+                entitiesById.get(dto.getId()), collaboratorNames.get(dto.getCollaboratorId())))
+            .toList();
+        return PageableResponseDto.<AttendanceRecordResponseDto>builder()
+            .content(enriched)
+            .page(pageResult.getPage())
+            .size(pageResult.getSize())
+            .totalElements(pageResult.getTotalElements())
+            .totalPages(pageResult.getTotalPages())
+            .filterOptions(pageResult.getFilterOptions())
+            .build();
     }
 
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('attendance:write')")
     public AttendanceRecordResponseDto create(AttendanceRecordRequestDto request) {
-        return super.create(request);
+        AttendanceRecord entity = mapper.toEntity(request);
+        entity.setStatus(StatusEnum.ACTIVE);
+        return toEnrichedResponse(repository.save(entity));
     }
 
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('attendance:write')")
     public AttendanceRecordResponseDto update(UUID id, AttendanceRecordRequestDto request) {
-        return super.update(id, request);
+        AttendanceRecord entity = findEntity(id);
+        updateEntity(entity, request);
+        return toEnrichedResponse(repository.save(entity));
     }
 
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('attendance:write')")
-    public AttendanceRecordResponseDto submit(AttendanceSubmissionRequestDto request) {
+    public AttendanceRequestResponseDto submit(AttendanceSubmissionRequestDto request) {
         AttendanceSourceEnum source = request.getSource() != null ? request.getSource() : AttendanceSourceEnum.MOBILE;
-        return repository
+        return requestRepository
             .findBySourceAndClientRequestIdAndStatusNot(source, request.getClientRequestId(), StatusEnum.DELETED)
-            .map(mapper::toResponse)
+            .map(this::toEnrichedRequestResponse)
             .orElseGet(() -> createAdjustmentRequest(request, source));
     }
 
@@ -132,22 +182,19 @@ public class AttendanceRecordService
         BigDecimal expectedHours = expectedHoursFromAdmission(admission);
 
         AttendanceRecord entity = repository
-            .findByCollaboratorIdAndWorkDateAndRequestStatusIsNullAndStatusNot(collaboratorId, workDate, StatusEnum.DELETED)
+            .findByCollaboratorIdAndWorkDateAndStatusNot(collaboratorId, workDate, StatusEnum.DELETED)
             .orElseGet(() -> newWorkdayRecord(collaboratorId, workDate, expectedHours));
 
         applyNextPunch(entity, time);
         entity.setExpectedHours(expectedHours);
         entity.setWorkedHours(calculateWorkedHours(entity));
-        entity.setSource(AttendanceSourceEnum.MOBILE);
-        entity.setClientRequestId(request.getClientRequestId());
-        entity.setSubmittedAt(request.getCapturedAt());
         entity.setPhotoObjectId(request.getPhoto() != null ? request.getPhoto().getObjectId() : null);
         entity.setLatitude(request.getLatitude());
         entity.setLongitude(request.getLongitude());
         entity.setLocationAccuracyMeters(request.getLocationAccuracyMeters());
         entity = repository.save(entity);
-        linkAttachment(entity, request.getPhoto(), PHOTO_LINK_ROLE);
-        return mapper.toResponse(entity);
+        linkRecordAttachment(entity, request.getPhoto(), PHOTO_LINK_ROLE);
+        return toEnrichedResponse(entity);
     }
 
     @Override
@@ -158,8 +205,8 @@ public class AttendanceRecordService
         AdmissionProcess admission = latestCompletedAdmission(collaboratorId);
         LocalDate today = LocalDate.now(BUSINESS_ZONE);
         AttendanceRecordResponseDto todayRecord = repository
-            .findByCollaboratorIdAndWorkDateAndRequestStatusIsNullAndStatusNot(collaboratorId, today, StatusEnum.DELETED)
-            .map(mapper::toResponse)
+            .findByCollaboratorIdAndWorkDateAndStatusNot(collaboratorId, today, StatusEnum.DELETED)
+            .map(this::toEnrichedResponse)
             .orElse(null);
         AttendanceSettingsResponseDto settings = getSettingsInternal();
         return AttendanceMobileContextResponseDto.builder()
@@ -184,43 +231,44 @@ public class AttendanceRecordService
         if (periodEnd.isBefore(periodStart)) {
             periodEnd = periodStart;
         }
-        return repository.findWorkdayByCollaboratorAndPeriod(collaboratorId, periodStart, periodEnd, StatusEnum.DELETED)
-            .stream()
-            .map(mapper::toResponse)
-            .toList();
+        return mapToResponses(
+            repository.findWorkdayByCollaboratorAndPeriod(collaboratorId, periodStart, periodEnd, StatusEnum.DELETED));
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('attendance:write')")
-    public List<AttendanceRecordResponseDto> mobileSubmissions(LocalDate from, LocalDate to) {
+    public List<AttendanceRequestResponseDto> mobileSubmissions(LocalDate from, LocalDate to) {
         UUID collaboratorId = resolveCurrentCollaboratorId();
         LocalDate periodEnd = to != null ? to : LocalDate.now(BUSINESS_ZONE);
         LocalDate periodStart = from != null ? from : periodEnd.minusDays(89);
         if (periodEnd.isBefore(periodStart)) {
             periodEnd = periodStart;
         }
-        return repository.findRequestsByCollaboratorAndPeriod(collaboratorId, periodStart, periodEnd, StatusEnum.DELETED)
-            .stream()
-            .map(mapper::toResponse)
-            .toList();
+        return mapToRequestResponses(
+            requestRepository.findByCollaboratorAndPeriod(collaboratorId, periodStart, periodEnd, StatusEnum.DELETED));
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('attendance:read')")
-    public List<AttendanceRecordResponseDto> pendingRequests() {
-        return repository.findByRequestStatusAndStatusNotOrderBySubmittedAtDesc(REQUEST_PENDING, StatusEnum.DELETED)
-            .stream()
-            .map(mapper::toResponse)
-            .toList();
+    public List<AttendanceRequestResponseDto> listRequests() {
+        return mapToRequestResponses(requestRepository.findByStatusNotOrderBySubmittedAtDesc(StatusEnum.DELETED));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('attendance:read')")
+    public List<AttendanceRequestResponseDto> pendingRequests() {
+        return mapToRequestResponses(
+            requestRepository.findByRequestStatusAndStatusNotOrderBySubmittedAtDesc(REQUEST_PENDING, StatusEnum.DELETED));
     }
 
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('attendance:write')")
-    public AttendanceRecordResponseDto review(UUID id, AttendanceReviewRequestDto request) {
-        AttendanceRecord entity = findEntity(id);
+    public AttendanceRequestResponseDto review(UUID id, AttendanceReviewRequestDto request) {
+        AttendanceRequest entity = findRequestEntity(id);
         if (!REQUEST_PENDING.equals(entity.getRequestStatus())) {
             throw AttendanceRecordException.invalidSubmission();
         }
@@ -237,7 +285,9 @@ public class AttendanceRecordService
         } else {
             throw AttendanceRecordException.invalidSubmission();
         }
-        return mapper.toResponse(repository.save(entity));
+        AttendanceRequest saved = requestRepository.save(entity);
+        notificationService.notifyAttendanceRequestReviewed(saved, action, request.getReason());
+        return toEnrichedRequestResponse(saved);
     }
 
     @Override
@@ -274,15 +324,31 @@ public class AttendanceRecordService
         entity.setWorkedHours(calculateWorkedHours(entity));
     }
 
-    private AttendanceRecordResponseDto createAdjustmentRequest(
+    private AttendanceRequest findRequestEntity(UUID id) {
+        return requestRepository.findByIdAndStatusNot(id, StatusEnum.DELETED)
+            .orElseThrow(AttendanceRecordException::notFound);
+    }
+
+    private AttendanceRequestResponseDto createAdjustmentRequest(
         AttendanceSubmissionRequestDto request, AttendanceSourceEnum source) {
         UUID collaboratorId = resolveCurrentCollaboratorId();
         applyManualPunchTime(request, collaboratorId);
         validateSubmission(request);
         AdmissionProcess admission = latestCompletedAdmission(collaboratorId);
-        AttendanceRecord entity = AttendanceRecord.builder()
+
+        AttendanceRecord original = resolveOriginalRecord(request, collaboratorId);
+        UUID attendanceRecordId = original != null ? original.getId() : request.getTargetRecordId();
+
+        AttendanceRequest entity = AttendanceRequest.builder()
             .collaboratorId(collaboratorId)
             .workDate(request.getRequestDate())
+            .attendanceRecordId(attendanceRecordId)
+            .originalClockIn(original != null ? original.getClockIn() : null)
+            .originalClockOut(original != null ? original.getClockOut() : null)
+            .originalBreakStart(original != null ? original.getBreakStart() : null)
+            .originalBreakEnd(original != null ? original.getBreakEnd() : null)
+            .originalBreakMinutes(original != null ? original.getBreakMinutes() : null)
+            .originalNotes(original != null ? original.getNotes() : null)
             .clockIn(request.getClockIn())
             .clockOut(request.getClockOut())
             .breakStart(request.getBreakStart())
@@ -291,21 +357,113 @@ public class AttendanceRecordService
             .expectedHours(request.getExpectedHours() != null ? request.getExpectedHours() : expectedHoursFromAdmission(admission))
             .workedHours(request.getWorkedHours())
             .notes(request.getDetails())
-            .occurrenceType(occurrenceFromRequestType(request.getRequestType()))
-            .occurrenceOrigin(source == AttendanceSourceEnum.MOBILE ? AttendanceOccurrenceOriginEnum.MOBILE : AttendanceOccurrenceOriginEnum.MANUAL)
-            .referenceId(request.getTargetRecordId())
             .requestType(request.getRequestType())
             .source(source)
             .clientRequestId(request.getClientRequestId())
             .submittedAt(request.getSubmittedAt())
             .requestStatus(REQUEST_PENDING)
-            .impactsHourBank(Boolean.TRUE)
-            .impactsPayroll(Boolean.TRUE)
             .build();
         entity.setStatus(StatusEnum.ACTIVE);
-        entity = repository.save(entity);
-        linkAttachment(entity, request.getAttachment(), ATTACHMENT_LINK_ROLE);
-        return mapper.toResponse(entity);
+        entity = requestRepository.save(entity);
+        linkRequestAttachment(entity, request.getAttachment(), ATTACHMENT_LINK_ROLE);
+        return toEnrichedRequestResponse(entity);
+    }
+
+    private AttendanceRecord resolveOriginalRecord(AttendanceSubmissionRequestDto request, UUID collaboratorId) {
+        if (request.getTargetRecordId() != null) {
+            return repository.findByIdAndStatusNot(request.getTargetRecordId(), StatusEnum.DELETED).orElse(null);
+        }
+        return repository
+            .findByCollaboratorIdAndWorkDateAndStatusNot(collaboratorId, request.getRequestDate(), StatusEnum.DELETED)
+            .orElse(null);
+    }
+
+    private void applyApprovedRequest(AttendanceRequest request) {
+        AttendanceRecord target = request.getAttendanceRecordId() != null
+            ? findEntity(request.getAttendanceRecordId())
+            : repository.findByCollaboratorIdAndWorkDateAndStatusNot(
+                request.getCollaboratorId(), request.getWorkDate(), StatusEnum.DELETED)
+            .orElseGet(() -> newWorkdayRecord(
+                request.getCollaboratorId(),
+                request.getWorkDate(),
+                request.getExpectedHours()));
+
+        if (request.getRequestType() == AttendanceRequestTypeEnum.DAY_ABSENCE_EXCUSE
+            || request.getRequestType() == AttendanceRequestTypeEnum.MEDICAL_CERTIFICATE
+            || request.getRequestType() == AttendanceRequestTypeEnum.LEAVE_ABSENCE) {
+            target.setExpectedHours(request.getExpectedHours() != null ? request.getExpectedHours() : target.getExpectedHours());
+            target.setWorkedHours(target.getExpectedHours());
+            target.setImpactsHourBank(Boolean.FALSE);
+            target.setOccurrenceType(occurrenceFromRequestType(request.getRequestType()));
+            if (request.getNotes() != null) {
+                target.setNotes(request.getNotes());
+            }
+            repository.save(target);
+            if (request.getAttendanceRecordId() == null) {
+                request.setAttendanceRecordId(target.getId());
+            }
+            return;
+        }
+
+        if (request.getClockIn() != null) target.setClockIn(request.getClockIn());
+        if (request.getBreakStart() != null) target.setBreakStart(request.getBreakStart());
+        if (request.getBreakEnd() != null) target.setBreakEnd(request.getBreakEnd());
+        if (request.getClockOut() != null) target.setClockOut(request.getClockOut());
+        if (request.getBreakMinutes() != null) target.setBreakMinutes(request.getBreakMinutes());
+        if (request.getExpectedHours() != null) target.setExpectedHours(request.getExpectedHours());
+        target.setWorkedHours(calculateWorkedHours(target));
+        if (request.getNotes() != null) target.setNotes(request.getNotes());
+        target.setOccurrenceType(AttendanceOccurrenceTypeEnum.TIME_ADJUSTMENT);
+        repository.save(target);
+        if (request.getAttendanceRecordId() == null) {
+            request.setAttendanceRecordId(target.getId());
+        }
+    }
+
+    private List<AttendanceRecordResponseDto> mapToResponses(List<AttendanceRecord> entities) {
+        Map<UUID, String> collaboratorNames = collaboratorNamesById(entities.stream()
+            .map(AttendanceRecord::getCollaboratorId)
+            .filter(id -> id != null)
+            .distinct()
+            .toList());
+        return entities.stream()
+            .map(entity -> mapper.toResponse(entity, collaboratorNames.get(entity.getCollaboratorId())))
+            .toList();
+    }
+
+    private List<AttendanceRequestResponseDto> mapToRequestResponses(List<AttendanceRequest> entities) {
+        Map<UUID, String> collaboratorNames = collaboratorNamesById(entities.stream()
+            .map(AttendanceRequest::getCollaboratorId)
+            .filter(id -> id != null)
+            .distinct()
+            .toList());
+        return entities.stream()
+            .map(entity -> requestMapper.toResponse(entity, collaboratorNames.get(entity.getCollaboratorId())))
+            .toList();
+    }
+
+    private AttendanceRecordResponseDto toEnrichedResponse(AttendanceRecord entity) {
+        return mapper.toResponse(entity, resolveCollaboratorName(entity.getCollaboratorId()));
+    }
+
+    private AttendanceRequestResponseDto toEnrichedRequestResponse(AttendanceRequest entity) {
+        return requestMapper.toResponse(entity, resolveCollaboratorName(entity.getCollaboratorId()));
+    }
+
+    private Map<UUID, String> collaboratorNamesById(List<UUID> collaboratorIds) {
+        if (collaboratorIds.isEmpty()) {
+            return Map.of();
+        }
+        return collaboratorRepository.findAllById(collaboratorIds).stream()
+            .filter(c -> c.getStatus() != StatusEnum.DELETED)
+            .collect(Collectors.toMap(Collaborator::getId, Collaborator::getFullName, (a, b) -> a));
+    }
+
+    private String resolveCollaboratorName(UUID collaboratorId) {
+        if (collaboratorId == null) {
+            return null;
+        }
+        return collaboratorNamesById(List.of(collaboratorId)).get(collaboratorId);
     }
 
     private AttendanceRecord newWorkdayRecord(UUID collaboratorId, LocalDate workDate, BigDecimal expectedHours) {
@@ -337,30 +495,6 @@ public class AttendanceRecordService
         } else {
             throw AttendanceRecordException.invalidSubmission();
         }
-    }
-
-    private void applyApprovedRequest(AttendanceRecord request) {
-        if (request.getRequestType() == AttendanceRequestTypeEnum.DAY_ABSENCE_EXCUSE
-            || request.getRequestType() == AttendanceRequestTypeEnum.MEDICAL_CERTIFICATE
-            || request.getRequestType() == AttendanceRequestTypeEnum.LEAVE_ABSENCE) {
-            request.setWorkedHours(request.getExpectedHours());
-            request.setImpactsHourBank(Boolean.FALSE);
-            return;
-        }
-        AttendanceRecord target = request.getReferenceId() != null
-            ? findEntity(request.getReferenceId())
-            : repository.findByCollaboratorIdAndWorkDateAndRequestStatusIsNullAndStatusNot(
-                request.getCollaboratorId(), request.getWorkDate(), StatusEnum.DELETED)
-            .orElseGet(() -> newWorkdayRecord(request.getCollaboratorId(), request.getWorkDate(), request.getExpectedHours()));
-        if (request.getClockIn() != null) target.setClockIn(request.getClockIn());
-        if (request.getBreakStart() != null) target.setBreakStart(request.getBreakStart());
-        if (request.getBreakEnd() != null) target.setBreakEnd(request.getBreakEnd());
-        if (request.getClockOut() != null) target.setClockOut(request.getClockOut());
-        if (request.getBreakMinutes() != null) target.setBreakMinutes(request.getBreakMinutes());
-        target.setExpectedHours(request.getExpectedHours());
-        target.setWorkedHours(calculateWorkedHours(target));
-        target.setNotes(request.getNotes());
-        repository.save(target);
     }
 
     private BigDecimal calculateWorkedHours(AttendanceRecord entity) {
@@ -445,14 +579,15 @@ public class AttendanceRecordService
     }
 
     private AttendanceOccurrenceTypeEnum occurrenceFromRequestType(AttendanceRequestTypeEnum requestType) {
-        if (requestType == AttendanceRequestTypeEnum.MEDICAL_CERTIFICATE)
+        if (requestType == AttendanceRequestTypeEnum.MEDICAL_CERTIFICATE) {
             return AttendanceOccurrenceTypeEnum.MEDICAL_CERTIFICATE;
-        if (requestType == AttendanceRequestTypeEnum.LEAVE_ABSENCE || requestType == AttendanceRequestTypeEnum.DAY_ABSENCE_EXCUSE) {
+        }
+        if (requestType == AttendanceRequestTypeEnum.LEAVE_ABSENCE
+            || requestType == AttendanceRequestTypeEnum.DAY_ABSENCE_EXCUSE) {
             return AttendanceOccurrenceTypeEnum.LEAVE_ABSENCE;
         }
         return AttendanceOccurrenceTypeEnum.TIME_ADJUSTMENT;
     }
-
 
     private void applyManualPunchTime(AttendanceSubmissionRequestDto request, UUID collaboratorId) {
         if (request.getManualPunchTime() == null || request.getTargetRecordId() != null) {
@@ -464,8 +599,7 @@ public class AttendanceRecordService
         }
 
         AttendanceRecord target = repository
-            .findByCollaboratorIdAndWorkDateAndRequestStatusIsNullAndStatusNot(
-                collaboratorId, request.getRequestDate(), StatusEnum.DELETED)
+            .findByCollaboratorIdAndWorkDateAndStatusNot(collaboratorId, request.getRequestDate(), StatusEnum.DELETED)
             .orElse(null);
         LocalTime time = request.getManualPunchTime();
         String slot = inferManualPunchSlot(target, time);
@@ -510,12 +644,25 @@ public class AttendanceRecordService
         return previous == null || !time.isBefore(previous);
     }
 
-    private void linkAttachment(AttendanceRecord entity, AttendanceAttachmentReferenceDto attachment, String role) {
+    private void linkRecordAttachment(AttendanceRecord entity, AttendanceAttachmentReferenceDto attachment, String role) {
         if (attachment == null || attachment.getObjectId() == null) {
             return;
         }
         storageService.linkToEntity(
             STORAGE_ENTITY_TYPE,
+            entity.getId(),
+            attachment.getObjectId(),
+            role,
+            attachment.getFileName(),
+            attachment.getDocumentType());
+    }
+
+    private void linkRequestAttachment(AttendanceRequest entity, AttendanceAttachmentReferenceDto attachment, String role) {
+        if (attachment == null || attachment.getObjectId() == null) {
+            return;
+        }
+        storageService.linkToEntity(
+            REQUEST_STORAGE_ENTITY_TYPE,
             entity.getId(),
             attachment.getObjectId(),
             role,
@@ -564,4 +711,3 @@ public class AttendanceRecordService
         }
     }
 }
-

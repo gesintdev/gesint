@@ -1,9 +1,10 @@
 import type {
     AttendanceRecord,
     AttendanceRecordCreateDto,
+    AttendanceRequest,
     AttendanceReviewAction,
     AttendanceSettings,
-} from "@/modules/dp/organization/attendance/dto/attendance-record.dto";
+} from "@/modules/dp/attendance/dto/attendance-record.dto";
 import { BaseService } from "@/modules/root/services/base.service";
 import { apiFetch } from "@/shared/lib/api.client";
 
@@ -16,12 +17,16 @@ class AttendanceRecordService extends BaseService<
         super("/api/v1/attendance-records");
     }
 
+    listRequests() {
+        return apiFetch<AttendanceRequest[]>(`${this.basePath}/requests`);
+    }
+
     pendingRequests() {
-        return apiFetch<AttendanceRecord[]>(`${this.basePath}/requests/pending`);
+        return apiFetch<AttendanceRequest[]>(`${this.basePath}/requests/pending`);
     }
 
     review(id: string, action: AttendanceReviewAction, reason?: string) {
-        return apiFetch<AttendanceRecord>(`${this.basePath}/${id}/review`, {
+        return apiFetch<AttendanceRequest>(`${this.basePath}/requests/${id}/review`, {
             method: "POST",
             body: { action, reason },
         });
@@ -40,4 +45,3 @@ class AttendanceRecordService extends BaseService<
 }
 
 export const attendancerecordService = new AttendanceRecordService();
-

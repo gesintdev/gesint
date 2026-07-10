@@ -5,6 +5,7 @@ import br.com.gommo.modules.rh.person.attendance.dto.AttendanceClockRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceMobileContextResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordResponseDto;
+import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRequestResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceReviewRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSettingsRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSettingsResponseDto;
@@ -17,7 +18,7 @@ import java.util.UUID;
 public interface IAttendanceRecordService
         extends IBaseService<AttendanceRecordRequestDto, AttendanceRecordResponseDto> {
 
-    AttendanceRecordResponseDto submit(AttendanceSubmissionRequestDto request);
+    AttendanceRequestResponseDto submit(AttendanceSubmissionRequestDto request);
 
     AttendanceRecordResponseDto clock(AttendanceClockRequestDto request);
 
@@ -25,11 +26,13 @@ public interface IAttendanceRecordService
 
     List<AttendanceRecordResponseDto> mobileRecords(LocalDate from, LocalDate to);
 
-    List<AttendanceRecordResponseDto> mobileSubmissions(LocalDate from, LocalDate to);
+    List<AttendanceRequestResponseDto> mobileSubmissions(LocalDate from, LocalDate to);
 
-    List<AttendanceRecordResponseDto> pendingRequests();
+    List<AttendanceRequestResponseDto> listRequests();
 
-    AttendanceRecordResponseDto review(UUID id, AttendanceReviewRequestDto request);
+    List<AttendanceRequestResponseDto> pendingRequests();
+
+    AttendanceRequestResponseDto review(UUID id, AttendanceReviewRequestDto request);
 
     AttendanceSettingsResponseDto getSettings();
 

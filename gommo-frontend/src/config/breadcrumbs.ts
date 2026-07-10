@@ -1,7 +1,7 @@
-import type { LucideIcon } from "lucide-react";
+import type {LucideIcon} from "lucide-react";
 
-import { ALL_NAV_SECTIONS, APP_ROUTES } from "@/config/routes";
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
+import {ALL_NAV_SECTIONS, APP_ROUTES} from "@/config/routes";
+import type {AppRoute} from "@/modules/root/enum/ModuleEnum";
 
 export type BreadcrumbItem = {
     label: string;
@@ -60,7 +60,7 @@ export function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
         const chain = findRouteChain(normalized, section.routes);
         if (!chain) continue;
         const sectionHref = firstNavigableHref(section.routes);
-        const items: BreadcrumbItem[] = [
+        return [
             {
                 label: section.label,
                 href: sectionHref,
@@ -68,7 +68,6 @@ export function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
             },
             ...chainToItems(chain),
         ];
-        return items;
     }
     const fallback = APP_ROUTES.find((r) => r.href === normalized);
     if (fallback) {

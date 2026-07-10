@@ -1,31 +1,31 @@
 "use client";
 
-import { Menu, Search } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { type ReactNode, Suspense, useCallback, useEffect, useState } from "react";
+import {Menu, Search} from "lucide-react";
+import {useSession} from "next-auth/react";
+import {type ReactNode, Suspense, useCallback, useEffect, useState} from "react";
 
-import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
-import { GommoLogo } from "@/shared/components/layout/GommoLogo";
-import { HeaderUserMenu } from "@/shared/components/layout/HeaderUserMenu";
-import { Sidebar } from "@/shared/components/layout/Sidebar";
-import { ThemeToggle } from "@/shared/components/layout/ThemeToggle";
-import { HeaderNotifications } from "@/shared/components/notifications/HeaderNotifications";
-import { ActiveSystemProvider } from "@/shared/context/ActiveSystemContext";
-import { setAuthToken } from "@/shared/lib/api.client";
-import { WorkspaceNavigationProvider } from "@/shared/workspace/WorkspaceNavigationProvider";
+import type {SystemEnum} from "@/modules/root/enum/SystemEnum";
+import {GommoLogo} from "@/shared/components/layout/GommoLogo";
+import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
+import {Sidebar} from "@/shared/components/layout/Sidebar";
+import {ThemeToggle} from "@/shared/components/layout/ThemeToggle";
+import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
+import {ActiveSystemProvider} from "@/shared/context/ActiveSystemContext";
+import {setAuthToken} from "@/shared/lib/api.client";
+import {WorkspaceNavigationProvider} from "@/shared/workspace/WorkspaceNavigationProvider";
 
 export function SystemShell({
-    children,
-    initialStoredSystem = null,
-    initialSettingsMode = false,
-}: {
+                                children,
+                                initialStoredSystem = null,
+                                initialSettingsMode = false,
+                            }: {
     children: ReactNode;
     initialStoredSystem?: SystemEnum | null;
     initialSettingsMode?: boolean;
 }) {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileNav, setMobileNav] = useState(false);
-    const { data: session } = useSession();
+    const {data: session} = useSession();
     const closeMobileNav = useCallback(() => setMobileNav(false), []);
     const toggleMobileNav = useCallback(() => setMobileNav((open) => !open), []);
 
@@ -48,12 +48,13 @@ export function SystemShell({
     }, []);
 
     return (
-        <ActiveSystemProvider initialStoredSystem={initialStoredSystem} initialSettingsMode={initialSettingsMode}>
+        <ActiveSystemProvider initialStoredSystem={initialStoredSystem}
+                              initialSettingsMode={initialSettingsMode}>
             <div className="flex h-dvh flex-col overflow-hidden">
                 {/* Linha superior: Gommo (largura do sidebar) + header principal */}
                 <div
                     className="flex h-(--header-height) shrink-0 border-b"
-                    style={{ borderColor: "var(--sidebar-border)" }}
+                    style={{borderColor: "var(--sidebar-border)"}}
                 >
                     <div
                         className="hidden shrink-0 items-center border-r px-3 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
@@ -63,9 +64,10 @@ export function SystemShell({
                             borderColor: "var(--sidebar-border)",
                         }}
                     >
-                        <GommoLogo variant={collapsed ? "icon" : "full"} />
+                        <GommoLogo variant={collapsed ? "icon" : "full"}/>
                     </div>
-                    <header className="surface-header flex min-w-0 flex-1 items-center justify-between gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
+                    <header
+                        className="surface-header flex min-w-0 flex-1 items-center justify-between gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
                         <button
                             type="button"
                             aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
@@ -73,13 +75,14 @@ export function SystemShell({
                             onClick={toggleMobileNav}
                             className="gommo-btn gommo-btn--ghost gommo-btn--icon-only shrink-0 text-base-content/50 lg:hidden!"
                         >
-                            <Menu className="size-4.5" strokeWidth={2} />
+                            <Menu className="size-4.5" strokeWidth={2}/>
                         </button>
                         <div className="flex shrink-0 items-center lg:hidden">
-                            <GommoLogo variant="icon" />
+                            <GommoLogo variant="icon"/>
                         </div>
-                        <label className="gommo-field sidebar-shell-control relative min-w-0 flex-1 cursor-text sm:max-w-xs lg:max-w-md">
-                            <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2} />
+                        <label
+                            className="gommo-field sidebar-shell-control relative min-w-0 flex-1 cursor-text sm:max-w-xs lg:max-w-md">
+                            <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2}/>
                             <input
                                 type="search"
                                 placeholder="Buscar no sistema…"
@@ -88,10 +91,10 @@ export function SystemShell({
                             <kbd className="ms-auto hidden shrink-0 sm:flex">Alt+S</kbd>
                         </label>
                         <div className="flex items-center gap-1 sm:gap-1.5">
-                            <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block" />
-                            <ThemeToggle />
-                            <HeaderNotifications />
-                            <HeaderUserMenu />
+                            <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block"/>
+                            <ThemeToggle/>
+                            <HeaderNotifications/>
+                            <HeaderUserMenu/>
                         </div>
                     </header>
                 </div>
@@ -111,7 +114,8 @@ export function SystemShell({
                                 mobileOpen={mobileNav}
                                 onMobileCloseAction={closeMobileNav}
                             />
-                            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:ms-(--layout-offset,var(--sidebar-width))">
+                            <div
+                                className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:ms-(--layout-offset,var(--sidebar-width))">
                                 <main
                                     id="main-content"
                                     className="relative flex min-h-0 flex-1 flex-col overflow-hidden"

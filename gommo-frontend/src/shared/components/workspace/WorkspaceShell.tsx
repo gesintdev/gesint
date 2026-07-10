@@ -1,9 +1,9 @@
 "use client";
 
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import {useEffect, useMemo, useState} from "react";
 
-import { WorkspaceTabBar } from "@/shared/components/workspace/WorkspaceTabBar";
+import {WorkspaceTabBar} from "@/shared/components/workspace/WorkspaceTabBar";
 import {
     parseWorkspaceLocation,
     useWorkspaceLocation,
@@ -11,8 +11,8 @@ import {
     workspaceUrlForTab,
     workspaceUrlWithCrud,
 } from "@/shared/workspace/useWorkspaceNavigation";
-import { DashboardView } from "@/shared/workspace/views/DashboardView";
-import { getDashboardTab, useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import {DashboardView} from "@/shared/workspace/views/DashboardView";
+import {getDashboardTab, useWorkspaceStore} from "@/shared/workspace/workspace.store";
 import {
     DASHBOARD_HREF,
     DASHBOARD_ROUTE_ID,
@@ -26,17 +26,17 @@ import {
     replaceUrlIfNeeded,
     writeLastWorkspaceInitLocation,
 } from "@/shared/workspace/workspace-location";
-import { getWorkspacePageComponent } from "@/shared/workspace/workspace-page-registry";
-import { findRouteByHref } from "@/shared/workspace/workspace-routes";
-import { buildWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
-import { WorkspaceTabProvider } from "@/shared/workspace/WorkspaceTabContext";
+import {getWorkspacePageComponent} from "@/shared/workspace/workspace-page-registry";
+import {findRouteByHref} from "@/shared/workspace/workspace-routes";
+import {buildWorkspaceTabId} from "@/shared/workspace/workspace-tab-id";
+import {WorkspaceTabProvider} from "@/shared/workspace/WorkspaceTabContext";
 
 export function WorkspaceShell() {
-    const { pathname, searchParams, router } = useWorkspaceLocation();
+    const {pathname, searchParams, router} = useWorkspaceLocation();
     const tabs = useWorkspaceStore((s) => s.tabs);
     const activeTabId = useWorkspaceStore((s) => s.activeTabId);
     const hasHydrated = useWorkspaceStore((s) => s._hasHydrated);
-    const { focusTabById, openFromHref, openRouteCreate, openRouteRecord } = useWorkspaceNavigation();
+    const {focusTabById, openFromHref, openRouteCreate, openRouteRecord} = useWorkspaceNavigation();
     const closeTab = useWorkspaceStore((s) => s.closeTab);
     const [mountedTabIds, setMountedTabIds] = useState<Set<string>>(() => new Set());
     const dashboardTab = useMemo(() => getDashboardTab(), []);
@@ -69,14 +69,14 @@ export function WorkspaceShell() {
             }
 
             if (parsed.editingId) {
-                const targetUrl = workspaceUrlWithCrud(parsed.href, { editingId: parsed.editingId });
+                const targetUrl = workspaceUrlWithCrud(parsed.href, {editingId: parsed.editingId});
                 openRouteRecord(route, parsed.editingId);
                 writeLastWorkspaceInitLocation(targetUrl);
                 return;
             }
 
             if (parsed.isNew) {
-                const targetUrl = workspaceUrlWithCrud(parsed.href, { isNew: true });
+                const targetUrl = workspaceUrlWithCrud(parsed.href, {isNew: true});
                 openRouteCreate(route);
                 writeLastWorkspaceInitLocation(targetUrl);
                 return;
@@ -124,7 +124,7 @@ export function WorkspaceShell() {
             <div className="workspace-content relative min-h-0 flex-1 overflow-hidden">
                 {showDashboard ? (
                     <div className="workspace-panel absolute inset-0">
-                        <DashboardView />
+                        <DashboardView/>
                     </div>
                 ) : null}
                 {moduleTabs.map((tab) => {
@@ -142,7 +142,7 @@ export function WorkspaceShell() {
                             aria-hidden={!active}
                         >
                             <WorkspaceTabProvider tab={tab}>
-                                <Page />
+                                <Page/>
                             </WorkspaceTabProvider>
                         </div>
                     );

@@ -44,4 +44,6 @@ public interface AppUserRepository extends IBaseRepository<AppUser> {
     boolean existsByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
 
     boolean existsByCollaboratorIdAndIdNotAndStatusNot(UUID collaboratorId, UUID id, StatusEnum status);
+
+    Optional<AppUser> findFirstByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
 }

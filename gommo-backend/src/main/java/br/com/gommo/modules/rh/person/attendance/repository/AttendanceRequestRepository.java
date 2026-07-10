@@ -1,0 +1,41 @@
+package br.com.gommo.modules.rh.person.attendance.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import br.com.gommo.core.base.repository.IBaseRepository;
+import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequest;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceSourceEnum;
+
+@Repository
+public interface AttendanceRequestRepository extends IBaseRepository<AttendanceRequest> {
+
+    Optional<AttendanceRequest> findBySourceAndClientRequestIdAndStatusNot(
+            AttendanceSourceEnum source, String clientRequestId, StatusEnum status);
+
+    List<AttendanceRequest> findByRequestStatusAndStatusNotOrderBySubmittedAtDesc(
+            String requestStatus, StatusEnum status);
+
+    List<AttendanceRequest> findByStatusNotOrderBySubmittedAtDesc(StatusEnum status);
+
+    @Query(
+            """
+            SELECT a FROM AttendanceRequest a
+            WHERE a.status <> :deletedStatus
+              AND a.collaboratorId = :collaboratorId
+              AND a.workDate BETWEEN :periodStart AND :periodEnd
+            ORDER BY a.submittedAt DESC, a.workDate DESC
+            """)
+    List<AttendanceRequest> findByCollaboratorAndPeriod(
+            @Param("collaboratorId") UUID collaboratorId,
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
+}

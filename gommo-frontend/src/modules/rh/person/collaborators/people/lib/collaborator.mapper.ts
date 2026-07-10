@@ -2,7 +2,7 @@ import type {
     Collaborator,
     CollaboratorCreateDto,
 } from "@/modules/rh/person/collaborators/people/dto/collaborator.dto";
-import { digitsOnly } from "@/shared/lib/input/digits";
+import {digitsOnly} from "@/shared/lib/input/digits";
 
 export function collaboratorFormToPayload(dto: CollaboratorCreateDto): CollaboratorCreateDto {
     return {

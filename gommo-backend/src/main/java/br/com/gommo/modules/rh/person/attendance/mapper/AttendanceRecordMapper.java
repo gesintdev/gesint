@@ -32,14 +32,6 @@ public class AttendanceRecordMapper {
                 .impactsHourBank(dto.getImpactsHourBank() != null ? dto.getImpactsHourBank() : Boolean.TRUE)
                 .impactsPayroll(dto.getImpactsPayroll() != null ? dto.getImpactsPayroll() : Boolean.TRUE)
                 .notes(dto.getNotes())
-                .requestType(dto.getRequestType())
-                .source(dto.getSource())
-                .clientRequestId(dto.getClientRequestId())
-                .submittedAt(dto.getSubmittedAt())
-                .requestStatus(dto.getRequestStatus())
-                .reviewedAt(dto.getReviewedAt())
-                .reviewedBy(dto.getReviewedBy())
-                .reviewReason(dto.getReviewReason())
                 .photoObjectId(dto.getPhotoObjectId())
                 .latitude(dto.getLatitude())
                 .longitude(dto.getLongitude())
@@ -65,14 +57,6 @@ public class AttendanceRecordMapper {
         entity.setImpactsHourBank(dto.getImpactsHourBank() != null ? dto.getImpactsHourBank() : Boolean.TRUE);
         entity.setImpactsPayroll(dto.getImpactsPayroll() != null ? dto.getImpactsPayroll() : Boolean.TRUE);
         entity.setNotes(dto.getNotes());
-        entity.setRequestType(dto.getRequestType());
-        entity.setSource(dto.getSource());
-        entity.setClientRequestId(dto.getClientRequestId());
-        entity.setSubmittedAt(dto.getSubmittedAt());
-        entity.setRequestStatus(dto.getRequestStatus());
-        entity.setReviewedAt(dto.getReviewedAt());
-        entity.setReviewedBy(dto.getReviewedBy());
-        entity.setReviewReason(dto.getReviewReason());
         entity.setPhotoObjectId(dto.getPhotoObjectId());
         entity.setLatitude(dto.getLatitude());
         entity.setLongitude(dto.getLongitude());
@@ -80,11 +64,16 @@ public class AttendanceRecordMapper {
     }
 
     public AttendanceRecordResponseDto toResponse(AttendanceRecord entity) {
+        return toResponse(entity, null);
+    }
+
+    public AttendanceRecordResponseDto toResponse(AttendanceRecord entity, String collaboratorName) {
         return AttendanceRecordResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
                 .collaboratorId(entity.getCollaboratorId())
+                .collaboratorName(collaboratorName)
                 .workDate(entity.getWorkDate())
                 .clockIn(entity.getClockIn())
                 .clockOut(entity.getClockOut())
@@ -99,14 +88,6 @@ public class AttendanceRecordMapper {
                 .impactsHourBank(entity.getImpactsHourBank())
                 .impactsPayroll(entity.getImpactsPayroll())
                 .notes(entity.getNotes())
-                .requestType(entity.getRequestType())
-                .source(entity.getSource())
-                .clientRequestId(entity.getClientRequestId())
-                .submittedAt(entity.getSubmittedAt())
-                .requestStatus(entity.getRequestStatus())
-                .reviewedAt(entity.getReviewedAt())
-                .reviewedBy(entity.getReviewedBy())
-                .reviewReason(entity.getReviewReason())
                 .photoObjectId(entity.getPhotoObjectId())
                 .latitude(entity.getLatitude())
                 .longitude(entity.getLongitude())

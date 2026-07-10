@@ -33,13 +33,13 @@ function AbsenceHistorySection({
     emptyMessage: string;
 }) {
     return (
-        <section className="overflow-hidden rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100">
-            <header className="flex items-center justify-between gap-3 border-b border-[var(--gommo-border-subtle)] px-4 py-3">
+        <section className="overflow-hidden rounded-xl border border-(--gommo-border-subtle) bg-base-100">
+            <header className="flex items-center justify-between gap-3 border-b border-(--gommo-border-subtle) px-4 py-3">
                 <div className="min-w-0">
                     <h3 className="text-[13px] font-semibold tracking-tight text-base-content">{title}</h3>
                     <p className="mt-0.5 text-[11px] text-base-content/45">{description}</p>
                 </div>
-                <span className="rounded-full border border-[var(--gommo-border-subtle)] px-2 py-0.5 text-[11px] font-medium text-base-content/55">
+                <span className="rounded-full border border-(--gommo-border-subtle) px-2 py-0.5 text-[11px] font-medium text-base-content/55">
                     {rows.length}
                 </span>
             </header>
@@ -56,8 +56,8 @@ function AbsenceHistorySection({
 
 function EmptyAdmissionState() {
     return (
-        <div className="flex min-h-[280px] items-center justify-center p-6">
-            <div className="max-w-md rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 px-5 py-6 text-center">
+        <div className="flex min-h-70 items-center justify-center p-6">
+            <div className="max-w-md rounded-xl border border-(--gommo-border-subtle) bg-base-100 px-5 py-6 text-center">
                 <ClipboardList className="mx-auto size-8 text-primary/70" strokeWidth={1.9} />
                 <h3 className="mt-3 text-sm font-semibold text-base-content">Selecione uma admissão</h3>
                 <p className="mt-1 text-sm text-base-content/55">
@@ -115,8 +115,8 @@ export function AdmissionAbsenceHistoryTab() {
 
     if (!collaboratorId) {
         return (
-            <div className="flex min-h-[280px] items-center justify-center p-6">
-                <div className="max-w-md rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 px-5 py-6 text-center">
+            <div className="flex min-h-70 items-center justify-center p-6">
+                <div className="max-w-md rounded-xl border border-(--gommo-border-subtle) bg-base-100 px-5 py-6 text-center">
                     <ClipboardList className="mx-auto size-8 text-primary/70" strokeWidth={1.9} />
                     <h3 className="mt-3 text-sm font-semibold text-base-content">Colaborador ainda não vinculado</h3>
                     <p className="mt-1 text-sm text-base-content/55">

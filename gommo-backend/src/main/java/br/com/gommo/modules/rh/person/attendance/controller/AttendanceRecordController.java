@@ -5,6 +5,7 @@ import br.com.gommo.modules.rh.person.attendance.dto.AttendanceClockRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceMobileContextResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordResponseDto;
+import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRequestResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceReviewRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSettingsRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSettingsResponseDto;
@@ -42,7 +43,7 @@ public class AttendanceRecordController extends BaseController<AttendanceRecordR
     }
 
     @GetMapping("/mobile/submissions")
-    public List<AttendanceRecordResponseDto> mobileSubmissions(
+    public List<AttendanceRequestResponseDto> mobileSubmissions(
         @RequestParam(required = false) LocalDate from,
         @RequestParam(required = false) LocalDate to) {
         return attendanceRecordService.mobileSubmissions(from, to);
@@ -56,17 +57,23 @@ public class AttendanceRecordController extends BaseController<AttendanceRecordR
 
     @PostMapping("/submissions")
     @ResponseStatus(HttpStatus.CREATED)
-    public AttendanceRecordResponseDto submit(@Valid @RequestBody AttendanceSubmissionRequestDto request) {
+    public AttendanceRequestResponseDto submit(@Valid @RequestBody AttendanceSubmissionRequestDto request) {
         return attendanceRecordService.submit(request);
     }
 
+    @GetMapping("/requests")
+    public List<AttendanceRequestResponseDto> listRequests() {
+        return attendanceRecordService.listRequests();
+    }
+
     @GetMapping("/requests/pending")
-    public List<AttendanceRecordResponseDto> pendingRequests() {
+    public List<AttendanceRequestResponseDto> pendingRequests() {
         return attendanceRecordService.pendingRequests();
     }
 
-    @PostMapping("/{id}/review")
-    public AttendanceRecordResponseDto review(@PathVariable UUID id, @Valid @RequestBody AttendanceReviewRequestDto request) {
+    @PostMapping("/requests/{id}/review")
+    public AttendanceRequestResponseDto review(
+        @PathVariable UUID id, @Valid @RequestBody AttendanceReviewRequestDto request) {
         return attendanceRecordService.review(id, request);
     }
 

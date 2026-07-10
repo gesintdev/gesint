@@ -14,7 +14,6 @@ import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.AuditEntity;
@@ -73,32 +72,6 @@ public class AttendanceRecord extends AuditEntity {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "request_type", length = 40)
-    private AttendanceRequestTypeEnum requestType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "source", length = 40)
-    private AttendanceSourceEnum source;
-
-    @Column(name = "client_request_id", length = 80)
-    private String clientRequestId;
-
-    @Column(name = "submitted_at")
-    private OffsetDateTime submittedAt;
-
-    @Column(name = "request_status", length = 40)
-    private String requestStatus;
-
-    @Column(name = "reviewed_at")
-    private OffsetDateTime reviewedAt;
-
-    @Column(name = "reviewed_by")
-    private UUID reviewedBy;
-
-    @Column(name = "review_reason", columnDefinition = "TEXT")
-    private String reviewReason;
 
     @Column(name = "photo_object_id")
     private UUID photoObjectId;

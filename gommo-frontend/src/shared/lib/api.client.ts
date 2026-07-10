@@ -1,11 +1,11 @@
-import { createHttpClient } from "@/shared/lib/create-http-client";
-import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
-import { buildTenantRequestHeaders, resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
+import {createHttpClient} from "@/shared/lib/create-http-client";
+import {signOutToTenantLogin} from "@/shared/lib/sign-out.client";
+import {buildTenantRequestHeaders, resolveTenantSlugFromHostname} from "@/shared/lib/tenant";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8081";
 
-export { ApiError, AppException } from "@/shared/exceptions/app.exception";
-export type { DoRequestOptions } from "@/shared/lib/create-http-client";
+export {ApiError, AppException} from "@/shared/exceptions/app.exception";
+export type {DoRequestOptions} from "@/shared/lib/create-http-client";
 
 export async function resolveClientTenantHeaders(extra?: Record<string, string>): Promise<Record<string, string>> {
     const fromExtra = extra?.["X-Tenant-Slug"];
@@ -24,7 +24,7 @@ export async function resolveClientTenantHeaders(extra?: Record<string, string>)
     }
 
     if (typeof window !== "undefined") {
-        const { getSession } = await import("next-auth/react");
+        const {getSession} = await import("next-auth/react");
         const session = await getSession();
         if (session?.tenantSlug) {
             return {
@@ -33,7 +33,7 @@ export async function resolveClientTenantHeaders(extra?: Record<string, string>)
             };
         }
     }
-    return { ...(extra ?? {}) };
+    return {...(extra ?? {})};
 }
 
 const httpClient = createHttpClient({
@@ -54,5 +54,5 @@ export function apiFetchBlob(
     path: string,
     options: Omit<import("@/shared/lib/create-http-client").DoRequestOptions, "responseType" | "body"> = {},
 ): Promise<Blob> {
-    return doRequest<Blob>(path, { ...options, responseType: "blob" });
+    return doRequest<Blob>(path, {...options, responseType: "blob"});
 }

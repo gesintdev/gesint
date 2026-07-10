@@ -4,8 +4,8 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {type SubmitEvent, useEffect, useState} from "react";
 import {toast} from "sonner";
 
-import {attendancerecordKeys} from "@/modules/dp/organization/attendance/attendance.query";
-import {attendancerecordService} from "@/modules/dp/organization/attendance/services/attendance-record.service";
+import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
+import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
 import {useHasPermission} from "@/shared/auth/permissions";
 import {Button} from "@/shared/components/ui/Button";
 import {Card} from "@/shared/components/ui/Card";

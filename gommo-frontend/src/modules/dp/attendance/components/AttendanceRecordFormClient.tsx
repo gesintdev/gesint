@@ -4,14 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { attendancerecordKeys } from "@/modules/dp/organization/attendance/attendance.query";
-import type { AttendanceRecordCreateDto } from "@/modules/dp/organization/attendance/dto/attendance-record.dto";
-import { ATTENDANCE_CLIENT_MESSAGES } from "@/modules/dp/organization/attendance/exceptions/attendance-record.messages";
+import { attendancerecordKeys } from "@/modules/dp/attendance/attendance.query";
+import type { AttendanceRecordCreateDto } from "@/modules/dp/attendance/dto/attendance-record.dto";
+import { ATTENDANCE_CLIENT_MESSAGES } from "@/modules/dp/attendance/exceptions/attendance-record.messages";
 import {
     attendancerecordToFormDto,
     emptyAttendanceRecordForm,
-} from "@/modules/dp/organization/attendance/lib/attendance-record.mapper";
-import { attendancerecordService } from "@/modules/dp/organization/attendance/services/attendance-record.service";
+} from "@/modules/dp/attendance/lib/attendance-record.mapper";
+import { attendancerecordService } from "@/modules/dp/attendance/services/attendance-record.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";

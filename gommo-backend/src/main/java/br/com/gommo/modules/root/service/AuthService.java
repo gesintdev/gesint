@@ -303,6 +303,8 @@ public class AuthService implements IAuthService {
         List<String> mobilePermissions = new ArrayList<>(permissions);
         mobilePermissions.add("attendance:write");
         mobilePermissions.add("storage:write");
+        mobilePermissions.add("notification:read");
+        mobilePermissions.add("notification:write");
         return mobilePermissions.stream().distinct().toList();
     }
 

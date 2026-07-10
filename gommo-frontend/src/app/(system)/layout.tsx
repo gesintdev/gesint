@@ -11,7 +11,8 @@ export default async function SystemLayout() {
     const initialSettingsMode = parseSettingsModeCookie(cookieStore.get("gommo-settings-mode")?.value);
 
     return (
-        <SystemShell initialStoredSystem={initialStoredSystem} initialSettingsMode={initialSettingsMode}>
+        <SystemShell initialStoredSystem={initialStoredSystem}
+                     initialSettingsMode={initialSettingsMode}>
             <WorkspaceShell />
         </SystemShell>
     );

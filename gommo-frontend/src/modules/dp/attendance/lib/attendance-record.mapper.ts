@@ -1,7 +1,7 @@
 import type {
     AttendanceRecord,
     AttendanceRecordCreateDto,
-} from "@/modules/dp/organization/attendance/dto/attendance-record.dto";
+} from "@/modules/dp/attendance/dto/attendance-record.dto";
 
 export function attendancerecordToFormDto(entity: AttendanceRecord): AttendanceRecordCreateDto {
     return {

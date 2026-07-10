@@ -14,9 +14,11 @@ import br.com.gommo.modules.dp.offboarding.entity.DismissalTypeEnum;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OffboardingRequestDto {
-    @NotNull private UUID collaboratorId;
+    @NotNull
+    private UUID collaboratorId;
 
-    @NotNull private LocalDate dismissalDate;
+    @NotNull
+    private LocalDate dismissalDate;
 
     private DismissalTypeEnum dismissalType;
     private String dismissalNotes;

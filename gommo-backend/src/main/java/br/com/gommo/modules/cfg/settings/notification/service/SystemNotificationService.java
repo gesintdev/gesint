@@ -5,12 +5,15 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,11 +23,12 @@ import br.com.gommo.modules.cfg.settings.notification.dto.SystemNotificationResp
 import br.com.gommo.modules.cfg.settings.notification.entity.SystemNotification;
 import br.com.gommo.modules.cfg.settings.notification.exception.NotificationException;
 import br.com.gommo.modules.cfg.settings.notification.repository.SystemNotificationRepository;
-import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequest;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequestTypeEnum;
-import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRecordRepository;
+import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRequestRepository;
 import br.com.gommo.modules.rh.person.leave.dto.VacationEligibleCollaboratorDto;
 import br.com.gommo.modules.rh.person.leave.service.ILeaveRequestService;
+import br.com.gommo.modules.root.repository.AppUserRepository;
 
 @Service
 public class SystemNotificationService {
@@ -33,6 +37,7 @@ public class SystemNotificationService {
     private static final String VACATION_PERIOD = "VACATION_PERIOD";
     private static final String ATTENDANCE_ADJUSTMENT_REQUEST = "ATTENDANCE_ADJUSTMENT_REQUEST";
     private static final String ATTENDANCE_RECORD_REQUEST = "ATTENDANCE_RECORD_REQUEST";
+    private static final String ATTENDANCE_REQUEST_REVIEWED = "ATTENDANCE_REQUEST_REVIEWED";
     private static final String REQUEST_PENDING = "PENDING";
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Sao_Paulo");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -40,17 +45,20 @@ public class SystemNotificationService {
     private final SystemNotificationRepository repository;
     private final NotificationSettingsService settingsService;
     private final ILeaveRequestService leaveRequestService;
-    private final AttendanceRecordRepository attendanceRecordRepository;
+    private final AttendanceRequestRepository attendanceRequestRepository;
+    private final AppUserRepository appUserRepository;
 
     public SystemNotificationService(
             SystemNotificationRepository repository,
             NotificationSettingsService settingsService,
             ILeaveRequestService leaveRequestService,
-            AttendanceRecordRepository attendanceRecordRepository) {
+            AttendanceRequestRepository attendanceRequestRepository,
+            AppUserRepository appUserRepository) {
         this.repository = repository;
         this.settingsService = settingsService;
         this.leaveRequestService = leaveRequestService;
-        this.attendanceRecordRepository = attendanceRecordRepository;
+        this.attendanceRequestRepository = attendanceRequestRepository;
+        this.appUserRepository = appUserRepository;
     }
 
     @Transactional
@@ -59,10 +67,23 @@ public class SystemNotificationService {
         syncVacationDueNotifications();
         syncAttendanceAdjustmentNotifications();
         return NotificationSummaryResponseDto.builder()
-                .unreadCount(repository.countByStatusNotAndReadAtIsNull(StatusEnum.DELETED))
+                .unreadCount(repository.countHrUnread(StatusEnum.DELETED))
+                .notifications(
+                        repository.findHrInbox(StatusEnum.DELETED, PageRequest.of(0, 20)).stream()
+                                .map(this::toResponse)
+                                .toList())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('notification:read')")
+    public NotificationSummaryResponseDto getMobileSummary() {
+        UUID userId = resolveCurrentUserId();
+        return NotificationSummaryResponseDto.builder()
+                .unreadCount(repository.countByRecipientUserIdAndUnread(userId, StatusEnum.DELETED))
                 .notifications(
                         repository
-                                .findByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED, PageRequest.of(0, 20))
+                                .findByRecipientUserId(userId, StatusEnum.DELETED, PageRequest.of(0, 50))
                                 .stream()
                                 .map(this::toResponse)
                                 .toList())
@@ -74,11 +95,59 @@ public class SystemNotificationService {
     public SystemNotificationResponseDto markAsRead(UUID id) {
         SystemNotification notification =
                 repository.findByIdAndStatusNot(id, StatusEnum.DELETED).orElseThrow(NotificationException::notFound);
+        UUID userId = resolveCurrentUserId();
+        if (notification.getRecipientUserId() != null && !notification.getRecipientUserId().equals(userId)) {
+            throw NotificationException.notFound();
+        }
         if (notification.getReadAt() == null) {
             notification.setReadAt(OffsetDateTime.now(BUSINESS_ZONE));
             repository.save(notification);
         }
         return toResponse(notification);
+    }
+
+    @Transactional
+    public void notifyAttendanceRequestReviewed(AttendanceRequest request, String action, String reason) {
+        clearHrAttendancePendingNotification(request.getId());
+
+        UUID recipientUserId = appUserRepository
+                .findFirstByCollaboratorIdAndStatusNot(request.getCollaboratorId(), StatusEnum.DELETED)
+                .map(user -> user.getId())
+                .orElse(null);
+        if (recipientUserId == null) {
+            return;
+        }
+
+        boolean approved = "APPROVE".equalsIgnoreCase(action);
+        String date = request.getWorkDate() != null ? request.getWorkDate().format(DATE_FORMATTER) : "sem data";
+        String title = approved ? "Ajuste de ponto aprovado" : "Ajuste de ponto recusado";
+        String message = approved
+                ? "Sua solicitação de ajuste de ponto de " + date + " foi aprovada."
+                : "Sua solicitação de ajuste de ponto de " + date + " foi recusada."
+                        + (reason != null && !reason.isBlank() ? " Motivo: " + reason.trim() : "");
+
+        repository.save(SystemNotification.builder()
+                .notificationType(ATTENDANCE_REQUEST_REVIEWED)
+                .title(title)
+                .message(message)
+                .referenceType(ATTENDANCE_RECORD_REQUEST)
+                .referenceId(request.getId())
+                .referenceDueDate(request.getWorkDate())
+                .recipientUserId(recipientUserId)
+                .status(StatusEnum.ACTIVE)
+                .build());
+    }
+
+    private void clearHrAttendancePendingNotification(UUID requestId) {
+        repository
+                .findByNotificationTypeAndReferenceTypeAndReferenceIdAndStatusNot(
+                        ATTENDANCE_ADJUSTMENT_REQUEST, ATTENDANCE_RECORD_REQUEST, requestId, StatusEnum.DELETED)
+                .stream()
+                .filter(notification -> notification.getRecipientUserId() == null)
+                .forEach(notification -> {
+                    notification.setStatus(StatusEnum.DELETED);
+                    repository.save(notification);
+                });
     }
 
     private void syncVacationDueNotifications() {
@@ -103,32 +172,38 @@ public class SystemNotificationService {
     }
 
     private void syncAttendanceAdjustmentNotifications() {
-        List<AttendanceRecord> pendingAdjustments =
-                attendanceRecordRepository
+        List<AttendanceRequest> pendingAdjustments =
+                attendanceRequestRepository
                         .findByRequestStatusAndStatusNotOrderBySubmittedAtDesc(REQUEST_PENDING, StatusEnum.DELETED)
                         .stream()
                         .filter(record -> record.getRequestType() == AttendanceRequestTypeEnum.TIME_ADJUSTMENT)
                         .toList();
-        Set<UUID> pendingIds = pendingAdjustments.stream().map(AttendanceRecord::getId).collect(Collectors.toSet());
+        Set<UUID> pendingIds = pendingAdjustments.stream().map(AttendanceRequest::getId).collect(Collectors.toSet());
 
         for (SystemNotification notification :
                 repository.findByNotificationTypeAndReferenceTypeAndStatusNot(
                         ATTENDANCE_ADJUSTMENT_REQUEST, ATTENDANCE_RECORD_REQUEST, StatusEnum.DELETED)) {
+            if (notification.getRecipientUserId() != null) {
+                continue;
+            }
             if (!pendingIds.contains(notification.getReferenceId())) {
                 notification.setStatus(StatusEnum.DELETED);
                 repository.save(notification);
             }
         }
 
-        for (AttendanceRecord record : pendingAdjustments) {
-            repository
+        for (AttendanceRequest record : pendingAdjustments) {
+            Optional<SystemNotification> existing = repository
                     .findByNotificationTypeAndReferenceTypeAndReferenceIdAndReferenceDueDateAndStatusNot(
                             ATTENDANCE_ADJUSTMENT_REQUEST,
                             ATTENDANCE_RECORD_REQUEST,
                             record.getId(),
                             record.getWorkDate(),
                             StatusEnum.DELETED)
-                    .orElseGet(() -> repository.save(buildAttendanceAdjustmentNotification(record)));
+                    .filter(notification -> notification.getRecipientUserId() == null);
+            if (existing.isEmpty()) {
+                repository.save(buildAttendanceAdjustmentNotification(record));
+            }
         }
     }
 
@@ -147,7 +222,7 @@ public class SystemNotificationService {
                 .build();
     }
 
-    private SystemNotification buildAttendanceAdjustmentNotification(AttendanceRecord record) {
+    private SystemNotification buildAttendanceAdjustmentNotification(AttendanceRequest record) {
         String date = record.getWorkDate() != null ? record.getWorkDate().format(DATE_FORMATTER) : "sem data";
         return SystemNotification.builder()
                 .notificationType(ATTENDANCE_ADJUSTMENT_REQUEST)
@@ -158,6 +233,14 @@ public class SystemNotificationService {
                 .referenceDueDate(record.getWorkDate())
                 .status(StatusEnum.ACTIVE)
                 .build();
+    }
+
+    private UUID resolveCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof UUID userId)) {
+            throw NotificationException.notFound();
+        }
+        return userId;
     }
 
     private SystemNotificationResponseDto toResponse(SystemNotification entity) {

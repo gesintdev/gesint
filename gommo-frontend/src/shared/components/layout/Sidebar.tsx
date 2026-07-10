@@ -1,16 +1,16 @@
 import clsx from "clsx";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Search } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
+import {AnimatePresence, motion} from "framer-motion";
+import {ChevronRight, Search} from "lucide-react";
+import {usePathname} from "next/navigation";
+import {type MouseEvent, useEffect, useMemo, useRef, useState} from "react";
 
-import { type AppRoute, flattenRoutes } from "@/config/routes";
-import { SidebarCollapseTrigger } from "@/shared/components/layout/SidebarCollapseTrigger";
-import { SidebarFlyout } from "@/shared/components/layout/SidebarFlyout";
-import { SystemRail } from "@/shared/components/layout/SystemRail";
-import { useActiveSystem, useActiveSystemRoutes } from "@/shared/context/ActiveSystemContext";
-import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
-import { findRouteByHref } from "@/shared/workspace/workspace-routes";
+import {type AppRoute, flattenRoutes} from "@/config/routes";
+import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
+import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
+import {SystemRail} from "@/shared/components/layout/SystemRail";
+import {useActiveSystem, useActiveSystemRoutes} from "@/shared/context/ActiveSystemContext";
+import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
+import {findRouteByHref} from "@/shared/workspace/workspace-routes";
 
 type SidebarProps = {
     collapsed: boolean;
@@ -26,27 +26,27 @@ function routeIsActive(route: AppRoute, highlightRouteId: string | null): boolea
 }
 
 function SidebarCollapseControl({
-    desktop,
-    collapsed,
-    onToggle,
-}: {
+                                    desktop,
+                                    collapsed,
+                                    onToggle,
+                                }: {
     desktop: boolean;
     collapsed: boolean;
     onToggle?: () => void;
 }) {
     if (!desktop || !onToggle) return null;
 
-    return <SidebarCollapseTrigger collapsed={collapsed} onToggle={onToggle} />;
+    return <SidebarCollapseTrigger collapsed={collapsed} onToggle={onToggle}/>;
 }
 
 function SidebarToolbar({
-    panelCollapsed,
-    desktop,
-    collapsed,
-    onCollapsedToggle,
-    query,
-    onQueryChange,
-}: {
+                            panelCollapsed,
+                            desktop,
+                            collapsed,
+                            onCollapsedToggle,
+                            query,
+                            onQueryChange,
+                        }: {
     panelCollapsed: boolean;
     desktop: boolean;
     collapsed: boolean;
@@ -62,12 +62,12 @@ function SidebarToolbar({
             )}
         >
             {panelCollapsed ? (
-                <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle} />
+                <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle}/>
             ) : (
                 <>
                     <div className="min-w-0 flex-1">
                         <label className="gommo-field sidebar-shell-control relative w-full cursor-text">
-                            <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2} />
+                            <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2}/>
                             <input
                                 type="search"
                                 placeholder="Buscar no menu..."
@@ -77,18 +77,18 @@ function SidebarToolbar({
                             />
                         </label>
                     </div>
-                    <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle} />
+                    <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle}/>
                 </>
             )}
         </div>
     );
 }
 
-export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMobileCloseAction }: SidebarProps) {
+export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMobileCloseAction}: SidebarProps) {
     const pathname = usePathname();
-    const { navSections } = useActiveSystem();
+    const {navSections} = useActiveSystem();
     const activeSystemRoutes = useActiveSystemRoutes();
-    const { openRouteModule } = useWorkspaceNavigation();
+    const {openRouteModule} = useWorkspaceNavigation();
     const [highlightRouteId, setHighlightRouteId] = useState<string | null>(null);
     const pathnameRouteId = useMemo(() => findRouteByHref(pathname)?.id ?? null, [pathname]);
     const navHighlightRouteId = highlightRouteId ?? pathnameRouteId;
@@ -145,7 +145,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
     };
     /** Expansão só por clique do usuário (ou busca); troca de aba não abre/fecha grupos. */
     const isOpen = (id: string) => isSearching || openIds.has(id);
-    const NavLink = ({ route, nested }: { route: AppRoute; nested?: boolean }) => {
+    const NavLink = ({route, nested}: { route: AppRoute; nested?: boolean }) => {
         const Icon = route.icon;
         const active = route.id === navHighlightRouteId;
 
@@ -183,10 +183,10 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
                     <button
                         type="button"
                         aria-label={route.label}
-                        onClick={(e) => setFlyout({ route, top: e.currentTarget.getBoundingClientRect().top })}
+                        onClick={(e) => setFlyout({route, top: e.currentTarget.getBoundingClientRect().top})}
                         className={clsx("nav-item nav-item-collapsed", active && "nav-item-active")}
                     >
-                        <Icon className="size-4.25" strokeWidth={2} />
+                        <Icon className="size-4.25" strokeWidth={2}/>
                         <span className="sidebar-copy truncate text-left">{route.label}</span>
                     </button>
                 </li>
@@ -196,7 +196,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
         if (panelCollapsed) {
             return (
                 <li key={route.id}>
-                    <NavLink route={route} />
+                    <NavLink route={route}/>
                 </li>
             );
         }
@@ -204,7 +204,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
         if (!hasChildren) {
             return (
                 <li key={route.id}>
-                    <NavLink route={route} />
+                    <NavLink route={route}/>
                 </li>
             );
         }
@@ -220,7 +220,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
                         expanded && "nav-item-expanded",
                     )}
                 >
-                    <Icon className="size-4.25 shrink-0 text-base-content/38" strokeWidth={2} />
+                    <Icon className="size-4.25 shrink-0 text-base-content/38" strokeWidth={2}/>
                     <span className="sidebar-copy truncate text-left">{route.label}</span>
                     <ChevronRight
                         className={clsx(
@@ -235,7 +235,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
                             <ul className="nav-group-children flex flex-col gap-0.5">
                                 {route.children?.map((child) => (
                                     <li key={child.id}>
-                                        <NavLink route={child} nested />
+                                        <NavLink route={child} nested/>
                                     </li>
                                 ))}
                             </ul>
@@ -263,7 +263,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
                             <div className="flex flex-col">
                                 <div className="flex min-h-5 items-center px-2.5">
                                     {panelCollapsed ? (
-                                        <div className="nav-section-rule" aria-hidden="true" />
+                                        <div className="nav-section-rule" aria-hidden="true"/>
                                     ) : (
                                         <p className="nav-section-label">{section.label}</p>
                                     )}
@@ -278,7 +278,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
     );
     const sidebarShell = (opts: { desktop: boolean }) => (
         <div className="flex h-full min-w-0">
-            <SystemRail />
+            <SystemRail/>
             <div
                 className={clsx(
                     "sidebar-routes-panel flex min-w-0 shrink-0 flex-col overflow-hidden border-r transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -308,19 +308,19 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
                         <motion.button
                             type="button"
                             aria-label="Fechar menu"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
+                            initial={{opacity: 0}}
+                            animate={{opacity: 1}}
+                            exit={{opacity: 0}}
+                            transition={{duration: 0.2}}
                             className="fixed inset-0 z-40 bg-base-content/20 backdrop-blur-[3px] lg:hidden"
-                            style={{ top: "var(--header-height)" }}
+                            style={{top: "var(--header-height)"}}
                             onClick={onMobileCloseAction}
                         />
                         <motion.aside
-                            initial={{ x: "-100%" }}
-                            animate={{ x: 0 }}
-                            exit={{ x: "-100%" }}
-                            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                            initial={{x: "-100%"}}
+                            animate={{x: 0}}
+                            exit={{x: "-100%"}}
+                            transition={{duration: 0.28, ease: [0.22, 1, 0.36, 1]}}
                             className="fixed left-0 z-50 flex overflow-hidden border-r lg:hidden"
                             style={{
                                 ...sidebarBodyStyle,
@@ -330,7 +330,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
                             }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {sidebarShell({ desktop: false })}
+                            {sidebarShell({desktop: false})}
                         </motion.aside>
                     </>
                 )}
@@ -344,7 +344,7 @@ export function Sidebar({ collapsed, onCollapsedToggle, mobileOpen = false, onMo
                     width: collapsed ? "calc(var(--system-rail-width) + var(--sidebar-collapsed))" : sidebarTotalWidth,
                 }}
             >
-                {sidebarShell({ desktop: true })}
+                {sidebarShell({desktop: true})}
             </aside>
             {collapsed && flyout && (
                 <SidebarFlyout

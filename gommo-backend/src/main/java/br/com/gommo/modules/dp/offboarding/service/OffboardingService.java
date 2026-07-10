@@ -25,13 +25,13 @@ import br.com.gommo.modules.rh.person.collaborators.people.repository.Collaborat
 
 @Service
 public class OffboardingService extends BaseService<Offboarding, OffboardingRequestDto, OffboardingResponseDto>
-        implements IOffboardingService {
+    implements IOffboardingService {
     private final OffboardingRepository repository;
     private final OffboardingMapper mapper;
     private final CollaboratorRepository collaboratorRepository;
 
     public OffboardingService(
-            OffboardingRepository repository, OffboardingMapper mapper, CollaboratorRepository collaboratorRepository) {
+        OffboardingRepository repository, OffboardingMapper mapper, CollaboratorRepository collaboratorRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -59,15 +59,15 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
     public PageableResponseDto<OffboardingResponseDto> findPage(int page, int size) {
         PageableResponseDto<OffboardingResponseDto> pageResult = super.findPage(page, size);
         return PageableResponseDto.<OffboardingResponseDto>builder()
-                .content(mapToResponses(repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
-                        .skip((long) page * size)
-                        .limit(size)
-                        .toList()))
-                .page(pageResult.getPage())
-                .size(pageResult.getSize())
-                .totalElements(pageResult.getTotalElements())
-                .totalPages(pageResult.getTotalPages())
-                .build();
+            .content(mapToResponses(repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+                .skip((long) page * size)
+                .limit(size)
+                .toList()))
+            .page(pageResult.getPage())
+            .size(pageResult.getSize())
+            .totalElements(pageResult.getTotalElements())
+            .totalPages(pageResult.getTotalPages())
+            .build();
     }
 
     @Override
@@ -117,8 +117,8 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
     private List<OffboardingResponseDto> mapToResponses(List<Offboarding> entities) {
         Map<UUID, Collaborator> collaborators = loadCollaborators(entities);
         return entities.stream()
-                .map(entity -> mapper.toResponse(entity, collaboratorName(entity, collaborators)))
-                .toList();
+            .map(entity -> mapper.toResponse(entity, collaboratorName(entity, collaborators)))
+            .toList();
     }
 
     private OffboardingResponseDto toEnrichedResponse(Offboarding entity) {
@@ -127,28 +127,28 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
 
     private Map<UUID, Collaborator> loadCollaborators(List<Offboarding> entities) {
         List<UUID> collaboratorIds = entities.stream()
-                .map(Offboarding::getCollaboratorId)
-                .filter(id -> id != null)
-                .distinct()
-                .toList();
+            .map(Offboarding::getCollaboratorId)
+            .filter(id -> id != null)
+            .distinct()
+            .toList();
         if (collaboratorIds.isEmpty()) {
             return Map.of();
         }
         return collaboratorRepository.findAllById(collaboratorIds).stream()
-                .collect(Collectors.toMap(Collaborator::getId, Function.identity()));
+            .collect(Collectors.toMap(Collaborator::getId, Function.identity()));
     }
 
     private static String collaboratorName(Offboarding entity, Map<UUID, Collaborator> collaborators) {
         Collaborator collaborator = collaborators.get(entity.getCollaboratorId());
         return collaborator != null && collaborator.getStatus() != StatusEnum.DELETED
-                ? collaborator.getFullName()
-                : null;
+            ? collaborator.getFullName()
+            : null;
     }
 
     private void markCollaboratorOffboarded(UUID collaboratorId) {
         Collaborator collaborator = collaboratorRepository
-                .findByIdAndStatusNot(collaboratorId, StatusEnum.DELETED)
-                .orElseThrow(CollaboratorException::notFound);
+            .findByIdAndStatusNot(collaboratorId, StatusEnum.DELETED)
+            .orElseThrow(CollaboratorException::notFound);
         collaborator.setStatus(StatusEnum.INACTIVE);
         collaboratorRepository.save(collaborator);
     }
@@ -162,8 +162,8 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
             return;
         }
         Collaborator collaborator = collaboratorRepository
-                .findByIdAndStatusNot(collaboratorId, StatusEnum.DELETED)
-                .orElse(null);
+            .findByIdAndStatusNot(collaboratorId, StatusEnum.DELETED)
+            .orElse(null);
         if (collaborator != null) {
             collaborator.setStatus(StatusEnum.ACTIVE);
             collaboratorRepository.save(collaborator);
