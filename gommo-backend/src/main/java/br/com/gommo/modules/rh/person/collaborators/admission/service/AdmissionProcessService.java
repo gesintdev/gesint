@@ -365,30 +365,13 @@ public class AdmissionProcessService
 
     private Map<String, List<String>> admissionFilterOptions(List<AdmissionProcessResponseDto> rows) {
         return Map.of(
-                "code",
-                        distinctFilterValues(
-                                rows,
-                                row -> row.getCode() != null ? row.getCode().toString() : null),
-                "fullName", distinctFilterValues(rows, AdmissionProcessResponseDto::getFullName),
                 "admissionStatus",
                         distinctFilterValues(
                                 rows,
                                 row -> row.getAdmissionStatus() != null
                                         ? row.getAdmissionStatus().name()
                                         : null),
-                "expectedStartDate",
-                        distinctFilterValues(
-                                rows,
-                                row -> row.getExpectedStartDate() != null
-                                        ? row.getExpectedStartDate().toString()
-                                        : null),
-                "departmentName", distinctFilterValues(rows, AdmissionProcessResponseDto::getDepartmentName),
-                "admissionTags",
-                        rows.stream()
-                                .flatMap(row -> admissionTags(row).stream())
-                                .distinct()
-                                .sorted()
-                                .toList());
+                "departmentName", distinctFilterValues(rows, AdmissionProcessResponseDto::getDepartmentName));
     }
 
     private static List<String> distinctFilterValues(
@@ -417,9 +400,9 @@ public class AdmissionProcessService
         return switch (field) {
             case "profileStatus" -> acceptedValues.stream().anyMatch(value -> matchesProfileStatus(row, value));
             case "admissionTags" -> admissionTags(row).stream().anyMatch(acceptedValues::contains);
-            case "code" -> acceptedValues.contains(
-                    row.getCode() != null ? row.getCode().toString() : null);
-            case "fullName" -> acceptedValues.contains(row.getFullName());
+            case "code" -> matchesContains(
+                    acceptedValues, row.getCode() != null ? row.getCode().toString() : null);
+            case "fullName" -> matchesContains(acceptedValues, row.getFullName());
             case "admissionStatus" -> acceptedValues.contains(
                     row.getAdmissionStatus() != null ? row.getAdmissionStatus().name() : null);
             case "expectedStartDate" -> acceptedValues.contains(
@@ -429,6 +412,13 @@ public class AdmissionProcessService
             case "departmentName" -> acceptedValues.contains(row.getDepartmentName());
             default -> true;
         };
+    }
+
+    private static boolean matchesContains(List<String> acceptedValues, String value) {
+        String normalizedValue = value != null ? value.toLowerCase() : "";
+        return acceptedValues.stream()
+                .map(String::toLowerCase)
+                .anyMatch(normalizedValue::contains);
     }
 
     private static boolean matchesProfileStatus(AdmissionProcessResponseDto row, String value) {

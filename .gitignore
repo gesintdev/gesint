@@ -37,5 +37,4 @@ Thumbs.db
 **/HashGen.java
 
 # --- Storage local de uploads (dev) ---
-data/
-**/data/
+/data/

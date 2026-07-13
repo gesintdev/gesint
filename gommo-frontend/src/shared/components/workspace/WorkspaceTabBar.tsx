@@ -37,6 +37,19 @@ function WorkspaceTabButton({
             aria-selected={active}
             title={title}
             onClick={onSelect}
+            onMouseDown={(event) => {
+                // Evita auto-scroll do navegador no clique do meio
+                if (event.button === 1 && onClose) {
+                    event.preventDefault();
+                }
+            }}
+            onAuxClick={(event) => {
+                if (event.button === 1 && onClose) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onClose();
+                }
+            }}
             className={clsx("gommo-workspace-tab group/tab max-w-60", active && "gommo-workspace-tab--active")}
         >
             <WorkspaceTabIcon

@@ -4,8 +4,8 @@ export const ENTITY_CODE_TABLE_COLUMN: TableColumnConfig = {
     id: "code",
     columnName: "Código",
     fieldValue: "code",
-    dataType: TableDataType.TEXT,
+    dataType: TableDataType.INTEGER,
     align: "right",
-    className: "tabular-nums w-20",
-    headerClassName: "w-20",
+    className: "tabular-nums w-24",
+    headerClassName: "w-24",
 };

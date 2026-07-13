@@ -7,8 +7,6 @@ import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
 import { useSessionPermissions } from "@/shared/auth/permissions";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
-import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
-import { DASHBOARD_TAB_ID } from "@/shared/workspace/workspace-dashboard";
 
 export function SystemRail() {
     const [mounted, setMounted] = useState(false);
@@ -18,12 +16,11 @@ export function SystemRail() {
         setMounted(true);
     }, []);
 
-    const { focusTabById } = useWorkspaceNavigation();
     const permissions = useSessionPermissions();
     const canOpenSettings = settingsRoutes.some((route) => canAccessRoute(route, permissions));
+    /** Só troca domínio/menus; mantém a aba ativa. O Painel já reage ao `activeSystem`. */
     const handleSelect = (system: SystemEnum) => {
         selectSystem(system);
-        focusTabById(DASHBOARD_TAB_ID);
     };
     const handleOpenSettings = () => {
         openSettings();

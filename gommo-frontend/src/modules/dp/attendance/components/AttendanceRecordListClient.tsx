@@ -16,7 +16,7 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { InputDate } from "@/shared/components/ui/input";
+import {InputDate} from "@/shared/components/ui/input/InputDate";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -113,7 +113,7 @@ export function AttendanceRecordListClient() {
         <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] gap-2">
             <div className="flex flex-wrap items-end gap-3 px-1 pt-3">
                 <div
-                    className="flex h-[var(--gommo-control-h)] flex-wrap items-center gap-2"
+                    className="flex h-(--gommo-control-h) flex-wrap items-center gap-2"
                     role="radiogroup"
                     aria-label="Filtrar período de ponto"
                 >
@@ -135,9 +135,8 @@ export function AttendanceRecordListClient() {
                         </button>
                     ))}
                 </div>
-                <div className="w-[11rem]">
+                <div className="w-44">
                     <InputDate
-                        label="Data"
                         value={customDate}
                         onValueChange={(value) => {
                             setCustomDate(value);

@@ -90,9 +90,18 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
                         .filter(c -> !offboardedIds.contains(c.getId()))
                         .toList();
         List<Collaborator> filteredRows = allRows.stream()
-                .filter(c -> matchesFilter(filters, "fullName", c.getFullName()))
-                .filter(c -> matchesFilter(filters, "cpf", c.getCpf()))
-                .filter(c -> matchesFilter(filters, "status", c.getStatus().name()))
+                .filter(c -> matchesContainsFilter(filters, "code", c.getCode() != null ? c.getCode().toString() : null))
+                .filter(c -> matchesContainsFilter(filters, "fullName", c.getFullName()))
+                .filter(c -> matchesDigitsContainsFilter(filters, "cpf", c.getCpf()))
+                .filter(c -> matchesExactFilter(
+                        filters,
+                        "birthDate",
+                        c.getBirthDate() != null ? c.getBirthDate().toString() : null))
+                .filter(c -> matchesExactFilter(filters, "status", c.getStatus().name()))
+                .filter(c -> matchesDateTimeFilter(
+                        filters,
+                        "updatedAt",
+                        c.getUpdatedAt() != null ? c.getUpdatedAt().toString() : null))
                 .toList();
         int safePage = Math.max(0, page);
         int safeSize = Math.max(1, size);
@@ -208,21 +217,55 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
         return CollaboratorMapper.toResponse(entity, email, phone);
     }
 
-    private static boolean matchesFilter(Map<String, List<String>> filters, String field, String value) {
+    private static boolean matchesExactFilter(Map<String, List<String>> filters, String field, String value) {
+        List<String> acceptedValues = filters.get(field);
+        if (acceptedValues == null || acceptedValues.isEmpty()) {
+            return true;
+        }
+        String normalizedValue = value != null ? value : "";
+        return acceptedValues.stream().anyMatch(normalizedValue::equals);
+    }
+
+    private static boolean matchesContainsFilter(Map<String, List<String>> filters, String field, String value) {
         List<String> acceptedValues = filters.get(field);
         if (acceptedValues == null || acceptedValues.isEmpty()) {
             return true;
         }
         String normalizedValue = value != null ? value.toLowerCase() : "";
-        return acceptedValues.stream().map(String::toLowerCase).anyMatch(normalizedValue::equals);
+        return acceptedValues.stream()
+                .map(String::toLowerCase)
+                .anyMatch(normalizedValue::contains);
     }
 
+    private static boolean matchesDigitsContainsFilter(Map<String, List<String>> filters, String field, String value) {
+        List<String> acceptedValues = filters.get(field);
+        if (acceptedValues == null || acceptedValues.isEmpty()) {
+            return true;
+        }
+        String digits = digitsOnly(value);
+        return acceptedValues.stream().map(CollaboratorService::digitsOnly).anyMatch(digits::contains);
+    }
+
+    private static boolean matchesDateTimeFilter(Map<String, List<String>> filters, String field, String value) {
+        List<String> acceptedValues = filters.get(field);
+        if (acceptedValues == null || acceptedValues.isEmpty()) {
+            return true;
+        }
+        String normalizedValue = value != null ? value : "";
+        return acceptedValues.stream().anyMatch(accepted ->
+                normalizedValue.equals(accepted) || normalizedValue.startsWith(accepted));
+    }
+
+    private static String digitsOnly(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replaceAll("\\D", "");
+    }
+
+    /** Opções de SELECT/BADGE a partir do dataset completo (não só da página). */
     private static Map<String, List<String>> buildFilterOptions(List<Collaborator> rows) {
         return Map.of(
-                "fullName",
-                distinctSorted(rows.stream().map(Collaborator::getFullName).toList()),
-                "cpf",
-                distinctSorted(rows.stream().map(Collaborator::getCpf).toList()),
                 "status",
                 distinctSorted(rows.stream().map(c -> c.getStatus().name()).toList()));
     }

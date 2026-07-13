@@ -1,18 +1,16 @@
 import { type QueryKey, useQuery, type UseQueryResult } from "@tanstack/react-query";
-import clsx from "clsx";
-import { Funnel, X } from "lucide-react";
+import { X } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
+import { ColumnFilterControl } from "@/shared/components/data/ColumnFilterControl";
 import { QueryRefreshProvider } from "@/shared/components/data/QueryRefreshContext";
 import { TablePagination } from "@/shared/components/data/TablePagination";
 import { Button } from "@/shared/components/ui/Button";
 import { DataTable, type DataTableRowActivateOn } from "@/shared/components/ui/DataTable";
 import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
 import { ExceptionCapture } from "@/shared/exceptions";
-import { formatBadgeCellValue, formatCellValue } from "@/shared/lib/table/format-cell-value";
 import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
-import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
+import { isColumnFilterable, type TableColumnConfig } from "@/shared/types/table.types";
 
 const EMPTY_FILTERS: Record<string, string[]> = {};
 
@@ -164,145 +162,29 @@ export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps
     );
 }
 
-function filterOptionLabel(col: TableColumnConfig, value: string): string {
-    if (col.dataType === TableDataType.BADGE) return formatBadgeCellValue(value, col.badgeLabels);
-    if (col.avatarTagLabels?.[value]) return col.avatarTagLabels[value];
-    return formatCellValue(value, col.dataType);
-}
-
-type ColumnFilterHeaderProps = {
+function ColumnHeaderWithFilter({
+    column,
+    options,
+    value,
+    onChange,
+}: {
     column: TableColumnConfig;
     options: string[];
     value: string[];
-    open: boolean;
-    onOpenChange: (_open: boolean) => void;
     onChange: (_value: string[]) => void;
-};
-
-function ColumnFilterHeader({ column, options, value, open, onOpenChange, onChange }: ColumnFilterHeaderProps) {
-    const active = value.length > 0;
-    const triggerRef = useRef<HTMLButtonElement | null>(null);
-    const popoverRef = useRef<HTMLDivElement | null>(null);
-    const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
-
-    useEffect(() => {
-        if (!open) return;
-        const updatePosition = () => {
-            const rect = triggerRef.current?.getBoundingClientRect();
-            if (!rect) return;
-            setPosition({
-                top: rect.bottom + 8,
-                left: Math.min(rect.left, window.innerWidth - 304),
-            });
-        };
-        updatePosition();
-        window.addEventListener("scroll", updatePosition, true);
-        window.addEventListener("resize", updatePosition);
-        return () => {
-            window.removeEventListener("scroll", updatePosition, true);
-            window.removeEventListener("resize", updatePosition);
-        };
-    }, [open]);
-
-    useEffect(() => {
-        if (!open) return;
-        const handlePointerDown = (event: PointerEvent) => {
-            const target = event.target;
-            if (!(target instanceof Node)) return;
-            if (triggerRef.current?.contains(target) || popoverRef.current?.contains(target)) return;
-            onOpenChange(false);
-        };
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                onOpenChange(false);
-            }
-        };
-        document.addEventListener("pointerdown", handlePointerDown);
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("pointerdown", handlePointerDown);
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [onOpenChange, open]);
-
-    if (!column.filterable) {
-        return column.columnName;
-    }
-
+}) {
     return (
-        <div className="relative inline-flex items-center gap-1.5">
-            <span>{column.columnName}</span>
-            <button
-                ref={triggerRef}
-                type="button"
-                className={clsx(
-                    "inline-flex size-5 items-center justify-center rounded-md text-base-content/38 transition-colors hover:bg-base-200 hover:text-primary",
-                    active && "text-primary",
-                )}
-                onClick={(event) => {
-                    event.stopPropagation();
-                    onOpenChange(!open);
-                }}
-                aria-label={`Filtrar ${column.columnName}`}
-            >
-                <Funnel className="size-3.5" />
-            </button>
-            {open && position
-                ? createPortal(
-                      <div
-                          ref={popoverRef}
-                          className="fixed z-[400] w-72 rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 p-3 text-sm text-base-content shadow-lg"
-                          style={{ top: position.top, left: position.left }}
-                          onClick={(event) => event.stopPropagation()}
-                      >
-                          <div className="flex items-center gap-2 border-b border-[var(--gommo-border-subtle)] pb-3">
-                              <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-1 text-sm font-medium normal-case tracking-normal text-base-content/75">
-                                  <input
-                                      type="checkbox"
-                                      className="checkbox checkbox-sm rounded-md border-[var(--gommo-border-strong)]"
-                                      checked={!active}
-                                      onChange={() => onChange([])}
-                                  />
-                                  <span className="truncate">Selecionar todos</span>
-                              </label>
-                              <button
-                                  type="button"
-                                  className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium normal-case tracking-normal text-base-content/45 transition-colors hover:bg-base-200 hover:text-primary disabled:pointer-events-none disabled:opacity-40"
-                                  disabled={!active}
-                                  onClick={() => onChange([])}
-                              >
-                                  <X className="size-3" />
-                                  Limpar
-                              </button>
-                          </div>
-                          <div className="mt-2 max-h-64 overflow-y-auto">
-                              {options.map((option) => {
-                                  const checked = value.includes(option);
-                                  return (
-                                      <label
-                                          key={option}
-                                          className="flex cursor-pointer items-center gap-3 border-b border-[var(--gommo-border-subtle)] px-1 py-2.5 text-sm font-normal normal-case tracking-normal text-base-content/75 last:border-b-0 hover:text-base-content"
-                                      >
-                                          <input
-                                              type="checkbox"
-                                              className="checkbox checkbox-sm rounded-md border-[var(--gommo-border-strong)]"
-                                              checked={checked}
-                                              onChange={() => {
-                                                  const next = checked
-                                                      ? value.filter((item) => item !== option)
-                                                      : [...value, option];
-                                                  onChange(next.length === options.length ? [] : next);
-                                              }}
-                                          />
-                                          <span className="truncate">{filterOptionLabel(column, option)}</span>
-                                      </label>
-                                  );
-                              })}
-                          </div>
-                      </div>,
-                      document.body,
-                  )
-                : null}
+        <div className="flex min-w-[7.5rem] flex-col gap-1.5">
+            <span className="gommo-table-col-title">{column.columnName}</span>
+            {isColumnFilterable(column) ? (
+                <div
+                    className="gommo-column-filter-host"
+                    onClick={(event) => event.stopPropagation()}
+                    onDoubleClick={(event) => event.stopPropagation()}
+                >
+                    <ColumnFilterControl column={column} options={options} value={value} onChange={onChange} />
+                </div>
+            ) : null}
         </div>
     );
 }
@@ -324,7 +206,6 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(pageSize);
     const [filters, setFilters] = useState<Record<string, string[]>>({});
-    const [openFilterField, setOpenFilterField] = useState<string | null>(null);
     const didMountRef = useRef(false);
     const activeFilterCount = useMemo(
         () => Object.values(filters).filter((value) => value.length > 0).length,
@@ -354,7 +235,6 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         }
         setPage(0);
         setSize(pageSize);
-        setOpenFilterField(null);
         setFilters({});
     }, [baseFilters, pageSize]);
 
@@ -397,7 +277,6 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     const clearFilters = () => {
         setPage(0);
         setSize(pageSize);
-        setOpenFilterField(null);
         setFilters({});
     };
 
@@ -422,12 +301,10 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
                         columns={columns}
                         rowActivateOn={rowActivateOn}
                         renderColumnHeader={(column) => (
-                            <ColumnFilterHeader
+                            <ColumnHeaderWithFilter
                                 column={column}
                                 options={query.data.filterOptions?.[column.fieldValue] ?? []}
                                 value={filters[column.fieldValue] ?? []}
-                                open={openFilterField === column.fieldValue}
-                                onOpenChange={(open) => setOpenFilterField(open ? column.fieldValue : null)}
                                 onChange={(value) => updateColumnFilter(column.fieldValue, value)}
                             />
                         )}

@@ -34,7 +34,8 @@ export const systemModuleGroups: TSystemModuleGroup[] = [
     },
     {
         system: SystemEnum.RH,
-        modules: [dashboardModule, personModule, insightsModule],
+        /** Painel é aba fixa do workspace (não entra no menu lateral). */
+        modules: [personModule, insightsModule],
     },
     {
         system: SystemEnum.CONTABILIDADE,
@@ -43,8 +44,11 @@ export const systemModuleGroups: TSystemModuleGroup[] = [
 ];
 /** Módulo de configurações (rail inferior — perfis e usuários). */
 export const SETTINGS_NAV_SECTIONS = ModuleEnumHelper.toNavSections([settingsModule]);
-/** Todos os módulos registrados (workspace, permissões, etc.) */
-export const modules: TModule[] = [...systemModuleGroups.flatMap((g) => g.modules), settingsModule];
+/**
+ * Todos os módulos registrados (workspace, permissões, etc.).
+ * `dashboardModule` fica fora do rail: rota `/dashboard` + aba Painel fixa.
+ */
+export const modules: TModule[] = [dashboardModule, ...systemModuleGroups.flatMap((g) => g.modules), settingsModule];
 /** Seções de todos os domínios (breadcrumbs, busca global) */
 export const ALL_NAV_SECTIONS: NavSection[] = ModuleEnumHelper.toNavSections(modules);
 

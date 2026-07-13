@@ -1,16 +1,28 @@
 export enum TableDataType {
+    /** Texto livre (alias legado de STRING). */
     TEXT = "TEXT",
+    STRING = "STRING",
+    INTEGER = "INTEGER",
+    DECIMAL = "DECIMAL",
+    /** Alias legado de DECIMAL. */
+    FLOAT = "FLOAT",
+    MONEY = "MONEY",
+    /** Alias legado de MONEY. */
+    CURRENCY = "CURRENCY",
+    PERCENT = "PERCENT",
     UUID = "UUID",
     CPF = "CPF",
+    CNPJ = "CNPJ",
+    CEP = "CEP",
     PHONE = "PHONE",
     EMAIL = "EMAIL",
     DATE = "DATE",
     DATETIME = "DATETIME",
-    FLOAT = "FLOAT",
-    CURRENCY = "CURRENCY",
-    PERCENT = "PERCENT",
-    BADGE = "BADGE",
     BOOLEAN = "BOOLEAN",
+    /** Lista fechada de opções (filtro SELECT com options do servidor). */
+    SELECT = "SELECT",
+    /** Badge visual; filtro usa SELECT com options do servidor. */
+    BADGE = "BADGE",
     /** Avatar + nome (estilo DaisyUI) */
     AVATAR_PROFILE = "AVATAR_PROFILE",
 }
@@ -22,6 +34,7 @@ export type TableColumnConfig = {
     columnName: string;
     /** Caminho do campo no objeto (suporta dot notation — ex.: `address.city`) */
     fieldValue: string;
+    /** Tipo de valor: máscara da célula e input do filtro. */
     dataType?: TableDataType;
     align?: "left" | "center" | "right";
     /** Classes Tailwind extras na célula (ex.: `hidden md:table-cell`) */
@@ -42,6 +55,19 @@ export type TableColumnConfig = {
     avatarSize?: "sm" | "md" | "lg";
     /** Rótulos customizados para células BADGE (sobrescreve o mapa global) */
     badgeLabels?: Record<string, string>;
-    /** Exibe filtro server-side no painel paginado. */
-    filterable?: boolean;
+    /**
+     * Quando true, a coluna não exibe filtro.
+     * Por padrão todas as colunas são filtráveis.
+     */
+    notFilterable?: boolean;
 };
+
+/** Coluna filtrável por padrão, salvo `notFilterable`. */
+export function isColumnFilterable(column: TableColumnConfig): boolean {
+    return !column.notFilterable;
+}
+
+/** Tipos que usam lista fechada de opções vindas do servidor (`filterOptions`). */
+export function isSelectFilterDataType(dataType?: TableDataType): boolean {
+    return dataType === TableDataType.SELECT || dataType === TableDataType.BADGE || dataType === TableDataType.BOOLEAN;
+}

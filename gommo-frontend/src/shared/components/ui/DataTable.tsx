@@ -125,11 +125,16 @@ function renderCellContent(
     }
     const formatted = formatCellValue(value, dataType);
     const isNumeric =
-        dataType === TableDataType.CPF ||
-        dataType === TableDataType.PHONE ||
+        dataType === TableDataType.INTEGER ||
+        dataType === TableDataType.DECIMAL ||
         dataType === TableDataType.FLOAT ||
+        dataType === TableDataType.MONEY ||
         dataType === TableDataType.CURRENCY ||
-        dataType === TableDataType.PERCENT;
+        dataType === TableDataType.PERCENT ||
+        dataType === TableDataType.CPF ||
+        dataType === TableDataType.CNPJ ||
+        dataType === TableDataType.CEP ||
+        dataType === TableDataType.PHONE;
     return <span className={clsx("text-[0.78125rem]", isNumeric && "tabular-nums")}>{formatted}</span>;
 }
 
@@ -175,11 +180,15 @@ export function DataTable<T extends object>({
                                 key={col.id}
                                 className={clsx("bg-transparent", alignClass(col.align), col.headerClassName)}
                             >
-                                {renderColumnHeader?.(col) ?? col.columnName}
+                                {renderColumnHeader?.(col) ?? (
+                                    <span className="gommo-table-col-title">{col.columnName}</span>
+                                )}
                             </th>
                         ))}
                         {hasActions && (
-                            <th className={clsx("bg-transparent text-right", actionsClassName)}>{actionsHeader}</th>
+                            <th className={clsx("bg-transparent text-right", actionsClassName)}>
+                                <span className="gommo-table-col-title">{actionsHeader}</span>
+                            </th>
                         )}
                     </tr>
                 </thead>

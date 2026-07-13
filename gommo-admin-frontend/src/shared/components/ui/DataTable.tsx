@@ -21,19 +21,14 @@ export type DataTableProps<T extends object> = {
     onRowActivate?: (row: T) => void;
     /** `click` (padrão) ou `doubleclick` */
     rowActivateOn?: DataTableRowActivateOn;
-    /** @deprecated Use `onRowActivate` + `rowActivateOn="click"` */
-    onRowClick?: (row: T) => void;
-    /** @deprecated Use `onRowActivate` + `rowActivateOn="doubleclick"` */
-    onRowDoubleClick?: (row: T) => void;
     renderActions?: (row: T) => ReactNode;
     actionsHeader?: string;
     actionsClassName?: string;
 };
 
-function resolveRowInteraction<T extends object>(props: DataTableProps<T>) {
-    const { onRowActivate, onRowClick, onRowDoubleClick, rowActivateOn } = props;
-    const mode: DataTableRowActivateOn = rowActivateOn ?? (onRowDoubleClick && !onRowClick ? "doubleclick" : "click");
-    const handler = onRowActivate ?? (mode === "doubleclick" ? onRowDoubleClick : onRowClick);
+function resolveRowInteraction<T extends object>(props: Pick<DataTableProps<T>, "onRowActivate" | "rowActivateOn">) {
+    const mode: DataTableRowActivateOn = props.rowActivateOn ?? "click";
+    const handler = props.onRowActivate;
     return { mode, handler, interactive: Boolean(handler) };
 }
 
@@ -80,19 +75,13 @@ export function DataTable<T extends object>({
     stickyHeader = true,
     onRowActivate,
     rowActivateOn,
-    onRowClick,
-    onRowDoubleClick,
     renderActions,
     actionsHeader = "Ações",
     actionsClassName,
 }: DataTableProps<T>) {
     const { mode, handler, interactive } = resolveRowInteraction({
-        data,
-        columns,
         onRowActivate,
         rowActivateOn,
-        onRowClick,
-        onRowDoubleClick,
     });
     const hasActions = Boolean(renderActions);
     const colSpan = columns.length + (hasActions ? 1 : 0);

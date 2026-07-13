@@ -4,29 +4,30 @@
 
 /* ================================================================
    GOMMO DESIGN SYSTEM — globals.css
-   Font: Inter · Tokens centralizados em :root (troque só aqui)
+   Font: Inter · Brand azul (#007BFF) · Tokens em :root (troque só aqui)
 ================================================================ */
 
 /* ──────────────────────────────────────────────
    TOKENS — fonte única de cores, bordas e sombras
+   Brand guide: azul Gommo (#007BFF) · Inter
 ────────────────────────────────────────────── */
 :root {
-    /* Brand — cor principal */
-    --gommo-primary: #6d28d9;
-    --gommo-primary-dark: #5b21b6;
-    --gommo-primary-darker: #4c1d95;
-    --gommo-primary-light: #8b5cf6;
-    --gommo-primary-50: #f5f3ff;
-    --gommo-primary-100: #ede9fe;
-    --gommo-primary-200: #ddd6fe;
-    --gommo-primary-300: #c4b5fd;
-    --gommo-primary-400: #a78bfa;
-    --gommo-primary-500: #8b5cf6;
-    --gommo-primary-600: #7c3aed;
-    --gommo-primary-700: #6d28d9;
-    --gommo-primary-800: #5b21b6;
-    --gommo-primary-900: #4c1d95;
-    --gommo-primary-950: #2e1065;
+    /* Brand — azul Gommo */
+    --gommo-primary: #007bff;
+    --gommo-primary-dark: #0062cc;
+    --gommo-primary-darker: #004a99;
+    --gommo-primary-light: #2da8f7;
+    --gommo-primary-50: #e6f4ff;
+    --gommo-primary-100: #bae4ff;
+    --gommo-primary-200: #8fd4ff;
+    --gommo-primary-300: #69c6ff;
+    --gommo-primary-400: #45b5fa;
+    --gommo-primary-500: #2da8f7;
+    --gommo-primary-600: #1496eb;
+    --gommo-primary-700: #007bff;
+    --gommo-primary-800: #0062cc;
+    --gommo-primary-900: #0a3a6b;
+    --gommo-primary-950: #0a1b2e;
 
     /* Semânticas — manter por enquanto */
     --gommo-success: #16a34a;
@@ -35,33 +36,33 @@
     --gommo-warning-content: #ffffff;
     --gommo-error: #dc2626;
     --gommo-error-content: #ffffff;
-    --gommo-info: #3385ff;
+    --gommo-info: #2da8f7;
     --gommo-info-content: #ffffff;
 
     /* Superfícies light */
-    --gommo-page: #f5f7fb;
-    --gommo-header-border: #ececf3;
+    --gommo-page: #f3f7f8;
+    --gommo-header-border: #e4eaec;
     --gommo-surface: #ffffff;
-    --gommo-surface-muted: #f0f2f8;
+    --gommo-surface-muted: #eaf0f2;
     --gommo-surface-accent: var(--gommo-primary-50);
-    --gommo-content: #0f172a;
+    --gommo-content: #0a1b2e;
     --gommo-skeleton-base: color-mix(in srgb, var(--color-base-content) 7%, var(--color-base-100));
     --gommo-skeleton-highlight: color-mix(in srgb, var(--color-base-content) 3%, var(--color-base-100));
 
-    /* Bordas — neutras suaves (accent só no focus) */
-    --gommo-border: #cfd6e2;
-    --gommo-border-subtle: #dce2ec;
-    --gommo-border-strong: #aeb8c8;
+    /* Bordas — neutras frias alinhadas ao azul */
+    --gommo-border: #c5d0d6;
+    --gommo-border-subtle: #d5dde1;
+    --gommo-border-strong: #a8b5be;
     --gommo-border-focus: var(--gommo-primary);
 
     /* Sombras super suaves */
-    --gommo-shadow-xs: 0 1px 2px color-mix(in srgb, #0a1628 4%, transparent);
+    --gommo-shadow-xs: 0 1px 2px color-mix(in srgb, #0a1b2e 4%, transparent);
     --gommo-shadow-sm:
-        0 1px 3px color-mix(in srgb, #0a1628 5%, transparent), 0 1px 2px color-mix(in srgb, #0a1628 3%, transparent);
+        0 1px 3px color-mix(in srgb, #0a1b2e 5%, transparent), 0 1px 2px color-mix(in srgb, #0a1b2e 3%, transparent);
     --gommo-shadow-md:
-        0 2px 8px color-mix(in srgb, #0a1628 6%, transparent), 0 1px 3px color-mix(in srgb, #0a1628 4%, transparent);
+        0 2px 8px color-mix(in srgb, #0a1b2e 6%, transparent), 0 1px 3px color-mix(in srgb, #0a1b2e 4%, transparent);
     --gommo-shadow-lg:
-        0 4px 16px color-mix(in srgb, #0a1628 7%, transparent), 0 2px 6px color-mix(in srgb, #0a1628 4%, transparent);
+        0 4px 16px color-mix(in srgb, #0a1b2e 7%, transparent), 0 2px 6px color-mix(in srgb, #0a1b2e 4%, transparent);
 }
 
 [data-theme="dark"] {
@@ -93,7 +94,7 @@
     --color-digital-blue-700: var(--gommo-primary-800);
     --color-digital-blue-800: var(--gommo-primary-900);
     --color-digital-blue-900: var(--gommo-primary-950);
-    --color-digital-blue-950: #1e0a45;
+    --color-digital-blue-950: var(--gommo-primary-950);
 
     --color-primary: var(--gommo-primary);
     --color-primary-dark: var(--gommo-primary-dark);
@@ -131,8 +132,8 @@
     --color-accent: var(--gommo-primary-50);
     --color-accent-content: var(--gommo-primary-dark);
 
-    --color-neutral: #334155;
-    --color-neutral-content: #f8fafc;
+    --color-neutral: #1e3a4f;
+    --color-neutral-content: #f3f7f8;
 
     --color-info: var(--gommo-info);
     --color-info-content: var(--gommo-info-content);
@@ -1575,13 +1576,42 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
 }
 
 .gommo-table th {
+    background: color-mix(in srgb, var(--color-base-content) 2.5%, var(--color-base-100));
+    border-bottom: 1px solid var(--gommo-border-subtle);
+    vertical-align: top;
+}
+
+/* Título da coluna — tipografia compacta só no label, não nos filtros */
+.gommo-table .gommo-table-col-title {
+    display: block;
     font-size: 0.625rem;
     font-variation-settings: "wght" 560;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    line-height: 1.2;
     color: color-mix(in srgb, var(--color-base-content) 38%, transparent);
-    background: color-mix(in srgb, var(--color-base-content) 2.5%, var(--color-base-100));
-    border-bottom: 1px solid var(--gommo-border-subtle);
+}
+
+/* Host do filtro: isola herança do th e garante escala normal de controle */
+.gommo-table thead th .gommo-column-filter-host {
+    font-size: var(--gommo-control-font-size);
+    font-variation-settings: "wght" 500;
+    letter-spacing: normal;
+    text-transform: none;
+    line-height: normal;
+    color: var(--color-base-content);
+}
+
+.gommo-table thead th .gommo-column-filter-host .gommo-field {
+    box-sizing: border-box;
+    height: var(--gommo-control-h) !important;
+    min-height: var(--gommo-control-h) !important;
+    max-height: none !important;
+    font-size: var(--gommo-control-font-size) !important;
+    line-height: normal !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    color: var(--color-base-content) !important;
 }
 
 [data-theme="dark"] .gommo-table th {

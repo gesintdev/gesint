@@ -10,8 +10,8 @@ import type { DevelopmentPlan } from "@/modules/rh/person/developmentplan/dto/de
 import { developmentPlanService } from "@/modules/rh/person/developmentplan/services/development-plan.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
+import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { Button } from "@/shared/components/ui/Button";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -61,6 +61,9 @@ export function DevelopmentPlanListClient() {
         flowMutation.mutate({ id: row.id, action });
     };
 
+    const flowLoading = (rowId: string, action: "submit" | "approve" | "conclude" | "cancel") =>
+        flowMutation.isPending && flowMutation.variables?.id === rowId && flowMutation.variables?.action === action;
+
     return (
         <QueryTablePanel<DevelopmentPlan>
             queryKey={developmentPlanKeys.all}
@@ -70,26 +73,58 @@ export function DevelopmentPlanListClient() {
             emptyMessage="Nenhum PDI cadastrado."
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (
-                <div className="flex items-center justify-end gap-1">
+                <>
                     {row.planStatus === "DRAFT" ? (
-                        <Button type="button" variant="ghost" size="sm" leftIcon={<Send className="size-3.5" />} onClick={() => void flow(row, "submit")}>
-                            Enviar
-                        </Button>
+                        <TableActionButton
+                            actionVariant="open"
+                            aria-label="Enviar"
+                            title="Enviar"
+                            leftIcon={<Send className="size-3.5" />}
+                            loading={flowLoading(row.id, "submit")}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                void flow(row, "submit");
+                            }}
+                        />
                     ) : null}
                     {row.planStatus === "PENDING_APPROVAL" ? (
-                        <Button type="button" variant="ghost" size="sm" leftIcon={<Check className="size-3.5" />} onClick={() => void flow(row, "approve")}>
-                            Aprovar
-                        </Button>
+                        <TableActionButton
+                            actionVariant="open"
+                            aria-label="Aprovar"
+                            title="Aprovar"
+                            leftIcon={<Check className="size-3.5" />}
+                            loading={flowLoading(row.id, "approve")}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                void flow(row, "approve");
+                            }}
+                        />
                     ) : null}
                     {row.progress === 100 && row.planStatus !== "COMPLETED" ? (
-                        <Button type="button" variant="ghost" size="sm" leftIcon={<Check className="size-3.5" />} onClick={() => void flow(row, "conclude")}>
-                            Concluir
-                        </Button>
+                        <TableActionButton
+                            actionVariant="edit"
+                            aria-label="Concluir"
+                            title="Concluir"
+                            leftIcon={<Check className="size-3.5" />}
+                            loading={flowLoading(row.id, "conclude")}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                void flow(row, "conclude");
+                            }}
+                        />
                     ) : null}
                     {row.planStatus !== "COMPLETED" && row.planStatus !== "CANCELED" ? (
-                        <Button type="button" variant="ghost" size="sm" leftIcon={<X className="size-3.5" />} onClick={() => void flow(row, "cancel")}>
-                            Cancelar
-                        </Button>
+                        <TableActionButton
+                            actionVariant="delete"
+                            aria-label="Cancelar"
+                            title="Cancelar"
+                            leftIcon={<X className="size-3.5" />}
+                            loading={flowLoading(row.id, "cancel")}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                void flow(row, "cancel");
+                            }}
+                        />
                     ) : null}
                     <CrudTableActions
                         row={row}
@@ -97,7 +132,7 @@ export function DevelopmentPlanListClient() {
                         onDelete={() => void handleDelete(row)}
                         deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
                     />
-                </div>
+                </>
             )}
         />
     );

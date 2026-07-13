@@ -1,8 +1,8 @@
-import { auth } from "@/auth";
+import { handlers } from "@/auth";
 
-export const dynamic = "force-dynamic";
-
-export async function GET() {
-    const session = await auth();
-    return Response.json(session);
-}
+/**
+ * Deve usar o handler do Auth.js (não `auth()` + Response.json).
+ * Só o handler persiste o JWT atualizado via Set-Cookie após refresh;
+ * sem isso o cookie fica com refresh token antigo e o backend revoga a sessão na rotação.
+ */
+export const GET = handlers.GET;

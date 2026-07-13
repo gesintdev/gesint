@@ -37,6 +37,12 @@ function parseDateInput(value: unknown, localDateOnly = false): Date | null {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
+export function formatCep(value: string): string {
+    const d = digitsOnly(value).slice(0, 8);
+    if (d.length <= 5) return d;
+    return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
+
 export function formatCellValue(value: unknown, dataType: TableDataType = TableDataType.TEXT): string {
     if (value == null || value === "") return "—";
     switch (dataType) {
@@ -44,6 +50,10 @@ export function formatCellValue(value: unknown, dataType: TableDataType = TableD
             return String(value).slice(0, 8).concat("…");
         case TableDataType.CPF:
             return formatCpf(String(value));
+        case TableDataType.CNPJ:
+            return formatCnpj(String(value));
+        case TableDataType.CEP:
+            return formatCep(String(value));
         case TableDataType.PHONE:
             return formatPhone(String(value));
         case TableDataType.EMAIL:
@@ -63,6 +73,13 @@ export function formatCellValue(value: unknown, dataType: TableDataType = TableD
             }).format(date);
         }
 
+        case TableDataType.INTEGER: {
+            const num = Number(value);
+            if (Number.isNaN(num)) return String(value);
+            return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(num);
+        }
+
+        case TableDataType.DECIMAL:
         case TableDataType.FLOAT: {
             const num = Number(value);
             if (Number.isNaN(num)) return String(value);
@@ -72,6 +89,7 @@ export function formatCellValue(value: unknown, dataType: TableDataType = TableD
             }).format(num);
         }
 
+        case TableDataType.MONEY:
         case TableDataType.CURRENCY: {
             const num = Number(value);
             if (Number.isNaN(num)) return String(value);
@@ -91,7 +109,9 @@ export function formatCellValue(value: unknown, dataType: TableDataType = TableD
         case TableDataType.BOOLEAN:
             return value === true || value === "true" || value === 1 ? "Sim" : "Não";
         case TableDataType.BADGE:
+        case TableDataType.SELECT:
             return formatBadgeLabel(value);
+        case TableDataType.STRING:
         case TableDataType.TEXT:
         default:
             return String(value);
