@@ -18,6 +18,7 @@ public class TokenResponseDto {
     private final String username;
     private final String email;
     private final String tenantSlug;
+    private final String tenantName;
     private final UUID collaboratorId;
     private final UUID photoObjectId;
     private final UUID jobPositionId;

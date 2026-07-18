@@ -39,6 +39,7 @@ import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
 import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
 import br.com.gommo.modules.root.dto.LoginRequestDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
+import br.com.gommo.modules.root.dto.TenantInfoResponseDto;
 import br.com.gommo.modules.root.dto.TokenResponseDto;
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.entity.Permission;
@@ -195,6 +196,21 @@ public class AuthService implements IAuthService {
         return buildTokenResponse(user, rawRefresh);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<TenantInfoResponseDto> currentTenant() {
+        if (!multiTenantProperties.isEnabled()) {
+            return Optional.empty();
+        }
+        return TenantContextHolder.getOptional()
+                .filter(tenant -> !tenant.isPlatformAccess())
+                .filter(tenant -> StringUtils.hasText(tenant.slug()) || StringUtils.hasText(tenant.name()))
+                .map(tenant -> TenantInfoResponseDto.builder()
+                        .slug(tenant.slug())
+                        .name(tenant.name())
+                        .build());
+    }
+
     private void resolveTenantFromCompanyCode(LoginRequestDto request) {
         if (!multiTenantProperties.isEnabled() || !StringUtils.hasText(request.getCompanyCode())) {
             return;
@@ -214,11 +230,13 @@ public class AuthService implements IAuthService {
         List<String> permissions = resolvePermissions(user);
         UUID tenantId = null;
         String tenantSlug = null;
+        String tenantName = null;
         if (multiTenantProperties.isEnabled()) {
             TenantContext tenant = TenantContextHolder.require();
             if (!tenant.isPlatformAccess()) {
                 tenantId = tenant.clientId();
                 tenantSlug = tenant.slug();
+                tenantName = tenant.name();
             }
         }
 
@@ -243,6 +261,7 @@ public class AuthService implements IAuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .tenantSlug(tenantSlug)
+                .tenantName(tenantName)
                 .collaboratorId(organization.collaboratorId)
                 .photoObjectId(organization.photoObjectId)
                 .jobPositionId(organization.jobPositionId)

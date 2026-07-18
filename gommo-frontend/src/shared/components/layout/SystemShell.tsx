@@ -57,14 +57,14 @@ export function SystemShell({
                     style={{borderColor: "var(--sidebar-border)"}}
                 >
                     <div
-                        className="hidden shrink-0 items-center border-r px-3 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
+                        className="hidden shrink-0 items-center border-r transition-[width] duration-(--sidebar-transition-duration) ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
                         style={{
                             width: "var(--layout-offset)",
                             background: "var(--sidebar-bg)",
                             borderColor: "var(--sidebar-border)",
                         }}
                     >
-                        <GommoLogo variant={collapsed ? "icon" : "full"}/>
+                        <GommoLogo collapsed={collapsed} />
                     </div>
                     <header
                         className="surface-header flex min-w-0 flex-1 items-center justify-between gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
@@ -78,7 +78,7 @@ export function SystemShell({
                             <Menu className="size-4.5" strokeWidth={2}/>
                         </button>
                         <div className="flex shrink-0 items-center lg:hidden">
-                            <GommoLogo variant="icon"/>
+                            <GommoLogo collapsed />
                         </div>
                         <label
                             className="gommo-field sidebar-shell-control relative min-w-0 flex-1 cursor-text sm:max-w-xs lg:max-w-md">
@@ -115,7 +115,7 @@ export function SystemShell({
                                 onMobileCloseAction={closeMobileNav}
                             />
                             <div
-                                className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:ms-(--layout-offset,var(--sidebar-width))">
+                                className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-(--sidebar-transition-duration) ease-[cubic-bezier(0.22,1,0.36,1)] lg:ms-(--layout-offset,var(--sidebar-width))">
                                 <main
                                     id="main-content"
                                     className="relative flex min-h-0 flex-1 flex-col overflow-hidden"

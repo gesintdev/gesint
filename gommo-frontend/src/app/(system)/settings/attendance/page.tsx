@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 export default function SettingsAttendancePage() {
-    return null;
+    redirect("/settings/preferences");
 }

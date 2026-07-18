@@ -1,8 +1,11 @@
 package br.com.gommo.modules.root.controller;
 
+import java.util.Optional;
+
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gommo.modules.root.dto.LoginRequestDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
+import br.com.gommo.modules.root.dto.TenantInfoResponseDto;
 import br.com.gommo.modules.root.dto.TokenResponseDto;
 import br.com.gommo.modules.root.service.IAuthService;
 
@@ -31,5 +35,11 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponseDto> refresh(@Valid @RequestBody RefreshTokenRequestDto request) {
         return ResponseEntity.ok(authService.refresh(request));
+    }
+
+    @GetMapping("/tenant")
+    public ResponseEntity<TenantInfoResponseDto> currentTenant() {
+        Optional<TenantInfoResponseDto> tenant = authService.currentTenant();
+        return tenant.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 }

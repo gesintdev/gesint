@@ -20,6 +20,8 @@ type TokenResponse = {
     departmentId?: string;
     departmentName?: string;
     permissions?: string[];
+    tenantSlug?: string;
+    tenantName?: string;
 };
 
 export type AuthTokenError = "RefreshAccessTokenError" | "RefreshTokenMissing";
@@ -88,6 +90,8 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
             departmentId: data.departmentId,
             departmentName: data.departmentName,
             permissions: data.permissions ?? (token.permissions as string[] | undefined) ?? [],
+            tenantSlug: data.tenantSlug ?? (token.tenantSlug as string | undefined),
+            tenantName: data.tenantName ?? (token.tenantName as string | undefined),
             refreshRetryAfter: undefined,
             error: undefined,
         };

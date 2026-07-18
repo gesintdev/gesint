@@ -10,6 +10,7 @@ export type CustomWorkspaceRouteConfig = {
     label: string;
     icon: LucideIcon;
     permission?: string;
+    permissionsAny?: string[];
     publicAccess?: RoutePublicAccess;
     load: WorkspacePageLoader;
 };
@@ -21,6 +22,7 @@ export function customWorkspaceRoute(config: CustomWorkspaceRouteConfig): AppRou
         label: config.label,
         icon: config.icon,
         permission: config.permission,
+        permissionsAny: config.permissionsAny,
         publicAccess: config.publicAccess,
         workspaceLoader: config.load,
     };

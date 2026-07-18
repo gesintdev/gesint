@@ -7,7 +7,7 @@ import { deriveWritePermission, hasPermission } from "@/shared/auth/permissions"
  */
 export type RoutePublicAccess = "full" | "readonly";
 
-export type RouteAccessSource = Pick<AppRoute, "permission" | "publicAccess">;
+export type RouteAccessSource = Pick<AppRoute, "permission" | "permissionsAny" | "publicAccess">;
 
 export const ROUTE_PUBLIC_FULL = { publicAccess: "full" as const satisfies RoutePublicAccess };
 /** Read-only route without a database permission. */
@@ -18,6 +18,9 @@ export const ROUTE_PUBLIC_READONLY = {
 export function canAccessRoute(route: RouteAccessSource | undefined, granted: readonly string[]): boolean {
     if (!route) return false;
     if (route.publicAccess) return true;
+    if (route.permissionsAny?.length) {
+        return route.permissionsAny.some((permission) => hasPermission(granted, permission));
+    }
     if (!route.permission) return false;
     return hasPermission(granted, route.permission);
 }

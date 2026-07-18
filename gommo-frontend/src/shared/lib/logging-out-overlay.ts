@@ -1,8 +1,19 @@
 const LOGGING_OUT_OVERLAY_ID = "gommo-logging-out-overlay";
 const LOGGING_OUT_STYLES_ID = "gommo-logging-out-styles";
-const TAGLINE = "Gest\u00e3o de DP e RH";
-const TITLE = "Encerrando sess\u00e3o";
-const SUBTITLE = "Aguarde enquanto finalizamos com seguran\u00e7a...";
+const TAGLINE = "Gestão de DP e RH";
+const TITLE = "Encerrando sessão";
+const SUBTITLE = "Aguarde enquanto finalizamos com segurança...";
+
+/** Brand azul Gommo — valores literais (overlay não depende de globals.css). */
+const BRAND = {
+    primary: "#007bff",
+    primaryLight: "#2da8f7",
+    primaryDark: "#0062cc",
+    primaryDarker: "#004a99",
+    primary950: "#0a1b2e",
+    primary100: "#bae4ff",
+} as const;
+
 const OVERLAY_INLINE_STYLE = [
     "position:fixed",
     "top:0",
@@ -18,10 +29,11 @@ const OVERLAY_INLINE_STYLE = [
     "margin:0",
     "padding:0",
     "box-sizing:border-box",
-    "background:rgba(46,16,101,0.38)",
-    "-webkit-backdrop-filter:blur(28px) saturate(1.45) brightness(0.94)",
-    "backdrop-filter:blur(28px) saturate(1.45) brightness(0.94)",
+    `background:rgba(45,168,247,0.22)`,
+    "-webkit-backdrop-filter:blur(28px) saturate(1.35) brightness(1.05)",
+    "backdrop-filter:blur(28px) saturate(1.35) brightness(1.05)",
 ].join(";");
+
 /** Estilos embutidos: cobertura imediata sem depender do chunk de globals.css. */
 const EMBEDDED_STYLES = `
 .logging-out-screen {
@@ -60,8 +72,8 @@ const EMBEDDED_STYLES = `
     inset: 0;
     background: linear-gradient(
         105deg,
-        rgba(46, 16, 101, 0.28) 0%,
-        rgba(46, 16, 101, 0.12) 46%,
+        rgba(0, 123, 255, 0.22) 0%,
+        rgba(45, 168, 247, 0.12) 46%,
         transparent 58%
     );
     pointer-events: none;
@@ -72,12 +84,12 @@ const EMBEDDED_STYLES = `
     z-index: 0;
     background: linear-gradient(
         160deg,
-        rgba(46, 16, 101, 0.52) 0%,
-        rgba(76, 29, 149, 0.28) 42%,
-        rgba(15, 23, 42, 0.22) 100%
+        rgba(0, 123, 255, 0.36) 0%,
+        rgba(45, 168, 247, 0.22) 42%,
+        rgba(143, 212, 255, 0.16) 100%
     );
-    -webkit-backdrop-filter: blur(32px) saturate(1.5) brightness(0.9);
-    backdrop-filter: blur(32px) saturate(1.5) brightness(0.9);
+    -webkit-backdrop-filter: blur(32px) saturate(1.4) brightness(1.08);
+    backdrop-filter: blur(32px) saturate(1.4) brightness(1.08);
 }
 .logging-out-screen__content {
     position: relative;
@@ -100,7 +112,7 @@ const EMBEDDED_STYLES = `
         165deg,
         rgba(255, 255, 255, 0.14) 0%,
         rgba(255, 255, 255, 0.06) 38%,
-        rgba(237, 233, 254, 0.08) 100%
+        rgba(186, 228, 255, 0.08) 100%
     );
     -webkit-backdrop-filter: blur(72px) saturate(1.85) brightness(1.1);
     backdrop-filter: blur(72px) saturate(1.85) brightness(1.1);
@@ -108,7 +120,7 @@ const EMBEDDED_STYLES = `
         inset 0 1px 1px rgba(255, 255, 255, 0.28),
         inset 0 -1px 0 rgba(255, 255, 255, 0.06),
         0 8px 32px rgba(0, 0, 0, 0.2),
-        0 20px 56px rgba(76, 29, 149, 0.16);
+        0 20px 56px rgba(0, 123, 255, 0.18);
     animation: logging-out-card-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes logging-out-card-in {
@@ -116,11 +128,12 @@ const EMBEDDED_STYLES = `
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .logging-out-screen__logo {
+    display: block;
+    height: 2.75rem;
     width: auto;
-    height: 2.5rem;
-    max-width: 11.25rem;
+    max-width: min(14rem, 72vw);
     object-fit: contain;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.18));
+    filter: brightness(0) invert(1);
 }
 .logging-out-screen__tagline {
     margin: -0.25rem 0 0;
@@ -143,8 +156,8 @@ const EMBEDDED_STYLES = `
     height: 2.25rem;
     border-radius: 9999px;
     border: 2px solid rgba(255, 255, 255, 0.18);
-    border-top-color: #c4b5fd;
-    border-right-color: rgba(196, 181, 253, 0.6);
+    border-top-color: ${BRAND.primaryLight};
+    border-right-color: rgba(45, 168, 247, 0.6);
     animation: logging-out-spin 0.75s linear infinite;
 }
 @keyframes logging-out-spin {
@@ -180,9 +193,9 @@ const EMBEDDED_STYLES = `
     background: linear-gradient(
         90deg,
         transparent 0%,
-        #a78bfa 45%,
+        ${BRAND.primaryLight} 45%,
         #fff 55%,
-        #a78bfa 100%
+        ${BRAND.primary} 100%
     );
     animation: logging-out-progress 1.35s ease-in-out infinite;
 }
@@ -192,21 +205,41 @@ const EMBEDDED_STYLES = `
 }
 `.trim();
 
+function resolveLogoutWallpaperSrc(): string {
+    if (typeof document === "undefined") {
+        return "/brand/gommo-login-bg-dark.png";
+    }
+    const theme = document.documentElement.getAttribute("data-theme");
+    if (theme === "light") {
+        return "/brand/gommo-login-bg-light.png";
+    }
+    if (theme === "dark") {
+        return "/brand/gommo-login-bg-dark.png";
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "/brand/gommo-login-bg-dark.png"
+        : "/brand/gommo-login-bg-light.png";
+}
+
 function ensureOverlayStyles(): void {
-    if (typeof document === "undefined" || document.getElementById(LOGGING_OUT_STYLES_ID)) {
+    if (typeof document === "undefined") {
         return;
     }
-    const style = document.createElement("style");
-    style.id = LOGGING_OUT_STYLES_ID;
+    let style = document.getElementById(LOGGING_OUT_STYLES_ID) as HTMLStyleElement | null;
+    if (!style) {
+        style = document.createElement("style");
+        style.id = LOGGING_OUT_STYLES_ID;
+        document.head.appendChild(style);
+    }
     style.textContent = EMBEDDED_STYLES;
-    document.head.appendChild(style);
 }
 
 function buildLoggingOutOverlayMarkup(): string {
+    const wallpaperSrc = resolveLogoutWallpaperSrc();
     return `
         <div class="logging-out-screen__visual" aria-hidden="true">
             <img
-                src="/brand/gommo-login-bg.png"
+                src="${wallpaperSrc}"
                 alt=""
                 class="logging-out-screen__visual-img"
                 decoding="sync"
@@ -216,14 +249,6 @@ function buildLoggingOutOverlayMarkup(): string {
         <div class="logging-out-screen__backdrop" aria-hidden="true"></div>
         <div class="logging-out-screen__content">
             <div class="logging-out-screen__card">
-                <img
-                    src="/brand/gommo-logo-full.png"
-                    alt="Gommo"
-                    class="logging-out-screen__logo gommo-logo-on-brand"
-                    width="180"
-                    height="48"
-                />
-                <p class="logging-out-screen__tagline">${TAGLINE}</p>
                 <div class="logging-out-screen__loader" aria-hidden="true">
                     <span class="logging-out-screen__ring"></span>
                 </div>

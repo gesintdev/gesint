@@ -18,7 +18,7 @@ export function SidebarCollapseTrigger({ collapsed, onToggle, className }: Sideb
         >
             <ChevronLeft
                 className={clsx(
-                    "size-3.5 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                    "size-3.5 transition-transform duration-(--sidebar-transition-duration) ease-[cubic-bezier(0.22,1,0.36,1)]",
                     collapsed && "rotate-180",
                 )}
                 strokeWidth={2.25}

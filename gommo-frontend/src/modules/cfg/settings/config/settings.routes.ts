@@ -1,9 +1,9 @@
-import { Bell, ClipboardList, Clock3, Shield, Users } from "lucide-react";
+import { ClipboardList, Settings2, Shield, Users } from "lucide-react";
 
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { customWorkspaceRoute, lazyNamed, tabbedCrudRoute } from "@/shared/routing";
 
-export const settingsRoutes: AppRoute[] = [
+const accessRoutes: AppRoute[] = [
     tabbedCrudRoute({
         id: "settings-profiles",
         href: "/settings/profiles",
@@ -40,22 +40,20 @@ export const settingsRoutes: AppRoute[] = [
             "AppUserFormClient",
         ),
     }),
+];
+
+const dpRoutes: AppRoute[] = [
     customWorkspaceRoute({
-        id: "settings-attendance",
-        href: "/settings/attendance",
-        label: "Ponto",
-        icon: Clock3,
-        permission: "attendance:read",
-        load: () => import("@/modules/cfg/settings/attendance/components/AttendanceSettingsPage"),
+        id: "settings-preferences",
+        href: "/settings/preferences",
+        label: "Preferências",
+        icon: Settings2,
+        permissionsAny: ["attendance:read", "notification:read"],
+        load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
     }),
-    customWorkspaceRoute({
-        id: "settings-notifications",
-        href: "/settings/notifications",
-        label: "Notificações",
-        icon: Bell,
-        permission: "notification:read",
-        load: () => import("@/modules/cfg/settings/notification/components/NotificationSettingsPage"),
-    }),
+];
+
+const rhRoutes: AppRoute[] = [
     tabbedCrudRoute({
         id: "settings-exit-interview-return-checklist",
         href: "/settings/exit-interview-return-checklist",
@@ -186,6 +184,29 @@ export const settingsRoutes: AppRoute[] = [
     }),
 ];
 
+export const settingsAccessRoutes = accessRoutes;
+export const settingsDpRoutes = dpRoutes;
+export const settingsRhRoutes = rhRoutes;
 
+/** Lista plana de todas as rotas de configurações (rail, permissões, workspace). */
+export const settingsRoutes: AppRoute[] = [...accessRoutes, ...dpRoutes, ...rhRoutes];
 
+/** @deprecated Mantido para abas antigas apontando para /settings/attendance */
+export const settingsAttendanceLegacyRoute = customWorkspaceRoute({
+    id: "settings-attendance",
+    href: "/settings/attendance",
+    label: "Preferências",
+    icon: Settings2,
+    permissionsAny: ["attendance:read", "notification:read"],
+    load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
+});
 
+/** @deprecated Mantido para abas antigas apontando para /settings/notifications */
+export const settingsNotificationsLegacyRoute = customWorkspaceRoute({
+    id: "settings-notifications",
+    href: "/settings/notifications",
+    label: "Preferências",
+    icon: Settings2,
+    permissionsAny: ["attendance:read", "notification:read"],
+    load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
+});

@@ -14,6 +14,12 @@ export type AppRoute = {
     /** Required permission (`module:read`). Omit only with `publicAccess`. */
     permission?: string;
     /**
+     * Access if the user has ANY of these permissions.
+     * Useful for combined pages (e.g. ponto + notificações).
+     * When set, takes precedence over `permission` for read access checks.
+     */
+    permissionsAny?: string[];
+    /**
      * Route open without profile permission.
      * Without `permission` and `publicAccess`, route is denied by default.
      */
@@ -54,6 +60,9 @@ export enum ModuleEnum {
     PAYMENTS = "payments",
     INSIGHTS = "insights",
     SETTINGS = "settings",
+    SETTINGS_ACCESS = "settings-access",
+    SETTINGS_DP = "settings-dp",
+    SETTINGS_RH = "settings-rh",
 }
 
 export interface IModuleHelper {
@@ -114,6 +123,21 @@ export class ModuleEnumHelper implements IModuleHelper {
             id: "settings",
             name: "Configurações",
             order: 99,
+        },
+        [ModuleEnum.SETTINGS_ACCESS]: {
+            id: "settings-access",
+            name: "Acesso",
+            order: 1,
+        },
+        [ModuleEnum.SETTINGS_DP]: {
+            id: "settings-dp",
+            name: "Departamento Pessoal",
+            order: 2,
+        },
+        [ModuleEnum.SETTINGS_RH]: {
+            id: "settings-rh",
+            name: "Recursos Humanos",
+            order: 3,
         },
     };
     // ── Static API (primary usage) ───────────────

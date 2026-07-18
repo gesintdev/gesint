@@ -8,6 +8,15 @@ import { useSessionPermissions } from "@/shared/auth/permissions";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
 
+function canAccessAnySettingsRoute(permissions: readonly string[]): boolean {
+    const walk = (routes: typeof settingsRoutes): boolean =>
+        routes.some((route) => {
+            if (canAccessRoute(route, permissions)) return true;
+            return route.children ? walk(route.children) : false;
+        });
+    return walk(settingsRoutes);
+}
+
 export function SystemRail() {
     const [mounted, setMounted] = useState(false);
     const { activeSystem, systems, selectSystem, isSettingsMode, openSettings } = useActiveSystem();
@@ -17,7 +26,7 @@ export function SystemRail() {
     }, []);
 
     const permissions = useSessionPermissions();
-    const canOpenSettings = settingsRoutes.some((route) => canAccessRoute(route, permissions));
+    const canOpenSettings = canAccessAnySettingsRoute(permissions);
     /** Só troca domínio/menus; mantém a aba ativa. O Painel já reage ao `activeSystem`. */
     const handleSelect = (system: SystemEnum) => {
         selectSystem(system);
@@ -55,24 +64,29 @@ export function SystemRail() {
                     );
                 })}
             </div>
-            <div
-                className="mt-auto flex w-full flex-col items-stretch border-t px-1 pb-3 pt-2"
-                style={{ borderColor: "var(--system-rail-border)" }}
-            >
-                {canOpenSettings ? (
+            {canOpenSettings ? (
+                <div
+                    className="mt-auto flex w-full flex-col items-stretch border-t px-1 pb-3 pt-2"
+                    style={{ borderColor: "var(--system-rail-border)" }}
+                >
                     <button
                         type="button"
-                        title="Configuracoes do sistema"
-                        aria-label="Configuracoes do sistema"
+                        title="Configurações do sistema"
+                        aria-label="Configurações do sistema"
                         aria-current={mounted && isSettingsMode ? "true" : undefined}
                         onClick={handleOpenSettings}
-                        className={clsx("system-rail-item", mounted && isSettingsMode && "system-rail-item--active")}
+                        className={clsx(
+                            "system-rail-item system-rail-item--icon-only",
+                            mounted && isSettingsMode && "system-rail-item--active",
+                        )}
                     >
-                        <Settings className="size-4 shrink-0" strokeWidth={mounted && isSettingsMode ? 2.25 : 2} />
-                        <span className="system-rail-acronym">CFG</span>
+                        <Settings
+                            className="size-4.5 shrink-0"
+                            strokeWidth={mounted && isSettingsMode ? 2.25 : 2}
+                        />
                     </button>
-                ) : null}
-            </div>
+                </div>
+            ) : null}
         </nav>
     );
 }

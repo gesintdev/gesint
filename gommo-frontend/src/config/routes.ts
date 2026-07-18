@@ -1,4 +1,4 @@
-import { settingsModule } from "@/modules/cfg/settings/settings.module";
+import { settingsModule, settingsModules } from "@/modules/cfg/settings/settings.module";
 import { payrollModule } from "@/modules/ctb/payroll/payroll.module";
 import { organizationModule } from "@/modules/dp/organization/organization.module";
 import { paymentsModule } from "@/modules/dp/payment/payment.module";
@@ -42,15 +42,19 @@ export const systemModuleGroups: TSystemModuleGroup[] = [
         modules: [payrollModule],
     },
 ];
-/** Módulo de configurações (rail inferior — perfis e usuários). */
-export const SETTINGS_NAV_SECTIONS = ModuleEnumHelper.toNavSections([settingsModule]);
+/** Seções do menu CFG — agrupadas pelo serviço que cada configuração atende. */
+export const SETTINGS_NAV_SECTIONS = ModuleEnumHelper.toNavSections(settingsModules);
 /**
  * Todos os módulos registrados (workspace, permissões, etc.).
  * `dashboardModule` fica fora do rail: rota `/dashboard` + aba Painel fixa.
+ * `settingsModule` agrega rotas CFG + aliases legados (não entra no menu de domínio).
  */
 export const modules: TModule[] = [dashboardModule, ...systemModuleGroups.flatMap((g) => g.modules), settingsModule];
-/** Seções de todos os domínios (breadcrumbs, busca global) */
-export const ALL_NAV_SECTIONS: NavSection[] = ModuleEnumHelper.toNavSections(modules);
+/** Seções de domínio + CFG (breadcrumbs, busca global de menu). */
+export const ALL_NAV_SECTIONS: NavSection[] = [
+    ...ModuleEnumHelper.toNavSections([dashboardModule, ...systemModuleGroups.flatMap((g) => g.modules)]),
+    ...SETTINGS_NAV_SECTIONS,
+];
 
 export function getNavSectionsForSystem(system: SystemEnum): NavSection[] {
     const group = systemModuleGroups.find((g) => g.system === system);
@@ -59,8 +63,8 @@ export function getNavSectionsForSystem(system: SystemEnum): NavSection[] {
 }
 
 export const NAV_SECTIONS = getNavSectionsForSystem(SystemEnum.DP);
-/** Lista plana de todas as rotas (busca global, breadcrumbs, etc.) */
-export const APP_ROUTES = ALL_NAV_SECTIONS.flatMap((s) => s.routes);
+/** Lista plana de todas as rotas (workspace registry inclui aliases legados de CFG). */
+export const APP_ROUTES = modules.flatMap((module) => module.routes);
 
 export { type BreadcrumbItem, getBreadcrumbs } from "@/config/breadcrumbs";
 

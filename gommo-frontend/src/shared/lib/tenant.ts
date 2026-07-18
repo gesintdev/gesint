@@ -16,6 +16,30 @@ export function resolveTenantSlugFromHostname(hostname?: string): string | null 
     return null;
 }
 
+/** Formata slug de tenant para exibição (ex.: `acme-corp` → `Acme Corp`). */
+export function formatTenantDisplayName(slug?: string | null): string | null {
+    const value = slug?.trim();
+    if (!value) {
+        return null;
+    }
+    return value
+        .split(/[-_]+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+}
+
+export function resolveClientDisplayName(options?: {
+    tenantName?: string | null;
+    tenantSlug?: string | null;
+}): string | null {
+    const fromBackend = options?.tenantName?.trim();
+    if (fromBackend) {
+        return fromBackend;
+    }
+    return formatTenantDisplayName(options?.tenantSlug ?? resolveTenantSlugFromHostname());
+}
+
 export function buildTenantRequestHeaders(tenantSlug?: string | null): Record<string, string> {
     const slug = tenantSlug?.trim();
     if (!slug) {

@@ -24,6 +24,8 @@ class TokenResponse {
     departmentName?: string;
     permissions?: string[];
     platformAdmin?: boolean;
+    tenantSlug?: string;
+    tenantName?: string;
 }
 
 const secureCookies = process.env.NODE_ENV === "production";
@@ -93,7 +95,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         departmentName: data.departmentName,
                         permissions: data.permissions ?? [],
                         platformAdmin: data.platformAdmin ?? false,
-                        tenantSlug,
+                        tenantSlug: data.tenantSlug ?? tenantSlug,
+                        tenantName: data.tenantName,
                         accessToken: data.accessToken,
                         refreshToken: data.refreshToken,
                         accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
@@ -143,6 +146,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     permissions: user.permissions,
                     platformAdmin: user.platformAdmin,
                     tenantSlug: user.tenantSlug,
+                    tenantName: user.tenantName,
                     accessToken: user.accessToken,
                     refreshToken: user.refreshToken,
                     refreshTokenIssuedAt: user.refreshTokenIssuedAt,
@@ -160,6 +164,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             session.accessToken = token.accessToken as string | undefined;
             session.refreshToken = token.refreshToken as string | undefined;
             session.tenantSlug = token.tenantSlug as string | undefined;
+            session.tenantName = token.tenantName as string | undefined;
             session.platformAdmin = token.platformAdmin as boolean | undefined;
             session.error = token.error as typeof session.error;
             if (session.user) {

@@ -281,7 +281,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             <SystemRail/>
             <div
                 className={clsx(
-                    "sidebar-routes-panel flex min-w-0 shrink-0 flex-col overflow-hidden border-r transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                    "sidebar-routes-panel flex min-w-0 shrink-0 flex-col overflow-hidden border-r transition-[width] duration-(--sidebar-transition-duration) ease-[cubic-bezier(0.22,1,0.36,1)]",
                     opts.desktop && collapsed ? "w-(--sidebar-collapsed)" : "w-(--sidebar-width)",
                 )}
                 style={{
@@ -338,7 +338,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             {/* Desktop — abaixo do header: coluna sistemas | coluna rotas */}
             <aside
                 data-collapsed={collapsed ? "true" : undefined}
-                className="fixed left-0 z-40 hidden overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
+                className="fixed left-0 z-40 hidden overflow-hidden transition-[width] duration-(--sidebar-transition-duration) ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
                 style={{
                     ...sidebarBodyStyle,
                     width: collapsed ? "calc(var(--system-rail-width) + var(--sidebar-collapsed))" : sidebarTotalWidth,

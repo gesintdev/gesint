@@ -169,16 +169,20 @@ export function DataTable<T extends object>({
     const stopRowClick = (e: MouseEvent) => e.stopPropagation();
 
     return (
-        <div className="overflow-x-auto">
+        <div className="gommo-table-scroll">
             <table
                 className={clsx("gommo-table", compact && "gommo-table--compact", striped && "gommo-table--striped")}
             >
-                <thead className={clsx(stickyHeader && "sticky top-0 z-[1]")}>
+                <thead>
                     <tr>
                         {columns.map((col) => (
                             <th
                                 key={col.id}
-                                className={clsx("bg-transparent", alignClass(col.align), col.headerClassName)}
+                                className={clsx(
+                                    stickyHeader && "sticky top-0 z-[1]",
+                                    alignClass(col.align),
+                                    col.headerClassName,
+                                )}
                             >
                                 {renderColumnHeader?.(col) ?? (
                                     <span className="gommo-table-col-title">{col.columnName}</span>
@@ -186,7 +190,13 @@ export function DataTable<T extends object>({
                             </th>
                         ))}
                         {hasActions && (
-                            <th className={clsx("bg-transparent text-right", actionsClassName)}>
+                            <th
+                                className={clsx(
+                                    stickyHeader && "sticky top-0 z-[1]",
+                                    "text-right",
+                                    actionsClassName,
+                                )}
+                            >
                                 <span className="gommo-table-col-title">{actionsHeader}</span>
                             </th>
                         )}

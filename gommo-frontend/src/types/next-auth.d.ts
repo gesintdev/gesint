@@ -17,12 +17,14 @@ declare module "next-auth" {
         departmentName?: string;
         permissions?: string[];
         tenantSlug?: string;
+        tenantName?: string;
         platformAdmin?: boolean;
     }
     interface Session {
         accessToken?: string;
         refreshToken?: string;
         tenantSlug?: string;
+        tenantName?: string;
         platformAdmin?: boolean;
         error?: AuthTokenError;
         user: DefaultSession["user"] & {
@@ -54,6 +56,7 @@ declare module "next-auth/jwt" {
         departmentName?: string;
         permissions?: string[];
         tenantSlug?: string;
+        tenantName?: string;
         platformAdmin?: boolean;
     }
 }

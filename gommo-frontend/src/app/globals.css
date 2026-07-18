@@ -381,9 +381,124 @@ body {
     display: block;
 }
 
-/* Hero login — wordmark claro sobre fundo brand (mesmo PNG do sidebar) */
-.gommo-logo-on-brand {
+/* Hero login — ícone claro sobre fundo brand */
+.gommo-logo-on-brand,
+.gommo-logo--on-brand .gommo-logo__icon {
     filter: brightness(0) invert(1);
+}
+
+.gommo-logo--on-brand .gommo-logo__client {
+    color: #fff;
+}
+
+/* Header/sidebar: ícone ancora em coordenadas fixas (não no centro “ao vivo”) */
+.gommo-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+.gommo-logo--shell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    gap: 0;
+}
+
+.gommo-logo__icon-slot {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+/*
+ * Expanded: centro da coluna do rail.
+ * Collapsed: centro FINAL da faixa (rail + collapsed) — mesmo destino o tempo todo,
+ * para o ícone caminhar até lá no mesmo ritmo do width da sidebar (sem “adiantar”).
+ */
+.gommo-logo--shell .gommo-logo__icon-slot {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--system-rail-width) / 2);
+    z-index: 1;
+    width: auto;
+    transform: translate(-50%, -50%);
+    transition: left var(--sidebar-transition-duration) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gommo-logo--shell.gommo-logo--collapsed .gommo-logo__icon-slot {
+    left: calc((var(--system-rail-width) + var(--sidebar-collapsed)) / 2);
+}
+
+.gommo-logo__icon {
+    display: block;
+    height: 2rem;
+    width: auto;
+    flex-shrink: 0;
+    pointer-events: none;
+    user-select: none;
+}
+
+.gommo-logo__name {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    max-width: 11rem;
+    overflow: hidden;
+    opacity: 1;
+    transition:
+        max-width var(--sidebar-transition-duration) cubic-bezier(0.22, 1, 0.36, 1),
+        opacity var(--sidebar-transition-duration) cubic-bezier(0.22, 1, 0.36, 1),
+        padding var(--sidebar-transition-duration) cubic-bezier(0.22, 1, 0.36, 1),
+        margin var(--sidebar-transition-duration) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gommo-logo--shell .gommo-logo__name {
+    flex: 0 1 auto;
+    max-width: 11rem;
+    margin-inline-start: var(--system-rail-width);
+    /* Sem padding à esquerda: o pipe alinha na borda do rail */
+    padding-inline: 0 0.75rem;
+}
+
+.gommo-logo__divider {
+    display: block;
+    width: 1px;
+    height: 1.05rem;
+    flex-shrink: 0;
+    margin-inline-end: 0.55rem;
+    background: color-mix(in srgb, var(--color-base-content) 18%, transparent);
+}
+
+.gommo-logo--on-brand .gommo-logo__divider {
+    background: color-mix(in srgb, white 32%, transparent);
+}
+
+.gommo-logo--shell.gommo-logo--collapsed .gommo-logo__name,
+.gommo-logo--collapsed .gommo-logo__name,
+.gommo-logo__name--hidden {
+    max-width: 0;
+    margin-inline-start: 0;
+    opacity: 0;
+    padding-inline: 0;
+}
+
+.gommo-logo__client {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-outfit), var(--font-jakarta), system-ui, sans-serif;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--color-base-content);
 }
 
 /* Popover / dropdown surface */
@@ -938,6 +1053,12 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
     background: var(--system-rail-active-bg);
     color: var(--system-rail-active-fg);
     box-shadow: var(--gommo-shadow-xs);
+}
+
+.system-rail-item--icon-only {
+    gap: 0;
+    min-height: 2.25rem;
+    padding-block: 0.5rem;
 }
 
 .system-rail-acronym {
@@ -1552,10 +1673,18 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
 /* ──────────────────────────────────────────────
    Table (gommo — sem DaisyUI)
 ────────────────────────────────────────────── */
+.gommo-table-scroll {
+    overflow-x: auto;
+    /* Evita o fundo do thead sticky “vazar” na borda arredondada do card */
+    isolation: isolate;
+}
+
 .gommo-table {
     width: 100%;
     min-width: 640px;
-    border-collapse: collapse;
+    /* separate: com collapse o background do th pinta por cima da borda do container */
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.78125rem;
 }
 
@@ -2538,10 +2667,26 @@ html:has(.login-page) body {
 }
 
 .login-page__visual-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: right center;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+}
+
+.login-page__visual-img--light {
+    opacity: 1;
+}
+
+.login-page__visual-img--visible {
+    opacity: 1;
+}
+
+.login-page__visual-img--light:not(.login-page__visual-img--visible) {
+    opacity: 0;
 }
 
 .login-page__visual-scrim {
