@@ -7,6 +7,12 @@ import { InputAutocomplete } from "@/shared/components/ui/input/index";
 import type { SelectItem, SelectSearchFn } from "@/shared/components/ui/input/select-item.types";
 import type { EntityPickerAdvancedSearch } from "@/shared/types/entity-picker.types";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUuid(value: string): boolean {
+    return UUID_RE.test(value.trim());
+}
+
 type EntityPickerFieldProps<T extends object = object> = {
     label: string;
     hint?: string;
@@ -22,6 +28,8 @@ type EntityPickerFieldProps<T extends object = object> = {
     advancedSearch?: EntityPickerAdvancedSearch<T>;
     /** Filtros fixos repassados à busca detalhada */
     advancedFixedFilters?: Record<string, string>;
+    /** Permite valor livre (texto) além de UUID de entidade. */
+    allowCustomValue?: boolean;
 };
 
 export function EntityPickerField<T extends object = object>({
@@ -38,6 +46,7 @@ export function EntityPickerField<T extends object = object>({
     wrapperClassName,
     advancedSearch,
     advancedFixedFilters,
+    allowCustomValue = false,
 }: EntityPickerFieldProps<T>) {
     const [selectedLabel, setSelectedLabel] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
@@ -48,18 +57,22 @@ export function EntityPickerField<T extends object = object>({
             setSelectedLabel("");
             return;
         }
+        if (allowCustomValue && !isUuid(id)) {
+            setSelectedLabel(id);
+            return;
+        }
         let cancelled = false;
         void resolveLabel(id)
             .then((name) => {
                 if (!cancelled) setSelectedLabel(name);
             })
             .catch(() => {
-                if (!cancelled) setSelectedLabel("");
+                if (!cancelled) setSelectedLabel(allowCustomValue ? id : "");
             });
         return () => {
             cancelled = true;
         };
-    }, [value, resolveLabel]);
+    }, [value, resolveLabel, allowCustomValue]);
 
     const search = useCallback((query: string, page: number) => onSearch(query, page), [onSearch]);
     const handlePick = (item: SelectItem) => {
@@ -94,7 +107,7 @@ export function EntityPickerField<T extends object = object>({
                 selectedLabel={selectedLabel}
                 onValueChange={(v, item) => {
                     onValueChange(v, item);
-                    setSelectedLabel(item?.label ?? "");
+                    setSelectedLabel(item?.label ?? v);
                 }}
                 onSearch={search}
                 placeholder={placeholder}
@@ -103,6 +116,7 @@ export function EntityPickerField<T extends object = object>({
                 disabled={disabled}
                 wrapperClassName={wrapperClassName}
                 trailingAction={advancedButton}
+                allowCustomValue={allowCustomValue}
             />
             {advancedSearch ? (
                 <EntitySearchModal

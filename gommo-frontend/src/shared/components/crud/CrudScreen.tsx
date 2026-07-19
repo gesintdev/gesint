@@ -25,6 +25,8 @@ export type CrudExtraTab = {
     permission?: string;
     publicAccess?: RoutePublicAccess;
     badge?: number;
+    /** Só exibe a aba quando há registro em edição (ex.: histórico do colaborador). */
+    visibleWhenEditing?: boolean;
 };
 
 type CrudScreenContextValue = {
@@ -39,6 +41,7 @@ type CrudScreenContextValue = {
 };
 
 const CrudScreenContext = createContext<CrudScreenContextValue | null>(null);
+const CrudExtraTabsSetterContext = createContext<((tabs: CrudExtraTab[] | null) => void) | null>(null);
 
 export function useCrudScreen(): CrudScreenContextValue {
     const ctx = useContext(CrudScreenContext);
@@ -46,10 +49,25 @@ export function useCrudScreen(): CrudScreenContextValue {
     return ctx;
 }
 
+/** Publica abas extras dinâmicas a partir do `editingId` interno do CrudScreen. */
+export function useCrudExtraTabs(tabs: CrudExtraTab[] | null) {
+    const setExtraTabs = useContext(CrudExtraTabsSetterContext);
+    if (!setExtraTabs) throw new Error("useCrudExtraTabs deve ser usado dentro de CrudScreen");
+    useEffect(() => {
+        setExtraTabs(tabs);
+        return () => setExtraTabs(null);
+    }, [setExtraTabs, tabs]);
+}
+
 export type CrudScreenProps = {
     list: ReactNode;
     form: ReactNode;
     extraTabs?: CrudExtraTab[];
+    /**
+     * Host montado dentro do CrudScreen (com acesso a `useCrudScreen` / `useCrudExtraTabs`)
+     * para publicar abas extras com base no registro em edição.
+     */
+    extraTabsController?: ReactNode;
     listTabLabel?: string;
     formTabLabel?: string;
     formTabLabelEdit?: string;
@@ -71,6 +89,7 @@ export function CrudScreen({
     list,
     form,
     extraTabs = [],
+    extraTabsController = null,
     listTabLabel = "Listagem",
     formTabLabel = "Cadastro",
     formTabLabelEdit = "Editar",
@@ -86,6 +105,7 @@ export function CrudScreen({
 }: CrudScreenProps) {
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [editingId, setEditingId] = useState<string | null>(initialEditingId);
+    const [overrideExtraTabs, setOverrideExtraTabs] = useState<CrudExtraTab[] | null>(null);
     const permissions = useSessionPermissions();
     const crudConfig = useTabbedCrudConfigOptional();
     const workspaceTabCtx = useWorkspaceTabOptional();
@@ -108,9 +128,14 @@ export function CrudScreen({
         },
         [clearTitleSuffix, crudConfig, isListInstance, setTitleSuffix, syncCrudUrl, workspaceEnabled, workspaceTabCtx],
     );
+    const resolvedExtraTabs = overrideExtraTabs ?? extraTabs;
     const visibleExtraTabs = useMemo(
-        () => extraTabs.filter((tab) => canAccessExtraTab(tab, permissions)),
-        [extraTabs, permissions],
+        () =>
+            resolvedExtraTabs.filter((tab) => {
+                if (tab.visibleWhenEditing && !isEditing) return false;
+                return canAccessExtraTab(tab, permissions);
+            }),
+        [isEditing, permissions, resolvedExtraTabs],
     );
     const tabs = useMemo(() => {
         const items: { id: string; label: string; badge?: number }[] = [{ id: CRUD_TAB_LIST, label: listTabLabel }];
@@ -160,6 +185,13 @@ export function CrudScreen({
         }
     }, [activeTab, canWrite]);
 
+    useEffect(() => {
+        const isCoreTab = activeTab === CRUD_TAB_LIST || activeTab === CRUD_TAB_FORM;
+        if (isCoreTab) return;
+        if (visibleExtraTabs.some((tab) => tab.id === activeTab)) return;
+        setActiveTab(isEditing && canWrite ? CRUD_TAB_FORM : CRUD_TAB_LIST);
+    }, [activeTab, canWrite, isEditing, visibleExtraTabs]);
+
     const ctx = useMemo(
         () => ({ activeTab, editingId, isEditing, goToList, goToForm, startCreate, startEdit, goToTab }),
         [activeTab, editingId, goToForm, goToList, goToTab, isEditing, startCreate, startEdit],
@@ -169,113 +201,124 @@ export function CrudScreen({
 
     return (
         <CrudScreenContext.Provider value={ctx}>
-            <div className="flex min-h-0 flex-1 flex-col">
-                <div className="gommo-crud-tablist" role="tablist" aria-label="Seções do cadastro">
-                    {tabs.map((tab) => {
-                        const selected = activeTab === tab.id;
-                        return (
-                            <button
-                                key={tab.id}
-                                type="button"
-                                role="tab"
-                                aria-selected={selected}
-                                aria-controls={`crud-panel-${tab.id}`}
-                                id={`crud-tab-${tab.id}`}
-                                onClick={() => {
-                                    if (tab.id === CRUD_TAB_LIST) {
-                                        setActiveTab(CRUD_TAB_LIST);
-                                    } else if (tab.id === CRUD_TAB_FORM) {
-                                        if (!canWrite) return;
-                                        if (editOnly && !editingId) return;
-                                        setActiveTab(CRUD_TAB_FORM);
-                                        if (workspaceEnabled && !editingId && !editOnly) syncWorkspace({ isNew: true });
-                                    } else setActiveTab(tab.id);
-                                }}
-                                className={clsx("gommo-crud-tab", selected && "gommo-crud-tab--active")}
-                            >
-                                <span>{tab.label}</span>
-                                {tab.badge != null && tab.badge > 0 ? (
-                                    <span className="gommo-crud-tab-badge">{tab.badge}</span>
-                                ) : null}
-                            </button>
-                        );
-                    })}
-                </div>
-                <div
-                    id={`crud-panel-${activeTab}`}
-                    role="tabpanel"
-                    aria-labelledby={`crud-tab-${activeTab}`}
-                    className="flex min-h-0 flex-1 flex-col overflow-hidden"
-                >
-                    {activeTab === CRUD_TAB_LIST && (
-                        <div className="crud-list-toolbar flex flex-wrap items-center justify-between gap-2 border-b px-4 py-1.5">
-                            <div className="text-[13px] text-base-content/50">
-                                {listToolbar ?? "Consulte os registros ou inicie um novo cadastro."}
-                            </div>
-                            <div className="flex shrink-0 items-center gap-2">
-                                {queryRefresh && (
-                                    <Button
-                                        variant="success"
-                                        size="sm"
-                                        aria-label="Atualizar lista"
-                                        className="gommo-btn--icon-only"
-                                        disabled={queryRefresh.isFetching}
-                                        onClick={() => queryRefresh.refetch()}
-                                        leftIcon={
-                                            <RefreshCw
-                                                className={clsx("size-3.5", queryRefresh.isFetching && "animate-spin")}
-                                                strokeWidth={2.25}
-                                            />
-                                        }
-                                    />
-                                )}
-                                {showListToFormButton && canWrite ? (
-                                    <Button
-                                        size="sm"
-                                        leftIcon={<Plus className="size-3.5" strokeWidth={2.5} />}
-                                        onClick={startCreate}
-                                    >
-                                        {listToFormLabel}
-                                    </Button>
-                                ) : (
-                                    listPrimaryAction
-                                )}
-                            </div>
-                        </div>
-                    )}
+            <CrudExtraTabsSetterContext.Provider value={setOverrideExtraTabs}>
+                {extraTabsController}
+                <div className="flex min-h-0 flex-1 flex-col">
+                    <div className="gommo-crud-tablist" role="tablist" aria-label="Seções do cadastro">
+                        {tabs.map((tab) => {
+                            const selected = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={selected}
+                                    aria-controls={`crud-panel-${tab.id}`}
+                                    id={`crud-tab-${tab.id}`}
+                                    onClick={() => {
+                                        if (tab.id === CRUD_TAB_LIST) {
+                                            setActiveTab(CRUD_TAB_LIST);
+                                        } else if (tab.id === CRUD_TAB_FORM) {
+                                            if (!canWrite) return;
+                                            if (editOnly && !editingId) return;
+                                            setActiveTab(CRUD_TAB_FORM);
+                                            if (workspaceEnabled && !editingId && !editOnly) {
+                                                syncWorkspace({ isNew: true });
+                                            }
+                                        } else setActiveTab(tab.id);
+                                    }}
+                                    className={clsx("gommo-crud-tab", selected && "gommo-crud-tab--active")}
+                                >
+                                    <span>{tab.label}</span>
+                                    {tab.badge != null && tab.badge > 0 ? (
+                                        <span className="gommo-crud-tab-badge">{tab.badge}</span>
+                                    ) : null}
+                                </button>
+                            );
+                        })}
+                    </div>
                     <div
-                        className={clsx(
-                            "min-h-0 flex-1",
-                            activeTab === CRUD_TAB_LIST
-                                ? "overflow-y-auto"
-                                : activeTab === CRUD_TAB_FORM
-                                  ? "flex flex-col overflow-hidden"
-                                  : "overflow-y-auto",
-                        )}
+                        id={`crud-panel-${activeTab}`}
+                        role="tabpanel"
+                        aria-labelledby={`crud-tab-${activeTab}`}
+                        className="flex min-h-0 flex-1 flex-col overflow-hidden"
                     >
-                        <div
-                            className={clsx("min-h-0 flex-1 flex-col", activeTab === CRUD_TAB_LIST ? "flex" : "hidden")}
-                            aria-hidden={activeTab !== CRUD_TAB_LIST}
-                        >
-                            {list}
-                        </div>
-                        {activeTab !== CRUD_TAB_LIST && activeTab !== CRUD_TAB_FORM ? extraTabPanel : null}
-                        {formSessionActive ? (
-                            <div
-                                className={clsx(
-                                    "min-h-0 flex-1 flex flex-col overflow-hidden",
-                                    activeTab !== CRUD_TAB_FORM && "hidden",
-                                )}
-                                aria-hidden={activeTab !== CRUD_TAB_FORM}
-                            >
-                                <div key={editingId ?? "new"} className="flex min-h-0 flex-1 flex-col">
-                                    {form}
+                        {activeTab === CRUD_TAB_LIST && (
+                            <div className="crud-list-toolbar flex flex-wrap items-center justify-between gap-2 border-b px-4 py-1.5">
+                                <div className="text-[13px] text-base-content/50">
+                                    {listToolbar ?? "Consulte os registros ou inicie um novo cadastro."}
+                                </div>
+                                <div className="flex shrink-0 items-center gap-2">
+                                    {queryRefresh && (
+                                        <Button
+                                            variant="success"
+                                            size="sm"
+                                            aria-label="Atualizar lista"
+                                            className="gommo-btn--icon-only"
+                                            disabled={queryRefresh.isFetching}
+                                            onClick={() => queryRefresh.refetch()}
+                                            leftIcon={
+                                                <RefreshCw
+                                                    className={clsx(
+                                                        "size-3.5",
+                                                        queryRefresh.isFetching && "animate-spin",
+                                                    )}
+                                                    strokeWidth={2.25}
+                                                />
+                                            }
+                                        />
+                                    )}
+                                    {showListToFormButton && canWrite ? (
+                                        <Button
+                                            size="sm"
+                                            leftIcon={<Plus className="size-3.5" strokeWidth={2.5} />}
+                                            onClick={startCreate}
+                                        >
+                                            {listToFormLabel}
+                                        </Button>
+                                    ) : (
+                                        listPrimaryAction
+                                    )}
                                 </div>
                             </div>
-                        ) : null}
+                        )}
+                        <div
+                            className={clsx(
+                                "min-h-0 flex-1",
+                                activeTab === CRUD_TAB_LIST
+                                    ? "overflow-y-auto"
+                                    : activeTab === CRUD_TAB_FORM
+                                      ? "flex flex-col overflow-hidden"
+                                      : "overflow-y-auto",
+                            )}
+                        >
+                            <div
+                                className={clsx(
+                                    "min-h-0 flex-1 flex-col",
+                                    activeTab === CRUD_TAB_LIST ? "flex" : "hidden",
+                                )}
+                                aria-hidden={activeTab !== CRUD_TAB_LIST}
+                            >
+                                {list}
+                            </div>
+                            {activeTab !== CRUD_TAB_LIST && activeTab !== CRUD_TAB_FORM ? extraTabPanel : null}
+                            {formSessionActive ? (
+                                <div
+                                    className={clsx(
+                                        "min-h-0 flex-1 flex flex-col overflow-hidden",
+                                        activeTab !== CRUD_TAB_FORM && "hidden",
+                                    )}
+                                    aria-hidden={activeTab !== CRUD_TAB_FORM}
+                                >
+                                    <div key={editingId ?? "new"} className="flex min-h-0 flex-1 flex-col">
+                                        {form}
+                                    </div>
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </CrudExtraTabsSetterContext.Provider>
         </CrudScreenContext.Provider>
     );
 }

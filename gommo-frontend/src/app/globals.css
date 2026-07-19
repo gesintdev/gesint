@@ -2629,14 +2629,76 @@ button:disabled,
     padding: 0;
     border: none;
     background: transparent;
+    opacity: 0;
+    transition:
+        display 0.2s allow-discrete,
+        overlay 0.2s allow-discrete,
+        opacity 0.2s ease;
+}
+
+.system-alert-modal[open] {
+    opacity: 1;
+
+    @starting-style {
+        opacity: 0;
+    }
 }
 
 .system-alert-modal::backdrop {
-    background: rgb(15 23 42 / 0.4);
+    background: rgb(15 23 42 / 0.55);
+    transition:
+        display 0.2s allow-discrete,
+        overlay 0.2s allow-discrete,
+        opacity 0.2s ease;
+    opacity: 0;
+}
+
+.system-alert-modal[open]::backdrop {
+    opacity: 1;
+
+    @starting-style {
+        opacity: 0;
+    }
 }
 
 .system-alert-modal[open] .gommo-modal-panel {
     animation: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Overlay dos modais DaisyUI (picker, busca detalhada, diálogos)
+   Usa só ::backdrop como véu visual; .modal-backdrop fica transparente
+   (só captura clique) para evitar overlay duplo e piscada na abertura. */
+.modal {
+    transition:
+        display 0.2s allow-discrete,
+        overlay 0.2s allow-discrete;
+}
+
+.modal::backdrop {
+    background: rgb(15 23 42 / 0.55);
+    transition:
+        display 0.2s allow-discrete,
+        overlay 0.2s allow-discrete,
+        opacity 0.2s ease;
+    opacity: 0;
+}
+
+.modal[open]::backdrop {
+    opacity: 1;
+
+    @starting-style {
+        opacity: 0;
+    }
+}
+
+.modal .modal-backdrop,
+.modal[open] .modal-backdrop {
+    background: transparent;
+    opacity: 1;
+}
+
+.modal[open] .modal-box {
+    animation: scale-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* ──────────────────────────────────────────────

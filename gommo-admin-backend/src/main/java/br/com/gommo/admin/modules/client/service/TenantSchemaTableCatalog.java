@@ -29,6 +29,7 @@ public final class TenantSchemaTableCatalog {
             "exit_interview",
             "exit_interview_return_checklist_item",
             "performance_review",
+            "job_vacancy",
             "competency",
             "proficiency_level",
             "development_track",

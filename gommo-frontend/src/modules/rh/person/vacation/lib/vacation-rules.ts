@@ -1,5 +1,18 @@
 import { isNationalHoliday, isWeeklyRestDay } from "@/modules/rh/person/vacation/lib/brazil-calendar";
-import type { VacationPaymentEstimate, VacationSplitPeriod } from "@/modules/rh/person/vacation/types/vacation.types";
+import type {
+    DateRange,
+    VacationPaymentEstimate,
+    VacationPeriodStatus,
+    VacationSplitPeriod,
+} from "@/modules/rh/person/vacation/types/vacation.types";
+
+export type AcquisitionPeriodOption = {
+    periodIndex: number;
+    acquisition: DateRange;
+    concessive: DateRange;
+    status: VacationPeriodStatus;
+    entitledDays: number;
+};
 
 export const MAX_PECUNIARY_DAYS = 10;
 export const MAX_SPLIT_PERIODS = 3;
@@ -133,6 +146,29 @@ export function resolveActivePeriodIndex(hireDate: string, referenceDate = forma
         index += 1;
     }
     return Math.max(0, index - 1);
+}
+
+/** Períodos aquisitivos selecionáveis (mais recente primeiro), até o período ativo atual. */
+export function listAcquisitionPeriodOptions(
+    hireDate: string,
+    unjustifiedAbsences: number,
+    referenceDate = formatIsoDate(new Date()),
+): AcquisitionPeriodOption[] {
+    const entitledDays = vacationDaysEntitled(unjustifiedAbsences);
+    const activeIndex = resolveActivePeriodIndex(hireDate, referenceDate);
+    const options: AcquisitionPeriodOption[] = [];
+    for (let index = 0; index <= activeIndex; index += 1) {
+        const acquisition = acquisitionPeriod(hireDate, index);
+        const concessive = concessivePeriod(acquisition.end);
+        options.push({
+            periodIndex: index,
+            acquisition,
+            concessive,
+            status: resolvePeriodStatus(acquisition, concessive, entitledDays, referenceDate),
+            entitledDays,
+        });
+    }
+    return options.reverse();
 }
 
 export function resolvePeriodStatus(

@@ -1,4 +1,13 @@
-import { CalendarDays, ClipboardList, MessageSquare, Target, UserPlus, UserRound, Users } from "lucide-react";
+import {
+    Briefcase,
+    CalendarDays,
+    ClipboardList,
+    MessageSquare,
+    Target,
+    UserPlus,
+    UserRound,
+    Users,
+} from "lucide-react";
 
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
@@ -20,6 +29,10 @@ export const personRoutes: AppRoute[] = [
                 routeId: "collaborator-admission",
                 tabShortLabel: "Adm",
                 fieldTabName: "fullName",
+                workspace: lazyNamed(
+                    () => import("@/modules/rh/person/collaborators/admission/components/AdmissionWorkspacePage"),
+                    "AdmissionWorkspacePage",
+                ),
                 list: lazyNamed(
                     () => import("@/modules/rh/person/collaborators/admission/components/AdmissionProcessListClient"),
                     "AdmissionProcessListClient",
@@ -28,28 +41,6 @@ export const personRoutes: AppRoute[] = [
                     () => import("@/modules/rh/person/collaborators/admission/components/AdmissionProcessFormClient"),
                     "AdmissionProcessFormClient",
                 ),
-                extraTabs: [
-                    {
-                        id: "vacation-history",
-                        label: "Histórico de férias",
-                        permission: "leave:read",
-                        content: lazyNamed(
-                            () =>
-                                import("@/modules/rh/person/collaborators/admission/components/AdmissionVacationHistoryTab"),
-                            "AdmissionVacationHistoryTab",
-                        ),
-                    },
-                    {
-                        id: "absence-history",
-                        label: "Histórico de afastamento",
-                        permission: "leave:read",
-                        content: lazyNamed(
-                            () =>
-                                import("@/modules/rh/person/collaborators/admission/components/AdmissionAbsenceHistoryTab"),
-                            "AdmissionAbsenceHistoryTab",
-                        ),
-                    },
-                ],
             }),
             tabbedCrudRoute({
                 id: "collaborator-people",
@@ -104,6 +95,24 @@ export const personRoutes: AppRoute[] = [
         formTabLabel: LEAVE_VACATION_CRUD_LABELS.formTabLabel,
         listToFormLabel: LEAVE_VACATION_CRUD_LABELS.listToFormLabel,
         showListToFormButton: true,
+    }),
+    tabbedCrudRoute({
+        id: "job-vacancy",
+        href: "/job-vacancy",
+        label: "Vagas",
+        icon: Briefcase,
+        permission: "jobvacancy:read",
+        routeId: "job-vacancy",
+        tabShortLabel: "Vaga",
+        fieldTabName: "jobTitle",
+        list: lazyNamed(
+            () => import("@/modules/rh/person/jobvacancy/components/JobVacancyListClient"),
+            "JobVacancyListClient",
+        ),
+        form: lazyNamed(
+            () => import("@/modules/rh/person/jobvacancy/components/JobVacancyFormClient"),
+            "JobVacancyFormClient",
+        ),
     }),
     tabbedCrudRoute({
         id: "exit-interview",

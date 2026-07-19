@@ -25,6 +25,8 @@ export type InputAutocompleteProps = InputFieldChromeProps & {
     autoComplete?: string;
     /** Ação integrada à direita do campo (ex.: botão de busca detalhada) */
     trailingAction?: ReactNode;
+    /** Permite confirmar o texto digitado (Enter/blur) como valor livre, sem item da lista. */
+    allowCustomValue?: boolean;
 };
 
 export function InputAutocomplete({
@@ -46,12 +48,15 @@ export function InputAutocomplete({
     className,
     autoComplete = "off",
     trailingAction,
+    allowCustomValue = false,
 }: InputAutocompleteProps) {
     const autoId = useId();
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const listId = `${id}-listbox`;
     const rootRef = useRef<HTMLDivElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const queryRef = useRef("");
+    const openRef = useRef(false);
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [items, setItems] = useState<SelectItem[]>([]);
@@ -61,11 +66,31 @@ export function InputAutocomplete({
     const [selectedLabel, setSelectedLabel] = useState("");
     const displayText = open ? query : selectedLabel;
     const close = useCallback(() => {
+        openRef.current = false;
         setOpen(false);
         setQuery("");
+        queryRef.current = "";
     }, []);
+    const commitCustomValue = useCallback(
+        (raw: string) => {
+            const next = raw.trim();
+            if (!next) return false;
+            onValueChange(next);
+            setSelectedLabel(next);
+            close();
+            return true;
+        },
+        [close, onValueChange],
+    );
+    const handleOutside = useCallback(() => {
+        if (allowCustomValue && queryRef.current.trim()) {
+            commitCustomValue(queryRef.current);
+            return;
+        }
+        close();
+    }, [allowCustomValue, close, commitCustomValue]);
 
-    useClickOutside(rootRef, close, open);
+    useClickOutside(rootRef, handleOutside, open);
 
     const runSearch = useCallback(
         async (q: string, nextPage: number, append: boolean) => {
@@ -124,18 +149,39 @@ export function InputAutocomplete({
     const { activeIndex, setActiveIndex, onKeyDown } = useListboxKeyboard(items, open, pick, close);
     const handleFocus = () => {
         if (disabled) return;
+        openRef.current = true;
         setOpen(true);
         scheduleSearch(query);
     };
     const handleChange = (next: string) => {
+        queryRef.current = next;
         setQuery(next);
+        openRef.current = true;
         setOpen(true);
         scheduleSearch(next);
     };
+    const handleBlur = () => {
+        if (!allowCustomValue) return;
+        // defer to allow click on list item to win over blur
+        window.setTimeout(() => {
+            if (!openRef.current) return;
+            if (queryRef.current.trim()) {
+                commitCustomValue(queryRef.current);
+            }
+        }, 120);
+    };
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "ArrowDown" && !open) {
+            openRef.current = true;
             setOpen(true);
             scheduleSearch(query);
+        }
+        if (allowCustomValue && e.key === "Enter" && open) {
+            const active = items[activeIndex];
+            if (!active || active.disabled) {
+                e.preventDefault();
+                if (commitCustomValue(query)) return;
+            }
         }
         onKeyDown(e);
     };
@@ -189,6 +235,7 @@ export function InputAutocomplete({
                         value={displayText}
                         onChange={(e) => handleChange(e.target.value)}
                         onFocus={handleFocus}
+                        onBlur={handleBlur}
                         onKeyDown={handleKeyDown}
                     />
                     {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}

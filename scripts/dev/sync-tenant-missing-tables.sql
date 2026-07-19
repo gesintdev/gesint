@@ -30,6 +30,7 @@ DECLARE
         'exit_interview',
         'exit_interview_return_checklist_item',
         'performance_review',
+        'job_vacancy',
         'payroll_run',
         'payroll_event',
         'payslip',

@@ -10,6 +10,8 @@ export type TabbedCrudExtraTabConfig = {
     content: LazyComponent;
     permission?: string;
     publicAccess?: RoutePublicAccess;
+    /** Só exibe a aba quando há registro em edição. */
+    visibleWhenEditing?: boolean;
 };
 
 export type TabbedCrudRouteConfig = {

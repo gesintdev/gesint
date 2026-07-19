@@ -20,6 +20,7 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
         id: tab.id,
         label: tab.label,
         permission: tab.permission,
+        visibleWhenEditing: tab.visibleWhenEditing,
         Content: toLazy(tab.content),
     }));
     const {
@@ -53,13 +54,14 @@ export function createTabbedCrudWorkspacePage(config: TabbedCrudRouteConfig): Co
                 </Suspense>
             );
         }
-        const extraTabs: CrudExtraTab[] = ExtraTabs.map(({ id, label, Content }) => {
+        const extraTabs: CrudExtraTab[] = ExtraTabs.map(({ id, label, Content, visibleWhenEditing }) => {
             const tabConfig = config.extraTabs?.find((tab) => tab.id === id);
             return {
                 id,
                 label,
                 permission: tabConfig?.permission,
                 publicAccess: tabConfig?.publicAccess,
+                visibleWhenEditing,
                 content: (
                     <Suspense fallback={null}>
                         <Content />
