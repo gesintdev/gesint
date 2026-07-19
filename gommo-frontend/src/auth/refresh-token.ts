@@ -22,6 +22,7 @@ type TokenResponse = {
     permissions?: string[];
     tenantSlug?: string;
     tenantName?: string;
+    contractedSystemKeys?: string[] | null;
 };
 
 export type AuthTokenError = "RefreshAccessTokenError" | "RefreshTokenMissing";
@@ -92,6 +93,10 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
             permissions: data.permissions ?? (token.permissions as string[] | undefined) ?? [],
             tenantSlug: data.tenantSlug ?? (token.tenantSlug as string | undefined),
             tenantName: data.tenantName ?? (token.tenantName as string | undefined),
+            contractedSystemKeys:
+                data.contractedSystemKeys !== undefined
+                    ? data.contractedSystemKeys
+                    : ((token.contractedSystemKeys as string[] | null | undefined) ?? null),
             refreshRetryAfter: undefined,
             error: undefined,
         };
@@ -101,13 +106,23 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
                 ? String((error as { code?: unknown }).code)
                 : "UNKNOWN";
         console.warn(`Falha ao renovar access token (${code}).`);
-        if (!isAccessTokenHardExpired(token)) {
-            return {
-                ...token,
-                refreshRetryAfter: Date.now() + REFRESH_FAILURE_RETRY_DELAY_MS,
-                error: undefined,
-            };
+        // Revogação / refresh inválido: encerra a sessão mesmo com access ainda válido.
+        if (isHardRefreshFailure(code) || isAccessTokenHardExpired(token)) {
+            return { ...token, error: "RefreshAccessTokenError" };
         }
-        return { ...token, error: "RefreshAccessTokenError" };
+        return {
+            ...token,
+            refreshRetryAfter: Date.now() + REFRESH_FAILURE_RETRY_DELAY_MS,
+            error: undefined,
+        };
     }
+}
+
+function isHardRefreshFailure(code: string): boolean {
+    return (
+        code === "AUTH_REVOKED_REFRESH" ||
+        code === "AUTH_INVALID_REFRESH" ||
+        code === "AUTH_EXPIRED_REFRESH" ||
+        code === "AUTH_SESSION_EXPIRED"
+    );
 }

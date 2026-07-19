@@ -3,44 +3,25 @@ export class Client {
     code!: number;
     status!: string;
     name!: string;
+    legalName?: string;
     slug!: string;
+    mobileLoginCode?: string;
     document?: string;
+    address?: string;
     contactEmail?: string;
     contactPhone?: string;
     notes?: string;
-    routingMode?: string;
-    subdomain?: string;
-    customDomain?: string;
-    databaseStrategy?: string;
-    databaseHost?: string;
-    databasePort?: number;
-    databaseName?: string;
-    databaseSchema?: string;
-    databaseUser?: string;
-    databaseSecretRef?: string;
-    provisioningStatus?: string;
-    provisioningNotes?: string;
     createdAt?: string;
     updatedAt?: string;
 }
 
 export class ClientCreateDto {
     name!: string;
+    legalName?: string;
     slug!: string;
     document?: string;
+    address?: string;
     contactEmail?: string;
     contactPhone?: string;
     notes?: string;
-    routingMode?: string;
-    subdomain?: string;
-    customDomain?: string;
-    databaseStrategy?: string;
-    databaseHost?: string;
-    databasePort?: number;
-    databaseName?: string;
-    databaseSchema?: string;
-    databaseUser?: string;
-    databaseSecretRef?: string;
-    provisioningStatus?: string;
-    provisioningNotes?: string;
 }

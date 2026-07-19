@@ -7,6 +7,8 @@ export const AUTH_MESSAGES = {
     AUTH_REVOKED_REFRESH: "Sess\u00e3o expirada. Fa\u00e7a login novamente",
     AUTH_EXPIRED_REFRESH: "Sess\u00e3o expirada. Fa\u00e7a login novamente",
     AUTH_USER_NOT_FOUND: "Usu\u00e1rio n\u00e3o encontrado",
+    AUTH_NO_ACTIVE_SYSTEM:
+        "N\u00e3o foi poss\u00edvel acessar o sistema. Entre em contato com seu departamento administrativo",
     AUTH_ERROR: "Falha na autentica\u00e7\u00e3o",
 } as const;
 /** Exclusivas do frontend */

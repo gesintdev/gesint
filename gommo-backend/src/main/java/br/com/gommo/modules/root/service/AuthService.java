@@ -27,6 +27,7 @@ import br.com.gommo.core.tenant.PlatformAdminUserLookup;
 import br.com.gommo.core.tenant.TenantAuthValidator;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
+import br.com.gommo.core.tenant.TenantContractedSystemsLookup;
 import br.com.gommo.core.tenant.TenantResolver;
 import br.com.gommo.modules.dp.organization.department.repository.DepartmentRepository;
 import br.com.gommo.modules.dp.organization.jobposition.entity.JobPosition;
@@ -74,6 +75,7 @@ public class AuthService implements IAuthService {
     private final TenantAuthValidator tenantAuthValidator;
     private final TenantResolver tenantResolver;
     private final PlatformAdminUserLookup platformAdminUserLookup;
+    private final TenantContractedSystemsLookup tenantContractedSystemsLookup;
 
     public AuthService(
             AppUserRepository appUserRepository,
@@ -91,7 +93,8 @@ public class AuthService implements IAuthService {
             MultiTenantProperties multiTenantProperties,
             TenantAuthValidator tenantAuthValidator,
             TenantResolver tenantResolver,
-            PlatformAdminUserLookup platformAdminUserLookup) {
+            PlatformAdminUserLookup platformAdminUserLookup,
+            TenantContractedSystemsLookup tenantContractedSystemsLookup) {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
         this.collaboratorRepository = collaboratorRepository;
@@ -108,6 +111,7 @@ public class AuthService implements IAuthService {
         this.tenantAuthValidator = tenantAuthValidator;
         this.tenantResolver = tenantResolver;
         this.platformAdminUserLookup = platformAdminUserLookup;
+        this.tenantContractedSystemsLookup = tenantContractedSystemsLookup;
     }
 
     @Override
@@ -129,11 +133,46 @@ public class AuthService implements IAuthService {
         }
 
         assertLoginAllowed(user.getId(), user.getUsername());
+        assertTenantHasActiveContractedSystem(user.getUsername());
 
         user.setLastLogin(OffsetDateTime.now());
         appUserRepository.save(user);
 
         return buildTokenResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void assertRefreshSessionActive(RefreshTokenRequestDto request) {
+        String rawRefresh = request.getRefreshToken();
+        if (!jwtService.isRefreshToken(rawRefresh)) {
+            throw AuthException.invalidRefresh();
+        }
+
+        OffsetDateTime now = OffsetDateTime.now();
+        String tokenHash = hashToken(rawRefresh);
+        RefreshTokenBlacklist blacklisted = blacklistRepository.findByTokenHash(tokenHash).orElse(null);
+        if (blacklisted != null && !isWithinReplayGrace(blacklisted, now)) {
+            throw AuthException.revokedRefresh();
+        }
+
+        RefreshToken stored = refreshTokenRepository
+                .findByTokenHashAndRevokedFalse(tokenHash)
+                .orElseThrow(AuthException::revokedRefresh);
+
+        if (stored.getExpiresAt().isBefore(now)) {
+            throw AuthException.expiredRefresh();
+        }
+
+        UUID userId = jwtService.extractUserId(rawRefresh);
+        if (multiTenantProperties.isEnabled()) {
+            UUID tokenTenantId = jwtService.extractTenantId(rawRefresh).orElse(null);
+            try {
+                tenantAuthValidator.assertTokenMatchesCurrentTenant(tokenTenantId, userId);
+            } catch (RuntimeException ex) {
+                throw AuthException.invalidRefresh();
+            }
+        }
     }
 
     @Override
@@ -208,6 +247,7 @@ public class AuthService implements IAuthService {
                 .map(tenant -> TenantInfoResponseDto.builder()
                         .slug(tenant.slug())
                         .name(tenant.name())
+                        .contractedSystemKeys(resolveContractedSystemKeys(tenant.clientId()))
                         .build());
     }
 
@@ -231,12 +271,14 @@ public class AuthService implements IAuthService {
         UUID tenantId = null;
         String tenantSlug = null;
         String tenantName = null;
+        List<String> contractedSystemKeys = null;
         if (multiTenantProperties.isEnabled()) {
             TenantContext tenant = TenantContextHolder.require();
             if (!tenant.isPlatformAccess()) {
                 tenantId = tenant.clientId();
                 tenantSlug = tenant.slug();
                 tenantName = tenant.name();
+                contractedSystemKeys = resolveContractedSystemKeys(tenantId);
             }
         }
 
@@ -262,6 +304,7 @@ public class AuthService implements IAuthService {
                 .email(user.getEmail())
                 .tenantSlug(tenantSlug)
                 .tenantName(tenantName)
+                .contractedSystemKeys(contractedSystemKeys)
                 .collaboratorId(organization.collaboratorId)
                 .photoObjectId(organization.photoObjectId)
                 .jobPositionId(organization.jobPositionId)
@@ -273,6 +316,13 @@ public class AuthService implements IAuthService {
                 .build();
     }
 
+    private List<String> resolveContractedSystemKeys(UUID clientId) {
+        if (clientId == null) {
+            return List.of();
+        }
+        return tenantContractedSystemsLookup.findActiveKeysByClientId(clientId);
+    }
+
     private void assertLoginAllowed(UUID userId, String username) {
         if (!multiTenantProperties.isEnabled()) {
             return;
@@ -281,6 +331,23 @@ public class AuthService implements IAuthService {
             tenantAuthValidator.assertLoginAllowed(userId, username);
         } catch (RuntimeException ex) {
             throw new BadCredentialsException("Invalid credentials");
+        }
+    }
+
+    private void assertTenantHasActiveContractedSystem(String username) {
+        if (!multiTenantProperties.isEnabled()) {
+            return;
+        }
+        TenantContext tenant = TenantContextHolder.getOptional().orElse(null);
+        if (tenant == null || tenant.isPlatformAccess() || tenant.clientId() == null) {
+            return;
+        }
+        if (platformAdminUserLookup.isPlatformAdmin(username)) {
+            return;
+        }
+        List<String> keys = resolveContractedSystemKeys(tenant.clientId());
+        if (keys == null || keys.isEmpty()) {
+            throw AuthException.noActiveSystem();
         }
     }
 

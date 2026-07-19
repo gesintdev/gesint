@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import br.com.gommo.admin.core.exception.BusinessException;
-import br.com.gommo.admin.modules.client.entity.Client;
 import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
 import br.com.gommo.admin.modules.client.exception.ClientException;
+import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 
 @Component
 public class TenantDatabaseConnectionTester {
@@ -29,32 +29,32 @@ public class TenantDatabaseConnectionTester {
         this.environment = environment;
     }
 
-    public void testConnection(Client client) {
-        if (!StringUtils.hasText(client.getDatabaseHost())) {
+    public void testConnection(ClientEnvironmentConfig config) {
+        if (!StringUtils.hasText(config.getDatabaseHost())) {
             throw ClientException.databaseConfigIncomplete("Host do banco é obrigatório para testar conexão.");
         }
-        if (!StringUtils.hasText(client.getDatabaseName())) {
+        if (!StringUtils.hasText(config.getDatabaseName())) {
             throw ClientException.databaseConfigIncomplete("Nome do banco é obrigatório para testar conexão.");
         }
 
-        int port = client.getDatabasePort() != null ? client.getDatabasePort() : 5432;
-        String password = resolvePassword(client.getDatabaseSecretRef());
+        int port = config.getDatabasePort() != null ? config.getDatabasePort() : 5432;
+        String password = resolvePassword(config.getDatabaseSecretRef());
 
         StringBuilder url = new StringBuilder("jdbc:postgresql://")
-                .append(client.getDatabaseHost())
+                .append(config.getDatabaseHost())
                 .append(":")
                 .append(port)
                 .append("/")
-                .append(client.getDatabaseName());
+                .append(config.getDatabaseName());
 
-        if (client.getDatabaseStrategy() == TenantDatabaseStrategyEnum.DEDICATED_SCHEMA
-                && StringUtils.hasText(client.getDatabaseSchema())) {
-            url.append("?currentSchema=").append(client.getDatabaseSchema());
+        if (config.getDatabaseStrategy() == TenantDatabaseStrategyEnum.DEDICATED_SCHEMA
+                && StringUtils.hasText(config.getDatabaseSchema())) {
+            url.append("?currentSchema=").append(config.getDatabaseSchema());
         }
 
         Properties props = new Properties();
-        if (StringUtils.hasText(client.getDatabaseUser())) {
-            props.setProperty("user", client.getDatabaseUser());
+        if (StringUtils.hasText(config.getDatabaseUser())) {
+            props.setProperty("user", config.getDatabaseUser());
         }
         if (StringUtils.hasText(password)) {
             props.setProperty("password", password);

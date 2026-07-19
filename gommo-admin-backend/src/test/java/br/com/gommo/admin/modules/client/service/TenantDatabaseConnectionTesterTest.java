@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
 import br.com.gommo.admin.core.exception.BusinessException;
-import br.com.gommo.admin.modules.client.entity.Client;
+import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 
 class TenantDatabaseConnectionTesterTest {
 
@@ -20,31 +20,33 @@ class TenantDatabaseConnectionTesterTest {
 
     @Test
     void testConnection_withoutHost_shouldThrowIncompleteConfig() {
-        Client client = Client.builder().databaseName("gommo").build();
+        ClientEnvironmentConfig config =
+                ClientEnvironmentConfig.builder().databaseName("gommo").build();
 
-        assertThatThrownBy(() -> tester.testConnection(client))
+        assertThatThrownBy(() -> tester.testConnection(config))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Host do banco");
     }
 
     @Test
     void testConnection_withoutDatabaseName_shouldThrowIncompleteConfig() {
-        Client client = Client.builder().databaseHost("localhost").build();
+        ClientEnvironmentConfig config =
+                ClientEnvironmentConfig.builder().databaseHost("localhost").build();
 
-        assertThatThrownBy(() -> tester.testConnection(client))
+        assertThatThrownBy(() -> tester.testConnection(config))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Nome do banco");
     }
 
     @Test
     void testConnection_withoutPassword_shouldThrowIncompleteConfig() {
-        Client client = Client.builder()
+        ClientEnvironmentConfig config = ClientEnvironmentConfig.builder()
                 .databaseHost("localhost")
                 .databaseName("gommo")
                 .databaseUser("gommo")
                 .build();
 
-        assertThatThrownBy(() -> tester.testConnection(client))
+        assertThatThrownBy(() -> tester.testConnection(config))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Senha nao encontrada");
     }

@@ -1,5 +1,6 @@
 package br.com.gommo.modules.root.repository;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,6 +15,8 @@ import br.com.gommo.modules.root.entity.RefreshToken;
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
 
     Optional<RefreshToken> findByTokenHashAndRevokedFalse(String tokenHash);
+
+    boolean existsByUserIdAndRevokedFalseAndExpiresAtAfter(UUID userId, OffsetDateTime expiresAt);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select token from RefreshToken token where token.tokenHash = :tokenHash")

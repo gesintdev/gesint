@@ -1,5 +1,6 @@
 import { digitsOnly } from "@/shared/lib/input/digits";
-/** Valor em centavos (string de inteiros) -> exibi\u00e7\u00e3o BRL */
+
+/** Valor em centavos (string de inteiros) -> exibição BRL */
 export function maskCurrencyFromCents(cents: string): string {
     const d = digitsOnly(cents);
     if (!d) return "";
@@ -16,4 +17,16 @@ export function centsToDecimal(cents: string): string {
     if (!cents) return "";
     const n = Number(cents);
     return (n / 100).toFixed(2);
+}
+
+/** Decimal (number) -> string de centavos para máscara */
+export function decimalToCents(value?: number | null): string {
+    if (value == null || !Number.isFinite(value)) return "";
+    return String(Math.round(value * 100));
+}
+
+/** String de centavos -> number decimal (undefined se vazio) */
+export function centsToNumber(cents: string): number | undefined {
+    if (!cents) return undefined;
+    return Number(cents) / 100;
 }

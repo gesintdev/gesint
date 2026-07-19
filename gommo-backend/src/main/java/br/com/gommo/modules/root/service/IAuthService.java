@@ -13,5 +13,8 @@ public interface IAuthService {
 
     TokenResponseDto refresh(RefreshTokenRequestDto request);
 
+    /** Valida se o refresh ainda está ativo, sem rotacionar tokens. */
+    void assertRefreshSessionActive(RefreshTokenRequestDto request);
+
     Optional<TenantInfoResponseDto> currentTenant();
 }

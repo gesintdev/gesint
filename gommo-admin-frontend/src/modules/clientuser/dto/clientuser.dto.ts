@@ -4,7 +4,7 @@ export class ClientUser {
     status!: string;
     clientId!: string;
     clientName?: string;
-    appUserId!: string;
+    appUserId?: string | null;
     username?: string;
     email?: string;
     displayName?: string;

@@ -8,10 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
-import br.com.gommo.admin.modules.client.entity.TenantProvisioningStatusEnum;
-import br.com.gommo.admin.modules.client.entity.TenantRoutingModeEnum;
-
 @Getter
 @Setter
 @Builder
@@ -21,37 +17,17 @@ public class ClientRequestDto {
 
     @NotBlank @Size(max = 255) private String name;
 
+    @Size(max = 255) private String legalName;
+
     @NotBlank @Size(max = 100) private String slug;
 
     @Size(max = 18) private String document;
 
+    private String address;
+
     @Size(max = 200) private String contactEmail;
 
-    @Size(max = 20) private String contactPhone;
+    @Size(max = 120) private String contactPhone;
 
     private String notes;
-
-    private TenantRoutingModeEnum routingMode;
-
-    @Size(max = 100) private String subdomain;
-
-    @Size(max = 200) private String customDomain;
-
-    private TenantDatabaseStrategyEnum databaseStrategy;
-
-    @Size(max = 200) private String databaseHost;
-
-    private Integer databasePort;
-
-    @Size(max = 100) private String databaseName;
-
-    @Size(max = 100) private String databaseSchema;
-
-    @Size(max = 150) private String databaseUser;
-
-    @Size(max = 255) private String databaseSecretRef;
-
-    private TenantProvisioningStatusEnum provisioningStatus;
-
-    private String provisioningNotes;
 }

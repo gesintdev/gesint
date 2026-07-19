@@ -15,7 +15,6 @@ export type DoRequestOptions = {
 export type HttpClientConfig = {
     baseUrl: string;
     resolveExtraHeaders?: (headers?: Record<string, string>) => Promise<Record<string, string>>;
-    refreshAccessToken?: (refreshToken: string) => Promise<string | null>;
     onSessionExpired?: () => void;
 };
 
@@ -34,29 +33,14 @@ export function createHttpClient(config: HttpClientConfig) {
         if (token) setAuthToken(token);
         return token;
     }
-    async function refreshSessionTokens(options?: { forceBackendRefresh?: boolean }): Promise<string | null> {
+    /** Renova via NextAuth (jwt callback). Nao chama /auth/refresh direto — evita race. */
+    async function refreshSessionTokens(): Promise<string | null> {
         authToken = null;
         if (typeof window === "undefined") return null;
-        const { getSession, signOut } = await import("next-auth/react");
+        const { getSession } = await import("next-auth/react");
         const session = await getSession();
         if (session?.error === "RefreshAccessTokenError" || session?.error === "RefreshTokenMissing") {
-            if (config.onSessionExpired) {
-                config.onSessionExpired();
-            } else {
-                await signOut({ callbackUrl: "/login" });
-            }
-            return null;
-        }
-
-        if (session?.refreshToken && config.refreshAccessToken) {
-            const refreshed = await config.refreshAccessToken(session.refreshToken);
-            if (refreshed) {
-                setAuthToken(refreshed);
-                return refreshed;
-            }
-        }
-
-        if (options?.forceBackendRefresh) {
+            config.onSessionExpired?.();
             return null;
         }
         const token = session?.accessToken ?? null;
@@ -131,11 +115,12 @@ export function createHttpClient(config: HttpClientConfig) {
             typeof window !== "undefined" &&
             !path.startsWith("/api/v1/auth/")
         ) {
-            const newToken = await refreshSessionTokens({
-                forceBackendRefresh: response.status === 403,
-            });
+            const newToken = await refreshSessionTokens();
             if (!newToken) {
-                throw AppException.client("AUTH_SESSION_EXPIRED", AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED, 401);
+                if (response.status === 401) {
+                    throw AppException.client("AUTH_SESSION_EXPIRED", AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED, 401);
+                }
+                return handleErrorResponse(response);
             }
 
             if (newToken !== bearer) {
@@ -143,6 +128,9 @@ export function createHttpClient(config: HttpClientConfig) {
                 if (response.ok) {
                     return parseResponse<T>(response, responseType);
                 }
+            } else if (response.status === 401) {
+                config.onSessionExpired?.();
+                throw AppException.client("AUTH_SESSION_EXPIRED", AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED, 401);
             }
             return handleErrorResponse(response);
         }

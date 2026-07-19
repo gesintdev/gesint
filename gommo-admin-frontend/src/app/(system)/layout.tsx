@@ -1,10 +1,7 @@
-import { SystemShell } from "@/shared/components/layout/SystemShell";
-import { WorkspaceShell } from "@/shared/components/workspace/WorkspaceShell";
+import type { ReactNode } from "react";
 
-export default function SystemLayout() {
-    return (
-        <SystemShell>
-            <WorkspaceShell />
-        </SystemShell>
-    );
+import { AdminShell } from "@/shared/components/layout/AdminShell";
+
+export default function SystemLayout({ children }: { children: ReactNode }) {
+    return <AdminShell>{children}</AdminShell>;
 }

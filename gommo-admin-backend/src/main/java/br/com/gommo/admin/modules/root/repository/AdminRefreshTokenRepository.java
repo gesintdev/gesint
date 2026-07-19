@@ -10,4 +10,6 @@ import br.com.gommo.admin.modules.root.entity.AdminRefreshToken;
 public interface AdminRefreshTokenRepository extends JpaRepository<AdminRefreshToken, UUID> {
 
     Optional<AdminRefreshToken> findByTokenHashAndRevokedFalse(String tokenHash);
+
+    Optional<AdminRefreshToken> findByTokenHash(String tokenHash);
 }

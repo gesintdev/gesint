@@ -1,7 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 
-import type { WorkspacePageLoader } from "@/shared/workspace/workspace-page.types";
-
 export type AppRoute = {
     id: string;
     label: string;
@@ -9,8 +7,6 @@ export type AppRoute = {
     icon: LucideIcon;
     permission?: string;
     children?: AppRoute[];
-    /** Chunk da tela no workspace (import dinâmico — não carrega no sidebar). */
-    workspaceLoader?: WorkspacePageLoader;
 };
 
 export type NavSection = {
@@ -66,12 +62,15 @@ export class ModuleEnumHelper implements IModuleHelper {
             order: 3,
         },
     };
+
     static getInfos(): Record<ModuleEnum, TModuleInfos> {
         return ModuleEnumHelper.registry;
     }
+
     static getById(id: ModuleEnum): TModuleInfos {
         return ModuleEnumHelper.registry[id];
     }
+
     static toNavSections(modules: TModule[]): NavSection[] {
         return [...modules]
             .sort((a, b) => (a.infos.order ?? 99) - (b.infos.order ?? 99))
@@ -81,12 +80,15 @@ export class ModuleEnumHelper implements IModuleHelper {
                 routes: m.routes,
             }));
     }
+
     getInfos(): Record<ModuleEnum, TModuleInfos> {
         return ModuleEnumHelper.getInfos();
     }
+
     getById(id: ModuleEnum): TModuleInfos {
         return ModuleEnumHelper.getById(id);
     }
+
     toNavSections(modules: TModule[]): NavSection[] {
         return ModuleEnumHelper.toNavSections(modules);
     }

@@ -5,14 +5,16 @@ alwaysApply: true
 
 # Gommo — regras gerais do projeto
 
-Monorepo ERP com HR/DP/CTB e painel Admin. Arquitetura atual: monólito modular preparado para separação futura. Regra máxima: seguir padrões existentes; não criar novo padrão sem justificativa explícita.
+Monorepo ERP com sistemas DP/RH/CTB/CFG e painel Admin. Dois lados da plataforma: **Admin** (operação Gommo) e **Client** (app do tenant). Arquitetura atual: monólito modular preparado para separação futura. Regra máxima: seguir padrões existentes; não criar novo padrão sem justificativa explícita.
 
 ## Repositórios
 
-- HR Frontend: `gommo-frontend/` (Next.js App Router, `src/`, porta `3000`)
-- HR Backend: `gommo-backend/` (Spring Boot, pacote `br.com.gommo`, porta `8081`)
+- Client Frontend: `gommo-frontend/` (Next.js App Router, `src/`, porta `3000`)
+- Client Backend: `gommo-backend/` (Spring Boot, pacote `br.com.gommo`, porta `8081`)
 - Admin Frontend: `gommo-admin-frontend/` (Next.js, porta `3001`)
 - Admin Backend: `gommo-admin-backend/` (Spring Boot, pacote `br.com.gommo.admin`, porta `8082`)
+
+Em conversas e docs, preferir **Admin** e **Client**. Não chamar o app do tenant de “HR” (HR/RH é só o sistema de Recursos Humanos dentro do Client).
 
 ## Stack
 
@@ -113,8 +115,8 @@ Dois backends compartilham um PostgreSQL, com históricos Flyway independentes.
 Regras:
 
 - Próximo `V{n}` deve considerar apenas o backend/schema correspondente.
-- DDL do HR deve ir no `gommo-backend`.
-- DDL da plataforma admin deve ir no `gommo-admin-backend`.
+- DDL do Client deve ir no `gommo-backend`.
+- DDL da plataforma Admin deve ir no `gommo-admin-backend`.
 - Integração cross-schema no código não substitui migration no backend dono do schema.
 - `application.yml` deve manter `flyway.schemas`, `default-schema` e `table` explícitos.
 

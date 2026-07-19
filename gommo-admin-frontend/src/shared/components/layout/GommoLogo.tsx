@@ -1,40 +1,36 @@
-﻿import clsx from "clsx";
-import Image from "next/image";
+"use client";
+
+import { cn } from "@/shared/lib/cn";
 
 type GommoLogoProps = {
-    /** Logo completo (sidebar expandido) ou apenas ícone (sidebar recolhido). */
-    variant?: "full" | "icon";
+    variant?: "mark" | "full";
     className?: string;
-    iconClassName?: string;
-    /** Sobre fundo brand (ex.: login). */
-    onBrand?: boolean;
+    markSize?: number;
 };
 
-export function GommoLogo({ variant = "full", className, iconClassName, onBrand = false }: GommoLogoProps) {
-    if (variant === "icon") {
+export function GommoLogo({ variant = "mark", className, markSize = 28 }: GommoLogoProps) {
+    if (variant === "full") {
         return (
-            <Image
-                src="/brand/gommo-logo-icon.png"
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+                src="/brand/gommo-logo-blue.svg"
                 alt="Gommo"
-                width={32}
-                height={32}
-                className={clsx("h-8 w-8 shrink-0 rounded-lg object-contain", iconClassName, className)}
+                width={120}
+                height={28}
+                className={cn("h-7 w-auto", className)}
             />
         );
     }
 
     return (
-        <Image
-            src="/brand/gommo-logo-full.png"
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+            src="/brand/gommo-logo-letter-g.svg"
             alt="Gommo"
-            width={onBrand ? 180 : 160}
-            height={onBrand ? 48 : 44}
-            className={clsx(
-                onBrand
-                    ? "gommo-logo-on-brand h-9 w-auto max-w-[180px] shrink-0 object-contain object-left"
-                    : "h-9 w-auto max-w-[160px] shrink-0 object-contain object-left",
-                className,
-            )}
+            width={markSize}
+            height={markSize}
+            className={cn("shrink-0", className)}
+            style={{ width: markSize, height: markSize }}
         />
     );
 }

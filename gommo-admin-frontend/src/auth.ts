@@ -83,9 +83,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
             const isLogin = nextUrl.pathname.startsWith("/login");
+            const isDocs = nextUrl.pathname.startsWith("/docs");
+
             if (isLogin) {
-                return auth ? Response.redirect(new URL("/dashboard", nextUrl)) : true;
+                return auth ? Response.redirect(new URL("/clients/listagem", nextUrl)) : true;
             }
+
+            // Docs: nao redireciona para login — o layout chama notFound() sem sessão.
+            if (isDocs) {
+                return true;
+            }
+
             return !!auth;
         },
         async jwt({ token, user }) {

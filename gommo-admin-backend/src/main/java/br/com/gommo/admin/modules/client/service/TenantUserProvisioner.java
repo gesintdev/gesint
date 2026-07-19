@@ -10,9 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import br.com.gommo.admin.core.entity.StatusEnum;
-import br.com.gommo.admin.modules.client.entity.Client;
 import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
 import br.com.gommo.admin.modules.client.entity.TenantProvisioningStatusEnum;
+import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 import br.com.gommo.admin.modules.clientuser.entity.ClientUser;
 import br.com.gommo.admin.modules.clientuser.repository.ClientUserRepository;
 
@@ -30,26 +30,26 @@ public class TenantUserProvisioner {
     }
 
     @Transactional
-    public void provisionPendingUsers(Client client) {
-        if (client.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
+    public void provisionPendingUsers(UUID clientId, ClientEnvironmentConfig config) {
+        if (config.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
             return;
         }
-        if (client.getProvisioningStatus() != TenantProvisioningStatusEnum.READY) {
+        if (config.getProvisioningStatus() != TenantProvisioningStatusEnum.READY) {
             return;
         }
-        if (!StringUtils.hasText(client.getDatabaseSchema())) {
+        if (!StringUtils.hasText(config.getDatabaseSchema())) {
             return;
         }
 
         List<ClientUser> pending = clientUserRepository.findAllByClientIdAndTenantAppUserIdIsNullAndStatusNot(
-                client.getId(), StatusEnum.DELETED);
+                clientId, StatusEnum.DELETED);
         for (ClientUser link : pending) {
-            provisionUser(client, link);
+            provisionUser(config, link);
         }
     }
 
     @Transactional
-    public UUID provisionUser(Client client, ClientUser link) {
+    public UUID provisionUser(ClientEnvironmentConfig config, ClientUser link) {
         if (link.getTenantAppUserId() != null) {
             return link.getTenantAppUserId();
         }
@@ -59,20 +59,22 @@ public class TenantUserProvisioner {
             throw new IllegalStateException("Usuario de cliente incompleto para provisionamento: " + link.getId());
         }
 
-        String schema = TenantSchemaProvisioner.requireSafeSchema(client.getDatabaseSchema());
+        String schema = TenantSchemaProvisioner.requireSafeSchema(config.getDatabaseSchema());
         UUID userId = UUID.randomUUID();
 
         Integer nextCode = jdbcTemplate.queryForObject(
                 "SELECT COALESCE(MAX(code), 0) + 1 FROM \"" + schema + "\".app_user", Integer.class);
 
+        String displayName = StringUtils.hasText(link.getDisplayName()) ? link.getDisplayName().trim() : link.getUsername();
         jdbcTemplate.update(
                 """
                 INSERT INTO "%s".app_user (
-                    id, status, username, email, password_hash, must_change_pwd, code, created_at, updated_at
-                ) VALUES (?, 'ACTIVE', ?, ?, ?, true, ?, now(), now())
+                    id, status, name, username, email, password_hash, must_change_pwd, code, created_at, updated_at
+                ) VALUES (?, 'ACTIVE', ?, ?, ?, ?, true, ?, now(), now())
                 """
                         .formatted(schema),
                 userId,
+                displayName,
                 link.getUsername(),
                 link.getEmail(),
                 link.getPasswordHash(),
@@ -89,15 +91,17 @@ public class TenantUserProvisioner {
         return userId;
     }
 
-    public void deactivateTenantUser(Client client, UUID tenantAppUserId) {
-        if (tenantAppUserId == null || client.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
+    public void deactivateTenantUser(ClientEnvironmentConfig config, UUID tenantAppUserId) {
+        if (tenantAppUserId == null
+                || config == null
+                || config.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
             return;
         }
-        if (!StringUtils.hasText(client.getDatabaseSchema())) {
+        if (!StringUtils.hasText(config.getDatabaseSchema())) {
             return;
         }
 
-        String schema = TenantSchemaProvisioner.requireSafeSchema(client.getDatabaseSchema());
+        String schema = TenantSchemaProvisioner.requireSafeSchema(config.getDatabaseSchema());
         jdbcTemplate.update(
                 """
                 UPDATE "%s".app_user
@@ -108,23 +112,26 @@ public class TenantUserProvisioner {
                 tenantAppUserId);
     }
 
-    public void syncTenantUserCredentials(Client client, ClientUser link) {
+    public void syncTenantUserCredentials(ClientEnvironmentConfig config, ClientUser link) {
         if (link.getTenantAppUserId() == null
-                || client.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
+                || config == null
+                || config.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
             return;
         }
-        if (!StringUtils.hasText(client.getDatabaseSchema())) {
+        if (!StringUtils.hasText(config.getDatabaseSchema())) {
             return;
         }
 
-        String schema = TenantSchemaProvisioner.requireSafeSchema(client.getDatabaseSchema());
+        String schema = TenantSchemaProvisioner.requireSafeSchema(config.getDatabaseSchema());
+        String displayName = StringUtils.hasText(link.getDisplayName()) ? link.getDisplayName().trim() : link.getUsername();
         jdbcTemplate.update(
                 """
                 UPDATE "%s".app_user
-                SET username = ?, email = ?, password_hash = ?, updated_at = now()
+                SET name = ?, username = ?, email = ?, password_hash = ?, updated_at = now()
                 WHERE id = ? AND status <> 'DELETED'
                 """
                         .formatted(schema),
+                displayName,
                 link.getUsername(),
                 link.getEmail(),
                 link.getPasswordHash(),

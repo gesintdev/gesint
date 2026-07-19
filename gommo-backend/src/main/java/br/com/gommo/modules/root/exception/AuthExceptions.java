@@ -21,4 +21,8 @@ public final class AuthExceptions {
 
     public static final String USER_NOT_FOUND_CODE = "AUTH_USER_NOT_FOUND";
     public static final String USER_NOT_FOUND_MSG = "Usu\u00e1rio n\u00e3o encontrado";
+
+    public static final String NO_ACTIVE_SYSTEM_CODE = "AUTH_NO_ACTIVE_SYSTEM";
+    public static final String NO_ACTIVE_SYSTEM_MSG =
+            "N\u00e3o foi poss\u00edvel acessar o sistema. Entre em contato com seu departamento administrativo";
 }

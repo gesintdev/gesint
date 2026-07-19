@@ -34,4 +34,11 @@ public final class AuthException {
         return new BusinessException(
                 AuthExceptions.USER_NOT_FOUND_CODE, AuthExceptions.USER_NOT_FOUND_MSG, HttpStatus.NOT_FOUND);
     }
+
+    public static BusinessException noActiveSystem() {
+        return new BusinessException(
+                AuthExceptions.NO_ACTIVE_SYSTEM_CODE,
+                AuthExceptions.NO_ACTIVE_SYSTEM_MSG,
+                HttpStatus.FORBIDDEN);
+    }
 }

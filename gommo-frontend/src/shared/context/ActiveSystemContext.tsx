@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import {
     createContext,
     type ReactNode,
@@ -17,7 +16,9 @@ import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnum, SystemEnumHelper, type TSystemInfos } from "@/modules/root/enum/SystemEnum";
 import { useSessionPermissions } from "@/shared/auth/permissions";
 import { canAccessRoute } from "@/shared/auth/route-access";
+import { useContractedSystemKeys } from "@/shared/hooks/useContractedSystemKeys";
 import { SETTINGS_MODE_COOKIE_KEY } from "@/shared/lib/active-system-preferences";
+import { isSystemContracted, resolveContractedSystems } from "@/shared/lib/contracted-systems";
 
 const SETTINGS_MODE_STORAGE_KEY = "gommo-settings-mode";
 const SETTINGS_MODE_EVENT = "gommo-settings-mode-change";
@@ -140,9 +141,10 @@ export function ActiveSystemProvider({
     initialStoredSystem = null,
     initialSettingsMode = false,
 }: ActiveSystemProviderProps) {
-    const { status: sessionStatus } = useSession();
     const permissions = useSessionPermissions();
-    const permissionsReady = sessionStatus !== "loading";
+    const { keys: contractedKeys, ready: contractedReady } = useContractedSystemKeys();
+    const permissionsReady = contractedReady;
+    const contractedSystems = useMemo(() => resolveContractedSystems(contractedKeys), [contractedKeys]);
     const storedSystem = useHydrationSafeExternalStore(
         SystemEnumHelper.subscribeStoredSystem,
         () => SystemEnumHelper.readStoredSystem(),
@@ -169,11 +171,14 @@ export function ActiveSystemProvider({
         }
         return SystemEnumHelper.getSortedSystems()
             .filter((systemId) => {
+                if (!isSystemContracted(systemId, contractedSystems)) {
+                    return false;
+                }
                 const sections = getNavSectionsForSystem(systemId);
                 return filterSectionsByPermissions(sections, permissions).length > 0;
             })
             .map((id) => SystemEnumHelper.getById(id));
-    }, [permissions, permissionsReady]);
+    }, [contractedSystems, permissions, permissionsReady]);
     const resolvedActiveSystem = useMemo(() => {
         if (isSettingsMode || systems.length === 0) {
             return activeSystem;
@@ -185,11 +190,14 @@ export function ActiveSystemProvider({
         if (!permissionsReady) {
             return [];
         }
-        return filterSectionsByPermissions(
-            isSettingsMode ? SETTINGS_NAV_SECTIONS : getNavSectionsForSystem(resolvedActiveSystem),
-            permissions,
-        );
-    }, [resolvedActiveSystem, isSettingsMode, permissions, permissionsReady]);
+        if (isSettingsMode) {
+            return filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, permissions);
+        }
+        if (systems.length === 0) {
+            return [];
+        }
+        return filterSectionsByPermissions(getNavSectionsForSystem(resolvedActiveSystem), permissions);
+    }, [resolvedActiveSystem, isSettingsMode, permissions, permissionsReady, systems.length]);
     const selectSystem = useCallback((system: SystemEnum) => {
         persistSettingsMode(false);
         SystemEnumHelper.persistSystem(system);

@@ -17,7 +17,7 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    # Histórico e DDL da plataforma ficam no schema admin (versão V1, V2… independente do HR).
+    # Histórico e DDL da plataforma ficam no schema admin (versão V1, V2… independente do Client).
     schemas: admin
     default-schema: admin
     create-schemas: true
@@ -49,6 +49,11 @@ gommo-admin:
       refresh-token-days: 7
   cors:
     allowed-origins: ${ADMIN_CORS_ORIGINS:http://localhost:3001}
+  hr:
+    base-url: ${GOMMO_HR_BASE_URL:http://localhost:8081}
+    internal-event-secret: ${GOMMO_INTERNAL_EVENT_SECRET:}
+  outbox:
+    poll-interval-ms: ${GOMMO_ADMIN_OUTBOX_POLL_MS:5000}
   dev:
     admin-username: ${DEV_ADMIN_USERNAME:admin}
     admin-password: ${DEV_ADMIN_PASSWORD}

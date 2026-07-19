@@ -19,6 +19,8 @@ public class TokenResponseDto {
     private final String email;
     private final String tenantSlug;
     private final String tenantName;
+    /** Keys do catalogo Admin (DP, RH, CTB). Null = host plataforma (sem filtro comercial). */
+    private final List<String> contractedSystemKeys;
     private final UUID collaboratorId;
     private final UUID photoObjectId;
     private final UUID jobPositionId;

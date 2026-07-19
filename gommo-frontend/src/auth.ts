@@ -1,10 +1,18 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import { isPathAccessible } from "@/shared/auth/route-permissions";
+import { AppException } from "@/shared/exceptions/app.exception";
 import { apiFetch, setAuthToken } from "@/shared/lib/api.client";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
+
+class LoginRejectedError extends CredentialsSignin {
+    constructor(code: string) {
+        super();
+        this.code = code;
+    }
+}
 
 const SESSION_MAX_AGE_SECONDS = 24 * 60 * 60;
 const SESSION_UPDATE_AGE_SECONDS = 60 * 60;
@@ -26,6 +34,7 @@ class TokenResponse {
     platformAdmin?: boolean;
     tenantSlug?: string;
     tenantName?: string;
+    contractedSystemKeys?: string[] | null;
 }
 
 const secureCookies = process.env.NODE_ENV === "production";
@@ -97,13 +106,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         platformAdmin: data.platformAdmin ?? false,
                         tenantSlug: data.tenantSlug ?? tenantSlug,
                         tenantName: data.tenantName,
+                        contractedSystemKeys: data.contractedSystemKeys ?? null,
                         accessToken: data.accessToken,
                         refreshToken: data.refreshToken,
                         accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
                         refreshTokenIssuedAt: Date.now(),
                     };
-                } catch {
-                    return null;
+                } catch (err) {
+                    const code =
+                        err instanceof AppException
+                            ? err.code
+                            : "AUTH_INVALID_CREDENTIALS";
+                    console.error("[auth] login failed", {
+                        tenantSlug,
+                        username: credentials.username,
+                        code,
+                        error: err instanceof Error ? err.message : err,
+                    });
+                    throw new LoginRejectedError(code);
                 }
             },
         }),
@@ -125,7 +145,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 return Response.redirect(new URL("/login", nextUrl));
             }
             const granted = auth.user?.permissions ?? [];
-            if (!isPathAccessible(nextUrl.pathname, granted)) {
+            if (
+                !isPathAccessible(nextUrl.pathname, granted, auth.contractedSystemKeys, {
+                    tenantSlug: auth.tenantSlug,
+                })
+            ) {
                 return Response.redirect(new URL("/dashboard", nextUrl));
             }
             return true;
@@ -147,6 +171,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     platformAdmin: user.platformAdmin,
                     tenantSlug: user.tenantSlug,
                     tenantName: user.tenantName,
+                    contractedSystemKeys: user.contractedSystemKeys ?? null,
                     accessToken: user.accessToken,
                     refreshToken: user.refreshToken,
                     refreshTokenIssuedAt: user.refreshTokenIssuedAt,
@@ -165,6 +190,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             session.refreshToken = token.refreshToken as string | undefined;
             session.tenantSlug = token.tenantSlug as string | undefined;
             session.tenantName = token.tenantName as string | undefined;
+            session.contractedSystemKeys =
+                (token.contractedSystemKeys as string[] | null | undefined) ?? null;
             session.platformAdmin = token.platformAdmin as boolean | undefined;
             session.error = token.error as typeof session.error;
             if (session.user) {

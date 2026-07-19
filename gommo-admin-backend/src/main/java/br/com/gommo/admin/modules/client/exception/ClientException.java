@@ -30,4 +30,11 @@ public final class ClientException {
                 "Provisionamento já está em andamento para este cliente",
                 HttpStatus.CONFLICT);
     }
+
+    public static BusinessException environmentConfigNotFound() {
+        return new BusinessException(
+                "CLIENT_ENVIRONMENT_CONFIG_NOT_FOUND",
+                "Configuração de ambiente do cliente não encontrada",
+                HttpStatus.NOT_FOUND);
+    }
 }

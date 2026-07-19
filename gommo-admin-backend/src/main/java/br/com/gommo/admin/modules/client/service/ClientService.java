@@ -16,10 +16,14 @@ import br.com.gommo.admin.modules.client.dto.ClientRequestDto;
 import br.com.gommo.admin.modules.client.dto.ClientResponseDto;
 import br.com.gommo.admin.modules.client.dto.TenantDatabaseTestResultDto;
 import br.com.gommo.admin.modules.client.entity.Client;
+import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
 import br.com.gommo.admin.modules.client.entity.TenantProvisioningStatusEnum;
+import br.com.gommo.admin.modules.client.entity.TenantRoutingModeEnum;
 import br.com.gommo.admin.modules.client.exception.ClientException;
 import br.com.gommo.admin.modules.client.mapper.ClientMapper;
 import br.com.gommo.admin.modules.client.repository.ClientRepository;
+import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
+import br.com.gommo.admin.modules.clientenvironmentconfig.repository.ClientEnvironmentConfigRepository;
 
 @Service
 public class ClientService extends BaseService<Client, ClientRequestDto, ClientResponseDto> implements IClientService {
@@ -31,6 +35,7 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     private final TenantUserProvisioner tenantUserProvisioner;
     private final TenantDatabaseDefaultsApplier tenantDatabaseDefaultsApplier;
     private final MobileLoginCodeGenerator mobileLoginCodeGenerator;
+    private final ClientEnvironmentConfigRepository environmentConfigRepository;
 
     public ClientService(
             ClientRepository repository,
@@ -39,7 +44,8 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
             TenantSchemaProvisioner schemaProvisioner,
             TenantUserProvisioner tenantUserProvisioner,
             TenantDatabaseDefaultsApplier tenantDatabaseDefaultsApplier,
-            MobileLoginCodeGenerator mobileLoginCodeGenerator) {
+            MobileLoginCodeGenerator mobileLoginCodeGenerator,
+            ClientEnvironmentConfigRepository environmentConfigRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -48,6 +54,7 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
         this.tenantUserProvisioner = tenantUserProvisioner;
         this.tenantDatabaseDefaultsApplier = tenantDatabaseDefaultsApplier;
         this.mobileLoginCodeGenerator = mobileLoginCodeGenerator;
+        this.environmentConfigRepository = environmentConfigRepository;
     }
 
     @Override
@@ -80,9 +87,12 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
         });
         Client entity = mapper.toEntity(request);
         entity.setMobileLoginCode(generateUniqueMobileLoginCode());
-        tenantDatabaseDefaultsApplier.apply(entity, request.getSlug());
         entity.setStatus(StatusEnum.ACTIVE);
-        return mapper.toResponse(repository.save(entity));
+        Client saved = repository.save(entity);
+
+        createDefaultEnvironmentConfig(saved);
+
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -113,7 +123,18 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     @Override
     protected void updateEntity(Client entity, ClientRequestDto request) {
         mapper.updateEntity(entity, request);
-        tenantDatabaseDefaultsApplier.apply(entity, request.getSlug());
+    }
+
+    private void createDefaultEnvironmentConfig(Client client) {
+        ClientEnvironmentConfig config = ClientEnvironmentConfig.builder()
+                .clientId(client.getId())
+                .status(StatusEnum.ACTIVE)
+                .routingMode(TenantRoutingModeEnum.SUBDOMAIN)
+                .databaseStrategy(TenantDatabaseStrategyEnum.DEDICATED_SCHEMA)
+                .provisioningStatus(TenantProvisioningStatusEnum.PENDING)
+                .build();
+        tenantDatabaseDefaultsApplier.apply(config, client.getSlug());
+        environmentConfigRepository.save(config);
     }
 
     private String generateUniqueMobileLoginCode() {
@@ -124,19 +145,27 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
         return mobileLoginCode;
     }
 
-    private Client prepareClientForDatabaseOps(Client client) {
-        tenantDatabaseDefaultsApplier.apply(client, client.getSlug());
-        return repository.save(client);
+    private ClientEnvironmentConfig findEnvironmentConfig(UUID clientId) {
+        return environmentConfigRepository
+                .findByClientIdAndStatusNot(clientId, StatusEnum.DELETED)
+                .orElseThrow(ClientException::environmentConfigNotFound);
+    }
+
+    private ClientEnvironmentConfig prepareConfigForDatabaseOps(Client client) {
+        ClientEnvironmentConfig config = findEnvironmentConfig(client.getId());
+        tenantDatabaseDefaultsApplier.apply(config, client.getSlug());
+        return environmentConfigRepository.save(config);
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('platform:admin')")
     public TenantDatabaseTestResultDto testDatabaseConnection(UUID id) {
-        Client client = prepareClientForDatabaseOps(findEntity(id));
+        Client client = findEntity(id);
+        ClientEnvironmentConfig config = prepareConfigForDatabaseOps(client);
         long start = System.currentTimeMillis();
         try {
-            connectionTester.testConnection(client);
+            connectionTester.testConnection(config);
             long latencyMs = System.currentTimeMillis() - start;
             return TenantDatabaseTestResultDto.builder()
                     .success(true)
@@ -157,28 +186,30 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     @Transactional
     @PreAuthorize("hasAuthority('platform:admin')")
     public ClientResponseDto startProvisioning(UUID id) {
-        Client client = prepareClientForDatabaseOps(findEntity(id));
-        if (client.getProvisioningStatus() == TenantProvisioningStatusEnum.PROVISIONING) {
+        Client client = findEntity(id);
+        ClientEnvironmentConfig config = prepareConfigForDatabaseOps(client);
+        if (config.getProvisioningStatus() == TenantProvisioningStatusEnum.PROVISIONING) {
             throw ClientException.provisioningInProgress();
         }
 
-        client.setProvisioningStatus(TenantProvisioningStatusEnum.PROVISIONING);
-        client.setProvisioningNotes("Provisionamento iniciado em " + OffsetDateTime.now());
-        repository.save(client);
+        config.setProvisioningStatus(TenantProvisioningStatusEnum.PROVISIONING);
+        config.setProvisioningNotes("Provisionamento iniciado em " + OffsetDateTime.now());
+        environmentConfigRepository.save(config);
 
         try {
-            connectionTester.testConnection(client);
-            schemaProvisioner.provisionDedicatedSchema(client);
-            client.setProvisioningStatus(TenantProvisioningStatusEnum.READY);
-            repository.save(client);
-            tenantUserProvisioner.provisionPendingUsers(client);
-            client.setProvisioningNotes("Tenant pronto — schema provisionado em " + OffsetDateTime.now());
+            connectionTester.testConnection(config);
+            schemaProvisioner.provisionDedicatedSchema(config);
+            config.setProvisioningStatus(TenantProvisioningStatusEnum.READY);
+            environmentConfigRepository.save(config);
+            tenantUserProvisioner.provisionPendingUsers(client.getId(), config);
+            config.setProvisioningNotes("Tenant pronto — schema provisionado em " + OffsetDateTime.now());
         } catch (Exception ex) {
-            client.setProvisioningStatus(TenantProvisioningStatusEnum.ERROR);
+            config.setProvisioningStatus(TenantProvisioningStatusEnum.ERROR);
             Throwable root = NestedExceptionUtils.getMostSpecificCause(ex);
-            client.setProvisioningNotes(root.getMessage() != null ? root.getMessage() : "Erro no provisionamento.");
+            config.setProvisioningNotes(root.getMessage() != null ? root.getMessage() : "Erro no provisionamento.");
         }
 
-        return mapper.toResponse(repository.save(client));
+        environmentConfigRepository.save(config);
+        return mapper.toResponse(client);
     }
 }

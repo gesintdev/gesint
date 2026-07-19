@@ -16,6 +16,8 @@ import br.com.gommo.admin.modules.client.entity.Client;
 import br.com.gommo.admin.modules.client.entity.TenantProvisioningStatusEnum;
 import br.com.gommo.admin.modules.client.repository.ClientRepository;
 import br.com.gommo.admin.modules.client.service.TenantUserProvisioner;
+import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
+import br.com.gommo.admin.modules.clientenvironmentconfig.repository.ClientEnvironmentConfigRepository;
 import br.com.gommo.admin.modules.clientuser.dto.ClientUserRequestDto;
 import br.com.gommo.admin.modules.clientuser.dto.ClientUserResponseDto;
 import br.com.gommo.admin.modules.clientuser.entity.ClientUser;
@@ -27,16 +29,19 @@ public class ClientUserService implements IClientUserService {
 
     private final ClientUserRepository clientUserRepository;
     private final ClientRepository clientRepository;
+    private final ClientEnvironmentConfigRepository environmentConfigRepository;
     private final TenantUserProvisioner tenantUserProvisioner;
     private final PasswordEncoder passwordEncoder;
 
     public ClientUserService(
             ClientUserRepository clientUserRepository,
             ClientRepository clientRepository,
+            ClientEnvironmentConfigRepository environmentConfigRepository,
             TenantUserProvisioner tenantUserProvisioner,
             PasswordEncoder passwordEncoder) {
         this.clientUserRepository = clientUserRepository;
         this.clientRepository = clientRepository;
+        this.environmentConfigRepository = environmentConfigRepository;
         this.tenantUserProvisioner = tenantUserProvisioner;
         this.passwordEncoder = passwordEncoder;
     }
@@ -46,6 +51,15 @@ public class ClientUserService implements IClientUserService {
     @PreAuthorize("hasAuthority('platform:admin')")
     public List<ClientUserResponseDto> findAll() {
         return clientUserRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('platform:admin')")
+    public List<ClientUserResponseDto> findAllByClientId(UUID clientId) {
+        return clientUserRepository.findAllByClientIdAndStatusNot(clientId, StatusEnum.DELETED).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -99,8 +113,9 @@ public class ClientUserService implements IClientUserService {
                 .build();
         link = clientUserRepository.save(link);
 
-        if (client.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
-            tenantUserProvisioner.provisionUser(client, link);
+        ClientEnvironmentConfig config = findEnvironmentConfig(client.getId());
+        if (config != null && config.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
+            tenantUserProvisioner.provisionUser(config, link);
         }
 
         return toResponse(link, client);
@@ -128,8 +143,11 @@ public class ClientUserService implements IClientUserService {
                 StringUtils.hasText(request.getDisplayName()) ? request.getDisplayName() : request.getUsername());
         clientUserRepository.save(link);
 
-        if (link.getTenantAppUserId() != null && client.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
-            tenantUserProvisioner.syncTenantUserCredentials(client, link);
+        ClientEnvironmentConfig config = findEnvironmentConfig(client.getId());
+        if (link.getTenantAppUserId() != null
+                && config != null
+                && config.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
+            tenantUserProvisioner.syncTenantUserCredentials(config, link);
         }
 
         return toResponse(link, client);
@@ -143,11 +161,16 @@ public class ClientUserService implements IClientUserService {
         link.setStatus(StatusEnum.DELETED);
         clientUserRepository.save(link);
 
-        clientRepository.findById(link.getClientId()).ifPresent(client -> {
-            if (link.getTenantAppUserId() != null) {
-                tenantUserProvisioner.deactivateTenantUser(client, link.getTenantAppUserId());
-            }
-        });
+        if (link.getTenantAppUserId() != null) {
+            ClientEnvironmentConfig config = findEnvironmentConfig(link.getClientId());
+            tenantUserProvisioner.deactivateTenantUser(config, link.getTenantAppUserId());
+        }
+    }
+
+    private ClientEnvironmentConfig findEnvironmentConfig(UUID clientId) {
+        return environmentConfigRepository
+                .findByClientIdAndStatusNot(clientId, StatusEnum.DELETED)
+                .orElse(null);
     }
 
     private void validateUniqueCredentials(UUID clientId, UUID id, String username, String email) {

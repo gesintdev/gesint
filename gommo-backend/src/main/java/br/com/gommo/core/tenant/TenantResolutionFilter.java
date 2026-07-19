@@ -43,6 +43,10 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
         if (path.startsWith("/actuator/health") || path.startsWith("/actuator/prometheus")) {
             return true;
         }
+        // Eventos internos Admin → Client resolvem o tenant pelo payload, não pelo Host/header.
+        if (path.startsWith("/api/v1/internal/")) {
+            return true;
+        }
         return false;
     }
 

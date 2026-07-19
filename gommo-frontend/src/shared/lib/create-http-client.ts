@@ -119,10 +119,8 @@ export function createHttpClient(config: HttpClientConfig) {
         ) {
             const newToken = await refreshSessionTokens();
             if (!newToken) {
-                if (response.status === 401) {
-                    throw AppException.client("AUTH_SESSION_EXPIRED", AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED, 401);
-                }
-                return handleErrorResponse(response);
+                config.onSessionExpired?.();
+                throw AppException.client("AUTH_SESSION_EXPIRED", AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED, 401);
             }
 
             if (newToken !== bearer) {
@@ -130,6 +128,12 @@ export function createHttpClient(config: HttpClientConfig) {
                 if (response.ok) {
                     return parseResponse<T>(response, responseType);
                 }
+            }
+
+            // Access ainda "válido" no cookie, mas backend rejeitou (ex.: FORCE_LOGOUT).
+            if (response.status === 401) {
+                config.onSessionExpired?.();
+                throw AppException.client("AUTH_SESSION_EXPIRED", AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED, 401);
             }
             return handleErrorResponse(response);
         }

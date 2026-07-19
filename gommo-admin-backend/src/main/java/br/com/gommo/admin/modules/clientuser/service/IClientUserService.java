@@ -11,6 +11,8 @@ public interface IClientUserService {
 
     List<ClientUserResponseDto> findAll();
 
+    List<ClientUserResponseDto> findAllByClientId(UUID clientId);
+
     ClientUserResponseDto findById(UUID id);
 
     PageableResponseDto<ClientUserResponseDto> findPage(int page, int size);

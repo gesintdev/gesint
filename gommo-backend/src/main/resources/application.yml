@@ -19,7 +19,7 @@ spring:
     enabled: true
     encoding: UTF-8
     locations: classpath:db/migration
-    # Historico e DDL do HR ficam no schema public (independente do admin).
+    # Historico e DDL do Client ficam no schema public (independente do admin).
     schemas: public
     default-schema: public
     create-schemas: false
@@ -56,6 +56,8 @@ gommo:
     tenant-header: X-Tenant-Slug
     base-domain: ${GOMMO_TENANT_BASE_DOMAIN:localhost}
     production-base-domain: ${GOMMO_TENANT_PRODUCTION_BASE_DOMAIN:gommo.com.br}
+  internal:
+    event-secret: ${GOMMO_INTERNAL_EVENT_SECRET:}
 
 logging:
   pattern:

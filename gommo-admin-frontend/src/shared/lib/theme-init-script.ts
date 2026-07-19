@@ -1,1 +1,1 @@
-export const GOMMO_THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"gommo";if(t!=="gommo"&&t!=="dark")t="gommo";document.documentElement.setAttribute("data-theme",t)}catch(e){document.documentElement.setAttribute("data-theme","gommo")}})();`;
+export const GOMMO_THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"light";if(t!=="light"&&t!=="dark")t="light";document.documentElement.classList.toggle("dark",t==="dark");document.documentElement.style.colorScheme=t}catch(e){document.documentElement.classList.remove("dark")}})();`;

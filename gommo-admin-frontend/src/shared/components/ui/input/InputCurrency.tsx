@@ -10,20 +10,26 @@ export type InputCurrencyProps = InputFieldChromeProps & {
     onValueChange: (cents: string) => void;
     /** Se true, onValueChange em decimal "123.45" em vez de centavos */
     emitAsDecimal?: boolean;
+    placeholder?: string;
 };
 
-export function InputCurrency({ value, onValueChange, emitAsDecimal = false, ...chrome }: InputCurrencyProps) {
+export function InputCurrency({
+    value,
+    onValueChange,
+    emitAsDecimal = false,
+    placeholder = "R$ 0,00",
+    ...chrome
+}: InputCurrencyProps) {
     return (
         <InputBase
             {...chrome}
             displayValue={maskCurrencyFromCents(value)}
             inputMode="numeric"
-            placeholder="R$ 0,00"
+            placeholder={placeholder}
             onDisplayChange={(next) => {
                 const cents = parseCurrencyToCents(next);
                 onValueChange(emitAsDecimal ? centsToDecimal(cents) : cents);
             }}
-            hint={chrome.hint ?? (emitAsDecimal ? "Retorno: decimal" : "Retorno: centavos (string)")}
         />
     );
 }

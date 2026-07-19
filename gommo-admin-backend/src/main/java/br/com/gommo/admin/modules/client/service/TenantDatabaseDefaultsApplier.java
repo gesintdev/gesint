@@ -4,8 +4,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import br.com.gommo.admin.modules.client.entity.Client;
 import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
+import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 
 @Component
 public class TenantDatabaseDefaultsApplier {
@@ -18,7 +18,7 @@ public class TenantDatabaseDefaultsApplier {
         this.environment = environment;
     }
 
-    public void apply(Client entity, String slug) {
+    public void apply(ClientEnvironmentConfig entity, String slug) {
         if (entity.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
             return;
         }
@@ -26,7 +26,10 @@ public class TenantDatabaseDefaultsApplier {
         if (!StringUtils.hasText(entity.getSubdomain()) && StringUtils.hasText(slug)) {
             entity.setSubdomain(slug.trim());
         }
-        if (!StringUtils.hasText(entity.getDatabaseSchema()) || "public".equalsIgnoreCase(entity.getDatabaseSchema())) {
+        String schema = entity.getDatabaseSchema();
+        boolean schemaMissing = !StringUtils.hasText(schema) || "public".equalsIgnoreCase(schema);
+        boolean schemaUnsafe = StringUtils.hasText(schema) && !TenantSchemaProvisioner.isSafeSchemaName(schema);
+        if (schemaMissing || schemaUnsafe) {
             entity.setDatabaseSchema(TenantSchemaProvisioner.defaultSchemaForSlug(slug));
         }
 

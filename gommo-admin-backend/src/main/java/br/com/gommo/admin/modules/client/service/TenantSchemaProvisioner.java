@@ -7,9 +7,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import br.com.gommo.admin.modules.client.entity.Client;
 import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
 import br.com.gommo.admin.modules.client.exception.ClientException;
+import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 
 @Service
 public class TenantSchemaProvisioner {
@@ -26,12 +26,12 @@ public class TenantSchemaProvisioner {
         this.tenantRbacProvisioner = tenantRbacProvisioner;
     }
 
-    public void provisionDedicatedSchema(Client client) {
-        if (client.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
+    public void provisionDedicatedSchema(ClientEnvironmentConfig config) {
+        if (config.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
             return;
         }
 
-        String schema = requireSchema(client.getDatabaseSchema());
+        String schema = requireSchema(config.getDatabaseSchema());
         if ("public".equalsIgnoreCase(schema)) {
             throw ClientException.databaseConfigIncomplete(
                     "Schema dedicado nao pode ser 'public'. Informe um schema exclusivo do tenant.");
@@ -113,6 +113,7 @@ public class TenantSchemaProvisioner {
                         id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         status          public.status_enum NOT NULL DEFAULT 'ACTIVE',
                         collaborator_id UUID,
+                        name            VARCHAR(255),
                         username        VARCHAR(100) NOT NULL,
                         email           VARCHAR(200) NOT NULL,
                         password_hash   VARCHAR(255) NOT NULL,
@@ -144,6 +145,13 @@ public class TenantSchemaProvisioner {
                         ON "%s".app_user (code)
                     """
                             .formatted(schema.replace('.', '_'), schema));
+        } else {
+            jdbcTemplate.execute(
+                    """
+                    ALTER TABLE "%s".app_user
+                        ADD COLUMN IF NOT EXISTS name VARCHAR(255)
+                    """
+                            .formatted(schema));
         }
 
         if (!tenantTableExists(schema, "user_role")) {
@@ -223,6 +231,10 @@ public class TenantSchemaProvisioner {
 
     public static String requireSafeSchema(String schema) {
         return requireSchema(schema);
+    }
+
+    public static boolean isSafeSchemaName(String schema) {
+        return StringUtils.hasText(schema) && SAFE_SCHEMA.matcher(schema.trim()).matches();
     }
 
     private boolean tenantTableExists(String schema, String table) {

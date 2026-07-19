@@ -18,6 +18,8 @@ declare module "next-auth" {
         permissions?: string[];
         tenantSlug?: string;
         tenantName?: string;
+        /** Null/omitido = host plataforma (sem filtro comercial). */
+        contractedSystemKeys?: string[] | null;
         platformAdmin?: boolean;
     }
     interface Session {
@@ -25,6 +27,7 @@ declare module "next-auth" {
         refreshToken?: string;
         tenantSlug?: string;
         tenantName?: string;
+        contractedSystemKeys?: string[] | null;
         platformAdmin?: boolean;
         error?: AuthTokenError;
         user: DefaultSession["user"] & {
@@ -57,6 +60,7 @@ declare module "next-auth/jwt" {
         permissions?: string[];
         tenantSlug?: string;
         tenantName?: string;
+        contractedSystemKeys?: string[] | null;
         platformAdmin?: boolean;
     }
 }

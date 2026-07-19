@@ -37,6 +37,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.refresh(request));
     }
 
+    @PostMapping("/session-check")
+    public ResponseEntity<Void> sessionCheck(@Valid @RequestBody RefreshTokenRequestDto request) {
+        authService.assertRefreshSessionActive(request);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/tenant")
     public ResponseEntity<TenantInfoResponseDto> currentTenant() {
         Optional<TenantInfoResponseDto> tenant = authService.currentTenant();

@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/shared/components/ui/Button";
@@ -14,11 +14,16 @@ import { resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
 
 export function LoginForm() {
     const router = useRouter();
+    const [tenantSlugHint, setTenantSlugHint] = useState<string | null>(null);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [remember, setRemember] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        setTenantSlugHint(resolveTenantSlugFromHostname());
+    }, []);
 
     async function handleSubmit(e: React.SubmitEvent) {
         e.preventDefault();
@@ -33,7 +38,25 @@ export function LoginForm() {
         });
         setLoading(false);
         if (result?.error) {
-            toast.error("Usuário ou senha inválidos");
+            const code = result.code ?? result.error;
+            if (code === "AUTH_NO_ACTIVE_SYSTEM") {
+                toast.error(
+                    "Não foi possível acessar o sistema. Entre em contato com seu departamento administrativo",
+                );
+            } else if (
+                code === "AUTH_INVALID_CREDENTIALS" ||
+                code === "credentials" ||
+                code === "CredentialsSignin"
+            ) {
+                toast.error("Usuário ou senha inválidos");
+            } else if (tenantSlug) {
+                // Ambiente não READY, suspenso, etc. — não é erro de senha.
+                toast.error(
+                    "Não foi possível acessar o sistema. Entre em contato com seu departamento administrativo",
+                );
+            } else {
+                toast.error("Usuário ou senha inválidos");
+            }
             return;
         }
         toast.success("Bem-vindo ao Gommo");
@@ -103,7 +126,11 @@ export function LoginForm() {
                 Entrar
             </Button>
             {process.env.NODE_ENV === "development" && (
-                <p className="login-dev-hint">Desenvolvimento: credenciais do seu arquivo .env</p>
+                <p className="login-dev-hint">
+                    {tenantSlugHint
+                        ? `Tenant: ${tenantSlugHint} — use o usuário provisionado no Admin`
+                        : "Platform: use as credenciais do .env (admin)"}
+                </p>
             )}
         </motion.form>
     );

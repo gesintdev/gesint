@@ -18,9 +18,13 @@ public class JdbcAdminClientLookup implements AdminClientLookup {
 
     private static final String BASE_SELECT =
             """
-            SELECT c.id, c.slug, c.name, c.database_schema, c.provisioning_status,
+            SELECT c.id, c.slug, c.name,
+                   e.database_schema, e.provisioning_status,
                    sub.billing_status
             FROM admin.client c
+            INNER JOIN admin.client_environment_config e
+                ON e.client_id = c.id
+               AND e.status <> 'DELETED'
             LEFT JOIN LATERAL (
                 SELECT s.billing_status
                 FROM admin.client_subscription s
@@ -46,18 +50,34 @@ public class JdbcAdminClientLookup implements AdminClientLookup {
     }
 
     @Override
+    public Optional<TenantContext> findByClientId(UUID clientId) {
+        if (clientId == null) {
+            return Optional.empty();
+        }
+        try {
+            return jdbcTemplate.query(
+                    BASE_SELECT + " AND c.id = ?",
+                    rs -> rs.next() ? Optional.of(mapRow(rs)) : Optional.empty(),
+                    clientId);
+        } catch (DataAccessException ex) {
+            log.warn("admin.client lookup by id failed: {}", ex.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public Optional<TenantContext> findByMobileLoginCode(String mobileLoginCode) {
         return findOne(BASE_SELECT + " AND c.mobile_login_code = ?", normalizeMobileLoginCode(mobileLoginCode));
     }
 
     @Override
     public Optional<TenantContext> findBySubdomain(String subdomain) {
-        return findOne(BASE_SELECT + " AND c.subdomain = ?", subdomain);
+        return findOne(BASE_SELECT + " AND e.subdomain = ?", subdomain);
     }
 
     @Override
     public Optional<TenantContext> findByCustomDomain(String customDomain) {
-        return findOne(BASE_SELECT + " AND c.custom_domain = ?", customDomain);
+        return findOne(BASE_SELECT + " AND e.custom_domain = ?", customDomain);
     }
 
     private String normalizeMobileLoginCode(String mobileLoginCode) {
@@ -68,7 +88,7 @@ public class JdbcAdminClientLookup implements AdminClientLookup {
         try {
             return jdbcTemplate.query(sql, rs -> rs.next() ? Optional.of(mapRow(rs)) : Optional.empty(), parameter);
         } catch (DataAccessException ex) {
-            log.debug("admin.client lookup failed (admin schema missing?): {}", ex.getMessage());
+            log.warn("admin.client lookup failed: {}", ex.getMessage());
             return Optional.empty();
         }
     }

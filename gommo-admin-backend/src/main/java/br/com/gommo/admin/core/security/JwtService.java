@@ -50,6 +50,7 @@ public class JwtService {
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(properties.refreshTokenDays() * 24 * 60 * 60);
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(userId.toString())
                 .claim("type", "refresh")
                 .issuedAt(Date.from(now))

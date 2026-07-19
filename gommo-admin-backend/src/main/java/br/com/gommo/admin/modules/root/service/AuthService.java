@@ -33,6 +33,7 @@ import br.com.gommo.admin.modules.root.repository.AdminRefreshTokenRepository;
 public class AuthService implements IAuthService {
 
     private static final String PLATFORM_ADMIN_PERMISSION = "platform:admin";
+    private static final int REFRESH_REPLAY_GRACE_SECONDS = 10;
 
     private final AdminUserRepository adminUserRepository;
     private final AdminRefreshTokenRepository refreshTokenRepository;
@@ -84,31 +85,52 @@ public class AuthService implements IAuthService {
             throw AuthException.invalidRefresh();
         }
 
+        OffsetDateTime now = OffsetDateTime.now();
         String tokenHash = hashToken(rawRefresh);
-        if (blacklistRepository.existsByTokenHash(tokenHash)) {
+        AdminRefreshTokenBlacklist blacklisted = blacklistRepository.findByTokenHash(tokenHash).orElse(null);
+        boolean replayGrace = isWithinReplayGrace(blacklisted, now);
+
+        if (blacklisted != null && !replayGrace) {
             throw AuthException.revokedRefresh();
         }
 
-        AdminRefreshToken stored = refreshTokenRepository
-                .findByTokenHashAndRevokedFalse(tokenHash)
-                .orElseThrow(AuthException::invalidRefresh);
+        AdminRefreshToken stored = refreshTokenRepository.findByTokenHash(tokenHash).orElse(null);
+        if (stored == null) {
+            throw AuthException.invalidRefresh();
+        }
 
-        if (stored.getExpiresAt().isBefore(OffsetDateTime.now())) {
+        if (stored.isRevoked() && !replayGrace) {
+            throw AuthException.revokedRefresh();
+        }
+
+        if (stored.getExpiresAt().isBefore(now)) {
             throw AuthException.expiredRefresh();
+        }
+
+        UUID userId = jwtService.extractUserId(rawRefresh);
+        AdminUser user =
+                adminUserRepository.findActiveById(userId, StatusEnum.DELETED).orElseThrow(AuthException::userNotFound);
+
+        // Race de refresh concorrente: token ja rotacionado ha poucos segundos → emite novo par.
+        if (stored.isRevoked()) {
+            return buildTokenResponse(user);
         }
 
         stored.setRevoked(true);
         refreshTokenRepository.save(stored);
         blacklistRepository.save(AdminRefreshTokenBlacklist.builder()
                 .tokenHash(tokenHash)
-                .revokedAt(OffsetDateTime.now())
+                .revokedAt(now)
                 .build());
 
-        UUID userId = jwtService.extractUserId(rawRefresh);
-        AdminUser user =
-                adminUserRepository.findActiveById(userId, StatusEnum.DELETED).orElseThrow(AuthException::userNotFound);
-
         return buildTokenResponse(user);
+    }
+
+    private boolean isWithinReplayGrace(AdminRefreshTokenBlacklist blacklisted, OffsetDateTime now) {
+        if (blacklisted == null) {
+            return false;
+        }
+        return !now.isAfter(blacklisted.getRevokedAt().plusSeconds(REFRESH_REPLAY_GRACE_SECONDS));
     }
 
     private TokenResponseDto buildTokenResponse(AdminUser user) {
