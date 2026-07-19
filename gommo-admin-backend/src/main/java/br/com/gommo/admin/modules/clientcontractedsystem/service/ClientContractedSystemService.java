@@ -1,5 +1,6 @@
 package br.com.gommo.admin.modules.clientcontractedsystem.service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ import br.com.gommo.admin.modules.client.repository.ClientRepository;
 import br.com.gommo.admin.modules.clientcontractedsystem.dto.ClientContractedSystemRequestDto;
 import br.com.gommo.admin.modules.clientcontractedsystem.dto.ClientContractedSystemResponseDto;
 import br.com.gommo.admin.modules.clientcontractedsystem.entity.ClientContractedSystem;
+import br.com.gommo.admin.modules.clientcontractedsystem.entity.OperationalStatusEnum;
 import br.com.gommo.admin.modules.clientcontractedsystem.entity.SessionPolicyEnum;
 import br.com.gommo.admin.modules.clientcontractedsystem.exception.ClientContractedSystemException;
 import br.com.gommo.admin.modules.clientcontractedsystem.mapper.ClientContractedSystemMapper;
@@ -105,6 +107,7 @@ public class ClientContractedSystemService
         if (entity.getSessionPolicy() == null) {
             entity.setSessionPolicy(SessionPolicyEnum.KEEP_UNTIL_EXPIRY);
         }
+        normalizeLifecycleForPersistence(entity);
         ClientContractedSystem saved = repository.save(entity);
         publishOutbox(saved, client, productSystem.getKey());
         return mapper.toResponse(saved, productSystem);
@@ -120,6 +123,7 @@ public class ClientContractedSystemService
         assertLifecycle(request);
         ClientContractedSystem entity = findEntity(id);
         mapper.updateEntity(entity, request, productSystem);
+        normalizeLifecycleForPersistence(entity);
         ClientContractedSystem saved = repository.save(entity);
         publishOutbox(saved, client, productSystem.getKey());
         return mapper.toResponse(saved, productSystem);
@@ -184,6 +188,34 @@ public class ClientContractedSystemService
     private void assertLifecycle(ClientContractedSystemRequestDto request) {
         if ("SCHEDULED".equalsIgnoreCase(request.getSessionPolicy()) && request.getDeactivateAt() == null) {
             throw ClientContractedSystemException.deactivateAtRequired();
+        }
+    }
+
+    /**
+     * Ao reativar (ACTIVE), limpa resíduos de desativação que bloqueiam o login no Client:
+     * {@code deactivate_at} no passado e {@code FORCE_LOGOUT} deixado do ciclo anterior.
+     * O Client considera efetivo só se {@code operational_status = ACTIVE} e
+     * {@code deactivate_at IS NULL OR deactivate_at > now()}.
+     */
+    private void normalizeLifecycleForPersistence(ClientContractedSystem entity) {
+        if (entity.getOperationalStatus() != OperationalStatusEnum.ACTIVE) {
+            return;
+        }
+
+        if (entity.getSessionPolicy() == SessionPolicyEnum.FORCE_LOGOUT) {
+            entity.setSessionPolicy(SessionPolicyEnum.KEEP_UNTIL_EXPIRY);
+        }
+
+        OffsetDateTime deactivateAt = entity.getDeactivateAt();
+        boolean scheduledFuture =
+                entity.getSessionPolicy() == SessionPolicyEnum.SCHEDULED
+                        && deactivateAt != null
+                        && deactivateAt.isAfter(OffsetDateTime.now());
+        if (!scheduledFuture) {
+            entity.setDeactivateAt(null);
+            if (entity.getSessionPolicy() == SessionPolicyEnum.SCHEDULED) {
+                entity.setSessionPolicy(SessionPolicyEnum.KEEP_UNTIL_EXPIRY);
+            }
         }
     }
 }

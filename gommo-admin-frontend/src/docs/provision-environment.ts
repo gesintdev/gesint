@@ -1,5 +1,5 @@
-export const PROVISIONAR_AMBIENTE_DOC = {
-    slug: "provisionar-ambiente",
+export const PROVISION_ENVIRONMENT_DOC = {
+    slug: "provision-environment",
     title: "Provisionar ambiente do cliente",
     summary:
         "Documentação interna Gommo sobre o botão Provisionar na aba Config. do Ambiente do cadastro de clientes.",
@@ -42,4 +42,4 @@ export const PROVISIONAR_AMBIENTE_DOC = {
     ],
 } as const;
 
-export const INTERNAL_DOCS = [PROVISIONAR_AMBIENTE_DOC] as const;
+export const INTERNAL_DOCS = [PROVISION_ENVIRONMENT_DOC] as const;

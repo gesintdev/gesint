@@ -4,8 +4,10 @@ import clsx from "clsx";
 import get from "lodash/get";
 import type { MouseEvent, ReactNode } from "react";
 
+import { DataTypeFactory } from "@/shared/lib/data-type/data-type.factory";
 import { badgeClassForStatus, formatCellValue } from "@/shared/lib/table/format-cell-value";
-import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
+import { DataType } from "@/shared/types/data-type";
+import { type TableColumnConfig } from "@/shared/types/table.types";
 
 export type DataTableRowActivateOn = "click" | "doubleclick";
 
@@ -38,8 +40,8 @@ function alignClass(align?: TableColumnConfig["align"]) {
     return "text-left";
 }
 
-function renderCellContent(value: unknown, dataType?: TableDataType): ReactNode {
-    if (dataType === TableDataType.EMAIL && value) {
+function renderCellContent(value: unknown, dataType?: DataType): ReactNode {
+    if (dataType === DataType.EMAIL && value) {
         const email = String(value);
         return (
             <a href={`mailto:${email}`} className="text-primary underline-offset-2 hover:underline">
@@ -48,21 +50,19 @@ function renderCellContent(value: unknown, dataType?: TableDataType): ReactNode 
         );
     }
 
-    if (dataType === TableDataType.BADGE && value != null && value !== "") {
+    if (dataType === DataType.BADGE && value != null && value !== "") {
         return (
             <span className={clsx("gommo-badge", badgeClassForStatus(value))}>
-                {formatCellValue(value, TableDataType.BADGE)}
+                {formatCellValue(value, DataType.BADGE)}
             </span>
         );
     }
     const formatted = formatCellValue(value, dataType);
-    const isNumeric =
-        dataType === TableDataType.CPF ||
-        dataType === TableDataType.PHONE ||
-        dataType === TableDataType.FLOAT ||
-        dataType === TableDataType.CURRENCY ||
-        dataType === TableDataType.PERCENT;
-    return <span className={clsx("text-sm", isNumeric && "tabular-nums")}>{formatted}</span>;
+    return (
+        <span className={clsx("text-sm", DataTypeFactory.hasMask(dataType) && "tabular-nums")}>
+            {formatted}
+        </span>
+    );
 }
 
 export function DataTable<T extends object>({

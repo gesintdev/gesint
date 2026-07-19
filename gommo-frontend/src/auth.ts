@@ -148,6 +148,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             if (
                 !isPathAccessible(nextUrl.pathname, granted, auth.contractedSystemKeys, {
                     tenantSlug: auth.tenantSlug,
+                    platformAdmin: auth.platformAdmin,
+                    contractedSystemKeys: auth.contractedSystemKeys,
                 })
             ) {
                 return Response.redirect(new URL("/dashboard", nextUrl));

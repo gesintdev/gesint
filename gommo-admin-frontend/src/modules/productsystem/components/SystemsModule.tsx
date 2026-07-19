@@ -15,27 +15,23 @@ import { AdminPagination } from "@/shared/components/ui/admin/AdminPagination";
 import { AdminSearchBar } from "@/shared/components/ui/admin/AdminSearchBar";
 import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
 import { useOptimisticPath } from "@/shared/hooks/useOptimisticPath";
-import { systemsCadastroPath, systemsListPath } from "@/shared/routing/admin-nav";
+import { systemsFormPath, systemsListPath } from "@/shared/routing/admin-nav";
+import { DataType } from "@/shared/types/data-type";
 
 type SystemsPathState = {
-    view: "listagem" | "cadastro";
+    view: "list" | "form";
     recordId: string;
 };
 
 const parseSystemsPath = (pathname: string): SystemsPathState => {
     const segments = pathname.split("/").filter(Boolean).slice(1);
-    const view = segments[0] === "cadastro" ? "cadastro" : "listagem";
-    const recordId = view === "cadastro" ? (segments[1] ?? "") : "";
+    const view = segments[0] === "form" ? "form" : "list";
+    const recordId = view === "form" ? (segments[1] ?? "") : "";
     return { view, recordId };
 };
 
 const sameSystemsPath = (a: SystemsPathState, b: SystemsPathState) =>
     a.view === b.view && a.recordId === b.recordId;
-
-function money(value?: number) {
-    if (value == null) return "—";
-    return `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-}
 
 export function SystemsModule() {
     const { pathname, current, navigate, fromPath } = useOptimisticPath(parseSystemsPath, sameSystemsPath);
@@ -65,8 +61,8 @@ export function SystemsModule() {
     }, [load]);
 
     useEffect(() => {
-        if (view !== "cadastro" || !recordId || recordId === "novo") {
-            if (recordId === "novo") setSelected(null);
+        if (view !== "form" || !recordId || recordId === "new") {
+            if (recordId === "new") setSelected(null);
             return;
         }
         const cached = systems.find((item) => item.id === recordId);
@@ -82,7 +78,7 @@ export function SystemsModule() {
             })
             .catch(() => {
                 if (!cancelled) {
-                    navigate(systemsListPath(), { view: "listagem", recordId: "" }, "replace");
+                    navigate(systemsListPath(), { view: "list", recordId: "" }, "replace");
                 }
             });
         return () => {
@@ -93,11 +89,11 @@ export function SystemsModule() {
     useEffect(() => {
         const segments = pathname.split("/").filter(Boolean).slice(1);
         if (segments.length === 0) {
-            navigate(systemsListPath(), { view: "listagem", recordId: "" }, "replace");
+            navigate(systemsListPath(), { view: "list", recordId: "" }, "replace");
             return;
         }
-        if (fromPath.view === "cadastro" && !fromPath.recordId) {
-            navigate(systemsListPath(), { view: "listagem", recordId: "" }, "replace");
+        if (fromPath.view === "form" && !fromPath.recordId) {
+            navigate(systemsListPath(), { view: "list", recordId: "" }, "replace");
         }
     }, [pathname, fromPath, navigate]);
 
@@ -111,31 +107,31 @@ export function SystemsModule() {
     });
     const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
-    const openCadastro = (item: ProductSystem) => {
-        navigate(systemsCadastroPath(item.id), { view: "cadastro", recordId: item.id });
+    const openForm = (item: ProductSystem) => {
+        navigate(systemsFormPath(item.id), { view: "form", recordId: item.id });
     };
 
     const onTabSelect = (key: string) => {
-        if (key === "listagem") {
-            navigate(systemsListPath(), { view: "listagem", recordId: "" });
+        if (key === "list") {
+            navigate(systemsListPath(), { view: "list", recordId: "" });
             return;
         }
-        if (recordId && recordId !== "novo") {
-            navigate(systemsCadastroPath(recordId), { view: "cadastro", recordId });
+        if (recordId && recordId !== "new") {
+            navigate(systemsFormPath(recordId), { view: "form", recordId });
             return;
         }
         if (selected) {
-            navigate(systemsCadastroPath(selected.id), { view: "cadastro", recordId: selected.id });
+            navigate(systemsFormPath(selected.id), { view: "form", recordId: selected.id });
             return;
         }
-        navigate(systemsCadastroPath("novo"), { view: "cadastro", recordId: "novo" });
+        navigate(systemsFormPath("new"), { view: "form", recordId: "new" });
     };
 
     const handleSaved = async (item: ProductSystem) => {
         await load();
         setSelected(item);
-        if (recordId === "novo" || recordId !== item.id) {
-            navigate(systemsCadastroPath(item.id), { view: "cadastro", recordId: item.id }, "replace");
+        if (recordId === "new" || recordId !== item.id) {
+            navigate(systemsFormPath(item.id), { view: "form", recordId: item.id }, "replace");
         }
     };
 
@@ -143,8 +139,8 @@ export function SystemsModule() {
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <AdminModuleToolbar
                 tabs={[
-                    { key: "listagem", label: "Listagem" },
-                    { key: "cadastro", label: "Cadastro" },
+                    { key: "list", label: "Listagem" },
+                    { key: "form", label: "Cadastro" },
                 ]}
                 active={view}
                 onSelect={onTabSelect}
@@ -152,9 +148,9 @@ export function SystemsModule() {
                     <AdminBtn
                         icon={<Plus size={13} />}
                         onClick={() =>
-                            navigate(systemsCadastroPath("novo"), {
-                                view: "cadastro",
-                                recordId: "novo",
+                            navigate(systemsFormPath("new"), {
+                                view: "form",
+                                recordId: "new",
                             })
                         }
                     >
@@ -164,7 +160,7 @@ export function SystemsModule() {
             />
 
             <div style={{ flex: 1, overflowY: "auto", padding: 20 }}>
-                {view === "listagem" ? (
+                {view === "list" ? (
                     <>
                         <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                             <AdminSearchBar
@@ -191,19 +187,19 @@ export function SystemsModule() {
                         </div>
                         <AdminDataGrid
                             cols={[
-                                { key: "key", label: "Chave", width: 90 },
-                                { key: "name", label: "Nome" },
+                                { key: "key", label: "Chave", width: 90, dataType: DataType.STRING },
+                                { key: "name", label: "Nome", dataType: DataType.STRING },
                                 {
                                     key: "defaultPrice",
                                     label: "Preço padrão",
                                     width: 130,
-                                    render: (value) => money(value as number | undefined),
+                                    dataType: DataType.CURRENCY,
                                 },
                                 {
                                     key: "withAiAvailable",
                                     label: "I.A.",
                                     width: 70,
-                                    render: (value) => (value ? "Sim" : "Não"),
+                                    dataType: DataType.BOOLEAN,
                                 },
                                 {
                                     key: "status",
@@ -213,7 +209,7 @@ export function SystemsModule() {
                                 },
                             ]}
                             rows={paged as unknown as Record<string, unknown>[]}
-                            onDoubleClick={(row) => openCadastro(row as unknown as ProductSystem)}
+                            onDoubleClick={(row) => openForm(row as unknown as ProductSystem)}
                             emptyMsg={loading ? "Carregando..." : "Nenhum sistema cadastrado."}
                         />
                         <AdminPagination
@@ -225,9 +221,9 @@ export function SystemsModule() {
                     </>
                 ) : (
                     <ProductSystemCadastro
-                        key={recordId || "novo"}
+                        key={recordId || "new"}
                         system={selected}
-                        isNew={recordId === "novo"}
+                        isNew={recordId === "new"}
                         onSaved={handleSaved}
                     />
                 )}

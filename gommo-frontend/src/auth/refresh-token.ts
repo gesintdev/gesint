@@ -23,6 +23,7 @@ type TokenResponse = {
     tenantSlug?: string;
     tenantName?: string;
     contractedSystemKeys?: string[] | null;
+    platformAdmin?: boolean;
 };
 
 export type AuthTokenError = "RefreshAccessTokenError" | "RefreshTokenMissing";
@@ -97,6 +98,10 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
                 data.contractedSystemKeys !== undefined
                     ? data.contractedSystemKeys
                     : ((token.contractedSystemKeys as string[] | null | undefined) ?? null),
+            platformAdmin:
+                data.platformAdmin !== undefined
+                    ? data.platformAdmin
+                    : ((token.platformAdmin as boolean | undefined) ?? false),
             refreshRetryAfter: undefined,
             error: undefined,
         };

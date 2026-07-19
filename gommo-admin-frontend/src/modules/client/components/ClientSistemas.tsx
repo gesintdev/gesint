@@ -164,7 +164,20 @@ export function ClientSistemas({ clientId }: { clientId: string }) {
         key: K,
         value: ClientContractedSystemCreateDto[K],
     ) => {
-        setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
+        setForm((prev) => {
+            if (!prev) return prev;
+            if (key === "operationalStatus" && value === "ACTIVE") {
+                // Reativar: limpa desativação residual e FORCE_LOGOUT do ciclo anterior.
+                return {
+                    ...prev,
+                    operationalStatus: "ACTIVE",
+                    deactivateAt: "",
+                    sessionPolicy:
+                        prev.sessionPolicy === "FORCE_LOGOUT" ? "KEEP_UNTIL_EXPIRY" : prev.sessionPolicy,
+                };
+            }
+            return { ...prev, [key]: value };
+        });
     };
 
     const selectProduct = (productId: string) => {
@@ -175,19 +188,35 @@ export function ClientSistemas({ clientId }: { clientId: string }) {
         if (!form || !selectedProduct) return;
         setSaving(true);
         try {
+            const operationalStatus = form.operationalStatus || "ACTIVE";
+            let sessionPolicy = form.sessionPolicy || "KEEP_UNTIL_EXPIRY";
+            let deactivateAt = fromDateTimeLocalValue(form.deactivateAt);
+            // ACTIVE sem agendamento futuro: não enviar deactivateAt/FORCE_LOGOUT residuais.
+            if (operationalStatus === "ACTIVE") {
+                if (sessionPolicy === "FORCE_LOGOUT") {
+                    sessionPolicy = "KEEP_UNTIL_EXPIRY";
+                }
+                if (sessionPolicy !== "SCHEDULED") {
+                    deactivateAt = undefined;
+                } else if (deactivateAt && new Date(deactivateAt).getTime() <= Date.now()) {
+                    deactivateAt = undefined;
+                    sessionPolicy = "KEEP_UNTIL_EXPIRY";
+                }
+            }
             const payload: ClientContractedSystemCreateDto = {
                 ...form,
                 clientId,
                 productSystemId: selectedProduct.id,
+                operationalStatus,
                 contractDate: form.contractDate?.trim() || undefined,
                 endDate: form.endDate?.trim() || undefined,
                 dueDay: form.dueDay?.trim() || undefined,
                 lateTolerance: form.lateTolerance?.trim() || undefined,
                 notes: form.notes?.trim() || undefined,
                 withAi: Boolean(form.withAi),
-                sessionPolicy: form.sessionPolicy || "KEEP_UNTIL_EXPIRY",
+                sessionPolicy,
                 effectiveFrom: fromDateTimeLocalValue(form.effectiveFrom),
-                deactivateAt: fromDateTimeLocalValue(form.deactivateAt),
+                deactivateAt,
             };
             if (payload.sessionPolicy === "SCHEDULED" && !payload.deactivateAt) {
                 toast.error("Informe a data de desativação para a política Agendar.");

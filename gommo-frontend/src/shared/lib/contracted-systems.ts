@@ -1,12 +1,27 @@
 import { SystemEnum } from "@/modules/root/enum/SystemEnum";
 
-/** Keys do catalogo Admin → SystemEnum do rail HR. */
+/** Keys do catalogo Admin → SystemEnum do rail Client. */
 const PRODUCT_KEY_TO_SYSTEM: Record<string, SystemEnum> = {
     DP: SystemEnum.DP,
     RH: SystemEnum.RH,
     CTB: SystemEnum.CONTABILIDADE,
     CONTABILIDADE: SystemEnum.CONTABILIDADE,
 };
+
+/**
+ * Sem filtro comercial no rail: host plataforma ou localhost (dev-public).
+ * Login do Client é em public.app_user; admin.admin_user só marca platformAdmin
+ * (útil em outros fluxos). Em tenant comercial real o filtro de contratos vale.
+ */
+export function isPlatformAdminWithoutTenant(options?: {
+    platformAdmin?: boolean | null;
+    tenantSlug?: string | null;
+    contractedSystemKeys?: readonly string[] | null;
+}): boolean {
+    const slug = options?.tenantSlug?.trim() ?? "";
+    // Localhost / schema public / host plataforma: não é cliente comercial.
+    return !slug || slug === "dev-public";
+}
 
 /**
  * Converte keys comerciais em Set de sistemas.

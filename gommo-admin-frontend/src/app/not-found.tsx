@@ -20,7 +20,7 @@ export default function NotFound() {
                     Página não encontrada.
                 </p>
                 <Link
-                    href="/clients/listagem"
+                    href="/clients/list"
                     style={{
                         display: "inline-block",
                         marginTop: 20,

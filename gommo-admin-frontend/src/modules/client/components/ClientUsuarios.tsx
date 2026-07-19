@@ -15,6 +15,7 @@ import { AdminInput } from "@/shared/components/ui/admin/AdminField";
 import { AdminFormGrid, AdminSection } from "@/shared/components/ui/admin/AdminSection";
 import { AdminSearchBar } from "@/shared/components/ui/admin/AdminSearchBar";
 import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
+import { DataType } from "@/shared/types/data-type";
 
 export function ClientUsuarios({ clientId }: { clientId: string }) {
     const [users, setUsers] = useState<ClientUser[]>([]);
@@ -112,9 +113,9 @@ export function ClientUsuarios({ clientId }: { clientId: string }) {
             </div>
             <AdminDataGrid
                 cols={[
-                    { key: "displayName", label: "Nome" },
-                    { key: "username", label: "Usuário", width: 140 },
-                    { key: "email", label: "E-mail" },
+                    { key: "displayName", label: "Nome", dataType: DataType.STRING },
+                    { key: "username", label: "Usuário", width: 140, dataType: DataType.STRING },
+                    { key: "email", label: "E-mail", dataType: DataType.EMAIL },
                     {
                         key: "status",
                         label: "Status",

@@ -2978,6 +2978,139 @@ html:has(.login-page) body {
     color: color-mix(in srgb, white 38%, transparent);
 }
 
+/* Light mode — painel opaco + tipografia escura (contraste sobre wallpaper claro) */
+[data-theme="gommo"] .login-page__glass {
+    border: 1px solid color-mix(in srgb, var(--gommo-primary-950) 12%, white);
+    background: linear-gradient(
+        165deg,
+        color-mix(in srgb, white 92%, var(--gommo-primary-100)) 0%,
+        color-mix(in srgb, white 86%, var(--gommo-primary-50)) 42%,
+        color-mix(in srgb, var(--gommo-primary-50) 55%, white) 100%
+    );
+    -webkit-backdrop-filter: blur(40px) saturate(1.15);
+    backdrop-filter: blur(40px) saturate(1.15);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 80%, transparent),
+        0 8px 28px color-mix(in srgb, var(--gommo-primary-950) 10%, transparent),
+        0 18px 48px color-mix(in srgb, var(--gommo-primary-darker) 8%, transparent);
+}
+
+[data-theme="gommo"] .login-page__glass::after {
+    background:
+        radial-gradient(
+            ellipse 100% 65% at 0% 0%,
+            color-mix(in srgb, var(--gommo-primary-100) 45%, transparent) 0%,
+            transparent 58%
+        ),
+        radial-gradient(
+            ellipse 80% 60% at 100% 100%,
+            color-mix(in srgb, var(--gommo-primary-200) 28%, transparent) 0%,
+            transparent 52%
+        ),
+        linear-gradient(
+            148deg,
+            color-mix(in srgb, var(--gommo-primary-50) 35%, transparent) 0%,
+            transparent 55%,
+            color-mix(in srgb, var(--gommo-primary-100) 22%, transparent) 100%
+        );
+}
+
+[data-theme="gommo"] .login-page__glass::before {
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, white 55%, transparent) 0%,
+            color-mix(in srgb, white 18%, transparent) 18%,
+            transparent 42%
+        ),
+        radial-gradient(color-mix(in srgb, white 10%, transparent) 0.5px, transparent 0.5px);
+    mask-image: linear-gradient(180deg, black 0%, black 28%, transparent 68%);
+}
+
+[data-theme="gommo"] .login-page__tagline,
+[data-theme="gommo"] .login-page__subtitle {
+    color: color-mix(in srgb, var(--gommo-content) 58%, transparent);
+}
+
+[data-theme="gommo"] .login-page__title {
+    color: var(--gommo-content);
+}
+
+[data-theme="gommo"] .login-page__legal,
+[data-theme="gommo"] .login-dev-hint {
+    color: color-mix(in srgb, var(--gommo-content) 42%, transparent);
+}
+
+[data-theme="gommo"] .login-field .gommo-label {
+    color: color-mix(in srgb, var(--gommo-content) 72%, transparent);
+}
+
+[data-theme="gommo"] .gommo-field--login {
+    border-color: var(--gommo-border);
+    background: var(--gommo-surface);
+    color: var(--gommo-content);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--gommo-shadow-xs);
+}
+
+[data-theme="gommo"] .gommo-field--login:hover {
+    border-color: var(--gommo-border-strong);
+    background: var(--gommo-surface);
+}
+
+[data-theme="gommo"] .gommo-field--login:focus-within {
+    border-color: var(--gommo-border-focus);
+    background: var(--gommo-surface);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gommo-primary) 14%, transparent);
+}
+
+[data-theme="gommo"] .gommo-field--login input {
+    color: var(--gommo-content);
+}
+
+[data-theme="gommo"] .gommo-field--login input::placeholder {
+    color: color-mix(in srgb, var(--gommo-content) 38%, transparent);
+}
+
+[data-theme="gommo"] .gommo-field--login:has(input:-webkit-autofill) {
+    background: var(--gommo-surface);
+}
+
+[data-theme="gommo"] .gommo-field--login input:-webkit-autofill,
+[data-theme="gommo"] .gommo-field--login input:-webkit-autofill:hover,
+[data-theme="gommo"] .gommo-field--login input:-webkit-autofill:focus,
+[data-theme="gommo"] .gommo-field--login input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--gommo-content) !important;
+    caret-color: var(--gommo-content);
+    -webkit-box-shadow: 0 0 0 1000px var(--gommo-surface) inset !important;
+    box-shadow: 0 0 0 1000px var(--gommo-surface) inset !important;
+}
+
+[data-theme="gommo"] .login-password-toggle {
+    color: color-mix(in srgb, var(--gommo-content) 48%, transparent);
+}
+
+[data-theme="gommo"] .login-password-toggle:hover {
+    color: var(--gommo-content);
+}
+
+[data-theme="gommo"] .login-remember {
+    color: color-mix(in srgb, var(--gommo-content) 70%, transparent);
+}
+
+[data-theme="gommo"] .login-remember__input {
+    accent-color: var(--gommo-primary);
+}
+
+[data-theme="gommo"] .login-forgot {
+    color: var(--gommo-primary);
+}
+
+[data-theme="gommo"] .login-forgot:hover {
+    color: var(--gommo-primary-dark);
+}
+
 @media (max-width: 1023px) {
     .login-page {
         flex-direction: column;
@@ -2998,6 +3131,14 @@ html:has(.login-page) body {
         box-shadow:
             inset 0 1px 1px color-mix(in srgb, white 22%, transparent),
             0 16px 48px color-mix(in srgb, var(--gommo-primary-950) 30%, transparent);
+    }
+
+    [data-theme="gommo"] .login-page__glass {
+        -webkit-backdrop-filter: blur(36px) saturate(1.12);
+        backdrop-filter: blur(36px) saturate(1.12);
+        box-shadow:
+            inset 0 1px 0 color-mix(in srgb, white 70%, transparent),
+            0 12px 36px color-mix(in srgb, var(--gommo-primary-950) 12%, transparent);
     }
 }
 

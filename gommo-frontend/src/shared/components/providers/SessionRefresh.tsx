@@ -10,7 +10,11 @@ import { canAccessRoute } from "@/shared/auth/route-access";
 import { AppException } from "@/shared/exceptions/app.exception";
 import { useContractedSystemKeys } from "@/shared/hooks/useContractedSystemKeys";
 import { doRequest, setAuthToken } from "@/shared/lib/api.client";
-import { isSystemContracted, resolveContractedSystems } from "@/shared/lib/contracted-systems";
+import {
+    isPlatformAdminWithoutTenant,
+    isSystemContracted,
+    resolveContractedSystems,
+} from "@/shared/lib/contracted-systems";
 import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
@@ -116,12 +120,20 @@ export function SessionRefresh() {
         if (!contractedReady) {
             return;
         }
+        const platformAdminNoTenant = isPlatformAdminWithoutTenant({
+            platformAdmin: session?.platformAdmin,
+            tenantSlug: session?.tenantSlug,
+            contractedSystemKeys: session?.contractedSystemKeys,
+        });
         const permissions = session?.user?.permissions ?? [];
         const allowedRouteIds = new Set(
             useWorkspaceStore
                 .getState()
                 .tabs.map((tab) => tab.routeId)
                 .filter((routeId) => {
+                    if (platformAdminNoTenant) {
+                        return true;
+                    }
                     const route = findRouteById(routeId);
                     if (!canAccessRoute(route, permissions)) {
                         return false;
@@ -131,7 +143,15 @@ export function SessionRefresh() {
                 }),
         );
         retainTabsByRouteIds(allowedRouteIds);
-    }, [contractedReady, contractedSystems, retainTabsByRouteIds, session?.user?.permissions]);
+    }, [
+        contractedKeys,
+        contractedReady,
+        contractedSystems,
+        retainTabsByRouteIds,
+        session?.platformAdmin,
+        session?.tenantSlug,
+        session?.user?.permissions,
+    ]);
 
     return null;
 }

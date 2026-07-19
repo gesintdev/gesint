@@ -26,8 +26,8 @@ export const DOCS_NAV: DocsNavGroup[] = [
         icon: Rocket,
         items: [
             {
-                slug: "provisionar-ambiente",
-                href: "/docs/provisionar-ambiente",
+                slug: "provision-environment",
+                href: "/docs/provision-environment",
                 label: "Provisionar ambiente",
             },
         ],

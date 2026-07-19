@@ -10,30 +10,31 @@ import { clientService } from "@/modules/client/services/client.service";
 import { AdminBadge } from "@/shared/components/ui/admin/AdminBadge";
 import { AdminBtn } from "@/shared/components/ui/admin/AdminBtn";
 import { AdminDataGrid } from "@/shared/components/ui/admin/AdminDataGrid";
-import { AdminPagination } from "@/shared/components/ui/admin/AdminPagination";
 import { AdminModuleToolbar } from "@/shared/components/ui/admin/AdminModuleToolbar";
+import { AdminPagination } from "@/shared/components/ui/admin/AdminPagination";
 import { AdminSearchBar } from "@/shared/components/ui/admin/AdminSearchBar";
 import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
 import { useOptimisticPath } from "@/shared/hooks/useOptimisticPath";
 import {
-    clientsCadastroPath,
+    clientsFormPath,
     clientsListPath,
     type ClientSubTabKey,
     isClientSubTab,
 } from "@/shared/routing/admin-nav";
+import { DataType } from "@/shared/types/data-type";
 
 type ClientsPathState = {
-    view: "listagem" | "cadastro";
+    view: "list" | "form";
     recordId: string;
     subTab: ClientSubTabKey;
 };
 
 const parseClientsPath = (pathname: string): ClientsPathState => {
     const segments = pathname.split("/").filter(Boolean).slice(1);
-    const view = segments[0] === "cadastro" ? "cadastro" : "listagem";
-    const recordId = view === "cadastro" ? (segments[1] ?? "") : "";
-    const subTabParam = view === "cadastro" ? (segments[2] ?? "") : "";
-    const subTab: ClientSubTabKey = isClientSubTab(subTabParam) ? subTabParam : "dados";
+    const view = segments[0] === "form" ? "form" : "list";
+    const recordId = view === "form" ? (segments[1] ?? "") : "";
+    const subTabParam = view === "form" ? (segments[2] ?? "") : "";
+    const subTab: ClientSubTabKey = isClientSubTab(subTabParam) ? subTabParam : "basics";
     return { view, recordId, subTab };
 };
 
@@ -68,8 +69,8 @@ export function ClientsModule() {
     }, [loadClients]);
 
     useEffect(() => {
-        if (view !== "cadastro" || !recordId || recordId === "novo") {
-            if (recordId === "novo") setSelectedClient(null);
+        if (view !== "form" || !recordId || recordId === "new") {
+            if (recordId === "new") setSelectedClient(null);
             return;
         }
         const cached = clients.find((client) => client.id === recordId);
@@ -85,7 +86,7 @@ export function ClientsModule() {
             })
             .catch(() => {
                 if (!cancelled) {
-                    navigate(clientsListPath(), { view: "listagem", recordId: "", subTab: "dados" }, "replace");
+                    navigate(clientsListPath(), { view: "list", recordId: "", subTab: "basics" }, "replace");
                 }
             });
         return () => {
@@ -96,11 +97,11 @@ export function ClientsModule() {
     useEffect(() => {
         const segments = pathname.split("/").filter(Boolean).slice(1);
         if (segments.length === 0) {
-            navigate(clientsListPath(), { view: "listagem", recordId: "", subTab: "dados" }, "replace");
+            navigate(clientsListPath(), { view: "list", recordId: "", subTab: "basics" }, "replace");
             return;
         }
-        if (fromPath.view === "cadastro" && !fromPath.recordId) {
-            navigate(clientsListPath(), { view: "listagem", recordId: "", subTab: "dados" }, "replace");
+        if (fromPath.view === "form" && !fromPath.recordId) {
+            navigate(clientsListPath(), { view: "list", recordId: "", subTab: "basics" }, "replace");
         }
     }, [pathname, fromPath, navigate]);
 
@@ -116,48 +117,48 @@ export function ClientsModule() {
     });
     const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
-    const openCadastro = (client: Client) => {
-        navigate(clientsCadastroPath(client.id, "dados"), {
-            view: "cadastro",
+    const openForm = (client: Client) => {
+        navigate(clientsFormPath(client.id, "basics"), {
+            view: "form",
             recordId: client.id,
-            subTab: "dados",
+            subTab: "basics",
         });
     };
 
     const onTabSelect = (key: string) => {
-        if (key === "listagem") {
-            navigate(clientsListPath(), { view: "listagem", recordId: "", subTab: "dados" });
+        if (key === "list") {
+            navigate(clientsListPath(), { view: "list", recordId: "", subTab: "basics" });
             return;
         }
-        if (recordId && recordId !== "novo") {
-            navigate(clientsCadastroPath(recordId, "dados"), {
-                view: "cadastro",
+        if (recordId && recordId !== "new") {
+            navigate(clientsFormPath(recordId, "basics"), {
+                view: "form",
                 recordId,
-                subTab: "dados",
+                subTab: "basics",
             });
             return;
         }
         if (selectedClient) {
-            navigate(clientsCadastroPath(selectedClient.id, "dados"), {
-                view: "cadastro",
+            navigate(clientsFormPath(selectedClient.id, "basics"), {
+                view: "form",
                 recordId: selectedClient.id,
-                subTab: "dados",
+                subTab: "basics",
             });
             return;
         }
-        navigate(clientsCadastroPath("novo", "dados"), {
-            view: "cadastro",
-            recordId: "novo",
-            subTab: "dados",
+        navigate(clientsFormPath("new", "basics"), {
+            view: "form",
+            recordId: "new",
+            subTab: "basics",
         });
     };
 
     const handleSaved = async (client: Client) => {
         await loadClients();
         setSelectedClient(client);
-        if (recordId === "novo" || recordId !== client.id) {
-            navigate(clientsCadastroPath(client.id, subTab), {
-                view: "cadastro",
+        if (recordId === "new" || recordId !== client.id) {
+            navigate(clientsFormPath(client.id, subTab), {
+                view: "form",
                 recordId: client.id,
                 subTab,
             }, "replace");
@@ -168,8 +169,8 @@ export function ClientsModule() {
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <AdminModuleToolbar
                 tabs={[
-                    { key: "listagem", label: "Listagem" },
-                    { key: "cadastro", label: "Cadastro" },
+                    { key: "list", label: "Listagem" },
+                    { key: "form", label: "Cadastro" },
                 ]}
                 active={view}
                 onSelect={onTabSelect}
@@ -177,10 +178,10 @@ export function ClientsModule() {
                     <AdminBtn
                         icon={<Plus size={13} />}
                         onClick={() =>
-                            navigate(clientsCadastroPath("novo", "dados"), {
-                                view: "cadastro",
-                                recordId: "novo",
-                                subTab: "dados",
+                            navigate(clientsFormPath("new", "basics"), {
+                                view: "form",
+                                recordId: "new",
+                                subTab: "basics",
                             })
                         }
                     >
@@ -196,10 +197,10 @@ export function ClientsModule() {
                     display: "flex",
                     flexDirection: "column",
                     padding: 20,
-                    overflow: view === "listagem" ? "auto" : "hidden",
+                    overflow: view === "list" ? "auto" : "hidden",
                 }}
             >
-                {view === "listagem" ? (
+                {view === "list" ? (
                     <>
                         <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                             <AdminSearchBar
@@ -229,11 +230,11 @@ export function ClientsModule() {
                         </div>
                         <AdminDataGrid
                             cols={[
-                                { key: "document", label: "CNPJ", width: 160 },
-                                { key: "name", label: "Nome Fantasia" },
-                                { key: "legalName", label: "Razão Social" },
-                                { key: "contactEmail", label: "Email" },
-                                { key: "contactPhone", label: "Telefones", width: 160 },
+                                { key: "document", label: "CNPJ", width: 160, dataType: DataType.CNPJ },
+                                { key: "name", label: "Nome Fantasia", dataType: DataType.STRING },
+                                { key: "legalName", label: "Razão Social", dataType: DataType.STRING },
+                                { key: "contactEmail", label: "Email", dataType: DataType.EMAIL },
+                                { key: "contactPhone", label: "Telefones", width: 160, dataType: DataType.PHONE },
                                 {
                                     key: "status",
                                     label: "Status",
@@ -242,7 +243,7 @@ export function ClientsModule() {
                                 },
                             ]}
                             rows={paged as unknown as Record<string, unknown>[]}
-                            onDoubleClick={(row) => openCadastro(row as unknown as Client)}
+                            onDoubleClick={(row) => openForm(row as unknown as Client)}
                             emptyMsg={loading ? "Carregando..." : "Nenhum cliente encontrado."}
                         />
                         <AdminPagination
@@ -254,14 +255,14 @@ export function ClientsModule() {
                     </>
                 ) : (
                     <ClientCadastro
-                        key={recordId || "novo"}
+                        key={recordId || "new"}
                         client={selectedClient}
-                        isNew={recordId === "novo"}
+                        isNew={recordId === "new"}
                         subTab={subTab}
                         onSubTabChange={(next) => {
                             if (!recordId) return;
-                            navigate(clientsCadastroPath(recordId, next), {
-                                view: "cadastro",
+                            navigate(clientsFormPath(recordId, next), {
+                                view: "form",
                                 recordId,
                                 subTab: next,
                             });
@@ -269,9 +270,9 @@ export function ClientsModule() {
                         onSaved={handleSaved}
                         onCancel={() =>
                             navigate(clientsListPath(), {
-                                view: "listagem",
+                                view: "list",
                                 recordId: "",
-                                subTab: "dados",
+                                subTab: "basics",
                             })
                         }
                         defaultSlugHint={slugFromName}

@@ -7,9 +7,10 @@ import {
     useContext,
     useEffect,
     useMemo,
-    useState,
     useSyncExternalStore,
 } from "react";
+
+import { useSession } from "next-auth/react";
 
 import { getNavSectionsForSystem, SETTINGS_NAV_SECTIONS } from "@/config/routes";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
@@ -18,7 +19,11 @@ import { useSessionPermissions } from "@/shared/auth/permissions";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import { useContractedSystemKeys } from "@/shared/hooks/useContractedSystemKeys";
 import { SETTINGS_MODE_COOKIE_KEY } from "@/shared/lib/active-system-preferences";
-import { isSystemContracted, resolveContractedSystems } from "@/shared/lib/contracted-systems";
+import {
+    isPlatformAdminWithoutTenant,
+    isSystemContracted,
+    resolveContractedSystems,
+} from "@/shared/lib/contracted-systems";
 
 const SETTINGS_MODE_STORAGE_KEY = "gommo-settings-mode";
 const SETTINGS_MODE_EVENT = "gommo-settings-mode-change";
@@ -69,22 +74,6 @@ function persistSettingsMode(enabled: boolean): void {
     window.localStorage.setItem(SETTINGS_MODE_STORAGE_KEY, enabled ? "1" : "0");
     writeSettingsModeCookie(enabled);
     window.dispatchEvent(new Event(SETTINGS_MODE_EVENT));
-}
-
-function useHydrationSafeExternalStore<T>(
-    subscribe: (onStoreChange: () => void) => () => void,
-    getClientSnapshot: () => T,
-    serverSnapshot: T,
-): T {
-    const [hydrated, setHydrated] = useState(false);
-    useEffect(() => {
-        setHydrated(true);
-    }, []);
-    return useSyncExternalStore(
-        subscribe,
-        () => (hydrated ? getClientSnapshot() : serverSnapshot),
-        () => serverSnapshot,
-    );
 }
 
 type ActiveSystemContextValue = {
@@ -141,19 +130,29 @@ export function ActiveSystemProvider({
     initialStoredSystem = null,
     initialSettingsMode = false,
 }: ActiveSystemProviderProps) {
+    const { data: session } = useSession();
     const permissions = useSessionPermissions();
     const { keys: contractedKeys, ready: contractedReady } = useContractedSystemKeys();
     const permissionsReady = contractedReady;
+    // Sessão (JWT), não as keys já resolvidas do hook — senão o admin
+    // "sem tenant" deixa de ser detectado depois que o filtro comercial muda.
+    const platformAdminNoTenant = isPlatformAdminWithoutTenant({
+        platformAdmin: session?.platformAdmin,
+        tenantSlug: session?.tenantSlug,
+        contractedSystemKeys: session?.contractedSystemKeys,
+    });
     const contractedSystems = useMemo(() => resolveContractedSystems(contractedKeys), [contractedKeys]);
-    const storedSystem = useHydrationSafeExternalStore(
+    // getServerSnapshot = cookie do SSR; apos hidratar, getSnapshot le localStorage.
+    // O Provider precisa estar no mesmo Suspense que a Sidebar (ver SystemShell).
+    const storedSystem = useSyncExternalStore(
         SystemEnumHelper.subscribeStoredSystem,
-        () => SystemEnumHelper.readStoredSystem(),
-        initialStoredSystem,
+        SystemEnumHelper.readStoredSystem,
+        () => initialStoredSystem,
     );
-    const isSettingsMode = useHydrationSafeExternalStore(
+    const isSettingsMode = useSyncExternalStore(
         subscribeSettingsMode,
-        () => readSettingsMode(),
-        initialSettingsMode,
+        readSettingsMode,
+        () => initialSettingsMode,
     );
 
     useEffect(() => {
@@ -171,6 +170,10 @@ export function ActiveSystemProvider({
         }
         return SystemEnumHelper.getSortedSystems()
             .filter((systemId) => {
+                // Admin na plataforma / localhost: todos os sistemas no rail.
+                if (platformAdminNoTenant) {
+                    return true;
+                }
                 if (!isSystemContracted(systemId, contractedSystems)) {
                     return false;
                 }
@@ -178,7 +181,7 @@ export function ActiveSystemProvider({
                 return filterSectionsByPermissions(sections, permissions).length > 0;
             })
             .map((id) => SystemEnumHelper.getById(id));
-    }, [contractedSystems, permissions, permissionsReady]);
+    }, [contractedSystems, permissions, permissionsReady, platformAdminNoTenant]);
     const resolvedActiveSystem = useMemo(() => {
         if (isSettingsMode || systems.length === 0) {
             return activeSystem;
@@ -191,13 +194,27 @@ export function ActiveSystemProvider({
             return [];
         }
         if (isSettingsMode) {
+            if (platformAdminNoTenant) {
+                return SETTINGS_NAV_SECTIONS;
+            }
             return filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, permissions);
         }
         if (systems.length === 0) {
             return [];
         }
-        return filterSectionsByPermissions(getNavSectionsForSystem(resolvedActiveSystem), permissions);
-    }, [resolvedActiveSystem, isSettingsMode, permissions, permissionsReady, systems.length]);
+        const sections = getNavSectionsForSystem(resolvedActiveSystem);
+        if (platformAdminNoTenant) {
+            return sections;
+        }
+        return filterSectionsByPermissions(sections, permissions);
+    }, [
+        resolvedActiveSystem,
+        isSettingsMode,
+        permissions,
+        permissionsReady,
+        platformAdminNoTenant,
+        systems.length,
+    ]);
     const selectSystem = useCallback((system: SystemEnum) => {
         persistSettingsMode(false);
         SystemEnumHelper.persistSystem(system);

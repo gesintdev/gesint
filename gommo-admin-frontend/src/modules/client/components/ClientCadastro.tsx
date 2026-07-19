@@ -275,7 +275,7 @@ export function ClientCadastro({
                 minHeight: 0,
                 display: "flex",
                 flexDirection: "column",
-                overflow: subTab === "sistemas" ? "hidden" : "auto",
+                overflow: subTab === "systems" ? "hidden" : "auto",
             }}
         >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexShrink: 0 }}>
@@ -298,19 +298,21 @@ export function ClientCadastro({
                 />
             </div>
 
-            {subTab === "dados" ? (
-                <div style={{ maxWidth: 780 }}>
+            {subTab === "basics" ? (
+                <div style={{ width: "100%" }}>
                     <AdminSection title="Dados do Cliente">
-                        <AdminFormGrid cols={2}>
-                            <AdminInput
-                                label="CNPJ"
-                                value={maskCnpj(form.document ?? "")}
-                                onChange={onDocumentChange}
-                                placeholder="00.000.000/0000-00"
-                                required
-                            />
-                            <div style={{ display: "flex", alignItems: "flex-end", fontSize: 11, color: "var(--ga-text-muted)", paddingBottom: 8 }}>
-                                {lookingUpCnpj ? "Consultando CNPJ..." : "Busca de dados automática."}
+                        <AdminFormGrid cols={3}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                <AdminInput
+                                    label="CNPJ"
+                                    value={maskCnpj(form.document ?? "")}
+                                    onChange={onDocumentChange}
+                                    placeholder="00.000.000/0000-00"
+                                    required
+                                />
+                                <div style={{ fontSize: 11, color: "var(--ga-text-muted)", lineHeight: 1.35 }}>
+                                    {lookingUpCnpj ? "Consultando CNPJ..." : "Busca de dados automática."}
+                                </div>
                             </div>
                             <AdminInput
                                 label="Nome Fantasia"
@@ -323,25 +325,29 @@ export function ClientCadastro({
                                 value={form.legalName ?? ""}
                                 onChange={(v) => updateForm("legalName", v)}
                             />
-                            <div style={{ gridColumn: "span 2" }}>
+                            <div style={{ gridColumn: "span 3" }}>
                                 <AdminInput
                                     label="Endereço"
                                     value={form.address ?? ""}
                                     onChange={(v) => updateForm("address", v)}
                                 />
                             </div>
-                            <AdminInput
-                                label="Email"
-                                value={form.contactEmail ?? ""}
-                                onChange={(v) => updateForm("contactEmail", v)}
-                                type="email"
-                            />
-                            <AdminInput
-                                label="Telefones"
-                                value={form.contactPhone ?? ""}
-                                onChange={(v) => updateForm("contactPhone", v)}
-                                placeholder="(11) 99999-9999 / (11) 3333-3333"
-                            />
+                            <div style={{ gridColumn: "span 3" }}>
+                                <AdminFormGrid cols={2}>
+                                    <AdminInput
+                                        label="Email"
+                                        value={form.contactEmail ?? ""}
+                                        onChange={(v) => updateForm("contactEmail", v)}
+                                        type="email"
+                                    />
+                                    <AdminInput
+                                        label="Telefones"
+                                        value={form.contactPhone ?? ""}
+                                        onChange={(v) => updateForm("contactPhone", v)}
+                                        placeholder="(11) 99999-9999 / (11) 3333-3333"
+                                    />
+                                </AdminFormGrid>
+                            </div>
                         </AdminFormGrid>
                     </AdminSection>
 
@@ -353,8 +359,8 @@ export function ClientCadastro({
                 </div>
             ) : null}
 
-            {subTab === "config" ? (
-                <div style={{ maxWidth: 780 }}>
+            {subTab === "environment" ? (
+                <div style={{ width: "100%" }}>
                     {!client ? (
                         <div style={{ fontSize: 13, color: "var(--ga-text-muted)" }}>
                             Salve os dados básicos para configurar o ambiente.
@@ -386,7 +392,7 @@ export function ClientCadastro({
                             </AdminSection>
 
                             <AdminSection title="Banco de Dados">
-                                <AdminFormGrid cols={3}>
+                                <AdminFormGrid cols={4}>
                                     <AdminSelect
                                         label="Estratégia"
                                         value={envForm.databaseStrategy ?? "DEDICATED_SCHEMA"}
@@ -471,7 +477,7 @@ export function ClientCadastro({
                                     </AdminBtn>
                                     <AdminHelpTip
                                         tooltip="Cria e prepara o schema/banco do tenant com base na configuração salva (conexão, estrutura e status READY/ERROR). Clique no ícone para a documentação completa."
-                                        href="/docs/provisionar-ambiente"
+                                        href="/docs/provision-environment"
                                     />
                                 </div>
                             </div>
@@ -480,7 +486,7 @@ export function ClientCadastro({
                 </div>
             ) : null}
 
-            {subTab === "sistemas" ? (
+            {subTab === "systems" ? (
                 client ? (
                     <div style={{ flex: 1, minHeight: 0, marginTop: 4 }}>
                         <ClientSistemas clientId={client.id} />
@@ -492,7 +498,7 @@ export function ClientCadastro({
                 )
             ) : null}
 
-            {subTab === "usuarios" ? (
+            {subTab === "users" ? (
                 client ? <ClientUsuarios clientId={client.id} /> : (
                     <div style={{ fontSize: 13, color: "var(--ga-text-muted)" }}>
                         Salve os dados básicos para gerenciar usuários.

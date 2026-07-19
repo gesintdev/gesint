@@ -1,17 +1,7 @@
-export enum TableDataType {
-    TEXT = "TEXT",
-    UUID = "UUID",
-    CPF = "CPF",
-    PHONE = "PHONE",
-    EMAIL = "EMAIL",
-    DATE = "DATE",
-    DATETIME = "DATETIME",
-    FLOAT = "FLOAT",
-    CURRENCY = "CURRENCY",
-    PERCENT = "PERCENT",
-    BADGE = "BADGE",
-    BOOLEAN = "BOOLEAN",
-}
+import { DataType } from "@/shared/types/data-type";
+
+/** @deprecated Preferir {@link DataType}. Mantido para compatibilidade com DataTable. */
+export { DataType as TableDataType };
 
 export type TableColumnConfig = {
     /** Identificador único da coluna */
@@ -20,7 +10,7 @@ export type TableColumnConfig = {
     columnName: string;
     /** Caminho do campo no objeto (suporta dot notation — ex.: `address.city`) */
     fieldValue: string;
-    dataType?: TableDataType;
+    dataType?: DataType;
     align?: "left" | "center" | "right";
     /** Classes Tailwind extras na célula (ex.: `hidden md:table-cell`) */
     className?: string;

@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 import { slugifyHeading } from "@/docs/nav";
-import { PROVISIONAR_AMBIENTE_DOC } from "@/docs/provisionar-ambiente";
+import { PROVISION_ENVIRONMENT_DOC } from "@/docs/provision-environment";
 import { DocsToc } from "@/shared/components/docs/DocsToc";
 
-export default function ProvisionarAmbienteDocsPage() {
-    const doc = PROVISIONAR_AMBIENTE_DOC;
+export default function ProvisionEnvironmentDocsPage() {
+    const doc = PROVISION_ENVIRONMENT_DOC;
     const toc = doc.sections.map((section) => ({
         id: slugifyHeading(section.title),
         label: section.title,

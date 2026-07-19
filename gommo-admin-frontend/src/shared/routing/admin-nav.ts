@@ -12,10 +12,10 @@ export type AdminMenuDef = {
 };
 
 export const CLIENT_SUB_TABS = [
-    { key: "dados", label: "Dados Básicos" },
-    { key: "config", label: "Config. do Ambiente" },
-    { key: "sistemas", label: "Sistemas Contratados" },
-    { key: "usuarios", label: "Usuários" },
+    { key: "basics", label: "Dados Básicos" },
+    { key: "environment", label: "Config. do Ambiente" },
+    { key: "systems", label: "Sistemas Contratados" },
+    { key: "users", label: "Usuários" },
 ] as const;
 
 export type ClientSubTabKey = (typeof CLIENT_SUB_TABS)[number]["key"];
@@ -25,7 +25,7 @@ export const ADMIN_MENUS: AdminMenuDef[] = [
         key: "clients",
         label: "Clientes",
         href: "/clients",
-        listHref: "/clients/listagem",
+        listHref: "/clients/list",
         icon: Building2,
         subTabs: [...CLIENT_SUB_TABS],
     },
@@ -33,14 +33,14 @@ export const ADMIN_MENUS: AdminMenuDef[] = [
         key: "systems",
         label: "Sistemas",
         href: "/systems",
-        listHref: "/systems/listagem",
+        listHref: "/systems/list",
         icon: Boxes,
     },
     {
         key: "users",
         label: "Usuários",
         href: "/users",
-        listHref: "/users/listagem",
+        listHref: "/users/list",
         icon: Users,
     },
 ];
@@ -50,39 +50,39 @@ export function getAdminMenu(key: AdminMenuKey): AdminMenuDef {
 }
 
 export function clientsListPath() {
-    return "/clients/listagem";
+    return "/clients/list";
 }
 
-export function clientsCadastroPath(id: string | number, subTab: ClientSubTabKey = "dados") {
-    return `/clients/cadastro/${id}/${subTab}`;
+export function clientsFormPath(id: string | number, subTab: ClientSubTabKey = "basics") {
+    return `/clients/form/${id}/${subTab}`;
 }
 
 export function systemsListPath() {
-    return "/systems/listagem";
+    return "/systems/list";
 }
 
-export function systemsCadastroPath(id: string | number) {
-    return `/systems/cadastro/${id}`;
+export function systemsFormPath(id: string | number) {
+    return `/systems/form/${id}`;
 }
 
 export function usersListPath() {
-    return "/users/listagem";
+    return "/users/list";
 }
 
-export function usersCadastroPath(id: string | number) {
-    return `/users/cadastro/${id}`;
+export function usersFormPath(id: string | number) {
+    return `/users/form/${id}`;
 }
 
 export type AdminRouteState =
     | {
           menu: AdminMenuDef;
-          view: "listagem";
+          view: "list";
           recordId?: undefined;
           subTab?: undefined;
       }
     | {
           menu: AdminMenuDef;
-          view: "cadastro";
+          view: "form";
           recordId: string;
           subTab?: string;
       };
@@ -100,20 +100,20 @@ export function parseAdminPathname(pathname: string): AdminRouteState | null {
     const menu = ADMIN_MENUS.find((item) => item.key === parts[0] || item.href === `/${parts[0]}`);
     if (!menu) return null;
 
-    if (parts.length === 1 || parts[1] === "listagem") {
-        return { menu, view: "listagem" };
+    if (parts.length === 1 || parts[1] === "list") {
+        return { menu, view: "list" };
     }
 
-    if (parts[1] === "cadastro") {
+    if (parts[1] === "form") {
         const recordId = parts[2];
         if (!recordId) {
-            return { menu, view: "listagem" };
+            return { menu, view: "list" };
         }
         const subTab = parts[3];
-        return { menu, view: "cadastro", recordId, subTab };
+        return { menu, view: "form", recordId, subTab };
     }
 
-    return { menu, view: "listagem" };
+    return { menu, view: "list" };
 }
 
 export function buildAdminBreadcrumb(pathname: string): AdminBreadcrumbItem[] {
@@ -128,25 +128,25 @@ export function buildAdminBreadcrumb(pathname: string): AdminBreadcrumbItem[] {
         },
     ];
 
-    if (state.view === "listagem") {
+    if (state.view === "list") {
         crumbs.push({ label: "Listagem" });
         return crumbs;
     }
 
-    const cadastroHref =
+    const formHref =
         state.menu.key === "clients"
-            ? clientsCadastroPath(state.recordId, "dados")
+            ? clientsFormPath(state.recordId, "basics")
             : state.menu.key === "systems"
-              ? systemsCadastroPath(state.recordId)
-              : usersCadastroPath(state.recordId);
+              ? systemsFormPath(state.recordId)
+              : usersFormPath(state.recordId);
 
     crumbs.push({
         label: "Cadastro",
-        href: cadastroHref,
+        href: formHref,
     });
 
     if (state.menu.key === "clients") {
-        const subKey = isClientSubTab(state.subTab) ? state.subTab : "dados";
+        const subKey = isClientSubTab(state.subTab) ? state.subTab : "basics";
         const sub = CLIENT_SUB_TABS.find((item) => item.key === subKey);
         crumbs.push({ label: sub?.label ?? "Dados Básicos" });
     }

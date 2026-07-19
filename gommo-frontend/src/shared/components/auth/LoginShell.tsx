@@ -26,7 +26,7 @@ export function LoginShell({
                 <div className="login-page__visual-scrim" />
             </section>
             <section className="login-page__form" aria-label="Autenticação">
-                <div className="login-page__glass animate-fade-up flex h-full min-h-0 w-full flex-col items-center justify-center overflow-hidden backdrop-blur-[72px] backdrop-brightness-110 backdrop-contrast-[1.02] backdrop-saturate-[1.85]">
+                <div className="login-page__glass animate-fade-up flex h-full min-h-0 w-full flex-col items-center justify-center overflow-hidden">
                     <div className="login-page__glass-body flex w-[92%] max-w-152 flex-col items-center justify-center px-8 py-8 text-center sm:px-12 lg:w-[82%] lg:max-w-2xl lg:px-14 lg:py-10">
                         <div className="login-page__brand flex w-full flex-col items-center">
                             <img

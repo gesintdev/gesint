@@ -31,6 +31,11 @@ public record TenantContext(
         return clientId == null;
     }
 
+    /** Tenant sintético do localhost (schema public), não é cliente comercial. */
+    public boolean isDevelopmentPublic() {
+        return DEVELOPMENT_PUBLIC_CLIENT_ID.equals(clientId);
+    }
+
     public boolean isBillingActive() {
         return billingStatus == null || "ACTIVE".equalsIgnoreCase(billingStatus);
     }

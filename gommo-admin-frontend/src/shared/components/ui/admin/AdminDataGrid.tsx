@@ -2,12 +2,28 @@
 
 import type { ReactNode } from "react";
 
+import { DataTypeFactory } from "@/shared/lib/data-type/data-type.factory";
+import { DataType } from "@/shared/types/data-type";
+
 export type AdminGridCol<T> = {
     key: keyof T & string;
     label: string;
     width?: number | string;
+    /** Tipo de dado: aplica máscara/formatação automática quando não há `render`. */
+    dataType?: DataType;
     render?: (value: unknown, row: T) => ReactNode;
 };
+
+function formatCell<T extends Record<string, unknown>>(col: AdminGridCol<T>, row: T): ReactNode {
+    const value = row[col.key];
+    if (col.render) {
+        return col.render(value, row);
+    }
+    if (col.dataType) {
+        return DataTypeFactory.mask(value, col.dataType);
+    }
+    return value == null ? "" : String(value);
+}
 
 export function AdminDataGrid<T extends Record<string, unknown>>({
     cols,
@@ -87,11 +103,16 @@ export function AdminDataGrid<T extends Record<string, unknown>>({
                                 {cols.map((col) => (
                                     <td
                                         key={col.key}
-                                        style={{ padding: "8px 12px", fontSize: 13, color: "var(--ga-text)" }}
+                                        style={{
+                                            padding: "8px 12px",
+                                            fontSize: 13,
+                                            color: "var(--ga-text)",
+                                            fontVariantNumeric: DataTypeFactory.hasMask(col.dataType)
+                                                ? "tabular-nums"
+                                                : undefined,
+                                        }}
                                     >
-                                        {col.render
-                                            ? col.render(row[col.key], row)
-                                            : String(row[col.key] ?? "")}
+                                        {formatCell(col, row)}
                                     </td>
                                 ))}
                             </tr>

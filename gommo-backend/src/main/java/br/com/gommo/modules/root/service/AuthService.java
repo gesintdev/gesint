@@ -247,7 +247,11 @@ public class AuthService implements IAuthService {
                 .map(tenant -> TenantInfoResponseDto.builder()
                         .slug(tenant.slug())
                         .name(tenant.name())
-                        .contractedSystemKeys(resolveContractedSystemKeys(tenant.clientId()))
+                        // Tenant sintético do localhost não tem contratos comerciais.
+                        .contractedSystemKeys(
+                                tenant.isDevelopmentPublic()
+                                        ? null
+                                        : resolveContractedSystemKeys(tenant.clientId()))
                         .build());
     }
 
@@ -272,13 +276,20 @@ public class AuthService implements IAuthService {
         String tenantSlug = null;
         String tenantName = null;
         List<String> contractedSystemKeys = null;
+        TenantContext tenant = null;
         if (multiTenantProperties.isEnabled()) {
-            TenantContext tenant = TenantContextHolder.require();
-            if (!tenant.isPlatformAccess()) {
+            tenant = TenantContextHolder.require();
+            if (!tenant.isPlatformAccess() && !tenant.isDevelopmentPublic()) {
                 tenantId = tenant.clientId();
                 tenantSlug = tenant.slug();
                 tenantName = tenant.name();
                 contractedSystemKeys = resolveContractedSystemKeys(tenantId);
+            } else if (tenant.isDevelopmentPublic()) {
+                // Localhost (schema public): não é cliente comercial — sem filtro de sistemas.
+                tenantId = tenant.clientId();
+                tenantSlug = tenant.slug();
+                tenantName = tenant.name();
+                contractedSystemKeys = null;
             }
         }
 
@@ -292,6 +303,10 @@ public class AuthService implements IAuthService {
 
         boolean platformAdmin =
                 multiTenantProperties.isEnabled() && platformAdminUserLookup.isPlatformAdmin(user.getUsername());
+        // Admin da plataforma no host: null = FE libera todos os sistemas (não []).
+        if (platformAdmin && (tenant == null || tenant.isPlatformAccess())) {
+            contractedSystemKeys = null;
+        }
         CollaboratorOrganizationSnapshot organization = resolveCollaboratorOrganization(user);
 
         return TokenResponseDto.builder()
@@ -339,7 +354,10 @@ public class AuthService implements IAuthService {
             return;
         }
         TenantContext tenant = TenantContextHolder.getOptional().orElse(null);
-        if (tenant == null || tenant.isPlatformAccess() || tenant.clientId() == null) {
+        if (tenant == null
+                || tenant.isPlatformAccess()
+                || tenant.isDevelopmentPublic()
+                || tenant.clientId() == null) {
             return;
         }
         if (platformAdminUserLookup.isPlatformAdmin(username)) {

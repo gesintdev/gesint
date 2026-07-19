@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { INTERNAL_DOCS } from "@/docs/provisionar-ambiente";
+import { INTERNAL_DOCS } from "@/docs/provision-environment";
 import { DocsToc } from "@/shared/components/docs/DocsToc";
 
 export default function DocsIndexPage() {

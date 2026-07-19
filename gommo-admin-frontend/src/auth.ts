@@ -86,7 +86,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             const isDocs = nextUrl.pathname.startsWith("/docs");
 
             if (isLogin) {
-                return auth ? Response.redirect(new URL("/clients/listagem", nextUrl)) : true;
+                return auth ? Response.redirect(new URL("/clients/list", nextUrl)) : true;
             }
 
             // Docs: nao redireciona para login — o layout chama notFound() sem sessão.

@@ -22,7 +22,7 @@ export function LoginPage() {
 
     useEffect(() => {
         if (status === "authenticated") {
-            router.replace("/clients/listagem");
+            router.replace("/clients/list");
         }
     }, [status, router]);
 
@@ -43,7 +43,7 @@ export function LoginPage() {
             setError("Usuário ou senha inválidos.");
             return;
         }
-        router.replace("/clients/listagem");
+        router.replace("/clients/list");
         router.refresh();
     };
 
