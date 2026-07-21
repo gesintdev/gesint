@@ -95,7 +95,7 @@ export function AdminUserCadastro({
     };
 
     return (
-        <div style={{ maxWidth: 720 }}>
+        <div style={{ width: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ga-text)" }}>
                     {isNew ? "Novo usuário" : (user?.fullName ?? "Usuário")}

@@ -1,22 +1,25 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, CalendarPlus } from "lucide-react";
+import { CalendarDays, CalendarPlus, Eye } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { admissionprocessKeys } from "@/modules/rh/person/collaborators/admission/admission.query";
 import { ADMISSION_CLIENT_MESSAGES } from "@/modules/rh/person/collaborators/admission/exceptions/admission-process.messages";
 import { admissionprocessService } from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
+import { VacationHistoryDetailModal } from "@/modules/rh/person/leave/components/VacationHistoryDetailModal";
 import { LEAVE_HISTORY_TABLE_COLUMNS } from "@/modules/rh/person/leave/config/leave-history.table-columns";
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";
 import { leaverequestKeys } from "@/modules/rh/person/leave/leave.query";
 import {
-    isVacationHistory,
-    type RhVacationRow,
-    toRhVacationRow,
-} from "@/modules/rh/person/leave/lib/leave-request.filters";
+    enrichVacationHistoryRows,
+    type VacationHistoryRow,
+} from "@/modules/rh/person/leave/lib/leave-history.enrich";
+import { isVacationHistory } from "@/modules/rh/person/leave/lib/leave-request.filters";
 import { loadVacationEligibleCollaborators } from "@/modules/rh/person/leave/lib/vacation-eligible";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { Button } from "@/shared/components/ui/Button";
 import { DataTable } from "@/shared/components/ui/DataTable";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -26,7 +29,7 @@ import { findRouteById } from "@/shared/workspace/workspace-routes";
 const VACATION_HISTORY_COLUMNS = LEAVE_HISTORY_TABLE_COLUMNS.filter((column) => column.id !== "collaboratorName");
 const PREFILL_STORAGE_KEY = "gommo-vacation-request-prefill";
 
-function sortByStartDateDesc(rows: RhVacationRow[]): RhVacationRow[] {
+function sortByStartDateDesc(rows: VacationHistoryRow[]): VacationHistoryRow[] {
     return [...rows].sort((a, b) => String(b.startDate ?? "").localeCompare(String(a.startDate ?? "")));
 }
 
@@ -35,11 +38,13 @@ function VacationHistorySection({
     description,
     rows,
     emptyMessage,
+    onView,
 }: {
     title: string;
     description: string;
-    rows: RhVacationRow[];
+    rows: VacationHistoryRow[];
     emptyMessage: string;
+    onView: (row: VacationHistoryRow) => void;
 }) {
     return (
         <section className="overflow-hidden rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100">
@@ -52,12 +57,25 @@ function VacationHistorySection({
                     {rows.length}
                 </span>
             </header>
-            <DataTable<RhVacationRow>
+            <DataTable<VacationHistoryRow>
                 data={rows}
                 columns={VACATION_HISTORY_COLUMNS}
                 rowKey="id"
                 emptyMessage={emptyMessage}
                 rowActivateOn="doubleclick"
+                onRowActivate={onView}
+                renderActions={(row) => (
+                    <TableActionButton
+                        actionVariant="open"
+                        aria-label="Visualizar detalhes"
+                        title="Visualizar detalhes"
+                        leftIcon={<Eye className="size-3.5" />}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onView(row);
+                        }}
+                    />
+                )}
             />
         </section>
     );
@@ -80,6 +98,7 @@ function EmptyAdmissionState() {
 export function AdmissionVacationHistoryTab() {
     const { editingId } = useCrudScreen();
     const { openRouteCreate } = useWorkspaceNavigation();
+    const [selected, setSelected] = useState<VacationHistoryRow | null>(null);
     const admissionQuery = useQuery({
         queryKey: admissionprocessKeys.detail(editingId ?? ""),
         queryFn: () => admissionprocessService.getById(editingId!),
@@ -89,10 +108,11 @@ export function AdmissionVacationHistoryTab() {
         queryKey: [...leaverequestKeys.all, "admission-vacation-history", admissionQuery.data?.collaboratorId],
         queryFn: async () => {
             const rows = await leaverequestService.getAll();
-            return rows
-                .filter((row) => row.collaboratorId === admissionQuery.data?.collaboratorId)
-                .filter(isVacationHistory)
-                .map(toRhVacationRow);
+            return enrichVacationHistoryRows(
+                rows
+                    .filter((row) => row.collaboratorId === admissionQuery.data?.collaboratorId)
+                    .filter(isVacationHistory),
+            );
         },
         enabled: Boolean(admissionQuery.data?.collaboratorId),
     });
@@ -101,6 +121,11 @@ export function AdmissionVacationHistoryTab() {
         queryFn: loadVacationEligibleCollaborators,
         enabled: Boolean(admissionQuery.data?.collaboratorId),
     });
+
+    const rows = useMemo(
+        () => sortByStartDateDesc(vacationHistoryQuery.data ?? []),
+        [vacationHistoryQuery.data],
+    );
 
     if (!editingId) return <EmptyAdmissionState />;
 
@@ -144,7 +169,6 @@ export function AdmissionVacationHistoryTab() {
     }
 
     const eligible = eligibleQuery.data?.find((row) => row.collaboratorId === collaboratorId);
-    const rows = sortByStartDateDesc(vacationHistoryQuery.data ?? []);
     const today = new Date().toISOString().slice(0, 10);
     const currentRows = rows.filter((row) => String(row.endDate ?? "") >= today);
     const takenRows = rows.filter((row) => String(row.endDate ?? "") < today);
@@ -177,12 +201,14 @@ export function AdmissionVacationHistoryTab() {
                     description="Períodos aprovados em andamento ou programados."
                     rows={currentRows}
                     emptyMessage="Nenhuma férias atual ou programada."
+                    onView={setSelected}
                 />
                 <VacationHistorySection
                     title="Férias gozadas"
                     description="Períodos aprovados já encerrados."
                     rows={takenRows}
                     emptyMessage="Nenhuma férias gozada registrada."
+                    onView={setSelected}
                 />
             </div>
             <footer className="flex items-center justify-between gap-3 border-t border-[var(--gommo-border-subtle)] bg-base-100 px-4 py-3">
@@ -201,6 +227,11 @@ export function AdmissionVacationHistoryTab() {
                     Lançar férias
                 </Button>
             </footer>
+            <VacationHistoryDetailModal
+                row={selected}
+                open={Boolean(selected)}
+                onClose={() => setSelected(null)}
+            />
         </div>
     );
 }

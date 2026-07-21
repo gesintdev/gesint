@@ -69,7 +69,7 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
     const queryClient = useQueryClient();
     const [form, setForm] = useState<VacationFormState>(() => ({
         ...emptyVacationForm(),
-        approved: isRh ? false : true,
+        approved: !isRh,
     }));
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<FormField, string>>>({});
@@ -78,7 +78,9 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
     /** Período aquisitivo escolhido pelo usuário; null = período ativo padrão. */
     const [acquisitionOverride, setAcquisitionOverride] = useState<string | null>(null);
     const formRef = useRef(form);
-    formRef.current = form;
+    useEffect(() => {
+        formRef.current = form;
+    }, [form]);
     const detailQuery = useQuery({
         queryKey: leaverequestKeys.detail(editingId ?? ""),
         queryFn: () => leaverequestService.getById(editingId!),
@@ -243,7 +245,7 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
                       ? "Férias atualizadas"
                       : "Férias cadastradas",
             );
-            setForm({ ...emptyVacationForm(), approved: isRh ? false : true });
+            setForm({ ...emptyVacationForm(), approved: !isRh });
             goToList();
         },
         onError: (err: unknown) => {

@@ -16,17 +16,22 @@ export function resolveTenantSlugFromHostname(hostname?: string): string | null 
     return null;
 }
 
+/** Capitaliza cada palavra como nome próprio (ex.: `FLAVIO HENRIQUE` → `Flavio Henrique`). */
+function toProperName(value: string): string {
+    return value
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+}
+
 /** Formata slug de tenant para exibição (ex.: `acme-corp` → `Acme Corp`). */
 export function formatTenantDisplayName(slug?: string | null): string | null {
     const value = slug?.trim();
     if (!value) {
         return null;
     }
-    return value
-        .split(/[-_]+/)
-        .filter(Boolean)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join(" ");
+    return toProperName(value.split(/[-_]+/).filter(Boolean).join(" "));
 }
 
 export function resolveClientDisplayName(options?: {
@@ -35,7 +40,7 @@ export function resolveClientDisplayName(options?: {
 }): string | null {
     const fromBackend = options?.tenantName?.trim();
     if (fromBackend) {
-        return fromBackend;
+        return toProperName(fromBackend);
     }
     return formatTenantDisplayName(options?.tenantSlug ?? resolveTenantSlugFromHostname());
 }

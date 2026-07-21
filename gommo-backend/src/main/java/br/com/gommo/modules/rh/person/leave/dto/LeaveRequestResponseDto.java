@@ -50,9 +50,16 @@ public class LeaveRequestResponseDto {
     private final Integer justifiedAbsences;
     private final VacationReviewStatusEnum reviewStatus;
     private final String reviewReason;
+    private final OffsetDateTime reviewedAt;
+    private final UUID reviewedBy;
+    private final String reviewedByName;
+    private final LocalDate concessivePeriodStart;
+    private final LocalDate concessivePeriodEnd;
     private final UUID recessPeriodId;
     private final RecessFinancialModeEnum recessFinancialMode;
     private final BigDecimal recessPaidPercentage;
+    private final UUID createdBy;
+    private final String createdByName;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

@@ -34,9 +34,16 @@ export class LeaveRequest {
     justifiedAbsences?: number;
     reviewStatus?: "PENDING" | "APPROVED" | "RETURNED" | "REJECTED";
     reviewReason?: string;
+    reviewedAt?: string;
+    reviewedBy?: string;
+    reviewedByName?: string;
+    concessivePeriodStart?: string;
+    concessivePeriodEnd?: string;
     recessPeriodId?: string;
     recessFinancialMode?: "FULLY_PAID" | "UNPAID" | "PROPORTIONAL" | "CUSTOM";
     recessPaidPercentage?: number;
+    createdBy?: string;
+    createdByName?: string;
     createdAt?: string;
     updatedAt?: string;
 }

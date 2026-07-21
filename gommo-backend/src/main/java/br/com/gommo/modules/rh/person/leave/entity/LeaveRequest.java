@@ -13,6 +13,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -116,6 +117,12 @@ public class LeaveRequest extends AuditEntity {
 
     @Column(name = "review_reason", columnDefinition = "TEXT")
     private String reviewReason;
+
+    @Column(name = "reviewed_at")
+    private OffsetDateTime reviewedAt;
+
+    @Column(name = "reviewed_by")
+    private UUID reviewedBy;
 
     @Column(name = "recess_period_id")
     private UUID recessPeriodId;

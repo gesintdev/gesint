@@ -1,16 +1,22 @@
 package br.com.gommo.modules.rh.person.leave.service;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +57,8 @@ import br.com.gommo.modules.rh.person.leave.exception.LeaveRequestException;
 import br.com.gommo.modules.rh.person.leave.exception.LeaveRequestExceptions;
 import br.com.gommo.modules.rh.person.leave.mapper.LeaveRequestMapper;
 import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
+import br.com.gommo.modules.root.entity.AppUser;
+import br.com.gommo.modules.root.repository.AppUserRepository;
 
 @Service
 public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestRequestDto, LeaveRequestResponseDto>
@@ -64,6 +72,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     private final ContractRecessPeriodRepository recessPeriodRepository;
     private final ContractRecessPolicyRepository recessPolicyRepository;
     private final AttendanceRecordRepository attendanceRecordRepository;
+    private final AppUserRepository appUserRepository;
 
     public LeaveRequestService(
             LeaveRequestRepository repository,
@@ -73,7 +82,8 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
             AdmissionProcessRepository admissionProcessRepository,
             ContractRecessPeriodRepository recessPeriodRepository,
             ContractRecessPolicyRepository recessPolicyRepository,
-            AttendanceRecordRepository attendanceRecordRepository) {
+            AttendanceRecordRepository attendanceRecordRepository,
+            AppUserRepository appUserRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -83,6 +93,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         this.recessPeriodRepository = recessPeriodRepository;
         this.recessPolicyRepository = recessPolicyRepository;
         this.attendanceRecordRepository = attendanceRecordRepository;
+        this.appUserRepository = appUserRepository;
     }
 
     @Override
@@ -90,13 +101,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @PreAuthorize("hasAuthority('leave:read')")
     public List<LeaveRequestResponseDto> findAll() {
         List<LeaveRequest> entities = repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED);
-        Map<UUID, String> collaboratorNames = collaboratorNamesById(entities.stream()
-                .map(LeaveRequest::getCollaboratorId)
-                .distinct()
-                .toList());
-        return entities.stream()
-                .map(entity -> mapper.toResponse(entity, collaboratorNames.get(entity.getCollaboratorId())))
-                .toList();
+        return mapResponses(entities);
     }
 
     @Override
@@ -104,7 +109,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @PreAuthorize("hasAuthority('leave:read')")
     public LeaveRequestResponseDto findById(UUID id) {
         LeaveRequest entity = findEntity(id);
-        return mapper.toResponse(entity, resolveCollaboratorName(entity.getCollaboratorId()));
+        return mapResponse(entity);
     }
 
     @Override
@@ -116,10 +121,6 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         if (content.isEmpty()) {
             return pageResult;
         }
-        Map<UUID, String> collaboratorNames = collaboratorNamesById(content.stream()
-                .map(LeaveRequestResponseDto::getCollaboratorId)
-                .distinct()
-                .toList());
         Map<UUID, LeaveRequest> entitiesById =
                 repository
                         .findAllById(content.stream()
@@ -128,10 +129,11 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
                         .stream()
                         .filter(entity -> entity.getStatus() != StatusEnum.DELETED)
                         .collect(Collectors.toMap(LeaveRequest::getId, Function.identity()));
-        List<LeaveRequestResponseDto> enriched = content.stream()
-                .map(dto -> mapper.toResponse(
-                        entitiesById.get(dto.getId()), collaboratorNames.get(dto.getCollaboratorId())))
+        List<LeaveRequest> ordered = content.stream()
+                .map(dto -> entitiesById.get(dto.getId()))
+                .filter(Objects::nonNull)
                 .toList();
+        List<LeaveRequestResponseDto> enriched = mapResponses(ordered);
         return PageableResponseDto.<LeaveRequestResponseDto>builder()
                 .content(enriched)
                 .page(pageResult.getPage())
@@ -239,6 +241,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
             default -> throw LeaveRequestException.vacationReviewInvalid(
                     LeaveRequestExceptions.VACATION_REVIEW_INVALID_CODE);
         }
+        applyReviewAudit(entity);
         adjustRecessBalance(entity, previousStatus, request.getAction());
         repository.save(entity);
         return findById(id);
@@ -293,6 +296,74 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         if (Boolean.TRUE.equals(request.getApproved()) && entity.getReviewStatus() == null) {
             entity.setReviewStatus(VacationReviewStatusEnum.APPROVED);
         }
+        if (Boolean.TRUE.equals(request.getApproved())
+                || entity.getReviewStatus() == VacationReviewStatusEnum.APPROVED) {
+            applyReviewAudit(entity);
+        }
+    }
+
+    private void applyReviewAudit(LeaveRequest entity) {
+        entity.setReviewedAt(OffsetDateTime.now(ZoneId.of("America/Sao_Paulo")));
+        UUID currentUserId = resolveCurrentUserIdOrNull();
+        if (currentUserId != null) {
+            entity.setReviewedBy(currentUserId);
+        }
+    }
+
+    private UUID resolveCurrentUserIdOrNull() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof UUID userId)) {
+            return null;
+        }
+        return userId;
+    }
+
+    private List<LeaveRequestResponseDto> mapResponses(List<LeaveRequest> entities) {
+        if (entities.isEmpty()) {
+            return List.of();
+        }
+        Map<UUID, String> collaboratorNames = collaboratorNamesById(entities.stream()
+                .map(LeaveRequest::getCollaboratorId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList());
+        Set<UUID> userIds = new HashSet<>();
+        for (LeaveRequest entity : entities) {
+            if (entity.getReviewedBy() != null) {
+                userIds.add(entity.getReviewedBy());
+            }
+            if (entity.getCreatedBy() != null) {
+                userIds.add(entity.getCreatedBy());
+            }
+        }
+        Map<UUID, String> userNames = userNamesById(userIds);
+        return entities.stream()
+                .map(entity -> mapper.toResponse(
+                        entity,
+                        collaboratorNames.get(entity.getCollaboratorId()),
+                        userNames.get(entity.getReviewedBy()),
+                        userNames.get(entity.getCreatedBy())))
+                .toList();
+    }
+
+    private LeaveRequestResponseDto mapResponse(LeaveRequest entity) {
+        return mapResponses(List.of(entity)).getFirst();
+    }
+
+    private Map<UUID, String> userNamesById(Set<UUID> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+        return appUserRepository.findAllById(userIds).stream()
+                .filter(user -> user.getStatus() != StatusEnum.DELETED)
+                .collect(Collectors.toMap(AppUser::getId, this::displayUserName, (a, b) -> a));
+    }
+
+    private String displayUserName(AppUser user) {
+        if (user.getName() != null && !user.getName().isBlank()) {
+            return user.getName().trim();
+        }
+        return user.getUsername();
     }
 
     private static String requireReviewReason(String reason) {
