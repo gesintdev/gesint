@@ -19,7 +19,7 @@ type WorkspaceState = {
     _hasHydrated: boolean;
     setHasHydrated: (value: boolean) => void;
     openModuleTab: (input: OpenWorkspaceTabInput) => void;
-    openRecordTab: (input: OpenWorkspaceRecordInput) => void;
+    openRecordTab: (input: OpenWorkspaceRecordInput, options?: { insertAfterTabId?: string }) => void;
     focusTab: (tabId: string) => void;
     closeTab: (tabId: string) => void;
     closeAllTabs: () => void;
@@ -70,6 +70,21 @@ function upsertTab(tabs: WorkspaceTab[], tab: WorkspaceTab): WorkspaceTab[] {
     return next;
 }
 
+/** Insere a aba após `afterTabId`, ou move se ela já existir. Sem after, faz upsert no final. */
+function placeTabBeside(tabs: WorkspaceTab[], tab: WorkspaceTab, afterTabId?: string): WorkspaceTab[] {
+    if (!afterTabId || afterTabId === tab.id) {
+        return upsertTab(tabs, tab);
+    }
+    const without = tabs.filter((t) => t.id !== tab.id);
+    const afterIdx = without.findIndex((t) => t.id === afterTabId);
+    if (afterIdx === -1) {
+        return [...without, tab];
+    }
+    const next = [...without];
+    next.splice(afterIdx + 1, 0, tab);
+    return next;
+}
+
 function resolveActiveTabId(activeRaw: string | null, moduleTabs: WorkspaceTab[]): string {
     if (isDashboardTabId(activeRaw)) return DASHBOARD_TAB_ID;
     if (activeRaw && moduleTabs.some((tab) => tab.id === activeRaw)) return activeRaw;
@@ -114,10 +129,10 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     activeTabId: tab.id,
                 });
             },
-            openRecordTab: (input) => {
+            openRecordTab: (input, options) => {
                 const tab = buildTab(input);
                 set({
-                    tabs: upsertTab(get().tabs, tab),
+                    tabs: placeTabBeside(get().tabs, tab, options?.insertAfterTabId),
                     activeTabId: tab.id,
                 });
             },

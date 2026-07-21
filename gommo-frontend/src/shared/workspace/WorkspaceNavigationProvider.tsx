@@ -29,7 +29,11 @@ export type WorkspaceNavigationApi = {
         entityId: string,
         options?: { titleSuffix?: string; shortLabel?: string },
     ) => void;
-    openRouteCreate: (route: AppRoute, shortLabel?: string) => void;
+    openRouteCreate: (
+        route: AppRoute,
+        shortLabel?: string,
+        options?: { insertAfterTabId?: string },
+    ) => void;
     openFromHref: (href: string) => void;
     focusTabById: (tabId: string) => void;
     syncCrudUrl: (tabId: string, crud: { editingId?: string | null; isNew?: boolean }) => void;
@@ -87,21 +91,18 @@ export function WorkspaceNavigationProvider({children}: { children: ReactNode })
         [focusTab, openRecordTab, syncUrl],
     );
     const openRouteCreate = useCallback(
-        (route: AppRoute, shortLabel?: string) => {
+        (route: AppRoute, shortLabel?: string, options?: { insertAfterTabId?: string }) => {
             const input = routeToInput(route, shortLabel);
-            const tabId = buildWorkspaceTabId(input.routeId, "new");
-            const existing = useWorkspaceStore.getState().tabs.find((t) => t.id === tabId);
-            if (existing) {
-                focusTab(tabId);
-            } else {
-                openRecordTab({
+            openRecordTab(
+                {
                     ...input,
                     entityKey: "new",
-                });
-            }
-            syncUrl(input.href, {isNew: true});
+                },
+                { insertAfterTabId: options?.insertAfterTabId },
+            );
+            syncUrl(input.href, { isNew: true });
         },
-        [focusTab, openRecordTab, syncUrl],
+        [openRecordTab, syncUrl],
     );
     const openFromHref = useCallback(
         (href: string) => {

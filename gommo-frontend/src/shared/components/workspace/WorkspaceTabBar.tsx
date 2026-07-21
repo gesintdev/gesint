@@ -1,13 +1,19 @@
-import clsx from "clsx";
-import {X} from "lucide-react";
-import {Fragment, useRef} from "react";
+"use client";
 
-import {WorkspaceTabIcon} from "@/shared/components/workspace/WorkspaceTabIcon";
-import {WorkspaceTabOverflowMenu} from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
-import {WorkspaceTabSystemBadge} from "@/shared/components/workspace/WorkspaceTabSystemBadge";
-import type {WorkspaceTab} from "@/shared/workspace/workspace.types";
-import {formatWorkspaceTabTitle} from "@/shared/workspace/workspace.types";
-import {isDashboardTabId} from "@/shared/workspace/workspace-dashboard";
+import clsx from "clsx";
+import { X } from "lucide-react";
+import { Fragment, useCallback, useRef, useState, type MouseEvent } from "react";
+
+import { WorkspaceTabContextMenu, type WorkspaceTabContextMenuState } from "@/shared/components/workspace/WorkspaceTabContextMenu";
+import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
+import { WorkspaceTabOverflowMenu } from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
+import { WorkspaceTabSystemBadge } from "@/shared/components/workspace/WorkspaceTabSystemBadge";
+import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
+import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
+import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
+import { isDashboardTabId } from "@/shared/workspace/workspace-dashboard";
+import { findRouteById } from "@/shared/workspace/workspace-routes";
 
 type WorkspaceTabBarProps = {
     dashboardTab: WorkspaceTab;
@@ -18,15 +24,17 @@ type WorkspaceTabBarProps = {
 };
 
 function WorkspaceTabButton({
-                                tab,
-                                active,
-                                onSelect,
-                                onClose,
-                            }: {
+    tab,
+    active,
+    onSelect,
+    onClose,
+    onContextMenu,
+}: {
     tab: WorkspaceTab;
     active: boolean;
     onSelect: () => void;
     onClose?: () => void;
+    onContextMenu: (event: MouseEvent) => void;
 }) {
     const title = formatWorkspaceTabTitle(tab);
 
@@ -37,6 +45,7 @@ function WorkspaceTabButton({
             aria-selected={active}
             title={title}
             onClick={onSelect}
+            onContextMenu={onContextMenu}
             onMouseDown={(event) => {
                 // Evita auto-scroll do navegador no clique do meio
                 if (event.button === 1 && onClose) {
@@ -59,7 +68,7 @@ function WorkspaceTabButton({
                     active ? "text-primary" : "text-base-content/40 group-hover/tab:text-base-content/60",
                 )}
             />
-            <WorkspaceTabSystemBadge href={tab.href}/>
+            <WorkspaceTabSystemBadge href={tab.href} />
             <span className="min-w-0 flex-1 truncate text-left tracking-tight">{title}</span>
             {onClose ? (
                 <span
@@ -79,16 +88,39 @@ function WorkspaceTabButton({
                         }
                     }}
                 >
-                    <X className="size-3" strokeWidth={2.25}/>
+                    <X className="size-3" strokeWidth={2.25} />
                 </span>
             ) : null}
         </button>
     );
 }
 
-export function WorkspaceTabBar({dashboardTab, moduleTabs, activeTabId, onSelect, onClose}: WorkspaceTabBarProps) {
+export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelect, onClose }: WorkspaceTabBarProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const dashboardActive = isDashboardTabId(activeTabId);
+    const [contextMenu, setContextMenu] = useState<WorkspaceTabContextMenuState | null>(null);
+    const { openRouteCreate } = useWorkspaceNavigation();
+    const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
+
+    const openContextMenu = useCallback((tab: WorkspaceTab, event: MouseEvent, isDashboard = false) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setContextMenu({
+            tab,
+            x: event.clientX,
+            y: event.clientY,
+            isDashboard,
+        });
+    }, []);
+
+    const handleDuplicate = useCallback(
+        (tab: WorkspaceTab) => {
+            const route = findRouteById(tab.routeId);
+            if (!route?.href) return;
+            openRouteCreate(route, undefined, { insertAfterTabId: tab.id });
+        },
+        [openRouteCreate],
+    );
 
     return (
         <div className="workspace-tabbar flex shrink-0 items-stretch">
@@ -97,10 +129,11 @@ export function WorkspaceTabBar({dashboardTab, moduleTabs, activeTabId, onSelect
                     tab={dashboardTab}
                     active={dashboardActive}
                     onSelect={() => onSelect(dashboardTab.id)}
+                    onContextMenu={(event) => openContextMenu(dashboardTab, event, true)}
                 />
                 {moduleTabs.length > 0 ? (
                     <>
-                        <span className="workspace-tabbar-divider" aria-hidden/>
+                        <span className="workspace-tabbar-divider" aria-hidden />
                         <div
                             ref={scrollRef}
                             className="workspace-tabbar-scroll flex min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden"
@@ -117,6 +150,7 @@ export function WorkspaceTabBar({dashboardTab, moduleTabs, activeTabId, onSelect
                                                 active={active}
                                                 onSelect={() => onSelect(tab.id)}
                                                 onClose={() => onClose(tab.id)}
+                                                onContextMenu={(event) => openContextMenu(tab, event)}
                                             />
                                             {!isLast ? (
                                                 <span className="workspace-tabbar-sep text-base-300">|</span>
@@ -130,8 +164,15 @@ export function WorkspaceTabBar({dashboardTab, moduleTabs, activeTabId, onSelect
                 ) : null}
             </div>
             <div className="workspace-tabbar-actions flex shrink-0 items-stretch">
-                <WorkspaceTabOverflowMenu moduleTabs={moduleTabs} activeTabId={activeTabId} onSelect={onSelect}/>
+                <WorkspaceTabOverflowMenu moduleTabs={moduleTabs} activeTabId={activeTabId} onSelect={onSelect} />
             </div>
+            <WorkspaceTabContextMenu
+                state={contextMenu}
+                onClose={() => setContextMenu(null)}
+                onDuplicate={handleDuplicate}
+                onCloseTab={(tab) => onClose(tab.id)}
+                onCloseAll={closeAllTabs}
+            />
         </div>
     );
 }
