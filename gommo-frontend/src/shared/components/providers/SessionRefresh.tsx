@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
 import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
@@ -66,8 +66,7 @@ export function SessionRefresh() {
     }, [session?.error]);
 
     useEffect(() => {
-        const refreshToken = session?.refreshToken;
-        if (!refreshToken) {
+        if (!session?.refreshToken) {
             return;
         }
 
@@ -78,6 +77,16 @@ export function SessionRefresh() {
                 return;
             }
             try {
+                // Busca a sessão mais recente para não enviar refresh token já rotacionado
+                // pelo jwt callback do NextAuth (causa logout falso no session-check).
+                const latest = await getSession();
+                const refreshToken = latest?.refreshToken;
+                if (!refreshToken || cancelled || signingOutRef.current) {
+                    return;
+                }
+                if (latest.error === "RefreshAccessTokenError" || latest.error === "RefreshTokenMissing") {
+                    return;
+                }
                 // Tenant vem do Host (coca-cola.localhost) ou X-Tenant-Slug via api.client.
                 await doRequest("/api/v1/auth/session-check", {
                     method: "POST",

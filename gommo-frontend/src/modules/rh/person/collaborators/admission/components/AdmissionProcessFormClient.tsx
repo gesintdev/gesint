@@ -318,7 +318,7 @@ export function AdmissionProcessFormClient() {
             <FormSection
                 id="dados-basicos"
                 title="Dados básicos"
-                description="Identificação pessoal e contato do colaborador."
+                description="Tipo de contrato, identificação pessoal e contato do colaborador."
                 bodyClassName="!block"
             >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -341,6 +341,33 @@ export function AdmissionProcessFormClient() {
                         </div>
                     </div>
                     <div className="grid min-w-0 flex-1 content-start gap-x-4 gap-y-2.5 sm:grid-cols-12">
+                        <InputSelect
+                            label="Tipo de contrato"
+                            items={CONTRACT_TYPE_ITEMS}
+                            value={form.contractType ?? "CLT"}
+                            wrapperClassName="sm:col-span-2"
+                            onValueChange={(v) => {
+                                const next = (v || "CLT") as AdmissionProcessCreateDto["contractType"];
+                                setForm((prev) =>
+                                    next === "PJ"
+                                        ? {
+                                              ...prev,
+                                              contractType: next,
+                                              workloadSchedule: "",
+                                              workScheduleId: "",
+                                              pisPasep: "",
+                                          }
+                                        : {
+                                              ...prev,
+                                              contractType: next,
+                                              providerCnpj: "",
+                                              providerLegalName: "",
+                                              providerTradeName: "",
+                                          },
+                                );
+                            }}
+                            required
+                        />
                         <InputString
                             label="Nome completo"
                             value={form.fullName}
@@ -352,8 +379,32 @@ export function AdmissionProcessFormClient() {
                             label="Nome social"
                             value={form.socialName ?? ""}
                             onValueChange={(v) => update("socialName", v)}
-                            wrapperClassName="sm:col-span-6"
+                            wrapperClassName="sm:col-span-4"
                         />
+                        {isPj ? (
+                            <>
+                                <InputCNPJ
+                                    label="CNPJ"
+                                    value={form.providerCnpj ?? ""}
+                                    onValueChange={(v) => update("providerCnpj", v)}
+                                    required
+                                    wrapperClassName="sm:col-span-2"
+                                />
+                                <InputString
+                                    label="Razão social"
+                                    value={form.providerLegalName ?? ""}
+                                    onValueChange={(v) => update("providerLegalName", v)}
+                                    required
+                                    wrapperClassName="sm:col-span-6"
+                                />
+                                <InputString
+                                    label="Nome fantasia"
+                                    value={form.providerTradeName ?? ""}
+                                    onValueChange={(v) => update("providerTradeName", v)}
+                                    wrapperClassName="sm:col-span-4"
+                                />
+                            </>
+                        ) : null}
                         <InputString
                             label="Nome da mãe"
                             value={form.motherName ?? ""}
@@ -576,57 +627,6 @@ export function AdmissionProcessFormClient() {
                     wrapperClassName="sm:col-span-2"
                     required
                 />
-                <InputSelect
-                    label="Tipo de contrato"
-                    items={CONTRACT_TYPE_ITEMS}
-                    value={form.contractType ?? "CLT"}
-                    wrapperClassName="sm:col-span-2"
-                    onValueChange={(v) => {
-                        const next = (v || "CLT") as AdmissionProcessCreateDto["contractType"];
-                        setForm((prev) =>
-                            next === "PJ"
-                                ? {
-                                    ...prev,
-                                    contractType: next,
-                                    workloadSchedule: "",
-                                    workScheduleId: "",
-                                    pisPasep: "",
-                                }
-                                : {
-                                    ...prev,
-                                    contractType: next,
-                                    providerCnpj: "",
-                                    providerLegalName: "",
-                                    providerTradeName: "",
-                                },
-                        );
-                    }}
-                    required
-                />
-                {isPj ? (
-                    <>
-                        <InputCNPJ
-                            label="CNPJ da prestadora"
-                            value={form.providerCnpj ?? ""}
-                            onValueChange={(v) => update("providerCnpj", v)}
-                            required
-                            wrapperClassName="sm:col-span-2"
-                        />
-                        <InputString
-                            label="Razão social"
-                            value={form.providerLegalName ?? ""}
-                            onValueChange={(v) => update("providerLegalName", v)}
-                            required
-                            wrapperClassName="sm:col-span-3"
-                        />
-                        <InputString
-                            label="Nome fantasia"
-                            value={form.providerTradeName ?? ""}
-                            onValueChange={(v) => update("providerTradeName", v)}
-                            wrapperClassName="sm:col-span-3"
-                        />
-                    </>
-                ) : null}
                 <InputCurrency
                     label={isPj ? "Valor do contrato" : "Salário base"}
                     value={form.baseSalary != null ? String(form.baseSalary) : ""}
@@ -671,13 +671,13 @@ export function AdmissionProcessFormClient() {
                         update("departmentId", v);
                         update("jobPositionId", "");
                     }}
-                    wrapperClassName="sm:col-span-6"
+                    wrapperClassName="sm:col-span-4"
                 />
                 <JobPositionPickerField
                     value={form.jobPositionId ?? ""}
                     departmentId={form.departmentId}
                     onValueChange={(v) => update("jobPositionId", v)}
-                    wrapperClassName="sm:col-span-6"
+                    wrapperClassName="sm:col-span-4"
                 />
             </FormSection>
             <FormSection

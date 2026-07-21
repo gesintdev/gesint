@@ -152,13 +152,20 @@ public class AuthService implements IAuthService {
         OffsetDateTime now = OffsetDateTime.now();
         String tokenHash = hashToken(rawRefresh);
         RefreshTokenBlacklist blacklisted = blacklistRepository.findByTokenHash(tokenHash).orElse(null);
-        if (blacklisted != null && !isWithinReplayGrace(blacklisted, now)) {
+        boolean replayGrace = isWithinReplayGrace(blacklisted, now);
+        if (blacklisted != null && !replayGrace) {
             throw AuthException.revokedRefresh();
         }
 
+        // Mesma tolerância do /refresh: token recém-rotacionado permanece válido na grace window.
+        // Sem isso, session-check com token antigo (ainda no cache do NextAuth) provoca logout falso.
         RefreshToken stored = refreshTokenRepository
-                .findByTokenHashAndRevokedFalse(tokenHash)
+                .findByTokenHash(tokenHash)
                 .orElseThrow(AuthException::revokedRefresh);
+
+        if (stored.isRevoked() && !replayGrace) {
+            throw AuthException.revokedRefresh();
+        }
 
         if (stored.getExpiresAt().isBefore(now)) {
             throw AuthException.expiredRefresh();

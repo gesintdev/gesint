@@ -14,6 +14,8 @@ import br.com.gommo.modules.root.entity.RefreshToken;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
 
+    Optional<RefreshToken> findByTokenHash(String tokenHash);
+
     Optional<RefreshToken> findByTokenHashAndRevokedFalse(String tokenHash);
 
     boolean existsByUserIdAndRevokedFalseAndExpiresAtAfter(UUID userId, OffsetDateTime expiresAt);

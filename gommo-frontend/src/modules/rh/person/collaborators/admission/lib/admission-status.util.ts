@@ -14,7 +14,22 @@ export function isAdmissionStepComplete(
 ): boolean {
     switch (stepId) {
         case "dados-basicos":
-            return isStepFilled([{ value: form.fullName }, { value: form.cpf }, { value: form.birthDate }]);
+            if (isAdmissionPj(form.contractType)) {
+                return isStepFilled([
+                    { value: form.contractType },
+                    { value: form.providerCnpj },
+                    { value: form.providerLegalName },
+                    { value: form.fullName },
+                    { value: form.cpf },
+                    { value: form.birthDate },
+                ]);
+            }
+            return isStepFilled([
+                { value: form.contractType },
+                { value: form.fullName },
+                { value: form.cpf },
+                { value: form.birthDate },
+            ]);
         case "contatos-emergencia":
             return (form.emergencyContacts ?? []).some((contact) =>
                 isStepFilled([{ value: contact.name }, { value: contact.phone }]),
@@ -31,18 +46,9 @@ export function isAdmissionStepComplete(
             return context.documentCount > 0;
         case "vinculo":
             if (isAdmissionPj(form.contractType)) {
-                return isStepFilled([
-                    { value: form.expectedStartDate },
-                    { value: form.contractType },
-                    { value: form.providerCnpj },
-                    { value: form.providerLegalName },
-                ]);
+                return isStepFilled([{ value: form.expectedStartDate }]);
             }
-            return isStepFilled([
-                { value: form.expectedStartDate },
-                { value: form.contractType },
-                { value: form.workloadSchedule },
-            ]);
+            return isStepFilled([{ value: form.expectedStartDate }, { value: form.workloadSchedule }]);
         case "contrato":
             return isStepFilled([{ value: form.contractStartDate }]) && context.contractDocumentCount > 0;
         case "recesso-contratual":
