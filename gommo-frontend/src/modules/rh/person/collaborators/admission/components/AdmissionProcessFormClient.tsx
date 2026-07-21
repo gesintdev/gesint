@@ -53,6 +53,7 @@ import {
     InputCPF,
     InputCurrency,
     InputDate,
+    InputPhone,
     InputSelect,
     InputSelectAutocomplete,
     InputString,
@@ -496,7 +497,7 @@ export function AdmissionProcessFormClient() {
                                 wrapperClassName="sm:col-span-2"
                             />
                         ) : null}
-                        <InputString
+                        <InputPhone
                             label="Telefone / WhatsApp"
                             value={form.phone ?? ""}
                             onValueChange={(v) => update("phone", v)}
