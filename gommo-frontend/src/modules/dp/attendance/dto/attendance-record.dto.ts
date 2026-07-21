@@ -135,3 +135,29 @@ export type AttendanceSettings = {
     requirePhoto: boolean;
     requireLocation: boolean;
 };
+
+export type AttendanceMobileContext = {
+    collaboratorId?: string;
+    collaboratorName?: string;
+    contractType?: string;
+    workloadSchedule?: string;
+    dailyWorkloadHours?: number;
+    requirePhoto: boolean;
+    requireLocation: boolean;
+    todayRecord?: AttendanceRecord | null;
+};
+
+export type AttendanceClockPhoto = {
+    objectId: string;
+    fileName?: string;
+    documentType?: string;
+};
+
+export type AttendanceClockPayload = {
+    capturedAt: string;
+    photo?: AttendanceClockPhoto;
+    latitude?: number;
+    longitude?: number;
+    locationAccuracyMeters?: number;
+    clientRequestId: string;
+};

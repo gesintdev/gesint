@@ -1,4 +1,8 @@
 import {
+    AGENDA_CLIENT_MESSAGES,
+    AGENDA_MESSAGES,
+} from "@/modules/cfg/settings/agenda/exceptions/agenda-event.messages";
+import {
     BENEFIT_CLIENT_MESSAGES,
     BENEFIT_MESSAGES,
 } from "@/modules/ctb/payroll/benefit/exceptions/benefit-plan.messages";
@@ -49,6 +53,8 @@ const REGISTRY: Record<string, string> = {
     ...CORE_MESSAGES,
     ...AUTH_MESSAGES,
     ...AUTH_CLIENT_MESSAGES,
+    ...AGENDA_MESSAGES,
+    ...AGENDA_CLIENT_MESSAGES,
     ...COLLABORATOR_MESSAGES,
     ...COLLABORATOR_CLIENT_MESSAGES,
     ...COMPANY_MESSAGES,

@@ -1,9 +1,11 @@
 "use client";
 
-import {Menu, Search} from "lucide-react";
+import {CalendarDays, Clock, Menu, Search} from "lucide-react";
 import {useSession} from "next-auth/react";
 import {type ReactNode, Suspense, useCallback, useEffect, useState} from "react";
 
+import {AgendaModal} from "@/modules/cfg/settings/agenda/components/AgendaModal";
+import {AttendanceClockModal} from "@/modules/dp/attendance/components/AttendanceClockModal";
 import type {SystemEnum} from "@/modules/root/enum/SystemEnum";
 import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
@@ -25,9 +27,13 @@ export function SystemShell({
 }) {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileNav, setMobileNav] = useState(false);
+    const [clockModalOpen, setClockModalOpen] = useState(false);
+    const [agendaModalOpen, setAgendaModalOpen] = useState(false);
     const {data: session} = useSession();
     const closeMobileNav = useCallback(() => setMobileNav(false), []);
     const toggleMobileNav = useCallback(() => setMobileNav((open) => !open), []);
+    const closeClockModal = useCallback(() => setClockModalOpen(false), []);
+    const closeAgendaModal = useCallback(() => setAgendaModalOpen(false), []);
 
     useEffect(() => {
         setAuthToken(session?.accessToken ?? null);
@@ -65,7 +71,7 @@ export function SystemShell({
                     <GommoLogo collapsed={collapsed} />
                 </div>
                 <header
-                    className="surface-header flex min-w-0 flex-1 items-center justify-between gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
+                    className="surface-header flex min-w-0 flex-1 items-center gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
                     <button
                         type="button"
                         aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
@@ -79,7 +85,7 @@ export function SystemShell({
                         <GommoLogo collapsed />
                     </div>
                     <label
-                        className="gommo-field sidebar-shell-control relative min-w-0 flex-1 cursor-text sm:max-w-xs lg:max-w-md">
+                        className="gommo-field sidebar-shell-control relative min-w-0 w-full max-w-xs cursor-text lg:max-w-md">
                         <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2}/>
                         <input
                             type="search"
@@ -88,14 +94,37 @@ export function SystemShell({
                         />
                         <kbd className="ms-auto hidden shrink-0 sm:flex">Alt+S</kbd>
                     </label>
-                    <div className="flex items-center gap-1 sm:gap-1.5">
-                        <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block"/>
-                        <ThemeToggle/>
-                        <HeaderNotifications/>
-                        <HeaderUserMenu/>
+                    <div className="min-w-2 flex-1" aria-hidden />
+                    <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+                        <div className="flex items-center gap-1 sm:gap-1.5">
+                            <button
+                                type="button"
+                                aria-label="Registro de ponto"
+                                onClick={() => setClockModalOpen(true)}
+                                className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
+                            >
+                                <Clock className="size-4" strokeWidth={2} />
+                            </button>
+                            <button
+                                type="button"
+                                aria-label="Agenda"
+                                onClick={() => setAgendaModalOpen(true)}
+                                className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
+                            >
+                                <CalendarDays className="size-4" strokeWidth={2} />
+                            </button>
+                        </div>
+                        <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block" />
+                        <div className="flex items-center gap-1 sm:gap-1.5">
+                            <ThemeToggle />
+                            <HeaderNotifications />
+                            <HeaderUserMenu />
+                        </div>
                     </div>
                 </header>
             </div>
+            <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal} />
+            <AgendaModal open={agendaModalOpen} onClose={closeAgendaModal} />
             {/*
               ActiveSystemProvider deve hidratar no mesmo Suspense que a Sidebar.
               Se ficar fora, o useSyncExternalStore promove o localStorage antes da

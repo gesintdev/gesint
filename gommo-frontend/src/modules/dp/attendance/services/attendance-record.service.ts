@@ -1,4 +1,6 @@
 import type {
+    AttendanceClockPayload,
+    AttendanceMobileContext,
     AttendancePresenceRow,
     AttendanceRecord,
     AttendanceRecordCreateDto,
@@ -54,6 +56,17 @@ class AttendanceRecordService extends BaseService<
         return apiFetch<AttendanceSettings>(`${this.basePath}/settings`, {
             method: "PUT",
             body: settings,
+        });
+    }
+
+    getMobileContext() {
+        return apiFetch<AttendanceMobileContext>(`${this.basePath}/mobile/context`);
+    }
+
+    clock(payload: AttendanceClockPayload) {
+        return apiFetch<AttendanceRecord>(`${this.basePath}/clock`, {
+            method: "POST",
+            body: payload,
         });
     }
 }

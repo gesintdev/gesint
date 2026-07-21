@@ -25,6 +25,7 @@ public final class TenantSchemaTableCatalog {
             "leave_request",
             "system_setting",
             "system_notification",
+            "agenda_event",
             "offboarding",
             "exit_interview",
             "exit_interview_return_checklist_item",
