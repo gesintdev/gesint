@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -50,6 +52,9 @@ public interface AttendanceRecordRepository extends IBaseRepository<AttendanceRe
 
     Optional<AttendanceRecord> findByCollaboratorIdAndWorkDateAndStatusNot(
             UUID collaboratorId, LocalDate workDate, StatusEnum status);
+
+    Page<AttendanceRecord> findByCollaboratorIdAndStatusNotOrderByWorkDateDesc(
+            UUID collaboratorId, StatusEnum status, Pageable pageable);
 
     @Query(
             """

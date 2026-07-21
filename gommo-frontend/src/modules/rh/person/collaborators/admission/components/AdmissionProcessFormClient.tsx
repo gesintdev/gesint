@@ -6,6 +6,8 @@ import {toast} from "sonner";
 
 import {DepartmentPickerField} from "@/modules/dp/organization/department/components/DepartmentPickerField";
 import {JobPositionPickerField} from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
+import {workScheduleService} from "@/modules/cfg/settings/workschedule/services/work-schedule.service";
+import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule.query";
 import {admissionprocessKeys} from "@/modules/rh/person/collaborators/admission/admission.query";
 import {
     AdmissionEmergencyContactsField
@@ -84,6 +86,20 @@ export function AdmissionProcessFormClient() {
         queryFn: () => storageService.listLinks("admission_process", editingId!),
         enabled: Boolean(editingId),
     });
+    const workSchedulesQuery = useQuery({
+        queryKey: workScheduleKeys.active,
+        queryFn: () => workScheduleService.listActive(),
+    });
+    const workScheduleItems = useMemo(
+        () =>
+            (workSchedulesQuery.data ?? []).map((item) => ({
+                value: item.id,
+                label: item.weeklyTotalHours
+                    ? `${item.name} (${item.weeklyTotalHours})`
+                    : item.name,
+            })),
+        [workSchedulesQuery.data],
+    );
     const clearPendingAttachments = useCallback(() => {
         setPendingDocumentAttachments([]);
         setPendingContractAttachments([]);
@@ -573,6 +589,7 @@ export function AdmissionProcessFormClient() {
                                     ...prev,
                                     contractType: next,
                                     workloadSchedule: "",
+                                    workScheduleId: "",
                                     pisPasep: "",
                                 }
                                 : {
@@ -618,22 +635,36 @@ export function AdmissionProcessFormClient() {
                     wrapperClassName="sm:col-span-2"
                 />
                 {!isPj ? (
-                    <InputSelect
-                        label="Carga horária"
-                        items={WORKLOAD_SCHEDULE_ITEMS}
-                        value={form.workloadSchedule ?? ""}
-                        onValueChange={(v) => update("workloadSchedule", v)}
-                        placeholder="Selecione"
-                        wrapperClassName="sm:col-span-2"
-                        required
-                    />
+                    <>
+                        <InputSelect
+                            label="Carga horária"
+                            items={WORKLOAD_SCHEDULE_ITEMS}
+                            value={form.workloadSchedule ?? ""}
+                            onValueChange={(v) => update("workloadSchedule", v)}
+                            placeholder="Selecione"
+                            wrapperClassName="sm:col-span-2"
+                            required
+                        />
+                        <InputSelect
+                            label="Escala"
+                            items={workScheduleItems}
+                            value={form.workScheduleId ?? ""}
+                            onValueChange={(v) => update("workScheduleId", v)}
+                            placeholder={
+                                workSchedulesQuery.isLoading
+                                    ? "Carregando escalas…"
+                                    : "Selecione a escala vigente"
+                            }
+                            wrapperClassName="sm:col-span-2"
+                        />
+                    </>
                 ) : null}
-                <InputString
-                    label="ID empresa (opcional)"
-                    value={form.companyId ?? ""}
-                    onValueChange={(v) => update("companyId", v)}
-                    wrapperClassName="sm:col-span-4"
-                />
+                {/*<InputString*/}
+                {/*    label="ID empresa (opcional)"*/}
+                {/*    value={form.companyId ?? ""}*/}
+                {/*    onValueChange={(v) => update("companyId", v)}*/}
+                {/*    wrapperClassName="sm:col-span-4"*/}
+                {/*/>*/}
                 <DepartmentPickerField
                     value={form.departmentId ?? ""}
                     onValueChange={(v) => {

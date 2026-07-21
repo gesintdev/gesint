@@ -11,7 +11,7 @@ import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOrig
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class AttendanceRecordResponseDto {
     private final UUID id;
     private final Integer code;

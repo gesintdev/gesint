@@ -156,6 +156,9 @@ public class AdmissionProcess extends AuditEntity {
     @Column(name = "workload_schedule", length = 32)
     private String workloadSchedule;
 
+    @Column(name = "work_schedule_id")
+    private UUID workScheduleId;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "emergency_contacts", columnDefinition = "jsonb", nullable = false)
     private List<AdmissionEmergencyContactDto> emergencyContacts = new ArrayList<>();

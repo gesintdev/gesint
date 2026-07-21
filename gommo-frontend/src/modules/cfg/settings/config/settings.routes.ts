@@ -1,4 +1,4 @@
-import { ClipboardList, Settings2, Shield, Users } from "lucide-react";
+import { CalendarClock, ClipboardList, Settings2, Shield, Users } from "lucide-react";
 
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { customWorkspaceRoute, lazyNamed, tabbedCrudRoute } from "@/shared/routing";
@@ -50,6 +50,24 @@ const dpRoutes: AppRoute[] = [
         icon: Settings2,
         permissionsAny: ["attendance:read", "notification:read"],
         load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
+    }),
+    tabbedCrudRoute({
+        id: "settings-work-schedules",
+        href: "/settings/work-schedules",
+        label: "Escalas",
+        icon: CalendarClock,
+        permission: "workschedule:read",
+        routeId: "settings-work-schedules",
+        tabShortLabel: "Escala",
+        fieldTabName: "name",
+        list: lazyNamed(
+            () => import("@/modules/cfg/settings/workschedule/components/WorkScheduleListClient"),
+            "WorkScheduleListClient",
+        ),
+        form: lazyNamed(
+            () => import("@/modules/cfg/settings/workschedule/components/WorkScheduleFormClient"),
+            "WorkScheduleFormClient",
+        ),
     }),
 ];
 

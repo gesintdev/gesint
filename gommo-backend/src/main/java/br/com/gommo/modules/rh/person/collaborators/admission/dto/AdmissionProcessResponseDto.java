@@ -71,6 +71,7 @@ public class AdmissionProcessResponseDto {
     private final ContractTypeEnum contractType;
     private final BigDecimal baseSalary;
     private final String workloadSchedule;
+    private final UUID workScheduleId;
     private final List<AdmissionEmergencyContactDto> emergencyContacts;
     private final LocalDate contractStartDate;
     private final LocalDate contractEndDate;

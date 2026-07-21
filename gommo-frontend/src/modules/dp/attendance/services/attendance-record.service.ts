@@ -7,6 +7,7 @@ import type {
     AttendanceSettings,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
 import { BaseService } from "@/modules/root/services/base.service";
+import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
 import { apiFetch } from "@/shared/lib/api.client";
 
 class AttendanceRecordService extends BaseService<
@@ -21,6 +22,13 @@ class AttendanceRecordService extends BaseService<
     listPresence(from: string, to: string) {
         const params = new URLSearchParams({ from, to });
         return apiFetch<AttendancePresenceRow[]>(`${this.basePath}/presence?${params.toString()}`);
+    }
+
+    listCollaboratorHistory(collaboratorId: string, page = 0, size = 20) {
+        const params = new URLSearchParams({ page: String(page), size: String(size) });
+        return apiFetch<PageableResponseDto<AttendanceRecord>>(
+            `${this.basePath}/collaborators/${collaboratorId}/history?${params.toString()}`,
+        );
     }
 
     listRequests() {

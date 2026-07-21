@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { Plus } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -10,19 +10,21 @@ import { attendancerecordKeys } from "@/modules/dp/attendance/attendance.query";
 import { ATTENDANCE_TABLE_COLUMNS } from "@/modules/dp/attendance/config/attendance-record.table-columns";
 import type { AttendancePresenceRow } from "@/modules/dp/attendance/dto/attendance-record.dto";
 import { ATTENDANCE_CLIENT_MESSAGES } from "@/modules/dp/attendance/exceptions/attendance-record.messages";
-import { writeAttendancePrefill } from "@/modules/dp/attendance/lib/attendance-record.mapper";
+import { writeAttendanceCollaboratorFocus } from "@/modules/dp/attendance/lib/attendance-collaborator-focus";
+import {
+    type AttendancePresenceListingRow,
+    paginatePresenceRows,
+} from "@/modules/dp/attendance/lib/attendance-presence.filters";
 import { attendancerecordService } from "@/modules/dp/attendance/services/attendance-record.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import {InputDate} from "@/shared/components/ui/input/InputDate";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { InputDate } from "@/shared/components/ui/input/InputDate";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
 type PresencePreset = "TODAY" | "TODAY_YESTERDAY" | "WEEK" | "CUSTOM";
-
-type PresenceListingRow = AttendancePresenceRow & { presenceTags: string[] };
 
 const PRESETS: Array<{ value: PresencePreset; label: string }> = [
     { value: "TODAY", label: "Hoje" },
@@ -71,7 +73,7 @@ function isRealRecord(row: AttendancePresenceRow) {
 }
 
 export function AttendanceRecordListClient() {
-    const { startEdit, startCreate } = useCrudScreen();
+    const { startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [preset, setPreset] = useState<PresencePreset>("TODAY");
     const [customDate, setCustomDate] = useState(todayIso());
@@ -93,20 +95,12 @@ export function AttendanceRecordListClient() {
         deleteMutation.mutate(row.id);
     };
 
-    const openManualCreate = (row: AttendancePresenceRow) => {
-        writeAttendancePrefill({
+    const openCollaboratorHistory = (row: AttendancePresenceRow) => {
+        writeAttendanceCollaboratorFocus({
             collaboratorId: row.collaboratorId,
-            workDate: row.workDate?.slice(0, 10),
+            collaboratorName: row.collaboratorName,
         });
         startCreate();
-    };
-
-    const handleRowActivate = (row: AttendancePresenceRow) => {
-        if (isRealRecord(row)) {
-            startEdit(row.id, row);
-            return;
-        }
-        openManualCreate(row);
     };
 
     return (
@@ -146,33 +140,38 @@ export function AttendanceRecordListClient() {
                 </div>
             </div>
 
-            <QueryTablePanel<PresenceListingRow>
+            <QueryPagedTablePanel<AttendancePresenceListingRow>
+                key={`${period.from}-${period.to}`}
                 queryKey={[...attendancerecordKeys.all, "presence", period.from, period.to]}
-                request={async () => {
+                paginationMode="load-more"
+                request={async (page, size, filters) => {
                     const rows = await attendancerecordService.listPresence(period.from, period.to);
-                    return rows.map((row) => ({ ...row, presenceTags: presenceTags(row) }));
+                    const enriched = rows.map((row) => ({ ...row, presenceTags: presenceTags(row) }));
+                    return paginatePresenceRows(enriched, page, size, filters);
                 }}
                 columns={ATTENDANCE_TABLE_COLUMNS}
                 rowKey="id"
                 emptyMessage="Nenhum colaborador encontrado para o período."
-                onRowActivate={handleRowActivate}
+                onRowActivate={openCollaboratorHistory}
                 renderActions={(row) =>
                     isRealRecord(row) ? (
                         <CrudTableActions
                             row={row}
-                            onEdit={() => startEdit(row.id, row)}
+                            onEdit={() => openCollaboratorHistory(row)}
                             onDelete={() => void handleDelete(row)}
-                            deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                            deleteLoading={
+                                deleteMutation.isPending && deleteMutation.variables === row.id
+                            }
                         />
                     ) : (
                         <TableActionButton
                             actionVariant="open"
-                            aria-label="Lançar ponto"
-                            title="Lançar ponto"
-                            leftIcon={<Plus className="size-3.5" />}
+                            aria-label="Abrir histórico do colaborador"
+                            title="Abrir histórico"
+                            leftIcon={<Eye className="size-3.5" />}
                             onClick={(event) => {
                                 event.stopPropagation();
-                                openManualCreate(row);
+                                openCollaboratorHistory(row);
                             }}
                         />
                     )

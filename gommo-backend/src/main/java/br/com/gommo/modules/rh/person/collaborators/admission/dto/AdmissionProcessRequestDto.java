@@ -85,6 +85,7 @@ public class AdmissionProcessRequestDto {
 
     private BigDecimal baseSalary;
     private String workloadSchedule;
+    private UUID workScheduleId;
 
     private List<AdmissionEmergencyContactDto> emergencyContacts;
 

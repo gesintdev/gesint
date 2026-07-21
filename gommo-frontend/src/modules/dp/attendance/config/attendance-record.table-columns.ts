@@ -34,6 +34,16 @@ export const ATTENDANCE_TABLE_COLUMNS: TableColumnConfig[] = [
         columnName: "Ocorrencia",
         fieldValue: "occurrenceType",
         dataType: TableDataType.BADGE,
+        badgeLabels: {
+            NORMAL_WORK: "Trabalho normal",
+            TIME_ADJUSTMENT: "Ajuste de ponto",
+            MEDICAL_CERTIFICATE: "Atestado médico",
+            LEAVE_ABSENCE: "Afastamento",
+            UNJUSTIFIED_ABSENCE: "Falta injustificada",
+            LATE_ARRIVAL: "Atraso",
+            VACATION: "Férias",
+            LICENSE: "Licença",
+        },
     },
     {
         id: "clockIn",

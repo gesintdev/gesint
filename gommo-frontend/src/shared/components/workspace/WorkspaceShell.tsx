@@ -38,6 +38,13 @@ export function WorkspaceShell() {
     const hasHydrated = useWorkspaceStore((s) => s._hasHydrated);
     const {focusTabById, openFromHref, openRouteCreate, openRouteRecord} = useWorkspaceNavigation();
     const closeTab = useWorkspaceStore((s) => s.closeTab);
+
+    const handleCloseTab = async (tabId: string) => {
+        const { confirmCloseDirtyTab } = await import("@/shared/workspace/dirty-tab-guard");
+        if (await confirmCloseDirtyTab(tabId)) {
+            closeTab(tabId);
+        }
+    };
     const [mountedTabIds, setMountedTabIds] = useState<Set<string>>(() => new Set());
     const dashboardTab = useMemo(() => getDashboardTab(), []);
     const moduleTabs = useMemo(() => stripDashboardTabs(tabs), [tabs]);
@@ -118,7 +125,7 @@ export function WorkspaceShell() {
                     moduleTabs={moduleTabs}
                     activeTabId={activeTabId}
                     onSelect={focusTabById}
-                    onClose={closeTab}
+                    onClose={handleCloseTab}
                 />
             ) : null}
             <div className="workspace-content relative min-h-0 flex-1 overflow-hidden">

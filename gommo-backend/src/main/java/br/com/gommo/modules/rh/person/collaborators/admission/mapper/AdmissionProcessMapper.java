@@ -53,6 +53,7 @@ public class AdmissionProcessMapper {
                 .contractType(dto.getContractType() != null ? dto.getContractType() : ContractTypeEnum.CLT)
                 .baseSalary(dto.getBaseSalary())
                 .workloadSchedule(dto.getWorkloadSchedule())
+                .workScheduleId(dto.getWorkScheduleId())
                 .emergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()))
                 .contractStartDate(dto.getContractStartDate())
                 .contractEndDate(dto.getContractEndDate())
@@ -109,6 +110,7 @@ public class AdmissionProcessMapper {
         }
         entity.setBaseSalary(dto.getBaseSalary());
         entity.setWorkloadSchedule(dto.getWorkloadSchedule());
+        entity.setWorkScheduleId(dto.getWorkScheduleId());
         entity.setEmergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()));
         entity.setContractStartDate(dto.getContractStartDate());
         entity.setContractEndDate(dto.getContractEndDate());
@@ -233,6 +235,7 @@ public class AdmissionProcessMapper {
                 .contractType(entity.getContractType())
                 .baseSalary(entity.getBaseSalary())
                 .workloadSchedule(entity.getWorkloadSchedule())
+                .workScheduleId(entity.getWorkScheduleId())
                 .emergencyContacts(copyEmergencyContacts(entity.getEmergencyContacts()))
                 .contractStartDate(entity.getContractStartDate())
                 .contractEndDate(entity.getContractEndDate())

@@ -82,7 +82,16 @@ export function WorkspaceTabOverflowMenu({ moduleTabs, activeTabId, onSelect }: 
                                             type="button"
                                             aria-label={`Fechar ${title}`}
                                             className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-base-content/50 hover:bg-base-content/10"
-                                            onClick={() => closeTab(tab.id)}
+                                            onClick={() => {
+                                                void (async () => {
+                                                    const { confirmCloseDirtyTab } = await import(
+                                                        "@/shared/workspace/dirty-tab-guard"
+                                                    );
+                                                    if (await confirmCloseDirtyTab(tab.id)) {
+                                                        closeTab(tab.id);
+                                                    }
+                                                })();
+                                            }}
                                         >
                                             <X className="size-3.5" />
                                         </button>

@@ -52,8 +52,7 @@ public class AttendanceRecordMapper {
         entity.setOccurrenceOrigin(
                 dto.getOccurrenceOrigin() != null ? dto.getOccurrenceOrigin() : AttendanceOccurrenceOriginEnum.MANUAL);
         entity.setReferenceId(dto.getReferenceId());
-        entity.setExpectedHours(dto.getExpectedHours());
-        entity.setWorkedHours(dto.getWorkedHours());
+        // expectedHours e workedHours são derivados em applyDerivedHours
         entity.setImpactsHourBank(dto.getImpactsHourBank() != null ? dto.getImpactsHourBank() : Boolean.TRUE);
         entity.setImpactsPayroll(dto.getImpactsPayroll() != null ? dto.getImpactsPayroll() : Boolean.TRUE);
         entity.setNotes(dto.getNotes());

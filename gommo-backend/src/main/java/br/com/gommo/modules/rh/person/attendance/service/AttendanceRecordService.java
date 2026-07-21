@@ -6,6 +6,10 @@ import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.cfg.settings.notification.entity.SystemSetting;
 import br.com.gommo.modules.cfg.settings.notification.repository.SystemSettingRepository;
 import br.com.gommo.modules.cfg.settings.notification.service.SystemNotificationService;
+import br.com.gommo.modules.dp.organization.workschedule.entity.WeekDayEnum;
+import br.com.gommo.modules.dp.organization.workschedule.entity.WorkSchedule;
+import br.com.gommo.modules.dp.organization.workschedule.entity.WorkScheduleDay;
+import br.com.gommo.modules.dp.organization.workschedule.repository.WorkScheduleRepository;
 import br.com.gommo.modules.rh.person.attendance.dto.*;
 import br.com.gommo.modules.rh.person.attendance.entity.*;
 import br.com.gommo.modules.rh.person.attendance.exception.AttendanceRecordException;
@@ -65,6 +69,7 @@ public class AttendanceRecordService
     private final AdmissionProcessRepository admissionProcessRepository;
     private final CollaboratorRepository collaboratorRepository;
     private final LeaveRequestRepository leaveRequestRepository;
+    private final WorkScheduleRepository workScheduleRepository;
     private final SystemSettingRepository settingRepository;
     private final SystemNotificationService notificationService;
     private final IStorageService storageService;
@@ -78,6 +83,7 @@ public class AttendanceRecordService
         AdmissionProcessRepository admissionProcessRepository,
         CollaboratorRepository collaboratorRepository,
         LeaveRequestRepository leaveRequestRepository,
+        WorkScheduleRepository workScheduleRepository,
         SystemSettingRepository settingRepository,
         SystemNotificationService notificationService,
         IStorageService storageService) {
@@ -90,6 +96,7 @@ public class AttendanceRecordService
         this.admissionProcessRepository = admissionProcessRepository;
         this.collaboratorRepository = collaboratorRepository;
         this.leaveRequestRepository = leaveRequestRepository;
+        this.workScheduleRepository = workScheduleRepository;
         this.settingRepository = settingRepository;
         this.notificationService = notificationService;
         this.storageService = storageService;
@@ -173,6 +180,26 @@ public class AttendanceRecordService
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('attendance:read')")
+    public PageableResponseDto<AttendanceRecordResponseDto> collaboratorHistory(
+            UUID collaboratorId, int page, int size) {
+        int safeSize = Math.max(1, size);
+        int safePage = Math.max(0, page);
+        var pageable = org.springframework.data.domain.PageRequest.of(safePage, safeSize);
+        var result = repository.findByCollaboratorIdAndStatusNotOrderByWorkDateDesc(
+                collaboratorId, StatusEnum.DELETED, pageable);
+        List<AttendanceRecordResponseDto> content = mapToResponses(result.getContent());
+        return PageableResponseDto.<AttendanceRecordResponseDto>builder()
+                .content(content)
+                .page(result.getNumber())
+                .size(result.getSize())
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('attendance:read')")
     public PageableResponseDto<AttendanceRecordResponseDto> findPage(int page, int size) {
         PageableResponseDto<AttendanceRecordResponseDto> pageResult = super.findPage(page, size);
         List<AttendanceRecordResponseDto> content = pageResult.getContent();
@@ -249,7 +276,7 @@ public class AttendanceRecordService
         LocalDate workDate = request.getCapturedAt().atZoneSameInstant(BUSINESS_ZONE).toLocalDate();
         LocalTime time = request.getCapturedAt().atZoneSameInstant(BUSINESS_ZONE).toLocalTime().withNano(0);
         AdmissionProcess admission = latestCompletedAdmission(collaboratorId);
-        BigDecimal expectedHours = expectedHoursFromAdmission(admission);
+        BigDecimal expectedHours = expectedHoursFromAdmission(admission, workDate);
 
         AttendanceRecord entity = repository
             .findByCollaboratorIdAndWorkDateAndStatusNot(collaboratorId, workDate, StatusEnum.DELETED)
@@ -284,7 +311,7 @@ public class AttendanceRecordService
             .collaboratorName(admission != null ? displayName(admission) : null)
             .contractType(admission != null && admission.getContractType() != null ? admission.getContractType().name() : null)
             .workloadSchedule(admission != null ? admission.getWorkloadSchedule() : null)
-            .dailyWorkloadHours(expectedHoursFromAdmission(admission))
+            .dailyWorkloadHours(expectedHoursFromAdmission(admission, today))
             .requirePhoto(settings.isRequirePhoto())
             .requireLocation(settings.isRequireLocation())
             .todayRecord(todayRecord)
@@ -424,7 +451,9 @@ public class AttendanceRecordService
             .breakStart(request.getBreakStart())
             .breakEnd(request.getBreakEnd())
             .breakMinutes(request.getBreakMinutes())
-            .expectedHours(request.getExpectedHours() != null ? request.getExpectedHours() : expectedHoursFromAdmission(admission))
+            .expectedHours(request.getExpectedHours() != null
+                ? request.getExpectedHours()
+                : expectedHoursFromAdmission(admission, request.getRequestDate()))
             .workedHours(request.getWorkedHours())
             .notes(request.getDetails())
             .requestType(request.getRequestType())
@@ -497,7 +526,10 @@ public class AttendanceRecordService
             .distinct()
             .toList());
         return entities.stream()
-            .map(entity -> mapper.toResponse(entity, collaboratorNames.get(entity.getCollaboratorId())))
+            .map(entity -> mapper.toResponse(entity, collaboratorNames.get(entity.getCollaboratorId())).toBuilder()
+                .expectedHours(resolveExpectedHours(entity))
+                .workedHours(calculateWorkedHours(entity))
+                .build())
             .toList();
     }
 
@@ -513,7 +545,12 @@ public class AttendanceRecordService
     }
 
     private AttendanceRecordResponseDto toEnrichedResponse(AttendanceRecord entity) {
-        return mapper.toResponse(entity, resolveCollaboratorName(entity.getCollaboratorId()));
+        BigDecimal expected = resolveExpectedHours(entity);
+        BigDecimal worked = calculateWorkedHours(entity);
+        return mapper.toResponse(entity, resolveCollaboratorName(entity.getCollaboratorId())).toBuilder()
+            .expectedHours(expected)
+            .workedHours(worked)
+            .build();
     }
 
     private AttendancePresenceResponseDto toPresenceResponse(
@@ -541,8 +578,8 @@ public class AttendanceRecordService
                 .occurrenceType(record.getOccurrenceType())
                 .occurrenceOrigin(record.getOccurrenceOrigin())
                 .referenceId(record.getReferenceId())
-                .expectedHours(record.getExpectedHours())
-                .workedHours(record.getWorkedHours())
+                .expectedHours(resolveExpectedHours(record))
+                .workedHours(calculateWorkedHours(record))
                 .impactsHourBank(record.getImpactsHourBank())
                 .impactsPayroll(record.getImpactsPayroll())
                 .notes(record.getNotes())
@@ -561,6 +598,7 @@ public class AttendanceRecordService
             .collaboratorName(collaborator.getFullName())
             .photoObjectId(collaborator.getPhotoObjectId())
             .workDate(workDate)
+            .expectedHours(expectedHoursFromAdmission(latestCompletedAdmission(collaborator.getId()), workDate))
             .present(false)
             .inVacation(inVacation)
             .onLeaveActive(onLeaveActive)
@@ -669,12 +707,21 @@ public class AttendanceRecordService
             entity.setBreakMinutes(minutesBetween(entity.getBreakStart(), entity.getBreakEnd()));
         }
         entity.setWorkedHours(calculateWorkedHours(entity));
+        entity.setExpectedHours(resolveExpectedHours(entity));
         if (entity.getOccurrenceOrigin() == null) {
             entity.setOccurrenceOrigin(AttendanceOccurrenceOriginEnum.MANUAL);
         }
         if (entity.getOccurrenceType() == null) {
             entity.setOccurrenceType(AttendanceOccurrenceTypeEnum.NORMAL_WORK);
         }
+    }
+
+    private BigDecimal resolveExpectedHours(AttendanceRecord entity) {
+        if (entity.getCollaboratorId() == null) {
+            return entity.getExpectedHours() != null ? entity.getExpectedHours() : BigDecimal.valueOf(8);
+        }
+        LocalDate workDate = entity.getWorkDate() != null ? entity.getWorkDate() : LocalDate.now(BUSINESS_ZONE);
+        return expectedHoursFromAdmission(latestCompletedAdmission(entity.getCollaboratorId()), workDate);
     }
 
     private int minutesBetween(LocalTime start, LocalTime end) {
@@ -720,19 +767,72 @@ public class AttendanceRecordService
             .orElse(null);
     }
 
-    private BigDecimal expectedHoursFromAdmission(AdmissionProcess admission) {
-        if (admission == null || admission.getWorkloadSchedule() == null) {
+    /**
+     * Jornada esperada do dia: períodos da escala vinculada na admissão.
+     * Fallback: texto de carga horária (ex.: 40h → 8,00 | 44h → 8,80).
+     */
+    private BigDecimal expectedHoursFromAdmission(AdmissionProcess admission, LocalDate workDate) {
+        BigDecimal fromSchedule = expectedHoursFromWorkSchedule(admission, workDate);
+        if (fromSchedule != null) {
+            return fromSchedule;
+        }
+        return expectedHoursFromWorkloadText(admission);
+    }
+
+    private BigDecimal expectedHoursFromWorkSchedule(AdmissionProcess admission, LocalDate workDate) {
+        if (admission == null || admission.getWorkScheduleId() == null || workDate == null) {
+            return null;
+        }
+        return workScheduleRepository
+            .findByIdWithDays(admission.getWorkScheduleId(), StatusEnum.DELETED)
+            .map(schedule -> hoursForScheduleDay(schedule, workDate))
+            .orElse(null);
+    }
+
+    private BigDecimal hoursForScheduleDay(WorkSchedule schedule, LocalDate workDate) {
+        WeekDayEnum weekDay = WeekDayEnum.valueOf(workDate.getDayOfWeek().name());
+        if (schedule.getDays() == null || schedule.getDays().isEmpty()) {
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        }
+        WorkScheduleDay day = schedule.getDays().stream()
+            .filter(item -> item.getDayOfWeek() == weekDay)
+            .findFirst()
+            .orElse(null);
+        if (day == null) {
+            // Dia sem quadro na escala = folga (0h esperadas)
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        }
+        int minutes = minutesBetween(day.getPeriod1Start(), day.getPeriod1End())
+            + minutesBetween(day.getPeriod2Start(), day.getPeriod2End());
+        return BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Fallback pela carga textual da admissão.
+     * Exemplos: 40h → 8,00 | 44h → 8,80 | 12x36 → 12 | 20h a 30h → 4,00 (usa o 1º número).
+     */
+    private BigDecimal expectedHoursFromWorkloadText(AdmissionProcess admission) {
+        if (admission == null || admission.getWorkloadSchedule() == null || admission.getWorkloadSchedule().isBlank()) {
             return BigDecimal.valueOf(8);
         }
-        String digits = admission.getWorkloadSchedule().replaceAll("[^0-9]", "");
-        if (digits.isBlank()) {
+        String schedule = admission.getWorkloadSchedule().trim();
+        String normalized = schedule.toLowerCase(Locale.ROOT).replace(" ", "");
+        if (normalized.contains("12x36")) {
+            return BigDecimal.valueOf(12);
+        }
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+)").matcher(schedule);
+        if (!matcher.find()) {
             return BigDecimal.valueOf(8);
         }
-        int weeklyHours = Integer.parseInt(digits);
-        if (weeklyHours >= 30) {
-            return BigDecimal.valueOf(weeklyHours).divide(BigDecimal.valueOf(5), 2, RoundingMode.HALF_UP);
+        int hours = Integer.parseInt(matcher.group(1));
+        if (hours <= 0) {
+            return BigDecimal.valueOf(8);
         }
-        return BigDecimal.valueOf(weeklyHours);
+        // Cargas semanais típicas (20–44) → jornada diária em 5 dias úteis
+        if (hours >= 20 && hours <= 44) {
+            return BigDecimal.valueOf(hours).divide(BigDecimal.valueOf(5), 2, RoundingMode.HALF_UP);
+        }
+        return BigDecimal.valueOf(hours);
     }
 
     private String displayName(AdmissionProcess admission) {

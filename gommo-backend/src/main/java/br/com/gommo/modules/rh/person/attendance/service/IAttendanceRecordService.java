@@ -1,5 +1,6 @@
 package br.com.gommo.modules.rh.person.attendance.service;
 
+import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.IBaseService;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceClockRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceMobileContextResponseDto;
@@ -20,6 +21,8 @@ public interface IAttendanceRecordService
         extends IBaseService<AttendanceRecordRequestDto, AttendanceRecordResponseDto> {
 
     List<AttendancePresenceResponseDto> presence(LocalDate from, LocalDate to);
+
+    PageableResponseDto<AttendanceRecordResponseDto> collaboratorHistory(UUID collaboratorId, int page, int size);
 
     AttendanceRequestResponseDto submit(AttendanceSubmissionRequestDto request);
 

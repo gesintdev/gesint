@@ -55,6 +55,9 @@ export const organizationRoutes: AppRoute[] = [
         permission: "attendance:read",
         routeId: "attendance",
         tabShortLabel: "Ponto",
+        formTabLabel: "Histórico de ponto",
+        formTabLabelEdit: "Histórico de ponto",
+        listToFormLabel: "Histórico de ponto",
         list: lazyNamed(
             () => import("@/modules/dp/attendance/components/AttendanceRecordListClient"),
             "AttendanceRecordListClient",

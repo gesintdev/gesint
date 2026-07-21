@@ -1,6 +1,7 @@
 package br.com.gommo.modules.rh.person.attendance.controller;
 
 import br.com.gommo.core.base.controller.BaseController;
+import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceClockRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceMobileContextResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendancePresenceResponseDto;
@@ -36,6 +37,14 @@ public class AttendanceRecordController extends BaseController<AttendanceRecordR
         @RequestParam LocalDate from,
         @RequestParam LocalDate to) {
         return attendanceRecordService.presence(from, to);
+    }
+
+    @GetMapping("/collaborators/{collaboratorId}/history")
+    public PageableResponseDto<AttendanceRecordResponseDto> collaboratorHistory(
+        @PathVariable UUID collaboratorId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size) {
+        return attendanceRecordService.collaboratorHistory(collaboratorId, page, size);
     }
 
     @GetMapping("/mobile/context")

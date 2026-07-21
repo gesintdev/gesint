@@ -64,6 +64,7 @@ export class AdmissionProcess {
     contractType!: ContractType;
     baseSalary?: number;
     workloadSchedule?: string;
+    workScheduleId?: string;
     emergencyContacts?: AdmissionEmergencyContact[];
     contractStartDate?: string;
     contractEndDate?: string;
@@ -120,6 +121,7 @@ export class AdmissionProcessCreateDto {
     /** Formulário: string (moeda/decimal); API: number */
     baseSalary?: string | number;
     workloadSchedule?: string;
+    workScheduleId?: string;
     emergencyContacts?: AdmissionEmergencyContact[];
     contractStartDate?: string;
     contractEndDate?: string;

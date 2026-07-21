@@ -11,10 +11,15 @@ type HourPickerPanelProps = {
     value: string;
     onPick: (time: string) => void;
     anchorRef: React.RefObject<HTMLElement | null>;
+    /**
+     * `start` — borda esquerda do painel alinhada à esquerda do âncora (padrão).
+     * `end` — borda direita do painel alinhada à direita do âncora (abre para a esquerda).
+     */
+    align?: "start" | "end";
 };
 
 export const HourPickerPanel = forwardRef<HTMLDivElement, HourPickerPanelProps>(function HourPickerPanel(
-    { value, onPick, anchorRef },
+    { value, onPick, anchorRef, align = "start" },
     ref,
 ) {
     const parsed = splitTime(value);
@@ -32,12 +37,14 @@ export const HourPickerPanel = forwardRef<HTMLDivElement, HourPickerPanelProps>(
         const anchor = anchorRef.current;
         if (!anchor) return;
         const rect = anchor.getBoundingClientRect();
+        const width = Math.max(rect.width, 220);
+        const left = align === "end" ? rect.right - width : rect.left;
         setPosition({
             top: rect.bottom + 6,
-            left: rect.left,
-            width: Math.max(rect.width, 220),
+            left,
+            width,
         });
-    }, [anchorRef]);
+    }, [align, anchorRef]);
 
     useLayoutEffect(() => {
         updatePosition();

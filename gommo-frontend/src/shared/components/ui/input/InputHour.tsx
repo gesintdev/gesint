@@ -8,7 +8,7 @@ import { HourPickerPanel } from "@/shared/components/ui/input/HourPickerPanel";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { useClickOutside } from "@/shared/components/ui/input/use-listbox-keyboard";
-import { maskTimeDot, parseTimeDotToValue, timeToDisplayDot } from "@/shared/lib/input/time";
+import { maskTimeInput, parseTimeInputToValue, timeToDisplay } from "@/shared/lib/input/time";
 
 export type InputHourProps = InputFieldChromeProps & {
     /** Valor canônico HH:mm */
@@ -41,28 +41,13 @@ export function InputHour({
 
     useClickOutside([rootRef, panelRef], () => setOpen(false), open);
 
-    const display = isEditing ? editText : timeToDisplayDot(value);
+    const display = isEditing ? editText : timeToDisplay(value);
 
     const commitDisplay = useCallback(
         (raw: string) => {
-            const masked = maskTimeDot(raw);
-            if (!masked) {
-                setLocalError(undefined);
-                onValueChange("");
-                return;
-            }
-            if (masked.length < 5) {
-                setLocalError(undefined);
-                return;
-            }
-            const parsed = parseTimeDotToValue(masked);
+            const parsed = parseTimeInputToValue(raw);
             if (parsed == null) {
                 setLocalError("Hora inválida");
-                return;
-            }
-            if (parsed === "") {
-                setLocalError(undefined);
-                onValueChange("");
                 return;
             }
             setLocalError(undefined);
@@ -93,7 +78,7 @@ export function InputHour({
                         id={id}
                         type="text"
                         inputMode="numeric"
-                        placeholder="HH.MM"
+                        placeholder="HH:mm"
                         disabled={disabled}
                         readOnly={readOnly}
                         aria-invalid={Boolean(error || localError)}
@@ -102,9 +87,9 @@ export function InputHour({
                         maxLength={5}
                         onFocus={() => {
                             setIsEditing(true);
-                            setEditText(timeToDisplayDot(value));
+                            setEditText(timeToDisplay(value));
                         }}
-                        onChange={(e) => setEditText(maskTimeDot(e.target.value))}
+                        onChange={(e) => setEditText(maskTimeInput(e.target.value))}
                         onBlur={(e) => {
                             commitDisplay(e.target.value);
                             setIsEditing(false);

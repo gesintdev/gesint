@@ -18,6 +18,7 @@ public final class PermissionModuleCatalog {
                         "company",
                         "department",
                         "jobposition",
+                        "workschedule",
                         "payment",
                         "offboarding",
                         "notification",
