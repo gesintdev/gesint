@@ -12,13 +12,14 @@ import {
     emptyJobPositionForm,
     jobpositionToFormDto,
 } from "@/modules/dp/organization/jobposition/lib/jobposition.mapper";
+import { cboOccupationService } from "@/modules/dp/organization/jobposition/services/cbo-occupation.service";
 import { jobpositionService } from "@/modules/dp/organization/jobposition/services/jobposition.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { InputSelect, InputSelectAutocomplete, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Cargo" }];
@@ -35,6 +36,7 @@ export function JobPositionFormClient() {
     const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<JobPositionCreateDto>(emptyJobPositionForm);
+    const [cboLabel, setCboLabel] = useState("");
     const [error, setError] = useState<string | null>(null);
     const detailQuery = useQuery({
         queryKey: jobpositionKeys.detail(editingId ?? ""),
@@ -45,15 +47,35 @@ export function JobPositionFormClient() {
     useEffect(() => {
         if (!isEditing) {
             setForm(emptyJobPositionForm());
+            setCboLabel("");
             setError(null);
             return;
         }
 
         if (detailQuery.data) {
-            setForm(jobpositionToFormDto(detailQuery.data));
+            const nextForm = jobpositionToFormDto(detailQuery.data);
+            setForm(nextForm);
+            setCboLabel(nextForm.cboCode ?? "");
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+
+    useEffect(() => {
+        const code = form.cboCode?.trim() ?? "";
+        if (!code) {
+            setCboLabel("");
+            return;
+        }
+
+        let cancelled = false;
+        void cboOccupationService.findByCode(code).then((option) => {
+            if (cancelled) return;
+            setCboLabel(option ? cboOccupationService.formatLabel(option) : code);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [form.cboCode]);
 
     const saveMutation = useMutation({
         mutationFn: async (dto: JobPositionCreateDto) => {
@@ -141,10 +163,17 @@ export function JobPositionFormClient() {
                     required
                     wrapperClassName="sm:col-span-6"
                 />
-                <InputString
+                <InputSelectAutocomplete
                     label="Código CBO"
                     value={form.cboCode ?? ""}
-                    onValueChange={(v) => update("cboCode", v)}
+                    selectedLabel={cboLabel}
+                    onSearch={(query, page) => cboOccupationService.search(query, page)}
+                    onValueChange={(value, item) => {
+                        update("cboCode", value || undefined);
+                        setCboLabel(item?.label ?? value);
+                    }}
+                    remoteMinChars={0}
+                    placeholder="Busque por código ou ocupação..."
                     wrapperClassName="sm:col-span-6"
                 />
                 <InputSelect

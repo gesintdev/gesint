@@ -23,6 +23,11 @@ type WorkspaceState = {
     focusTab: (tabId: string) => void;
     closeTab: (tabId: string) => void;
     closeAllTabs: () => void;
+    /** Fecha só abas não fixadas. */
+    closeUnpinnedTabs: () => void;
+    togglePinTab: (tabId: string) => void;
+    /** Reordena abas pelo array de ids (mantém pin: fixadas só entre si). */
+    reorderTabs: (orderedIds: string[]) => void;
     retainTabsByRouteIds: (allowedRouteIds: ReadonlySet<string>) => void;
     /** Troca de domínio — substitui abas pela rota inicial do sistema (sem injetar dashboard). */
     replaceWorkspaceModule: (input: OpenWorkspaceTabInput) => void;
@@ -59,15 +64,27 @@ function buildTab(input: OpenWorkspaceRecordInput, existing?: WorkspaceTab): Wor
         entityKey: input.entityKey,
         titleSuffix,
         icon: input.icon,
+        pinned: existing?.pinned ?? false,
     };
+}
+
+/** Fixadas à esquerda, preservando ordem relativa em cada grupo. */
+function partitionPinnedTabs(tabs: WorkspaceTab[]): WorkspaceTab[] {
+    const pinned: WorkspaceTab[] = [];
+    const unpinned: WorkspaceTab[] = [];
+    for (const tab of tabs) {
+        if (tab.pinned) pinned.push(tab);
+        else unpinned.push(tab);
+    }
+    return [...pinned, ...unpinned];
 }
 
 function upsertTab(tabs: WorkspaceTab[], tab: WorkspaceTab): WorkspaceTab[] {
     const idx = tabs.findIndex((t) => t.id === tab.id);
-    if (idx === -1) return [...tabs, tab];
+    if (idx === -1) return partitionPinnedTabs([...tabs, tab]);
     const next = [...tabs];
-    next[idx] = { ...next[idx], ...tab };
-    return next;
+    next[idx] = { ...next[idx], ...tab, pinned: next[idx].pinned ?? tab.pinned };
+    return partitionPinnedTabs(next);
 }
 
 /** Insere a aba após `afterTabId`, ou move se ela já existir. Sem after, faz upsert no final. */
@@ -78,11 +95,11 @@ function placeTabBeside(tabs: WorkspaceTab[], tab: WorkspaceTab, afterTabId?: st
     const without = tabs.filter((t) => t.id !== tab.id);
     const afterIdx = without.findIndex((t) => t.id === afterTabId);
     if (afterIdx === -1) {
-        return [...without, tab];
+        return partitionPinnedTabs([...without, tab]);
     }
     const next = [...without];
     next.splice(afterIdx + 1, 0, tab);
-    return next;
+    return partitionPinnedTabs(next);
 }
 
 function resolveActiveTabId(activeRaw: string | null, moduleTabs: WorkspaceTab[]): string {
@@ -92,15 +109,18 @@ function resolveActiveTabId(activeRaw: string | null, moduleTabs: WorkspaceTab[]
 }
 
 function normalizeTabs(tabs: WorkspaceTab[]): WorkspaceTab[] {
-    return tabs.map((tab) => {
-        const { routeId, entityKey } = parseWorkspaceTabId(tab.id);
-        return {
-            ...tab,
-            id: buildWorkspaceTabId(routeId, entityKey),
-            routeId,
-            entityKey,
-        };
-    });
+    return partitionPinnedTabs(
+        tabs.map((tab) => {
+            const { routeId, entityKey } = parseWorkspaceTabId(tab.id);
+            return {
+                ...tab,
+                id: buildWorkspaceTabId(routeId, entityKey),
+                routeId,
+                entityKey,
+                pinned: Boolean(tab.pinned),
+            };
+        }),
+    );
 }
 
 export const useWorkspaceStore = create<WorkspaceState>()(
@@ -123,14 +143,20 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     set({ activeTabId: DASHBOARD_TAB_ID });
                     return;
                 }
-                const tab = buildTab({ ...input, entityKey: "list", titleSuffix: undefined });
+                const existing = get().tabs.find(
+                    (t) => t.id === buildWorkspaceTabId(input.routeId, "list"),
+                );
+                const tab = buildTab({ ...input, entityKey: "list", titleSuffix: undefined }, existing);
                 set({
                     tabs: upsertTab(get().tabs, tab),
                     activeTabId: tab.id,
                 });
             },
             openRecordTab: (input, options) => {
-                const tab = buildTab(input);
+                const existing = get().tabs.find(
+                    (t) => t.id === buildWorkspaceTabId(input.routeId, input.entityKey),
+                );
+                const tab = buildTab(input, existing);
                 set({
                     tabs: placeTabBeside(get().tabs, tab, options?.insertAfterTabId),
                     activeTabId: tab.id,
@@ -159,6 +185,40 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                 set({ tabs: nextTabs, activeTabId: nextActive });
             },
             closeAllTabs: () => set({ tabs: [], activeTabId: DASHBOARD_TAB_ID }),
+            closeUnpinnedTabs: () => {
+                const { tabs, activeTabId } = get();
+                const nextTabs = tabs.filter((t) => t.pinned);
+                const nextActive = resolveActiveTabId(activeTabId, nextTabs);
+                set({ tabs: nextTabs, activeTabId: nextActive });
+            },
+            togglePinTab: (tabId) => {
+                if (isDashboardTabId(tabId)) return;
+                const tabs = get().tabs;
+                if (!tabs.some((t) => t.id === tabId)) return;
+                set({
+                    tabs: partitionPinnedTabs(
+                        tabs.map((t) => (t.id === tabId ? { ...t, pinned: !t.pinned } : t)),
+                    ),
+                });
+            },
+            reorderTabs: (orderedIds) => {
+                const { tabs } = get();
+                if (orderedIds.length !== tabs.length) return;
+                const byId = new Map(tabs.map((t) => [t.id, t]));
+                if (orderedIds.some((id) => !byId.has(id))) return;
+
+                // Impede misturar fixadas com não fixadas na reordenação.
+                const pinnedCount = tabs.filter((t) => t.pinned).length;
+                for (let i = 0; i < orderedIds.length; i++) {
+                    const tab = byId.get(orderedIds[i])!;
+                    const shouldBePinned = i < pinnedCount;
+                    if (Boolean(tab.pinned) !== shouldBePinned) return;
+                }
+
+                set({
+                    tabs: orderedIds.map((id) => byId.get(id)!),
+                });
+            },
             retainTabsByRouteIds: (allowedRouteIds) => {
                 const { tabs, activeTabId } = get();
                 const nextTabs = tabs.filter((tab) => allowedRouteIds.has(tab.routeId));

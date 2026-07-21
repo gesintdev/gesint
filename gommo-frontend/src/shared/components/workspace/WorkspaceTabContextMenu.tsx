@@ -1,6 +1,6 @@
 "use client";
 
-import { CopyPlus, X, XCircle } from "lucide-react";
+import { CopyPlus, Pin, PinOff, X, XCircle } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -10,7 +10,7 @@ export type WorkspaceTabContextMenuState = {
     tab: WorkspaceTab;
     x: number;
     y: number;
-    /** Dashboard não fecha/duplica; só permite fechar todas. */
+    /** Dashboard não fecha/duplica/fixa; só permite fechar não fixadas. */
     isDashboard?: boolean;
 };
 
@@ -18,8 +18,10 @@ type WorkspaceTabContextMenuProps = {
     state: WorkspaceTabContextMenuState | null;
     onClose: () => void;
     onDuplicate: (tab: WorkspaceTab) => void;
+    onTogglePin: (tab: WorkspaceTab) => void;
     onCloseTab: (tab: WorkspaceTab) => void;
     onCloseAll: () => void;
+    closeAllLabel?: string;
 };
 
 const MENU_MIN_WIDTH = 176;
@@ -28,8 +30,10 @@ export function WorkspaceTabContextMenu({
     state,
     onClose,
     onDuplicate,
+    onTogglePin,
     onCloseTab,
     onCloseAll,
+    closeAllLabel = "Fechar todas",
 }: WorkspaceTabContextMenuProps) {
     const menuRef = useRef<HTMLDivElement>(null);
     const [pos, setPos] = useState({ left: 0, top: 0 });
@@ -67,6 +71,7 @@ export function WorkspaceTabContextMenu({
 
     if (!state || typeof document === "undefined") return null;
 
+    const pinned = Boolean(state.tab.pinned);
     const itemClass =
         "flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13px] text-base-content/85 hover:bg-base-content/8";
 
@@ -97,6 +102,22 @@ export function WorkspaceTabContextMenu({
                         role="menuitem"
                         className={itemClass}
                         onClick={() => {
+                            onTogglePin(state.tab);
+                            onClose();
+                        }}
+                    >
+                        {pinned ? (
+                            <PinOff className="size-3.5 shrink-0 text-base-content/45" strokeWidth={2} />
+                        ) : (
+                            <Pin className="size-3.5 shrink-0 text-base-content/45" strokeWidth={2} />
+                        )}
+                        {pinned ? "Desafixar" : "Fixar"}
+                    </button>
+                    <button
+                        type="button"
+                        role="menuitem"
+                        className={itemClass}
+                        onClick={() => {
                             onCloseTab(state.tab);
                             onClose();
                         }}
@@ -117,7 +138,7 @@ export function WorkspaceTabContextMenu({
                 }}
             >
                 <XCircle className="size-3.5 shrink-0" strokeWidth={2} />
-                Fechar todas
+                {closeAllLabel}
             </button>
         </div>,
         document.body,

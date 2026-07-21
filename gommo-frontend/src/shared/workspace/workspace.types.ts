@@ -11,6 +11,8 @@ export type WorkspaceTab = {
     entityKey: WorkspaceEntityKey;
     titleSuffix?: string;
     icon?: LucideIcon;
+    /** Abas fixadas ficam à esquerda e só reordenam entre si. */
+    pinned?: boolean;
 };
 
 export type OpenWorkspaceTabInput = {

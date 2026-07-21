@@ -18,7 +18,9 @@ export function WorkspaceTabOverflowMenu({ moduleTabs, activeTabId, onSelect }: 
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
     const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
+    const closeUnpinnedTabs = useWorkspaceStore((s) => s.closeUnpinnedTabs);
     const closeTab = useWorkspaceStore((s) => s.closeTab);
+    const hasPinned = moduleTabs.some((tab) => tab.pinned);
 
     useEffect(() => {
         if (!open) return;
@@ -106,11 +108,12 @@ export function WorkspaceTabOverflowMenu({ moduleTabs, activeTabId, onSelect }: 
                             role="menuitem"
                             className="w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium text-error hover:bg-error/10"
                             onClick={() => {
-                                closeAllTabs();
+                                if (hasPinned) closeUnpinnedTabs();
+                                else closeAllTabs();
                                 setOpen(false);
                             }}
                         >
-                            Fechar todas as abas
+                            {hasPinned ? "Fechar não fixadas" : "Fechar todas as abas"}
                         </button>
                     </div>
                 </div>
