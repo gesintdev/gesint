@@ -1,35 +1,40 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Eye, X } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {Check, Eye, X} from "lucide-react";
+import {useState} from "react";
+import {toast} from "sonner";
 
-import { notificationKeys } from "@/modules/cfg/settings/notification/notification.query";
-import { attendancerecordKeys } from "@/modules/dp/attendance/attendance.query";
-import { AttendanceRequestDetailModal } from "@/modules/dp/attendance/components/AttendanceRequestDetailModal";
-import { AttendanceRequestRejectDialog } from "@/modules/dp/attendance/components/AttendanceRequestRejectDialog";
+import {notificationKeys} from "@/modules/cfg/settings/notification/notification.query";
+import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
+import {AttendanceRequestDetailModal} from "@/modules/dp/attendance/components/AttendanceRequestDetailModal";
+import {AttendanceRequestRejectDialog} from "@/modules/dp/attendance/components/AttendanceRequestRejectDialog";
 import type {
     AttendanceRequest,
     AttendanceReviewAction,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
-import { attendancerecordService } from "@/modules/dp/attendance/services/attendance-record.service";
-import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
+import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
+import {TableActionButton} from "@/shared/components/crud/TableActionButton";
+import {QueryTablePanel} from "@/shared/components/data/DataPanel";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types";
 
 const REQUEST_COLUMNS: TableColumnConfig[] = [
-    { id: "code", columnName: "Código", fieldValue: "code", dataType: TableDataType.TEXT },
-    { id: "collaboratorName", columnName: "Colaborador", fieldValue: "collaboratorName", dataType: TableDataType.TEXT },
-    { id: "workDate", columnName: "Data", fieldValue: "workDate", dataType: TableDataType.DATE },
-    { id: "requestTypeLabel", columnName: "Tipo", fieldValue: "requestTypeLabel", dataType: TableDataType.TEXT },
-    { id: "requestStatusLabel", columnName: "Status", fieldValue: "requestStatusLabel", dataType: TableDataType.TEXT },
-    { id: "clockInCompare", columnName: "Entrada", fieldValue: "clockInCompare", dataType: TableDataType.TEXT },
-    { id: "breakStartCompare", columnName: "Saída almoço", fieldValue: "breakStartCompare", dataType: TableDataType.TEXT },
-    { id: "breakEndCompare", columnName: "Retorno almoço", fieldValue: "breakEndCompare", dataType: TableDataType.TEXT },
-    { id: "clockOutCompare", columnName: "Saída", fieldValue: "clockOutCompare", dataType: TableDataType.TEXT },
-    { id: "notes", columnName: "Justificativa", fieldValue: "notes", dataType: TableDataType.TEXT },
+    {id: "code", columnName: "Código", fieldValue: "code", dataType: TableDataType.TEXT},
+    {id: "collaboratorName", columnName: "Colaborador", fieldValue: "collaboratorName", dataType: TableDataType.TEXT},
+    {id: "workDate", columnName: "Data", fieldValue: "workDate", dataType: TableDataType.DATE},
+    {id: "requestTypeLabel", columnName: "Tipo", fieldValue: "requestTypeLabel", dataType: TableDataType.TEXT},
+    {id: "requestStatusLabel", columnName: "Status", fieldValue: "requestStatusLabel", dataType: TableDataType.TEXT},
+    {id: "clockInCompare", columnName: "Entrada", fieldValue: "clockInCompare", dataType: TableDataType.TEXT},
+    {
+        id: "breakStartCompare",
+        columnName: "Saída almoço",
+        fieldValue: "breakStartCompare",
+        dataType: TableDataType.TEXT
+    },
+    {id: "breakEndCompare", columnName: "Retorno almoço", fieldValue: "breakEndCompare", dataType: TableDataType.TEXT},
+    {id: "clockOutCompare", columnName: "Saída", fieldValue: "clockOutCompare", dataType: TableDataType.TEXT},
+    {id: "notes", columnName: "Justificativa", fieldValue: "notes", dataType: TableDataType.TEXT},
 ];
 
 const requestTypeLabel: Record<string, string> = {
@@ -90,16 +95,16 @@ export function AttendanceRecordRequestsClient() {
         mutationFn: (payload: { id: string; action: AttendanceReviewAction; reason?: string }) =>
             attendancerecordService.review(payload.id, payload.action, payload.reason),
         onSuccess: async (_data, variables) => {
-            await queryClient.invalidateQueries({ queryKey: attendancerecordKeys.all });
-            await queryClient.invalidateQueries({ queryKey: [...attendancerecordKeys.all, "requests"] });
-            await queryClient.invalidateQueries({ queryKey: [...attendancerecordKeys.all, "pending-requests"] });
-            await queryClient.invalidateQueries({ queryKey: notificationKeys.summary });
+            await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
+            await queryClient.invalidateQueries({queryKey: [...attendancerecordKeys.all, "requests"]});
+            await queryClient.invalidateQueries({queryKey: [...attendancerecordKeys.all, "pending-requests"]});
+            await queryClient.invalidateQueries({queryKey: notificationKeys.summary});
             toast.success(variables.action === "APPROVE" ? "Solicitação aprovada" : "Solicitação reprovada");
             setSelected(null);
             setRejectTarget(null);
         },
         onError: (err: unknown) => {
-            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível revisar a solicitação." });
+            ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível revisar a solicitação."});
         },
     });
 
@@ -124,7 +129,7 @@ export function AttendanceRecordRequestsClient() {
                                     actionVariant="open"
                                     aria-label="Aprovar"
                                     title="Aprovar"
-                                    leftIcon={<Check className="size-3.5" />}
+                                    leftIcon={<Check className="size-3.5"/>}
                                     loading={
                                         reviewMutation.isPending &&
                                         reviewMutation.variables?.id === row.id &&
@@ -132,14 +137,14 @@ export function AttendanceRecordRequestsClient() {
                                     }
                                     onClick={(event) => {
                                         event.stopPropagation();
-                                        reviewMutation.mutate({ id: row.id, action: "APPROVE" });
+                                        reviewMutation.mutate({id: row.id, action: "APPROVE"});
                                     }}
                                 />
                                 <TableActionButton
                                     actionVariant="delete"
                                     aria-label="Recusar"
                                     title="Recusar"
-                                    leftIcon={<X className="size-3.5" />}
+                                    leftIcon={<X className="size-3.5"/>}
                                     onClick={(event) => {
                                         event.stopPropagation();
                                         setRejectTarget(row);
@@ -151,7 +156,7 @@ export function AttendanceRecordRequestsClient() {
                             actionVariant="edit"
                             aria-label="Detalhar"
                             title="Detalhar"
-                            leftIcon={<Eye className="size-3.5" />}
+                            leftIcon={<Eye className="size-3.5"/>}
                             onClick={(event) => {
                                 event.stopPropagation();
                                 setSelected(row);
@@ -168,11 +173,11 @@ export function AttendanceRecordRequestsClient() {
                 onClose={() => setSelected(null)}
                 onApprove={() => {
                     if (!selected) return;
-                    reviewMutation.mutate({ id: selected.id, action: "APPROVE" });
+                    reviewMutation.mutate({id: selected.id, action: "APPROVE"});
                 }}
                 onReject={(reason) => {
                     if (!selected) return;
-                    reviewMutation.mutate({ id: selected.id, action: "REJECT", reason });
+                    reviewMutation.mutate({id: selected.id, action: "REJECT", reason});
                 }}
             />
 
@@ -182,7 +187,7 @@ export function AttendanceRecordRequestsClient() {
                 onClose={() => setRejectTarget(null)}
                 onConfirm={(reason) => {
                     if (!rejectTarget) return;
-                    reviewMutation.mutate({ id: rejectTarget.id, action: "REJECT", reason });
+                    reviewMutation.mutate({id: rejectTarget.id, action: "REJECT", reason});
                 }}
             />
         </>

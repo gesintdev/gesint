@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
+import {useCallback} from "react";
 
-import { COMPANY_PICKER_ADVANCED, companyService } from "@/modules/dp/organization/company/services/company.service";
-import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
+import {COMPANY_PICKER_ADVANCED, companyService} from "@/modules/dp/organization/company/services/company.service";
+import {EntityPickerField} from "@/shared/components/crud/EntityPickerField";
 
 type CompanyPickerFieldProps = {
     value?: string;
@@ -17,15 +17,15 @@ type CompanyPickerFieldProps = {
 };
 
 export function CompanyPickerField({
-    value,
-    onValueChange,
-    label = "Empresa",
-    hint,
-    required,
-    error,
-    disabled,
-    wrapperClassName,
-}: CompanyPickerFieldProps) {
+                                       value,
+                                       onValueChange,
+                                       label = "Empresa",
+                                       hint,
+                                       required,
+                                       error,
+                                       disabled,
+                                       wrapperClassName,
+                                   }: CompanyPickerFieldProps) {
     const onSearch = useCallback(
         (query: string, page: number) => companyService.searchForAutocomplete(query, page),
         [],

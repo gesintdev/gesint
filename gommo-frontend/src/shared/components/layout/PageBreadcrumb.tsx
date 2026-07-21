@@ -32,7 +32,7 @@ export function PageBreadcrumb({ actions, activeLabel }: PageBreadcrumbProps) {
                     {items.map((item, index) => {
                         const Icon = item.icon;
                         const content = (
-                            <span className="inline-flex min-w-0 max-w-[14rem] items-center gap-1.5 sm:max-w-none">
+                            <span className="inline-flex min-w-0 max-w-56 items-center gap-1.5 sm:max-w-none">
                                 {Icon && (
                                     <Icon
                                         className={clsx(

@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { Check, ChevronDown, ChevronRight, CircleAlert, Eye, Trash2, X } from "lucide-react";
+import {Check, ChevronDown, ChevronRight, CircleAlert, Eye, Trash2, X} from "lucide-react";
 import {
     Fragment,
     type KeyboardEvent,
@@ -17,11 +17,11 @@ import type {
     AttendanceRecordCreateDto,
     AttendanceRequest,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
-import { AttendanceSheetTimeInput } from "@/modules/dp/attendance/components/AttendanceSheetTimeInput";
-import { attendancerecordToFormDto } from "@/modules/dp/attendance/lib/attendance-record.mapper";
-import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { isoToDateBr, maskDateBr, parseDateBrToIso, parseIsoToDate } from "@/shared/lib/input/date";
-import { maskTimeInput, parseTimeInputToValue, timeToDisplay } from "@/shared/lib/input/time";
+import {AttendanceSheetTimeInput} from "@/modules/dp/attendance/components/AttendanceSheetTimeInput";
+import {attendancerecordToFormDto} from "@/modules/dp/attendance/lib/attendance-record.mapper";
+import {TableActionButton} from "@/shared/components/crud/TableActionButton";
+import {isoToDateBr, maskDateBr, parseDateBrToIso, parseIsoToDate} from "@/shared/lib/input/date";
+import {maskTimeInput, parseTimeInputToValue, timeToDisplay} from "@/shared/lib/input/time";
 
 export type AttendanceEditableField = "workDate" | "clockIn" | "breakStart" | "breakEnd" | "clockOut";
 
@@ -35,7 +35,7 @@ const FIELD_LABEL: Record<AttendanceEditableField, string> = {
     clockOut: "Fim expediente",
 };
 
-const WEEKDAY_FORMATTER = new Intl.DateTimeFormat("pt-BR", { weekday: "short" });
+const WEEKDAY_FORMATTER = new Intl.DateTimeFormat("pt-BR", {weekday: "short"});
 
 function formatWorkDateLabel(isoDate: string): string {
     const br = isoToDateBr(isoDate);
@@ -147,18 +147,18 @@ function requestTypeLabel(type: string): string {
 }
 
 export function AttendanceEditableGrid({
-    rows,
-    requestsByDate,
-    savingRowId,
-    deletingRowId,
-    focusCell,
-    onCommitRow,
-    onDeleteRow,
-    onApproveRequest,
-    onRejectRequest,
-    onDetailRequest,
-    onDirtyChange,
-}: AttendanceEditableGridProps) {
+                                           rows,
+                                           requestsByDate,
+                                           savingRowId,
+                                           deletingRowId,
+                                           focusCell,
+                                           onCommitRow,
+                                           onDeleteRow,
+                                           onApproveRequest,
+                                           onRejectRequest,
+                                           onDetailRequest,
+                                           onDirtyChange,
+                                       }: AttendanceEditableGridProps) {
     const [activeCell, setActiveCell] = useState<ActiveCell | null>(null);
     const [draftValue, setDraftValue] = useState("");
     const [draftBaseline, setDraftBaseline] = useState("");
@@ -175,12 +175,12 @@ export function AttendanceEditableGrid({
 
     const isDirty = Boolean(
         (activeCell && draftValue !== draftBaseline) ||
-            (rowDraft &&
-                Object.entries(rowDraft.values).some(([field, value]) => {
-                    const row = rows.find((item) => item.id === rowDraft.rowId);
-                    if (!row || value == null) return false;
-                    return value !== rowFieldCanonical(row, field as AttendanceEditableField);
-                })),
+        (rowDraft &&
+            Object.entries(rowDraft.values).some(([field, value]) => {
+                const row = rows.find((item) => item.id === rowDraft.rowId);
+                if (!row || value == null) return false;
+                return value !== rowFieldCanonical(row, field as AttendanceEditableField);
+            })),
     );
 
     useEffect(() => {
@@ -206,7 +206,7 @@ export function AttendanceEditableGrid({
             if (field === "workDate" && !isDateEditable(row)) return;
             let draft = rowDraftRef.current;
             if (!draft || draft.rowId !== row.id) {
-                draft = { rowId: row.id, values: {} };
+                draft = {rowId: row.id, values: {}};
                 syncRowDraft(draft);
             }
             const canonical =
@@ -214,7 +214,7 @@ export function AttendanceEditableGrid({
                     ? (draft.values[field] as string)
                     : rowFieldCanonical(row, field);
             const display = displayForField(field, canonical);
-            setActiveCell({ rowId: row.id, field });
+            setActiveCell({rowId: row.id, field});
             setDraftValue(display);
             setDraftBaseline(display);
         },
@@ -246,10 +246,10 @@ export function AttendanceEditableGrid({
             const base =
                 rowDraftRef.current?.rowId === activeCell.rowId
                     ? rowDraftRef.current
-                    : { rowId: activeCell.rowId, values: {} };
+                    : {rowId: activeCell.rowId, values: {}};
             const next: RowDraft = {
                 rowId: base.rowId,
-                values: { ...base.values, [activeCell.field]: parsed },
+                values: {...base.values, [activeCell.field]: parsed},
             };
             syncRowDraft(next);
             setDraftValue(displayForField(activeCell.field, parsed));
@@ -291,7 +291,7 @@ export function AttendanceEditableGrid({
             committingRef.current = true;
             try {
                 const form = attendancerecordToFormDto(row);
-                await onCommitRow(row, { ...form, ...patch });
+                await onCommitRow(row, {...form, ...patch});
                 clearEditing();
             } finally {
                 committingRef.current = false;
@@ -428,82 +428,82 @@ export function AttendanceEditableGrid({
         <div className="attendance-sheet-wrap" onMouseDown={onGridMouseDown}>
             <table className="attendance-sheet gommo-table">
                 <colgroup>
-                    <col style={{ width: "9.5rem" }} />
-                    <col style={{ width: "7.25rem" }} />
-                    <col style={{ width: "7.25rem" }} />
-                    <col style={{ width: "7.25rem" }} />
-                    <col style={{ width: "8rem" }} />
-                    <col style={{ width: "8rem" }} />
-                    <col style={{ width: "5.5rem" }} />
-                    <col style={{ width: "5.5rem" }} />
-                    <col style={{ width: "6.75rem" }} />
+                    <col style={{width: "9.5rem"}}/>
+                    <col style={{width: "7.25rem"}}/>
+                    <col style={{width: "7.25rem"}}/>
+                    <col style={{width: "7.25rem"}}/>
+                    <col style={{width: "8rem"}}/>
+                    <col style={{width: "8rem"}}/>
+                    <col style={{width: "5.5rem"}}/>
+                    <col style={{width: "5.5rem"}}/>
+                    <col style={{width: "6.75rem"}}/>
                 </colgroup>
                 <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Entrada</th>
-                        <th>Saída</th>
-                        <th>Retorno</th>
-                        <th>Fim expediente</th>
-                        <th className="is-right">Horas trabalhadas</th>
-                        <th className="is-right">Débito</th>
-                        <th className="is-right">Crédito</th>
-                        <th className="is-right">Ações</th>
-                    </tr>
+                <tr>
+                    <th>Data</th>
+                    <th>Entrada</th>
+                    <th>Saída</th>
+                    <th>Retorno</th>
+                    <th>Fim expediente</th>
+                    <th className="is-right">Horas trabalhadas</th>
+                    <th className="is-right">Débito</th>
+                    <th className="is-right">Crédito</th>
+                    <th className="is-right">Ações</th>
+                </tr>
                 </thead>
                 <tbody>
-                    {rows.map((row) => {
-                        const dayKey = row.workDate?.slice(0, 10) ?? "";
-                        const dayRequests = dayKey ? (requestsByDate.get(dayKey) ?? []) : [];
-                        const hasAdjustment = dayRequests.length > 0;
-                        const hasPendingAdjustment = dayRequests.some(
-                            (item) => item.requestStatus === "PENDING",
-                        );
-                        const expanded = expandedRowId === row.id;
-                        const saving = savingRowId === row.id;
-                        const dateEditable = isDateEditable(row);
-                        const dateActive = activeCell?.rowId === row.id && activeCell.field === "workDate";
+                {rows.map((row) => {
+                    const dayKey = row.workDate?.slice(0, 10) ?? "";
+                    const dayRequests = dayKey ? (requestsByDate.get(dayKey) ?? []) : [];
+                    const hasAdjustment = dayRequests.length > 0;
+                    const hasPendingAdjustment = dayRequests.some(
+                        (item) => item.requestStatus === "PENDING",
+                    );
+                    const expanded = expandedRowId === row.id;
+                    const saving = savingRowId === row.id;
+                    const dateEditable = isDateEditable(row);
+                    const dateActive = activeCell?.rowId === row.id && activeCell.field === "workDate";
 
-                        return (
-                            <Fragment key={row.id}>
-                                <tr
+                    return (
+                        <Fragment key={row.id}>
+                            <tr
+                                className={clsx(
+                                    hasPendingAdjustment && "attendance-sheet__row--adjustment",
+                                    isAttendanceDraftId(row.id) && "attendance-sheet__row--draft",
+                                    saving && "attendance-sheet__row--saving",
+                                )}
+                            >
+                                <td
+                                    data-attendance-editable-cell={dateEditable ? "true" : undefined}
                                     className={clsx(
-                                        hasPendingAdjustment && "attendance-sheet__row--adjustment",
-                                        isAttendanceDraftId(row.id) && "attendance-sheet__row--draft",
-                                        saving && "attendance-sheet__row--saving",
+                                        "attendance-sheet__cell",
+                                        dateEditable && "attendance-sheet__cell--editable",
+                                        dateActive && "attendance-sheet__cell--active",
                                     )}
+                                    onDoubleClick={() => {
+                                        if (!dateEditable) return;
+                                        if (activeCell) {
+                                            void navigateToCell({rowId: row.id, field: "workDate"});
+                                        } else {
+                                            beginEdit(row, "workDate");
+                                        }
+                                    }}
+                                    onClick={() => {
+                                        if (!dateEditable || !activeCell || dateActive) return;
+                                        void navigateToCell({rowId: row.id, field: "workDate"});
+                                    }}
                                 >
-                                    <td
-                                        data-attendance-editable-cell={dateEditable ? "true" : undefined}
-                                        className={clsx(
-                                            "attendance-sheet__cell",
-                                            dateEditable && "attendance-sheet__cell--editable",
-                                            dateActive && "attendance-sheet__cell--active",
-                                        )}
-                                        onDoubleClick={() => {
-                                            if (!dateEditable) return;
-                                            if (activeCell) {
-                                                void navigateToCell({ rowId: row.id, field: "workDate" });
-                                            } else {
-                                                beginEdit(row, "workDate");
-                                            }
-                                        }}
-                                        onClick={() => {
-                                            if (!dateEditable || !activeCell || dateActive) return;
-                                            void navigateToCell({ rowId: row.id, field: "workDate" });
-                                        }}
-                                    >
-                                        {dateActive ? (
-                                            <input
-                                                ref={inputRef}
-                                                className="attendance-sheet__input"
-                                                value={draftValue}
-                                                aria-label={FIELD_LABEL.workDate}
-                                                onChange={(event) => setDraftValue(maskDateBr(event.target.value))}
-                                                onKeyDown={(event) => void onCellKeyDown(event, row)}
-                                            />
-                                        ) : (
-                                            <div className="attendance-sheet__meta">
+                                    {dateActive ? (
+                                        <input
+                                            ref={inputRef}
+                                            className="attendance-sheet__input"
+                                            value={draftValue}
+                                            aria-label={FIELD_LABEL.workDate}
+                                            onChange={(event) => setDraftValue(maskDateBr(event.target.value))}
+                                            onKeyDown={(event) => void onCellKeyDown(event, row)}
+                                        />
+                                    ) : (
+                                        <div className="attendance-sheet__meta">
                                                 <span
                                                     className={clsx(
                                                         !(
@@ -515,262 +515,267 @@ export function AttendanceEditableGrid({
                                                 >
                                                     {formatWorkDateLabel(
                                                         rowDraft?.rowId === row.id &&
-                                                            rowDraft.values.workDate !== undefined
+                                                        rowDraft.values.workDate !== undefined
                                                             ? rowDraft.values.workDate
                                                             : dayKey,
                                                     )}
                                                 </span>
-                                                {isAttendanceEdited(row) ? (
-                                                    <span
-                                                        className="attendance-sheet__edited"
-                                                        title="Ponto editado"
-                                                        aria-label="Ponto editado"
-                                                    >
-                                                        <CircleAlert className="size-3.5" />
+                                            {isAttendanceEdited(row) ? (
+                                                <span
+                                                    className="attendance-sheet__edited"
+                                                    title="Ponto editado"
+                                                    aria-label="Ponto editado"
+                                                >
+                                                        <CircleAlert className="size-3.5"/>
                                                     </span>
-                                                ) : null}
-                                                {hasPendingAdjustment ? (
-                                                    <span className="attendance-sheet__chip attendance-sheet__chip--warn">
+                                            ) : null}
+                                            {hasPendingAdjustment ? (
+                                                <span className="attendance-sheet__chip attendance-sheet__chip--warn">
                                                         Ajuste
                                                     </span>
-                                                ) : null}
-                                                {isAttendanceDraftId(row.id) ? (
-                                                    <span className="attendance-sheet__chip">Novo</span>
-                                                ) : null}
-                                            </div>
-                                        )}
-                                    </td>
-                                    {TIME_FIELDS.map((field) => {
-                                        const isActive =
-                                            activeCell?.rowId === row.id && activeCell.field === field;
-                                        const display =
-                                            rowDraft?.rowId === row.id && rowDraft.values[field] !== undefined
-                                                ? (rowDraft.values[field] as string)
-                                                : normalizeTime(row[field]);
-                                        return (
-                                            <td
-                                                key={field}
-                                                data-attendance-editable-cell="true"
-                                                className={clsx(
-                                                    "attendance-sheet__cell attendance-sheet__cell--editable",
-                                                    isActive && "attendance-sheet__cell--active",
-                                                )}
-                                                onDoubleClick={() => {
-                                                    if (activeCell) {
-                                                        void navigateToCell({ rowId: row.id, field });
-                                                    } else {
-                                                        beginEdit(row, field);
-                                                    }
-                                                }}
-                                                onClick={() => {
-                                                    if (activeCell && !isActive) {
-                                                        void navigateToCell({ rowId: row.id, field });
-                                                    }
-                                                }}
-                                            >
-                                                {isActive ? (
-                                                    <AttendanceSheetTimeInput
-                                                        ref={inputRef}
-                                                        value={draftValue}
-                                                        ariaLabel={FIELD_LABEL[field]}
-                                                        onValueChange={setDraftValue}
-                                                        onKeyDown={(event) => void onCellKeyDown(event, row)}
-                                                        onPick={(canonical) => {
-                                                            setDraftValue(timeToDisplay(canonical));
-                                                            applyCurrentCellToDraft(timeToDisplay(canonical));
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <span
-                                                        className={clsx(
-                                                            "attendance-sheet__value",
-                                                            !display && "attendance-sheet__value--muted",
-                                                        )}
-                                                    >
+                                            ) : null}
+                                            {isAttendanceDraftId(row.id) ? (
+                                                <span className="attendance-sheet__chip">Novo</span>
+                                            ) : null}
+                                        </div>
+                                    )}
+                                </td>
+                                {TIME_FIELDS.map((field) => {
+                                    const isActive =
+                                        activeCell?.rowId === row.id && activeCell.field === field;
+                                    const display =
+                                        rowDraft?.rowId === row.id && rowDraft.values[field] !== undefined
+                                            ? (rowDraft.values[field] as string)
+                                            : normalizeTime(row[field]);
+                                    return (
+                                        <td
+                                            key={field}
+                                            data-attendance-editable-cell="true"
+                                            className={clsx(
+                                                "attendance-sheet__cell attendance-sheet__cell--editable",
+                                                isActive && "attendance-sheet__cell--active",
+                                            )}
+                                            onDoubleClick={() => {
+                                                if (activeCell) {
+                                                    void navigateToCell({rowId: row.id, field});
+                                                } else {
+                                                    beginEdit(row, field);
+                                                }
+                                            }}
+                                            onClick={() => {
+                                                if (activeCell && !isActive) {
+                                                    void navigateToCell({rowId: row.id, field});
+                                                }
+                                            }}
+                                        >
+                                            {isActive ? (
+                                                <AttendanceSheetTimeInput
+                                                    ref={inputRef}
+                                                    value={draftValue}
+                                                    ariaLabel={FIELD_LABEL[field]}
+                                                    onValueChange={setDraftValue}
+                                                    onKeyDown={(event) => void onCellKeyDown(event, row)}
+                                                    onPick={(canonical) => {
+                                                        setDraftValue(timeToDisplay(canonical));
+                                                        applyCurrentCellToDraft(timeToDisplay(canonical));
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span
+                                                    className={clsx(
+                                                        "attendance-sheet__value",
+                                                        !display && "attendance-sheet__value--muted",
+                                                    )}
+                                                >
                                                         {display ? timeToDisplay(display) : "—"}
                                                     </span>
-                                                )}
-                                            </td>
-                                        );
-                                    })}
-                                    <td className="attendance-sheet__cell">
+                                            )}
+                                        </td>
+                                    );
+                                })}
+                                <td className="attendance-sheet__cell">
                                         <span className="attendance-sheet__value attendance-sheet__value--right">
                                             {formatHours(row.workedHours)}
                                         </span>
-                                    </td>
-                                    <td className="attendance-sheet__cell">
-                                        <span className="attendance-sheet__value attendance-sheet__value--right text-error/80">
+                                </td>
+                                <td className="attendance-sheet__cell">
+                                        <span
+                                            className="attendance-sheet__value attendance-sheet__value--right text-error/80">
                                             {debitHours(row)}
                                         </span>
-                                    </td>
-                                    <td className="attendance-sheet__cell">
-                                        <span className="attendance-sheet__value attendance-sheet__value--right text-success/80">
+                                </td>
+                                <td className="attendance-sheet__cell">
+                                        <span
+                                            className="attendance-sheet__value attendance-sheet__value--right text-success/80">
                                             {creditHours(row)}
                                         </span>
-                                    </td>
-                                    <td className="attendance-sheet__cell">
-                                        <div className="gommo-table-actions">
-                                            {hasAdjustment ? (
-                                                <TableActionButton
-                                                    actionVariant="open"
-                                                    aria-label={
-                                                        expanded
-                                                            ? "Ocultar histórico de ajustes"
-                                                            : "Ver histórico de ajustes"
-                                                    }
-                                                    title={
-                                                        expanded
-                                                            ? "Ocultar histórico de ajustes"
-                                                            : "Ver histórico de ajustes"
-                                                    }
-                                                    leftIcon={
-                                                        expanded ? (
-                                                            <ChevronDown className="size-3.5" />
-                                                        ) : (
-                                                            <ChevronRight className="size-3.5" />
-                                                        )
-                                                    }
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        setExpandedRowId(expanded ? null : row.id);
-                                                    }}
-                                                />
-                                            ) : null}
+                                </td>
+                                <td className="attendance-sheet__cell">
+                                    <div className="gommo-table-actions">
+                                        {hasAdjustment ? (
                                             <TableActionButton
-                                                actionVariant="delete"
-                                                aria-label="Excluir ponto"
-                                                title="Excluir ponto"
-                                                loading={deletingRowId === row.id}
-                                                leftIcon={<Trash2 className="size-3.5" />}
+                                                actionVariant="open"
+                                                aria-label={
+                                                    expanded
+                                                        ? "Ocultar histórico de ajustes"
+                                                        : "Ver histórico de ajustes"
+                                                }
+                                                title={
+                                                    expanded
+                                                        ? "Ocultar histórico de ajustes"
+                                                        : "Ver histórico de ajustes"
+                                                }
+                                                leftIcon={
+                                                    expanded ? (
+                                                        <ChevronDown className="size-3.5"/>
+                                                    ) : (
+                                                        <ChevronRight className="size-3.5"/>
+                                                    )
+                                                }
                                                 onClick={(event) => {
                                                     event.stopPropagation();
-                                                    onDeleteRow(row);
+                                                    setExpandedRowId(expanded ? null : row.id);
                                                 }}
                                             />
-                                        </div>
-                                    </td>
-                                </tr>
-                                {hasAdjustment ? (
-                                    <tr
-                                        className="attendance-sheet__expand"
-                                        data-open={expanded ? "true" : "false"}
-                                        aria-hidden={!expanded}
-                                    >
-                                        <td colSpan={9}>
-                                            <div className="attendance-sheet__expand-viewport">
-                                                <div className="attendance-sheet__expand-inner">
-                                                    <div className="attendance-sheet__expand-body">
-                                                        {dayRequests.map((request) => {
-                                                            const statusLabel =
-                                                                requestStatusLabel[request.requestStatus] ??
-                                                                request.requestStatus;
-                                                            const timeSegments = [
-                                                                {
-                                                                    label: "Entrada",
-                                                                    from: normalizeTime(request.originalClockIn),
-                                                                    to: normalizeTime(request.clockIn),
-                                                                },
-                                                                {
-                                                                    label: "Saída",
-                                                                    from: normalizeTime(request.originalBreakStart),
-                                                                    to: normalizeTime(request.breakStart),
-                                                                },
-                                                                {
-                                                                    label: "Retorno",
-                                                                    from: normalizeTime(request.originalBreakEnd),
-                                                                    to: normalizeTime(request.breakEnd),
-                                                                },
-                                                                {
-                                                                    label: "Fim",
-                                                                    from: normalizeTime(request.originalClockOut),
-                                                                    to: normalizeTime(request.clockOut),
-                                                                },
-                                                            ];
-                                                            return (
-                                                                <div
-                                                                    key={`${row.id}-${request.id}`}
-                                                                    className="attendance-sheet__expand-item"
-                                                                >
-                                                                    <div className="attendance-sheet__expand-row">
-                                                                        <div className="attendance-sheet__expand-meta">
-                                                                            <span className="attendance-sheet__expand-segment attendance-sheet__expand-segment--title">
+                                        ) : null}
+                                        <TableActionButton
+                                            actionVariant="delete"
+                                            aria-label="Excluir ponto"
+                                            title="Excluir ponto"
+                                            loading={deletingRowId === row.id}
+                                            leftIcon={<Trash2 className="size-3.5"/>}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                onDeleteRow(row);
+                                            }}
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                            {hasAdjustment ? (
+                                <tr
+                                    className="attendance-sheet__expand"
+                                    data-open={expanded ? "true" : "false"}
+                                    aria-hidden={!expanded}
+                                >
+                                    <td colSpan={9}>
+                                        <div className="attendance-sheet__expand-viewport">
+                                            <div className="attendance-sheet__expand-inner">
+                                                <div className="attendance-sheet__expand-body">
+                                                    {dayRequests.map((request) => {
+                                                        const statusLabel =
+                                                            requestStatusLabel[request.requestStatus] ??
+                                                            request.requestStatus;
+                                                        const timeSegments = [
+                                                            {
+                                                                label: "Entrada",
+                                                                from: normalizeTime(request.originalClockIn),
+                                                                to: normalizeTime(request.clockIn),
+                                                            },
+                                                            {
+                                                                label: "Saída",
+                                                                from: normalizeTime(request.originalBreakStart),
+                                                                to: normalizeTime(request.breakStart),
+                                                            },
+                                                            {
+                                                                label: "Retorno",
+                                                                from: normalizeTime(request.originalBreakEnd),
+                                                                to: normalizeTime(request.breakEnd),
+                                                            },
+                                                            {
+                                                                label: "Fim",
+                                                                from: normalizeTime(request.originalClockOut),
+                                                                to: normalizeTime(request.clockOut),
+                                                            },
+                                                        ];
+                                                        return (
+                                                            <div
+                                                                key={`${row.id}-${request.id}`}
+                                                                className="attendance-sheet__expand-item"
+                                                            >
+                                                                <div className="attendance-sheet__expand-row">
+                                                                    <div className="attendance-sheet__expand-meta">
+                                                                            <span
+                                                                                className="attendance-sheet__expand-segment attendance-sheet__expand-segment--title">
                                                                                 {requestTypeLabel(request.requestType)}
-                                                                                <span className="attendance-sheet__expand-pipe">
+                                                                                <span
+                                                                                    className="attendance-sheet__expand-pipe">
                                                                                     |
                                                                                 </span>
                                                                                 {statusLabel}
                                                                             </span>
-                                                                            {timeSegments.map((segment) => (
-                                                                                <span
-                                                                                    key={segment.label}
-                                                                                    className="attendance-sheet__expand-segment"
-                                                                                >
-                                                                                    <span className="attendance-sheet__expand-label">
+                                                                        {timeSegments.map((segment) => (
+                                                                            <span
+                                                                                key={segment.label}
+                                                                                className="attendance-sheet__expand-segment"
+                                                                            >
+                                                                                    <span
+                                                                                        className="attendance-sheet__expand-label">
                                                                                         {segment.label}
                                                                                     </span>{" "}
-                                                                                    {segment.from || "—"} →{" "}
-                                                                                    {segment.to || "—"}
+                                                                                {segment.from || "—"} →{" "}
+                                                                                {segment.to || "—"}
                                                                                 </span>
-                                                                            ))}
-                                                                        </div>
-                                                                        <div className="gommo-table-actions">
-                                                                            {request.requestStatus === "PENDING" ? (
-                                                                                <>
-                                                                                    <TableActionButton
-                                                                                        actionVariant="open"
-                                                                                        aria-label="Aprovar"
-                                                                                        title="Aprovar"
-                                                                                        leftIcon={
-                                                                                            <Check className="size-3.5" />
-                                                                                        }
-                                                                                        onClick={(event) => {
-                                                                                            event.stopPropagation();
-                                                                                            onApproveRequest(request);
-                                                                                        }}
-                                                                                    />
-                                                                                    <TableActionButton
-                                                                                        actionVariant="delete"
-                                                                                        aria-label="Recusar"
-                                                                                        title="Recusar"
-                                                                                        leftIcon={
-                                                                                            <X className="size-3.5" />
-                                                                                        }
-                                                                                        onClick={(event) => {
-                                                                                            event.stopPropagation();
-                                                                                            onRejectRequest(request);
-                                                                                        }}
-                                                                                    />
-                                                                                </>
-                                                                            ) : null}
-                                                                            <TableActionButton
-                                                                                actionVariant="edit"
-                                                                                aria-label="Detalhar"
-                                                                                title="Detalhar"
-                                                                                leftIcon={<Eye className="size-3.5" />}
-                                                                                onClick={(event) => {
-                                                                                    event.stopPropagation();
-                                                                                    onDetailRequest(request);
-                                                                                }}
-                                                                            />
-                                                                        </div>
+                                                                        ))}
                                                                     </div>
-                                                                    {request.notes ? (
-                                                                        <p className="attendance-sheet__expand-notes">
-                                                                            {request.notes}
-                                                                        </p>
-                                                                    ) : null}
+                                                                    <div className="gommo-table-actions">
+                                                                        {request.requestStatus === "PENDING" ? (
+                                                                            <>
+                                                                                <TableActionButton
+                                                                                    actionVariant="open"
+                                                                                    aria-label="Aprovar"
+                                                                                    title="Aprovar"
+                                                                                    leftIcon={
+                                                                                        <Check className="size-3.5"/>
+                                                                                    }
+                                                                                    onClick={(event) => {
+                                                                                        event.stopPropagation();
+                                                                                        onApproveRequest(request);
+                                                                                    }}
+                                                                                />
+                                                                                <TableActionButton
+                                                                                    actionVariant="delete"
+                                                                                    aria-label="Recusar"
+                                                                                    title="Recusar"
+                                                                                    leftIcon={
+                                                                                        <X className="size-3.5"/>
+                                                                                    }
+                                                                                    onClick={(event) => {
+                                                                                        event.stopPropagation();
+                                                                                        onRejectRequest(request);
+                                                                                    }}
+                                                                                />
+                                                                            </>
+                                                                        ) : null}
+                                                                        <TableActionButton
+                                                                            actionVariant="edit"
+                                                                            aria-label="Detalhar"
+                                                                            title="Detalhar"
+                                                                            leftIcon={<Eye className="size-3.5"/>}
+                                                                            onClick={(event) => {
+                                                                                event.stopPropagation();
+                                                                                onDetailRequest(request);
+                                                                            }}
+                                                                        />
+                                                                    </div>
                                                                 </div>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                                {request.notes ? (
+                                                                    <p className="attendance-sheet__expand-notes">
+                                                                        {request.notes}
+                                                                    </p>
+                                                                ) : null}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
-                                        </td>
-                                    </tr>
-                                ) : null}
-                            </Fragment>
-                        );
-                    })}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : null}
+                        </Fragment>
+                    );
+                })}
                 </tbody>
             </table>
             {rows.length === 0 ? (

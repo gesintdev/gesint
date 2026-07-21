@@ -1,7 +1,7 @@
-import { CalendarClock, ClipboardList, Settings2, Shield, Users } from "lucide-react";
+import {CalendarClock, ClipboardList, Settings2, Shield, Users} from "lucide-react";
 
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { customWorkspaceRoute, lazyNamed, tabbedCrudRoute } from "@/shared/routing";
+import type {AppRoute} from "@/modules/root/enum/ModuleEnum";
+import {customWorkspaceRoute, lazyNamed, tabbedCrudRoute} from "@/shared/routing";
 
 const accessRoutes: AppRoute[] = [
     tabbedCrudRoute({

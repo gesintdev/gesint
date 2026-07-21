@@ -1,15 +1,15 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useEffect, useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {type SubmitEvent, useEffect, useState} from "react";
+import {toast} from "sonner";
 
-import { attendancerecordKeys } from "@/modules/dp/attendance/attendance.query";
-import { attendancerecordService } from "@/modules/dp/attendance/services/attendance-record.service";
-import { useHasPermission } from "@/shared/auth/permissions";
-import { Button } from "@/shared/components/ui/Button";
-import { Card } from "@/shared/components/ui/Card";
-import { ExceptionCapture } from "@/shared/exceptions";
+import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
+import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
+import {useHasPermission} from "@/shared/auth/permissions";
+import {Button} from "@/shared/components/ui/Button";
+import {Card} from "@/shared/components/ui/Card";
+import {ExceptionCapture} from "@/shared/exceptions";
 
 export function AttendanceSettingsCard() {
     const queryClient = useQueryClient();
@@ -30,9 +30,9 @@ export function AttendanceSettingsCard() {
     }, [settingsQuery.data]);
 
     const saveMutation = useMutation({
-        mutationFn: () => attendancerecordService.updateSettings({ requirePhoto, requireLocation }),
+        mutationFn: () => attendancerecordService.updateSettings({requirePhoto, requireLocation}),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: [...attendancerecordKeys.all, "settings"] });
+            await queryClient.invalidateQueries({queryKey: [...attendancerecordKeys.all, "settings"]});
             toast.success("Configurações de ponto atualizadas");
             setError(null);
         },

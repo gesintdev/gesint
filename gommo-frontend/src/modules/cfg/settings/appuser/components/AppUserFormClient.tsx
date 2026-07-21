@@ -1,28 +1,28 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {type SubmitEvent, useCallback, useEffect, useState} from "react";
+import {toast} from "sonner";
 
-import { appUserKeys } from "@/modules/cfg/settings/appuser/appuser.query";
-import { ProfileRolePicker } from "@/modules/cfg/settings/appuser/components/ProfileRolePicker";
-import type { AppUserCreateDto } from "@/modules/cfg/settings/appuser/dto/appuser.dto";
+import {appUserKeys} from "@/modules/cfg/settings/appuser/appuser.query";
+import {ProfileRolePicker} from "@/modules/cfg/settings/appuser/components/ProfileRolePicker";
+import type {AppUserCreateDto} from "@/modules/cfg/settings/appuser/dto/appuser.dto";
 import {
     suggestEmailFromCollaborator,
     suggestUsernameFromCollaborator,
 } from "@/modules/cfg/settings/appuser/lib/collaborator-credentials";
-import { appUserService } from "@/modules/cfg/settings/appuser/services/appuser.service";
-import { profileKeys } from "@/modules/cfg/settings/profile/profile.query";
-import { profileService } from "@/modules/cfg/settings/profile/services/profile.service";
-import { collaboratorService } from "@/modules/rh/person/collaborators/people/services/collaborator.service";
-import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { Button } from "@/shared/components/ui/Button";
-import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputBase, InputString } from "@/shared/components/ui/input/index";
-import { ExceptionCapture } from "@/shared/exceptions";
+import {appUserService} from "@/modules/cfg/settings/appuser/services/appuser.service";
+import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
+import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
+import {collaboratorService} from "@/modules/rh/person/collaborators/people/services/collaborator.service";
+import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {InputBase, InputString} from "@/shared/components/ui/input/index";
+import {ExceptionCapture} from "@/shared/exceptions";
 
 const emptyForm = (): AppUserCreateDto => ({
     collaboratorId: "",
@@ -33,13 +33,13 @@ const emptyForm = (): AppUserCreateDto => ({
     rhRoleIds: [],
 });
 const FORM_STEPS: FormStepNavItem[] = [
-    { id: "colaborador", label: "Colaborador" },
-    { id: "credenciais", label: "Credenciais" },
-    { id: "perfis", label: "Perfis" },
+    {id: "colaborador", label: "Colaborador"},
+    {id: "credenciais", label: "Credenciais"},
+    {id: "perfis", label: "Perfis"},
 ];
 
 export function AppUserFormClient() {
-    const { editingId, isEditing, goToList } = useCrudScreen();
+    const {editingId, isEditing, goToList} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AppUserCreateDto>(emptyForm());
     const [error, setError] = useState<string | null>(null);
@@ -79,7 +79,7 @@ export function AppUserFormClient() {
 
     const handleCollaboratorChange = useCallback(async (collaboratorId: string) => {
         if (!collaboratorId) {
-            setForm((prev) => ({ ...prev, collaboratorId: "" }));
+            setForm((prev) => ({...prev, collaboratorId: ""}));
             return;
         }
         try {
@@ -91,7 +91,7 @@ export function AppUserFormClient() {
                 email: suggestEmailFromCollaborator(collaborator),
             }));
         } catch {
-            setForm((prev) => ({ ...prev, collaboratorId }));
+            setForm((prev) => ({...prev, collaboratorId}));
         }
     }, []);
     const saveMutation = useMutation({
@@ -106,12 +106,12 @@ export function AppUserFormClient() {
             return appUserService.create(payload);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: appUserKeys.all });
+            await queryClient.invalidateQueries({queryKey: appUserKeys.all});
             toast.success(isEditing ? "Usuário atualizado" : "Usuário cadastrado");
             goToList();
         },
         onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível salvar o usuário." });
+            const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível salvar o usuário."});
             setError(ex.displayMessage);
         },
     });
@@ -124,8 +124,8 @@ export function AppUserFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                {Array.from({length: 4}).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
                 ))}
             </div>
         );
@@ -162,14 +162,14 @@ export function AppUserFormClient() {
                     <InputString
                         label="Nome de usuário"
                         value={form.username}
-                        onValueChange={(value) => setForm((prev) => ({ ...prev, username: value }))}
+                        onValueChange={(value) => setForm((prev) => ({...prev, username: value}))}
                         required
                         wrapperClassName="min-w-0"
                     />
                     <InputString
                         label="E-mail"
                         value={form.email}
-                        onValueChange={(value) => setForm((prev) => ({ ...prev, email: value }))}
+                        onValueChange={(value) => setForm((prev) => ({...prev, email: value}))}
                         required
                         wrapperClassName="min-w-0"
                     />
@@ -178,7 +178,7 @@ export function AppUserFormClient() {
                         hint={isEditing ? "Deixe em branco para manter a senha atual." : undefined}
                         type="password"
                         displayValue={form.password ?? ""}
-                        onDisplayChange={(value) => setForm((prev) => ({ ...prev, password: value }))}
+                        onDisplayChange={(value) => setForm((prev) => ({...prev, password: value}))}
                         required={!isEditing}
                         autoComplete="new-password"
                         wrapperClassName="min-w-0 sm:col-span-2"
@@ -192,7 +192,7 @@ export function AppUserFormClient() {
                         system="DP"
                         profiles={dpProfilesQuery.data ?? []}
                         selectedIds={form.dpRoleIds ?? []}
-                        onChange={(dpRoleIds) => setForm((prev) => ({ ...prev, dpRoleIds }))}
+                        onChange={(dpRoleIds) => setForm((prev) => ({...prev, dpRoleIds}))}
                         loading={dpProfilesQuery.isLoading}
                     />
                     <ProfileRolePicker
@@ -200,7 +200,7 @@ export function AppUserFormClient() {
                         system="RH"
                         profiles={rhProfilesQuery.data ?? []}
                         selectedIds={form.rhRoleIds ?? []}
-                        onChange={(rhRoleIds) => setForm((prev) => ({ ...prev, rhRoleIds }))}
+                        onChange={(rhRoleIds) => setForm((prev) => ({...prev, rhRoleIds}))}
                         loading={rhProfilesQuery.isLoading}
                     />
                 </div>

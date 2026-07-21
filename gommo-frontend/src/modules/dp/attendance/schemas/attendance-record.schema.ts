@@ -1,6 +1,6 @@
-import { z } from "zod";
+import {z} from "zod";
 
-import { ATTENDANCE_OCCURRENCE_TYPE_VALUES } from "@/modules/dp/attendance/lib/attendance-record.mapper";
+import {ATTENDANCE_OCCURRENCE_TYPE_VALUES} from "@/modules/dp/attendance/lib/attendance-record.mapper";
 
 const timeOptional = z
     .string()

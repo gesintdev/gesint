@@ -1,5 +1,5 @@
-import { ENTITY_CODE_TABLE_COLUMN } from "@/shared/config/entity-code.table-column";
-import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
+import {ENTITY_CODE_TABLE_COLUMN} from "@/shared/config/entity-code.table-column";
+import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types";
 
 export const DISMISSAL_TYPE_LABELS: Record<string, string> = {
     WITHOUT_CAUSE: "Sem justa causa",
@@ -22,7 +22,12 @@ export const OFFBOARDING_TABLE_COLUMNS: TableColumnConfig[] = [
         fieldValue: "collaboratorName",
         dataType: TableDataType.TEXT,
     },
-    { id: "dismissalDate", columnName: "Data", fieldValue: "dismissalDate", dataType: TableDataType.DATE },
+    {
+        id: "dismissalDate",
+        columnName: "Data",
+        fieldValue: "dismissalDate",
+        dataType: TableDataType.DATE
+    },
     {
         id: "dismissalType",
         columnName: "Tipo",

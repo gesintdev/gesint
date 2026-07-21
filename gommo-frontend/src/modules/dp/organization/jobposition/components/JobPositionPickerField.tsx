@@ -1,11 +1,11 @@
-import { useCallback } from "react";
+import {useCallback} from "react";
 
 import {
     JOB_POSITION_PICKER_ADVANCED,
     jobpositionService,
 } from "@/modules/dp/organization/jobposition/services/jobposition.service";
-import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import {EntityPickerField} from "@/shared/components/crud/EntityPickerField";
+import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 
 export type JobPositionPickerSelection = {
     jobPositionId: string | null;
@@ -72,18 +72,18 @@ export function JobPositionPickerField(props: JobPositionPickerFieldProps) {
         }
         const onSelectionChange = (props as JobPositionPickerCustomProps).onValueChange;
         if (!next.trim()) {
-            onSelectionChange({ jobPositionId: null, title: "" });
+            onSelectionChange({jobPositionId: null, title: ""});
             return;
         }
         if (item) {
-            onSelectionChange({ jobPositionId: item.value, title: item.label });
+            onSelectionChange({jobPositionId: item.value, title: item.label});
             return;
         }
         if (isUuid(next)) {
-            onSelectionChange({ jobPositionId: next, title: next });
+            onSelectionChange({jobPositionId: next, title: next});
             return;
         }
-        onSelectionChange({ jobPositionId: null, title: next.trim() });
+        onSelectionChange({jobPositionId: null, title: next.trim()});
     };
 
     return (

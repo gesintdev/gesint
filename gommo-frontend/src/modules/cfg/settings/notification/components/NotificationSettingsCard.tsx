@@ -1,16 +1,16 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useEffect, useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {type SubmitEvent, useEffect, useState} from "react";
+import {toast} from "sonner";
 
-import { notificationKeys } from "@/modules/cfg/settings/notification/notification.query";
-import { notificationSettingsService } from "@/modules/cfg/settings/notification/services/notification.service";
-import { useHasPermission } from "@/shared/auth/permissions";
-import { Button } from "@/shared/components/ui/Button";
-import { Card } from "@/shared/components/ui/Card";
-import { InputNumber } from "@/shared/components/ui/input/index";
-import { ExceptionCapture } from "@/shared/exceptions";
+import {notificationKeys} from "@/modules/cfg/settings/notification/notification.query";
+import {notificationSettingsService} from "@/modules/cfg/settings/notification/services/notification.service";
+import {useHasPermission} from "@/shared/auth/permissions";
+import {Button} from "@/shared/components/ui/Button";
+import {Card} from "@/shared/components/ui/Card";
+import {InputNumber} from "@/shared/components/ui/input/index";
+import {ExceptionCapture} from "@/shared/exceptions";
 
 export function NotificationSettingsCard() {
     const queryClient = useQueryClient();
@@ -34,8 +34,8 @@ export function NotificationSettingsCard() {
                 vacationDueNoticeDays: vacationDueNoticeDays ?? 30,
             }),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: notificationKeys.settings });
-            await queryClient.invalidateQueries({ queryKey: notificationKeys.summary });
+            await queryClient.invalidateQueries({queryKey: notificationKeys.settings});
+            await queryClient.invalidateQueries({queryKey: notificationKeys.summary});
             toast.success("Configurações de notificações atualizadas");
             setError(null);
         },

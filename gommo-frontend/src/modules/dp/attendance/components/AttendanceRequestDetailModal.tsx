@@ -1,11 +1,11 @@
 "use client";
 
-import { X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import {X} from "lucide-react";
+import {useEffect, useRef, useState} from "react";
+import {createPortal} from "react-dom";
 
-import type { AttendanceRequest } from "@/modules/dp/attendance/dto/attendance-record.dto";
-import { Button } from "@/shared/components/ui/Button";
+import type {AttendanceRequest} from "@/modules/dp/attendance/dto/attendance-record.dto";
+import {Button} from "@/shared/components/ui/Button";
 
 const REQUEST_TYPE_LABEL: Record<string, string> = {
     TIME_ADJUSTMENT: "Ajuste de ponto",
@@ -49,13 +49,13 @@ type AttendanceRequestDetailModalProps = {
 };
 
 export function AttendanceRequestDetailModal({
-    request,
-    open,
-    reviewing = false,
-    onClose,
-    onApprove,
-    onReject,
-}: AttendanceRequestDetailModalProps) {
+                                                 request,
+                                                 open,
+                                                 reviewing = false,
+                                                 onClose,
+                                                 onApprove,
+                                                 onReject,
+                                             }: AttendanceRequestDetailModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [mounted, setMounted] = useState(false);
     const [rejectMode, setRejectMode] = useState(false);
@@ -87,11 +87,11 @@ export function AttendanceRequestDetailModal({
     }
 
     const rows: CompareRow[] = [
-        { label: "Entrada", original: request.originalClockIn, requested: request.clockIn },
-        { label: "Saída almoço", original: request.originalBreakStart, requested: request.breakStart },
-        { label: "Retorno almoço", original: request.originalBreakEnd, requested: request.breakEnd },
-        { label: "Saída", original: request.originalClockOut, requested: request.clockOut },
-        { label: "Justificativa", original: request.originalNotes, requested: request.notes },
+        {label: "Entrada", original: request.originalClockIn, requested: request.clockIn},
+        {label: "Saída almoço", original: request.originalBreakStart, requested: request.breakStart},
+        {label: "Retorno almoço", original: request.originalBreakEnd, requested: request.breakEnd},
+        {label: "Saída", original: request.originalClockOut, requested: request.clockOut},
+        {label: "Justificativa", original: request.originalNotes, requested: request.notes},
     ];
 
     const isPending = request.requestStatus === "PENDING";
@@ -118,7 +118,7 @@ export function AttendanceRequestDetailModal({
                         aria-label="Fechar"
                         onClick={onClose}
                     >
-                        <X className="size-4" />
+                        <X className="size-4"/>
                     </button>
                 </div>
 
@@ -126,39 +126,39 @@ export function AttendanceRequestDetailModal({
                     <div className="overflow-hidden rounded-xl border border-base-300">
                         <table className="table table-sm">
                             <thead>
-                                <tr className="bg-base-200/60">
-                                    <th className="w-40">Campo</th>
-                                    <th>Original</th>
-                                    <th>Solicitado</th>
-                                </tr>
+                            <tr className="bg-base-200/60">
+                                <th className="w-40">Campo</th>
+                                <th>Original</th>
+                                <th>Solicitado</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {rows.map((row) => {
-                                    const changed =
-                                        (row.original ?? "") !== (row.requested ?? "") &&
-                                        (row.requested != null && row.requested !== "");
-                                    return (
-                                        <tr key={row.label} className={changed ? "bg-warning/10" : undefined}>
-                                            <td className="font-medium">{row.label}</td>
-                                            <td className="whitespace-pre-wrap text-base-content/70">
-                                                {row.label === "Justificativa"
-                                                    ? row.original || "—"
-                                                    : formatTime(row.original)}
-                                            </td>
-                                            <td
-                                                className={
-                                                    changed
-                                                        ? "whitespace-pre-wrap font-medium text-base-content"
-                                                        : "whitespace-pre-wrap text-base-content/70"
-                                                }
-                                            >
-                                                {row.label === "Justificativa"
-                                                    ? row.requested || "—"
-                                                    : formatTime(row.requested)}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                            {rows.map((row) => {
+                                const changed =
+                                    (row.original ?? "") !== (row.requested ?? "") &&
+                                    (row.requested != null && row.requested !== "");
+                                return (
+                                    <tr key={row.label} className={changed ? "bg-warning/10" : undefined}>
+                                        <td className="font-medium">{row.label}</td>
+                                        <td className="whitespace-pre-wrap text-base-content/70">
+                                            {row.label === "Justificativa"
+                                                ? row.original || "—"
+                                                : formatTime(row.original)}
+                                        </td>
+                                        <td
+                                            className={
+                                                changed
+                                                    ? "whitespace-pre-wrap font-medium text-base-content"
+                                                    : "whitespace-pre-wrap text-base-content/70"
+                                            }
+                                        >
+                                            {row.label === "Justificativa"
+                                                ? row.requested || "—"
+                                                : formatTime(row.requested)}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                             </tbody>
                         </table>
                     </div>
@@ -194,7 +194,8 @@ export function AttendanceRequestDetailModal({
                     ) : null}
                 </div>
 
-                <div className="flex flex-wrap items-center justify-end gap-2 border-t border-base-content/10 px-5 py-4">
+                <div
+                    className="flex flex-wrap items-center justify-end gap-2 border-t border-base-content/10 px-5 py-4">
                     <Button type="button" variant="ghost" onClick={onClose}>
                         Fechar
                     </Button>
@@ -242,7 +243,7 @@ export function AttendanceRequestDetailModal({
                     ) : null}
                 </div>
             </div>
-            <button type="button" className="modal-backdrop" aria-label="Fechar" onClick={onClose} />
+            <button type="button" className="modal-backdrop" aria-label="Fechar" onClick={onClose}/>
         </dialog>,
         document.body,
     );

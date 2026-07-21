@@ -1,4 +1,4 @@
-import type { Department, DepartmentCreateDto } from "@/modules/dp/organization/department/dto/department.dto";
+import type {Department, DepartmentCreateDto} from "@/modules/dp/organization/department/dto/department.dto";
 
 export function departmentToFormDto(entity: Department): DepartmentCreateDto {
     return {

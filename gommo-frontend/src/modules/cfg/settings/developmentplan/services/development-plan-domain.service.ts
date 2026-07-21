@@ -1,4 +1,4 @@
-﻿import { BaseService } from "@/modules/root/services/base.service";
+﻿import {BaseService} from "@/modules/root/services/base.service";
 
 export type DomainFieldType = "text" | "number" | "select" | "checkbox";
 export type DomainOption = { value: string; label: string };
@@ -31,4 +31,5 @@ export class DevelopmentPlanDomainRecord {
     allowsLink?: boolean;
 }
 
-export class DevelopmentPlanDomainService extends BaseService<DevelopmentPlanDomainRecord, Record<string, unknown>, Record<string, unknown>> {}
+export class DevelopmentPlanDomainService extends BaseService<DevelopmentPlanDomainRecord, Record<string, unknown>, Record<string, unknown>> {
+}

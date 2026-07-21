@@ -6,7 +6,7 @@ import {
     settingsRhRoutes,
     settingsRoutes,
 } from "@/modules/cfg/settings/config/settings.routes";
-import { ModuleEnum, ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
+import {ModuleEnum, ModuleEnumHelper, type TModule} from "@/modules/root/enum/ModuleEnum";
 
 export const settingsAccessModule: TModule = {
     infos: ModuleEnumHelper.getById(ModuleEnum.SETTINGS_ACCESS),
@@ -35,4 +35,4 @@ export const settingsModule: TModule = {
     routes: [...settingsRoutes, settingsAttendanceLegacyRoute, settingsNotificationsLegacyRoute],
 };
 
-export { settingsRoutes };
+export {settingsRoutes};

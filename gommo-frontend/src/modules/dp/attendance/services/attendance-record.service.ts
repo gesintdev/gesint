@@ -6,9 +6,9 @@ import type {
     AttendanceReviewAction,
     AttendanceSettings,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
-import { BaseService } from "@/modules/root/services/base.service";
-import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
-import { apiFetch } from "@/shared/lib/api.client";
+import {BaseService} from "@/modules/root/services/base.service";
+import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
+import {apiFetch} from "@/shared/lib/api.client";
 
 class AttendanceRecordService extends BaseService<
     AttendanceRecord,
@@ -20,12 +20,12 @@ class AttendanceRecordService extends BaseService<
     }
 
     listPresence(from: string, to: string) {
-        const params = new URLSearchParams({ from, to });
+        const params = new URLSearchParams({from, to});
         return apiFetch<AttendancePresenceRow[]>(`${this.basePath}/presence?${params.toString()}`);
     }
 
     listCollaboratorHistory(collaboratorId: string, page = 0, size = 20) {
-        const params = new URLSearchParams({ page: String(page), size: String(size) });
+        const params = new URLSearchParams({page: String(page), size: String(size)});
         return apiFetch<PageableResponseDto<AttendanceRecord>>(
             `${this.basePath}/collaborators/${collaboratorId}/history?${params.toString()}`,
         );
@@ -42,7 +42,7 @@ class AttendanceRecordService extends BaseService<
     review(id: string, action: AttendanceReviewAction, reason?: string) {
         return apiFetch<AttendanceRequest>(`${this.basePath}/requests/${id}/review`, {
             method: "POST",
-            body: { action, reason },
+            body: {action, reason},
         });
     }
 

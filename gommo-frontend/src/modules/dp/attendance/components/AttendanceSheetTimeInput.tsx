@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock } from "lucide-react";
+import {Clock} from "lucide-react";
 import {
     forwardRef,
     type KeyboardEvent,
@@ -11,8 +11,8 @@ import {
     useState,
 } from "react";
 
-import { HourPickerPanel } from "@/shared/components/ui/input/HourPickerPanel";
-import { useClickOutside } from "@/shared/components/ui/input/use-listbox-keyboard";
+import {HourPickerPanel} from "@/shared/components/ui/input/HourPickerPanel";
+import {useClickOutside} from "@/shared/components/ui/input/use-listbox-keyboard";
 import {
     maskTimeInput,
     parseTimeInputToValue,
@@ -30,7 +30,7 @@ type AttendanceSheetTimeInputProps = {
 
 export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceSheetTimeInputProps>(
     function AttendanceSheetTimeInput(
-        { value, ariaLabel, onValueChange, onKeyDown, onPick },
+        {value, ariaLabel, onValueChange, onKeyDown, onPick},
         ref,
     ) {
         const autoId = useId();
@@ -97,7 +97,7 @@ export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceS
                         setOpen((current) => !current);
                     }}
                 >
-                    <Clock className="size-3.5" />
+                    <Clock className="size-3.5"/>
                 </button>
                 {open ? (
                     <HourPickerPanel

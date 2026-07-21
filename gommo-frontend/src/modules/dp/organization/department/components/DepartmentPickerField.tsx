@@ -1,10 +1,10 @@
-import { useCallback } from "react";
+import {useCallback} from "react";
 
 import {
     DEPARTMENT_PICKER_ADVANCED,
     departmentService,
 } from "@/modules/dp/organization/department/services/department.service";
-import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
+import {EntityPickerField} from "@/shared/components/crud/EntityPickerField";
 
 type DepartmentPickerFieldProps = {
     value: string;
@@ -18,15 +18,15 @@ type DepartmentPickerFieldProps = {
 };
 
 export function DepartmentPickerField({
-    value,
-    onValueChange,
-    label = "Departamento",
-    hint,
-    required,
-    error,
-    disabled,
-    wrapperClassName,
-}: DepartmentPickerFieldProps) {
+                                          value,
+                                          onValueChange,
+                                          label = "Departamento",
+                                          hint,
+                                          required,
+                                          error,
+                                          disabled,
+                                          wrapperClassName,
+                                      }: DepartmentPickerFieldProps) {
     const onSearch = useCallback(
         (query: string, page: number) => departmentService.searchForAutocomplete(query, page),
         [],

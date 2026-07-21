@@ -1,6 +1,6 @@
 import clsx from "clsx";
 
-import type { PermissionSummary } from "@/modules/cfg/settings/profile/dto/profile.dto";
+import type {PermissionSummary} from "@/modules/cfg/settings/profile/dto/profile.dto";
 
 const ACTION_LABELS: Record<string, string> = {
     read: "Consultar",
@@ -23,14 +23,14 @@ type ProfilePermissionPanelProps = {
 };
 
 export function ProfilePermissionPanel({
-    menuLabel,
-    permissions,
-    selectedIds,
-    onToggle,
-    loading,
-}: ProfilePermissionPanelProps) {
+                                           menuLabel,
+                                           permissions,
+                                           selectedIds,
+                                           onToggle,
+                                           loading,
+                                       }: ProfilePermissionPanelProps) {
     if (loading) {
-        return <div className="skeleton-shimmer m-2 h-24 flex-1 rounded" />;
+        return <div className="skeleton-shimmer m-2 h-24 flex-1 rounded"/>;
     }
 
     if (!menuLabel) {

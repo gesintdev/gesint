@@ -1,4 +1,4 @@
-import type { Offboarding, OffboardingCreateDto } from "@/modules/dp/offboarding/dto/offboarding.dto";
+import type {Offboarding, OffboardingCreateDto} from "@/modules/dp/offboarding/dto/offboarding.dto";
 
 export function offboardingToFormDto(entity: Offboarding): OffboardingCreateDto {
     return {

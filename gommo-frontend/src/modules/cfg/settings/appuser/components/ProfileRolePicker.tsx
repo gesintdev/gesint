@@ -1,13 +1,13 @@
 import clsx from "clsx";
-import { Eye, Pencil, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import {Eye, Pencil, Search} from "lucide-react";
+import {useMemo, useState} from "react";
 
-import { ProfileDetailModal } from "@/modules/cfg/settings/appuser/components/ProfileDetailModal";
-import { filterProfilesBySearch } from "@/modules/cfg/settings/appuser/lib/profile-role-filter";
-import type { Profile, SystemScope } from "@/modules/cfg/settings/profile/dto/profile.dto";
-import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
-import { findRouteById } from "@/shared/workspace/workspace-routes";
+import {ProfileDetailModal} from "@/modules/cfg/settings/appuser/components/ProfileDetailModal";
+import {filterProfilesBySearch} from "@/modules/cfg/settings/appuser/lib/profile-role-filter";
+import type {Profile, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
+import {TableActionButton} from "@/shared/components/crud/TableActionButton";
+import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
+import {findRouteById} from "@/shared/workspace/workspace-routes";
 
 const PROFILE_ROW_CLASS = "flex min-h-[2.25rem] items-center gap-2 rounded px-2 py-1.5 text-sm";
 const SETTINGS_PROFILES_ROUTE_ID = "settings-profiles";
@@ -21,10 +21,10 @@ type ProfileRolePickerProps = {
     loading?: boolean;
 };
 
-export function ProfileRolePicker({ label, system, profiles, selectedIds, onChange, loading }: ProfileRolePickerProps) {
+export function ProfileRolePicker({label, system, profiles, selectedIds, onChange, loading}: ProfileRolePickerProps) {
     const [search, setSearch] = useState("");
     const [detailProfile, setDetailProfile] = useState<Profile | null>(null);
-    const { openRouteRecord } = useWorkspaceNavigation();
+    const {openRouteRecord} = useWorkspaceNavigation();
     const selectedSet = new Set(selectedIds);
     const filteredProfiles = useMemo(
         () => filterProfilesBySearch(profiles, search, system),
@@ -49,7 +49,7 @@ export function ProfileRolePicker({ label, system, profiles, selectedIds, onChan
         return (
             <div className="flex min-h-0 min-w-0 flex-col">
                 <p className="gommo-field__label mb-1.5">{label}</p>
-                <div className="skeleton-shimmer h-30 w-full rounded-lg" />
+                <div className="skeleton-shimmer h-30 w-full rounded-lg"/>
             </div>
         );
     }
@@ -61,7 +61,7 @@ export function ProfileRolePicker({ label, system, profiles, selectedIds, onChan
             <div className="flex min-h-0 min-w-0 flex-col">
                 <p className="gommo-field__label mb-1.5">{label}</p>
                 <label className="gommo-field mb-2 w-full text-sm!">
-                    <Search className="size-3.5 shrink-0 text-base-content/40" strokeWidth={2} />
+                    <Search className="size-3.5 shrink-0 text-base-content/40" strokeWidth={2}/>
                     <input
                         type="search"
                         value={search}
@@ -107,7 +107,7 @@ export function ProfileRolePicker({ label, system, profiles, selectedIds, onChan
                                         <TableActionButton
                                             actionVariant="edit"
                                             aria-label={`Editar perfil ${profile.name}`}
-                                            leftIcon={<Pencil className="size-3.5" />}
+                                            leftIcon={<Pencil className="size-3.5"/>}
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
@@ -117,7 +117,7 @@ export function ProfileRolePicker({ label, system, profiles, selectedIds, onChan
                                         <TableActionButton
                                             actionVariant="open"
                                             aria-label={`Detalhes do perfil ${profile.name}`}
-                                            leftIcon={<Eye className="size-3.5" />}
+                                            leftIcon={<Eye className="size-3.5"/>}
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();

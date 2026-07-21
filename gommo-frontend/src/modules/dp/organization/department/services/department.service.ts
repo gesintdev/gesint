@@ -1,10 +1,10 @@
-import { DEPARTMENT_TABLE_COLUMNS } from "@/modules/dp/organization/department/config/department.table-columns";
-import type { Department, DepartmentCreateDto } from "@/modules/dp/organization/department/dto/department.dto";
-import { BaseService } from "@/modules/root/services/base.service";
-import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
-import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
-import { apiFetch } from "@/shared/lib/api.client";
-import type { EntityPickerAdvancedSearch, EntityPickerSearchParams } from "@/shared/types/entity-picker.types";
+import {DEPARTMENT_TABLE_COLUMNS} from "@/modules/dp/organization/department/config/department.table-columns";
+import type {Department, DepartmentCreateDto} from "@/modules/dp/organization/department/dto/department.dto";
+import {BaseService} from "@/modules/root/services/base.service";
+import type {SelectItem, SelectSearchResult} from "@/shared/components/ui/input/select-item.types";
+import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
+import {apiFetch} from "@/shared/lib/api.client";
+import type {EntityPickerAdvancedSearch, EntityPickerSearchParams} from "@/shared/types/entity-picker.types";
 
 const AUTOCOMPLETE_PAGE_SIZE = 6;
 const MODAL_PAGE_SIZE = 10;
@@ -20,6 +20,7 @@ class DepartmentService extends BaseService<Department, DepartmentCreateDto, Dep
     constructor() {
         super("/api/v1/departments");
     }
+
     search(params: DepartmentSearchParams): Promise<PageableResponseDto<Department>> {
         const qs = new URLSearchParams();
         qs.set("page", String(params.page));
@@ -28,14 +29,16 @@ class DepartmentService extends BaseService<Department, DepartmentCreateDto, Dep
         if (params.costCenter?.trim()) qs.set("costCenter", params.costCenter.trim());
         return apiFetch<PageableResponseDto<Department>>(`${this.basePath}/search?${qs}`);
     }
+
     async searchForAutocomplete(query: string, page = 0): Promise<SelectSearchResult> {
-        const result = await this.search({ page, size: AUTOCOMPLETE_PAGE_SIZE, name: query });
+        const result = await this.search({page, size: AUTOCOMPLETE_PAGE_SIZE, name: query});
         return {
             items: result.content.map(toDepartmentSelectItem),
             page,
             hasMore: page + 1 < result.totalPages,
         };
     }
+
     searchForPicker(params: EntityPickerSearchParams): Promise<PageableResponseDto<Department>> {
         return this.search({
             page: params.page,
@@ -58,8 +61,8 @@ export const departmentService = new DepartmentService();
 export const DEPARTMENT_PICKER_ADVANCED: EntityPickerAdvancedSearch<Department> = {
     title: "Buscar departamento",
     filters: [
-        { id: "name", label: "Nome", placeholder: "Ex.: Recursos Humanos" },
-        { id: "costCenter", label: "Centro de custo", placeholder: "Ex.: CC-001" },
+        {id: "name", label: "Nome", placeholder: "Ex.: Recursos Humanos"},
+        {id: "costCenter", label: "Centro de custo", placeholder: "Ex.: CC-001"},
     ],
     columns: DEPARTMENT_TABLE_COLUMNS,
     search: (params) => departmentService.searchForPicker(params),

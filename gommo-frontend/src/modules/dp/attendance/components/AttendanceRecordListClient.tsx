@@ -1,35 +1,35 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import clsx from "clsx";
-import { Eye } from "lucide-react";
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import {Eye} from "lucide-react";
+import {useMemo, useState} from "react";
+import {toast} from "sonner";
 
-import { attendancerecordKeys } from "@/modules/dp/attendance/attendance.query";
-import { ATTENDANCE_TABLE_COLUMNS } from "@/modules/dp/attendance/config/attendance-record.table-columns";
-import type { AttendancePresenceRow } from "@/modules/dp/attendance/dto/attendance-record.dto";
-import { ATTENDANCE_CLIENT_MESSAGES } from "@/modules/dp/attendance/exceptions/attendance-record.messages";
-import { writeAttendanceCollaboratorFocus } from "@/modules/dp/attendance/lib/attendance-collaborator-focus";
+import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
+import {ATTENDANCE_TABLE_COLUMNS} from "@/modules/dp/attendance/config/attendance-record.table-columns";
+import type {AttendancePresenceRow} from "@/modules/dp/attendance/dto/attendance-record.dto";
+import {ATTENDANCE_CLIENT_MESSAGES} from "@/modules/dp/attendance/exceptions/attendance-record.messages";
+import {writeAttendanceCollaboratorFocus} from "@/modules/dp/attendance/lib/attendance-collaborator-focus";
 import {
     type AttendancePresenceListingRow,
     paginatePresenceRows,
 } from "@/modules/dp/attendance/lib/attendance-presence.filters";
-import { attendancerecordService } from "@/modules/dp/attendance/services/attendance-record.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
-import { InputDate } from "@/shared/components/ui/input/InputDate";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { SystemAlert } from "@/shared/system-alert";
+import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {CrudTableActions} from "@/shared/components/crud/CrudTableActions";
+import {TableActionButton} from "@/shared/components/crud/TableActionButton";
+import {QueryPagedTablePanel} from "@/shared/components/data/DataPanel";
+import {InputDate} from "@/shared/components/ui/input/InputDate";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {SystemAlert} from "@/shared/system-alert";
 
 type PresencePreset = "TODAY" | "TODAY_YESTERDAY" | "WEEK" | "CUSTOM";
 
 const PRESETS: Array<{ value: PresencePreset; label: string }> = [
-    { value: "TODAY", label: "Hoje" },
-    { value: "TODAY_YESTERDAY", label: "Hoje e ontem" },
-    { value: "WEEK", label: "Semana" },
+    {value: "TODAY", label: "Hoje"},
+    {value: "TODAY_YESTERDAY", label: "Hoje e ontem"},
+    {value: "WEEK", label: "Semana"},
 ];
 
 function todayIso() {
@@ -48,15 +48,15 @@ function shiftIso(isoDate: string, days: number) {
 function resolvePeriod(preset: PresencePreset, customDate: string): { from: string; to: string } {
     const today = todayIso();
     if (preset === "CUSTOM" && customDate) {
-        return { from: customDate, to: customDate };
+        return {from: customDate, to: customDate};
     }
     if (preset === "TODAY_YESTERDAY") {
-        return { from: shiftIso(today, -1), to: today };
+        return {from: shiftIso(today, -1), to: today};
     }
     if (preset === "WEEK") {
-        return { from: shiftIso(today, -6), to: today };
+        return {from: shiftIso(today, -6), to: today};
     }
-    return { from: today, to: today };
+    return {from: today, to: today};
 }
 
 function presenceTags(row: AttendancePresenceRow): string[] {
@@ -73,7 +73,7 @@ function isRealRecord(row: AttendancePresenceRow) {
 }
 
 export function AttendanceRecordListClient() {
-    const { startCreate } = useCrudScreen();
+    const {startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const [preset, setPreset] = useState<PresencePreset>("TODAY");
     const [customDate, setCustomDate] = useState(todayIso());
@@ -82,11 +82,11 @@ export function AttendanceRecordListClient() {
     const deleteMutation = useMutation({
         mutationFn: (id: string) => attendancerecordService.remove(id),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: attendancerecordKeys.all });
+            await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
             toast.success("Registro de ponto excluído(a)");
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED }),
+            ExceptionCapture.handle(err, {fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED}),
     });
 
     const handleDelete = async (row: AttendancePresenceRow) => {
@@ -146,7 +146,7 @@ export function AttendanceRecordListClient() {
                 paginationMode="load-more"
                 request={async (page, size, filters) => {
                     const rows = await attendancerecordService.listPresence(period.from, period.to);
-                    const enriched = rows.map((row) => ({ ...row, presenceTags: presenceTags(row) }));
+                    const enriched = rows.map((row) => ({...row, presenceTags: presenceTags(row)}));
                     return paginatePresenceRows(enriched, page, size, filters);
                 }}
                 columns={ATTENDANCE_TABLE_COLUMNS}
@@ -168,7 +168,7 @@ export function AttendanceRecordListClient() {
                             actionVariant="open"
                             aria-label="Abrir histórico do colaborador"
                             title="Abrir histórico"
-                            leftIcon={<Eye className="size-3.5" />}
+                            leftIcon={<Eye className="size-3.5"/>}
                             onClick={(event) => {
                                 event.stopPropagation();
                                 openCollaboratorHistory(row);

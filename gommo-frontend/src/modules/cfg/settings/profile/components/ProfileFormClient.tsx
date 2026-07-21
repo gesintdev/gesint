@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {type SubmitEvent, useEffect, useMemo, useState} from "react";
+import {toast} from "sonner";
 
 import {
     collectMarkedRouteIds,
@@ -11,35 +11,35 @@ import {
     resolvePermissionModule,
     systemEnumFromScope,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
-import { ProfilePermissionPanel } from "@/modules/cfg/settings/profile/components/ProfilePermissionPanel";
-import type { ProfileCreateDto, SystemScope } from "@/modules/cfg/settings/profile/dto/profile.dto";
-import { profileKeys } from "@/modules/cfg/settings/profile/profile.query";
-import { permissionCatalogService } from "@/modules/cfg/settings/profile/services/permission-catalog.service";
-import { profileService } from "@/modules/cfg/settings/profile/services/profile.service";
-import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { SystemEnum } from "@/modules/root/enum/SystemEnum";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { NavRouteTree } from "@/shared/components/layout/NavRouteTree";
-import { Button } from "@/shared/components/ui/Button";
-import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputSelect, InputString } from "@/shared/components/ui/input/index";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
-import { ExceptionCapture } from "@/shared/exceptions";
+import {ProfilePermissionPanel} from "@/modules/cfg/settings/profile/components/ProfilePermissionPanel";
+import type {ProfileCreateDto, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
+import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
+import {permissionCatalogService} from "@/modules/cfg/settings/profile/services/permission-catalog.service";
+import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
+import type {AppRoute} from "@/modules/root/enum/ModuleEnum";
+import {SystemEnum} from "@/modules/root/enum/SystemEnum";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {NavRouteTree} from "@/shared/components/layout/NavRouteTree";
+import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {InputSelect, InputString} from "@/shared/components/ui/input/index";
+import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+import {ExceptionCapture} from "@/shared/exceptions";
 
 const SYSTEM_ITEMS: SelectItem[] = [
-    { value: "DP", label: "Departamento Pessoal (DP)" },
-    { value: "RH", label: "Recursos Humanos (RH)" },
-    { value: "CONTABILIDADE", label: "Contabilidade (CTB)" },
+    {value: "DP", label: "Departamento Pessoal (DP)"},
+    {value: "RH", label: "Recursos Humanos (RH)"},
+    {value: "CONTABILIDADE", label: "Contabilidade (CTB)"},
 ];
 const FORM_STEPS: FormStepNavItem[] = [
-    { id: "identificacao", label: "Identificação" },
-    { id: "permissoes", label: "Permissões" },
+    {id: "identificacao", label: "Identificação"},
+    {id: "permissoes", label: "Permissões"},
 ];
 
 export function ProfileFormClient() {
-    const { editingId, isEditing, goToList } = useCrudScreen();
+    const {editingId, isEditing, goToList} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ProfileCreateDto>({
         name: "",
@@ -83,7 +83,7 @@ export function ProfileFormClient() {
 
     useEffect(() => {
         if (!isEditing) {
-            setForm({ name: "", description: "", system: "DP", permissionIds: [] });
+            setForm({name: "", description: "", system: "DP", permissionIds: []});
             setSelectedRoute(findFirstPermissionRoute(getPermissionNavSections(SystemEnum.DP)));
             setError(null);
             return;
@@ -115,12 +115,12 @@ export function ProfileFormClient() {
             return profileService.create(dto);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: profileKeys.all });
+            await queryClient.invalidateQueries({queryKey: profileKeys.all});
             toast.success(isEditing ? "Perfil atualizado" : "Perfil cadastrado");
             goToList();
         },
         onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível salvar o perfil." });
+            const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível salvar o perfil."});
             setError(ex.displayMessage);
         },
     });
@@ -129,11 +129,11 @@ export function ProfileFormClient() {
             const set = new Set(prev.permissionIds);
             if (checked) set.add(permissionId);
             else set.delete(permissionId);
-            return { ...prev, permissionIds: Array.from(set) };
+            return {...prev, permissionIds: Array.from(set)};
         });
     };
     const handleSystemChange = (system: SystemScope) => {
-        setForm((prev) => ({ ...prev, system, permissionIds: [] }));
+        setForm((prev) => ({...prev, system, permissionIds: []}));
         setSelectedRoute(findFirstPermissionRoute(getPermissionNavSections(systemEnumFromScope(system))));
     };
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
@@ -145,8 +145,8 @@ export function ProfileFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                {Array.from({length: 4}).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
                 ))}
             </div>
         );
@@ -175,7 +175,7 @@ export function ProfileFormClient() {
                     <InputString
                         label="Nome do perfil"
                         value={form.name}
-                        onValueChange={(value) => setForm((prev) => ({ ...prev, name: value }))}
+                        onValueChange={(value) => setForm((prev) => ({...prev, name: value}))}
                         required
                         wrapperClassName="min-w-0"
                     />
@@ -190,7 +190,7 @@ export function ProfileFormClient() {
                     <InputString
                         label="Descrição"
                         value={form.description ?? ""}
-                        onValueChange={(value) => setForm((prev) => ({ ...prev, description: value }))}
+                        onValueChange={(value) => setForm((prev) => ({...prev, description: value}))}
                         wrapperClassName="min-w-0"
                     />
                 </div>

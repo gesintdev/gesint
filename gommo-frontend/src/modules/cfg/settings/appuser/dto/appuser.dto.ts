@@ -1,4 +1,4 @@
-import type { Profile } from "@/modules/cfg/settings/profile/dto/profile.dto";
+import type {Profile} from "@/modules/cfg/settings/profile/dto/profile.dto";
 
 export type AppUser = {
     id: string;

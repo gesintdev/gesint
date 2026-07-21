@@ -1,9 +1,9 @@
-import { COMPANY_TABLE_COLUMNS } from "@/modules/dp/organization/company/config/company.table-columns";
-import type { Company, CompanyCreateDto } from "@/modules/dp/organization/company/dto/company.dto";
-import { BaseService } from "@/modules/root/services/base.service";
-import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
-import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
-import type { EntityPickerAdvancedSearch, EntityPickerSearchParams } from "@/shared/types/entity-picker.types";
+import {COMPANY_TABLE_COLUMNS} from "@/modules/dp/organization/company/config/company.table-columns";
+import type {Company, CompanyCreateDto} from "@/modules/dp/organization/company/dto/company.dto";
+import {BaseService} from "@/modules/root/services/base.service";
+import type {SelectItem, SelectSearchResult} from "@/shared/components/ui/input/select-item.types";
+import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
+import type {EntityPickerAdvancedSearch, EntityPickerSearchParams} from "@/shared/types/entity-picker.types";
 
 const AUTOCOMPLETE_PAGE_SIZE = 6;
 const MODAL_PAGE_SIZE = 10;
@@ -46,16 +46,17 @@ class CompanyService extends BaseService<Company, CompanyCreateDto, CompanyCreat
     constructor() {
         super("/api/v1/companies");
     }
+
     async searchForAutocomplete(query: string, page = 0): Promise<SelectSearchResult> {
         const all = await this.getAll();
         const q = query.trim().toLowerCase();
         const filtered = q
             ? all.filter(
-                  (company) =>
-                      company.legalName.toLowerCase().includes(q) ||
-                      company.tradeName?.toLowerCase().includes(q) ||
-                      company.cnpj.replace(/\D/g, "").includes(q.replace(/\D/g, "")),
-              )
+                (company) =>
+                    company.legalName.toLowerCase().includes(q) ||
+                    company.tradeName?.toLowerCase().includes(q) ||
+                    company.cnpj.replace(/\D/g, "").includes(q.replace(/\D/g, "")),
+            )
             : all;
         const start = page * AUTOCOMPLETE_PAGE_SIZE;
         const slice = filtered.slice(start, start + AUTOCOMPLETE_PAGE_SIZE);
@@ -66,6 +67,7 @@ class CompanyService extends BaseService<Company, CompanyCreateDto, CompanyCreat
             hasMore: page + 1 < totalPages,
         };
     }
+
     async searchForPicker(params: EntityPickerSearchParams): Promise<PageableResponseDto<Company>> {
         const all = await this.getAll();
         const filtered = filterCompanies(all, params.filters);
@@ -77,9 +79,9 @@ export const companyService = new CompanyService();
 export const COMPANY_PICKER_ADVANCED: EntityPickerAdvancedSearch<Company> = {
     title: "Buscar empresa",
     filters: [
-        { id: "legalName", label: "Razão social", placeholder: "Ex.: Gommo Ltda" },
-        { id: "cnpj", label: "CNPJ", placeholder: "Somente números" },
-        { id: "city", label: "Cidade", placeholder: "Ex.: São Paulo" },
+        {id: "legalName", label: "Razão social", placeholder: "Ex.: Gommo Ltda"},
+        {id: "cnpj", label: "CNPJ", placeholder: "Somente números"},
+        {id: "city", label: "Cidade", placeholder: "Ex.: São Paulo"},
     ],
     columns: COMPANY_TABLE_COLUMNS,
     search: (params) => companyService.searchForPicker(params),

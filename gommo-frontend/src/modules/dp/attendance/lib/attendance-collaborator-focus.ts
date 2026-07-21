@@ -8,7 +8,7 @@ export const ATTENDANCE_COLLABORATOR_FOCUS_EVENT = "gommo:attendance-collaborato
 
 export function writeAttendanceCollaboratorFocus(focus: AttendanceCollaboratorFocus) {
     window.sessionStorage.setItem(ATTENDANCE_COLLABORATOR_FOCUS_KEY, JSON.stringify(focus));
-    window.dispatchEvent(new CustomEvent(ATTENDANCE_COLLABORATOR_FOCUS_EVENT, { detail: focus }));
+    window.dispatchEvent(new CustomEvent(ATTENDANCE_COLLABORATOR_FOCUS_EVENT, {detail: focus}));
 }
 
 export function peekAttendanceCollaboratorFocus(): AttendanceCollaboratorFocus | null {

@@ -1,14 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import {useQuery} from "@tanstack/react-query";
 import clsx from "clsx";
-import { Loader2, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import {Loader2, X} from "lucide-react";
+import {useEffect, useRef, useState} from "react";
+import {createPortal} from "react-dom";
 
-import { summarizeProfileMenus } from "@/modules/cfg/settings/appuser/lib/profile-menu-summary";
-import type { Profile, SystemScope } from "@/modules/cfg/settings/profile/dto/profile.dto";
-import { profileKeys } from "@/modules/cfg/settings/profile/profile.query";
-import { profileService } from "@/modules/cfg/settings/profile/services/profile.service";
-import { Button } from "@/shared/components/ui/Button";
+import {summarizeProfileMenus} from "@/modules/cfg/settings/appuser/lib/profile-menu-summary";
+import type {Profile, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
+import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
+import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
+import {Button} from "@/shared/components/ui/Button";
 
 type ProfileDetailModalProps = {
     open: boolean;
@@ -17,7 +17,7 @@ type ProfileDetailModalProps = {
     onClose: () => void;
 };
 
-export function ProfileDetailModal({ open, profile, system, onClose }: ProfileDetailModalProps) {
+export function ProfileDetailModal({open, profile, system, onClose}: ProfileDetailModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [mounted, setMounted] = useState(false);
     const detailQuery = useQuery({
@@ -65,13 +65,13 @@ export function ProfileDetailModal({ open, profile, system, onClose }: ProfileDe
                         aria-label="Fechar"
                         onClick={onClose}
                     >
-                        <X className="size-4" />
+                        <X className="size-4"/>
                     </button>
                 </div>
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
                     {detailQuery.isLoading ? (
                         <div className="flex items-center justify-center gap-2 py-8 text-sm text-base-content/50">
-                            <Loader2 className="size-4 animate-spin" />
+                            <Loader2 className="size-4 animate-spin"/>
                             Carregando detalhes…
                         </div>
                     ) : menuSummaries.length === 0 ? (

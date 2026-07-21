@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {useEffect, useRef, useState} from "react";
 
-import { Button } from "@/shared/components/ui/Button";
-import { InputString } from "@/shared/components/ui/input/index";
+import {Button} from "@/shared/components/ui/Button";
+import {InputString} from "@/shared/components/ui/input/index";
 
 type AttendanceRequestRejectDialogProps = {
     open: boolean;
@@ -13,11 +13,11 @@ type AttendanceRequestRejectDialogProps = {
 };
 
 export function AttendanceRequestRejectDialog({
-    open,
-    loading = false,
-    onClose,
-    onConfirm,
-}: AttendanceRequestRejectDialogProps) {
+                                                  open,
+                                                  loading = false,
+                                                  onClose,
+                                                  onConfirm,
+                                              }: AttendanceRequestRejectDialogProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [reason, setReason] = useState("");
     const [error, setError] = useState<string | null>(null);

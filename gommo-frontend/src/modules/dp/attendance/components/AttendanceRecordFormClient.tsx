@@ -1,25 +1,25 @@
 "use client";
 
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import {useInfiniteQuery, useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {Plus} from "lucide-react";
+import {useEffect, useMemo, useState} from "react";
+import {toast} from "sonner";
 
-import { notificationKeys } from "@/modules/cfg/settings/notification/notification.query";
-import { attendancerecordKeys } from "@/modules/dp/attendance/attendance.query";
+import {notificationKeys} from "@/modules/cfg/settings/notification/notification.query";
+import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
 import {
     AttendanceEditableGrid,
     isAttendanceDraftId,
 } from "@/modules/dp/attendance/components/AttendanceEditableGrid";
-import { AttendanceRequestDetailModal } from "@/modules/dp/attendance/components/AttendanceRequestDetailModal";
-import { AttendanceRequestRejectDialog } from "@/modules/dp/attendance/components/AttendanceRequestRejectDialog";
+import {AttendanceRequestDetailModal} from "@/modules/dp/attendance/components/AttendanceRequestDetailModal";
+import {AttendanceRequestRejectDialog} from "@/modules/dp/attendance/components/AttendanceRequestRejectDialog";
 import type {
     AttendanceRecord,
     AttendanceRecordCreateDto,
     AttendanceRequest,
     AttendanceReviewAction,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
-import { ATTENDANCE_CLIENT_MESSAGES } from "@/modules/dp/attendance/exceptions/attendance-record.messages";
+import {ATTENDANCE_CLIENT_MESSAGES} from "@/modules/dp/attendance/exceptions/attendance-record.messages";
 import {
     ATTENDANCE_COLLABORATOR_FOCUS_EVENT,
     type AttendanceCollaboratorFocus,
@@ -30,14 +30,14 @@ import {
     attendancerecordToFormDto,
     emptyAttendanceRecordForm,
 } from "@/modules/dp/attendance/lib/attendance-record.mapper";
-import { attendancerecordService } from "@/modules/dp/attendance/services/attendance-record.service";
-import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CRUD_TAB_FORM, useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { Button } from "@/shared/components/ui/Button";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { SystemAlert } from "@/shared/system-alert";
-import { registerTabDirtyGuard } from "@/shared/workspace/dirty-tab-guard";
-import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
+import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
+import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
+import {CRUD_TAB_FORM, useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {Button} from "@/shared/components/ui/Button";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {SystemAlert} from "@/shared/system-alert";
+import {registerTabDirtyGuard} from "@/shared/workspace/dirty-tab-guard";
+import {useWorkspaceTabOptional} from "@/shared/workspace/WorkspaceTabContext";
 
 const PAGE_SIZE = 20;
 
@@ -62,7 +62,7 @@ function createDraftRow(collaboratorId: string, workDate = ""): AttendanceRecord
 }
 
 export function AttendanceRecordFormClient() {
-    const { activeTab, goToList } = useCrudScreen();
+    const {activeTab, goToList} = useCrudScreen();
     const workspaceTab = useWorkspaceTabOptional();
     const queryClient = useQueryClient();
     const [focus, setFocus] = useState<AttendanceCollaboratorFocus | null>(() =>
@@ -106,7 +106,7 @@ export function AttendanceRecordFormClient() {
         queryKey: [...attendancerecordKeys.all, "collaborator-history", focus?.collaboratorId],
         enabled: Boolean(focus?.collaboratorId),
         initialPageParam: 0,
-        queryFn: ({ pageParam }) =>
+        queryFn: ({pageParam}) =>
             attendancerecordService.listCollaboratorHistory(focus!.collaboratorId, pageParam, PAGE_SIZE),
         getNextPageParam: (lastPage) => {
             if (lastPage.page + 1 >= lastPage.totalPages) return undefined;
@@ -151,7 +151,7 @@ export function AttendanceRecordFormClient() {
         await queryClient.invalidateQueries({
             queryKey: [...attendancerecordKeys.all, "collaborator-history", focus?.collaboratorId],
         });
-        await queryClient.invalidateQueries({ queryKey: attendancerecordKeys.all });
+        await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
     };
 
     const saveMutation = useMutation({
@@ -190,7 +190,7 @@ export function AttendanceRecordFormClient() {
             toast.success(isAttendanceDraftId(variables.row.id) ? "Ponto lançado" : "Ponto atualizado");
         },
         onError: (err: unknown) => {
-            ExceptionCapture.handle(err, { fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED });
+            ExceptionCapture.handle(err, {fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED});
         },
         onSettled: () => setSavingRowId(null),
     });
@@ -211,7 +211,7 @@ export function AttendanceRecordFormClient() {
             toast.success("Ponto de hoje lançado");
         },
         onError: (err: unknown) => {
-            ExceptionCapture.handle(err, { fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED });
+            ExceptionCapture.handle(err, {fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED});
         },
     });
 
@@ -223,7 +223,7 @@ export function AttendanceRecordFormClient() {
             toast.success("Registro de ponto excluído");
         },
         onError: (err: unknown) => {
-            ExceptionCapture.handle(err, { fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED });
+            ExceptionCapture.handle(err, {fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED});
         },
         onSettled: () => setDeletingRowId(null),
     });
@@ -236,7 +236,7 @@ export function AttendanceRecordFormClient() {
         }
         const draft = createDraftRow(focus.collaboratorId, "");
         setDraftRows((current) => [draft, ...current]);
-        setFocusCell({ rowId: draft.id, field: "workDate" });
+        setFocusCell({rowId: draft.id, field: "workDate"});
     };
 
     const handleCommitRow = async (row: AttendanceRecord, patch: Partial<AttendanceRecordCreateDto>) => {
@@ -252,10 +252,10 @@ export function AttendanceRecordFormClient() {
                 return;
             }
             // Com data preenchida, persiste o lançamento manual.
-            await saveMutation.mutateAsync({ row: merged, patch: { ...patch, workDate: nextWorkDate } });
+            await saveMutation.mutateAsync({row: merged, patch: {...patch, workDate: nextWorkDate}});
             return;
         }
-        await saveMutation.mutateAsync({ row, patch });
+        await saveMutation.mutateAsync({row, patch});
     };
 
     const handleDeleteRow = async (row: AttendanceRecord) => {
@@ -272,21 +272,22 @@ export function AttendanceRecordFormClient() {
         mutationFn: (payload: { id: string; action: AttendanceReviewAction; reason?: string }) =>
             attendancerecordService.review(payload.id, payload.action, payload.reason),
         onSuccess: async (_data, variables) => {
-            await queryClient.invalidateQueries({ queryKey: attendancerecordKeys.all });
-            await queryClient.invalidateQueries({ queryKey: notificationKeys.summary });
+            await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
+            await queryClient.invalidateQueries({queryKey: notificationKeys.summary});
             toast.success(variables.action === "APPROVE" ? "Solicitação aprovada" : "Solicitação reprovada");
             setSelectedRequest(null);
             setRejectTarget(null);
         },
         onError: (err: unknown) => {
-            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível revisar a solicitação." });
+            ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível revisar a solicitação."});
         },
     });
 
     if (!focus?.collaboratorId) {
         return (
             <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-6">
-                <div className="w-full max-w-md rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 px-5 py-6">
+                <div
+                    className="w-full max-w-md rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 px-5 py-6">
                     <h3 className="text-sm font-semibold text-base-content">Selecione um colaborador</h3>
                     <p className="mt-1 text-sm text-base-content/55">
                         Escolha na listagem ou busque abaixo para editar o histórico de pontos.
@@ -307,9 +308,9 @@ export function AttendanceRecordFormClient() {
                                 );
                                 void (async () => {
                                     try {
-                                        const { collaboratorService } = await import(
+                                        const {collaboratorService} = await import(
                                             "@/modules/rh/person/collaborators/people/services/collaborator.service"
-                                        );
+                                            );
                                         const collaborator = await collaboratorService.getById(collaboratorId);
                                         setFocus({
                                             collaboratorId,
@@ -341,7 +342,8 @@ export function AttendanceRecordFormClient() {
 
     return (
         <div className="flex min-h-0 flex-1 flex-col">
-            <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--gommo-border-subtle)] px-4 py-3">
+            <header
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--gommo-border-subtle)] px-4 py-3">
                 <div className="min-w-0">
                     <h3 className="truncate text-sm font-semibold text-base-content">
                         {focus.collaboratorName ?? "Colaborador"}
@@ -355,7 +357,7 @@ export function AttendanceRecordFormClient() {
                     <Button
                         type="button"
                         size="sm"
-                        leftIcon={<Plus className="size-3.5" strokeWidth={2.5} />}
+                        leftIcon={<Plus className="size-3.5" strokeWidth={2.5}/>}
                         loading={createTodayMutation.isPending}
                         onClick={launchManualRow}
                     >
@@ -380,11 +382,11 @@ export function AttendanceRecordFormClient() {
 
             {historyQuery.isLoading ? (
                 <div className="grid gap-2 p-4">
-                    {Array.from({ length: 8 }).map((_, index) => (
+                    {Array.from({length: 8}).map((_, index) => (
                         <div
                             key={index}
                             className="skeleton-shimmer h-9 w-full"
-                            style={{ animationDelay: `${index * 50}ms` }}
+                            style={{animationDelay: `${index * 50}ms`}}
                         />
                     ))}
                 </div>
@@ -409,7 +411,7 @@ export function AttendanceRecordFormClient() {
                         onCommitRow={handleCommitRow}
                         onDeleteRow={(row) => void handleDeleteRow(row)}
                         onApproveRequest={(request) =>
-                            reviewMutation.mutate({ id: request.id, action: "APPROVE" })
+                            reviewMutation.mutate({id: request.id, action: "APPROVE"})
                         }
                         onRejectRequest={setRejectTarget}
                         onDetailRequest={setSelectedRequest}
@@ -437,11 +439,11 @@ export function AttendanceRecordFormClient() {
                 onClose={() => setSelectedRequest(null)}
                 onApprove={() => {
                     if (!selectedRequest) return;
-                    reviewMutation.mutate({ id: selectedRequest.id, action: "APPROVE" });
+                    reviewMutation.mutate({id: selectedRequest.id, action: "APPROVE"});
                 }}
                 onReject={(reason) => {
                     if (!selectedRequest) return;
-                    reviewMutation.mutate({ id: selectedRequest.id, action: "REJECT", reason });
+                    reviewMutation.mutate({id: selectedRequest.id, action: "REJECT", reason});
                 }}
             />
 
@@ -451,7 +453,7 @@ export function AttendanceRecordFormClient() {
                 onClose={() => setRejectTarget(null)}
                 onConfirm={(reason) => {
                     if (!rejectTarget) return;
-                    reviewMutation.mutate({ id: rejectTarget.id, action: "REJECT", reason });
+                    reviewMutation.mutate({id: rejectTarget.id, action: "REJECT", reason});
                 }}
             />
         </div>

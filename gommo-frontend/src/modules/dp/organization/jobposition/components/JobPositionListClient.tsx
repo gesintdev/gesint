@@ -1,30 +1,30 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {toast} from "sonner";
 
-import { JOBPOSITION_TABLE_COLUMNS } from "@/modules/dp/organization/jobposition/config/jobposition.table-columns";
-import type { JobPosition } from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
-import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
-import { jobpositionKeys } from "@/modules/dp/organization/jobposition/jobposition.query";
-import { jobpositionService } from "@/modules/dp/organization/jobposition/services/jobposition.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { SystemAlert } from "@/shared/system-alert";
+import {JOBPOSITION_TABLE_COLUMNS} from "@/modules/dp/organization/jobposition/config/jobposition.table-columns";
+import type {JobPosition} from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
+import {JOBPOSITION_CLIENT_MESSAGES} from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
+import {jobpositionKeys} from "@/modules/dp/organization/jobposition/jobposition.query";
+import {jobpositionService} from "@/modules/dp/organization/jobposition/services/jobposition.service";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {CrudTableActions} from "@/shared/components/crud/CrudTableActions";
+import {QueryTablePanel} from "@/shared/components/data/DataPanel";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {SystemAlert} from "@/shared/system-alert";
 
 export function JobPositionListClient() {
-    const { startEdit } = useCrudScreen();
+    const {startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
     const deleteMutation = useMutation({
         mutationFn: (id: string) => jobpositionService.remove(id),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: jobpositionKeys.all });
+            await queryClient.invalidateQueries({queryKey: jobpositionKeys.all});
             toast.success("Cargo excluído(a)");
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: JOBPOSITION_CLIENT_MESSAGES.JOBPOSITION_LOAD_FAILED }),
+            ExceptionCapture.handle(err, {fallbackMessage: JOBPOSITION_CLIENT_MESSAGES.JOBPOSITION_LOAD_FAILED}),
     });
     const handleDelete = async (row: JobPosition) => {
         if (!(await SystemAlert.confirmDelete())) return;

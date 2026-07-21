@@ -1,5 +1,5 @@
-import type { AttendancePresenceRow } from "@/modules/dp/attendance/dto/attendance-record.dto";
-import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
+import type {AttendancePresenceRow} from "@/modules/dp/attendance/dto/attendance-record.dto";
+import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
 
 export type AttendancePresenceListingRow = AttendancePresenceRow & {
     presenceTags: string[];
@@ -7,7 +7,7 @@ export type AttendancePresenceListingRow = AttendancePresenceRow & {
 
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
     return [...new Set(values.filter((value): value is string => Boolean(value && value.trim())))].sort((a, b) =>
-        a.localeCompare(b, "pt-BR", { sensitivity: "base" }),
+        a.localeCompare(b, "pt-BR", {sensitivity: "base"}),
     );
 }
 

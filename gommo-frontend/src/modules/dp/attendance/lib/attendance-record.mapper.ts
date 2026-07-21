@@ -3,7 +3,7 @@ import type {
     AttendanceRecord,
     AttendanceRecordCreateDto,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 
 export const ATTENDANCE_OCCURRENCE_TYPE_VALUES = [
     "NORMAL_WORK",
@@ -17,14 +17,14 @@ export const ATTENDANCE_OCCURRENCE_TYPE_VALUES = [
 ] as const satisfies readonly AttendanceOccurrenceType[];
 
 export const ATTENDANCE_OCCURRENCE_TYPE_ITEMS: SelectItem[] = [
-    { value: "NORMAL_WORK", label: "Trabalho normal" },
-    { value: "TIME_ADJUSTMENT", label: "Ajuste de ponto" },
-    { value: "LATE_ARRIVAL", label: "Atraso" },
-    { value: "UNJUSTIFIED_ABSENCE", label: "Falta injustificada" },
-    { value: "MEDICAL_CERTIFICATE", label: "Atestado médico" },
-    { value: "LEAVE_ABSENCE", label: "Afastamento" },
-    { value: "VACATION", label: "Férias" },
-    { value: "LICENSE", label: "Licença" },
+    {value: "NORMAL_WORK", label: "Trabalho normal"},
+    {value: "TIME_ADJUSTMENT", label: "Ajuste de ponto"},
+    {value: "LATE_ARRIVAL", label: "Atraso"},
+    {value: "UNJUSTIFIED_ABSENCE", label: "Falta injustificada"},
+    {value: "MEDICAL_CERTIFICATE", label: "Atestado médico"},
+    {value: "LEAVE_ABSENCE", label: "Afastamento"},
+    {value: "VACATION", label: "Férias"},
+    {value: "LICENSE", label: "Licença"},
 ];
 
 function normalizeTime(value?: string | null) {
@@ -95,7 +95,7 @@ let stickyPrefill: AttendanceRecordPrefill | null = null;
 export function writeAttendancePrefill(prefill: AttendanceRecordPrefill) {
     stickyPrefill = prefill;
     window.sessionStorage.setItem(ATTENDANCE_PREFILL_STORAGE_KEY, JSON.stringify(prefill));
-    window.dispatchEvent(new CustomEvent(ATTENDANCE_PREFILL_EVENT, { detail: prefill }));
+    window.dispatchEvent(new CustomEvent(ATTENDANCE_PREFILL_EVENT, {detail: prefill}));
 }
 
 export function peekAttendancePrefill(): AttendanceRecordPrefill | null {

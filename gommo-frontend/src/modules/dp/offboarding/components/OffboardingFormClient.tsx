@@ -1,42 +1,42 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {type SubmitEvent, useEffect, useMemo, useState} from "react";
+import {toast} from "sonner";
 
-import type { OffboardingCreateDto } from "@/modules/dp/offboarding/dto/offboarding.dto";
-import { OFFBOARDING_CLIENT_MESSAGES } from "@/modules/dp/offboarding/exceptions/offboarding.messages";
-import { emptyOffboardingForm, offboardingToFormDto } from "@/modules/dp/offboarding/lib/offboarding.mapper";
-import { offboardingKeys } from "@/modules/dp/offboarding/offboarding.query";
-import { offboardingService } from "@/modules/dp/offboarding/services/offboarding.service";
-import { collaboratorKeys } from "@/modules/rh/person/collaborators/people/collaborator.query";
-import { storageService } from "@/modules/storage/services/storage.service";
-import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { EntityAttachments } from "@/shared/components/storage/EntityAttachments";
-import { Button } from "@/shared/components/ui/Button";
-import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { sectionHasChanges } from "@/shared/lib/form-step.util";
+import type {OffboardingCreateDto} from "@/modules/dp/offboarding/dto/offboarding.dto";
+import {OFFBOARDING_CLIENT_MESSAGES} from "@/modules/dp/offboarding/exceptions/offboarding.messages";
+import {emptyOffboardingForm, offboardingToFormDto} from "@/modules/dp/offboarding/lib/offboarding.mapper";
+import {offboardingKeys} from "@/modules/dp/offboarding/offboarding.query";
+import {offboardingService} from "@/modules/dp/offboarding/services/offboarding.service";
+import {collaboratorKeys} from "@/modules/rh/person/collaborators/people/collaborator.query";
+import {storageService} from "@/modules/storage/services/storage.service";
+import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {EntityAttachments} from "@/shared/components/storage/EntityAttachments";
+import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {InputDate, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {sectionHasChanges} from "@/shared/lib/form-step.util";
 
 const DISMISSAL_ITEMS = [
-    { value: "WITHOUT_CAUSE", label: "Sem justa causa" },
-    { value: "WITH_CAUSE", label: "Com justa causa" },
-    { value: "RESIGNATION", label: "Pedido de demiss\u00e3o" },
-    { value: "AGREEMENT", label: "Acordo" },
-    { value: "END_OF_CONTRACT", label: "Fim de contrato" },
-    { value: "OTHER", label: "Outro" },
+    {value: "WITHOUT_CAUSE", label: "Sem justa causa"},
+    {value: "WITH_CAUSE", label: "Com justa causa"},
+    {value: "RESIGNATION", label: "Pedido de demiss\u00e3o"},
+    {value: "AGREEMENT", label: "Acordo"},
+    {value: "END_OF_CONTRACT", label: "Fim de contrato"},
+    {value: "OTHER", label: "Outro"},
 ];
 const OFFBOARDING_FORM_STEPS: FormStepNavItem[] = [
-    { id: "desligamento", label: "Desligamento" },
-    { id: "documentos", label: "Documentos" },
+    {id: "desligamento", label: "Desligamento"},
+    {id: "documentos", label: "Documentos"},
 ];
 
 export function OffboardingFormClient() {
-    const { editingId, isEditing, goToList, startEdit } = useCrudScreen();
+    const {editingId, isEditing, goToList, startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<OffboardingCreateDto>(emptyOffboardingForm);
     const [error, setError] = useState<string | null>(null);
@@ -71,9 +71,9 @@ export function OffboardingFormClient() {
             return offboardingService.create(dto);
         },
         onSuccess: async (result) => {
-            await queryClient.invalidateQueries({ queryKey: offboardingKeys.all });
-            await queryClient.invalidateQueries({ queryKey: collaboratorKeys.all });
-            await queryClient.invalidateQueries({ queryKey: offboardingKeys.detail(result.id) });
+            await queryClient.invalidateQueries({queryKey: offboardingKeys.all});
+            await queryClient.invalidateQueries({queryKey: collaboratorKeys.all});
+            await queryClient.invalidateQueries({queryKey: offboardingKeys.detail(result.id)});
             toast.success(isEditing ? "Desligamento atualizado" : "Desligamento cadastrado");
             startEdit(result.id);
         },
@@ -85,7 +85,7 @@ export function OffboardingFormClient() {
         },
     });
     const update = <K extends keyof OffboardingCreateDto>(field: K, value: OffboardingCreateDto[K]) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
+        setForm((prev) => ({...prev, [field]: value}));
     };
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -116,8 +116,8 @@ export function OffboardingFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                {Array.from({length: 4}).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
                 ))}
             </div>
         );
@@ -192,7 +192,7 @@ export function OffboardingFormClient() {
                 description="Anexos vinculados ao desligamento."
                 bodyClassName="!block"
             >
-                <EntityAttachments entityType="offboarding" entityId={editingId} />
+                <EntityAttachments entityType="offboarding" entityId={editingId}/>
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>

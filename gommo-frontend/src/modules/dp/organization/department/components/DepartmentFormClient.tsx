@@ -1,26 +1,26 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import clsx from "clsx";
-import { type SubmitEvent, useEffect, useId, useState } from "react";
-import { toast } from "sonner";
+import {type SubmitEvent, useEffect, useId, useState} from "react";
+import {toast} from "sonner";
 
-import { departmentKeys } from "@/modules/dp/organization/department/department.query";
-import type { DepartmentCreateDto } from "@/modules/dp/organization/department/dto/department.dto";
-import { DEPARTMENT_CLIENT_MESSAGES } from "@/modules/dp/organization/department/exceptions/department.messages";
-import { departmentToFormDto, emptyDepartmentForm } from "@/modules/dp/organization/department/lib/department.mapper";
-import { departmentService } from "@/modules/dp/organization/department/services/department.service";
-import { CollaboratorMultiPickerField } from "@/shared/components/crud/CollaboratorMultiPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { Button } from "@/shared/components/ui/Button";
-import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputCurrency, InputPhone, InputString } from "@/shared/components/ui/input/index";
-import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
-import { ExceptionCapture } from "@/shared/exceptions";
+import {departmentKeys} from "@/modules/dp/organization/department/department.query";
+import type {DepartmentCreateDto} from "@/modules/dp/organization/department/dto/department.dto";
+import {DEPARTMENT_CLIENT_MESSAGES} from "@/modules/dp/organization/department/exceptions/department.messages";
+import {departmentToFormDto, emptyDepartmentForm} from "@/modules/dp/organization/department/lib/department.mapper";
+import {departmentService} from "@/modules/dp/organization/department/services/department.service";
+import {CollaboratorMultiPickerField} from "@/shared/components/crud/CollaboratorMultiPickerField";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {InputCurrency, InputPhone, InputString} from "@/shared/components/ui/input/index";
+import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
+import {ExceptionCapture} from "@/shared/exceptions";
 
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Departamento" }];
+const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Departamento"}];
 
 type DescriptionTextareaProps = {
     label: string;
@@ -29,7 +29,7 @@ type DescriptionTextareaProps = {
     wrapperClassName?: string;
 };
 
-function DescriptionTextarea({ label, value, onValueChange, wrapperClassName }: DescriptionTextareaProps) {
+function DescriptionTextarea({label, value, onValueChange, wrapperClassName}: DescriptionTextareaProps) {
     const autoId = useId();
     const id = `department-description-${autoId}`;
 
@@ -47,7 +47,7 @@ function DescriptionTextarea({ label, value, onValueChange, wrapperClassName }: 
 }
 
 export function DepartmentFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DepartmentCreateDto>(emptyDepartmentForm);
     const [error, setError] = useState<string | null>(null);
@@ -76,8 +76,8 @@ export function DepartmentFormClient() {
             return departmentService.create(dto);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: departmentKeys.all });
-            if (editingId) await queryClient.invalidateQueries({ queryKey: departmentKeys.detail(editingId) });
+            await queryClient.invalidateQueries({queryKey: departmentKeys.all});
+            if (editingId) await queryClient.invalidateQueries({queryKey: departmentKeys.detail(editingId)});
             toast.success(isEditing ? "Departamento atualizado(a)" : "Departamento cadastrado(a)");
             setForm(emptyDepartmentForm());
             goToList();
@@ -90,7 +90,7 @@ export function DepartmentFormClient() {
         },
     });
     const update = <K extends keyof DepartmentCreateDto>(field: K, value: DepartmentCreateDto[K]) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
+        setForm((prev) => ({...prev, [field]: value}));
     };
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -101,8 +101,8 @@ export function DepartmentFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                {Array.from({length: 4}).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
                 ))}
             </div>
         );

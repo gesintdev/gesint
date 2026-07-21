@@ -1,65 +1,65 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import clsx from "clsx";
-import { Check, PauseCircle } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import {Check, PauseCircle} from "lucide-react";
+import {useState} from "react";
+import {toast} from "sonner";
 
-import { PROFILE_TABLE_COLUMNS } from "@/modules/cfg/settings/profile/config/profile.table-columns";
-import type { Profile, SystemScope } from "@/modules/cfg/settings/profile/dto/profile.dto";
-import { profileKeys } from "@/modules/cfg/settings/profile/profile.query";
-import { profileService } from "@/modules/cfg/settings/profile/services/profile.service";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { SystemAlert } from "@/shared/system-alert";
+import {PROFILE_TABLE_COLUMNS} from "@/modules/cfg/settings/profile/config/profile.table-columns";
+import type {Profile, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
+import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
+import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {CrudTableActions} from "@/shared/components/crud/CrudTableActions";
+import {TableActionButton} from "@/shared/components/crud/TableActionButton";
+import {QueryTablePanel} from "@/shared/components/data/DataPanel";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {SystemAlert} from "@/shared/system-alert";
 
 const SYSTEM_FILTERS: Array<{ value: SystemScope | "ALL"; label: string }> = [
-    { value: "ALL", label: "Todos" },
-    { value: "DP", label: "DP" },
-    { value: "RH", label: "RH" },
-    { value: "CONTABILIDADE", label: "CTB" },
+    {value: "ALL", label: "Todos"},
+    {value: "DP", label: "DP"},
+    {value: "RH", label: "RH"},
+    {value: "CONTABILIDADE", label: "CTB"},
 ];
 const STATUS_FILTERS: Array<{ value: "ACTIVE" | "INACTIVE" | "ALL"; label: string }> = [
-    { value: "ACTIVE", label: "Ativos" },
-    { value: "INACTIVE", label: "Inativos" },
-    { value: "ALL", label: "Todos" },
+    {value: "ACTIVE", label: "Ativos"},
+    {value: "INACTIVE", label: "Inativos"},
+    {value: "ALL", label: "Todos"},
 ];
 
 export function ProfileListClient() {
-    const { startEdit } = useCrudScreen();
+    const {startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
     const [systemFilter, setSystemFilter] = useState<SystemScope | "ALL">("ALL");
     const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "INACTIVE" | "ALL">("ACTIVE");
     const deleteMutation = useMutation({
         mutationFn: (id: string) => profileService.remove(id),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: profileKeys.all });
+            await queryClient.invalidateQueries({queryKey: profileKeys.all});
             toast.success("Perfil excluído");
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível excluir o perfil." }),
+            ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível excluir o perfil."}),
     });
     const activateMutation = useMutation({
         mutationFn: (id: string) => profileService.activate(id),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: profileKeys.all });
+            await queryClient.invalidateQueries({queryKey: profileKeys.all});
             toast.success("Perfil ativado");
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: "Nao foi possivel ativar o perfil." }),
+            ExceptionCapture.handle(err, {fallbackMessage: "Nao foi possivel ativar o perfil."}),
     });
     const deactivateMutation = useMutation({
         mutationFn: (id: string) => profileService.deactivate(id),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: profileKeys.all });
+            await queryClient.invalidateQueries({queryKey: profileKeys.all});
             toast.success("Perfil inativado");
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: "Nao foi possivel inativar o perfil." }),
+            ExceptionCapture.handle(err, {fallbackMessage: "Nao foi possivel inativar o perfil."}),
     });
     const handleDelete = async (row: Profile) => {
         if (
@@ -89,7 +89,7 @@ export function ProfileListClient() {
                         {filter.label}
                     </button>
                 ))}
-                <span className="mx-1 h-4 w-px bg-base-content/15" />
+                <span className="mx-1 h-4 w-px bg-base-content/15"/>
                 {STATUS_FILTERS.map((filter) => (
                     <button
                         key={filter.value}
@@ -136,7 +136,7 @@ export function ProfileListClient() {
                             <TableActionButton
                                 actionVariant="open"
                                 aria-label="Ativar perfil"
-                                leftIcon={<Check className="size-3.5" />}
+                                leftIcon={<Check className="size-3.5"/>}
                                 loading={activateMutation.isPending && activateMutation.variables === row.id}
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -147,7 +147,7 @@ export function ProfileListClient() {
                             <TableActionButton
                                 actionVariant="open"
                                 aria-label="Inativar perfil"
-                                leftIcon={<PauseCircle className="size-3.5" />}
+                                leftIcon={<PauseCircle className="size-3.5"/>}
                                 loading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
                                 onClick={(e) => {
                                     e.stopPropagation();

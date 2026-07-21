@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {ChevronLeft, ChevronRight} from "lucide-react";
 
-import { Button } from "@/shared/components/ui/Button";
+import {Button} from "@/shared/components/ui/Button";
 
 type TablePaginationProps = {
     page: number;
@@ -18,7 +18,7 @@ function paginationItems(page: number, totalPages: number): Array<number | "elli
     const safeTotalPages = Math.max(1, totalPages);
     const current = page + 1;
     if (safeTotalPages <= 7) {
-        return Array.from({ length: safeTotalPages }, (_, index) => index + 1);
+        return Array.from({length: safeTotalPages}, (_, index) => index + 1);
     }
     const items: Array<number | "ellipsis"> = [1];
     const start = Math.max(2, current - 1);
@@ -33,16 +33,16 @@ function paginationItems(page: number, totalPages: number): Array<number | "elli
 }
 
 export function TablePagination({
-    page,
-    totalPages,
-    totalElements,
-    size,
-    mode = "pages",
-    loading = false,
-    pageSizeOptions = [10, 20, 50, 100],
-    onPageChange,
-    onPageSizeChange,
-}: TablePaginationProps) {
+                                    page,
+                                    totalPages,
+                                    totalElements,
+                                    size,
+                                    mode = "pages",
+                                    loading = false,
+                                    pageSizeOptions = [10, 20, 50, 100],
+                                    onPageChange,
+                                    onPageSizeChange,
+                                }: TablePaginationProps) {
     const safeTotalPages = Math.max(1, totalPages);
     const start = totalElements === 0 ? 0 : page * size + 1;
     const end = Math.min((page + 1) * size, totalElements);
@@ -52,7 +52,8 @@ export function TablePagination({
 
     if (mode === "load-more") {
         return (
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--gommo-border-subtle)] bg-base-100 px-4 py-3 text-sm text-base-content/65">
+            <div
+                className="flex flex-wrap items-center justify-between gap-3 border-t border-(--gommo-border-subtle) bg-base-100 px-4 py-3 text-sm text-base-content/65">
                 <span className="whitespace-nowrap">
                     Mostrando {end} de {totalElements} registros
                 </span>
@@ -71,7 +72,8 @@ export function TablePagination({
     }
 
     return (
-        <div className="flex flex-nowrap items-center justify-between gap-4 border-t border-[var(--gommo-border-subtle)] bg-base-100 px-4 py-3 text-sm text-base-content/65">
+        <div
+            className="flex flex-nowrap items-center justify-between gap-4 border-t border-(--gommo-border-subtle) bg-base-100 px-4 py-3 text-sm text-base-content/65">
             <span className="min-w-0 flex-1 whitespace-nowrap">
                 Mostrando {start}-{end} de {totalElements} registros
             </span>
@@ -83,7 +85,7 @@ export function TablePagination({
                     type="button"
                     variant="outline"
                     size="sm"
-                    leftIcon={<ChevronLeft className="size-4" />}
+                    leftIcon={<ChevronLeft className="size-4"/>}
                     disabled={!canGoBack}
                     onClick={() => onPageChange(page - 1)}
                     aria-label="Pagina anterior"
@@ -115,7 +117,7 @@ export function TablePagination({
                     type="button"
                     variant="outline"
                     size="sm"
-                    leftIcon={<ChevronRight className="size-4" />}
+                    leftIcon={<ChevronRight className="size-4"/>}
                     disabled={!canGoForward}
                     onClick={() => onPageChange(page + 1)}
                     aria-label="Proxima pagina"
@@ -133,7 +135,7 @@ export function TablePagination({
             <label className="flex min-w-0 flex-1 items-center justify-end gap-2 whitespace-nowrap">
                 <span>Linhas</span>
                 <select
-                    className="select select-bordered select-sm h-8 min-h-8 w-20 rounded-lg border-[var(--gommo-border)] bg-base-100 text-sm"
+                    className="select select-bordered select-sm h-8 min-h-8 w-20 rounded-lg border-(--gommo-border) bg-base-100 text-sm"
                     value={size}
                     onChange={(event) => onPageSizeChange(Number(event.target.value))}
                 >

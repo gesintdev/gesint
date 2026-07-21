@@ -1,27 +1,27 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useEffect, useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {type SubmitEvent, useEffect, useState} from "react";
+import {toast} from "sonner";
 
-import { companyKeys } from "@/modules/dp/organization/company/company.query";
-import type { CompanyCreateDto } from "@/modules/dp/organization/company/dto/company.dto";
-import { COMPANY_CLIENT_MESSAGES } from "@/modules/dp/organization/company/exceptions/company.messages";
-import { companyToFormDto, emptyCompanyForm } from "@/modules/dp/organization/company/lib/company.mapper";
-import { companyService } from "@/modules/dp/organization/company/services/company.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { Button } from "@/shared/components/ui/Button";
-import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputCNPJ, InputString } from "@/shared/components/ui/input/index";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
+import {companyKeys} from "@/modules/dp/organization/company/company.query";
+import type {CompanyCreateDto} from "@/modules/dp/organization/company/dto/company.dto";
+import {COMPANY_CLIENT_MESSAGES} from "@/modules/dp/organization/company/exceptions/company.messages";
+import {companyToFormDto, emptyCompanyForm} from "@/modules/dp/organization/company/lib/company.mapper";
+import {companyService} from "@/modules/dp/organization/company/services/company.service";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {InputCNPJ, InputString} from "@/shared/components/ui/input/index";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Empresa" }];
+const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Empresa"}];
 
 export function CompanyFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CompanyCreateDto>(emptyCompanyForm);
     const [error, setError] = useState<string | null>(null);
@@ -48,24 +48,24 @@ export function CompanyFormClient() {
 
     const saveMutation = useMutation({
         mutationFn: async (dto: CompanyCreateDto) => {
-            const payload = { ...dto, cnpj: dto.cnpj.replace(/\D/g, "") };
+            const payload = {...dto, cnpj: dto.cnpj.replace(/\D/g, "")};
             if (isEditing && editingId) return companyService.update(editingId, payload);
             return companyService.create(payload);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: companyKeys.all });
-            if (editingId) await queryClient.invalidateQueries({ queryKey: companyKeys.detail(editingId) });
+            await queryClient.invalidateQueries({queryKey: companyKeys.all});
+            if (editingId) await queryClient.invalidateQueries({queryKey: companyKeys.detail(editingId)});
             toast.success(isEditing ? "Empresa atualizado(a)" : "Empresa cadastrado(a)");
             setForm(emptyCompanyForm());
             goToList();
         },
         onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, { fallbackMessage: COMPANY_CLIENT_MESSAGES.COMPANY_SAVE_FAILED });
+            const ex = ExceptionCapture.handle(err, {fallbackMessage: COMPANY_CLIENT_MESSAGES.COMPANY_SAVE_FAILED});
             setError(ex.displayMessage);
         },
     });
     const update = <K extends keyof CompanyCreateDto>(field: K, value: CompanyCreateDto[K]) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
+        setForm((prev) => ({...prev, [field]: value}));
     };
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -76,8 +76,8 @@ export function CompanyFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                {Array.from({length: 4}).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
                 ))}
             </div>
         );

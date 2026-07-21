@@ -208,7 +208,7 @@ export function HeaderNotifications() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -5, scale: 0.97 }}
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        className="surface-popover absolute right-0 z-50 mt-2 flex max-h-[28rem] w-[22rem] origin-top-right flex-col overflow-hidden p-1.5"
+                        className="surface-popover absolute right-0 z-50 mt-2 flex max-h-112 w-88 origin-top-right flex-col overflow-hidden p-1.5"
                     >
                         <div className="flex items-center justify-between gap-3 px-3 py-2">
                             <div>

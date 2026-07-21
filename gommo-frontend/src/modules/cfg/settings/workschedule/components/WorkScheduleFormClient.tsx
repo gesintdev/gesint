@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {type FormEvent, useEffect, useState} from "react";
+import {toast} from "sonner";
 
 import type {
     WorkScheduleCreateDto,
@@ -16,19 +16,19 @@ import {
     weeklyTotalHours,
     workScheduleToFormDto,
 } from "@/modules/cfg/settings/workschedule/lib/work-schedule.mapper";
-import { workScheduleService } from "@/modules/cfg/settings/workschedule/services/work-schedule.service";
-import { workScheduleKeys } from "@/modules/cfg/settings/workschedule/workschedule.query";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { Button } from "@/shared/components/ui/Button";
-import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputHour, InputString } from "@/shared/components/ui/input/index";
-import { ExceptionCapture } from "@/shared/exceptions";
+import {workScheduleService} from "@/modules/cfg/settings/workschedule/services/work-schedule.service";
+import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule.query";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {InputHour, InputString} from "@/shared/components/ui/input/index";
+import {ExceptionCapture} from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [
-    { id: "dados", label: "Dados" },
-    { id: "quadro", label: "Quadro de horários" },
+    {id: "dados", label: "Dados"},
+    {id: "quadro", label: "Quadro de horários"},
 ];
 
 type DayTimeField = keyof Pick<
@@ -37,7 +37,7 @@ type DayTimeField = keyof Pick<
 >;
 
 export function WorkScheduleFormClient() {
-    const { editingId, isEditing, goToList } = useCrudScreen();
+    const {editingId, isEditing, goToList} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<WorkScheduleCreateDto>(emptyWorkScheduleForm);
     const [error, setError] = useState<string | null>(null);
@@ -76,10 +76,10 @@ export function WorkScheduleFormClient() {
             return workScheduleService.create(payload);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: workScheduleKeys.all });
-            await queryClient.invalidateQueries({ queryKey: workScheduleKeys.active });
+            await queryClient.invalidateQueries({queryKey: workScheduleKeys.all});
+            await queryClient.invalidateQueries({queryKey: workScheduleKeys.active});
             if (editingId) {
-                await queryClient.invalidateQueries({ queryKey: workScheduleKeys.detail(editingId) });
+                await queryClient.invalidateQueries({queryKey: workScheduleKeys.detail(editingId)});
             }
             toast.success(isEditing ? "Escala atualizada" : "Escala cadastrada");
             setForm(emptyWorkScheduleForm());
@@ -97,7 +97,7 @@ export function WorkScheduleFormClient() {
         setForm((prev) => ({
             ...prev,
             days: prev.days.map((day) =>
-                day.dayOfWeek === dayOfWeek ? { ...day, [field]: value } : day,
+                day.dayOfWeek === dayOfWeek ? {...day, [field]: value} : day,
             ),
         }));
     };
@@ -115,8 +115,8 @@ export function WorkScheduleFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                {Array.from({length: 4}).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
                 ))}
             </div>
         );
@@ -158,14 +158,14 @@ export function WorkScheduleFormClient() {
                 <InputString
                     label="Nome"
                     value={form.name}
-                    onValueChange={(v) => setForm((prev) => ({ ...prev, name: v }))}
+                    onValueChange={(v) => setForm((prev) => ({...prev, name: v}))}
                     required
                     wrapperClassName="sm:col-span-4"
                 />
                 <InputString
                     label="Descrição"
                     value={form.description ?? ""}
-                    onValueChange={(v) => setForm((prev) => ({ ...prev, description: v }))}
+                    onValueChange={(v) => setForm((prev) => ({...prev, description: v}))}
                     wrapperClassName="sm:col-span-8"
                 />
             </FormSection>
@@ -179,64 +179,65 @@ export function WorkScheduleFormClient() {
                 <div className="overflow-x-auto rounded-lg border border-[var(--gommo-border-subtle)]">
                     <table className="gommo-table w-full min-w-[56rem]">
                         <thead>
-                            <tr>
-                                <th>Dia</th>
-                                <th>1º tempo — entrada</th>
-                                <th>1º tempo — saída</th>
-                                <th>2º tempo — entrada</th>
-                                <th>2º tempo — encerramento</th>
-                                <th className="is-right">Hora total</th>
-                                <th>Intervalo principal</th>
-                            </tr>
+                        <tr>
+                            <th>Dia</th>
+                            <th>1º tempo — entrada</th>
+                            <th>1º tempo — saída</th>
+                            <th>2º tempo — entrada</th>
+                            <th>2º tempo — encerramento</th>
+                            <th className="is-right">Hora total</th>
+                            <th>Intervalo principal</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {form.days.map((day) => (
-                                <tr key={day.dayOfWeek}>
-                                    <td className="whitespace-nowrap font-medium">
-                                        {WEEK_DAY_LABELS[day.dayOfWeek]}
-                                    </td>
-                                    <td>
-                                        <InputHour
-                                            value={day.period1Start ?? ""}
-                                            onValueChange={(v) => updateDay(day.dayOfWeek, "period1Start", v)}
-                                            wrapperClassName="!mb-0"
-                                        />
-                                    </td>
-                                    <td>
-                                        <InputHour
-                                            value={day.period1End ?? ""}
-                                            onValueChange={(v) => updateDay(day.dayOfWeek, "period1End", v)}
-                                            wrapperClassName="!mb-0"
-                                        />
-                                    </td>
-                                    <td>
-                                        <InputHour
-                                            value={day.period2Start ?? ""}
-                                            onValueChange={(v) => updateDay(day.dayOfWeek, "period2Start", v)}
-                                            wrapperClassName="!mb-0"
-                                        />
-                                    </td>
-                                    <td>
-                                        <InputHour
-                                            value={day.period2End ?? ""}
-                                            onValueChange={(v) => updateDay(day.dayOfWeek, "period2End", v)}
-                                            wrapperClassName="!mb-0"
-                                        />
-                                    </td>
-                                    <td className="is-right whitespace-nowrap tabular-nums text-base-content/70">
-                                        {dayTotalHours(day) || "—"}
-                                    </td>
-                                    <td className="whitespace-nowrap text-base-content/70">
-                                        {dayMainBreak(day) || "—"}
-                                    </td>
-                                </tr>
-                            ))}
+                        {form.days.map((day) => (
+                            <tr key={day.dayOfWeek}>
+                                <td className="whitespace-nowrap font-medium">
+                                    {WEEK_DAY_LABELS[day.dayOfWeek]}
+                                </td>
+                                <td>
+                                    <InputHour
+                                        value={day.period1Start ?? ""}
+                                        onValueChange={(v) => updateDay(day.dayOfWeek, "period1Start", v)}
+                                        wrapperClassName="!mb-0"
+                                    />
+                                </td>
+                                <td>
+                                    <InputHour
+                                        value={day.period1End ?? ""}
+                                        onValueChange={(v) => updateDay(day.dayOfWeek, "period1End", v)}
+                                        wrapperClassName="!mb-0"
+                                    />
+                                </td>
+                                <td>
+                                    <InputHour
+                                        value={day.period2Start ?? ""}
+                                        onValueChange={(v) => updateDay(day.dayOfWeek, "period2Start", v)}
+                                        wrapperClassName="!mb-0"
+                                    />
+                                </td>
+                                <td>
+                                    <InputHour
+                                        value={day.period2End ?? ""}
+                                        onValueChange={(v) => updateDay(day.dayOfWeek, "period2End", v)}
+                                        wrapperClassName="!mb-0"
+                                    />
+                                </td>
+                                <td className="is-right whitespace-nowrap tabular-nums text-base-content/70">
+                                    {dayTotalHours(day) || "—"}
+                                </td>
+                                <td className="whitespace-nowrap text-base-content/70">
+                                    {dayMainBreak(day) || "—"}
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                     <span className="text-sm text-base-content/60">Jornada semanal:</span>
-                    <span className="rounded-md border border-[var(--gommo-border-subtle)] bg-base-200 px-3 py-1.5 text-sm font-semibold tabular-nums">
+                    <span
+                        className="rounded-md border border-[var(--gommo-border-subtle)] bg-base-200 px-3 py-1.5 text-sm font-semibold tabular-nums">
                         {weeklyTotalHours(form.days)}
                     </span>
                 </div>

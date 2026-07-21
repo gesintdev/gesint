@@ -1,39 +1,39 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useEffect, useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {type SubmitEvent, useEffect, useState} from "react";
+import {toast} from "sonner";
 
-import { DepartmentPickerField } from "@/modules/dp/organization/department/components/DepartmentPickerField";
-import type { JobPositionCreateDto, JobPositionNature } from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
-import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
-import { jobpositionKeys } from "@/modules/dp/organization/jobposition/jobposition.query";
+import {DepartmentPickerField} from "@/modules/dp/organization/department/components/DepartmentPickerField";
+import type {JobPositionCreateDto, JobPositionNature} from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
+import {JOBPOSITION_CLIENT_MESSAGES} from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
+import {jobpositionKeys} from "@/modules/dp/organization/jobposition/jobposition.query";
 import {
     emptyJobPositionForm,
     jobpositionToFormDto,
 } from "@/modules/dp/organization/jobposition/lib/jobposition.mapper";
-import { cboOccupationService } from "@/modules/dp/organization/jobposition/services/cbo-occupation.service";
-import { jobpositionService } from "@/modules/dp/organization/jobposition/services/jobposition.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { Button } from "@/shared/components/ui/Button";
-import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputSelect, InputSelectAutocomplete, InputString } from "@/shared/components/ui/input/index";
-import { ExceptionCapture } from "@/shared/exceptions";
+import {cboOccupationService} from "@/modules/dp/organization/jobposition/services/cbo-occupation.service";
+import {jobpositionService} from "@/modules/dp/organization/jobposition/services/jobposition.service";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {InputSelect, InputSelectAutocomplete, InputString} from "@/shared/components/ui/input/index";
+import {ExceptionCapture} from "@/shared/exceptions";
 
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Cargo" }];
+const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Cargo"}];
 
 const JOB_POSITION_NATURE_ITEMS = [
-    { value: "OPERATIONAL", label: "Operacional" },
-    { value: "TECHNICAL", label: "Técnico" },
-    { value: "SPECIALIST", label: "Especialista" },
-    { value: "LEADERSHIP", label: "Gestão" },
-    { value: "EXECUTIVE", label: "Executivo" },
+    {value: "OPERATIONAL", label: "Operacional"},
+    {value: "TECHNICAL", label: "Técnico"},
+    {value: "SPECIALIST", label: "Especialista"},
+    {value: "LEADERSHIP", label: "Gestão"},
+    {value: "EXECUTIVE", label: "Executivo"},
 ];
 
 export function JobPositionFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<JobPositionCreateDto>(emptyJobPositionForm);
     const [cboLabel, setCboLabel] = useState("");
@@ -83,8 +83,8 @@ export function JobPositionFormClient() {
             return jobpositionService.create(dto);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: jobpositionKeys.all });
-            if (editingId) await queryClient.invalidateQueries({ queryKey: jobpositionKeys.detail(editingId) });
+            await queryClient.invalidateQueries({queryKey: jobpositionKeys.all});
+            if (editingId) await queryClient.invalidateQueries({queryKey: jobpositionKeys.detail(editingId)});
             toast.success(isEditing ? "Cargo atualizado(a)" : "Cargo cadastrado(a)");
             setForm(emptyJobPositionForm());
             goToList();
@@ -97,7 +97,7 @@ export function JobPositionFormClient() {
         },
     });
     const update = <K extends keyof JobPositionCreateDto>(field: K, value: JobPositionCreateDto[K]) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
+        setForm((prev) => ({...prev, [field]: value}));
     };
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -108,8 +108,8 @@ export function JobPositionFormClient() {
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                {Array.from({length: 4}).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
                 ))}
             </div>
         );
