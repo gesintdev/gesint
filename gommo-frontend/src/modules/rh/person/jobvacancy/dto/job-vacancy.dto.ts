@@ -16,6 +16,7 @@ export class JobVacancy {
     salary?: number;
     expectedCompletionDate?: string;
     targetBoards?: JobBoardKey[];
+    candidateCount?: number;
     createdAt?: string;
     updatedAt?: string;
 }

@@ -1,0 +1,59 @@
+package br.com.gommo.modules.rh.person.candidate.mapper;
+
+import org.springframework.stereotype.Component;
+
+import br.com.gommo.modules.rh.person.candidate.dto.CandidateRequestDto;
+import br.com.gommo.modules.rh.person.candidate.dto.CandidateResponseDto;
+import br.com.gommo.modules.rh.person.candidate.entity.Candidate;
+
+@Component
+public class CandidateMapper {
+    public Candidate toEntity(CandidateRequestDto dto) {
+        return Candidate.builder()
+                .fullName(requireName(dto.getFullName()))
+                .cpf(requireCpf(dto.getCpf()))
+                .email(trimToNull(dto.getEmail()))
+                .phone(trimToNull(dto.getPhone()))
+                .birthDate(dto.getBirthDate())
+                .build();
+    }
+
+    public void updateEntity(Candidate entity, CandidateRequestDto dto) {
+        entity.setFullName(requireName(dto.getFullName()));
+        entity.setCpf(requireCpf(dto.getCpf()));
+        entity.setEmail(trimToNull(dto.getEmail()));
+        entity.setPhone(trimToNull(dto.getPhone()));
+        entity.setBirthDate(dto.getBirthDate());
+    }
+
+    public CandidateResponseDto toResponse(Candidate entity) {
+        return CandidateResponseDto.builder()
+                .id(entity.getId())
+                .code(entity.getCode())
+                .status(entity.getStatus())
+                .fullName(entity.getFullName())
+                .cpf(entity.getCpf())
+                .email(entity.getEmail())
+                .phone(entity.getPhone())
+                .birthDate(entity.getBirthDate())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .build();
+    }
+
+    private static String requireName(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private static String requireCpf(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+}

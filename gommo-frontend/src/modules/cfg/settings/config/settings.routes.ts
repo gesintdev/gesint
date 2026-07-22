@@ -1,7 +1,7 @@
-import {CalendarClock, ClipboardList, Settings2, Shield, Users} from "lucide-react";
+import {CalendarClock, ClipboardList, Columns3, KanbanSquare, Settings2, Shield, Users} from "lucide-react";
 
 import type {AppRoute} from "@/modules/root/enum/ModuleEnum";
-import {customWorkspaceRoute, lazyNamed, tabbedCrudRoute} from "@/shared/routing";
+import {customWorkspaceRoute, lazyNamed, routeGroup, tabbedCrudRoute} from "@/shared/routing";
 
 const accessRoutes: AppRoute[] = [
     tabbedCrudRoute({
@@ -72,6 +72,38 @@ const dpRoutes: AppRoute[] = [
 ];
 
 const rhRoutes: AppRoute[] = [
+    routeGroup({
+        id: "settings-admission-process",
+        label: "Processo de Admissão",
+        icon: KanbanSquare,
+        permission: "admission:read",
+        children: [
+            tabbedCrudRoute({
+                id: "settings-admission-process-kanban",
+                href: "/settings/admission-process-kanban",
+                label: "Colunas do Kanban",
+                icon: Columns3,
+                permission: "admission:read",
+                routeId: "settings-admission-process-kanban",
+                tabShortLabel: "Coluna",
+                fieldTabName: "name",
+                list: lazyNamed(
+                    () =>
+                        import(
+                            "@/modules/cfg/settings/admissionprocesskanban/components/AdmissionProcessKanbanColumnListClient"
+                        ),
+                    "AdmissionProcessKanbanColumnListClient",
+                ),
+                form: lazyNamed(
+                    () =>
+                        import(
+                            "@/modules/cfg/settings/admissionprocesskanban/components/AdmissionProcessKanbanColumnFormClient"
+                        ),
+                    "AdmissionProcessKanbanColumnFormClient",
+                ),
+            }),
+        ],
+    }),
     tabbedCrudRoute({
         id: "settings-exit-interview-return-checklist",
         href: "/settings/exit-interview-return-checklist",

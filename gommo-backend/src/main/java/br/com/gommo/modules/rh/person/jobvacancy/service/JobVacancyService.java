@@ -1,6 +1,8 @@
 package br.com.gommo.modules.rh.person.jobvacancy.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +19,7 @@ import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancy;
 import br.com.gommo.modules.rh.person.jobvacancy.exception.JobVacancyException;
 import br.com.gommo.modules.rh.person.jobvacancy.mapper.JobVacancyMapper;
 import br.com.gommo.modules.rh.person.jobvacancy.repository.JobVacancyRepository;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.repository.JobVacancyApplicationRepository;
 
 @Service
 public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequestDto, JobVacancyResponseDto>
@@ -24,36 +27,59 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
     private final JobVacancyRepository repository;
     private final JobVacancyMapper mapper;
     private final JobPositionRepository jobPositionRepository;
+    private final JobVacancyApplicationRepository applicationRepository;
 
     public JobVacancyService(
             JobVacancyRepository repository,
             JobVacancyMapper mapper,
-            JobPositionRepository jobPositionRepository) {
+            JobPositionRepository jobPositionRepository,
+            JobVacancyApplicationRepository applicationRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.jobPositionRepository = jobPositionRepository;
+        this.applicationRepository = applicationRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('jobvacancy:read')")
     public List<JobVacancyResponseDto> findAll() {
-        return super.findAll();
+        List<JobVacancy> vacancies = repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED);
+        Map<UUID, Integer> counts = loadCandidateCounts();
+        return vacancies.stream()
+                .map(entity -> mapper.toResponse(entity, counts.getOrDefault(entity.getId(), 0)))
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('jobvacancy:read')")
     public JobVacancyResponseDto findById(UUID id) {
-        return super.findById(id);
+        JobVacancy entity = findEntity(id);
+        int count = (int) applicationRepository.countByJobVacancyIdAndStatusNot(id, StatusEnum.DELETED);
+        return mapper.toResponse(entity, count);
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('jobvacancy:read')")
     public PageableResponseDto<JobVacancyResponseDto> findPage(int page, int size) {
-        return super.findPage(page, size);
+        var pageable = org.springframework.data.domain.PageRequest.of(
+                page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        var result = repository.findAllByStatusNot(StatusEnum.DELETED, pageable);
+        Map<UUID, Integer> counts = loadCandidateCounts();
+        List<JobVacancyResponseDto> content = result.getContent().stream()
+                .map(entity -> mapper.toResponse(entity, counts.getOrDefault(entity.getId(), 0)))
+                .toList();
+        return PageableResponseDto.<JobVacancyResponseDto>builder()
+                .content(content)
+                .page(page)
+                .size(size)
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .filterOptions(java.util.Map.of())
+                .build();
     }
 
     @Override
@@ -89,6 +115,14 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
     @Override
     protected void updateEntity(JobVacancy entity, JobVacancyRequestDto request) {
         mapper.updateEntity(entity, request);
+    }
+
+    private Map<UUID, Integer> loadCandidateCounts() {
+        Map<UUID, Integer> counts = new HashMap<>();
+        for (Object[] row : applicationRepository.countActiveGroupedByJobVacancyId(StatusEnum.DELETED)) {
+            counts.put((UUID) row[0], ((Number) row[1]).intValue());
+        }
+        return counts;
     }
 
     private void validateRequest(JobVacancyRequestDto request) {

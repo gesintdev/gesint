@@ -29,6 +29,7 @@ import {
     WORKLOAD_SCHEDULE_ITEMS,
     YES_NO_ITEMS,
 } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
+import {consumeAdmissionCandidatePrefill} from "@/modules/rh/person/collaborators/admission/lib/admission-candidate-prefill";
 import {
     admissionFormToPayload,
     admissionprocessToFormDto,
@@ -159,7 +160,8 @@ export function AdmissionProcessFormClient() {
 
     useEffect(() => {
         if (!isEditing) {
-            setForm(emptyAdmissionProcessForm());
+            const prefill = consumeAdmissionCandidatePrefill();
+            setForm(prefill ? {...emptyAdmissionProcessForm(), ...prefill} : emptyAdmissionProcessForm());
             setError(null);
             setStateLabel("");
             setCityLabel("");

@@ -28,6 +28,7 @@ public class JobVacancyResponseDto {
     private final BigDecimal salary;
     private final LocalDate expectedCompletionDate;
     private final List<String> targetBoards;
+    private final Integer candidateCount;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

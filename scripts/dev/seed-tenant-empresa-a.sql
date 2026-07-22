@@ -32,6 +32,7 @@ DECLARE
         'contract_recess_policy',
         'contract_recess_period',
         'admission_process',
+        'admission_process_kanban_column',
         'attendance_record',
         'benefit_plan',
         'benefit_enrollment',
@@ -44,6 +45,8 @@ DECLARE
         'exit_interview_return_checklist_item',
         'performance_review',
         'job_vacancy',
+        'candidate',
+        'job_vacancy_application',
         'competency',        'proficiency_level',
         'development_track',
         'development_track_competency',
@@ -335,6 +338,22 @@ BEGIN
           SELECT 1
           FROM tenant_empresa_a.exit_interview_return_checklist_item t
           WHERE LOWER(t.item_key) = LOWER(p.item_key)
+            AND t.status <> 'DELETED'
+      )
+    ON CONFLICT (id) DO NOTHING;
+
+    -- 9. Colunas padrao do kanban de processo de admissao
+    INSERT INTO tenant_empresa_a.admission_process_kanban_column (
+        id, status, column_key, name, color, display_order, code, created_at
+    )
+    SELECT
+        p.id, p.status, p.column_key, p.name, p.color, p.display_order, p.code, now()
+    FROM public.admission_process_kanban_column p
+    WHERE p.status <> 'DELETED'
+      AND NOT EXISTS (
+          SELECT 1
+          FROM tenant_empresa_a.admission_process_kanban_column t
+          WHERE LOWER(t.column_key) = LOWER(p.column_key)
             AND t.status <> 'DELETED'
       )
     ON CONFLICT (id) DO NOTHING;

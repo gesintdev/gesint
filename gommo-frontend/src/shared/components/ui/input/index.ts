@@ -6,6 +6,8 @@ export type { InputCEPProps } from "./InputCEP";
 export { InputCEP } from "./InputCEP";
 export type { InputCNPJProps } from "./InputCNPJ";
 export { InputCNPJ } from "./InputCNPJ";
+export type { InputColorProps } from "./InputColor";
+export { GOMMO_SECONDARY_COLOR, InputColor } from "./InputColor";
 export type { InputCPFProps } from "./InputCPF";
 export { InputCPF } from "./InputCPF";
 export type { InputCurrencyProps } from "./InputCurrency";

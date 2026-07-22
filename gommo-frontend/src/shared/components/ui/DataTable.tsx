@@ -3,6 +3,7 @@ import get from "lodash/get";
 import type { MouseEvent, ReactNode } from "react";
 
 import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
+import { GOMMO_SECONDARY_COLOR } from "@/shared/components/ui/input/InputColor";
 import { badgeClassForStatus, formatBadgeCellValue, formatCellValue } from "@/shared/lib/table/format-cell-value";
 import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
 
@@ -123,6 +124,26 @@ function renderCellContent(
             </span>
         );
     }
+
+    if (dataType === TableDataType.COLOR) {
+        const raw = typeof value === "string" ? value.trim() : "";
+        const hex = /^#[0-9A-Fa-f]{6}$/.test(raw) ? raw.toUpperCase() : null;
+        const swatch = hex ?? GOMMO_SECONDARY_COLOR;
+        return (
+            <span className="inline-flex items-center gap-2">
+                <span
+                    className="inline-block size-3.5 shrink-0 rounded-sm border border-base-content/15"
+                    style={{ backgroundColor: swatch }}
+                    title={hex ?? `Padrão (${GOMMO_SECONDARY_COLOR})`}
+                    aria-hidden
+                />
+                <span className="text-[0.78125rem] tabular-nums text-base-content/70">
+                    {hex ?? "Padrão"}
+                </span>
+            </span>
+        );
+    }
+
     const formatted = formatCellValue(value, dataType);
     const isNumeric =
         dataType === TableDataType.INTEGER ||

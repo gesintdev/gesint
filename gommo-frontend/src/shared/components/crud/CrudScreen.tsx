@@ -2,7 +2,16 @@
 
 import clsx from "clsx";
 import { Plus, RefreshCw } from "lucide-react";
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+    createContext,
+    type ReactNode,
+    useCallback,
+    useContext,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useState,
+} from "react";
 
 import { useSessionPermissions } from "@/shared/auth/permissions";
 import { canAccessExtraTab, canWriteRoute, type RoutePublicAccess } from "@/shared/auth/route-access";
@@ -27,6 +36,8 @@ export type CrudExtraTab = {
     badge?: number;
     /** Só exibe a aba quando há registro em edição (ex.: histórico do colaborador). */
     visibleWhenEditing?: boolean;
+    /** Aba visível, mas não clicável (ex.: processo sem candidato selecionado). */
+    disabled?: boolean;
 };
 
 type CrudScreenContextValue = {
@@ -49,14 +60,28 @@ export function useCrudScreen(): CrudScreenContextValue {
     return ctx;
 }
 
+/** Escopo aninhado de CRUD (ex.: formulário de outro módulo dentro de uma aba extra). */
+export function CrudScreenScope({
+    value,
+    children,
+}: {
+    value: CrudScreenContextValue;
+    children: ReactNode;
+}) {
+    return <CrudScreenContext.Provider value={value}>{children}</CrudScreenContext.Provider>;
+}
+
 /** Publica abas extras dinâmicas a partir do `editingId` interno do CrudScreen. */
 export function useCrudExtraTabs(tabs: CrudExtraTab[] | null) {
     const setExtraTabs = useContext(CrudExtraTabsSetterContext);
     if (!setExtraTabs) throw new Error("useCrudExtraTabs deve ser usado dentro de CrudScreen");
-    useEffect(() => {
+    // Layout: a aba precisa existir no CrudScreen antes de efeitos que chamam goToTab.
+    useLayoutEffect(() => {
         setExtraTabs(tabs);
-        return () => setExtraTabs(null);
     }, [setExtraTabs, tabs]);
+    useLayoutEffect(() => {
+        return () => setExtraTabs(null);
+    }, [setExtraTabs]);
 }
 
 export type CrudScreenProps = {
@@ -138,7 +163,9 @@ export function CrudScreen({
         [isEditing, permissions, resolvedExtraTabs],
     );
     const tabs = useMemo(() => {
-        const items: { id: string; label: string; badge?: number }[] = [{ id: CRUD_TAB_LIST, label: listTabLabel }];
+        const items: { id: string; label: string; badge?: number; disabled?: boolean }[] = [
+            { id: CRUD_TAB_LIST, label: listTabLabel },
+        ];
         const showFormTab = canWrite && (!editOnly || isEditing || activeTab === CRUD_TAB_FORM);
         if (showFormTab) {
             items.push({
@@ -146,7 +173,14 @@ export function CrudScreen({
                 label: isEditing ? formTabLabelEdit : formTabLabel,
             });
         }
-        items.push(...visibleExtraTabs.map((t) => ({ id: t.id, label: t.label, badge: t.badge })));
+        items.push(
+            ...visibleExtraTabs.map((t) => ({
+                id: t.id,
+                label: t.label,
+                badge: t.badge,
+                disabled: t.disabled,
+            })),
+        );
         return items;
     }, [activeTab, canWrite, editOnly, formTabLabel, formTabLabelEdit, isEditing, listTabLabel, visibleExtraTabs]);
     const goToList = useCallback(() => {
@@ -188,7 +222,8 @@ export function CrudScreen({
     useEffect(() => {
         const isCoreTab = activeTab === CRUD_TAB_LIST || activeTab === CRUD_TAB_FORM;
         if (isCoreTab) return;
-        if (visibleExtraTabs.some((tab) => tab.id === activeTab)) return;
+        const activeExtra = visibleExtraTabs.find((tab) => tab.id === activeTab);
+        if (activeExtra && !activeExtra.disabled) return;
         setActiveTab(isEditing && canWrite ? CRUD_TAB_FORM : CRUD_TAB_LIST);
     }, [activeTab, canWrite, isEditing, visibleExtraTabs]);
 
@@ -207,6 +242,7 @@ export function CrudScreen({
                     <div className="gommo-crud-tablist" role="tablist" aria-label="Seções do cadastro">
                         {tabs.map((tab) => {
                             const selected = activeTab === tab.id;
+                            const disabled = Boolean(tab.disabled);
                             return (
                                 <button
                                     key={tab.id}
@@ -215,7 +251,9 @@ export function CrudScreen({
                                     aria-selected={selected}
                                     aria-controls={`crud-panel-${tab.id}`}
                                     id={`crud-tab-${tab.id}`}
+                                    disabled={disabled}
                                     onClick={() => {
+                                        if (disabled) return;
                                         if (tab.id === CRUD_TAB_LIST) {
                                             setActiveTab(CRUD_TAB_LIST);
                                         } else if (tab.id === CRUD_TAB_FORM) {
@@ -227,7 +265,11 @@ export function CrudScreen({
                                             }
                                         } else setActiveTab(tab.id);
                                     }}
-                                    className={clsx("gommo-crud-tab", selected && "gommo-crud-tab--active")}
+                                    className={clsx(
+                                        "gommo-crud-tab",
+                                        selected && "gommo-crud-tab--active",
+                                        disabled && "gommo-crud-tab--disabled",
+                                    )}
                                 >
                                     <span>{tab.label}</span>
                                     {tab.badge != null && tab.badge > 0 ? (

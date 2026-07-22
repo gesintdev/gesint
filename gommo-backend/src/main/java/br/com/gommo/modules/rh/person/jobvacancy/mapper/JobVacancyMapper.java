@@ -40,6 +40,10 @@ public class JobVacancyMapper {
     }
 
     public JobVacancyResponseDto toResponse(JobVacancy entity) {
+        return toResponse(entity, 0);
+    }
+
+    public JobVacancyResponseDto toResponse(JobVacancy entity, int candidateCount) {
         return JobVacancyResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
@@ -54,6 +58,7 @@ public class JobVacancyMapper {
                 .salary(entity.getSalary())
                 .expectedCompletionDate(entity.getExpectedCompletionDate())
                 .targetBoards(copyBoards(entity.getTargetBoards()))
+                .candidateCount(candidateCount)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

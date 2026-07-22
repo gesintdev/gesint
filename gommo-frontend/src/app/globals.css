@@ -1209,6 +1209,28 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
     color: color-mix(in srgb, var(--color-base-content) 72%, transparent);
 }
 
+.gommo-crud-tab--disabled,
+.gommo-crud-tab:disabled {
+    cursor: not-allowed;
+    font-variation-settings: "wght" 400;
+    color: color-mix(in srgb, var(--color-base-content) 22%, transparent);
+    opacity: 1;
+}
+
+.gommo-crud-tab--disabled:hover,
+.gommo-crud-tab:disabled:hover,
+.gommo-crud-tab--disabled.gommo-crud-tab--active,
+.gommo-crud-tab:disabled.gommo-crud-tab--active {
+    cursor: not-allowed;
+    font-variation-settings: "wght" 400;
+    color: color-mix(in srgb, var(--color-base-content) 22%, transparent);
+}
+
+.gommo-crud-tab--disabled.gommo-crud-tab--active::after,
+.gommo-crud-tab:disabled.gommo-crud-tab--active::after {
+    display: none;
+}
+
 .gommo-crud-tab--active {
     font-variation-settings: "wght" 520;
     color: var(--gommo-primary);
@@ -1794,6 +1816,45 @@ aside[data-collapsed="true"] .sidebar-nav-wrap {
     align-items: center;
     justify-content: flex-end;
     gap: 0.3125rem;
+}
+
+.job-vacancy-candidates-scroll {
+    max-height: 14rem;
+    overflow-y: auto;
+}
+
+.job-vacancy-candidates-grid {
+    display: grid;
+    gap: 0;
+}
+
+.job-vacancy-candidates-grid__row {
+    display: grid;
+    grid-template-columns:
+        minmax(10rem, 1.4fr)
+        minmax(8rem, 1fr)
+        minmax(10rem, 1.3fr)
+        minmax(7rem, 0.9fr)
+        minmax(8rem, 1fr)
+        5rem;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-base-content) 8%, transparent);
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.job-vacancy-candidates-grid__row:hover {
+    background: color-mix(in srgb, var(--gommo-primary) 6%, var(--color-base-100));
+}
+
+.job-vacancy-candidates-grid__row:last-child {
+    border-bottom: 0;
+}
+
+.job-vacancy-expand-row td {
+    background: transparent;
 }
 
 .gommo-table .gommo-table-action--open,
@@ -3819,3 +3880,140 @@ html:has(.logging-out-screen) body {
     pointer-events: none;
 }
 
+
+/* -- Kanban board (shared) ----------------------------------------- */
+.gommo-kanban-board {
+    display: flex;
+    gap: 0.75rem;
+    align-items: stretch;
+    min-height: 0;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.75rem;
+}
+
+.gommo-kanban-column {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 17.5rem;
+    width: 17.5rem;
+    max-height: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--color-base-content) 8%, transparent);
+    background: color-mix(in srgb, var(--color-base-content) 2.5%, var(--color-base-100));
+}
+
+.gommo-kanban-column--over {
+    border-color: color-mix(in srgb, var(--kanban-column-color, var(--color-secondary)) 45%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kanban-column-color, var(--color-secondary)) 18%, transparent);
+}
+
+.gommo-kanban-column__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0.75rem 0.5rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-base-content) 6%, transparent);
+}
+
+.gommo-kanban-column__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    flex-shrink: 0;
+    background: var(--kanban-column-color, var(--color-secondary));
+}
+
+.gommo-kanban-column__title {
+    margin: 0;
+    min-width: 0;
+    flex: 1;
+    font-size: 0.75rem;
+    font-variation-settings: "wght" 560;
+    letter-spacing: 0.01em;
+    color: var(--color-base-content);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gommo-kanban-column__count {
+    display: inline-flex;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0 0.35rem;
+    font-size: 0.625rem;
+    font-variation-settings: "wght" 560;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    background: color-mix(in srgb, var(--color-base-content) 6%, transparent);
+}
+
+.gommo-kanban-column__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.625rem;
+}
+
+.gommo-kanban-column__empty {
+    margin: 0;
+    padding: 0.75rem 0.25rem;
+    text-align: center;
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, var(--color-base-content) 35%, transparent);
+}
+
+.gommo-kanban-card {
+    border-radius: 0.625rem;
+    border: 1px solid color-mix(in srgb, var(--color-base-content) 8%, transparent);
+    background: var(--color-base-100);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--color-base-content) 4%, transparent);
+    cursor: grab;
+    touch-action: none;
+}
+
+.gommo-kanban-card:active {
+    cursor: grabbing;
+}
+
+.gommo-kanban-card--dragging {
+    opacity: 0.35;
+}
+
+.gommo-kanban-card--overlay {
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--color-base-content) 14%, transparent);
+    cursor: grabbing;
+}
+
+.gommo-kanban-card__body {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.625rem 0.75rem;
+}
+
+.gommo-kanban-card__title {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-variation-settings: "wght" 540;
+    color: var(--color-base-content);
+    line-height: 1.3;
+}
+
+.gommo-kanban-card__subtitle {
+    margin: 0;
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
+}
+
+.gommo-kanban-card__meta {
+    margin-top: 0.25rem;
+    font-size: 0.625rem;
+    color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
+}

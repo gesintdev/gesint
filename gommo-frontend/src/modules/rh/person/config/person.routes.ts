@@ -2,10 +2,12 @@ import {
     Briefcase,
     CalendarDays,
     ClipboardList,
+    FileUser,
     MessageSquare,
     Target,
     UserPlus,
     UserRound,
+    UserSearch,
     Users,
 } from "lucide-react";
 
@@ -112,6 +114,52 @@ export const personRoutes: AppRoute[] = [
         form: lazyNamed(
             () => import("@/modules/rh/person/jobvacancy/components/JobVacancyFormClient"),
             "JobVacancyFormClient",
+        ),
+        workspace: lazyNamed(
+            () => import("@/modules/rh/person/jobvacancy/components/JobVacancyWorkspacePage"),
+            "JobVacancyWorkspacePage",
+        ),
+    }),
+    tabbedCrudRoute({
+        id: "candidate",
+        href: "/candidate",
+        label: "Candidatos",
+        icon: UserSearch,
+        permission: "candidate:read",
+        routeId: "candidate",
+        tabShortLabel: "Cand",
+        fieldTabName: "fullName",
+        list: lazyNamed(
+            () => import("@/modules/rh/person/candidate/components/CandidateListClient"),
+            "CandidateListClient",
+        ),
+        form: lazyNamed(
+            () => import("@/modules/rh/person/candidate/components/CandidateFormClient"),
+            "CandidateFormClient",
+        ),
+    }),
+    tabbedCrudRoute({
+        id: "job-vacancy-application",
+        href: "/job-vacancy-application",
+        label: "Candidaturas",
+        icon: FileUser,
+        permission: "jobvacancyapplication:read",
+        routeId: "job-vacancy-application",
+        tabShortLabel: "Candat",
+        fieldTabName: "candidateFullName",
+        list: lazyNamed(
+            () =>
+                import(
+                    "@/modules/rh/person/jobvacancyapplication/components/JobVacancyApplicationListClient"
+                ),
+            "JobVacancyApplicationListClient",
+        ),
+        form: lazyNamed(
+            () =>
+                import(
+                    "@/modules/rh/person/jobvacancyapplication/components/JobVacancyApplicationFormClient"
+                ),
+            "JobVacancyApplicationFormClient",
         ),
     }),
     tabbedCrudRoute({

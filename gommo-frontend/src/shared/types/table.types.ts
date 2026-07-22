@@ -25,6 +25,8 @@ export enum TableDataType {
     BADGE = "BADGE",
     /** Avatar + nome (estilo DaisyUI) */
     AVATAR_PROFILE = "AVATAR_PROFILE",
+    /** Swatch de cor (#RRGGBB). */
+    COLOR = "COLOR",
 }
 
 export type TableColumnConfig = {

@@ -20,6 +20,7 @@ DECLARE
         'collaborator_contact',
         'employment_contract',
         'admission_process',
+        'admission_process_kanban_column',
         'attendance_record',
         'benefit_plan',
         'benefit_enrollment',
@@ -31,6 +32,8 @@ DECLARE
         'exit_interview_return_checklist_item',
         'performance_review',
         'job_vacancy',
+        'candidate',
+        'job_vacancy_application',
         'payroll_run',
         'payroll_event',
         'payslip',
@@ -87,6 +90,28 @@ BEGIN
                       SELECT 1
                       FROM %I.exit_interview_return_checklist_item t
                       WHERE LOWER(t.item_key) = LOWER(p.item_key)
+                        AND t.status <> 'DELETED'
+                  )
+                ON CONFLICT (id) DO NOTHING
+            $sql$, tenant_record.schema_name, tenant_record.schema_name);
+        END IF;
+
+        IF EXISTS (
+            SELECT 1 FROM information_schema.tables
+            WHERE table_schema = tenant_record.schema_name
+              AND table_name = 'admission_process_kanban_column'
+        ) THEN
+            EXECUTE format($sql$
+                INSERT INTO %I.admission_process_kanban_column (
+                    id, status, column_key, name, color, display_order, code, created_at
+                )
+                SELECT p.id, p.status, p.column_key, p.name, p.color, p.display_order, p.code, now()
+                FROM public.admission_process_kanban_column p
+                WHERE p.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM %I.admission_process_kanban_column t
+                      WHERE LOWER(t.column_key) = LOWER(p.column_key)
                         AND t.status <> 'DELETED'
                   )
                 ON CONFLICT (id) DO NOTHING
