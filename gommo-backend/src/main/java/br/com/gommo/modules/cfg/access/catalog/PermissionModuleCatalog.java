@@ -20,6 +20,8 @@ public final class PermissionModuleCatalog {
                         "jobposition",
                         "workschedule",
                         "payment",
+                        "collaborator",
+                        "admission",
                         "offboarding",
                         "notification",
                         "agenda",
@@ -74,7 +76,7 @@ public final class PermissionModuleCatalog {
     }
 
     public static SystemScopeEnum systemForModule(String module) {
-        if ("leave".equals(module)) {
+        if ("leave".equals(module) || "admission".equals(module) || "collaborator".equals(module)) {
             return null;
         }
         if (MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)

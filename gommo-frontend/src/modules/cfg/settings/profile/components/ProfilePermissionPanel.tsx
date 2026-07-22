@@ -36,7 +36,7 @@ export function ProfilePermissionPanel({
     if (!menuLabel) {
         return (
             <p className="flex flex-1 items-center justify-center px-3 text-center text-xs text-base-content/45">
-                Selecione um menu à esquerda.
+                Selecione um menu.
             </p>
         );
     }
@@ -54,7 +54,7 @@ export function ProfilePermissionPanel({
             <div className="shrink-0 border-b border-base-content/8 px-2 py-1">
                 <h3 className="truncate text-xs font-semibold text-base-content">{menuLabel}</h3>
             </div>
-            <ul className="min-h-0 flex-1 overflow-y-auto p-1">
+            <ul className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto p-1 pt-2">
                 {permissions.map((permission) => {
                     const checked = selectedIds.has(permission.id);
                     return (

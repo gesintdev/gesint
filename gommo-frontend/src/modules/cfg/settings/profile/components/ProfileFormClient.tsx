@@ -5,14 +5,13 @@ import {type SubmitEvent, useEffect, useMemo, useState} from "react";
 import {toast} from "sonner";
 
 import {
-    assignableSystemSelectItems,
     collectMarkedRouteIds,
     findFirstPermissionRoute,
     getPermissionNavSections,
     resolvePermissionModule,
     systemEnumFromScope,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
-import {ProfilePermissionPanel} from "@/modules/cfg/settings/profile/components/ProfilePermissionPanel";
+import {ProfilePermissionAssignmentPanel} from "@/modules/cfg/settings/profile/components/ProfilePermissionAssignmentPanel";
 import type {ProfileCreateDto, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
 import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
 import {permissionCatalogService} from "@/modules/cfg/settings/profile/services/permission-catalog.service";
@@ -21,14 +20,12 @@ import type {AppRoute} from "@/modules/root/enum/ModuleEnum";
 import {SystemEnum} from "@/modules/root/enum/SystemEnum";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
-import {NavRouteTree} from "@/shared/components/layout/NavRouteTree";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
-import {InputSelect, InputString} from "@/shared/components/ui/input/index";
+import {InputString} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
 
-const SYSTEM_ITEMS = assignableSystemSelectItems();
 const FORM_STEPS: FormStepNavItem[] = [
     {id: "identificacao", label: "Identificação"},
     {id: "permissoes", label: "Permissões"},
@@ -129,6 +126,7 @@ export function ProfileFormClient() {
         });
     };
     const handleSystemChange = (system: SystemScope) => {
+        if (system === form.system) return;
         setForm((prev) => ({...prev, system, permissionIds: []}));
         setSelectedRoute(findFirstPermissionRoute(getPermissionNavSections(systemEnumFromScope(system))));
     };
@@ -167,20 +165,12 @@ export function ProfileFormClient() {
             }
         >
             <FormSection id="identificacao" title="Identificação">
-                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-12 sm:grid-cols-3">
+                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-12 sm:grid-cols-2">
                     <InputString
                         label="Nome do perfil"
                         value={form.name}
                         onValueChange={(value) => setForm((prev) => ({...prev, name: value}))}
                         required
-                        wrapperClassName="min-w-0"
-                    />
-                    <InputSelect
-                        label="Sistema"
-                        items={SYSTEM_ITEMS}
-                        value={form.system}
-                        onValueChange={(value) => handleSystemChange(value as SystemScope)}
-                        placeholder="Selecione o sistema"
                         wrapperClassName="min-w-0"
                     />
                     <InputString
@@ -191,25 +181,20 @@ export function ProfileFormClient() {
                     />
                 </div>
             </FormSection>
-            <FormSection id="permissoes" title="Permissões por menu" bodyClassName="!p-0 !gap-0">
-                <div className="grid min-h-[26rem] w-full grid-cols-2 overflow-hidden sm:col-span-12">
-                    <NavRouteTree
-                        sections={navSections}
-                        selectedRouteId={selectedRoute?.id ?? null}
-                        markedRouteIds={markedRouteIds}
-                        onRouteSelect={setSelectedRoute}
-                        embedded
-                    />
-                    <div className="flex min-h-0 min-w-0 flex-col border-l border-base-content/8">
-                        <ProfilePermissionPanel
-                            menuLabel={selectedRoute?.label ?? null}
-                            permissions={modulePermissions}
-                            selectedIds={selectedPermissionIds}
-                            onToggle={togglePermission}
-                            loading={modulePermissionsQuery.isLoading}
-                        />
-                    </div>
-                </div>
+            <FormSection id="permissoes" title="Permissões por sistema" bodyClassName="!p-0 !gap-0">
+                <ProfilePermissionAssignmentPanel
+                    system={form.system}
+                    onSystemChange={handleSystemChange}
+                    navSections={navSections}
+                    selectedRoute={selectedRoute}
+                    markedRouteIds={markedRouteIds}
+                    onRouteSelect={setSelectedRoute}
+                    permissions={modulePermissions}
+                    selectedPermissionIds={selectedPermissionIds}
+                    onTogglePermission={togglePermission}
+                    permissionsLoading={modulePermissionsQuery.isLoading}
+                    selectedPermissionCount={form.permissionIds.length}
+                />
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>

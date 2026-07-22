@@ -6,7 +6,16 @@ const RH_METRIC_KEYS = new Set(["collaborators", "contracts", "leave"]);
 const DP_METRIC_KEYS = new Set(["payment"]);
 const CONTABILIDADE_METRIC_KEYS = new Set(["payroll"]);
 const RH_MODULE_KEYS = new Set(["collaborator", "admission", "contract", "leave", "attendance"]);
-const DP_MODULE_KEYS = new Set(["payment", "company", "department", "jobposition", "leave", "offboarding"]);
+const DP_MODULE_KEYS = new Set([
+    "payment",
+    "company",
+    "department",
+    "jobposition",
+    "collaborator",
+    "admission",
+    "leave",
+    "offboarding",
+]);
 const CONTABILIDADE_MODULE_KEYS = new Set(["payroll", "payslip", "benefit", "company", "department", "jobposition"]);
 
 function filterModuleHealth(
