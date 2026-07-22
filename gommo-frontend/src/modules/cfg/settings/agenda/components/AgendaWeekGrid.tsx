@@ -8,9 +8,12 @@ import {
     AGENDA_HOUR_START,
     AGENDA_SLOT_PX,
     dayHeaderLabel,
+    dayNumberLabel,
+    dayWeekdayLabel,
     eventHeightPx,
     eventTopPx,
     isSameDay,
+    localDateKey,
     startOfDay,
     workWeekDays,
 } from "@/modules/cfg/settings/agenda/lib/agenda-calendar.util";
@@ -21,6 +24,8 @@ type AgendaWeekGridProps = {
     onSlotClick: (_slotStart: Date) => void;
     onEventClick: (_event: AgendaEvent) => void;
 };
+
+const GRID_COLS = "grid-cols-[56px_repeat(5,minmax(0,1fr))]";
 
 export function AgendaWeekGrid({anchorDate, events, onSlotClick, onEventClick}: AgendaWeekGridProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -41,111 +46,125 @@ export function AgendaWeekGrid({anchorDate, events, onSlotClick, onEventClick}: 
     }, [anchorDate]);
 
     return (
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <div className="grid shrink-0 grid-cols-[56px_repeat(5,minmax(0,1fr))] border-b border-base-content/10">
-                <div />
-                {days.map((day) => {
+        <div ref={scrollRef} className="min-h-0 min-w-0 flex-1 overflow-auto">
+            {/* Header sticky dentro do mesmo scroll => colunas alinhadas com a grade */}
+            <div className={`sticky top-0 z-30 grid ${GRID_COLS} border-b border-base-content/10 bg-base-100`}>
+                <div className="border-b-2 border-transparent" />
+                {days.map((day, index) => {
                     const active = isSameDay(day, today);
                     return (
                         <div
-                            key={day.toISOString()}
+                            key={localDateKey(day)}
                             className={[
-                                "border-l border-base-content/10 px-2 py-2 text-center text-xs font-medium",
-                                active ? "text-primary" : "text-base-content/70",
+                                "relative border-l border-base-content/10 px-2 pb-2 pt-2 text-center",
+                                index === 0 ? "border-l-base-content/10" : "",
                             ].join(" ")}
                         >
-                            {dayHeaderLabel(day)}
+                            <p
+                                className={[
+                                    "mx-auto flex size-8 items-center justify-center text-lg font-semibold leading-none",
+                                    active
+                                        ? "rounded-full bg-primary text-primary-content"
+                                        : "text-base-content",
+                                ].join(" ")}
+                            >
+                                {dayNumberLabel(day)}
+                            </p>
+                            <p
+                                className={[
+                                    "mt-1 text-[11px] leading-tight",
+                                    active ? "font-medium text-primary" : "text-base-content/55",
+                                ].join(" ")}
+                            >
+                                {dayWeekdayLabel(day)}
+                            </p>
+                            <span
+                                className={[
+                                    "pointer-events-none absolute inset-x-0 bottom-0 h-0.5",
+                                    active ? "bg-primary" : "bg-primary/35",
+                                ].join(" ")}
+                                aria-hidden
+                            />
                         </div>
                     );
                 })}
             </div>
 
-            <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
-                <div
-                    className="relative grid grid-cols-[56px_repeat(5,minmax(0,1fr))]"
-                    style={{height: hours.length * AGENDA_SLOT_PX}}
-                >
-                    <div className="relative">
-                        {hours.map((hour) => (
-                            <div
-                                key={hour}
-                                className="absolute right-2 -translate-y-1/2 text-[11px] text-base-content/40"
-                                style={{top: (hour - AGENDA_HOUR_START) * AGENDA_SLOT_PX}}
-                            >
-                                {String(hour).padStart(2, "0")}
-                            </div>
-                        ))}
-                    </div>
-
-                    {days.map((day) => {
-                        const dayEvents = events.filter((event) => isSameDay(new Date(event.startsAt), day));
-                        const showNow = isSameDay(day, today);
-                        return (
-                            <div
-                                key={day.toISOString()}
-                                className="relative border-l border-base-content/10"
-                            >
-                                {hours.map((hour) => (
-                                    <button
-                                        key={`${day.toISOString()}-${hour}`}
-                                        type="button"
-                                        className="absolute inset-x-0 border-t border-base-content/8 hover:bg-primary/5"
-                                        style={{
-                                            top: (hour - AGENDA_HOUR_START) * AGENDA_SLOT_PX,
-                                            height: AGENDA_SLOT_PX,
-                                        }}
-                                        aria-label={`Novo evento ${dayHeaderLabel(day)} ${String(hour).padStart(2, "0")}:00`}
-                                        onClick={() => {
-                                            const slot = new Date(day);
-                                            slot.setHours(hour, 0, 0, 0);
-                                            onSlotClick(slot);
-                                        }}
-                                    >
-                                        <span
-                                            className="pointer-events-none absolute inset-x-0 top-1/2 border-t border-dashed border-base-content/8"
-                                            aria-hidden
-                                        />
-                                    </button>
-                                ))}
-
-                                {dayEvents.map((event) => (
-                                    <button
-                                        key={event.id}
-                                        type="button"
-                                        className="absolute inset-x-1 z-10 overflow-hidden rounded-md border border-primary/30 bg-primary/20 px-1.5 py-1 text-left shadow-sm hover:bg-primary/30"
-                                        style={{
-                                            top: eventTopPx(event.startsAt),
-                                            height: Math.max(22, eventHeightPx(event.startsAt, event.endsAt)),
-                                        }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onEventClick(event);
-                                        }}
-                                    >
-                                        <p className="truncate text-[11px] font-semibold text-primary">
-                                            {event.title}
-                                        </p>
-                                        {event.location ? (
-                                            <p className="truncate text-[10px] text-base-content/60">
-                                                {event.location}
-                                            </p>
-                                        ) : null}
-                                    </button>
-                                ))}
-
-                                {showNow ? (
-                                    <div
-                                        className="pointer-events-none absolute inset-x-0 z-20 flex items-center"
-                                        style={{top: nowTop}}
-                                    >
-                                        <span className="size-2.5 -ms-1 rounded-full bg-primary" />
-                                        <span className="h-0.5 flex-1 bg-primary" />
-                                    </div>
-                                ) : null}
-                            </div>
-                        );
-                    })}
+            <div className={`relative grid ${GRID_COLS}`} style={{height: hours.length * AGENDA_SLOT_PX}}>
+                <div className="relative">
+                    {hours.map((hour) => (
+                        <div
+                            key={hour}
+                            className="absolute right-2 -translate-y-1/2 text-[11px] text-base-content/40"
+                            style={{top: (hour - AGENDA_HOUR_START) * AGENDA_SLOT_PX}}
+                        >
+                            {String(hour).padStart(2, "0")}
+                        </div>
+                    ))}
                 </div>
+
+                {days.map((day) => {
+                    const dayEvents = events.filter((event) => isSameDay(new Date(event.startsAt), day));
+                    const showNow = isSameDay(day, today);
+                    const dayKey = localDateKey(day);
+                    return (
+                        <div key={dayKey} className="relative border-l border-base-content/10">
+                            {hours.map((hour) => (
+                                <button
+                                    key={`${dayKey}-${hour}`}
+                                    type="button"
+                                    className="absolute inset-x-0 border-t border-base-content/8 hover:bg-primary/5"
+                                    style={{
+                                        top: (hour - AGENDA_HOUR_START) * AGENDA_SLOT_PX,
+                                        height: AGENDA_SLOT_PX,
+                                    }}
+                                    aria-label={`Novo evento ${dayHeaderLabel(day)} ${String(hour).padStart(2, "0")}:00`}
+                                    onClick={() => {
+                                        const slot = new Date(day);
+                                        slot.setHours(hour, 0, 0, 0);
+                                        onSlotClick(slot);
+                                    }}
+                                >
+                                    <span
+                                        className="pointer-events-none absolute inset-x-0 top-1/2 border-t border-dashed border-base-content/8"
+                                        aria-hidden
+                                    />
+                                </button>
+                            ))}
+
+                            {dayEvents.map((event) => (
+                                <button
+                                    key={event.id}
+                                    type="button"
+                                    className="absolute inset-x-1 z-10 overflow-hidden rounded-md border border-primary/30 bg-primary/20 px-1.5 py-1 text-left shadow-sm hover:bg-primary/30"
+                                    style={{
+                                        top: eventTopPx(event.startsAt),
+                                        height: Math.max(22, eventHeightPx(event.startsAt, event.endsAt)),
+                                    }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEventClick(event);
+                                    }}
+                                >
+                                    <p className="truncate text-[11px] font-semibold text-primary">{event.title}</p>
+                                    {event.location ? (
+                                        <p className="truncate text-[10px] text-base-content/60">{event.location}</p>
+                                    ) : null}
+                                </button>
+                            ))}
+
+                            {showNow ? (
+                                <div
+                                    className="pointer-events-none absolute inset-x-0 z-20 flex items-center"
+                                    style={{top: nowTop}}
+                                >
+                                    <span className="size-2.5 -ms-1 rounded-full bg-primary" />
+                                    <span className="h-0.5 flex-1 bg-primary" />
+                                </div>
+                            ) : null}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

@@ -2,7 +2,9 @@ package br.com.gommo.modules.cfg.access.user.mapper;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -24,20 +26,22 @@ public class TenantAppUserMapper {
     }
 
     public AppUserResponseDto toResponse(AppUser user, Collaborator collaborator) {
-        List<ProfileResponseDto> dpRoles = new ArrayList<>();
-        List<ProfileResponseDto> rhRoles = new ArrayList<>();
+        Map<SystemScopeEnum, List<ProfileResponseDto>> rolesBySystem = new EnumMap<>(SystemScopeEnum.class);
+        for (SystemScopeEnum system : SystemScopeEnum.values()) {
+            rolesBySystem.put(system, new ArrayList<>());
+        }
         for (Role role : user.getRoles()) {
-            if (role.isSystemRole()) {
+            if (role.isSystemRole() || role.getSystem() == null) {
                 continue;
             }
-            if (role.getSystem() == SystemScopeEnum.DP) {
-                dpRoles.add(profileMapper.toSummary(role));
-            } else if (role.getSystem() == SystemScopeEnum.RH) {
-                rhRoles.add(profileMapper.toSummary(role));
+            List<ProfileResponseDto> systemRoles = rolesBySystem.get(role.getSystem());
+            if (systemRoles != null) {
+                systemRoles.add(profileMapper.toSummary(role));
             }
         }
-        dpRoles.sort(Comparator.comparing(ProfileResponseDto::getName, String.CASE_INSENSITIVE_ORDER));
-        rhRoles.sort(Comparator.comparing(ProfileResponseDto::getName, String.CASE_INSENSITIVE_ORDER));
+        for (List<ProfileResponseDto> systemRoles : rolesBySystem.values()) {
+            systemRoles.sort(Comparator.comparing(ProfileResponseDto::getName, String.CASE_INSENSITIVE_ORDER));
+        }
 
         return AppUserResponseDto.builder()
                 .id(user.getId())
@@ -47,8 +51,7 @@ public class TenantAppUserMapper {
                 .collaboratorName(collaborator != null ? collaborator.getFullName() : null)
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .dpRoles(dpRoles)
-                .rhRoles(rhRoles)
+                .rolesBySystem(rolesBySystem)
                 .lastLogin(user.getLastLogin())
                 .mustChangePwd(user.isMustChangePwd())
                 .createdAt(user.getCreatedAt())

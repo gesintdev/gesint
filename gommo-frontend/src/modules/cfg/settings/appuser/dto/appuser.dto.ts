@@ -1,3 +1,4 @@
+import type {SystemScope} from "@/modules/cfg/settings/lib/access-menu-catalog";
 import type {Profile} from "@/modules/cfg/settings/profile/dto/profile.dto";
 
 export type AppUser = {
@@ -8,13 +9,13 @@ export type AppUser = {
     collaboratorName?: string | null;
     username: string;
     email: string;
-    dpRoles?: Profile[];
-    rhRoles?: Profile[];
-    /** Rótulos para grid (preenchido no service). */
-    dpRolesLabel?: string;
-    rhRolesLabel?: string;
+    rolesBySystem?: Partial<Record<SystemScope, Profile[]>>;
+    /** Rótulo agregado para grid (preenchido no service). */
+    rolesLabel?: string;
     lastLogin?: string | null;
     mustChangePwd?: boolean;
+    /** Presente apenas após create/reset-password. */
+    temporaryPassword?: string;
     createdAt?: string;
     updatedAt?: string;
 };
@@ -23,7 +24,5 @@ export type AppUserCreateDto = {
     collaboratorId: string;
     username: string;
     email: string;
-    password?: string;
-    dpRoleIds?: string[];
-    rhRoleIds?: string[];
+    roleIdsBySystem?: Partial<Record<SystemScope, string[]>>;
 };

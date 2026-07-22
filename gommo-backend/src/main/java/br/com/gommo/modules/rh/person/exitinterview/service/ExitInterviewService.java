@@ -40,6 +40,7 @@ import br.com.gommo.modules.rh.person.exitinterview.mapper.ExitInterviewMapper;
 import br.com.gommo.modules.rh.person.exitinterview.repository.ExitInterviewRepository;
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.repository.AppUserRepository;
+import br.com.gommo.modules.root.security.SystemAdminUsers;
 
 @Service
 public class ExitInterviewService extends BaseService<ExitInterview, ExitInterviewRequestDto, ExitInterviewResponseDto>
@@ -81,6 +82,7 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
     @PreAuthorize("hasAuthority('exitinterview:read')")
     public List<ExitInterviewInterviewerDto> listInterviewers() {
         return appUserRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+                .filter(user -> !SystemAdminUsers.isSystemAdmin(user))
                 .map(user -> ExitInterviewInterviewerDto.builder()
                         .id(user.getId())
                         .label(resolveInterviewerLabel(user))

@@ -123,8 +123,7 @@ export function SystemShell({
                     </div>
                 </header>
             </div>
-            <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal} />
-            <AgendaModal open={agendaModalOpen} onClose={closeAgendaModal} />
+            <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal} />            <AgendaModal open={agendaModalOpen} onClose={closeAgendaModal} />
             {/*
               ActiveSystemProvider deve hidratar no mesmo Suspense que a Sidebar.
               Se ficar fora, o useSyncExternalStore promove o localStorage antes da

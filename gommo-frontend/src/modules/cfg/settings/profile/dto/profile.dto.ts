@@ -1,5 +1,6 @@
-export type SystemScope = "DP" | "RH" | "CONTABILIDADE";
+import type { SystemScope } from "@/modules/cfg/settings/lib/access-menu-catalog";
 
+export type { SystemScope };
 export type ProfileStatus = "ACTIVE" | "INACTIVE" | "DELETED";
 
 export type PermissionSummary = {

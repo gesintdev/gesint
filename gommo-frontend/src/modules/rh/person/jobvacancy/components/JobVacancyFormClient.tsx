@@ -15,6 +15,7 @@ import { JOB_VACANCY_CLIENT_MESSAGES } from "@/modules/rh/person/jobvacancy/exce
 import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
 import {
     emptyJobVacancyForm,
+    jobVacancyFormToPayload,
     jobVacancyToFormDto,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.mapper";
 import {
@@ -27,7 +28,12 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputDate, InputNumber, InputSelect } from "@/shared/components/ui/input/index";
+import {
+    InputCurrency,
+    InputDate,
+    InputNumber,
+    InputSelect,
+} from "@/shared/components/ui/input/index";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { ExceptionCapture } from "@/shared/exceptions";
 
@@ -90,16 +96,7 @@ export function JobVacancyFormClient() {
 
     const saveMutation = useMutation({
         mutationFn: async (dto: JobVacancyCreateDto) => {
-            const payload: JobVacancyCreateDto = {
-                ...dto,
-                jobPositionId: dto.jobPositionId?.trim() || null,
-                jobTitle: dto.jobTitle.trim(),
-                description: dto.description?.trim() || undefined,
-                activities: dto.activities?.trim() || undefined,
-                assignments: dto.assignments?.trim() || undefined,
-                expectedCompletionDate: dto.expectedCompletionDate?.trim() || undefined,
-                targetBoards: dto.targetBoards ?? [],
-            };
+            const payload = jobVacancyFormToPayload(dto);
             if (isEditing && editingId) return jobVacancyService.update(editingId, payload);
             return jobVacancyService.create(payload);
         },
@@ -226,13 +223,20 @@ export function JobVacancyFormClient() {
                     }
                     placeholder="Selecione"
                     clearable
-                    wrapperClassName="sm:col-span-6"
+                    wrapperClassName="sm:col-span-4"
+                />
+                <InputCurrency
+                    label="Salário"
+                    value={form.salary != null ? String(form.salary) : ""}
+                    onValueChange={(v) => update("salary", v)}
+                    emitAsDecimal
+                    wrapperClassName="sm:col-span-4"
                 />
                 <InputDate
                     label="Previsão de conclusão"
                     value={form.expectedCompletionDate ?? ""}
                     onValueChange={(v) => update("expectedCompletionDate", v)}
-                    wrapperClassName="sm:col-span-6"
+                    wrapperClassName="sm:col-span-4"
                 />
             </FormSection>
 

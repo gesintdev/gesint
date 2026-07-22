@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +52,9 @@ public class JobVacancy extends AuditEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "seniority_level", length = 32)
     private JobVacancySeniorityEnum seniorityLevel;
+
+    @Column(name = "salary", precision = 14, scale = 2)
+    private BigDecimal salary;
 
     @Column(name = "expected_completion_date")
     private LocalDate expectedCompletionDate;

@@ -2,7 +2,11 @@ import {ENTITY_CODE_TABLE_COLUMN} from "@/shared/config/entity-code.table-column
 import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types";
 
 export const ATTENDANCE_TABLE_COLUMNS: TableColumnConfig[] = [
-    ENTITY_CODE_TABLE_COLUMN,
+    {
+        ...ENTITY_CODE_TABLE_COLUMN,
+        className: "tabular-nums w-14",
+        headerClassName: "w-14",
+    },
     {
         id: "collaboratorName",
         columnName: "Colaborador",
@@ -31,7 +35,7 @@ export const ATTENDANCE_TABLE_COLUMNS: TableColumnConfig[] = [
     },
     {
         id: "occurrenceType",
-        columnName: "Ocorrencia",
+        columnName: "Ocorrência",
         fieldValue: "occurrenceType",
         dataType: TableDataType.BADGE,
         badgeLabels: {
@@ -46,15 +50,30 @@ export const ATTENDANCE_TABLE_COLUMNS: TableColumnConfig[] = [
         },
     },
     {
-        id: "clockIn",
-        columnName: "Entrada",
-        fieldValue: "clockIn",
-        dataType: TableDataType.TEXT,
+        id: "occurrenceOrigin",
+        columnName: "Origem",
+        fieldValue: "occurrenceOrigin",
+        dataType: TableDataType.BADGE,
+        badgeLabels: {
+            MANUAL: "Manual",
+            LEAVE_REQUEST: "Solicitação",
+            MOBILE: "App",
+        },
     },
     {
-        id: "clockOut",
-        columnName: "Saída",
-        fieldValue: "clockOut",
+        id: "schedule",
+        columnName: "Horários",
+        fieldValue: "schedule",
         dataType: TableDataType.TEXT,
+        notFilterable: true,
+        className: "tabular-nums whitespace-nowrap",
+    },
+    {
+        id: "workedHours",
+        columnName: "Horas trabalhadas",
+        fieldValue: "workedHours",
+        dataType: TableDataType.DECIMAL,
+        align: "right",
+        notFilterable: true,
     },
 ];

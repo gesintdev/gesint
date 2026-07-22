@@ -32,7 +32,7 @@ public class AgendaEventService implements IAgendaEventService {
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('agenda:read')")
+    @PreAuthorize("isAuthenticated()")
     public List<AgendaEventResponseDto> listInRange(OffsetDateTime from, OffsetDateTime to) {
         UUID ownerId = currentUserId();
         OffsetDateTime rangeFrom = from;
@@ -50,7 +50,7 @@ public class AgendaEventService implements IAgendaEventService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('agenda:write')")
+    @PreAuthorize("isAuthenticated()")
     public AgendaEventResponseDto create(AgendaEventRequestDto request) {
         validate(request);
         AgendaEvent entity = mapper.toEntity(request);
@@ -61,7 +61,7 @@ public class AgendaEventService implements IAgendaEventService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('agenda:write')")
+    @PreAuthorize("isAuthenticated()")
     public AgendaEventResponseDto update(UUID id, AgendaEventRequestDto request) {
         validate(request);
         AgendaEvent entity = findOwned(id);
@@ -71,7 +71,7 @@ public class AgendaEventService implements IAgendaEventService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('agenda:delete')")
+    @PreAuthorize("isAuthenticated()")
     public void delete(UUID id) {
         AgendaEvent entity = findOwned(id);
         entity.setStatus(StatusEnum.DELETED);

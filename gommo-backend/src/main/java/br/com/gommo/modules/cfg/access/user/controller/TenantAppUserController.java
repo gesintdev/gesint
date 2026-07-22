@@ -51,6 +51,11 @@ public class TenantAppUserController {
         return ResponseEntity.ok(tenantAppUserService.update(id, request));
     }
 
+    @PostMapping("/{id}/reset-password")
+    public ResponseEntity<AppUserResponseDto> resetPassword(@PathVariable UUID id) {
+        return ResponseEntity.ok(tenantAppUserService.resetPassword(id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         tenantAppUserService.delete(id);

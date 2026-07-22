@@ -136,11 +136,13 @@ export function ActiveSystemProvider({
     const permissionsReady = contractedReady;
     // Sessão (JWT), não as keys já resolvidas do hook — senão o admin
     // "sem tenant" deixa de ser detectado depois que o filtro comercial muda.
-    const platformAdminNoTenant = isPlatformAdminWithoutTenant({
+    const noCommercialFilter = isPlatformAdminWithoutTenant({
         platformAdmin: session?.platformAdmin,
         tenantSlug: session?.tenantSlug,
         contractedSystemKeys: session?.contractedSystemKeys,
     });
+    // Só admin da plataforma no host/dev ignora filtro de permissões do menu/rail.
+    const unrestrictedPlatformAdmin = Boolean(session?.platformAdmin && noCommercialFilter);
     const contractedSystems = useMemo(() => resolveContractedSystems(contractedKeys), [contractedKeys]);
     // getServerSnapshot = cookie do SSR; apos hidratar, getSnapshot le localStorage.
     // O Provider precisa estar no mesmo Suspense que a Sidebar (ver SystemShell).
@@ -170,18 +172,18 @@ export function ActiveSystemProvider({
         }
         return SystemEnumHelper.getSortedSystems()
             .filter((systemId) => {
-                // Admin na plataforma / localhost: todos os sistemas no rail.
-                if (platformAdminNoTenant) {
+                if (unrestrictedPlatformAdmin) {
                     return true;
                 }
-                if (!isSystemContracted(systemId, contractedSystems)) {
+                // Localhost / schema public: sem filtro comercial, mas ainda exige permissão.
+                if (!noCommercialFilter && !isSystemContracted(systemId, contractedSystems)) {
                     return false;
                 }
                 const sections = getNavSectionsForSystem(systemId);
                 return filterSectionsByPermissions(sections, permissions).length > 0;
             })
             .map((id) => SystemEnumHelper.getById(id));
-    }, [contractedSystems, permissions, permissionsReady, platformAdminNoTenant]);
+    }, [contractedSystems, noCommercialFilter, permissions, permissionsReady, unrestrictedPlatformAdmin]);
     const resolvedActiveSystem = useMemo(() => {
         if (isSettingsMode || systems.length === 0) {
             return activeSystem;
@@ -194,7 +196,7 @@ export function ActiveSystemProvider({
             return [];
         }
         if (isSettingsMode) {
-            if (platformAdminNoTenant) {
+            if (unrestrictedPlatformAdmin) {
                 return SETTINGS_NAV_SECTIONS;
             }
             return filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, permissions);
@@ -203,7 +205,7 @@ export function ActiveSystemProvider({
             return [];
         }
         const sections = getNavSectionsForSystem(resolvedActiveSystem);
-        if (platformAdminNoTenant) {
+        if (unrestrictedPlatformAdmin) {
             return sections;
         }
         return filterSectionsByPermissions(sections, permissions);
@@ -212,7 +214,7 @@ export function ActiveSystemProvider({
         isSettingsMode,
         permissions,
         permissionsReady,
-        platformAdminNoTenant,
+        unrestrictedPlatformAdmin,
         systems.length,
     ]);
     const selectSystem = useCallback((system: SystemEnum) => {

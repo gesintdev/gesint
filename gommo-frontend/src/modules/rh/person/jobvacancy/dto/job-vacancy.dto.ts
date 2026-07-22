@@ -13,6 +13,7 @@ export class JobVacancy {
     activities?: string;
     assignments?: string;
     seniorityLevel?: JobVacancySeniority;
+    salary?: number;
     expectedCompletionDate?: string;
     targetBoards?: JobBoardKey[];
     createdAt?: string;
@@ -27,6 +28,7 @@ export class JobVacancyCreateDto {
     activities?: string;
     assignments?: string;
     seniorityLevel?: JobVacancySeniority;
+    salary?: string | number;
     expectedCompletionDate?: string;
     targetBoards?: JobBoardKey[];
 }

@@ -19,6 +19,13 @@ export const JOB_VACANCY_TABLE_COLUMNS: TableColumnConfig[] = [
         badgeLabels: JOB_VACANCY_SENIORITY_LABELS,
     },
     {
+        id: "salary",
+        columnName: "Salário",
+        fieldValue: "salary",
+        dataType: TableDataType.CURRENCY,
+        align: "right",
+    },
+    {
         id: "expectedCompletionDate",
         columnName: "Previsão",
         fieldValue: "expectedCompletionDate",

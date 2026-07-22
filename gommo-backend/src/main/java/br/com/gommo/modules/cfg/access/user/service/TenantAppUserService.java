@@ -1,12 +1,12 @@
 package br.com.gommo.modules.cfg.access.user.service;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
@@ -20,9 +20,15 @@ import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.entity.Role;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.root.repository.RoleRepository;
+import br.com.gommo.modules.root.security.SystemAdminUsers;
 
 @Service
 public class TenantAppUserService implements ITenantAppUserService {
+
+    private static final String TEMP_PASSWORD_ALPHABET =
+            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+    private static final int TEMP_PASSWORD_LENGTH = 12;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final AppUserRepository appUserRepository;
     private final RoleRepository roleRepository;
@@ -47,7 +53,9 @@ public class TenantAppUserService implements ITenantAppUserService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('user:read')")
     public List<AppUserResponseDto> findAll() {
+        boolean viewerIsSystemAdmin = currentUserIsSystemAdmin();
         return appUserRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+            .filter(user -> viewerIsSystemAdmin || !SystemAdminUsers.isSystemAdmin(user))
             .map(user -> mapper.toResponse(user, resolveCollaborator(user.getCollaboratorId())))
             .toList();
     }
@@ -56,7 +64,7 @@ public class TenantAppUserService implements ITenantAppUserService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('user:read')")
     public AppUserResponseDto findById(UUID id) {
-        AppUser user = findUser(id);
+        AppUser user = findVisibleUser(id);
         return mapper.toResponse(user, resolveCollaborator(user.getCollaboratorId()));
     }
 
@@ -66,18 +74,22 @@ public class TenantAppUserService implements ITenantAppUserService {
     public AppUserResponseDto create(AppUserRequestDto request) {
         validateCreate(request);
         Collaborator collaborator = resolveActiveCollaborator(request.getCollaboratorId());
+        assertCollaboratorNotLinkedToSystemAdmin(collaborator.getId());
+        String temporaryPassword = generateTemporaryPassword();
         AppUser user = AppUser.builder()
             .collaboratorId(collaborator.getId())
             .username(request.getUsername().trim())
             .name(Objects.isNull(request.getName()) ? collaborator.getFullName() : request.getName().trim())
             .email(request.getEmail().trim().toLowerCase())
-            .passwordHash(passwordEncoder.encode(request.getPassword()))
+            .passwordHash(passwordEncoder.encode(temporaryPassword))
             .status(StatusEnum.ACTIVE)
             .mustChangePwd(true)
             .roles(resolveAssignedRoles(request))
             .build();
         AppUser saved = appUserRepository.save(user);
-        return mapper.toResponse(saved, collaborator);
+        AppUserResponseDto response = mapper.toResponse(saved, collaborator);
+        response.setTemporaryPassword(temporaryPassword);
+        return response;
     }
 
     @Override
@@ -85,15 +97,13 @@ public class TenantAppUserService implements ITenantAppUserService {
     @PreAuthorize("hasAuthority('user:write')")
     public AppUserResponseDto update(UUID id, AppUserRequestDto request) {
         AppUser user = findUser(id);
+        assertMutableUser(user);
         validateUpdate(request, id);
         Collaborator collaborator = resolveActiveCollaborator(request.getCollaboratorId());
+        assertCollaboratorNotLinkedToSystemAdmin(collaborator.getId());
         user.setCollaboratorId(collaborator.getId());
         user.setUsername(request.getUsername().trim());
         user.setEmail(request.getEmail().trim().toLowerCase());
-        if (StringUtils.hasText(request.getPassword())) {
-            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-            user.setMustChangePwd(true);
-        }
         user.setRoles(resolveAssignedRoles(request));
         AppUser saved = appUserRepository.save(user);
         return mapper.toResponse(saved, collaborator);
@@ -101,17 +111,62 @@ public class TenantAppUserService implements ITenantAppUserService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAuthority('user:write')")
+    public AppUserResponseDto resetPassword(UUID id) {
+        AppUser user = findUser(id);
+        assertMutableUser(user);
+        String temporaryPassword = generateTemporaryPassword();
+        user.setPasswordHash(passwordEncoder.encode(temporaryPassword));
+        user.setMustChangePwd(true);
+        AppUser saved = appUserRepository.save(user);
+        AppUserResponseDto response = mapper.toResponse(saved, resolveCollaborator(saved.getCollaboratorId()));
+        response.setTemporaryPassword(temporaryPassword);
+        return response;
+    }
+
+    @Override
+    @Transactional
     @PreAuthorize("hasAuthority('user:delete')")
     public void delete(UUID id) {
         AppUser user = findUser(id);
+        assertMutableUser(user);
         user.setStatus(StatusEnum.DELETED);
         appUserRepository.save(user);
+    }
+
+    private AppUser findVisibleUser(UUID id) {
+        AppUser user = findUser(id);
+        if (SystemAdminUsers.isSystemAdmin(user) && !currentUserIsSystemAdmin()) {
+            throw TenantAppUserException.notFound();
+        }
+        return user;
     }
 
     private AppUser findUser(UUID id) {
         return appUserRepository
             .findByIdWithRoles(id, StatusEnum.DELETED)
             .orElseThrow(TenantAppUserException::notFound);
+    }
+
+    private void assertMutableUser(AppUser user) {
+        if (SystemAdminUsers.isSystemAdmin(user)) {
+            throw TenantAppUserException.systemAdminImmutable();
+        }
+    }
+
+    private void assertCollaboratorNotLinkedToSystemAdmin(UUID collaboratorId) {
+        List<UUID> adminCollaboratorIds =
+            appUserRepository.findCollaboratorIdsLinkedToSystemAdmin(StatusEnum.DELETED);
+        if (adminCollaboratorIds.contains(collaboratorId)) {
+            throw TenantAppUserException.notFound();
+        }
+    }
+
+    private boolean currentUserIsSystemAdmin() {
+        return SystemAdminUsers.currentUserId()
+            .flatMap(id -> appUserRepository.findByIdWithRoles(id, StatusEnum.DELETED))
+            .map(SystemAdminUsers::isSystemAdmin)
+            .orElse(false);
     }
 
     private Collaborator resolveActiveCollaborator(UUID collaboratorId) {
@@ -128,13 +183,18 @@ public class TenantAppUserService implements ITenantAppUserService {
     }
 
     private void validateCreate(AppUserRequestDto request) {
-        if (!StringUtils.hasText(request.getPassword())) {
-            throw TenantAppUserException.passwordRequired();
-        }
         validateUnique(request, null);
         if (appUserRepository.existsByCollaboratorIdAndStatusNot(request.getCollaboratorId(), StatusEnum.DELETED)) {
             throw TenantAppUserException.collaboratorAlreadyLinked();
         }
+    }
+
+    private String generateTemporaryPassword() {
+        StringBuilder password = new StringBuilder(TEMP_PASSWORD_LENGTH);
+        for (int i = 0; i < TEMP_PASSWORD_LENGTH; i++) {
+            password.append(TEMP_PASSWORD_ALPHABET.charAt(SECURE_RANDOM.nextInt(TEMP_PASSWORD_ALPHABET.length())));
+        }
+        return password.toString();
     }
 
     private void validateUpdate(AppUserRequestDto request, UUID id) {
@@ -165,17 +225,18 @@ public class TenantAppUserService implements ITenantAppUserService {
 
     private Set<Role> resolveAssignedRoles(AppUserRequestDto request) {
         Set<Role> roles = new HashSet<>();
-        if (request.getDpRoleIds() != null) {
-            for (UUID roleId : request.getDpRoleIds()) {
-                if (roleId != null) {
-                    roles.add(loadAssignableRole(roleId, SystemScopeEnum.DP));
-                }
-            }
+        Map<SystemScopeEnum, List<UUID>> roleIdsBySystem = request.getRoleIdsBySystem();
+        if (roleIdsBySystem == null || roleIdsBySystem.isEmpty()) {
+            return roles;
         }
-        if (request.getRhRoleIds() != null) {
-            for (UUID roleId : request.getRhRoleIds()) {
+        for (SystemScopeEnum system : SystemScopeEnum.values()) {
+            List<UUID> roleIds = roleIdsBySystem.get(system);
+            if (roleIds == null) {
+                continue;
+            }
+            for (UUID roleId : roleIds) {
                 if (roleId != null) {
-                    roles.add(loadAssignableRole(roleId, SystemScopeEnum.RH));
+                    roles.add(loadAssignableRole(roleId, system));
                 }
             }
         }

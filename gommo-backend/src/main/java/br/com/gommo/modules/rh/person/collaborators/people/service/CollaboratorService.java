@@ -1,6 +1,7 @@
 package br.com.gommo.modules.rh.person.collaborators.people.service;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +27,7 @@ import br.com.gommo.modules.rh.person.collaborators.people.exception.Collaborato
 import br.com.gommo.modules.rh.person.collaborators.people.mapper.CollaboratorMapper;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorContactRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.root.repository.AppUserRepository;
 
 @Service
 public class CollaboratorService extends BaseService<Collaborator, CollaboratorRequestDto, CollaboratorResponseDto>
@@ -37,6 +39,7 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
     private final AdmissionProcessRepository admissionProcessRepository;
     private final OffboardingRepository offboardingRepository;
     private final JobPositionRepository jobPositionRepository;
+    private final AppUserRepository appUserRepository;
 
     public CollaboratorService(
             CollaboratorRepository CollaboratorRepository,
@@ -44,7 +47,8 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
             CollaboratorContactRepository contactRepository,
             AdmissionProcessRepository admissionProcessRepository,
             OffboardingRepository offboardingRepository,
-            JobPositionRepository jobPositionRepository) {
+            JobPositionRepository jobPositionRepository,
+            AppUserRepository appUserRepository) {
         super(CollaboratorRepository, CollaboratorMapper::toResponse, CollaboratorMapper::toEntity);
         this.CollaboratorRepository = CollaboratorRepository;
         this.CollaboratorMapper = CollaboratorMapper;
@@ -52,15 +56,16 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
         this.admissionProcessRepository = admissionProcessRepository;
         this.offboardingRepository = offboardingRepository;
         this.jobPositionRepository = jobPositionRepository;
+        this.appUserRepository = appUserRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('collaborator:read')")
     public List<CollaboratorResponseDto> findAll() {
-        List<UUID> offboardedIds = offboardingRepository.findOffboardedCollaboratorIds(StatusEnum.DELETED);
+        Set<UUID> hiddenIds = hiddenCollaboratorIds();
         return CollaboratorRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
-                .filter(c -> !offboardedIds.contains(c.getId()))
+                .filter(c -> !hiddenIds.contains(c.getId()))
                 .map(this::toResponseWithContact)
                 .toList();
     }
@@ -84,10 +89,10 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
     @PreAuthorize("hasAuthority('collaborator:read')")
     public PageableResponseDto<CollaboratorResponseDto> findPage(
             int page, int size, Map<String, List<String>> filters) {
-        List<UUID> offboardedIds = offboardingRepository.findOffboardedCollaboratorIds(StatusEnum.DELETED);
+        Set<UUID> hiddenIds = hiddenCollaboratorIds();
         List<Collaborator> allRows =
                 CollaboratorRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
-                        .filter(c -> !offboardedIds.contains(c.getId()))
+                        .filter(c -> !hiddenIds.contains(c.getId()))
                         .toList();
         List<Collaborator> filteredRows = allRows.stream()
                 .filter(c -> matchesContainsFilter(filters, "code", c.getCode() != null ? c.getCode().toString() : null))
@@ -129,10 +134,10 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
         if (ids.isEmpty()) {
             return List.of();
         }
-        List<UUID> offboardedIds = offboardingRepository.findOffboardedCollaboratorIds(StatusEnum.DELETED);
+        Set<UUID> hiddenIds = hiddenCollaboratorIds();
         return CollaboratorRepository.findAllById(ids).stream()
                 .filter(c -> c.getStatus() != StatusEnum.DELETED)
-                .filter(c -> !offboardedIds.contains(c.getId()))
+                .filter(c -> !hiddenIds.contains(c.getId()))
                 .sorted(Comparator.comparing(Collaborator::getFullName, String.CASE_INSENSITIVE_ORDER))
                 .map(this::toResponseWithContact)
                 .toList();
@@ -163,9 +168,12 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
             return List.of();
         }
         List<UUID> offboardedIds = offboardingRepository.findOffboardedCollaboratorIds(StatusEnum.DELETED);
+        Set<UUID> adminCollaboratorIds =
+                Set.copyOf(appUserRepository.findCollaboratorIdsLinkedToSystemAdmin(StatusEnum.DELETED));
         return CollaboratorRepository.findAllById(managerCollaboratorIds).stream()
                 .filter(c -> c.getStatus() != StatusEnum.DELETED)
                 .filter(c -> !offboardedIds.contains(c.getId()))
+                .filter(c -> !adminCollaboratorIds.contains(c.getId()))
                 .sorted(Comparator.comparing(Collaborator::getFullName, String.CASE_INSENSITIVE_ORDER))
                 .map(this::toResponseWithContact)
                 .toList();
@@ -199,6 +207,9 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
 
     @Override
     protected Collaborator findEntity(UUID id) {
+        if (hiddenCollaboratorIds().contains(id)) {
+            throw CollaboratorException.notFound();
+        }
         return CollaboratorRepository.findByIdAndStatusNot(id, StatusEnum.DELETED)
                 .orElseThrow(CollaboratorException::notFound);
     }
@@ -206,6 +217,13 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
     @Override
     protected void updateEntity(Collaborator entity, CollaboratorRequestDto request) {
         CollaboratorMapper.updateEntity(entity, request);
+    }
+
+    /** Colaboradores desligados + vínculo do usuário ADMIN (sintético ou não). */
+    private Set<UUID> hiddenCollaboratorIds() {
+        Set<UUID> hidden = new HashSet<>(offboardingRepository.findOffboardedCollaboratorIds(StatusEnum.DELETED));
+        hidden.addAll(appUserRepository.findCollaboratorIdsLinkedToSystemAdmin(StatusEnum.DELETED));
+        return hidden;
     }
 
     private CollaboratorResponseDto toResponseWithContact(Collaborator entity) {

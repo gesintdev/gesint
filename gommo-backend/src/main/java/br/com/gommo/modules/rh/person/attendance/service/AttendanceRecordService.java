@@ -119,7 +119,16 @@ public class AttendanceRecordService
             throw AttendanceRecordException.invalidSubmission();
         }
 
-        List<Collaborator> collaborators = collaboratorRepository.findByStatusOrderByFullNameAsc(StatusEnum.ACTIVE);
+        // Apenas colaboradores com admissão concluída (exclui vínculos sintéticos, ex.: ADMIN).
+        List<UUID> admittedIds = admissionProcessRepository.findCollaboratorIdsFromCompletedAdmissions(
+            AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED);
+        if (admittedIds.isEmpty()) {
+            return List.of();
+        }
+        List<Collaborator> collaborators = collaboratorRepository.findAllById(admittedIds).stream()
+            .filter(collaborator -> collaborator.getStatus() == StatusEnum.ACTIVE)
+            .sorted(Comparator.comparing(Collaborator::getFullName, String.CASE_INSENSITIVE_ORDER))
+            .toList();
         if (collaborators.isEmpty()) {
             return List.of();
         }
@@ -262,7 +271,7 @@ public class AttendanceRecordService
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('attendance:write')")
+    @PreAuthorize("isAuthenticated()")
     public AttendanceRecordResponseDto clock(AttendanceClockRequestDto request) {
         AttendanceSettingsResponseDto settings = getSettingsInternal();
         if (settings.isRequirePhoto() && (request.getPhoto() == null || request.getPhoto().getObjectId() == null)) {
@@ -295,20 +304,34 @@ public class AttendanceRecordService
     }
 
     @Override
-    @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('attendance:write')")
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
     public AttendanceMobileContextResponseDto mobileContext() {
-        UUID collaboratorId = resolveCurrentCollaboratorId();
+        AttendanceSettingsResponseDto settings = getSettingsInternal();
+        AppUser user = resolveCurrentUser();
+        UUID collaboratorId = resolveCollaboratorIdForUser(user);
+        if (collaboratorId == null) {
+            return AttendanceMobileContextResponseDto.builder()
+                .requirePhoto(settings.isRequirePhoto())
+                .requireLocation(settings.isRequireLocation())
+                .build();
+        }
+
         AdmissionProcess admission = latestCompletedAdmission(collaboratorId);
         LocalDate today = LocalDate.now(BUSINESS_ZONE);
         AttendanceRecordResponseDto todayRecord = repository
             .findByCollaboratorIdAndWorkDateAndStatusNot(collaboratorId, today, StatusEnum.DELETED)
             .map(this::toEnrichedResponse)
             .orElse(null);
-        AttendanceSettingsResponseDto settings = getSettingsInternal();
+        String collaboratorName = admission != null
+            ? displayName(admission)
+            : collaboratorRepository
+                .findById(collaboratorId)
+                .map(Collaborator::getFullName)
+                .orElse(user.getUsername());
         return AttendanceMobileContextResponseDto.builder()
             .collaboratorId(collaboratorId)
-            .collaboratorName(admission != null ? displayName(admission) : null)
+            .collaboratorName(collaboratorName)
             .contractType(admission != null && admission.getContractType() != null ? admission.getContractType().name() : null)
             .workloadSchedule(admission != null ? admission.getWorkloadSchedule() : null)
             .dailyWorkloadHours(expectedHoursFromAdmission(admission, today))
@@ -733,10 +756,68 @@ public class AttendanceRecordService
 
     private UUID resolveCurrentCollaboratorId() {
         AppUser user = resolveCurrentUser();
-        if (user.getCollaboratorId() == null) {
+        UUID collaboratorId = resolveCollaboratorIdForUser(user);
+        if (collaboratorId == null) {
             throw AttendanceRecordException.collaboratorNotLinked();
         }
-        return user.getCollaboratorId();
+        return collaboratorId;
+    }
+
+    /**
+     * ADMIN (role de sistema) passa reto: se não houver colaborador vinculado,
+     * cria/associa um registro pessoal automaticamente.
+     */
+    private UUID resolveCollaboratorIdForUser(AppUser user) {
+        if (user.getCollaboratorId() != null) {
+            return user.getCollaboratorId();
+        }
+        if (!isSystemAdmin(user)) {
+            return null;
+        }
+        return ensurePersonalCollaborator(user);
+    }
+
+    private boolean isSystemAdmin(AppUser user) {
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            return false;
+        }
+        return user.getRoles().stream()
+            .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
+            .anyMatch(role -> role.isSystemRole() && "ADMIN".equalsIgnoreCase(role.getName()));
+    }
+
+    private UUID ensurePersonalCollaborator(AppUser user) {
+        String cpf = syntheticCpfForUser(user.getId());
+        Collaborator collaborator = collaboratorRepository
+            .findByCpfAndStatusNot(cpf, StatusEnum.DELETED)
+            .orElseGet(() -> {
+                String fullName = user.getName() != null && !user.getName().isBlank()
+                    ? user.getName()
+                    : user.getUsername();
+                Collaborator created = Collaborator.builder()
+                    .fullName(fullName)
+                    .cpf(cpf)
+                    .birthDate(LocalDate.of(1990, 1, 1))
+                    .status(StatusEnum.ACTIVE)
+                    .build();
+                return collaboratorRepository.save(created);
+            });
+        user.setCollaboratorId(collaborator.getId());
+        appUserRepository.save(user);
+        return collaborator.getId();
+    }
+
+    /** CPF sintético estável por usuário (somente dígitos), para vínculo automático do ADMIN. */
+    private static String syntheticCpfForUser(UUID userId) {
+        String hex = userId.toString().replace("-", "");
+        StringBuilder digits = new StringBuilder(11);
+        for (int i = 0; i < hex.length() && digits.length() < 11; i++) {
+            digits.append(Character.digit(hex.charAt(i), 16) % 10);
+        }
+        while (digits.length() < 11) {
+            digits.append('0');
+        }
+        return digits.toString();
     }
 
     private UUID resolveCurrentUserId() {

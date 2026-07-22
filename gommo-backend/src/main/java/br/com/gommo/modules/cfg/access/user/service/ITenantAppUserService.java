@@ -16,5 +16,7 @@ public interface ITenantAppUserService {
 
     AppUserResponseDto update(UUID id, AppUserRequestDto request);
 
+    AppUserResponseDto resetPassword(UUID id);
+
     void delete(UUID id);
 }

@@ -27,19 +27,24 @@ export function isPathAccessible(
     const route = findRouteByPathname(pathname);
     if (!route) return true;
 
-    // Admin da plataforma (localhost / dev-public): acesso a todos os sistemas/rotas.
-    if (
-        isPlatformAdminWithoutTenant({
-            platformAdmin: options?.platformAdmin,
-            tenantSlug: options?.tenantSlug,
-            contractedSystemKeys: options?.contractedSystemKeys ?? contractedSystemKeys,
-        })
-    ) {
+    const noCommercialFilter = isPlatformAdminWithoutTenant({
+        platformAdmin: options?.platformAdmin,
+        tenantSlug: options?.tenantSlug,
+        contractedSystemKeys: options?.contractedSystemKeys ?? contractedSystemKeys,
+    });
+
+    // Admin da plataforma no host/dev: acesso irrestrito.
+    if (options?.platformAdmin && noCommercialFilter) {
         return true;
     }
 
     if (!canAccessRoute(route, granted)) {
         return false;
+    }
+
+    // Localhost / schema public: permissões ok; não aplica filtro comercial de sistemas.
+    if (noCommercialFilter) {
+        return true;
     }
 
     const hasTenant = Boolean(options?.tenantSlug?.trim());

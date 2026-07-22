@@ -100,6 +100,7 @@ export function AgendaModal({open, onClose}: AgendaModalProps) {
                         <AgendaSidebar
                             visibleMonth={visibleMonth}
                             selectedDate={anchorDate}
+                            anchorDate={anchorDate}
                             onVisibleMonthChange={setVisibleMonth}
                             onSelectDate={(date) => {
                                 setAnchorDate(startOfDay(date));

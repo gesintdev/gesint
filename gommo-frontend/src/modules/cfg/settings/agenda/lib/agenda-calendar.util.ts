@@ -66,12 +66,30 @@ export function dayHeaderLabel(date: Date) {
     return `${date.getDate()} ${WEEKDAY_LONG[date.getDay()]}`;
 }
 
+export function dayNumberLabel(date: Date) {
+    return String(date.getDate());
+}
+
+export function dayWeekdayLabel(date: Date) {
+    return WEEKDAY_LONG[date.getDay()];
+}
+
 export function isSameDay(a: Date, b: Date) {
     return (
         a.getFullYear() === b.getFullYear() &&
         a.getMonth() === b.getMonth() &&
         a.getDate() === b.getDate()
     );
+}
+
+/** Dias da semana de trabalho (seg–sex) exibidos na grade — usados no destaque do mini calendário. */
+export function visibleWeekHighlightDays(anchor: Date) {
+    return workWeekDays(anchor);
+}
+
+/** Chave estável em calendário local (evita deslocar dia via toISOString/UTC). */
+export function localDateKey(date: Date) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 }
 
 export function toOffsetIso(date: Date) {
@@ -158,8 +176,9 @@ export function monthTitle(year: number, month: number) {
     return `${MONTH_LONG[month]} ${year}`;
 }
 
+/** Labels alinhados à grade Monday-first do mini calendário. */
 export function weekdayShortLabels() {
-    return ["S", "T", "Q", "Q", "S", "S", "D"] as const;
+    return ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"] as const;
 }
 
 export {WEEKDAY_SHORT, addDays, startOfDay};

@@ -129,23 +129,27 @@ export function SessionRefresh() {
         if (!contractedReady) {
             return;
         }
-        const platformAdminNoTenant = isPlatformAdminWithoutTenant({
+        const noCommercialFilter = isPlatformAdminWithoutTenant({
             platformAdmin: session?.platformAdmin,
             tenantSlug: session?.tenantSlug,
             contractedSystemKeys: session?.contractedSystemKeys,
         });
+        const unrestrictedPlatformAdmin = Boolean(session?.platformAdmin && noCommercialFilter);
         const permissions = session?.user?.permissions ?? [];
         const allowedRouteIds = new Set(
             useWorkspaceStore
                 .getState()
                 .tabs.map((tab) => tab.routeId)
                 .filter((routeId) => {
-                    if (platformAdminNoTenant) {
+                    if (unrestrictedPlatformAdmin) {
                         return true;
                     }
                     const route = findRouteById(routeId);
                     if (!canAccessRoute(route, permissions)) {
                         return false;
+                    }
+                    if (noCommercialFilter) {
+                        return true;
                     }
                     const system = SystemEnumHelper.findSystemForRouteId(routeId, systemModuleGroups);
                     return isSystemContracted(system, contractedSystems);

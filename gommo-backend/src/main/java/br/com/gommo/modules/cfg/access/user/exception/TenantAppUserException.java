@@ -35,4 +35,11 @@ public final class TenantAppUserException {
         return new BusinessException(
                 "APP_USER_INVALID_ROLE", "Perfil incompatível com o sistema selecionado.", HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException systemAdminImmutable() {
+        return new BusinessException(
+                "APP_USER_SYSTEM_ADMIN_IMMUTABLE",
+                "O usuário administrador do sistema não pode ser alterado pela aplicação.",
+                HttpStatus.FORBIDDEN);
+    }
 }

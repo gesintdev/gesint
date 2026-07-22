@@ -399,24 +399,26 @@ public class AuthService implements IAuthService {
                     .toList();
         }
 
-        List<String> permissions = user.getRoles().stream()
+        List<String> permissions = new ArrayList<>(user.getRoles().stream()
                 .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
                 .map(Role::getPermissions)
                 .flatMap(java.util.Set::stream)
                 .map(Permission::getAuthority)
                 .distinct()
-                .toList();
+                .toList());
 
-        if (user.getCollaboratorId() == null) {
-            return permissions;
+        // Serviços pessoais do header (agenda + bate-ponto): disponíveis a todo usuário autenticado.
+        permissions.add("agenda:read");
+        permissions.add("agenda:write");
+        permissions.add("agenda:delete");
+        permissions.add("attendance:write");
+        permissions.add("storage:write");
+
+        if (user.getCollaboratorId() != null) {
+            permissions.add("notification:read");
+            permissions.add("notification:write");
         }
-
-        List<String> mobilePermissions = new ArrayList<>(permissions);
-        mobilePermissions.add("attendance:write");
-        mobilePermissions.add("storage:write");
-        mobilePermissions.add("notification:read");
-        mobilePermissions.add("notification:write");
-        return mobilePermissions.stream().distinct().toList();
+        return permissions.stream().distinct().sorted().toList();
     }
 
     private CollaboratorOrganizationSnapshot resolveCollaboratorOrganization(AppUser user) {

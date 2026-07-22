@@ -1,9 +1,11 @@
 package br.com.gommo.modules.root.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
@@ -32,6 +34,19 @@ public interface AppUserRepository extends IBaseRepository<AppUser> {
 
     @Query("SELECT u FROM AppUser u LEFT JOIN FETCH u.roles WHERE u.id = :id AND u.status <> :deleted")
     Optional<AppUser> findByIdWithRoles(UUID id, StatusEnum deleted);
+
+    @Query(
+            """
+            SELECT DISTINCT u.collaboratorId
+            FROM AppUser u
+            JOIN u.roles r
+            WHERE u.status <> :deleted
+              AND u.collaboratorId IS NOT NULL
+              AND r.systemRole = true
+              AND LOWER(r.name) = 'admin'
+              AND r.status <> :deleted
+            """)
+    List<UUID> findCollaboratorIdsLinkedToSystemAdmin(@Param("deleted") StatusEnum deleted);
 
     boolean existsByUsername(String username);
 

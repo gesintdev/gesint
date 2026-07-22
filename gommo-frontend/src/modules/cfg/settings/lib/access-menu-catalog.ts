@@ -1,6 +1,7 @@
 import { getNavSectionsForSystem } from "@/config/routes";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
-import { SystemEnum } from "@/modules/root/enum/SystemEnum";
+import { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 
 const ROUTE_MODULE_MAP: Record<string, string> = {
     departments: "department",
@@ -106,6 +107,18 @@ function findParentIds(routes: AppRoute[], routeId: string, ancestors: string[])
 
 export type SystemScope = "DP" | "RH" | "CONTABILIDADE";
 
+const SYSTEM_SCOPE_LABELS: Record<SystemScope, string> = {
+    DP: "Departamento Pessoal (DP)",
+    RH: "Recursos Humanos (RH)",
+    CONTABILIDADE: "Contabilidade (CTB)",
+};
+
+const SYSTEM_SCOPE_SHORT_LABELS: Record<SystemScope, string> = {
+    DP: "DP",
+    RH: "RH",
+    CONTABILIDADE: "CTB",
+};
+
 export function systemScopeFromEnum(system: SystemEnum): SystemScope {
     if (system === SystemEnum.DP) return "DP";
     if (system === SystemEnum.CONTABILIDADE) return "CONTABILIDADE";
@@ -116,6 +129,34 @@ export function systemEnumFromScope(scope: SystemScope): SystemEnum {
     if (scope === "DP") return SystemEnum.DP;
     if (scope === "CONTABILIDADE") return SystemEnum.CONTABILIDADE;
     return SystemEnum.RH;
+}
+
+/** Sistemas de domínio atribuíveis a perfis/usuários — derivado do rail (exclui CFG). */
+export const ASSIGNABLE_SYSTEM_SCOPES: SystemScope[] = SystemEnumHelper.getSortedSystems().map(systemScopeFromEnum);
+
+export function systemScopeLabel(scope: SystemScope): string {
+    return SYSTEM_SCOPE_LABELS[scope];
+}
+
+export function systemScopeShortLabel(scope: SystemScope): string {
+    return SYSTEM_SCOPE_SHORT_LABELS[scope];
+}
+
+export function assignableSystemSelectItems(): SelectItem[] {
+    return ASSIGNABLE_SYSTEM_SCOPES.map((scope) => ({
+        value: scope,
+        label: systemScopeLabel(scope),
+    }));
+}
+
+export function assignableSystemFilterItems(): Array<{ value: SystemScope | "ALL"; label: string }> {
+    return [
+        { value: "ALL", label: "Todos" },
+        ...ASSIGNABLE_SYSTEM_SCOPES.map((scope) => ({
+            value: scope as SystemScope | "ALL",
+            label: systemScopeShortLabel(scope),
+        })),
+    ];
 }
 
 export function routeHasMarkedPermissions(route: AppRoute, markedModules: ReadonlySet<string>): boolean {

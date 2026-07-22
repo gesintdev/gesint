@@ -1,17 +1,23 @@
 "use client";
 
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type SubmitEvent, useCallback, useEffect, useState} from "react";
+import {useMutation, useQueries, useQuery, useQueryClient} from "@tanstack/react-query";
+import {KeyRound} from "lucide-react";
+import {type SubmitEvent, useCallback, useEffect, useMemo, useState} from "react";
 import {toast} from "sonner";
 
 import {appUserKeys} from "@/modules/cfg/settings/appuser/appuser.query";
-import {ProfileRolePicker} from "@/modules/cfg/settings/appuser/components/ProfileRolePicker";
-import type {AppUserCreateDto} from "@/modules/cfg/settings/appuser/dto/appuser.dto";
+import {AppUserProfileAssignmentPanel} from "@/modules/cfg/settings/appuser/components/AppUserProfileAssignmentPanel";
+import type {AppUser, AppUserCreateDto} from "@/modules/cfg/settings/appuser/dto/appuser.dto";
 import {
     suggestEmailFromCollaborator,
     suggestUsernameFromCollaborator,
 } from "@/modules/cfg/settings/appuser/lib/collaborator-credentials";
 import {appUserService} from "@/modules/cfg/settings/appuser/services/appuser.service";
+import {
+    ASSIGNABLE_SYSTEM_SCOPES,
+    type SystemScope,
+} from "@/modules/cfg/settings/lib/access-menu-catalog";
+import type {Profile} from "@/modules/cfg/settings/profile/dto/profile.dto";
 import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
 import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
 import {collaboratorService} from "@/modules/rh/person/collaborators/people/services/collaborator.service";
@@ -21,22 +27,38 @@ import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
-import {InputBase, InputString} from "@/shared/components/ui/input/index";
+import {InputString} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {SystemAlert} from "@/shared/system-alert";
+
+function emptyRoleIdsBySystem(): Partial<Record<SystemScope, string[]>> {
+    return Object.fromEntries(ASSIGNABLE_SYSTEM_SCOPES.map((scope) => [scope, []])) as Partial<
+        Record<SystemScope, string[]>
+    >;
+}
 
 const emptyForm = (): AppUserCreateDto => ({
     collaboratorId: "",
     username: "",
     email: "",
-    password: "",
-    dpRoleIds: [],
-    rhRoleIds: [],
+    roleIdsBySystem: emptyRoleIdsBySystem(),
 });
+
 const FORM_STEPS: FormStepNavItem[] = [
-    {id: "colaborador", label: "Colaborador"},
-    {id: "credenciais", label: "Credenciais"},
+    {id: "dados", label: "Dados"},
     {id: "perfis", label: "Perfis"},
 ];
+
+async function showTemporaryPassword(password: string, context: "create" | "reset") {
+    await SystemAlert.info.alert({
+        title: context === "create" ? "Usuário cadastrado" : "Senha redefinida",
+        message:
+            `Senha temporária: ${password}\n\n` +
+            "Anote e compartilhe com o usuário. Ela não será exibida novamente. " +
+            "No primeiro acesso, será solicitado o cadastro de uma nova senha.",
+        dismissLabel: "Entendi",
+    });
+}
 
 export function AppUserFormClient() {
     const {editingId, isEditing, goToList} = useCrudScreen();
@@ -48,14 +70,28 @@ export function AppUserFormClient() {
         queryFn: () => appUserService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
     });
-    const dpProfilesQuery = useQuery({
-        queryKey: profileKeys.list("DP"),
-        queryFn: () => profileService.getAll("DP"),
+    const profileQueries = useQueries({
+        queries: ASSIGNABLE_SYSTEM_SCOPES.map((scope) => ({
+            queryKey: profileKeys.list(scope),
+            queryFn: () => profileService.getAll(scope),
+        })),
     });
-    const rhProfilesQuery = useQuery({
-        queryKey: profileKeys.list("RH"),
-        queryFn: () => profileService.getAll("RH"),
-    });
+
+    const profilesBySystem = useMemo(() => {
+        const map = {} as Partial<Record<SystemScope, Profile[]>>;
+        ASSIGNABLE_SYSTEM_SCOPES.forEach((scope, index) => {
+            map[scope] = profileQueries[index]?.data ?? [];
+        });
+        return map;
+    }, [profileQueries]);
+
+    const loadingBySystem = useMemo(() => {
+        const map = {} as Partial<Record<SystemScope, boolean>>;
+        ASSIGNABLE_SYSTEM_SCOPES.forEach((scope, index) => {
+            map[scope] = profileQueries[index]?.isLoading ?? false;
+        });
+        return map;
+    }, [profileQueries]);
 
     useEffect(() => {
         if (!isEditing) {
@@ -65,13 +101,15 @@ export function AppUserFormClient() {
         }
 
         if (detailQuery.data) {
+            const roleIdsBySystem = emptyRoleIdsBySystem();
+            for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
+                roleIdsBySystem[scope] = detailQuery.data.rolesBySystem?.[scope]?.map((profile) => profile.id) ?? [];
+            }
             setForm({
                 collaboratorId: detailQuery.data.collaboratorId,
                 username: detailQuery.data.username,
                 email: detailQuery.data.email,
-                password: "",
-                dpRoleIds: detailQuery.data.dpRoles?.map((profile) => profile.id) ?? [],
-                rhRoleIds: detailQuery.data.rhRoles?.map((profile) => profile.id) ?? [],
+                roleIdsBySystem,
             });
             setError(null);
         }
@@ -94,20 +132,27 @@ export function AppUserFormClient() {
             setForm((prev) => ({...prev, collaboratorId}));
         }
     }, []);
+
     const saveMutation = useMutation({
         mutationFn: async (dto: AppUserCreateDto) => {
+            const roleIdsBySystem = emptyRoleIdsBySystem();
+            for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
+                roleIdsBySystem[scope] = dto.roleIdsBySystem?.[scope] ?? [];
+            }
             const payload: AppUserCreateDto = {
                 ...dto,
-                dpRoleIds: dto.dpRoleIds ?? [],
-                rhRoleIds: dto.rhRoleIds ?? [],
-                password: dto.password || undefined,
+                roleIdsBySystem,
             };
             if (isEditing && editingId) return appUserService.update(editingId, payload);
             return appUserService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved: AppUser) => {
             await queryClient.invalidateQueries({queryKey: appUserKeys.all});
-            toast.success(isEditing ? "Usuário atualizado" : "Usuário cadastrado");
+            if (!isEditing && saved.temporaryPassword) {
+                await showTemporaryPassword(saved.temporaryPassword, "create");
+            } else {
+                toast.success(isEditing ? "Usuário atualizado" : "Usuário cadastrado");
+            }
             goToList();
         },
         onError: (err: unknown) => {
@@ -115,6 +160,41 @@ export function AppUserFormClient() {
             setError(ex.displayMessage);
         },
     });
+
+    const resetPasswordMutation = useMutation({
+        mutationFn: async () => {
+            if (!editingId) throw new Error("Usuário ainda não foi salvo.");
+            return appUserService.resetPassword(editingId);
+        },
+        onSuccess: async (saved) => {
+            if (saved.temporaryPassword) {
+                await showTemporaryPassword(saved.temporaryPassword, "reset");
+            } else {
+                toast.success("Senha redefinida");
+            }
+        },
+        onError: (err: unknown) => {
+            const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível resetar a senha."});
+            toast.error(ex.displayMessage);
+        },
+    });
+
+    const handleResetPassword = async () => {
+        if (!isEditing || !editingId) {
+            toast.message("Salve o usuário antes de resetar a senha.");
+            return;
+        }
+        const confirmed = await SystemAlert.confirm({
+            title: "Resetar senha",
+            message:
+                "Uma senha temporária será gerada e o usuário precisará alterá-la no próximo acesso. Deseja continuar?",
+            confirmLabel: "Resetar senha",
+            cancelLabel: "Cancelar",
+        });
+        if (!confirmed) return;
+        resetPasswordMutation.mutate();
+    };
+
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -149,63 +229,60 @@ export function AppUserFormClient() {
                 </>
             }
         >
-            <FormSection id="colaborador" title="Colaborador">
+            <FormSection id="dados" title="Dados do usuário">
                 <CollaboratorPickerField
                     value={form.collaboratorId}
                     onValueChange={handleCollaboratorChange}
                     required
-                    wrapperClassName="sm:col-span-12"
+                    wrapperClassName="sm:col-span-3"
+                />
+                <InputString
+                    label="Nome de usuário"
+                    value={form.username}
+                    onValueChange={(value) => setForm((prev) => ({...prev, username: value}))}
+                    required
+                    wrapperClassName="sm:col-span-3"
+                />
+                <InputString
+                    label="E-mail"
+                    value={form.email}
+                    onValueChange={(value) => setForm((prev) => ({...prev, email: value}))}
+                    required
+                    wrapperClassName="sm:col-span-3"
+                />
+                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-3">
+                    <span className="gommo-field__label">Senha</span>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full justify-center"
+                        leftIcon={<KeyRound className="size-4"/>}
+                        disabled={!isEditing || resetPasswordMutation.isPending}
+                        loading={resetPasswordMutation.isPending}
+                        onClick={handleResetPassword}
+                        title={isEditing ? "Gerar senha temporária" : "Disponível após salvar o usuário"}
+                    >
+                        Resetar senha
+                    </Button>
+                </div>
+            </FormSection>
+            <FormSection id="perfis" title="Perfis por sistema" bodyClassName="!p-0 !gap-0">
+                <AppUserProfileAssignmentPanel
+                    profilesBySystem={profilesBySystem}
+                    selectedIdsBySystem={form.roleIdsBySystem ?? {}}
+                    loadingBySystem={loadingBySystem}
+                    onChange={(scope, ids) =>
+                        setForm((prev) => ({
+                            ...prev,
+                            roleIdsBySystem: {
+                                ...prev.roleIdsBySystem,
+                                [scope]: ids,
+                            },
+                        }))
+                    }
                 />
             </FormSection>
-            <FormSection id="credenciais" title="Credenciais">
-                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-12 sm:grid-cols-2">
-                    <InputString
-                        label="Nome de usuário"
-                        value={form.username}
-                        onValueChange={(value) => setForm((prev) => ({...prev, username: value}))}
-                        required
-                        wrapperClassName="min-w-0"
-                    />
-                    <InputString
-                        label="E-mail"
-                        value={form.email}
-                        onValueChange={(value) => setForm((prev) => ({...prev, email: value}))}
-                        required
-                        wrapperClassName="min-w-0"
-                    />
-                    <InputBase
-                        label={isEditing ? "Nova senha (opcional)" : "Senha inicial"}
-                        hint={isEditing ? "Deixe em branco para manter a senha atual." : undefined}
-                        type="password"
-                        displayValue={form.password ?? ""}
-                        onDisplayChange={(value) => setForm((prev) => ({...prev, password: value}))}
-                        required={!isEditing}
-                        autoComplete="new-password"
-                        wrapperClassName="min-w-0 sm:col-span-2"
-                    />
-                </div>
-            </FormSection>
-            <FormSection id="perfis" title="Perfis por sistema">
-                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-12 sm:grid-cols-2">
-                    <ProfileRolePicker
-                        label="Perfis DP"
-                        system="DP"
-                        profiles={dpProfilesQuery.data ?? []}
-                        selectedIds={form.dpRoleIds ?? []}
-                        onChange={(dpRoleIds) => setForm((prev) => ({...prev, dpRoleIds}))}
-                        loading={dpProfilesQuery.isLoading}
-                    />
-                    <ProfileRolePicker
-                        label="Perfis RH"
-                        system="RH"
-                        profiles={rhProfilesQuery.data ?? []}
-                        selectedIds={form.rhRoleIds ?? []}
-                        onChange={(rhRoleIds) => setForm((prev) => ({...prev, rhRoleIds}))}
-                        loading={rhProfilesQuery.isLoading}
-                    />
-                </div>
-            </FormSection>
-            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
+            {error ? <p className="px-4 pb-3 text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

@@ -13,6 +13,8 @@ import {ATTENDANCE_CLIENT_MESSAGES} from "@/modules/dp/attendance/exceptions/att
 import {writeAttendanceCollaboratorFocus} from "@/modules/dp/attendance/lib/attendance-collaborator-focus";
 import {
     type AttendancePresenceListingRow,
+    coerceTimeHm,
+    formatAttendanceSchedule,
     paginatePresenceRows,
 } from "@/modules/dp/attendance/lib/attendance-presence.filters";
 import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
@@ -70,6 +72,25 @@ function presenceTags(row: AttendancePresenceRow): string[] {
 
 function isRealRecord(row: AttendancePresenceRow) {
     return row.hasRecord && !row.id.startsWith("absent:");
+}
+
+function toListingRow(row: AttendancePresenceRow): AttendancePresenceListingRow {
+    const clockIn = coerceTimeHm(row.clockIn) || undefined;
+    const breakStart = coerceTimeHm(row.breakStart) || undefined;
+    const breakEnd = coerceTimeHm(row.breakEnd) || undefined;
+    const clockOut = coerceTimeHm(row.clockOut) || undefined;
+    const normalized = {
+        ...row,
+        clockIn,
+        breakStart,
+        breakEnd,
+        clockOut,
+    };
+    return {
+        ...normalized,
+        presenceTags: presenceTags(row),
+        schedule: formatAttendanceSchedule(normalized),
+    };
 }
 
 export function AttendanceRecordListClient() {
@@ -142,11 +163,11 @@ export function AttendanceRecordListClient() {
 
             <QueryPagedTablePanel<AttendancePresenceListingRow>
                 key={`${period.from}-${period.to}`}
-                queryKey={[...attendancerecordKeys.all, "presence", period.from, period.to]}
+                queryKey={[...attendancerecordKeys.all, "presence", "schedule", period.from, period.to]}
                 paginationMode="load-more"
                 request={async (page, size, filters) => {
                     const rows = await attendancerecordService.listPresence(period.from, period.to);
-                    const enriched = rows.map((row) => ({...row, presenceTags: presenceTags(row)}));
+                    const enriched = rows.map(toListingRow);
                     return paginatePresenceRows(enriched, page, size, filters);
                 }}
                 columns={ATTENDANCE_TABLE_COLUMNS}

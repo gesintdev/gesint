@@ -91,6 +91,13 @@ async function capturePhotoFromVideo(video: HTMLVideoElement): Promise<File> {
     return new File([blob], `selfie-ponto-${Date.now()}.jpg`, {type: "image/jpeg"});
 }
 
+function stopMediaStream(stream: MediaStream | null, video: HTMLVideoElement | null) {
+    stream?.getTracks().forEach((track) => track.stop());
+    if (video) {
+        video.srcObject = null;
+    }
+}
+
 export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -139,20 +146,15 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
 
     useEffect(() => {
         if (!open) {
+            cameraRequestIdRef.current += 1;
+            stopMediaStream(streamRef.current, videoRef.current);
+            streamRef.current = null;
             setCameraStatus("idle");
             return;
         }
 
         const requestId = ++cameraRequestIdRef.current;
         setCameraStatus("requesting");
-
-        const stopStream = () => {
-            streamRef.current?.getTracks().forEach((track) => track.stop());
-            streamRef.current = null;
-            if (videoRef.current) {
-                videoRef.current.srcObject = null;
-            }
-        };
 
         const startCamera = async () => {
             if (!navigator.mediaDevices?.getUserMedia) {
@@ -178,7 +180,14 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                 const video = videoRef.current;
                 if (video) {
                     video.srcObject = stream;
-                    await video.play();
+                    try {
+                        await video.play();
+                    } catch (playError) {
+                        if (isIgnorableCameraError(playError)) {
+                            return;
+                        }
+                        throw playError;
+                    }
                     if (cameraRequestIdRef.current === requestId) {
                         setCameraStatus("ready");
                     }
@@ -195,7 +204,8 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
 
         return () => {
             cameraRequestIdRef.current += 1;
-            stopStream();
+            stopMediaStream(streamRef.current, videoRef.current);
+            streamRef.current = null;
         };
     }, [open]);
 
@@ -204,9 +214,6 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
             const context = contextQuery.data;
             if (!context) {
                 throw clockClientError("Contexto de ponto indisponível.");
-            }
-            if (!context.collaboratorId) {
-                throw clockClientError("Seu usuário não está vinculado a um colaborador.");
             }
             if (isJourneyComplete(context.todayRecord)) {
                 throw clockClientError("A jornada de hoje já está concluída.");
@@ -269,13 +276,12 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
     const todayRecord = contextQuery.data?.todayRecord;
     const journeyDone = isJourneyComplete(todayRecord);
     const punchLabel = nextPunchLabel(todayRecord);
-    const cameraReady = cameraStatus === "ready";
+    const requirePhoto = contextQuery.data?.requirePhoto === true;
     const canRegister =
-        Boolean(contextQuery.data?.collaboratorId) &&
+        contextQuery.isSuccess &&
         !journeyDone &&
-        !contextQuery.isLoading &&
         !contextQuery.isError &&
-        (!contextQuery.data?.requirePhoto || cameraReady);
+        (!requirePhoto || cameraStatus === "ready");
 
     const cameraOverlayMessage =
         cameraStatus === "requesting"
@@ -285,6 +291,13 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
               : cameraStatus === "unavailable"
                 ? "Não foi possível acessar a câmera neste dispositivo."
                 : null;
+
+    const contextErrorMessage =
+        contextQuery.isError && !contextQuery.isFetching
+            ? contextQuery.error instanceof AppException
+                ? contextQuery.error.displayMessage
+                : "Não foi possível carregar o contexto de ponto."
+            : null;
 
     if (!mounted) return null;
 
@@ -346,12 +359,8 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                         ) : null}
                     </div>
 
-                    {contextQuery.isError ? (
-                        <p className="text-sm font-medium text-error">
-                            {contextQuery.error instanceof AppException
-                                ? contextQuery.error.displayMessage
-                                : "Não foi possível carregar o contexto de ponto."}
-                        </p>
+                    {contextErrorMessage ? (
+                        <p className="text-sm font-medium text-error">{contextErrorMessage}</p>
                     ) : null}
 
                     {submitError ? <p className="text-sm font-medium text-error">{submitError}</p> : null}

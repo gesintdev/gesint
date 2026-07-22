@@ -6,6 +6,7 @@ import {Check, PauseCircle} from "lucide-react";
 import {useState} from "react";
 import {toast} from "sonner";
 
+import {assignableSystemFilterItems} from "@/modules/cfg/settings/lib/access-menu-catalog";
 import {PROFILE_TABLE_COLUMNS} from "@/modules/cfg/settings/profile/config/profile.table-columns";
 import type {Profile, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
 import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
@@ -17,12 +18,7 @@ import {QueryTablePanel} from "@/shared/components/data/DataPanel";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {SystemAlert} from "@/shared/system-alert";
 
-const SYSTEM_FILTERS: Array<{ value: SystemScope | "ALL"; label: string }> = [
-    {value: "ALL", label: "Todos"},
-    {value: "DP", label: "DP"},
-    {value: "RH", label: "RH"},
-    {value: "CONTABILIDADE", label: "CTB"},
-];
+const SYSTEM_FILTERS = assignableSystemFilterItems();
 const STATUS_FILTERS: Array<{ value: "ACTIVE" | "INACTIVE" | "ALL"; label: string }> = [
     {value: "ACTIVE", label: "Ativos"},
     {value: "INACTIVE", label: "Inativos"},

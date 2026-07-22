@@ -1,18 +1,22 @@
 "use client";
 
+import {useMemo} from "react";
 import {ChevronLeft, ChevronRight} from "lucide-react";
 
 import {
     isSameDay,
+    localDateKey,
     monthMatrix,
     monthTitle,
     startOfDay,
+    visibleWeekHighlightDays,
     weekdayShortLabels,
 } from "@/modules/cfg/settings/agenda/lib/agenda-calendar.util";
 
 type AgendaSidebarProps = {
     visibleMonth: Date;
     selectedDate: Date;
+    anchorDate: Date;
     onVisibleMonthChange: (_date: Date) => void;
     onSelectDate: (_date: Date) => void;
 };
@@ -20,6 +24,7 @@ type AgendaSidebarProps = {
 export function AgendaSidebar({
     visibleMonth,
     selectedDate,
+    anchorDate,
     onVisibleMonthChange,
     onSelectDate,
 }: AgendaSidebarProps) {
@@ -28,6 +33,9 @@ export function AgendaSidebar({
     const weeks = monthMatrix(year, month);
     const today = startOfDay(new Date());
     const labels = weekdayShortLabels();
+    const highlightedWeek = useMemo(() => visibleWeekHighlightDays(anchorDate), [anchorDate]);
+
+    const isInVisibleWeek = (day: Date) => highlightedWeek.some((item) => isSameDay(item, day));
 
     return (
         <aside className="flex w-56 shrink-0 flex-col gap-4 border-r border-base-content/10 bg-base-200/40 p-3">
@@ -53,7 +61,7 @@ export function AgendaSidebar({
                             <ChevronRight className="size-4" />
                         </button>
                     </div>
-                    <div className="grid grid-cols-7 gap-0.5 text-center text-[10px] text-base-content/45">
+                    <div className="grid grid-cols-7 gap-0.5 text-center text-[9px] text-base-content/45">
                         {labels.map((label, index) => (
                             <span key={`${label}-${index}`}>{label}</span>
                         ))}
@@ -63,9 +71,10 @@ export function AgendaSidebar({
                             const inMonth = day.getMonth() === month;
                             const selected = isSameDay(day, selectedDate);
                             const isToday = isSameDay(day, today);
+                            const inWeek = isInVisibleWeek(day);
                             return (
                                 <button
-                                    key={day.toISOString()}
+                                    key={localDateKey(day)}
                                     type="button"
                                     onClick={() => onSelectDate(day)}
                                     className={[
@@ -73,9 +82,11 @@ export function AgendaSidebar({
                                         inMonth ? "text-base-content" : "text-base-content/30",
                                         selected
                                             ? "bg-primary text-primary-content"
-                                            : isToday
+                                            : inWeek
                                               ? "bg-primary/15 text-primary"
-                                              : "hover:bg-base-200",
+                                              : isToday
+                                                ? "ring-1 ring-primary text-primary"
+                                                : "hover:bg-base-200",
                                     ].join(" ")}
                                 >
                                     {day.getDate()}

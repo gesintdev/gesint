@@ -5,6 +5,7 @@ import {type SubmitEvent, useEffect, useMemo, useState} from "react";
 import {toast} from "sonner";
 
 import {
+    assignableSystemSelectItems,
     collectMarkedRouteIds,
     findFirstPermissionRoute,
     getPermissionNavSections,
@@ -25,14 +26,9 @@ import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputSelect, InputString} from "@/shared/components/ui/input/index";
-import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 import {ExceptionCapture} from "@/shared/exceptions";
 
-const SYSTEM_ITEMS: SelectItem[] = [
-    {value: "DP", label: "Departamento Pessoal (DP)"},
-    {value: "RH", label: "Recursos Humanos (RH)"},
-    {value: "CONTABILIDADE", label: "Contabilidade (CTB)"},
-];
+const SYSTEM_ITEMS = assignableSystemSelectItems();
 const FORM_STEPS: FormStepNavItem[] = [
     {id: "identificacao", label: "Identificação"},
     {id: "permissoes", label: "Permissões"},

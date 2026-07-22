@@ -13,15 +13,25 @@ const PROFILE_ROW_CLASS = "flex min-h-[2.25rem] items-center gap-2 rounded px-2 
 const SETTINGS_PROFILES_ROUTE_ID = "settings-profiles";
 
 type ProfileRolePickerProps = {
-    label: string;
+    label?: string;
     system: SystemScope;
     profiles: Profile[];
     selectedIds: string[];
     onChange: (ids: string[]) => void;
     loading?: boolean;
+    /** Quando true, ocupa altura flexível (painel lado a lado). */
+    fillHeight?: boolean;
 };
 
-export function ProfileRolePicker({label, system, profiles, selectedIds, onChange, loading}: ProfileRolePickerProps) {
+export function ProfileRolePicker({
+    label,
+    system,
+    profiles,
+    selectedIds,
+    onChange,
+    loading,
+    fillHeight = false,
+}: ProfileRolePickerProps) {
     const [search, setSearch] = useState("");
     const [detailProfile, setDetailProfile] = useState<Profile | null>(null);
     const {openRouteRecord} = useWorkspaceNavigation();
@@ -47,8 +57,8 @@ export function ProfileRolePicker({label, system, profiles, selectedIds, onChang
 
     if (loading) {
         return (
-            <div className="flex min-h-0 min-w-0 flex-col">
-                <p className="gommo-field__label mb-1.5">{label}</p>
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                {label ? <p className="gommo-field__label mb-1.5">{label}</p> : null}
                 <div className="skeleton-shimmer h-30 w-full rounded-lg"/>
             </div>
         );
@@ -58,9 +68,9 @@ export function ProfileRolePicker({label, system, profiles, selectedIds, onChang
 
     return (
         <>
-            <div className="flex min-h-0 min-w-0 flex-col">
-                <p className="gommo-field__label mb-1.5">{label}</p>
-                <label className="gommo-field mb-2 w-full text-sm!">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                {label ? <p className="gommo-field__label mb-1.5 shrink-0">{label}</p> : null}
+                <label className="gommo-field mb-2 w-full shrink-0 text-sm!">
                     <Search className="size-3.5 shrink-0 text-base-content/40" strokeWidth={2}/>
                     <input
                         type="search"
@@ -70,7 +80,12 @@ export function ProfileRolePicker({label, system, profiles, selectedIds, onChang
                         className="text-sm!"
                     />
                 </label>
-                <ul className="max-h-48 min-h-9 overflow-y-auto rounded-lg border border-base-content/8 p-1">
+                <ul
+                    className={clsx(
+                        "flex min-h-9 flex-col gap-1.5 overflow-y-auto rounded-lg border border-base-content/8 p-1.5",
+                        fillHeight ? "min-h-0 flex-1" : "max-h-48",
+                    )}
+                >
                     {filteredProfiles.length === 0 ? (
                         <li>
                             <div className={clsx(PROFILE_ROW_CLASS, "text-xs text-base-content/45")}>
@@ -84,8 +99,10 @@ export function ProfileRolePicker({label, system, profiles, selectedIds, onChang
                                 <li
                                     key={profile.id}
                                     className={clsx(
-                                        "flex items-center gap-0.5 rounded transition-colors",
-                                        checked ? "bg-primary/10" : "hover:bg-base-content/5",
+                                        "flex items-center gap-0.5 rounded-lg border transition-colors",
+                                        checked
+                                            ? "border-primary/25 bg-primary/10"
+                                            : "border-transparent hover:border-base-content/8 hover:bg-base-content/5",
                                     )}
                                 >
                                     <label

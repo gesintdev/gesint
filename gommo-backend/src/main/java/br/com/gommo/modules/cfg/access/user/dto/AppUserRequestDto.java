@@ -7,7 +7,10 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 
 @Getter
 @Setter
@@ -34,7 +37,5 @@ public class AppUserRequestDto {
     @Size(min = 6, max = 100)
     private String password;
 
-    private List<UUID> dpRoleIds;
-
-    private List<UUID> rhRoleIds;
+    private Map<SystemScopeEnum, List<UUID>> roleIdsBySystem;
 }

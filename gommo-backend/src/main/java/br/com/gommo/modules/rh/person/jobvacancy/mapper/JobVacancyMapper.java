@@ -20,6 +20,7 @@ public class JobVacancyMapper {
                 .activities(trimToNull(dto.getActivities()))
                 .assignments(trimToNull(dto.getAssignments()))
                 .seniorityLevel(dto.getSeniorityLevel())
+                .salary(dto.getSalary())
                 .expectedCompletionDate(dto.getExpectedCompletionDate())
                 .targetBoards(copyBoards(dto.getTargetBoards()))
                 .build();
@@ -33,6 +34,7 @@ public class JobVacancyMapper {
         entity.setActivities(trimToNull(dto.getActivities()));
         entity.setAssignments(trimToNull(dto.getAssignments()));
         entity.setSeniorityLevel(dto.getSeniorityLevel());
+        entity.setSalary(dto.getSalary());
         entity.setExpectedCompletionDate(dto.getExpectedCompletionDate());
         entity.setTargetBoards(copyBoards(dto.getTargetBoards()));
     }
@@ -49,6 +51,7 @@ public class JobVacancyMapper {
                 .activities(entity.getActivities())
                 .assignments(entity.getAssignments())
                 .seniorityLevel(entity.getSeniorityLevel())
+                .salary(entity.getSalary())
                 .expectedCompletionDate(entity.getExpectedCompletionDate())
                 .targetBoards(copyBoards(entity.getTargetBoards()))
                 .createdAt(entity.getCreatedAt())

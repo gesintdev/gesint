@@ -23,4 +23,11 @@ public final class ProfileException {
         return new BusinessException(
                 "PROFILE_DUPLICATE_NAME", "Já existe um perfil com este nome.", HttpStatus.CONFLICT);
     }
+
+    public static BusinessException invalidPermissions() {
+        return new BusinessException(
+                "PROFILE_INVALID_PERMISSIONS",
+                "Uma ou mais permissões são inválidas ou não pertencem ao sistema do perfil.",
+                HttpStatus.BAD_REQUEST);
+    }
 }

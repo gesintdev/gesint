@@ -154,12 +154,16 @@ public class ProfileService implements IProfileService {
         if (request.getPermissionIds() == null || request.getPermissionIds().isEmpty()) {
             return new HashSet<>();
         }
+        Set<UUID> requestedIds = new HashSet<>(request.getPermissionIds());
         Set<String> allowedModules = PermissionModuleCatalog.modulesFor(request.getSystem());
-        List<Permission> permissions = permissionRepository.findAllById(request.getPermissionIds());
+        List<Permission> permissions = permissionRepository.findAllById(requestedIds);
+        if (permissions.size() != requestedIds.size()) {
+            throw ProfileException.invalidPermissions();
+        }
         Set<Permission> resolved = new HashSet<>();
         for (Permission permission : permissions) {
             if (!allowedModules.contains(permission.getModule())) {
-                continue;
+                throw ProfileException.invalidPermissions();
             }
             resolved.add(permission);
         }
