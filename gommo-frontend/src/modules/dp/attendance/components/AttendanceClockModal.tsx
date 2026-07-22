@@ -5,6 +5,7 @@ import {CameraOff, Loader2, X} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
 import {toast} from "sonner";
 
+import {AttendanceWeekHistoryPanel} from "@/modules/dp/attendance/components/AttendanceWeekHistoryPanel";
 import {
     createClientRequestId,
     formatLiveClock,
@@ -256,7 +257,10 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
             });
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: ["attendance", "mobile-context"]});
+            await Promise.all([
+                queryClient.invalidateQueries({queryKey: ["attendance", "mobile-context"]}),
+                queryClient.invalidateQueries({queryKey: ["attendance", "mobile-records"]}),
+            ]);
             toast.success("Ponto registrado");
             onClose();
         },
@@ -303,8 +307,8 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
 
     return (
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box max-w-md p-0 overflow-hidden">
-                <div className="flex items-center justify-between border-b border-base-content/8 px-4 py-3">
+            <div className="modal-box flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden p-0">
+                <div className="flex shrink-0 items-center justify-between border-b border-base-content/8 px-4 py-3">
                     <div>
                         <h3 className="text-base font-semibold">Registro de ponto</h3>
                         <p className="text-xs text-base-content/55">
@@ -322,60 +326,71 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                     </button>
                 </div>
 
-                <div className="grid gap-4 px-4 py-4">
-                    <div className="text-center">
-                        <p className="text-xs font-medium uppercase tracking-wide text-base-content/45">
-                            {now ? formatLiveDate(now) : "\u00a0"}
-                        </p>
-                        <p className="mt-1 font-mono text-4xl font-semibold tabular-nums tracking-tight text-base-content">
-                            {now ? formatLiveClock(now) : "--:--:--"}
-                        </p>
-                        <p className="mt-2 text-sm font-medium text-primary">
-                            {contextQuery.isLoading
-                                ? "Carregando..."
-                                : journeyDone
-                                  ? "Jornada concluída"
-                                  : punchLabel}
-                        </p>
-                    </div>
-
-                    <div className="relative aspect-square overflow-hidden rounded-2xl border border-base-content/10 bg-base-300">
-                        <video
-                            ref={videoRef}
-                            className="size-full object-cover scale-x-[-1]"
-                            playsInline
-                            muted
-                            autoPlay
-                        />
-                        {cameraStatus !== "ready" && cameraOverlayMessage ? (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-base-300 px-6 text-center">
-                                {cameraStatus === "requesting" ? (
-                                    <Loader2 className="size-8 animate-spin text-base-content/35" strokeWidth={1.75} />
-                                ) : (
-                                    <CameraOff className="size-8 text-base-content/35" strokeWidth={1.75} />
-                                )}
-                                <p className="text-sm text-base-content/65">{cameraOverlayMessage}</p>
+                <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
+                    <div className="flex min-h-0 flex-col border-b border-base-content/8 lg:border-r lg:border-b-0">
+                        <div className="grid gap-4 overflow-y-auto px-4 py-4">
+                            <div className="text-center">
+                                <p className="text-xs font-medium uppercase tracking-wide text-base-content/45">
+                                    {now ? formatLiveDate(now) : "\u00a0"}
+                                </p>
+                                <p className="mt-1 font-mono text-4xl font-semibold tabular-nums tracking-tight text-base-content">
+                                    {now ? formatLiveClock(now) : "--:--:--"}
+                                </p>
+                                <p className="mt-2 text-sm font-medium text-primary">
+                                    {contextQuery.isLoading
+                                        ? "Carregando..."
+                                        : journeyDone
+                                          ? "Jornada concluída"
+                                          : punchLabel}
+                                </p>
                             </div>
-                        ) : null}
+
+                            <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-2xl border border-base-content/10 bg-base-300">
+                                <video
+                                    ref={videoRef}
+                                    className="size-full scale-x-[-1] object-cover"
+                                    playsInline
+                                    muted
+                                    autoPlay
+                                />
+                                {cameraStatus !== "ready" && cameraOverlayMessage ? (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-base-300 px-6 text-center">
+                                        {cameraStatus === "requesting" ? (
+                                            <Loader2
+                                                className="size-8 animate-spin text-base-content/35"
+                                                strokeWidth={1.75}
+                                            />
+                                        ) : (
+                                            <CameraOff className="size-8 text-base-content/35" strokeWidth={1.75} />
+                                        )}
+                                        <p className="text-sm text-base-content/65">{cameraOverlayMessage}</p>
+                                    </div>
+                                ) : null}
+                            </div>
+
+                            {contextErrorMessage ? (
+                                <p className="text-sm font-medium text-error">{contextErrorMessage}</p>
+                            ) : null}
+
+                            {submitError ? <p className="text-sm font-medium text-error">{submitError}</p> : null}
+
+                            <div className="flex flex-wrap gap-2 text-[11px] text-base-content/50">
+                                <span className="rounded-full bg-base-200 px-2.5 py-1">
+                                    Foto {contextQuery.data?.requirePhoto ? "obrigatória" : "dispensada"}
+                                </span>
+                                <span className="rounded-full bg-base-200 px-2.5 py-1">
+                                    Localização {contextQuery.data?.requireLocation ? "obrigatória" : "dispensada"}
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    {contextErrorMessage ? (
-                        <p className="text-sm font-medium text-error">{contextErrorMessage}</p>
-                    ) : null}
-
-                    {submitError ? <p className="text-sm font-medium text-error">{submitError}</p> : null}
-
-                    <div className="flex flex-wrap gap-2 text-[11px] text-base-content/50">
-                        <span className="rounded-full bg-base-200 px-2.5 py-1">
-                            Foto {contextQuery.data?.requirePhoto ? "obrigatória" : "dispensada"}
-                        </span>
-                        <span className="rounded-full bg-base-200 px-2.5 py-1">
-                            Localização {contextQuery.data?.requireLocation ? "obrigatória" : "dispensada"}
-                        </span>
+                    <div className="flex min-h-0 min-w-0 flex-col bg-base-200/20">
+                        <AttendanceWeekHistoryPanel enabled={open && mounted} />
                     </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 border-t border-base-content/8 px-4 py-3">
+                <div className="flex shrink-0 items-center justify-end gap-2 border-t border-base-content/8 px-4 py-3">
                     <Button type="button" variant="ghost" onClick={onClose} disabled={clockMutation.isPending}>
                         Cancelar
                     </Button>

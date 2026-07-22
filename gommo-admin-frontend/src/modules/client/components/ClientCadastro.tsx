@@ -61,29 +61,34 @@ export function ClientCadastro({
     const [cnpjNotFoundOpen, setCnpjNotFoundOpen] = useState(false);
     const lastLookupRef = useRef("");
 
+    const applyEnvConfig = (
+        config: Awaited<ReturnType<typeof clientEnvironmentConfigService.getByClientId>>,
+        clientId = client?.id ?? config.clientId,
+    ) => {
+        setEnvForm({
+            clientId,
+            routingMode: config.routingMode ?? "SUBDOMAIN",
+            subdomain: config.subdomain ?? "",
+            customDomain: config.customDomain ?? "",
+            databaseStrategy: config.databaseStrategy ?? "DEDICATED_SCHEMA",
+            databaseHost: config.databaseHost ?? "localhost",
+            databasePort: config.databasePort ?? 5432,
+            databaseName: config.databaseName ?? "gommo",
+            databaseSchema: config.databaseSchema ?? "",
+            databaseUser: config.databaseUser ?? "gommo",
+            databaseSecretRef: config.databaseSecretRef ?? "DB_PASSWORD",
+            provisioningStatus: config.provisioningStatus ?? "PENDING",
+            provisioningNotes: config.provisioningNotes ?? "",
+        });
+    };
+
     useEffect(() => {
         if (client) {
             setForm(clientToFormDto(client));
             lastLookupRef.current = digitsOnly(client.document ?? "");
             void clientEnvironmentConfigService
                 .getByClientId(client.id)
-                .then((config) => {
-                    setEnvForm({
-                        clientId: client.id,
-                        routingMode: config.routingMode ?? "SUBDOMAIN",
-                        subdomain: config.subdomain ?? "",
-                        customDomain: config.customDomain ?? "",
-                        databaseStrategy: config.databaseStrategy ?? "DEDICATED_SCHEMA",
-                        databaseHost: config.databaseHost ?? "localhost",
-                        databasePort: config.databasePort ?? 5432,
-                        databaseName: config.databaseName ?? "gommo",
-                        databaseSchema: config.databaseSchema ?? "",
-                        databaseUser: config.databaseUser ?? "gommo",
-                        databaseSecretRef: config.databaseSecretRef ?? "DB_PASSWORD",
-                        provisioningStatus: config.provisioningStatus ?? "PENDING",
-                        provisioningNotes: config.provisioningNotes ?? "",
-                    });
-                })
+                .then((config) => applyEnvConfig(config, client.id))
                 .catch(() => {
                     /* config created on client create; ignore load race */
                 });
@@ -204,10 +209,11 @@ export function ClientCadastro({
         }
         setSaving(true);
         try {
-            await clientEnvironmentConfigService.upsertByClientId(client.id, {
+            const saved = await clientEnvironmentConfigService.upsertByClientId(client.id, {
                 ...envForm,
                 clientId: client.id,
             });
+            applyEnvConfig(saved);
             toast.success("Configuração do ambiente salva.");
         } catch (err) {
             ExceptionCapture.handle(err, { fallbackMessage: "Falha ao salvar configuração." });
@@ -220,10 +226,11 @@ export function ClientCadastro({
         if (!client) return;
         setSaving(true);
         try {
-            await clientEnvironmentConfigService.upsertByClientId(client.id, {
+            const saved = await clientEnvironmentConfigService.upsertByClientId(client.id, {
                 ...envForm,
                 clientId: client.id,
             });
+            applyEnvConfig(saved);
             const result = await clientService.testDatabaseConnection(client.id);
             if (result.success) {
                 toast.success(result.message);
@@ -241,19 +248,15 @@ export function ClientCadastro({
         if (!client) return;
         setSaving(true);
         try {
-            await clientEnvironmentConfigService.upsertByClientId(client.id, {
+            const saved = await clientEnvironmentConfigService.upsertByClientId(client.id, {
                 ...envForm,
                 clientId: client.id,
             });
+            applyEnvConfig(saved);
             await clientService.startProvisioning(client.id);
             await onSaved(client);
             const config = await clientEnvironmentConfigService.getByClientId(client.id);
-            setEnvForm((prev) => ({
-                ...prev,
-                databaseSchema: config.databaseSchema ?? prev.databaseSchema,
-                provisioningStatus: config.provisioningStatus,
-                provisioningNotes: config.provisioningNotes,
-            }));
+            applyEnvConfig(config);
             if (config.provisioningStatus === "READY") {
                 toast.success("Tenant provisionado com sucesso.");
             } else if (config.provisioningStatus === "ERROR") {

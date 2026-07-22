@@ -151,8 +151,11 @@ export function SessionRefresh() {
                     if (noCommercialFilter) {
                         return true;
                     }
-                    const system = SystemEnumHelper.findSystemForRouteId(routeId, systemModuleGroups);
-                    return isSystemContracted(system, contractedSystems);
+                    const systems = SystemEnumHelper.findSystemsForRouteId(routeId, systemModuleGroups);
+                    if (systems.length === 0) {
+                        return true;
+                    }
+                    return systems.some((system) => isSystemContracted(system, contractedSystems));
                 }),
         );
         retainTabsByRouteIds(allowedRouteIds);

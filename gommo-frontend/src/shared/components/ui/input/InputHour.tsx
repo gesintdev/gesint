@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { Clock } from "lucide-react";
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { HourPickerPanel } from "@/shared/components/ui/input/HourPickerPanel";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
@@ -40,6 +40,11 @@ export function InputHour({
     const [editText, setEditText] = useState("");
 
     useClickOutside([rootRef, panelRef], () => setOpen(false), open);
+
+    useEffect(() => {
+        if (!isEditing) return;
+        setEditText(timeToDisplay(value));
+    }, [value, isEditing]);
 
     const display = isEditing ? editText : timeToDisplay(value);
 

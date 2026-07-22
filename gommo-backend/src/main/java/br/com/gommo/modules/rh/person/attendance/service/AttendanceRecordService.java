@@ -260,7 +260,7 @@ public class AttendanceRecordService
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('attendance:write')")
+    @PreAuthorize("isAuthenticated()")
     public AttendanceRequestResponseDto submit(AttendanceSubmissionRequestDto request) {
         AttendanceSourceEnum source = request.getSource() != null ? request.getSource() : AttendanceSourceEnum.MOBILE;
         return requestRepository
@@ -343,7 +343,7 @@ public class AttendanceRecordService
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('attendance:write')")
+    @PreAuthorize("isAuthenticated()")
     public List<AttendanceRecordResponseDto> mobileRecords(LocalDate from, LocalDate to) {
         UUID collaboratorId = resolveCurrentCollaboratorId();
         LocalDate periodStart = from != null ? from : LocalDate.now(BUSINESS_ZONE);

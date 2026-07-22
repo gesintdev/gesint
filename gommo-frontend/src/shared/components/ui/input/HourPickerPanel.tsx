@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 
 import { joinTime, splitTime } from "@/shared/lib/input/date";
 import { HOUR_ITEMS, MINUTE_ITEMS } from "@/shared/lib/input/time";
+import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 
 type HourPickerPanelProps = {
     value: string;
@@ -26,6 +27,7 @@ export const HourPickerPanel = forwardRef<HTMLDivElement, HourPickerPanelProps>(
     const [draftHour, setDraftHour] = useState(parsed.hour || "08");
     const [draftMinute, setDraftMinute] = useState(parsed.minute || "00");
     const [position, setPosition] = useState({ top: 0, left: 0, width: 220 });
+    const portalRoot = usePopoverPortalRoot();
 
     useEffect(() => {
         const { hour, minute } = splitTime(value);
@@ -60,7 +62,7 @@ export const HourPickerPanel = forwardRef<HTMLDivElement, HourPickerPanelProps>(
         };
     }, [updatePosition]);
 
-    if (typeof document === "undefined") return null;
+    if (!portalRoot) return null;
 
     const commit = (hour: string, minute: string) => {
         const next = joinTime(hour, minute);
@@ -100,10 +102,9 @@ export const HourPickerPanel = forwardRef<HTMLDivElement, HourPickerPanelProps>(
                 />
             </div>
         </div>,
-        document.body,
+        portalRoot,
     );
 });
-
 function TimeColumn({
     label,
     items,

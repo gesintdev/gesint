@@ -440,15 +440,33 @@ export function AttendanceEditableGrid({
                 </colgroup>
                 <thead>
                 <tr>
-                    <th>Data</th>
-                    <th>Entrada</th>
-                    <th>Saída</th>
-                    <th>Retorno</th>
-                    <th>Fim expediente</th>
-                    <th className="is-right">Horas trabalhadas</th>
-                    <th className="is-right">Débito</th>
-                    <th className="is-right">Crédito</th>
-                    <th className="is-right">Ações</th>
+                    <th>
+                        <span className="gommo-table-col-title">Data</span>
+                    </th>
+                    <th>
+                        <span className="gommo-table-col-title">Entrada</span>
+                    </th>
+                    <th>
+                        <span className="gommo-table-col-title">Saída</span>
+                    </th>
+                    <th>
+                        <span className="gommo-table-col-title">Retorno</span>
+                    </th>
+                    <th>
+                        <span className="gommo-table-col-title">Fim expediente</span>
+                    </th>
+                    <th>
+                        <span className="gommo-table-col-title">Horas trabalhadas</span>
+                    </th>
+                    <th>
+                        <span className="gommo-table-col-title">Débito</span>
+                    </th>
+                    <th>
+                        <span className="gommo-table-col-title">Crédito</span>
+                    </th>
+                    <th>
+                        <span className="gommo-table-col-title">Ações</span>
+                    </th>
                 </tr>
                 </thead>
                 <tbody>

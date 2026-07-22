@@ -50,14 +50,17 @@ export function isPathAccessible(
     const hasTenant = Boolean(options?.tenantSlug?.trim());
     // Tenant com JWT antigo (sem keys): libera so paths neutros ate hidratar no cliente.
     if (hasTenant && contractedSystemKeys == null) {
-        const system = SystemEnumHelper.getSystemForHref(pathname, systemModuleGroups);
-        return system == null;
+        const systems = SystemEnumHelper.findSystemsForHref(pathname, systemModuleGroups);
+        return systems.length === 0;
     }
 
     const contracted = resolveContractedSystems(contractedSystemKeys);
     if (contracted == null) {
         return true;
     }
-    const system = SystemEnumHelper.getSystemForHref(pathname, systemModuleGroups);
-    return isSystemContracted(system, contracted);
+    const systems = SystemEnumHelper.findSystemsForHref(pathname, systemModuleGroups);
+    if (systems.length === 0) {
+        return true;
+    }
+    return systems.some((system) => isSystemContracted(system, contracted));
 }

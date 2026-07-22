@@ -7,6 +7,7 @@ import type {
     AttendanceRequest,
     AttendanceReviewAction,
     AttendanceSettings,
+    AttendanceSubmissionPayload,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
 import {BaseService} from "@/modules/root/services/base.service";
 import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
@@ -61,6 +62,18 @@ class AttendanceRecordService extends BaseService<
 
     getMobileContext() {
         return apiFetch<AttendanceMobileContext>(`${this.basePath}/mobile/context`);
+    }
+
+    listMobileRecords(from: string, to: string) {
+        const params = new URLSearchParams({from, to});
+        return apiFetch<AttendanceRecord[]>(`${this.basePath}/mobile/records?${params.toString()}`);
+    }
+
+    submit(payload: AttendanceSubmissionPayload) {
+        return apiFetch<AttendanceRequest>(`${this.basePath}/submissions`, {
+            method: "POST",
+            body: payload,
+        });
     }
 
     clock(payload: AttendanceClockPayload) {

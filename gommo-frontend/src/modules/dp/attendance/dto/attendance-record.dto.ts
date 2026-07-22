@@ -161,3 +161,37 @@ export type AttendanceClockPayload = {
     locationAccuracyMeters?: number;
     clientRequestId: string;
 };
+
+export type AttendanceRequestType =
+    | "TIME_ADJUSTMENT"
+    | "DAY_ABSENCE_EXCUSE"
+    | "MEDICAL_CERTIFICATE"
+    | "LEAVE_ABSENCE"
+    | "HOUR_BANK"
+    | "OTHER";
+
+export type AttendanceSubmissionSource = "MOBILE" | "BACKOFFICE";
+
+export type AttendancePunchSlotKey = "clockIn" | "breakStart" | "breakEnd" | "clockOut";
+
+export type AttendanceSubmissionAttachment = {
+    objectId: string;
+    fileName?: string;
+    documentType?: string;
+};
+
+export type AttendanceSubmissionPayload = {
+    requestType: AttendanceRequestType;
+    requestDate: string;
+    targetRecordId?: string;
+    manualPunchTime?: string;
+    clockIn?: string;
+    breakStart?: string;
+    breakEnd?: string;
+    clockOut?: string;
+    details: string;
+    attachment?: AttendanceSubmissionAttachment;
+    source?: AttendanceSubmissionSource;
+    clientRequestId: string;
+    submittedAt: string;
+};

@@ -127,24 +127,6 @@ public class TenantSchemaProvisioner {
                     )
                     """
                             .formatted(schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE UNIQUE INDEX idx_%s_app_user_username
-                        ON "%s".app_user (username) WHERE status != 'DELETED'
-                    """
-                            .formatted(schema.replace('.', '_'), schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE UNIQUE INDEX idx_%s_app_user_email
-                        ON "%s".app_user (email) WHERE status != 'DELETED'
-                    """
-                            .formatted(schema.replace('.', '_'), schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE UNIQUE INDEX uk_%s_app_user_code
-                        ON "%s".app_user (code)
-                    """
-                            .formatted(schema.replace('.', '_'), schema));
         } else {
             jdbcTemplate.execute(
                     """
@@ -153,6 +135,24 @@ public class TenantSchemaProvisioner {
                     """
                             .formatted(schema));
         }
+        jdbcTemplate.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS %s
+                    ON "%s".app_user (username) WHERE status != 'DELETED'
+                """
+                        .formatted(TenantIndexNames.unique("idx", schema, "app_user_username"), schema));
+        jdbcTemplate.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS %s
+                    ON "%s".app_user (email) WHERE status != 'DELETED'
+                """
+                        .formatted(TenantIndexNames.unique("idx", schema, "app_user_email"), schema));
+        jdbcTemplate.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS %s
+                    ON "%s".app_user (code)
+                """
+                        .formatted(TenantIndexNames.unique("uk", schema, "app_user_code"), schema));
 
         if (!tenantTableExists(schema, "user_role")) {
             jdbcTemplate.execute(
@@ -164,12 +164,12 @@ public class TenantSchemaProvisioner {
                     )
                     """
                             .formatted(schema, schema, schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE INDEX idx_%s_user_role_user ON "%s".user_role (user_id)
-                    """
-                            .formatted(schema.replace('.', '_'), schema));
         }
+        jdbcTemplate.execute(
+                """
+                CREATE INDEX IF NOT EXISTS %s ON "%s".user_role (user_id)
+                """
+                        .formatted(TenantIndexNames.unique("idx", schema, "user_role_user"), schema));
 
         if (!tenantTableExists(schema, "refresh_token")) {
             jdbcTemplate.execute(
@@ -185,22 +185,22 @@ public class TenantSchemaProvisioner {
                     )
                     """
                             .formatted(schema, schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE INDEX idx_%s_refresh_token_user ON "%s".refresh_token (user_id)
-                    """
-                            .formatted(schema.replace('.', '_'), schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE INDEX idx_%s_refresh_token_hash ON "%s".refresh_token (token_hash)
-                    """
-                            .formatted(schema.replace('.', '_'), schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE UNIQUE INDEX uk_%s_refresh_token_code ON "%s".refresh_token (code)
-                    """
-                            .formatted(schema.replace('.', '_'), schema));
         }
+        jdbcTemplate.execute(
+                """
+                CREATE INDEX IF NOT EXISTS %s ON "%s".refresh_token (user_id)
+                """
+                        .formatted(TenantIndexNames.unique("idx", schema, "refresh_token_user"), schema));
+        jdbcTemplate.execute(
+                """
+                CREATE INDEX IF NOT EXISTS %s ON "%s".refresh_token (token_hash)
+                """
+                        .formatted(TenantIndexNames.unique("idx", schema, "refresh_token_hash"), schema));
+        jdbcTemplate.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS %s ON "%s".refresh_token (code)
+                """
+                        .formatted(TenantIndexNames.unique("uk", schema, "refresh_token_code"), schema));
 
         if (!tenantTableExists(schema, "refresh_token_blacklist")) {
             jdbcTemplate.execute(
@@ -213,20 +213,22 @@ public class TenantSchemaProvisioner {
                     )
                     """
                             .formatted(schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE UNIQUE INDEX uk_%s_refresh_token_blacklist_code
-                        ON "%s".refresh_token_blacklist (code)
-                    """
-                            .formatted(schema.replace('.', '_'), schema));
         }
+        jdbcTemplate.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS %s
+                    ON "%s".refresh_token_blacklist (code)
+                """
+                        .formatted(
+                                TenantIndexNames.unique("uk", schema, "refresh_token_blacklist_code"), schema));
     }
-
     public static String defaultSchemaForSlug(String slug) {
         if (!StringUtils.hasText(slug)) {
             return "public";
         }
-        return "tenant_" + slug.trim().toLowerCase().replace('-', '_');
+        // Reusa a normalizacao do applier (inclui limite de 63 chars do PostgreSQL).
+        String candidate = TenantDatabaseDefaultsApplier.normalizeSchema("tenant_" + slug.trim());
+        return StringUtils.hasText(candidate) ? candidate : "public";
     }
 
     public static String requireSafeSchema(String schema) {

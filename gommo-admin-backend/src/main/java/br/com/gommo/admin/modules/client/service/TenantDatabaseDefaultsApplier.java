@@ -11,6 +11,7 @@ import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironme
 public class TenantDatabaseDefaultsApplier {
 
     private static final String DEFAULT_SECRET_REF = "DB_PASSWORD";
+    private static final int MAX_SCHEMA_LENGTH = 63;
 
     private final Environment environment;
 
@@ -26,11 +27,12 @@ public class TenantDatabaseDefaultsApplier {
         if (!StringUtils.hasText(entity.getSubdomain()) && StringUtils.hasText(slug)) {
             entity.setSubdomain(slug.trim());
         }
-        String schema = entity.getDatabaseSchema();
-        boolean schemaMissing = !StringUtils.hasText(schema) || "public".equalsIgnoreCase(schema);
-        boolean schemaUnsafe = StringUtils.hasText(schema) && !TenantSchemaProvisioner.isSafeSchemaName(schema);
-        if (schemaMissing || schemaUnsafe) {
+
+        String normalizedSchema = normalizeSchema(entity.getDatabaseSchema());
+        if (!StringUtils.hasText(normalizedSchema) || "public".equalsIgnoreCase(normalizedSchema)) {
             entity.setDatabaseSchema(TenantSchemaProvisioner.defaultSchemaForSlug(slug));
+        } else {
+            entity.setDatabaseSchema(normalizedSchema);
         }
 
         if (!StringUtils.hasText(entity.getDatabaseHost())) {
@@ -48,6 +50,34 @@ public class TenantDatabaseDefaultsApplier {
         if (!StringUtils.hasText(entity.getDatabaseSecretRef())) {
             entity.setDatabaseSecretRef(DEFAULT_SECRET_REF);
         }
+    }
+
+    /**
+     * Preserva o valor digitado pelo usuario, apenas sanitizando para identificador PostgreSQL.
+     * Antes, schemas "inseguros" (ex.: com hifen) eram descartados e trocados por tenant_{slug}.
+     */
+    static String normalizeSchema(String schema) {
+        if (!StringUtils.hasText(schema)) {
+            return null;
+        }
+        String normalized = schema
+                .trim()
+                .toLowerCase()
+                .replace('-', '_')
+                .replace('.', '_')
+                .replaceAll("[^a-z0-9_]", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^_+|_+$", "");
+        if (!StringUtils.hasText(normalized)) {
+            return null;
+        }
+        if (Character.isDigit(normalized.charAt(0))) {
+            normalized = "t_" + normalized;
+        }
+        if (normalized.length() > MAX_SCHEMA_LENGTH) {
+            normalized = normalized.substring(0, MAX_SCHEMA_LENGTH).replaceAll("_+$", "");
+        }
+        return StringUtils.hasText(normalized) ? normalized : null;
     }
 
     private String property(String key, String defaultValue) {

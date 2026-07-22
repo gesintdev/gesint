@@ -29,17 +29,9 @@ public class TenantRbacProvisioner {
                     )
                     """
                             .formatted(schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE UNIQUE INDEX uk_%s_permission_code ON "%s".permission (code)
-                    """
-                            .formatted(safeIndexToken(schema), schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE UNIQUE INDEX uk_%s_permission_authority ON "%s".permission (authority)
-                    """
-                            .formatted(safeIndexToken(schema), schema));
         }
+        ensureUniqueIndex(schema, "permission", "code", "uk", "permission_code");
+        ensureUniqueIndex(schema, "permission", "authority", "uk", "permission_authority");
 
         if (!tableExists(schema, "role")) {
             jdbcTemplate.execute(
@@ -57,22 +49,15 @@ public class TenantRbacProvisioner {
                     )
                     """
                             .formatted(schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE UNIQUE INDEX uk_%s_role_code ON "%s".role (code)
-                    """
-                            .formatted(safeIndexToken(schema), schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE UNIQUE INDEX uk_%s_role_name ON "%s".role (name)
-                    """
-                            .formatted(safeIndexToken(schema), schema));
-            jdbcTemplate.execute(
-                    """
-                    CREATE INDEX idx_%s_role_system_status ON "%s".role (system, status)
-                    """
-                            .formatted(safeIndexToken(schema), schema));
         }
+        ensureUniqueIndex(schema, "role", "code", "uk", "role_code");
+        ensureUniqueIndex(schema, "role", "name", "uk", "role_name");
+        ensureIndex(
+                schema,
+                """
+                CREATE INDEX IF NOT EXISTS %s ON "%s".role (system, status)
+                """
+                        .formatted(TenantIndexNames.unique("idx", schema, "role_system_status"), schema));
 
         if (!tableExists(schema, "role_permission")) {
             jdbcTemplate.execute(
@@ -131,6 +116,19 @@ public class TenantRbacProvisioner {
                         .formatted(schema, schema));
     }
 
+    private void ensureUniqueIndex(String schema, String table, String column, String prefix, String suffix) {
+        ensureIndex(
+                schema,
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS %s ON "%s".%s (%s)
+                """
+                        .formatted(TenantIndexNames.unique(prefix, schema, suffix), schema, table, column));
+    }
+
+    private void ensureIndex(String schema, String ddl) {
+        jdbcTemplate.execute(ddl);
+    }
+
     private boolean tableExists(String schema, String table) {
         Boolean exists = jdbcTemplate.queryForObject(
                 """
@@ -143,9 +141,5 @@ public class TenantRbacProvisioner {
                 schema,
                 table);
         return Boolean.TRUE.equals(exists);
-    }
-
-    private static String safeIndexToken(String schema) {
-        return schema.replace('.', '_');
     }
 }

@@ -201,7 +201,7 @@ export function DataTable<T extends object>({
                                 key={col.id}
                                 className={clsx(
                                     stickyHeader && "sticky top-0 z-[1]",
-                                    alignClass(col.align),
+                                    "text-left",
                                     col.headerClassName,
                                 )}
                             >
@@ -214,7 +214,7 @@ export function DataTable<T extends object>({
                             <th
                                 className={clsx(
                                     stickyHeader && "sticky top-0 z-[1]",
-                                    "text-right",
+                                    "text-left",
                                     actionsClassName,
                                 )}
                             >

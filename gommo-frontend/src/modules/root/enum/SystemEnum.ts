@@ -131,26 +131,50 @@ export class SystemEnumHelper {
         document.cookie = `${STORAGE_KEY}=${encodeURIComponent(system)};path=/;max-age=31536000;SameSite=Lax`;
     }
 
-    static findSystemForRouteId(routeId: string, groups: TSystemModuleGroup[]): SystemEnum | null {
+    static findSystemsForRouteId(routeId: string, groups: TSystemModuleGroup[]): SystemEnum[] {
+        const systems: SystemEnum[] = [];
         for (const group of groups) {
             for (const navModule of group.modules) {
-                if (routeIdInRoutes(routeId, navModule.routes)) return group.system;
+                if (routeIdInRoutes(routeId, navModule.routes)) {
+                    systems.push(group.system);
+                    break;
+                }
             }
         }
-        return null;
+        return systems;
     }
 
-    static findSystemForHref(pathname: string, groups: TSystemModuleGroup[]): SystemEnum | null {
+    static findSystemForRouteId(
+        routeId: string,
+        groups: TSystemModuleGroup[],
+        preferredSystem?: SystemEnum | null,
+    ): SystemEnum | null {
+        return pickPreferredSystem(SystemEnumHelper.findSystemsForRouteId(routeId, groups), preferredSystem);
+    }
+
+    static findSystemsForHref(pathname: string, groups: TSystemModuleGroup[]): SystemEnum[] {
         const normalized = normalizePathname(pathname);
         if (SystemEnumHelper.isSystemNeutralPath(normalized)) {
-            return null;
+            return [];
         }
+        const systems: SystemEnum[] = [];
         for (const group of groups) {
             for (const navModule of group.modules) {
-                if (hrefInRoutes(normalized, navModule.routes)) return group.system;
+                if (hrefInRoutes(normalized, navModule.routes)) {
+                    systems.push(group.system);
+                    break;
+                }
             }
         }
-        return null;
+        return systems;
+    }
+
+    static findSystemForHref(
+        pathname: string,
+        groups: TSystemModuleGroup[],
+        preferredSystem?: SystemEnum | null,
+    ): SystemEnum | null {
+        return pickPreferredSystem(SystemEnumHelper.findSystemsForHref(pathname, groups), preferredSystem);
     }
 
     static firstNavigableRoute(routes: AppRoute[]): AppRoute | null {
@@ -174,14 +198,33 @@ export class SystemEnumHelper {
         return null;
     }
 
-    static getAcronymForHref(href: string, groups: TSystemModuleGroup[]): string | null {
-        const system = SystemEnumHelper.findSystemForHref(href, groups);
+    static getAcronymForHref(
+        href: string,
+        groups: TSystemModuleGroup[],
+        preferredSystem?: SystemEnum | null,
+    ): string | null {
+        const system = SystemEnumHelper.findSystemForHref(href, groups, preferredSystem);
         return system ? SystemEnumHelper.getById(system).acronym : null;
     }
 
-    static getSystemForHref(href: string, groups: TSystemModuleGroup[]): SystemEnum | null {
-        return SystemEnumHelper.findSystemForHref(href, groups);
+    static getSystemForHref(
+        href: string,
+        groups: TSystemModuleGroup[],
+        preferredSystem?: SystemEnum | null,
+    ): SystemEnum | null {
+        return SystemEnumHelper.findSystemForHref(href, groups, preferredSystem);
     }
+}
+
+/** Rotas compartilhadas (ex.: Admissão em RH e DP) preferem o sistema ativo. */
+function pickPreferredSystem(
+    systems: SystemEnum[],
+    preferredSystem?: SystemEnum | null,
+): SystemEnum | null {
+    if (systems.length === 0) return null;
+    if (systems.length === 1) return systems[0];
+    if (preferredSystem && systems.includes(preferredSystem)) return preferredSystem;
+    return systems[0];
 }
 
 function routeIdInRoutes(routeId: string, routes: AppRoute[]): boolean {

@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
+import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { useClickOutside, useListboxKeyboard } from "@/shared/components/ui/input/use-listbox-keyboard";
 
@@ -41,6 +42,7 @@ export function InputSelect({
     const labelId = `${id}-label`;
     const rootRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
+    const portalRoot = usePopoverPortalRoot();
     const [open, setOpen] = useState(false);
     const [panelPosition, setPanelPosition] = useState({ top: 0, left: 0, width: 0 });
     const selected = useMemo(() => items.find((i) => i.value === value), [items, value]);
@@ -133,7 +135,7 @@ export function InputSelect({
                         <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")} />
                     </span>
                 </button>
-                {open && typeof document !== "undefined"
+                {open && portalRoot
                     ? createPortal(
                           <InputSelectPanel
                               ref={panelRef}
@@ -151,7 +153,7 @@ export function InputSelect({
                                   minWidth: panelPosition.width,
                               }}
                           />,
-                          document.body,
+                          portalRoot,
                       )
                     : null}
             </div>
