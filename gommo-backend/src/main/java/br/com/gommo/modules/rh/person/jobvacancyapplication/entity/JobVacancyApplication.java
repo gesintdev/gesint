@@ -53,4 +53,10 @@ public class JobVacancyApplication extends AuditEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "stage_comments", columnDefinition = "jsonb", nullable = false)
     private Map<String, JobVacancyApplicationStageCommentDto> stageComments = new LinkedHashMap<>();
+
+    @Column(name = "cover_letter", columnDefinition = "TEXT")
+    private String coverLetter;
+
+    @Column(name = "referral_source", length = 80)
+    private String referralSource;
 }

@@ -13,8 +13,17 @@ public interface IStorageService {
 
     StorageObjectResponseDto upload(MultipartFile file);
 
+    /** Upload sem checagem de authority — uso interno (ex.: candidatura pública). */
+    StorageObjectResponseDto uploadInternal(MultipartFile file);
+
     StorageObjectLinkResponseDto linkToEntity(
             String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType);
+
+    /** Link sem checagem de authority — uso interno (ex.: candidatura pública). */
+    StorageObjectLinkResponseDto linkToEntityInternal(
+            String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType);
+
+    void softDeleteLinksByEntityAndRole(String entityType, UUID entityId, String linkRole);
 
     List<StorageObjectLinkResponseDto> listByEntity(String entityType, UUID entityId);
 

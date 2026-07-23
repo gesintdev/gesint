@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import type { AdmissionProcessKanbanColumn } from "@/modules/cfg/settings/admissionprocesskanban/dto/admission-process-kanban-column.dto";
+import { HIRING_KANBAN_COLUMN_KEY } from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
 import type { JobVacancyApplication } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
@@ -24,6 +25,8 @@ type JobVacancyApplicationKanbanDetailModalProps = {
     application: JobVacancyApplication | null;
     columns: AdmissionProcessKanbanColumn[];
     onClose: () => void;
+    onCreateAdmission?: () => void;
+    createAdmissionLoading?: boolean;
 };
 
 type EditableStageComment = {
@@ -173,6 +176,8 @@ export function JobVacancyApplicationKanbanDetailModal({
     application,
     columns,
     onClose,
+    onCreateAdmission,
+    createAdmissionLoading = false,
 }: JobVacancyApplicationKanbanDetailModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const queryClient = useQueryClient();
@@ -182,6 +187,8 @@ export function JobVacancyApplicationKanbanDetailModal({
     const currentColumnKey = application?.kanbanColumnKey?.trim() ?? "";
     const currentColumnName =
         columns.find((column) => column.columnKey === currentColumnKey)?.name ?? currentColumnKey;
+    const showCreateAdmission =
+        Boolean(onCreateAdmission) && currentColumnKey === HIRING_KANBAN_COLUMN_KEY;
 
     const editableStages = useMemo((): EditableStageComment[] => {
         if (!application) return [];
@@ -305,8 +312,12 @@ export function JobVacancyApplicationKanbanDetailModal({
         deleteMutation.mutate(columnKey);
     };
 
-    const canSave = dirtyEntries.length > 0 && !saveMutation.isPending && !deleteMutation.isPending;
-    const busy = saveMutation.isPending || deleteMutation.isPending;
+    const canSave =
+        dirtyEntries.length > 0 &&
+        !saveMutation.isPending &&
+        !deleteMutation.isPending &&
+        !createAdmissionLoading;
+    const busy = saveMutation.isPending || deleteMutation.isPending || createAdmissionLoading;
 
     if (!mounted) return null;
 
@@ -422,18 +433,29 @@ export function JobVacancyApplicationKanbanDetailModal({
                     ) : null}
                 </div>
 
-                <div className="flex justify-end gap-2 border-t border-base-content/10 px-5 py-3">
-                    <Button type="button" variant="ghost" onClick={onClose}>
+                <div className="flex flex-wrap justify-end gap-2 border-t border-base-content/10 px-5 py-3">
+                    <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>
                         Fechar
                     </Button>
                     <Button
                         type="button"
+                        variant={showCreateAdmission ? "outline" : undefined}
                         loading={saveMutation.isPending}
                         disabled={!canSave}
                         onClick={() => saveMutation.mutate()}
                     >
                         Salvar
                     </Button>
+                    {showCreateAdmission ? (
+                        <Button
+                            type="button"
+                            loading={createAdmissionLoading}
+                            disabled={busy || !application?.candidateId}
+                            onClick={onCreateAdmission}
+                        >
+                            Criar Admissão
+                        </Button>
+                    ) : null}
                 </div>
             </div>
             <form method="dialog" className="modal-backdrop">

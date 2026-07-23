@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import { ColumnFilterControl } from "@/shared/components/data/ColumnFilterControl";
-import { QueryRefreshProvider } from "@/shared/components/data/QueryRefreshContext";
+import { useRegisterQueryRefresh } from "@/shared/components/data/QueryRefreshContext";
 import { TablePagination } from "@/shared/components/data/TablePagination";
 import { Button } from "@/shared/components/ui/Button";
 import { DataTable, type DataTableRowActivateOn } from "@/shared/components/ui/DataTable";
@@ -79,6 +79,19 @@ function TableSkeleton() {
     );
 }
 
+function useQueryPanelRefresh(query: Pick<UseQueryResult, "refetch" | "isFetching">) {
+    const refreshState = useMemo(
+        () => ({
+            refetch: () => {
+                void query.refetch();
+            },
+            isFetching: query.isFetching,
+        }),
+        [query.isFetching, query.refetch],
+    );
+    useRegisterQueryRefresh(refreshState);
+}
+
 export function QueryPanel<TRow extends object>({
     queryKey,
     request,
@@ -87,46 +100,33 @@ export function QueryPanel<TRow extends object>({
     errorFallback,
 }: QueryPanelProps<TRow>) {
     const query = useQuery({ queryKey, queryFn: request });
-    const refreshValue = useMemo(
-        () =>
-            !query.isLoading && !query.isError && query.data !== undefined
-                ? {
-                      refetch: () => void query.refetch(),
-                      isFetching: query.isFetching,
-                  }
-                : null,
-        [query],
-    );
+    useQueryPanelRefresh(query);
 
     if (query.isLoading) {
-        return <QueryRefreshProvider value={null}>{fallback ?? <TableSkeleton />}</QueryRefreshProvider>;
+        return <>{fallback ?? <TableSkeleton />}</>;
     }
 
     if (query.isError) {
         const ex = ExceptionCapture.fromUnknown(query.error);
         const error = new Error(ex.displayMessage);
         return (
-            <QueryRefreshProvider value={null}>
-                {errorFallback?.(error, () => void query.refetch()) ?? (
-                    <div className="m-4 rounded-xl bg-error/8 p-4">
-                        <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
-                        <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
-                            Tentar novamente
-                        </Button>
-                    </div>
-                )}
-            </QueryRefreshProvider>
+            errorFallback?.(error, () => void query.refetch()) ?? (
+                <div className="m-4 rounded-xl bg-error/8 p-4">
+                    <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
+                    <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
+                        Tentar novamente
+                    </Button>
+                </div>
+            )
         );
     }
 
     if (query.data === undefined) return null;
 
     return (
-        <QueryRefreshProvider value={refreshValue}>
-            <div className="min-h-0 flex-1 p-1.5">
-                {children({ data: query.data, refetch: query.refetch, isFetching: query.isFetching })}
-            </div>
-        </QueryRefreshProvider>
+        <div className="min-h-0 flex-1 p-1.5">
+            {children({ data: query.data, refetch: query.refetch, isFetching: query.isFetching })}
+        </div>
     );
 }
 
@@ -135,7 +135,7 @@ export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps
         queryKey,
         request,
         columns,
-        showRefresh,
+        showRefresh: _showRefresh,
         fallback,
         errorFallback,
         rowActivateOn = "doubleclick",
@@ -146,7 +146,6 @@ export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps
         <QueryPanel<TRow>
             queryKey={queryKey}
             request={request}
-            showRefresh={showRefresh}
             fallback={fallback}
             errorFallback={errorFallback}
         >
@@ -216,16 +215,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         queryFn: () => request(page, size, { ...baseFilters, ...filters }),
         placeholderData: (previousData) => previousData,
     });
-    const refreshValue = useMemo(
-        () =>
-            !query.isLoading && !query.isError && query.data !== undefined
-                ? {
-                      refetch: () => void query.refetch(),
-                      isFetching: query.isFetching,
-                  }
-                : null,
-        [query],
-    );
+    useQueryPanelRefresh(query);
 
     // Base filters come from external segmented chips; changing them should start a fresh feed.
     useEffect(() => {
@@ -239,23 +229,21 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     }, [baseFilters, pageSize]);
 
     if (query.isLoading) {
-        return <QueryRefreshProvider value={null}>{fallback ?? <TableSkeleton />}</QueryRefreshProvider>;
+        return <>{fallback ?? <TableSkeleton />}</>;
     }
 
     if (query.isError) {
         const ex = ExceptionCapture.fromUnknown(query.error);
         const error = new Error(ex.displayMessage);
         return (
-            <QueryRefreshProvider value={null}>
-                {errorFallback?.(error, () => void query.refetch()) ?? (
-                    <div className="m-4 rounded-xl bg-error/8 p-4">
-                        <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
-                        <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
-                            Tentar novamente
-                        </Button>
-                    </div>
-                )}
-            </QueryRefreshProvider>
+            errorFallback?.(error, () => void query.refetch()) ?? (
+                <div className="m-4 rounded-xl bg-error/8 p-4">
+                    <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
+                    <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
+                        Tentar novamente
+                    </Button>
+                </div>
+            )
         );
     }
 
@@ -281,51 +269,49 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     };
 
     return (
-        <QueryRefreshProvider value={refreshValue}>
-            <div className="min-h-0 flex-1 p-1.5">
-                <div className="overflow-visible rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 shadow-sm">
-                    {activeFilterCount > 0 ? (
-                        <div className="flex items-center justify-end border-b border-[var(--gommo-border-subtle)] px-3 py-1.5">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                leftIcon={<X className="size-3.5" />}
-                                onClick={clearFilters}
-                            >
-                                Limpar filtros
-                            </Button>
-                        </div>
-                    ) : null}
-                    <DataTable<TRow>
-                        data={query.data.content}
-                        columns={columns}
-                        rowActivateOn={rowActivateOn}
-                        renderColumnHeader={(column) => (
-                            <ColumnHeaderWithFilter
-                                column={column}
-                                options={query.data.filterOptions?.[column.fieldValue] ?? []}
-                                value={filters[column.fieldValue] ?? []}
-                                onChange={(value) => updateColumnFilter(column.fieldValue, value)}
-                            />
-                        )}
-                        {...tableProps}
-                    />
-                    <TablePagination
-                        page={query.data.page}
-                        totalPages={query.data.totalPages}
-                        totalElements={query.data.totalElements}
-                        size={query.data.size}
-                        mode={paginationMode}
-                        loading={query.isFetching}
-                        pageSizeOptions={pageSizeOptions}
-                        onPageChange={setPage}
-                        onPageSizeChange={(nextSize) => {
-                            setPage(0);
-                            setSize(nextSize);
-                        }}
-                    />
-                </div>
+        <div className="min-h-0 flex-1 p-1.5">
+            <div className="overflow-visible rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 shadow-sm">
+                {activeFilterCount > 0 ? (
+                    <div className="flex items-center justify-end border-b border-[var(--gommo-border-subtle)] px-3 py-1.5">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            leftIcon={<X className="size-3.5" />}
+                            onClick={clearFilters}
+                        >
+                            Limpar filtros
+                        </Button>
+                    </div>
+                ) : null}
+                <DataTable<TRow>
+                    data={query.data.content}
+                    columns={columns}
+                    rowActivateOn={rowActivateOn}
+                    renderColumnHeader={(column) => (
+                        <ColumnHeaderWithFilter
+                            column={column}
+                            options={query.data.filterOptions?.[column.fieldValue] ?? []}
+                            value={filters[column.fieldValue] ?? []}
+                            onChange={(value) => updateColumnFilter(column.fieldValue, value)}
+                        />
+                    )}
+                    {...tableProps}
+                />
+                <TablePagination
+                    page={query.data.page}
+                    totalPages={query.data.totalPages}
+                    totalElements={query.data.totalElements}
+                    size={query.data.size}
+                    mode={paginationMode}
+                    loading={query.isFetching}
+                    pageSizeOptions={pageSizeOptions}
+                    onPageChange={setPage}
+                    onPageSizeChange={(nextSize) => {
+                        setPage(0);
+                        setSize(nextSize);
+                    }}
+                />
             </div>
-        </QueryRefreshProvider>
+        </div>
     );
 }

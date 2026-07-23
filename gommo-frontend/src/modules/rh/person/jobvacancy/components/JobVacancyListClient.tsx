@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import get from "lodash/get";
-import { ChevronDown, KanbanSquare } from "lucide-react";
+import { ChevronDown, Copy, ExternalLink, KanbanSquare } from "lucide-react";
 import { Fragment, useState } from "react";
 import { toast } from "sonner";
 
@@ -25,6 +25,12 @@ import { ExceptionCapture } from "@/shared/exceptions";
 import { badgeClassForStatus, formatBadgeCellValue, formatCellValue } from "@/shared/lib/table/format-cell-value";
 import { TableDataType } from "@/shared/types/table.types";
 import { SystemAlert } from "@/shared/system-alert";
+
+function publicCareersUrl(row: JobVacancy): string | null {
+    if (!row.isPublic || !row.slug?.trim()) return null;
+    if (typeof window === "undefined") return `/careers/${encodeURIComponent(row.slug.trim())}`;
+    return `${window.location.origin}/careers/${encodeURIComponent(row.slug.trim())}`;
+}
 
 function alignClass(align?: "left" | "center" | "right") {
     if (align === "center") return "text-center";
@@ -116,6 +122,9 @@ export function JobVacancyListClient() {
                                 <th className="text-center">
                                     <span className="gommo-table-col-title">Candidatos</span>
                                 </th>
+                                <th>
+                                    <span className="gommo-table-col-title">Link</span>
+                                </th>
                                 <th className="text-right">
                                     <span className="gommo-table-col-title">Ações</span>
                                 </th>
@@ -125,7 +134,7 @@ export function JobVacancyListClient() {
                             {data.length === 0 ? (
                                 <tr>
                                     <td
-                                        colSpan={JOB_VACANCY_TABLE_COLUMNS.length + 3}
+                                        colSpan={JOB_VACANCY_TABLE_COLUMNS.length + 4}
                                         className="py-16 text-center text-sm text-base-content/38"
                                     >
                                         Nenhuma vaga cadastrada.
@@ -193,6 +202,67 @@ export function JobVacancyListClient() {
                                                         {count}
                                                     </span>
                                                 </td>
+                                                <td
+                                                    onClick={(event) => event.stopPropagation()}
+                                                    onDoubleClick={(event) => event.stopPropagation()}
+                                                >
+                                                    {(() => {
+                                                        const url = publicCareersUrl(row);
+                                                        if (!url) {
+                                                            return (
+                                                                <span className="text-xs text-base-content/35">
+                                                                    —
+                                                                </span>
+                                                            );
+                                                        }
+                                                        return (
+                                                            <div className="flex min-w-[12rem] max-w-[18rem] items-center gap-1.5">
+                                                                <a
+                                                                    href={url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="truncate text-xs font-medium text-primary hover:underline"
+                                                                    title={url}
+                                                                >
+                                                                    /careers/{row.slug}
+                                                                </a>
+                                                                <TableActionButton
+                                                                    actionVariant="open"
+                                                                    aria-label="Copiar link da candidatura"
+                                                                    title="Copiar link"
+                                                                    leftIcon={<Copy className="size-3.5" />}
+                                                                    onClick={async (event) => {
+                                                                        event.stopPropagation();
+                                                                        try {
+                                                                            await navigator.clipboard.writeText(url);
+                                                                            toast.success("Link copiado");
+                                                                        } catch {
+                                                                            toast.error(
+                                                                                "Não foi possível copiar o link.",
+                                                                            );
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <TableActionButton
+                                                                    actionVariant="open"
+                                                                    aria-label="Abrir página de candidatura"
+                                                                    title="Abrir página"
+                                                                    leftIcon={
+                                                                        <ExternalLink className="size-3.5" />
+                                                                    }
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        window.open(
+                                                                            url,
+                                                                            "_blank",
+                                                                            "noopener,noreferrer",
+                                                                        );
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </td>
                                                 <td className="text-right">
                                                     <div
                                                         className="gommo-table-actions"
@@ -242,7 +312,7 @@ export function JobVacancyListClient() {
                                             {expanded ? (
                                                 <tr className="job-vacancy-expand-row">
                                                     <td
-                                                        colSpan={JOB_VACANCY_TABLE_COLUMNS.length + 3}
+                                                        colSpan={JOB_VACANCY_TABLE_COLUMNS.length + 4}
                                                         className="!p-0"
                                                     >
                                                         <div className="border-t border-base-content/8 bg-base-content/[0.02] px-2 py-2">

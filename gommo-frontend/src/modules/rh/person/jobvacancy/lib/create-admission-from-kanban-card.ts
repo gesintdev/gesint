@@ -55,7 +55,7 @@ export async function createAdmissionFromKanbanCard(
         startedAt: today,
         contractType: "CLT",
         jobPositionId,
-        notes: "Criado automaticamente ao mover o candidato para Contratação no kanban.",
+        notes: "Criado a partir do kanban de contratação da vaga.",
     });
 
     return admissionprocessService.create(payload);

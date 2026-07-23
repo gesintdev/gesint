@@ -2,14 +2,17 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { type FormEvent, useEffect, useId, useState } from "react";
+import { Copy, ExternalLink } from "lucide-react";
+import { type FormEvent, useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { JobPositionPickerField } from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
 import type {
     JobBoardKey,
+    JobVacancyContractType,
     JobVacancyCreateDto,
     JobVacancySeniority,
+    JobVacancyWorkModality,
 } from "@/modules/rh/person/jobvacancy/dto/job-vacancy.dto";
 import { JOB_VACANCY_CLIENT_MESSAGES } from "@/modules/rh/person/jobvacancy/exceptions/job-vacancy.messages";
 import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
@@ -18,9 +21,13 @@ import {
     jobVacancyFormToPayload,
     jobVacancyToFormDto,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.mapper";
+import { slugFromJobTitle } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-slug";
 import {
     JOB_BOARD_OPTIONS,
+    JOB_VACANCY_CONTRACT_TYPE_ITEMS,
     JOB_VACANCY_SENIORITY_ITEMS,
+    JOB_VACANCY_WORK_MODALITY_ITEMS,
+    JOB_VACANCY_WORK_SCHEDULE_ITEMS,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.options";
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
@@ -31,8 +38,10 @@ import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import {
     InputCurrency,
     InputDate,
+    InputMarkdown,
     InputNumber,
     InputSelect,
+    InputString,
 } from "@/shared/components/ui/input/index";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -115,7 +124,13 @@ export function JobVacancyFormClient() {
         },
     });
     const update = <K extends keyof JobVacancyCreateDto>(field: K, value: JobVacancyCreateDto[K]) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
+        setForm((prev) => {
+            const next = { ...prev, [field]: value };
+            if (field === "jobTitle" && (!prev.slug || prev.slug === slugFromJobTitle(prev.jobTitle))) {
+                next.slug = slugFromJobTitle(String(value ?? ""));
+            }
+            return next;
+        });
     };
     const toggleBoard = (board: JobBoardKey) => {
         setForm((prev) => {
@@ -137,9 +152,27 @@ export function JobVacancyFormClient() {
             setError("A quantidade de posições deve ser maior que zero.");
             return;
         }
+        if (form.isPublic && !(form.slug?.trim() || slugFromJobTitle(form.jobTitle))) {
+            setError("Informe um slug válido para a página pública.");
+            return;
+        }
         saveMutation.mutate(form);
     };
     const pickerValue = form.jobPositionId?.trim() || form.jobTitle || "";
+    const publicSlug = form.slug?.trim() || slugFromJobTitle(form.jobTitle);
+    const publicCareersUrl = useMemo(() => {
+        if (!publicSlug || typeof window === "undefined") return "";
+        return `${window.location.origin}/careers/${encodeURIComponent(publicSlug)}`;
+    }, [publicSlug]);
+    const copyPublicLink = async () => {
+        if (!publicCareersUrl) return;
+        try {
+            await navigator.clipboard.writeText(publicCareersUrl);
+            toast.success("Link da candidatura copiado");
+        } catch {
+            toast.error("Não foi possível copiar o link.");
+        }
+    };
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -226,9 +259,16 @@ export function JobVacancyFormClient() {
                     wrapperClassName="sm:col-span-4"
                 />
                 <InputCurrency
-                    label="Salário"
+                    label="Salário (mín.)"
                     value={form.salary != null ? String(form.salary) : ""}
                     onValueChange={(v) => update("salary", v)}
+                    emitAsDecimal
+                    wrapperClassName="sm:col-span-4"
+                />
+                <InputCurrency
+                    label="Salário (máx.)"
+                    value={form.salaryMax != null ? String(form.salaryMax) : ""}
+                    onValueChange={(v) => update("salaryMax", v)}
                     emitAsDecimal
                     wrapperClassName="sm:col-span-4"
                 />
@@ -238,15 +278,60 @@ export function JobVacancyFormClient() {
                     onValueChange={(v) => update("expectedCompletionDate", v)}
                     wrapperClassName="sm:col-span-4"
                 />
+                <InputString
+                    label="Área / departamento"
+                    value={form.department ?? ""}
+                    onValueChange={(v) => update("department", v)}
+                    placeholder="Ex.: Engenharia de Produto"
+                    wrapperClassName="sm:col-span-6"
+                />
+                <InputString
+                    label="Local"
+                    value={form.location ?? ""}
+                    onValueChange={(v) => update("location", v)}
+                    placeholder="Ex.: São Paulo, SP"
+                    wrapperClassName="sm:col-span-6"
+                />
+                <InputSelect
+                    label="Modalidade"
+                    items={JOB_VACANCY_WORK_MODALITY_ITEMS}
+                    value={form.workModality ?? ""}
+                    onValueChange={(v) =>
+                        update("workModality", (v || undefined) as JobVacancyWorkModality | undefined)
+                    }
+                    placeholder="Selecione"
+                    clearable
+                    wrapperClassName="sm:col-span-4"
+                />
+                <InputSelect
+                    label="Tipo de contrato"
+                    items={JOB_VACANCY_CONTRACT_TYPE_ITEMS}
+                    value={form.contractType ?? ""}
+                    onValueChange={(v) =>
+                        update("contractType", (v || undefined) as JobVacancyContractType | undefined)
+                    }
+                    placeholder="Selecione"
+                    clearable
+                    wrapperClassName="sm:col-span-4"
+                />
+                <InputSelect
+                    label="Jornada"
+                    items={JOB_VACANCY_WORK_SCHEDULE_ITEMS}
+                    value={form.workSchedule ?? ""}
+                    onValueChange={(v) => update("workSchedule", v || undefined)}
+                    placeholder="Selecione"
+                    clearable
+                    wrapperClassName="sm:col-span-4"
+                />
             </FormSection>
 
             <FormSection id="detalhes" title="Detalhes">
-                <TextAreaField
+                <InputMarkdown
                     label="Descrição"
-                    value={form.description}
+                    value={form.description ?? ""}
                     onValueChange={(v) => update("description", v)}
                     wrapperClassName="sm:col-span-12"
-                    placeholder="Resumo da vaga e contexto da contratação"
+                    rows={12}
                 />
                 <TextAreaField
                     label="Atividades"
@@ -262,60 +347,145 @@ export function JobVacancyFormClient() {
                     wrapperClassName="sm:col-span-12"
                     placeholder="Responsabilidades e entregas esperadas"
                 />
+                <TextAreaField
+                    label="Requisitos"
+                    value={form.requirements}
+                    onValueChange={(v) => update("requirements", v)}
+                    wrapperClassName="sm:col-span-12"
+                    placeholder="Um requisito por linha"
+                />
+                <TextAreaField
+                    label="Benefícios"
+                    value={form.benefits}
+                    onValueChange={(v) => update("benefits", v)}
+                    wrapperClassName="sm:col-span-12"
+                    placeholder="Um benefício por linha"
+                />
             </FormSection>
 
             <FormSection id="publicacao" title="Publicação">
-                <div className="sm:col-span-12">
-                    <p className="mb-3 text-sm text-base-content/60">
-                        Selecione os sites onde pretende divulgar a vaga. O envio automático será liberado depois;
-                        por enquanto apenas a preferência é salva.
-                    </p>
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {JOB_BOARD_OPTIONS.map((board) => {
-                            const checked = form.targetBoards?.includes(board.key) ?? false;
-                            return (
-                                <label
-                                    key={board.key}
-                                    className={clsx(
-                                        "flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 transition-colors",
-                                        checked
-                                            ? "border-primary/40 bg-primary/5"
-                                            : "border-base-300 bg-base-100 hover:border-base-content/20",
-                                    )}
+                <div className="sm:col-span-12 grid gap-5">
+                    <label
+                        className={clsx(
+                            "flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors",
+                            form.isPublic
+                                ? "border-primary/40 bg-primary/5"
+                                : "border-base-300 bg-base-100 hover:border-base-content/20",
+                        )}
+                    >
+                        <input
+                            type="checkbox"
+                            className="checkbox checkbox-sm checkbox-primary mt-0.5"
+                            checked={Boolean(form.isPublic)}
+                            onChange={(event) => {
+                                const checked = event.target.checked;
+                                setForm((prev) => ({
+                                    ...prev,
+                                    isPublic: checked,
+                                    slug: prev.slug?.trim() || slugFromJobTitle(prev.jobTitle),
+                                }));
+                            }}
+                        />
+                        <span className="min-w-0">
+                            <span className="block text-sm font-semibold text-base-content">
+                                Publicar página de candidatura
+                            </span>
+                            <span className="mt-0.5 block text-xs text-base-content/55">
+                                Gera um link público para candidatos se inscreverem sem login.
+                            </span>
+                        </span>
+                    </label>
+
+                    <InputString
+                        label="Slug do link"
+                        value={form.slug ?? ""}
+                        onValueChange={(v) => update("slug", v)}
+                        placeholder="ex.: analista-rh-sp"
+                        disabled={!form.isPublic}
+                        wrapperClassName="sm:col-span-12"
+                    />
+
+                    {form.isPublic && publicSlug ? (
+                        <div className="rounded-xl border border-base-content/10 bg-base-200/40 px-4 py-3">
+                            <p className="text-xs font-semibold uppercase tracking-[0.04em] text-base-content/45">
+                                Link público
+                            </p>
+                            <p className="mt-1 break-all text-sm text-base-content">{publicCareersUrl}</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    leftIcon={<Copy className="size-3.5" strokeWidth={2.25} />}
+                                    onClick={() => void copyPublicLink()}
                                 >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex items-center gap-2.5">
-                                            <input
-                                                type="checkbox"
-                                                className="checkbox checkbox-sm checkbox-primary"
-                                                checked={checked}
-                                                onChange={() => toggleBoard(board.key)}
-                                            />
-                                            <span className="text-sm font-semibold text-base-content">
-                                                {board.label}
+                                    Copiar link
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    leftIcon={<ExternalLink className="size-3.5" strokeWidth={2.25} />}
+                                    onClick={() => window.open(publicCareersUrl, "_blank", "noopener,noreferrer")}
+                                >
+                                    Abrir página
+                                </Button>
+                            </div>
+                        </div>
+                    ) : null}
+
+                    <div>
+                        <p className="mb-3 text-sm text-base-content/60">
+                            Selecione os sites onde pretende divulgar a vaga. O envio automático será liberado depois;
+                            por enquanto apenas a preferência é salva.
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                            {JOB_BOARD_OPTIONS.map((board) => {
+                                const checked = form.targetBoards?.includes(board.key) ?? false;
+                                return (
+                                    <label
+                                        key={board.key}
+                                        className={clsx(
+                                            "flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 transition-colors",
+                                            checked
+                                                ? "border-primary/40 bg-primary/5"
+                                                : "border-base-300 bg-base-100 hover:border-base-content/20",
+                                        )}
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex items-center gap-2.5">
+                                                <input
+                                                    type="checkbox"
+                                                    className="checkbox checkbox-sm checkbox-primary"
+                                                    checked={checked}
+                                                    onChange={() => toggleBoard(board.key)}
+                                                />
+                                                <span className="text-sm font-semibold text-base-content">
+                                                    {board.label}
+                                                </span>
+                                            </div>
+                                            <span className="shrink-0 rounded-md bg-base-200 px-2 py-0.5 text-[11px] font-medium text-base-content/55">
+                                                Em breve
                                             </span>
                                         </div>
-                                        <span className="shrink-0 rounded-md bg-base-200 px-2 py-0.5 text-[11px] font-medium text-base-content/55">
-                                            Em breve
-                                        </span>
-                                    </div>
-                                    <p className="text-xs leading-relaxed text-base-content/55">
-                                        {board.description}
-                                    </p>
-                                    <p className="text-[11px] text-base-content/45">{board.accessNote}</p>
-                                </label>
-                            );
-                        })}
-                    </div>
-                    <div className="mt-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            disabled
-                            title="Publicação em sites será liberada em breve"
-                        >
-                            Publicar nos sites selecionados
-                        </Button>
+                                        <p className="text-xs leading-relaxed text-base-content/55">
+                                            {board.description}
+                                        </p>
+                                        <p className="text-[11px] text-base-content/45">{board.accessNote}</p>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                        <div className="mt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled
+                                title="Publicação em sites será liberada em breve"
+                            >
+                                Publicar nos sites selecionados
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </FormSection>

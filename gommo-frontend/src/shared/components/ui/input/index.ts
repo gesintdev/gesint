@@ -20,6 +20,8 @@ export type { InputHourProps } from "./InputHour";
 export { InputHour } from "./InputHour";
 export type { InputInfoProps } from "./InputInfo";
 export { InputInfo } from "./InputInfo";
+export type { InputMarkdownProps } from "./InputMarkdown";
+export { InputMarkdown } from "./InputMarkdown";
 export type { InputMonthProps } from "./InputMonth";
 export { InputMonth } from "./InputMonth";
 export type { InputNumberAlign, InputNumberProps } from "./InputNumber";

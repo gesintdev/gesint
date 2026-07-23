@@ -1,5 +1,6 @@
 package br.com.gommo.modules.rh.person.candidate.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -31,4 +34,20 @@ public class CandidateRequestDto {
     private String phone;
 
     private LocalDate birthDate;
+
+    @Size(max = 120)
+    private String city;
+
+    @Size(max = 2)
+    private String stateCode;
+
+    @Size(max = 300)
+    private String linkedinUrl;
+
+    @Size(max = 300)
+    private String portfolioUrl;
+
+    @Valid
+    @Builder.Default
+    private List<CandidateExperienceDto> experiences = new ArrayList<>();
 }

@@ -7,8 +7,8 @@ import {
     Target,
     UserPlus,
     UserRound,
-    UserSearch,
     Users,
+    UserSearch,
 } from "lucide-react";
 
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";

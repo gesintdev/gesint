@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { CandidateExperiencesEditor } from "@/modules/rh/person/candidate/components/CandidateExperiencesEditor";
 import { candidateKeys } from "@/modules/rh/person/candidate/candidate.query";
 import type { CandidateCreateDto } from "@/modules/rh/person/candidate/dto/candidate.dto";
 import { CANDIDATE_CLIENT_MESSAGES } from "@/modules/rh/person/candidate/exceptions/candidate.messages";
@@ -15,13 +16,18 @@ import {
 import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { EntityAttachments } from "@/shared/components/storage/EntityAttachments";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCPF, InputDate, InputPhone, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
-const FORM_STEPS: FormStepNavItem[] = [{ id: "dados", label: "Dados" }];
+const FORM_STEPS: FormStepNavItem[] = [
+    { id: "dados", label: "Dados" },
+    { id: "experiencia", label: "Experiência" },
+    { id: "curriculo", label: "Currículo" },
+];
 
 export function CandidateFormClient() {
     const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -166,6 +172,53 @@ export function CandidateFormClient() {
                     onValueChange={(v) => update("birthDate", v)}
                     wrapperClassName="sm:col-span-4"
                 />
+                <InputString
+                    label="Cidade"
+                    value={form.city ?? ""}
+                    onValueChange={(v) => update("city", v)}
+                    wrapperClassName="sm:col-span-6"
+                />
+                <InputString
+                    label="UF"
+                    value={form.stateCode ?? ""}
+                    onValueChange={(v) => update("stateCode", v.toUpperCase().slice(0, 2))}
+                    maxLength={2}
+                    wrapperClassName="sm:col-span-2"
+                />
+                <InputString
+                    label="LinkedIn"
+                    value={form.linkedinUrl ?? ""}
+                    onValueChange={(v) => update("linkedinUrl", v)}
+                    wrapperClassName="sm:col-span-6"
+                />
+                <InputString
+                    label="Portfólio / GitHub"
+                    value={form.portfolioUrl ?? ""}
+                    onValueChange={(v) => update("portfolioUrl", v)}
+                    wrapperClassName="sm:col-span-6"
+                />
+            </FormSection>
+            <FormSection id="experiencia" title="Experiência profissional">
+                <CandidateExperiencesEditor
+                    experiences={form.experiences ?? []}
+                    onChange={(experiences) => update("experiences", experiences)}
+                />
+            </FormSection>
+            <FormSection id="curriculo" title="Currículo">
+                {isEditing && editingId ? (
+                    <div className="sm:col-span-12">
+                        <EntityAttachments
+                            entityType="candidate"
+                            entityId={editingId}
+                            linkRole="CURRICULUM"
+                            emptyMessage="Nenhum currículo anexado."
+                        />
+                    </div>
+                ) : (
+                    <p className="sm:col-span-12 text-sm text-base-content/55">
+                        Salve o candidato para anexar o currículo.
+                    </p>
+                )}
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>

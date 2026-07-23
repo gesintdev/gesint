@@ -34,4 +34,25 @@ public final class JobVacancyException {
                 JobVacancyExceptions.JOB_POSITION_NOT_FOUND_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException slugDuplicate() {
+        return new BusinessException(
+                JobVacancyExceptions.SLUG_DUPLICATE_CODE,
+                JobVacancyExceptions.SLUG_DUPLICATE_MSG,
+                HttpStatus.CONFLICT);
+    }
+
+    public static BusinessException slugInvalid() {
+        return new BusinessException(
+                JobVacancyExceptions.SLUG_INVALID_CODE,
+                JobVacancyExceptions.SLUG_INVALID_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException publicNotFound() {
+        return new BusinessException(
+                JobVacancyExceptions.PUBLIC_NOT_FOUND_CODE,
+                JobVacancyExceptions.PUBLIC_NOT_FOUND_MSG,
+                HttpStatus.NOT_FOUND);
+    }
 }

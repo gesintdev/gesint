@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftRight } from "lucide-react";
+import clsx from "clsx";
+import { ArrowLeftRight, RefreshCw } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -63,13 +64,14 @@ export function JobVacancyAdmissionProcessTab() {
     );
 
     const hireMutation = useMutation({
-        mutationFn: (card: AdmissionKanbanCard) =>
+        mutationFn: (candidateId: string) =>
             createAdmissionFromKanbanCard({
-                candidateId: card.candidateId,
+                candidateId,
                 jobVacancyId,
             }),
         onSuccess: () => {
             toast.success("Admissão criada a partir do candidato");
+            setDetailApplicationId(null);
         },
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, {
@@ -77,13 +79,11 @@ export function JobVacancyAdmissionProcessTab() {
             }),
     });
 
-    const handleHiringDrop = useCallback(
-        (item?: AdmissionKanbanCard) => {
-            if (!item?.candidateId) return;
-            hireMutation.mutate(item);
-        },
-        [hireMutation.mutate],
-    );
+    const handleHiringDrop = useCallback((item?: AdmissionKanbanCard) => {
+        if (!item?.applicationId) return;
+        // Abre o detalhe para revisão; a criação da admissão é ação explícita no modal.
+        setDetailApplicationId(item.applicationId);
+    }, []);
 
     const boardColumns = useMemo((): KanbanColumn<AdmissionKanbanCard>[] => {
         const applications = (applicationsQuery.data ?? []).filter(
@@ -108,7 +108,6 @@ export function JobVacancyAdmissionProcessTab() {
                     const application = applications.find((row) => row.id === card.id);
                     return application?.kanbanColumnKey?.trim() === column.columnKey;
                 }),
-                // Hardcoded: gatilho de criacao de admissao na coluna Contratação.
                 onDrop: isHiring ? handleHiringDrop : undefined,
             };
         });
@@ -172,6 +171,13 @@ export function JobVacancyAdmissionProcessTab() {
 
     const handleSwitchVacancy = () => {
         goToTab(CRUD_TAB_LIST);
+    };
+
+    const isBoardRefreshing = columnsQuery.isFetching || applicationsQuery.isFetching;
+
+    const handleRefreshBoard = () => {
+        void columnsQuery.refetch();
+        void applicationsQuery.refetch();
     };
 
     if (!jobVacancyId) {
@@ -249,15 +255,31 @@ export function JobVacancyAdmissionProcessTab() {
                         quadro
                     </p>
                 </div>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    leftIcon={<ArrowLeftRight className="size-3.5" strokeWidth={2.25} />}
-                    onClick={handleSwitchVacancy}
-                >
-                    Trocar vaga
-                </Button>
+                <div className="flex shrink-0 items-center gap-2">
+                    <Button
+                        type="button"
+                        size="sm"
+                        aria-label="Atualizar kanban"
+                        className="gommo-btn--icon-only"
+                        disabled={isBoardRefreshing}
+                        onClick={handleRefreshBoard}
+                        leftIcon={
+                            <RefreshCw
+                                className={clsx("size-3.5", isBoardRefreshing && "animate-spin")}
+                                strokeWidth={2.25}
+                            />
+                        }
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        leftIcon={<ArrowLeftRight className="size-3.5" strokeWidth={2.25} />}
+                        onClick={handleSwitchVacancy}
+                    >
+                        Trocar vaga
+                    </Button>
+                </div>
             </div>
             <KanbanBoard
                 columns={boardColumns}
@@ -272,6 +294,12 @@ export function JobVacancyAdmissionProcessTab() {
                 application={detailApplication}
                 columns={sortedColumns}
                 onClose={() => setDetailApplicationId(null)}
+                onCreateAdmission={
+                    detailApplication?.candidateId
+                        ? () => hireMutation.mutate(detailApplication.candidateId)
+                        : undefined
+                }
+                createAdmissionLoading={hireMutation.isPending}
             />
         </div>
     );

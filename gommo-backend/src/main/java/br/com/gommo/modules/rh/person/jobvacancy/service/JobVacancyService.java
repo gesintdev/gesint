@@ -1,5 +1,6 @@
 package br.com.gommo.modules.rh.person.jobvacancy.service;
 
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import br.com.gommo.modules.rh.person.jobvacancy.dto.JobVacancyRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancy.dto.JobVacancyResponseDto;
 import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancy;
 import br.com.gommo.modules.rh.person.jobvacancy.exception.JobVacancyException;
+import br.com.gommo.modules.rh.person.jobvacancy.lib.JobVacancySlug;
 import br.com.gommo.modules.rh.person.jobvacancy.mapper.JobVacancyMapper;
 import br.com.gommo.modules.rh.person.jobvacancy.repository.JobVacancyRepository;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.repository.JobVacancyApplicationRepository;
@@ -86,16 +88,25 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
     @Transactional
     @PreAuthorize("hasAuthority('jobvacancy:write')")
     public JobVacancyResponseDto create(JobVacancyRequestDto request) {
-        validateRequest(request);
-        return super.create(request);
+        validateRequest(request, null);
+        JobVacancy entity = mapper.toEntity(request);
+        applyPublishState(entity, null);
+        entity.setStatus(StatusEnum.ACTIVE);
+        int count = 0;
+        return mapper.toResponse(repository.save(entity), count);
     }
 
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('jobvacancy:write')")
     public JobVacancyResponseDto update(UUID id, JobVacancyRequestDto request) {
-        validateRequest(request);
-        return super.update(id, request);
+        validateRequest(request, id);
+        JobVacancy entity = findEntity(id);
+        OffsetDateTime previousPublishedAt = entity.getPublishedAt();
+        mapper.updateEntity(entity, request);
+        applyPublishState(entity, previousPublishedAt);
+        int count = (int) applicationRepository.countByJobVacancyIdAndStatusNot(id, StatusEnum.DELETED);
+        return mapper.toResponse(repository.save(entity), count);
     }
 
     @Override
@@ -125,7 +136,7 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
         return counts;
     }
 
-    private void validateRequest(JobVacancyRequestDto request) {
+    private void validateRequest(JobVacancyRequestDto request, UUID currentId) {
         String title = request.getJobTitle() == null ? "" : request.getJobTitle().trim();
         if (title.isEmpty()) {
             throw JobVacancyException.titleRequired();
@@ -143,6 +154,38 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
             if (!exists) {
                 throw JobVacancyException.jobPositionNotFound();
             }
+        }
+
+        boolean publish = Boolean.TRUE.equals(request.getIsPublic());
+        String slug = JobVacancySlug.normalize(request.getSlug());
+        if (slug == null && publish) {
+            slug = JobVacancySlug.normalize(title);
+        }
+        if (publish && (slug == null || slug.isBlank())) {
+            throw JobVacancyException.slugInvalid();
+        }
+        request.setSlug(slug);
+        request.setIsPublic(publish);
+
+        if (slug != null) {
+            var existing = currentId == null
+                    ? repository.findBySlugAndStatusNot(slug, StatusEnum.DELETED)
+                    : repository.findBySlugAndStatusNotAndIdNot(slug, StatusEnum.DELETED, currentId);
+            if (existing.isPresent()) {
+                throw JobVacancyException.slugDuplicate();
+            }
+        }
+    }
+
+    private void applyPublishState(JobVacancy entity, OffsetDateTime previousPublishedAt) {
+        if (Boolean.TRUE.equals(entity.getIsPublic())) {
+            if (entity.getSlug() == null || entity.getSlug().isBlank()) {
+                throw JobVacancyException.slugInvalid();
+            }
+            entity.setPublishedAt(previousPublishedAt != null ? previousPublishedAt : OffsetDateTime.now());
+        } else {
+            entity.setIsPublic(false);
+            entity.setPublishedAt(null);
         }
     }
 }

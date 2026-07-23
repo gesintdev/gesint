@@ -14,4 +14,13 @@ public final class JobVacancyExceptions {
 
     public static final String JOB_POSITION_NOT_FOUND_CODE = "JOB_VACANCY_JOB_POSITION_NOT_FOUND";
     public static final String JOB_POSITION_NOT_FOUND_MSG = "Cargo informado n\u00e3o encontrado";
+
+    public static final String SLUG_DUPLICATE_CODE = "JOB_VACANCY_SLUG_DUPLICATE";
+    public static final String SLUG_DUPLICATE_MSG = "J\u00e1 existe uma vaga com este link p\u00fablico";
+
+    public static final String SLUG_INVALID_CODE = "JOB_VACANCY_SLUG_INVALID";
+    public static final String SLUG_INVALID_MSG = "Informe um slug v\u00e1lido para a p\u00e1gina p\u00fablica";
+
+    public static final String PUBLIC_NOT_FOUND_CODE = "JOB_VACANCY_PUBLIC_NOT_FOUND";
+    public static final String PUBLIC_NOT_FOUND_MSG = "Vaga n\u00e3o encontrada ou n\u00e3o est\u00e1 publicada";
 }

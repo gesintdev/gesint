@@ -1,4 +1,9 @@
-import type { JobBoardKey, JobVacancySeniority } from "@/modules/rh/person/jobvacancy/dto/job-vacancy.dto";
+import type {
+    JobBoardKey,
+    JobVacancyContractType,
+    JobVacancySeniority,
+    JobVacancyWorkModality,
+} from "@/modules/rh/person/jobvacancy/dto/job-vacancy.dto";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 
 export const JOB_VACANCY_SENIORITY_VALUES = ["JUNIOR", "PLENO", "SENIOR"] as const;
@@ -13,6 +18,46 @@ export const JOB_VACANCY_SENIORITY_ITEMS: SelectItem[] = JOB_VACANCY_SENIORITY_V
     value,
     label: JOB_VACANCY_SENIORITY_LABELS[value],
 }));
+
+export const JOB_VACANCY_WORK_MODALITY_VALUES = ["PRESENCIAL", "HIBRIDO", "REMOTO"] as const;
+
+export const JOB_VACANCY_WORK_MODALITY_LABELS: Record<JobVacancyWorkModality, string> = {
+    PRESENCIAL: "Presencial",
+    HIBRIDO: "Híbrido",
+    REMOTO: "Remoto",
+};
+
+export const JOB_VACANCY_WORK_MODALITY_ITEMS: SelectItem[] = JOB_VACANCY_WORK_MODALITY_VALUES.map((value) => ({
+    value,
+    label: JOB_VACANCY_WORK_MODALITY_LABELS[value],
+}));
+
+export const JOB_VACANCY_CONTRACT_TYPE_VALUES = [
+    "CLT",
+    "PJ",
+    "ESTAGIO",
+    "TEMPORARIO",
+    "FREELANCER",
+] as const;
+
+export const JOB_VACANCY_CONTRACT_TYPE_LABELS: Record<JobVacancyContractType, string> = {
+    CLT: "CLT",
+    PJ: "PJ",
+    ESTAGIO: "Estágio",
+    TEMPORARIO: "Temporário",
+    FREELANCER: "Freelancer",
+};
+
+export const JOB_VACANCY_CONTRACT_TYPE_ITEMS: SelectItem[] = JOB_VACANCY_CONTRACT_TYPE_VALUES.map((value) => ({
+    value,
+    label: JOB_VACANCY_CONTRACT_TYPE_LABELS[value],
+}));
+
+export const JOB_VACANCY_WORK_SCHEDULE_ITEMS: SelectItem[] = [
+    { value: "Tempo integral", label: "Tempo integral" },
+    { value: "Meio período", label: "Meio período" },
+    { value: "Por demanda", label: "Por demanda" },
+];
 
 export type JobBoardOption = {
     key: JobBoardKey;

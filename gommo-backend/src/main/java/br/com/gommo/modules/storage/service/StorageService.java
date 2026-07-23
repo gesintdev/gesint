@@ -52,6 +52,12 @@ public class StorageService implements IStorageService {
     @Transactional
     @PreAuthorize("hasAuthority('storage:write')")
     public StorageObjectResponseDto upload(MultipartFile file) {
+        return uploadInternal(file);
+    }
+
+    @Override
+    @Transactional
+    public StorageObjectResponseDto uploadInternal(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw StorageException.uploadFailed();
         }
@@ -101,6 +107,13 @@ public class StorageService implements IStorageService {
     @PreAuthorize("hasAuthority('storage:write')")
     public StorageObjectLinkResponseDto linkToEntity(
             String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType) {
+        return linkToEntityInternal(entityType, entityId, objectId, linkRole, displayName, documentType);
+    }
+
+    @Override
+    @Transactional
+    public StorageObjectLinkResponseDto linkToEntityInternal(
+            String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType) {
         StorageObject object = findActiveObject(objectId);
         StorageObjectLink link = StorageObjectLink.builder()
                 .storageObjectId(object.getId())
@@ -113,6 +126,22 @@ public class StorageService implements IStorageService {
         link.setStatus(StatusEnum.ACTIVE);
         link = linkRepository.save(link);
         return mapper.toLinkResponse(link, object);
+    }
+
+    @Override
+    @Transactional
+    public void softDeleteLinksByEntityAndRole(String entityType, UUID entityId, String linkRole) {
+        if (entityType == null || entityId == null || linkRole == null || linkRole.isBlank()) {
+            return;
+        }
+        linkRepository
+                .findAllByEntityTypeAndEntityIdAndStatusNot(entityType, entityId, StatusEnum.DELETED)
+                .stream()
+                .filter(link -> linkRole.equals(link.getLinkRole()))
+                .forEach(link -> {
+                    link.setStatus(StatusEnum.DELETED);
+                    linkRepository.save(link);
+                });
     }
 
     @Override

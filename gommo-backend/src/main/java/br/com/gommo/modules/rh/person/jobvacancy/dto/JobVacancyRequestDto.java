@@ -1,5 +1,6 @@
 package br.com.gommo.modules.rh.person.jobvacancy.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -17,7 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancyContractTypeEnum;
 import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancySeniorityEnum;
+import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancyWorkModalityEnum;
 
 @Getter
 @Setter
@@ -38,13 +41,37 @@ public class JobVacancyRequestDto {
     private String description;
     private String activities;
     private String assignments;
+    private String requirements;
+    private String benefits;
+
+    @Size(max = 200)
+    private String department;
+
+    @Size(max = 200)
+    private String location;
+
+    private JobVacancyWorkModalityEnum workModality;
+    private JobVacancyContractTypeEnum contractType;
+
+    @Size(max = 80)
+    private String workSchedule;
+
     private JobVacancySeniorityEnum seniorityLevel;
 
     @DecimalMin(value = "0.0", inclusive = true)
     private BigDecimal salary;
 
+    @DecimalMin(value = "0.0", inclusive = true)
+    private BigDecimal salaryMax;
+
     private LocalDate expectedCompletionDate;
 
     @Builder.Default
     private List<String> targetBoards = new ArrayList<>();
+
+    @Size(max = 120)
+    private String slug;
+
+    @JsonProperty("isPublic")
+    private Boolean isPublic;
 }

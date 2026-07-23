@@ -141,6 +141,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 return auth ? Response.redirect(new URL("/dashboard", nextUrl)) : true;
             }
 
+            const isPublicCareers = nextUrl.pathname.startsWith("/careers");
+            if (isPublicCareers) {
+                return true;
+            }
+
             if (!auth) {
                 return Response.redirect(new URL("/login", nextUrl));
             }

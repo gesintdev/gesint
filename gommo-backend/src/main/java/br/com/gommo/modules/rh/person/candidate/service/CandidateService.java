@@ -22,11 +22,16 @@ public class CandidateService extends BaseService<Candidate, CandidateRequestDto
         implements ICandidateService {
     private final CandidateRepository repository;
     private final CandidateMapper mapper;
+    private final CandidateExperienceService experienceService;
 
-    public CandidateService(CandidateRepository repository, CandidateMapper mapper) {
+    public CandidateService(
+            CandidateRepository repository,
+            CandidateMapper mapper,
+            CandidateExperienceService experienceService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
+        this.experienceService = experienceService;
     }
 
     @Override
@@ -40,7 +45,8 @@ public class CandidateService extends BaseService<Candidate, CandidateRequestDto
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('candidate:read')")
     public CandidateResponseDto findById(UUID id) {
-        return super.findById(id);
+        Candidate entity = findEntity(id);
+        return mapper.toResponse(entity, experienceService.listByCandidateId(id));
     }
 
     @Override
@@ -55,7 +61,9 @@ public class CandidateService extends BaseService<Candidate, CandidateRequestDto
     @PreAuthorize("hasAuthority('candidate:write')")
     public CandidateResponseDto create(CandidateRequestDto request) {
         validateRequest(request, null);
-        return super.create(request);
+        CandidateResponseDto created = super.create(request);
+        experienceService.replaceAll(created.getId(), request.getExperiences());
+        return findById(created.getId());
     }
 
     @Override
@@ -63,7 +71,9 @@ public class CandidateService extends BaseService<Candidate, CandidateRequestDto
     @PreAuthorize("hasAuthority('candidate:write')")
     public CandidateResponseDto update(UUID id, CandidateRequestDto request) {
         validateRequest(request, id);
-        return super.update(id, request);
+        super.update(id, request);
+        experienceService.replaceAll(id, request.getExperiences());
+        return findById(id);
     }
 
     @Override

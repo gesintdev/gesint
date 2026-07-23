@@ -46,6 +46,10 @@ import {
     EXITINTERVIEW_MESSAGES,
 } from "@/modules/rh/person/exitinterview/exceptions/exit-interview.messages";
 import { LEAVE_CLIENT_MESSAGES, LEAVE_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
+import {
+    JOB_VACANCY_CLIENT_MESSAGES,
+    JOB_VACANCY_MESSAGES,
+} from "@/modules/rh/person/jobvacancy/exceptions/job-vacancy.messages";
 import { AUTH_CLIENT_MESSAGES, AUTH_MESSAGES } from "@/modules/root/exceptions/auth.messages";
 import { CORE_MESSAGES } from "@/shared/exceptions/core.messages";
 
@@ -83,6 +87,8 @@ const REGISTRY: Record<string, string> = {
     ...OFFBOARDING_CLIENT_MESSAGES,
     ...EXITINTERVIEW_MESSAGES,
     ...EXITINTERVIEW_CLIENT_MESSAGES,
+    ...JOB_VACANCY_MESSAGES,
+    ...JOB_VACANCY_CLIENT_MESSAGES,
 };
 
 export function resolveMessageByCode(code: string | undefined, fallback: string): string {

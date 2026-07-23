@@ -35,4 +35,16 @@ public class Candidate extends AuditEntity {
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
+
+    @Column(length = 120)
+    private String city;
+
+    @Column(name = "state_code", length = 2)
+    private String stateCode;
+
+    @Column(name = "linkedin_url", length = 300)
+    private String linkedinUrl;
+
+    @Column(name = "portfolio_url", length = 300)
+    private String portfolioUrl;
 }
