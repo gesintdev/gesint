@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Download, Pencil, Trash2, Upload, X } from "lucide-react";
+import { Check, Download, Eye, Pencil, Trash2, Upload, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +8,7 @@ import type { StorageObjectLink } from "@/modules/storage/dto/storage.dto";
 import { formatStorageMaxFileSize, isStorageFileTooLarge } from "@/modules/storage/lib/storage-limits";
 import { storageService } from "@/modules/storage/services/storage.service";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
+import { StoragePdfPreviewModal } from "@/shared/components/storage/StoragePdfPreviewModal";
 import { Button } from "@/shared/components/ui/Button";
 import { DataTable } from "@/shared/components/ui/DataTable";
 import { InputSelect } from "@/shared/components/ui/input/InputSelect";
@@ -58,6 +59,23 @@ function createPendingId(): string {
     return crypto.randomUUID();
 }
 
+function isPdfAttachment(row: AttachmentTableRow): boolean {
+    if (row.pendingItem) {
+        const type = row.pendingItem.file.type.toLowerCase();
+        const name = row.pendingItem.displayName.toLowerCase();
+        return type.includes("pdf") || name.endsWith(".pdf");
+    }
+    const contentType = row.serverLink?.storageObject?.contentType?.toLowerCase() ?? "";
+    const name = row.displayName.toLowerCase();
+    return contentType.includes("pdf") || name.endsWith(".pdf");
+}
+
+type PdfPreviewTarget = {
+    title: string;
+    storageObjectId?: string | null;
+    localFile?: File | null;
+};
+
 export async function flushPendingAttachments(params: {
     entityType: string;
     entityId: string;
@@ -94,6 +112,7 @@ export function EntityAttachments({
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
     const [editingRowId, setEditingRowId] = useState<string | null>(null);
     const [editingDocumentType, setEditingDocumentType] = useState("");
+    const [pdfPreview, setPdfPreview] = useState<PdfPreviewTarget | null>(null);
     const queryKey = ["storage-links", entityType, entityId] as const;
     const linksQuery = useQuery({
         queryKey,
@@ -151,6 +170,20 @@ export function EntityAttachments({
         } finally {
             setDownloadingId(null);
         }
+    };
+    const handlePreviewPdf = (row: AttachmentTableRow) => {
+        if (row.pending && row.pendingItem) {
+            setPdfPreview({
+                title: row.displayName,
+                localFile: row.pendingItem.file,
+            });
+            return;
+        }
+        if (!row.serverLink) return;
+        setPdfPreview({
+            title: row.displayName,
+            storageObjectId: row.serverLink.storageObjectId,
+        });
     };
     const startEditDocumentType = (row: AttachmentTableRow) => {
         const currentType = row.pending ? (row.pendingItem?.documentType ?? "") : (row.serverLink?.documentType ?? "");
@@ -380,6 +413,15 @@ export function EntityAttachments({
                                             onClick={() => startEditDocumentType(row)}
                                         />
                                     ) : null}
+                                    {isPdfAttachment(row) ? (
+                                        <TableActionButton
+                                            actionVariant="open"
+                                            aria-label="Visualizar PDF"
+                                            title="Visualizar PDF"
+                                            leftIcon={<Eye className="size-3.5" />}
+                                            onClick={() => handlePreviewPdf(row)}
+                                        />
+                                    ) : null}
                                     <TableActionButton
                                         actionVariant="download"
                                         aria-label="Download"
@@ -409,6 +451,13 @@ export function EntityAttachments({
                     )}
                 />
             )}
+            <StoragePdfPreviewModal
+                open={Boolean(pdfPreview)}
+                title={pdfPreview?.title ?? "Visualizar PDF"}
+                storageObjectId={pdfPreview?.storageObjectId}
+                localFile={pdfPreview?.localFile}
+                onClose={() => setPdfPreview(null)}
+            />
         </div>
     );
 }

@@ -1,13 +1,16 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { ChevronDown, Trash2, X } from "lucide-react";
+import { ChevronDown, Trash2, UserRound, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import type { AdmissionProcessKanbanColumn } from "@/modules/cfg/settings/admissionprocesskanban/dto/admission-process-kanban-column.dto";
+import { candidateKeys } from "@/modules/rh/person/candidate/candidate.query";
+import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
+import { CandidateProfileView } from "@/modules/rh/person/jobvacancy/components/CandidateProfileView";
 import { HIRING_KANBAN_COLUMN_KEY } from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
 import type { JobVacancyApplication } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
@@ -16,7 +19,7 @@ import { resolveKanbanColumnColor } from "@/shared/components/kanban";
 import { Button } from "@/shared/components/ui/Button";
 import { fieldClass } from "@/shared/components/ui/input/InputFieldChrome";
 import { ExceptionCapture } from "@/shared/exceptions";
-import { formatCpf, formatCellValue, formatPhone } from "@/shared/lib/table/format-cell-value";
+import { formatCellValue } from "@/shared/lib/table/format-cell-value";
 import { SystemAlert } from "@/shared/system-alert";
 import { TableDataType } from "@/shared/types/table.types";
 
@@ -154,6 +157,61 @@ function StageCommentAccordion({
                             Atualizado em {formatCellValue(updatedAt, TableDataType.DATETIME)}
                         </p>
                     ) : null}
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+function CandidateProfileAccordion({
+    candidateId,
+    defaultOpen = true,
+}: {
+    candidateId: string;
+    defaultOpen?: boolean;
+}) {
+    const [open, setOpen] = useState(defaultOpen);
+    const detailQuery = useQuery({
+        queryKey: candidateKeys.detail(candidateId),
+        queryFn: () => candidateService.getById(candidateId),
+        enabled: open && Boolean(candidateId),
+    });
+
+    return (
+        <div className="overflow-hidden rounded-lg border border-base-content/10">
+            <button
+                type="button"
+                className="flex h-9 w-full items-center gap-2 px-2.5 text-left transition-colors hover:bg-base-content/[0.03]"
+                aria-expanded={open}
+                onClick={() => setOpen((current) => !current)}
+            >
+                <UserRound className="size-3.5 shrink-0 text-base-content/45" strokeWidth={2.25} />
+                <span className="min-w-0 flex-1 truncate text-xs font-semibold text-base-content">
+                    Perfil do candidato
+                </span>
+                <ChevronDown
+                    className={clsx("size-3.5 text-base-content/40 transition-transform", open && "rotate-180")}
+                    strokeWidth={2.25}
+                />
+            </button>
+            {open ? (
+                <div className="border-t border-base-content/8 bg-base-100/70 px-3 py-3">
+                    {detailQuery.isLoading ? (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="skeleton-shimmer h-14 w-full rounded-lg" />
+                            ))}
+                        </div>
+                    ) : null}
+                    {detailQuery.isError ? (
+                        <p className="text-xs text-error">
+                            {ExceptionCapture.displayMessage(
+                                detailQuery.error,
+                                "Não foi possível carregar o perfil do candidato.",
+                            )}
+                        </p>
+                    ) : null}
+                    {detailQuery.data ? <CandidateProfileView candidate={detailQuery.data} /> : null}
                 </div>
             ) : null}
         </div>
@@ -323,7 +381,7 @@ export function JobVacancyApplicationKanbanDetailModal({
 
     return createPortal(
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden p-0">
+            <div className="modal-box flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-0">
                 <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
                     <div className="min-w-0">
                         <h3 className="text-base font-semibold text-base-content">Detalhe do card</h3>
@@ -347,27 +405,6 @@ export function JobVacancyApplicationKanbanDetailModal({
                         <div className="grid gap-5">
                             <section className="grid gap-3 sm:grid-cols-2">
                                 <DetailField
-                                    label="Nome"
-                                    value={application.candidateFullName ?? "—"}
-                                />
-                                <DetailField
-                                    label="CPF"
-                                    value={
-                                        application.candidateCpf
-                                            ? formatCpf(application.candidateCpf)
-                                            : "—"
-                                    }
-                                />
-                                <DetailField label="E-mail" value={application.candidateEmail ?? "—"} />
-                                <DetailField
-                                    label="Telefone"
-                                    value={
-                                        application.candidatePhone
-                                            ? formatPhone(application.candidatePhone)
-                                            : "—"
-                                    }
-                                />
-                                <DetailField
                                     label="Etapa atual"
                                     value={currentColumnName || "—"}
                                 />
@@ -376,6 +413,20 @@ export function JobVacancyApplicationKanbanDetailModal({
                                     value={formatCellValue(application.appliedAt, TableDataType.DATETIME)}
                                 />
                             </section>
+
+                            {application.candidateId ? (
+                                <section className="grid gap-2 text-xs">
+                                    <div>
+                                        <h4 className="text-xs font-semibold text-base-content">
+                                            Perfil
+                                        </h4>
+                                    </div>
+                                    <CandidateProfileAccordion
+                                        candidateId={application.candidateId}
+                                        defaultOpen
+                                    />
+                                </section>
+                            ) : null}
 
                             <section className="grid gap-2 text-xs">
                                 <div>

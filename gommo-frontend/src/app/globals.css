@@ -260,10 +260,10 @@ html {
 
 body {
     font-family: var(--font-sans), system-ui, sans-serif;
-    font-size: 13.5px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 2;
     letter-spacing: 0;
-    font-variation-settings: "wght" 430;
+    font-variation-settings: "wght" 350;
     background: var(--color-page);
     color: var(--color-base-content);
 }

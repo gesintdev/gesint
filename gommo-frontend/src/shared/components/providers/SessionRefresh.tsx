@@ -35,7 +35,7 @@ function isSessionDeadError(error: unknown): boolean {
 
 /** Mantém o token em memória sincronizado e reage a falha de refresh / FORCE_LOGOUT */
 export function SessionRefresh() {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const { keys: contractedKeys, ready: contractedReady } = useContractedSystemKeys();
     const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
     const retainTabsByRouteIds = useWorkspaceStore((s) => s.retainTabsByRouteIds);
@@ -46,6 +46,9 @@ export function SessionRefresh() {
         [session?.user],
     );
     const contractedSystems = useMemo(() => resolveContractedSystems(contractedKeys), [contractedKeys]);
+    // Dep estável: NÃO usar session.refreshToken — cada rotação reiniciava o effect e
+    // getSession() (broadcast) cascateava /api/auth/session em loop.
+    const hasRefreshSession = status === "authenticated" && Boolean(session?.refreshToken);
 
     useEffect(() => {
         if (session?.accessToken) {
@@ -66,26 +69,32 @@ export function SessionRefresh() {
     }, [session?.error]);
 
     useEffect(() => {
-        if (!session?.refreshToken) {
+        if (!hasRefreshSession) {
             return;
         }
 
         let cancelled = false;
+        let inFlight = false;
 
         const checkSession = async () => {
-            if (cancelled || signingOutRef.current) {
+            if (cancelled || signingOutRef.current || inFlight) {
                 return;
             }
+            inFlight = true;
             try {
                 // Busca a sessão mais recente para não enviar refresh token já rotacionado
                 // pelo jwt callback do NextAuth (causa logout falso no session-check).
-                const latest = await getSession();
+                // broadcast:false evita o SessionProvider re-buscar via BroadcastChannel.
+                const latest = await getSession({ broadcast: false });
                 const refreshToken = latest?.refreshToken;
                 if (!refreshToken || cancelled || signingOutRef.current) {
                     return;
                 }
                 if (latest.error === "RefreshAccessTokenError" || latest.error === "RefreshTokenMissing") {
                     return;
+                }
+                if (latest.accessToken) {
+                    setAuthToken(latest.accessToken);
                 }
                 // Tenant vem do Host (coca-cola.localhost) ou X-Tenant-Slug via api.client.
                 await doRequest("/api/v1/auth/session-check", {
@@ -103,6 +112,8 @@ export function SessionRefresh() {
                 setAuthToken(null);
                 toast.error("Sessão encerrada. Faça login novamente.");
                 void signOutToTenantLogin();
+            } finally {
+                inFlight = false;
             }
         };
 
@@ -115,7 +126,7 @@ export function SessionRefresh() {
             cancelled = true;
             window.clearInterval(timer);
         };
-    }, [session?.refreshToken]);
+    }, [hasRefreshSession]);
 
     useEffect(() => {
         if (!userKey) return;

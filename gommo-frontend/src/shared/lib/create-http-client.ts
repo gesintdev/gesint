@@ -31,7 +31,8 @@ export function createHttpClient(config: HttpClientConfig) {
         if (authToken) return authToken;
         if (typeof window === "undefined") return null;
         const { getSession } = await import("next-auth/react");
-        const session = await getSession();
+        // broadcast:false evita cascata SessionProvider ↔ BroadcastChannel em /api/auth/session
+        const session = await getSession({ broadcast: false });
         const token = session?.accessToken ?? null;
         if (token) setAuthToken(token);
         return token;
@@ -40,7 +41,7 @@ export function createHttpClient(config: HttpClientConfig) {
         authToken = null;
         if (typeof window === "undefined") return null;
         const { getSession } = await import("next-auth/react");
-        const session = await getSession();
+        const session = await getSession({ broadcast: false });
         if (session?.error === "RefreshAccessTokenError" || session?.error === "RefreshTokenMissing") {
             config.onSessionExpired?.();
             return null;

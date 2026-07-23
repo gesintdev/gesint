@@ -25,7 +25,7 @@ export async function resolveClientTenantHeaders(extra?: Record<string, string>)
 
     if (typeof window !== "undefined") {
         const {getSession} = await import("next-auth/react");
-        const session = await getSession();
+        const session = await getSession({broadcast: false});
         if (session?.tenantSlug) {
             return {
                 ...buildTenantRequestHeaders(session.tenantSlug),

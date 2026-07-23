@@ -26,6 +26,7 @@ import {
 } from "@/shared/components/kanban";
 import { Button } from "@/shared/components/ui/Button";
 import { ExceptionCapture } from "@/shared/exceptions";
+import { formatPhone } from "@/shared/lib/table/format-cell-value";
 
 type AdmissionKanbanCard = KanbanItem & {
     applicationId: string;
@@ -96,6 +97,7 @@ export function JobVacancyAdmissionProcessTab() {
             candidateId: row.candidateId,
             title: row.candidateFullName ?? "Candidato",
             subtitle: row.candidateEmail ?? undefined,
+            meta: row.candidatePhone ? formatPhone(row.candidatePhone) : undefined,
         }));
 
         return sortedColumns.map((column) => {

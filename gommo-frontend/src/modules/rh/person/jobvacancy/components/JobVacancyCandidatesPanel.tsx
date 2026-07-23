@@ -115,8 +115,8 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
                             >
                                 <TableActionButton
                                     actionVariant="open"
-                                    aria-label="Analisar candidato"
-                                    title="Analisar candidato"
+                                    aria-label="Ver perfil do candidato"
+                                    title="Ver perfil"
                                     leftIcon={<Eye className="size-3.5" />}
                                     onClick={(event) => {
                                         event.stopPropagation();
