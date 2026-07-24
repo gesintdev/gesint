@@ -40,8 +40,8 @@ class AppUserService extends BaseService<AppUser, AppUserCreateDto, AppUserCreat
         return enrichAppUser(user);
     }
 
-    resetPassword(id: string): Promise<AppUser> {
-        return apiFetch<AppUser>(`${this.basePath}/${id}/reset-password`, {method: "POST"});
+    resetAccess(id: string): Promise<AppUser> {
+        return apiFetch<AppUser>(`${this.basePath}/${id}/reset-access`, {method: "POST"});
     }
 }
 

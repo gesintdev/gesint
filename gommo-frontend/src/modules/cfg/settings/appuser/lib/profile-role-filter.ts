@@ -1,7 +1,6 @@
 import {
     getPermissionNavSections,
     resolvePermissionModule,
-    systemEnumFromScope,
     type SystemScope,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import type { Profile } from "@/modules/cfg/settings/profile/dto/profile.dto";
@@ -42,7 +41,7 @@ export function permissionModulesMatchingMenuQuery(system: SystemScope, query: s
     const normalized = query.trim().toLowerCase();
     if (!normalized) return new Set();
     const modules = new Set<string>();
-    const sections = getPermissionNavSections(systemEnumFromScope(system));
+    const sections = getPermissionNavSections(system);
     for (const section of sections) {
         if (section.label.toLowerCase().includes(normalized)) {
             collectLeafModules(section.routes, modules);

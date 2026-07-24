@@ -3,12 +3,16 @@
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 
+import { accountSettingsRoute } from "@/modules/cfg/account/config/account.routes";
 import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { showLoggingOutOverlay } from "@/shared/lib/logging-out-overlay";
 import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
+import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
 
 function UserIdentity({ name, email, compact = false }: { name: string; email?: string | null; compact?: boolean }) {
     return (
@@ -23,9 +27,11 @@ function UserIdentity({ name, email, compact = false }: { name: string; email?: 
 
 export function HeaderUserMenu() {
     const { data: session } = useSession();
+    const router = useRouter();
+    const openModuleTab = useWorkspaceStore((s) => s.openModuleTab);
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
-    const name = session?.user?.name ?? "Usuário";
+    const name = session?.user?.name?.trim() || session?.user?.username || "Usuário";
     const email = session?.user?.email;
     const photoObjectId = session?.user?.photoObjectId;
 
@@ -46,6 +52,20 @@ export function HeaderUserMenu() {
             document.removeEventListener("keydown", onKeyDown);
         };
     }, [open]);
+
+    const openAccountSettings = () => {
+        setOpen(false);
+        const href = accountSettingsRoute.href ?? "/account";
+        openModuleTab({
+            routeId: accountSettingsRoute.id,
+            href,
+            routeLabel: accountSettingsRoute.label,
+            shortLabel: defaultShortLabel(accountSettingsRoute.label),
+            entityKey: "list",
+            icon: accountSettingsRoute.icon,
+        });
+        router.replace(href);
+    };
 
     return (
         <div ref={rootRef} className="relative ms-0.5 sm:ms-1">
@@ -85,7 +105,12 @@ export function HeaderUserMenu() {
                             <UserIdentity name={name} email={email} />
                         </div>
                         <div className="my-1 h-px bg-base-content/8" />
-                        <button type="button" role="menuitem" className="nav-item gap-2.5 !px-3 text-left text-[13px]">
+                        <button
+                            type="button"
+                            role="menuitem"
+                            className="nav-item gap-2.5 !px-3 text-left text-[13px]"
+                            onClick={openAccountSettings}
+                        >
                             <Settings className="size-[15px] shrink-0 text-base-content/38" strokeWidth={2} />
                             Configurações
                         </button>

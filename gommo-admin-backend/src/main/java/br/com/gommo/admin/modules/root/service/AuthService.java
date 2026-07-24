@@ -20,7 +20,11 @@ import br.com.gommo.admin.core.security.JwtService;
 import br.com.gommo.admin.modules.adminuser.entity.AdminUser;
 import br.com.gommo.admin.modules.adminuser.repository.AdminUserRepository;
 import br.com.gommo.admin.modules.integration.repository.PublicPermissionRepository;
+import br.com.gommo.admin.modules.root.dto.ForgotPasswordRequestDto;
 import br.com.gommo.admin.modules.root.dto.LoginRequestDto;
+import br.com.gommo.admin.modules.root.dto.PasswordSetupRequestDto;
+import br.com.gommo.admin.modules.root.dto.PasswordSetupValidateRequestDto;
+import br.com.gommo.admin.modules.root.dto.PasswordSetupValidateResponseDto;
 import br.com.gommo.admin.modules.root.dto.RefreshTokenRequestDto;
 import br.com.gommo.admin.modules.root.dto.TokenResponseDto;
 import br.com.gommo.admin.modules.root.entity.AdminRefreshToken;
@@ -28,6 +32,7 @@ import br.com.gommo.admin.modules.root.entity.AdminRefreshTokenBlacklist;
 import br.com.gommo.admin.modules.root.exception.AuthException;
 import br.com.gommo.admin.modules.root.repository.AdminRefreshTokenBlacklistRepository;
 import br.com.gommo.admin.modules.root.repository.AdminRefreshTokenRepository;
+import br.com.gommo.admin.modules.root.security.AccessTokenSupport;
 
 @Service
 public class AuthService implements IAuthService {
@@ -67,7 +72,9 @@ public class AuthService implements IAuthService {
                 .findActiveByUsername(request.getUsername(), StatusEnum.DELETED)
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+        if (user.getPasswordHash() == null
+                || user.getPasswordHash().isBlank()
+                || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new BadCredentialsException("Invalid credentials");
         }
 
@@ -124,6 +131,65 @@ public class AuthService implements IAuthService {
                 .build());
 
         return buildTokenResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PasswordSetupValidateResponseDto validatePasswordSetupToken(PasswordSetupValidateRequestDto request) {
+        String token = request.getToken() != null ? request.getToken().trim() : "";
+        if (token.isBlank()) {
+            return PasswordSetupValidateResponseDto.builder().valid(false).firstAccessCompleted(false).build();
+        }
+        return adminUserRepository
+                .findActiveByAccessTokenHash(AccessTokenSupport.hashToken(token), StatusEnum.DELETED)
+                .map(user -> PasswordSetupValidateResponseDto.builder()
+                        .valid(true)
+                        .firstAccessCompleted(user.isFirstAccessCompleted())
+                        .build())
+                .orElseGet(() ->
+                        PasswordSetupValidateResponseDto.builder().valid(false).firstAccessCompleted(false).build());
+    }
+
+    @Override
+    @Transactional
+    public void setupPassword(PasswordSetupRequestDto request) {
+        String token = request.getToken() != null ? request.getToken().trim() : "";
+        String password = request.getPassword();
+        String confirmation = request.getPasswordConfirmation();
+        if (token.isBlank()) {
+            throw AuthException.invalidAccessToken();
+        }
+        if (password == null || password.length() < 8) {
+            throw AuthException.passwordTooShort();
+        }
+        if (!password.equals(confirmation)) {
+            throw AuthException.passwordMismatch();
+        }
+
+        AdminUser user = adminUserRepository
+                .findActiveByAccessTokenHash(AccessTokenSupport.hashToken(token), StatusEnum.DELETED)
+                .orElseThrow(AuthException::invalidAccessToken);
+
+        user.setPasswordHash(passwordEncoder.encode(password));
+        user.setAccessTokenHash(null);
+        user.setFirstAccessCompleted(true);
+        adminUserRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequestDto request) {
+        String email = request.getEmail() != null ? request.getEmail().trim() : "";
+        if (email.isBlank()) {
+            return;
+        }
+        adminUserRepository.findActiveByEmail(email, StatusEnum.DELETED).ifPresent(user -> {
+            String plainToken = AccessTokenSupport.generatePlainToken();
+            user.setPasswordHash(null);
+            user.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
+            adminUserRepository.save(user);
+            // TODO: enviar e-mail com o token/link de redefinição quando o disparo estiver disponível.
+        });
     }
 
     private boolean isWithinReplayGrace(AdminRefreshTokenBlacklist blacklisted, OffsetDateTime now) {

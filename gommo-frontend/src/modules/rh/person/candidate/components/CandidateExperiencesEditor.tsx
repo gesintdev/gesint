@@ -5,7 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import type { CandidateExperience } from "@/modules/rh/person/candidate/dto/candidate.dto";
 import { emptyExperience } from "@/modules/rh/person/candidate/lib/candidate.mapper";
 import { Button } from "@/shared/components/ui/Button";
-import { InputDate, InputString } from "@/shared/components/ui/input/index";
+import { InputCheckbox, InputDate, InputString } from "@/shared/components/ui/input/index";
 
 type CandidateExperiencesEditorProps = {
     experiences: CandidateExperience[];
@@ -65,20 +65,19 @@ export function CandidateExperiencesEditor({ experiences, onChange }: CandidateE
                         disabled={Boolean(row.currentJob)}
                         wrapperClassName="sm:col-span-3"
                     />
-                    <label className="flex items-center gap-2 pt-6 text-sm text-base-content/75 sm:col-span-4">
-                        <input
-                            type="checkbox"
-                            className="checkbox checkbox-sm checkbox-primary"
-                            checked={Boolean(row.currentJob)}
-                            onChange={(event) =>
-                                updateRow(index, {
-                                    currentJob: event.target.checked,
-                                    endDate: event.target.checked ? "" : row.endDate,
-                                })
-                            }
-                        />
-                        Emprego atual
-                    </label>
+                    <InputCheckbox
+                        size="sm"
+                        checked={Boolean(row.currentJob)}
+                        onCheckedChange={(next) =>
+                            updateRow(index, {
+                                currentJob: next,
+                                endDate: next ? "" : row.endDate,
+                            })
+                        }
+                        label="Emprego atual"
+                        className="pt-6 text-base-content/75 sm:col-span-4"
+                        labelClassName="text-sm text-base-content/75"
+                    />
                     <div className="flex items-end justify-end sm:col-span-2">
                         <Button
                             type="button"

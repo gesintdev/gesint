@@ -6,13 +6,12 @@ import {useMemo, useState} from "react";
 import {ProfileRolePicker} from "@/modules/cfg/settings/appuser/components/ProfileRolePicker";
 import {
     ASSIGNABLE_SYSTEM_SCOPES,
-    systemEnumFromScope,
+    systemScopeInfos,
     systemScopeLabel,
     systemScopeShortLabel,
     type SystemScope,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import type {Profile} from "@/modules/cfg/settings/profile/dto/profile.dto";
-import {SystemEnumHelper} from "@/modules/root/enum/SystemEnum";
 
 type AppUserProfileAssignmentPanelProps = {
     profilesBySystem: Partial<Record<SystemScope, Profile[]>>;
@@ -50,7 +49,7 @@ export function AppUserProfileAssignmentPanel({
                 </div>
                 <ul className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-3 pb-3">
                     {ASSIGNABLE_SYSTEM_SCOPES.map((scope) => {
-                        const infos = SystemEnumHelper.getById(systemEnumFromScope(scope));
+                        const infos = systemScopeInfos(scope);
                         const Icon = infos.icon;
                         const active = scope === selectedSystem;
                         const selectedCount = selectedCountBySystem[scope] ?? 0;

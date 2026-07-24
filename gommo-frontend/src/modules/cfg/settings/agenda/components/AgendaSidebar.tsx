@@ -12,6 +12,7 @@ import {
     visibleWeekHighlightDays,
     weekdayShortLabels,
 } from "@/modules/cfg/settings/agenda/lib/agenda-calendar.util";
+import {InputCheckbox} from "@/shared/components/ui/input";
 
 type AgendaSidebarProps = {
     visibleMonth: Date;
@@ -108,10 +109,14 @@ export function AgendaSidebar({
                 </button>
                 <div>
                     <p className="px-1 text-xs font-semibold text-base-content/55">Meus calendários</p>
-                    <label className="mt-2 flex cursor-default items-center gap-2 rounded-lg px-1 py-1.5 text-sm">
-                        <input type="checkbox" className="checkbox checkbox-primary checkbox-xs" checked readOnly />
-                        Calendário
-                    </label>
+                    <InputCheckbox
+                        checked
+                        readOnly
+                        size="xs"
+                        label="Calendário"
+                        className="mt-2 rounded-lg px-1 py-1.5"
+                        labelClassName="text-sm"
+                    />
                 </div>
             </div>
             <button type="button" className="mt-auto px-1 text-left text-xs text-primary" disabled>

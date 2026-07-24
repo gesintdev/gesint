@@ -32,9 +32,9 @@ public class AppUserResponseDto {
     private String email;
     private Map<SystemScopeEnum, List<ProfileResponseDto>> rolesBySystem;
     private OffsetDateTime lastLogin;
-    private boolean mustChangePwd;
-    /** Presente apenas em create/reset-password — senha em texto claro para exibir uma vez. */
-    private String temporaryPassword;
+    private boolean firstAccessCompleted;
+    /** Presente apenas em create/reset-access — token em texto claro para exibir uma vez. */
+    private String accessToken;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

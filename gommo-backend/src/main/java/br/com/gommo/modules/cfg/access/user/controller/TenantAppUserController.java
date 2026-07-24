@@ -51,6 +51,12 @@ public class TenantAppUserController {
         return ResponseEntity.ok(tenantAppUserService.update(id, request));
     }
 
+    @PostMapping("/{id}/reset-access")
+    public ResponseEntity<AppUserResponseDto> resetAccess(@PathVariable UUID id) {
+        return ResponseEntity.ok(tenantAppUserService.resetPassword(id));
+    }
+
+    /** @deprecated Prefer {@code /reset-access}. Mantido por compatibilidade. */
     @PostMapping("/{id}/reset-password")
     public ResponseEntity<AppUserResponseDto> resetPassword(@PathVariable UUID id) {
         return ResponseEntity.ok(tenantAppUserService.resetPassword(id));

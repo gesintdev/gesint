@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import { type ReactNode, useState } from "react";
 import { Toaster } from "sonner";
 
+import { AccessTokenRevealHost } from "@/shared/access-token-reveal";
 import { SessionExpiryGuards } from "@/shared/components/providers/SessionExpiryGuards";
 import { SessionRefresh } from "@/shared/components/providers/SessionRefresh";
 import { ThemeProvider } from "@/shared/components/providers/ThemeProvider";
@@ -26,6 +27,7 @@ export function AppProviders({ children, session }: { children: ReactNode; sessi
                     {children}
                     <Toaster richColors position="top-center" closeButton />
                     <SystemAlertHost />
+                    <AccessTokenRevealHost />
                 </ThemeProvider>
             </QueryClientProvider>
         </SessionProvider>

@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -23,6 +22,7 @@ import br.com.gommo.admin.modules.clientuser.dto.ClientUserResponseDto;
 import br.com.gommo.admin.modules.clientuser.entity.ClientUser;
 import br.com.gommo.admin.modules.clientuser.exception.ClientUserException;
 import br.com.gommo.admin.modules.clientuser.repository.ClientUserRepository;
+import br.com.gommo.admin.modules.root.security.AccessTokenSupport;
 
 @Service
 public class ClientUserService implements IClientUserService {
@@ -31,19 +31,16 @@ public class ClientUserService implements IClientUserService {
     private final ClientRepository clientRepository;
     private final ClientEnvironmentConfigRepository environmentConfigRepository;
     private final TenantUserProvisioner tenantUserProvisioner;
-    private final PasswordEncoder passwordEncoder;
 
     public ClientUserService(
             ClientUserRepository clientUserRepository,
             ClientRepository clientRepository,
             ClientEnvironmentConfigRepository environmentConfigRepository,
-            TenantUserProvisioner tenantUserProvisioner,
-            PasswordEncoder passwordEncoder) {
+            TenantUserProvisioner tenantUserProvisioner) {
         this.clientUserRepository = clientUserRepository;
         this.clientRepository = clientRepository;
         this.environmentConfigRepository = environmentConfigRepository;
         this.tenantUserProvisioner = tenantUserProvisioner;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -98,13 +95,15 @@ public class ClientUserService implements IClientUserService {
                 .orElseThrow(ClientUserException::clientNotFound);
 
         validateUniqueCredentials(request.getClientId(), null, request.getUsername(), request.getEmail());
-        validatePassword(request.getPassword(), true);
 
+        String plainToken = AccessTokenSupport.generatePlainToken();
         ClientUser link = ClientUser.builder()
                 .clientId(client.getId())
                 .username(request.getUsername().trim())
                 .email(request.getEmail().trim())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .passwordHash(null)
+                .accessTokenHash(AccessTokenSupport.hashToken(plainToken))
+                .firstAccessCompleted(false)
                 .displayName(
                         StringUtils.hasText(request.getDisplayName())
                                 ? request.getDisplayName()
@@ -118,7 +117,9 @@ public class ClientUserService implements IClientUserService {
             tenantUserProvisioner.provisionUser(config, link);
         }
 
-        return toResponse(link, client);
+        ClientUserResponseDto response = toResponse(link, client);
+        response.setAccessToken(plainToken);
+        return response;
     }
 
     @Override
@@ -131,14 +132,10 @@ public class ClientUserService implements IClientUserService {
                 .orElseThrow(ClientUserException::clientNotFound);
 
         validateUniqueCredentials(request.getClientId(), id, request.getUsername(), request.getEmail());
-        validatePassword(request.getPassword(), false);
 
         link.setClientId(client.getId());
         link.setUsername(request.getUsername().trim());
         link.setEmail(request.getEmail().trim());
-        if (StringUtils.hasText(request.getPassword())) {
-            link.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        }
         link.setDisplayName(
                 StringUtils.hasText(request.getDisplayName()) ? request.getDisplayName() : request.getUsername());
         clientUserRepository.save(link);
@@ -147,10 +144,33 @@ public class ClientUserService implements IClientUserService {
         if (link.getTenantAppUserId() != null
                 && config != null
                 && config.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
-            tenantUserProvisioner.syncTenantUserCredentials(config, link);
+            tenantUserProvisioner.syncTenantUserProfile(config, link);
         }
 
         return toResponse(link, client);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('platform:admin')")
+    public ClientUserResponseDto resetAccess(UUID id) {
+        ClientUser link = findEntity(id);
+        String plainToken = AccessTokenSupport.generatePlainToken();
+        link.setPasswordHash(null);
+        link.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
+        clientUserRepository.save(link);
+
+        ClientEnvironmentConfig config = findEnvironmentConfig(link.getClientId());
+        if (link.getTenantAppUserId() != null
+                && config != null
+                && config.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
+            tenantUserProvisioner.syncTenantUserCredentials(config, link);
+        }
+
+        Client client = clientRepository.findById(link.getClientId()).orElse(null);
+        ClientUserResponseDto response = toResponse(link, client);
+        response.setAccessToken(plainToken);
+        return response;
     }
 
     @Override
@@ -188,18 +208,6 @@ public class ClientUserService implements IClientUserService {
         }
     }
 
-    private void validatePassword(String password, boolean required) {
-        if (!StringUtils.hasText(password)) {
-            if (required) {
-                throw ClientUserException.passwordRequired();
-            }
-            return;
-        }
-        if (password.length() < 8) {
-            throw ClientUserException.passwordTooShort();
-        }
-    }
-
     private ClientUser findEntity(UUID id) {
         return clientUserRepository
                 .findByIdAndStatusNot(id, StatusEnum.DELETED)
@@ -222,6 +230,7 @@ public class ClientUserService implements IClientUserService {
                 .username(link.getUsername())
                 .email(link.getEmail())
                 .displayName(link.getDisplayName())
+                .firstAccessCompleted(link.isFirstAccessCompleted())
                 .provisionedAt(link.getProvisionedAt())
                 .createdAt(link.getCreatedAt())
                 .updatedAt(link.getUpdatedAt())

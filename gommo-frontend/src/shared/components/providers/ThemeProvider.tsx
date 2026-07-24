@@ -7,8 +7,9 @@ const GOMMO_THEME_PROPS = {
     attribute: "data-theme" as const,
     defaultTheme: "gommo",
     themes: ["gommo", "dark"],
-    enableSystem: false,
+    enableSystem: true,
     disableTransitionOnChange: true,
+    storageKey: "theme",
 };
 
 /**

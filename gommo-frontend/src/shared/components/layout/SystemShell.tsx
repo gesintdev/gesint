@@ -10,7 +10,6 @@ import type {SystemEnum} from "@/modules/root/enum/SystemEnum";
 import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
-import {ThemeToggle} from "@/shared/components/layout/ThemeToggle";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
 import {ActiveSystemProvider} from "@/shared/context/ActiveSystemContext";
 import {setAuthToken} from "@/shared/lib/api.client";
@@ -116,7 +115,6 @@ export function SystemShell({
                         </div>
                         <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block" />
                         <div className="flex items-center gap-1 sm:gap-1.5">
-                            <ThemeToggle />
                             <HeaderNotifications />
                             <HeaderUserMenu />
                         </div>

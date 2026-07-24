@@ -19,5 +19,7 @@ public interface IAdminUserService {
 
     AdminUserResponseDto update(UUID id, AdminUserRequestDto request);
 
+    AdminUserResponseDto resetAccess(UUID id);
+
     void delete(UUID id);
 }

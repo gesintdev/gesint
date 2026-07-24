@@ -41,14 +41,18 @@ public class AppUser extends AuditEntity {
     @Column(nullable = false, unique = true, length = 200)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
+
+    @Column(name = "access_token_hash", length = 64)
+    private String accessTokenHash;
+
+    @Column(name = "first_access_completed", nullable = false)
+    @Builder.Default
+    private boolean firstAccessCompleted = false;
 
     @Column(name = "last_login")
     private OffsetDateTime lastLogin;
-
-    @Column(name = "must_change_pwd")
-    private boolean mustChangePwd;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

@@ -34,4 +34,25 @@ public final class AuthException {
         return new BusinessException(
                 AuthExceptions.USER_NOT_FOUND_CODE, AuthExceptions.USER_NOT_FOUND_MSG, HttpStatus.NOT_FOUND);
     }
+
+    public static BusinessException invalidAccessToken() {
+        return new BusinessException(
+                AuthExceptions.INVALID_ACCESS_TOKEN_CODE,
+                AuthExceptions.INVALID_ACCESS_TOKEN_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException passwordMismatch() {
+        return new BusinessException(
+                AuthExceptions.PASSWORD_MISMATCH_CODE,
+                AuthExceptions.PASSWORD_MISMATCH_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException passwordTooShort() {
+        return new BusinessException(
+                AuthExceptions.PASSWORD_TOO_SHORT_CODE,
+                AuthExceptions.PASSWORD_TOO_SHORT_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

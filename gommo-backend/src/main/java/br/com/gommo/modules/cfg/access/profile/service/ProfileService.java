@@ -155,7 +155,8 @@ public class ProfileService implements IProfileService {
             return new HashSet<>();
         }
         Set<UUID> requestedIds = new HashSet<>(request.getPermissionIds());
-        Set<String> allowedModules = PermissionModuleCatalog.modulesFor(request.getSystem());
+        // Perfil pode agregar permissões de vários sistemas (checkbox por escopo no cadastro).
+        Set<String> allowedModules = PermissionModuleCatalog.allModules();
         List<Permission> permissions = permissionRepository.findAllById(requestedIds);
         if (permissions.size() != requestedIds.size()) {
             throw ProfileException.invalidPermissions();

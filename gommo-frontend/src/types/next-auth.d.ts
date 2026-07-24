@@ -9,6 +9,7 @@ declare module "next-auth" {
         refreshToken?: string;
         refreshTokenIssuedAt?: number;
         accessTokenExpires?: number;
+        username?: string;
         collaboratorId?: string;
         photoObjectId?: string;
         jobPositionId?: string;
@@ -31,6 +32,7 @@ declare module "next-auth" {
         platformAdmin?: boolean;
         error?: AuthTokenError;
         user: DefaultSession["user"] & {
+            username?: string;
             collaboratorId?: string;
             photoObjectId?: string;
             jobPositionId?: string;
@@ -51,6 +53,7 @@ declare module "next-auth/jwt" {
         refreshRetryAfter?: number;
         error?: AuthTokenError;
         email?: string | null;
+        username?: string;
         collaboratorId?: string;
         photoObjectId?: string;
         jobPositionId?: string;

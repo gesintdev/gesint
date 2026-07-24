@@ -3146,20 +3146,32 @@ html:has(.login-page) body {
     color: color-mix(in srgb, white 38%, transparent);
 }
 
-.login-password-toggle {
+.login-password-toggle,
+.gommo-password-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
     border: 0;
     background: transparent;
-    color: color-mix(in srgb, white 55%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
     transition: color 0.15s ease;
 }
 
-.login-password-toggle:hover {
+.login-password-toggle:hover,
+.gommo-password-toggle:hover {
+    color: var(--color-base-content);
+}
+
+.gommo-field--login .gommo-password-toggle {
+    color: color-mix(in srgb, white 55%, transparent);
+}
+
+.gommo-field--login .gommo-password-toggle:hover {
     color: #fff;
 }
+
+/* (InputCheckbox usa checkbox DaisyUI nativo — sem skin custom) */
 
 .login-form__meta {
     display: flex;
@@ -3180,11 +3192,13 @@ html:has(.login-page) body {
     cursor: pointer;
 }
 
-.login-remember__input {
-    width: 1rem;
-    height: 1rem;
-    accent-color: var(--gommo-primary-light);
-    border-radius: var(--gommo-radius-xs);
+.login-remember .checkbox {
+    border-color: color-mix(in srgb, white 40%, transparent);
+}
+
+.login-remember .text-base-content {
+    color: inherit;
+    font-size: inherit;
 }
 
 .login-forgot {
@@ -3321,20 +3335,18 @@ html:has(.login-page) body {
     box-shadow: 0 0 0 1000px var(--gommo-surface) inset !important;
 }
 
-[data-theme="gommo"] .login-password-toggle {
+[data-theme="gommo"] .login-password-toggle,
+[data-theme="gommo"] .gommo-field--login .gommo-password-toggle {
     color: color-mix(in srgb, var(--gommo-content) 48%, transparent);
 }
 
-[data-theme="gommo"] .login-password-toggle:hover {
+[data-theme="gommo"] .login-password-toggle:hover,
+[data-theme="gommo"] .gommo-field--login .gommo-password-toggle:hover {
     color: var(--gommo-content);
 }
 
 [data-theme="gommo"] .login-remember {
     color: color-mix(in srgb, var(--gommo-content) 70%, transparent);
-}
-
-[data-theme="gommo"] .login-remember__input {
-    accent-color: var(--gommo-primary);
 }
 
 [data-theme="gommo"] .login-forgot {

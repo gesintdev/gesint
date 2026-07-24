@@ -48,7 +48,7 @@ const dpRoutes: AppRoute[] = [
         href: "/settings/preferences",
         label: "Preferências",
         icon: Settings2,
-        permissionsAny: ["attendance:read", "notification:read"],
+        permissionsAny: ["attendance:read", "notification:write"],
         load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
     }),
     tabbedCrudRoute({
@@ -247,7 +247,7 @@ export const settingsAttendanceLegacyRoute = customWorkspaceRoute({
     href: "/settings/attendance",
     label: "Preferências",
     icon: Settings2,
-    permissionsAny: ["attendance:read", "notification:read"],
+    permissionsAny: ["attendance:read", "notification:write"],
     load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
 });
 
@@ -257,6 +257,6 @@ export const settingsNotificationsLegacyRoute = customWorkspaceRoute({
     href: "/settings/notifications",
     label: "Preferências",
     icon: Settings2,
-    permissionsAny: ["attendance:read", "notification:read"],
+    permissionsAny: ["attendance:read", "notification:write"],
     load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
 });

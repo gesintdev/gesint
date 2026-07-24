@@ -69,4 +69,9 @@ public class ClientUserController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/reset-access")
+    public ResponseEntity<ClientUserResponseDto> resetAccess(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.resetAccess(id));
+    }
 }

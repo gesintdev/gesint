@@ -4,10 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import br.com.gommo.admin.core.base.dto.PageableResponseDto;
 import br.com.gommo.admin.core.entity.StatusEnum;
@@ -17,18 +15,17 @@ import br.com.gommo.admin.modules.adminuser.entity.AdminUser;
 import br.com.gommo.admin.modules.adminuser.exception.AdminUserException;
 import br.com.gommo.admin.modules.adminuser.mapper.AdminUserMapper;
 import br.com.gommo.admin.modules.adminuser.repository.AdminUserRepository;
+import br.com.gommo.admin.modules.root.security.AccessTokenSupport;
 
 @Service
 public class AdminUserService implements IAdminUserService {
 
     private final AdminUserRepository repository;
     private final AdminUserMapper mapper;
-    private final PasswordEncoder passwordEncoder;
 
-    public AdminUserService(AdminUserRepository repository, AdminUserMapper mapper, PasswordEncoder passwordEncoder) {
+    public AdminUserService(AdminUserRepository repository, AdminUserMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -70,26 +67,25 @@ public class AdminUserService implements IAdminUserService {
     @Transactional
     @PreAuthorize("hasAuthority('platform:admin')")
     public AdminUserResponseDto create(AdminUserRequestDto request) {
-        if (!StringUtils.hasText(request.getPassword())) {
-            throw AdminUserException.passwordRequired();
-        }
-        if (request.getPassword().length() < 8) {
-            throw AdminUserException.passwordTooShort();
-        }
         if (repository.existsActiveByUsername(request.getUsername(), StatusEnum.DELETED)) {
             throw AdminUserException.usernameExists();
         }
         if (repository.existsActiveByEmail(request.getEmail(), StatusEnum.DELETED)) {
             throw AdminUserException.emailExists();
         }
+        String plainToken = AccessTokenSupport.generatePlainToken();
         AdminUser entity = AdminUser.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .fullName(request.getFullName())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .passwordHash(null)
+                .accessTokenHash(AccessTokenSupport.hashToken(plainToken))
+                .firstAccessCompleted(false)
                 .status(StatusEnum.ACTIVE)
                 .build();
-        return mapper.toResponse(repository.save(entity));
+        AdminUserResponseDto response = mapper.toResponse(repository.save(entity));
+        response.setAccessToken(plainToken);
+        return response;
     }
 
     @Override
@@ -106,13 +102,20 @@ public class AdminUserService implements IAdminUserService {
             throw AdminUserException.emailExists();
         }
         mapper.updateEntity(entity, request);
-        if (StringUtils.hasText(request.getPassword())) {
-            if (request.getPassword().length() < 8) {
-                throw AdminUserException.passwordTooShort();
-            }
-            entity.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        }
         return mapper.toResponse(repository.save(entity));
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('platform:admin')")
+    public AdminUserResponseDto resetAccess(UUID id) {
+        AdminUser entity = findEntity(id);
+        String plainToken = AccessTokenSupport.generatePlainToken();
+        entity.setPasswordHash(null);
+        entity.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
+        AdminUserResponseDto response = mapper.toResponse(repository.save(entity));
+        response.setAccessToken(plainToken);
+        return response;
     }
 
     @Override

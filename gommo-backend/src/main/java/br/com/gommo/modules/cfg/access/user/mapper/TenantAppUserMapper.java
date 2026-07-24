@@ -53,7 +53,7 @@ public class TenantAppUserMapper {
                 .email(user.getEmail())
                 .rolesBySystem(rolesBySystem)
                 .lastLogin(user.getLastLogin())
-                .mustChangePwd(user.isMustChangePwd())
+                .firstAccessCompleted(user.isFirstAccessCompleted())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

@@ -34,7 +34,7 @@ public class PublicAppUser extends AuditEntity {
     @Column(nullable = false, unique = true, length = 200)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
 
     @ManyToMany(fetch = FetchType.EAGER)

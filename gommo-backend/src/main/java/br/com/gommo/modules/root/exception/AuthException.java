@@ -41,4 +41,32 @@ public final class AuthException {
                 AuthExceptions.NO_ACTIVE_SYSTEM_MSG,
                 HttpStatus.FORBIDDEN);
     }
+
+    public static BusinessException invalidAccessToken() {
+        return new BusinessException(
+                AuthExceptions.INVALID_ACCESS_TOKEN_CODE,
+                AuthExceptions.INVALID_ACCESS_TOKEN_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException passwordMismatch() {
+        return new BusinessException(
+                AuthExceptions.PASSWORD_MISMATCH_CODE,
+                AuthExceptions.PASSWORD_MISMATCH_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException passwordTooShort() {
+        return new BusinessException(
+                AuthExceptions.PASSWORD_TOO_SHORT_CODE,
+                AuthExceptions.PASSWORD_TOO_SHORT_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException invalidCurrentPassword() {
+        return new BusinessException(
+                AuthExceptions.INVALID_CURRENT_PASSWORD_CODE,
+                AuthExceptions.INVALID_CURRENT_PASSWORD_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

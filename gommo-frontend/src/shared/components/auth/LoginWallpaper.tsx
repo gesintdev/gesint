@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 const THEME_TRANSITION_RESUME_MS = 40;
 
 export function LoginWallpaper() {
-    const { theme } = useTheme();
+    const { theme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [isDark, setIsDark] = useState(false);
 
@@ -18,10 +18,11 @@ export function LoginWallpaper() {
 
     useEffect(() => {
         if (!mounted) return;
-        const nextDark = theme === "dark";
+        const active = theme === "system" ? resolvedTheme : theme;
+        const nextDark = active === "dark";
         const handle = window.setTimeout(() => setIsDark(nextDark), THEME_TRANSITION_RESUME_MS);
         return () => window.clearTimeout(handle);
-    }, [mounted, theme]);
+    }, [mounted, resolvedTheme, theme]);
 
     return (
         <>

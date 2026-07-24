@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 
 import { LoginWallpaper } from "@/shared/components/auth/LoginWallpaper";
-import { GommoLogo } from "@/shared/components/layout/GommoLogo";
-import { ThemeToggle } from "@/shared/components/layout/ThemeToggle";
 
 type LoginShellProps = {
     children: ReactNode;
@@ -13,9 +11,6 @@ type LoginShellProps = {
 
 export function LoginShell({
     children,
-    tagline = "Gestão de DP e RH",
-    welcomeTitle = "Bem-vindo de volta!",
-    welcomeSubtitle = "Faça login para acessar sua conta",
 }: LoginShellProps) {
     const year = new Date().getFullYear();
 
@@ -41,9 +36,6 @@ export function LoginShell({
                     </div>
                 </div>
             </section>
-            <div className="login-page__theme">
-                <ThemeToggle />
-            </div>
         </div>
     );
 }

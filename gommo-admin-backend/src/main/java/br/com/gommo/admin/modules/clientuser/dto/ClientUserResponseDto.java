@@ -27,6 +27,9 @@ public class ClientUserResponseDto {
     private String username;
     private String email;
     private String displayName;
+    private boolean firstAccessCompleted;
+    /** Presente apenas em create/reset-access — token em texto claro para exibir uma vez. */
+    private String accessToken;
     private OffsetDateTime provisionedAt;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;

@@ -1,6 +1,7 @@
 import clsx from "clsx";
 
 import type {PermissionSummary} from "@/modules/cfg/settings/profile/dto/profile.dto";
+import {InputCheckbox} from "@/shared/components/ui/input";
 
 const ACTION_LABELS: Record<string, string> = {
     read: "Consultar",
@@ -59,22 +60,19 @@ export function ProfilePermissionPanel({
                     const checked = selectedIds.has(permission.id);
                     return (
                         <li key={permission.id}>
-                            <label
+                            <InputCheckbox
+                                size="xs"
+                                checked={checked}
+                                onCheckedChange={(next) => onToggle(permission.id, next)}
+                                label={actionLabel(permission.authority)}
                                 className={clsx(
-                                    "flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs transition-colors",
+                                    "min-h-7 w-full rounded px-2 py-1.5 font-normal transition-colors",
                                     checked
-                                        ? "bg-primary/10 font-medium text-primary"
+                                        ? "bg-primary/10 text-primary"
                                         : "text-base-content/85 hover:bg-base-content/5",
                                 )}
-                            >
-                                <input
-                                    type="checkbox"
-                                    className="checkbox checkbox-xs checkbox-primary shrink-0"
-                                    checked={checked}
-                                    onChange={(e) => onToggle(permission.id, e.target.checked)}
-                                />
-                                <span className="truncate">{actionLabel(permission.authority)}</span>
-                            </label>
+                                labelClassName="truncate text-xs font-normal leading-none"
+                            />
                         </li>
                     );
                 })}

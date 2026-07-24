@@ -42,7 +42,10 @@ public class PermissionCatalogService implements IPermissionCatalogService {
             Map.entry("performance", "Desempenho"),
             Map.entry("storage", "Arquivos"),
             Map.entry("role", "Perfis de acesso"),
-            Map.entry("user", "Usuários"));
+            Map.entry("user", "Usuários"),
+            Map.entry("workschedule", "Escalas"),
+            Map.entry("developmentplanconfig", "Configurações de PDI"),
+            Map.entry("agenda", "Agenda"));
 
     private final PermissionRepository permissionRepository;
 

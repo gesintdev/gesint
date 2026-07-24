@@ -64,4 +64,9 @@ public class AdminUserController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/reset-access")
+    public ResponseEntity<AdminUserResponseDto> resetAccess(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.resetAccess(id));
+    }
 }

@@ -82,11 +82,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     pages: { signIn: "/login" },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
-            const isLogin = nextUrl.pathname.startsWith("/login");
-            const isDocs = nextUrl.pathname.startsWith("/docs");
+            const pathname = nextUrl.pathname;
+            const isLogin = pathname.startsWith("/login");
+            const isPublicAuth =
+                pathname.startsWith("/definir-senha") || pathname.startsWith("/esqueci-senha");
+            const isDocs = pathname.startsWith("/docs");
 
-            if (isLogin) {
-                return auth ? Response.redirect(new URL("/clients/list", nextUrl)) : true;
+            if (isLogin || isPublicAuth) {
+                return auth && isLogin ? Response.redirect(new URL("/clients/list", nextUrl)) : true;
             }
 
             // Docs: nao redireciona para login — o layout chama notFound() sem sessão.

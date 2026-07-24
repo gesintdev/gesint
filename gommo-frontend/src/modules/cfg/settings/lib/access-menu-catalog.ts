@@ -1,4 +1,7 @@
-import { getNavSectionsForSystem } from "@/config/routes";
+import { Settings } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+import { getNavSectionsForSystem, SETTINGS_NAV_SECTIONS } from "@/config/routes";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
@@ -30,10 +33,27 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
 };
 
 export function resolvePermissionModule(route: AppRoute): string | null {
+    const modules = resolvePermissionModules(route);
+    return modules[0] ?? null;
+}
+
+/** Módulos de permissão associados a uma rota (permission / permissionsAny / mapa legado). */
+export function resolvePermissionModules(route: AppRoute): string[] {
     if (route.permission) {
-        return route.permission.split(":")[0] ?? null;
+        const module = route.permission.split(":")[0];
+        return module ? [module] : [];
     }
-    return ROUTE_MODULE_MAP[route.id] ?? null;
+    if (route.permissionsAny?.length) {
+        return [
+            ...new Set(
+                route.permissionsAny
+                    .map((permission) => permission.split(":")[0])
+                    .filter((module): module is string => Boolean(module)),
+            ),
+        ];
+    }
+    const mapped = ROUTE_MODULE_MAP[route.id];
+    return mapped ? [mapped] : [];
 }
 
 function filterPermissionRoutes(routes: AppRoute[]): AppRoute[] {
@@ -47,15 +67,16 @@ function filterPermissionRoutes(routes: AppRoute[]): AppRoute[] {
             continue;
         }
 
-        if (resolvePermissionModule(route)) {
+        if (resolvePermissionModules(route).length > 0) {
             result.push(route);
         }
     }
     return result;
 }
 
-export function getPermissionNavSections(system: SystemEnum): NavSection[] {
-    return getNavSectionsForSystem(system)
+export function getPermissionNavSections(scope: SystemScope): NavSection[] {
+    const sections = scope === "CFG" ? SETTINGS_NAV_SECTIONS : getNavSectionsForSystem(systemEnumFromScope(scope));
+    return sections
         .map((section) => ({
             ...section,
             routes: filterPermissionRoutes(section.routes),
@@ -76,7 +97,7 @@ function findFirstInRoutes(routes: AppRoute[]): AppRoute | null {
         if (route.children?.length) {
             const nested = findFirstInRoutes(route.children);
             if (nested) return nested;
-        } else if (resolvePermissionModule(route)) {
+        } else if (resolvePermissionModules(route).length > 0) {
             return route;
         }
     }
@@ -105,15 +126,23 @@ function findParentIds(routes: AppRoute[], routeId: string, ancestors: string[])
     return null;
 }
 
-export type SystemScope = "DP" | "RH" | "CONTABILIDADE";
+export type SystemScope = "CFG" | "DP" | "RH" | "CONTABILIDADE";
+
+export type SystemScopeInfos = {
+    name: string;
+    acronym: string;
+    icon: LucideIcon;
+};
 
 const SYSTEM_SCOPE_LABELS: Record<SystemScope, string> = {
+    CFG: "Configurações (CFG)",
     DP: "Departamento Pessoal (DP)",
     RH: "Recursos Humanos (RH)",
     CONTABILIDADE: "Contabilidade (CTB)",
 };
 
 const SYSTEM_SCOPE_SHORT_LABELS: Record<SystemScope, string> = {
+    CFG: "CFG",
     DP: "DP",
     RH: "RH",
     CONTABILIDADE: "CTB",
@@ -131,8 +160,11 @@ export function systemEnumFromScope(scope: SystemScope): SystemEnum {
     return SystemEnum.RH;
 }
 
-/** Sistemas de domínio atribuíveis a perfis/usuários — derivado do rail (exclui CFG). */
-export const ASSIGNABLE_SYSTEM_SCOPES: SystemScope[] = SystemEnumHelper.getSortedSystems().map(systemScopeFromEnum);
+/** Escopos atribuíveis a perfis/usuários: CFG + sistemas de domínio do rail. */
+export const ASSIGNABLE_SYSTEM_SCOPES: SystemScope[] = [
+    "CFG",
+    ...SystemEnumHelper.getSortedSystems().map(systemScopeFromEnum),
+];
 
 export function systemScopeLabel(scope: SystemScope): string {
     return SYSTEM_SCOPE_LABELS[scope];
@@ -140,6 +172,22 @@ export function systemScopeLabel(scope: SystemScope): string {
 
 export function systemScopeShortLabel(scope: SystemScope): string {
     return SYSTEM_SCOPE_SHORT_LABELS[scope];
+}
+
+export function systemScopeInfos(scope: SystemScope): SystemScopeInfos {
+    if (scope === "CFG") {
+        return {
+            name: "Configurações",
+            acronym: "CFG",
+            icon: Settings,
+        };
+    }
+    const infos = SystemEnumHelper.getById(systemEnumFromScope(scope));
+    return {
+        name: infos.name,
+        acronym: infos.acronym,
+        icon: infos.icon,
+    };
 }
 
 export function assignableSystemSelectItems(): SelectItem[] {
@@ -163,8 +211,7 @@ export function routeHasMarkedPermissions(route: AppRoute, markedModules: Readon
     if (route.children?.length) {
         return route.children.some((child) => routeHasMarkedPermissions(child, markedModules));
     }
-    const permissionModule = resolvePermissionModule(route);
-    return permissionModule != null && markedModules.has(permissionModule);
+    return resolvePermissionModules(route).some((permissionModule) => markedModules.has(permissionModule));
 }
 
 export function collectMarkedRouteIds(sections: NavSection[], markedModules: ReadonlySet<string>): Set<string> {
@@ -178,8 +225,7 @@ export function collectMarkedRouteIds(sections: NavSection[], markedModules: Rea
                 }
                 continue;
             }
-            const permissionModule = resolvePermissionModule(route);
-            if (permissionModule && markedModules.has(permissionModule)) {
+            if (resolvePermissionModules(route).some((permissionModule) => markedModules.has(permissionModule))) {
                 ids.add(route.id);
             }
         }

@@ -13,6 +13,17 @@ public final class PermissionModuleCatalog {
 
     static {
         MODULES_BY_SYSTEM.put(
+                SystemScopeEnum.CFG,
+                Set.of(
+                        "role",
+                        "user",
+                        "workschedule",
+                        "admission",
+                        "exitinterview",
+                        "developmentplanconfig",
+                        "attendance",
+                        "notification"));
+        MODULES_BY_SYSTEM.put(
                 SystemScopeEnum.DP,
                 Set.of(
                         "company",
@@ -27,9 +38,7 @@ public final class PermissionModuleCatalog {
                         "agenda",
                         "attendance",
                         "leave",
-                        "storage",
-                        "role",
-                        "user"));
+                        "storage"));
         MODULES_BY_SYSTEM.put(
                 SystemScopeEnum.CONTABILIDADE,
                 Set.of(
@@ -41,9 +50,7 @@ public final class PermissionModuleCatalog {
                         "tax",
                         "notification",
                         "agenda",
-                        "storage",
-                        "role",
-                        "user"));
+                        "storage"));
         MODULES_BY_SYSTEM.put(
                 SystemScopeEnum.RH,
                 Set.of(
@@ -56,11 +63,10 @@ public final class PermissionModuleCatalog {
                         "jobvacancy",
                         "candidate",
                         "jobvacancyapplication",
+                        "developmentplan",
                         "notification",
                         "agenda",
-                        "storage",
-                        "role",
-                        "user"));
+                        "storage"));
     }
 
     private PermissionModuleCatalog() {}
@@ -76,22 +82,39 @@ public final class PermissionModuleCatalog {
     }
 
     public static SystemScopeEnum systemForModule(String module) {
-        if ("leave".equals(module) || "admission".equals(module) || "collaborator".equals(module)) {
+        if ("leave".equals(module)
+                || "admission".equals(module)
+                || "collaborator".equals(module)
+                || "notification".equals(module)
+                || "agenda".equals(module)
+                || "storage".equals(module)
+                || "workschedule".equals(module)
+                || "exitinterview".equals(module)
+                || "attendance".equals(module)) {
             return null;
+        }
+        if (MODULES_BY_SYSTEM.get(SystemScopeEnum.CFG).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.RH).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CONTABILIDADE).contains(module)) {
+            return SystemScopeEnum.CFG;
         }
         if (MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)
                 && !MODULES_BY_SYSTEM.get(SystemScopeEnum.RH).contains(module)
-                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CONTABILIDADE).contains(module)) {
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CONTABILIDADE).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CFG).contains(module)) {
             return SystemScopeEnum.DP;
         }
         if (MODULES_BY_SYSTEM.get(SystemScopeEnum.CONTABILIDADE).contains(module)
                 && !MODULES_BY_SYSTEM.get(SystemScopeEnum.RH).contains(module)
-                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)) {
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CFG).contains(module)) {
             return SystemScopeEnum.CONTABILIDADE;
         }
         if (MODULES_BY_SYSTEM.get(SystemScopeEnum.RH).contains(module)
                 && !MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)
-                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CONTABILIDADE).contains(module)) {
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CONTABILIDADE).contains(module)
+                && !MODULES_BY_SYSTEM.get(SystemScopeEnum.CFG).contains(module)) {
             return SystemScopeEnum.RH;
         }
         return null;

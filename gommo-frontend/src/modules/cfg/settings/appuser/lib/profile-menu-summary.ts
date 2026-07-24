@@ -1,7 +1,6 @@
 import {
     getPermissionNavSections,
     resolvePermissionModule,
-    systemEnumFromScope,
     type SystemScope,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import type { PermissionSummary } from "@/modules/cfg/settings/profile/dto/profile.dto";
@@ -40,7 +39,7 @@ function buildModuleToMenuLabels(system: SystemScope): Map<string, string[]> {
             if (permissionModule) add(permissionModule, route.label);
         }
     };
-    for (const section of getPermissionNavSections(systemEnumFromScope(system))) {
+    for (const section of getPermissionNavSections(system)) {
         walk(section.routes);
     }
     return new Map(Array.from(map.entries()).map(([module, labels]) => [module, Array.from(labels).sort()]));

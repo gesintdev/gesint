@@ -21,4 +21,18 @@ public interface AdminUserRepository extends IBaseRepository<AdminUser> {
 
     @Query("SELECT COUNT(u) > 0 FROM AdminUser u WHERE u.email = :email AND u.status <> :deleted")
     boolean existsActiveByEmail(String email, StatusEnum deleted);
+
+    @Query(
+            """
+            SELECT u FROM AdminUser u
+            WHERE u.accessTokenHash = :tokenHash AND u.status <> :deleted
+            """)
+    Optional<AdminUser> findActiveByAccessTokenHash(String tokenHash, StatusEnum deleted);
+
+    @Query(
+            """
+            SELECT u FROM AdminUser u
+            WHERE LOWER(u.email) = LOWER(:email) AND u.status <> :deleted
+            """)
+    Optional<AdminUser> findActiveByEmail(String email, StatusEnum deleted);
 }

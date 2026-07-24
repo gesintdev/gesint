@@ -56,6 +56,7 @@ public class DevAdminInitializer implements ApplicationRunner {
                 .email("admin@gommo.local")
                 .fullName("Administrador da Plataforma")
                 .passwordHash(passwordEncoder.encode(devAdminPassword))
+                .firstAccessCompleted(true)
                 .status(StatusEnum.ACTIVE)
                 .build();
         adminUserRepository.save(admin);

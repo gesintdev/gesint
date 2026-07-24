@@ -55,7 +55,7 @@ public class TenantUserProvisioner {
         }
         if (!StringUtils.hasText(link.getUsername())
                 || !StringUtils.hasText(link.getEmail())
-                || !StringUtils.hasText(link.getPasswordHash())) {
+                || (!StringUtils.hasText(link.getPasswordHash()) && !StringUtils.hasText(link.getAccessTokenHash()))) {
             throw new IllegalStateException("Usuario de cliente incompleto para provisionamento: " + link.getId());
         }
 
@@ -69,8 +69,9 @@ public class TenantUserProvisioner {
         jdbcTemplate.update(
                 """
                 INSERT INTO "%s".app_user (
-                    id, status, name, username, email, password_hash, must_change_pwd, code, created_at, updated_at
-                ) VALUES (?, 'ACTIVE', ?, ?, ?, ?, true, ?, now(), now())
+                    id, status, name, username, email, password_hash, access_token_hash,
+                    first_access_completed, code, created_at, updated_at
+                ) VALUES (?, 'ACTIVE', ?, ?, ?, ?, ?, ?, ?, now(), now())
                 """
                         .formatted(schema),
                 userId,
@@ -78,6 +79,8 @@ public class TenantUserProvisioner {
                 link.getUsername(),
                 link.getEmail(),
                 link.getPasswordHash(),
+                link.getAccessTokenHash(),
+                link.isFirstAccessCompleted(),
                 nextCode);
 
         jdbcTemplate.update(
@@ -127,7 +130,8 @@ public class TenantUserProvisioner {
         jdbcTemplate.update(
                 """
                 UPDATE "%s".app_user
-                SET name = ?, username = ?, email = ?, password_hash = ?, updated_at = now()
+                SET name = ?, username = ?, email = ?, password_hash = ?, access_token_hash = ?,
+                    first_access_completed = ?, updated_at = now()
                 WHERE id = ? AND status <> 'DELETED'
                 """
                         .formatted(schema),
@@ -135,6 +139,34 @@ public class TenantUserProvisioner {
                 link.getUsername(),
                 link.getEmail(),
                 link.getPasswordHash(),
+                link.getAccessTokenHash(),
+                link.isFirstAccessCompleted(),
+                link.getTenantAppUserId());
+    }
+
+    /** Atualiza apenas dados de perfil no tenant (nao sobrescreve senha/token). */
+    public void syncTenantUserProfile(ClientEnvironmentConfig config, ClientUser link) {
+        if (link.getTenantAppUserId() == null
+                || config == null
+                || config.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
+            return;
+        }
+        if (!StringUtils.hasText(config.getDatabaseSchema())) {
+            return;
+        }
+
+        String schema = TenantSchemaProvisioner.requireSafeSchema(config.getDatabaseSchema());
+        String displayName = StringUtils.hasText(link.getDisplayName()) ? link.getDisplayName().trim() : link.getUsername();
+        jdbcTemplate.update(
+                """
+                UPDATE "%s".app_user
+                SET name = ?, username = ?, email = ?, updated_at = now()
+                WHERE id = ? AND status <> 'DELETED'
+                """
+                        .formatted(schema),
+                displayName,
+                link.getUsername(),
+                link.getEmail(),
                 link.getTenantAppUserId());
     }
 }

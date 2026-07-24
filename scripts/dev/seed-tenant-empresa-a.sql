@@ -132,9 +132,10 @@ BEGIN
                 collaborator_id UUID,
                 username VARCHAR(100) NOT NULL,
                 email VARCHAR(200) NOT NULL,
-                password_hash VARCHAR(255) NOT NULL,
+                password_hash VARCHAR(255),
+                access_token_hash VARCHAR(64),
+                first_access_completed BOOLEAN NOT NULL DEFAULT false,
                 last_login TIMESTAMPTZ,
-                must_change_pwd BOOLEAN DEFAULT false,
                 created_by UUID,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
                 updated_by UUID,
@@ -255,7 +256,7 @@ BEGIN
 
     -- 5. Provisiona SOMENTE admin.client_user deste cliente (nunca public.app_user)
     INSERT INTO tenant_empresa_a.app_user (
-        id, status, username, email, password_hash, must_change_pwd, code, created_at, updated_at
+        id, status, username, email, password_hash, access_token_hash, first_access_completed, code, created_at, updated_at
     )
     SELECT
         gen_random_uuid(),
@@ -263,7 +264,8 @@ BEGIN
         cu.username,
         cu.email,
         cu.password_hash,
-        true,
+        cu.access_token_hash,
+        COALESCE(cu.first_access_completed, false),
         COALESCE((SELECT MAX(code) FROM tenant_empresa_a.app_user), 0)
             + ROW_NUMBER() OVER (ORDER BY cu.username),
         now(),
@@ -271,7 +273,7 @@ BEGIN
     FROM admin.client_user cu
     WHERE cu.client_id = v_client_id
       AND cu.status <> 'DELETED'
-      AND cu.password_hash IS NOT NULL
+      AND (cu.password_hash IS NOT NULL OR cu.access_token_hash IS NOT NULL)
       AND NOT EXISTS (
           SELECT 1 FROM tenant_empresa_a.app_user t
           WHERE LOWER(t.username) = LOWER(cu.username) AND t.status <> 'DELETED'

@@ -1,10 +1,8 @@
 package br.com.gommo.modules.cfg.access.user.service;
 
-import java.security.SecureRandom;
 import java.util.*;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,33 +18,26 @@ import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.entity.Role;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.root.repository.RoleRepository;
+import br.com.gommo.modules.root.security.AccessTokenSupport;
 import br.com.gommo.modules.root.security.SystemAdminUsers;
 
 @Service
 public class TenantAppUserService implements ITenantAppUserService {
 
-    private static final String TEMP_PASSWORD_ALPHABET =
-            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-    private static final int TEMP_PASSWORD_LENGTH = 12;
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-
     private final AppUserRepository appUserRepository;
     private final RoleRepository roleRepository;
     private final CollaboratorRepository collaboratorRepository;
     private final TenantAppUserMapper mapper;
-    private final PasswordEncoder passwordEncoder;
 
     public TenantAppUserService(
         AppUserRepository appUserRepository,
         RoleRepository roleRepository,
         CollaboratorRepository collaboratorRepository,
-        TenantAppUserMapper mapper,
-        PasswordEncoder passwordEncoder) {
+        TenantAppUserMapper mapper) {
         this.appUserRepository = appUserRepository;
         this.roleRepository = roleRepository;
         this.collaboratorRepository = collaboratorRepository;
         this.mapper = mapper;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -75,20 +66,21 @@ public class TenantAppUserService implements ITenantAppUserService {
         validateCreate(request);
         Collaborator collaborator = resolveActiveCollaborator(request.getCollaboratorId());
         assertCollaboratorNotLinkedToSystemAdmin(collaborator.getId());
-        String temporaryPassword = generateTemporaryPassword();
+        String plainToken = AccessTokenSupport.generatePlainToken();
         AppUser user = AppUser.builder()
             .collaboratorId(collaborator.getId())
             .username(request.getUsername().trim())
             .name(Objects.isNull(request.getName()) ? collaborator.getFullName() : request.getName().trim())
             .email(request.getEmail().trim().toLowerCase())
-            .passwordHash(passwordEncoder.encode(temporaryPassword))
+            .passwordHash(null)
+            .accessTokenHash(AccessTokenSupport.hashToken(plainToken))
+            .firstAccessCompleted(false)
             .status(StatusEnum.ACTIVE)
-            .mustChangePwd(true)
             .roles(resolveAssignedRoles(request))
             .build();
         AppUser saved = appUserRepository.save(user);
         AppUserResponseDto response = mapper.toResponse(saved, collaborator);
-        response.setTemporaryPassword(temporaryPassword);
+        response.setAccessToken(plainToken);
         return response;
     }
 
@@ -115,12 +107,12 @@ public class TenantAppUserService implements ITenantAppUserService {
     public AppUserResponseDto resetPassword(UUID id) {
         AppUser user = findUser(id);
         assertMutableUser(user);
-        String temporaryPassword = generateTemporaryPassword();
-        user.setPasswordHash(passwordEncoder.encode(temporaryPassword));
-        user.setMustChangePwd(true);
+        String plainToken = AccessTokenSupport.generatePlainToken();
+        user.setPasswordHash(null);
+        user.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
         AppUser saved = appUserRepository.save(user);
         AppUserResponseDto response = mapper.toResponse(saved, resolveCollaborator(saved.getCollaboratorId()));
-        response.setTemporaryPassword(temporaryPassword);
+        response.setAccessToken(plainToken);
         return response;
     }
 
@@ -187,14 +179,6 @@ public class TenantAppUserService implements ITenantAppUserService {
         if (appUserRepository.existsByCollaboratorIdAndStatusNot(request.getCollaboratorId(), StatusEnum.DELETED)) {
             throw TenantAppUserException.collaboratorAlreadyLinked();
         }
-    }
-
-    private String generateTemporaryPassword() {
-        StringBuilder password = new StringBuilder(TEMP_PASSWORD_LENGTH);
-        for (int i = 0; i < TEMP_PASSWORD_LENGTH; i++) {
-            password.append(TEMP_PASSWORD_ALPHABET.charAt(SECURE_RANDOM.nextInt(TEMP_PASSWORD_ALPHABET.length())));
-        }
-        return password.toString();
     }
 
     private void validateUpdate(AppUserRequestDto request, UUID id) {

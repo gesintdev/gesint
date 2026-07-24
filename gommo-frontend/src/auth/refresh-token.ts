@@ -13,6 +13,8 @@ type TokenResponse = {
     refreshToken: string;
     tokenType: string;
     expiresInSeconds: number;
+    name?: string;
+    username?: string;
     collaboratorId?: string;
     photoObjectId?: string;
     jobPositionId?: string;
@@ -79,12 +81,16 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
             headers: buildTenantRequestHeaders(token.tenantSlug as string | undefined),
         });
         const refreshTokenChanged = data.refreshToken !== refreshToken;
+        const username = data.username ?? (token.username as string | undefined);
+        const displayName = data.name?.trim() || username || (token.name as string | undefined);
         return {
             ...token,
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
             refreshTokenIssuedAt: refreshTokenChanged ? Date.now() : (token.refreshTokenIssuedAt ?? Date.now()),
             accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
+            name: displayName,
+            username,
             collaboratorId: data.collaboratorId,
             photoObjectId: data.photoObjectId,
             jobPositionId: data.jobPositionId,

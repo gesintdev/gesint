@@ -29,7 +29,7 @@ import {
 import {publicCareersService} from "@/modules/rh/person/jobvacancy/services/public-careers.service";
 import {ThemeToggle} from "@/shared/components/layout/ThemeToggle";
 import {Button} from "@/shared/components/ui/Button";
-import {InputCPF, InputPhone, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import {InputCPF, InputCheckbox, InputPhone, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import {MarkdownContent} from "@/shared/components/ui/MarkdownContent";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {digitsOnly} from "@/shared/lib/input/digits";
@@ -220,21 +220,19 @@ function ExperienceCard({
                             disabled={exp.currentJob}
                         />
                     </div>
-                    <label className="flex cursor-pointer items-center gap-2 text-[13px] text-base-content/75">
-                        <input
-                            type="checkbox"
-                            className="checkbox checkbox-sm checkbox-primary"
-                            checked={exp.currentJob}
-                            onChange={(event) =>
-                                onChange(exp.id, {
-                                    currentJob: event.target.checked,
-                                    endMonth: event.target.checked ? "" : exp.endMonth,
-                                    endYear: event.target.checked ? "" : exp.endYear,
-                                })
-                            }
-                        />
-                        Trabalho aqui atualmente
-                    </label>
+                    <InputCheckbox
+                        size="sm"
+                        checked={exp.currentJob}
+                        onCheckedChange={(next) =>
+                            onChange(exp.id, {
+                                currentJob: next,
+                                endMonth: next ? "" : exp.endMonth,
+                                endYear: next ? "" : exp.endYear,
+                            })
+                        }
+                        label="Trabalho aqui atualmente"
+                        labelClassName="text-[13px] text-base-content/75"
+                    />
                     <label className="grid gap-1.5">
                         <span className="text-[13px] font-medium text-base-content/80">
                             Descrição das atividades

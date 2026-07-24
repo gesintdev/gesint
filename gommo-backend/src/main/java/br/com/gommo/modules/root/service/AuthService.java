@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +40,12 @@ import br.com.gommo.modules.rh.person.collaborators.admission.repository.Admissi
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
 import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
+import br.com.gommo.modules.root.dto.ChangePasswordRequestDto;
+import br.com.gommo.modules.root.dto.ForgotPasswordRequestDto;
 import br.com.gommo.modules.root.dto.LoginRequestDto;
+import br.com.gommo.modules.root.dto.PasswordSetupRequestDto;
+import br.com.gommo.modules.root.dto.PasswordSetupValidateRequestDto;
+import br.com.gommo.modules.root.dto.PasswordSetupValidateResponseDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
 import br.com.gommo.modules.root.dto.TenantInfoResponseDto;
 import br.com.gommo.modules.root.dto.TokenResponseDto;
@@ -52,6 +59,7 @@ import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.root.repository.PermissionRepository;
 import br.com.gommo.modules.root.repository.RefreshTokenBlacklistRepository;
 import br.com.gommo.modules.root.repository.RefreshTokenRepository;
+import br.com.gommo.modules.root.security.AccessTokenSupport;
 
 @Service
 public class AuthService implements IAuthService {
@@ -128,7 +136,8 @@ public class AuthService implements IAuthService {
                 .findActiveByLogin(login, StatusEnum.DELETED)
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+        if (!StringUtils.hasText(user.getPasswordHash())
+                || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new BadCredentialsException("Invalid credentials");
         }
 
@@ -262,6 +271,97 @@ public class AuthService implements IAuthService {
                         .build());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public PasswordSetupValidateResponseDto validatePasswordSetupToken(PasswordSetupValidateRequestDto request) {
+        String token = request.getToken() != null ? request.getToken().trim() : "";
+        if (!StringUtils.hasText(token)) {
+            return PasswordSetupValidateResponseDto.builder().valid(false).firstAccessCompleted(false).build();
+        }
+        return appUserRepository
+                .findActiveByAccessTokenHash(AccessTokenSupport.hashToken(token), StatusEnum.DELETED)
+                .map(user -> PasswordSetupValidateResponseDto.builder()
+                        .valid(true)
+                        .firstAccessCompleted(user.isFirstAccessCompleted())
+                        .build())
+                .orElseGet(() ->
+                        PasswordSetupValidateResponseDto.builder().valid(false).firstAccessCompleted(false).build());
+    }
+
+    @Override
+    @Transactional
+    public void setupPassword(PasswordSetupRequestDto request) {
+        String token = request.getToken() != null ? request.getToken().trim() : "";
+        String password = request.getPassword();
+        String confirmation = request.getPasswordConfirmation();
+        if (!StringUtils.hasText(token)) {
+            throw AuthException.invalidAccessToken();
+        }
+        if (!StringUtils.hasText(password) || password.length() < 8) {
+            throw AuthException.passwordTooShort();
+        }
+        if (!password.equals(confirmation)) {
+            throw AuthException.passwordMismatch();
+        }
+
+        AppUser user = appUserRepository
+                .findActiveByAccessTokenHash(AccessTokenSupport.hashToken(token), StatusEnum.DELETED)
+                .orElseThrow(AuthException::invalidAccessToken);
+
+        user.setPasswordHash(passwordEncoder.encode(password));
+        user.setAccessTokenHash(null);
+        user.setFirstAccessCompleted(true);
+        appUserRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequestDto request) {
+        String email = request.getEmail() != null ? request.getEmail().trim() : "";
+        if (!StringUtils.hasText(email)) {
+            return;
+        }
+        appUserRepository
+                .findActiveByEmail(email, StatusEnum.DELETED)
+                .ifPresent(user -> {
+                    String plainToken = AccessTokenSupport.generatePlainToken();
+                    user.setPasswordHash(null);
+                    user.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
+                    appUserRepository.save(user);
+                    // TODO: enviar e-mail com o token/link de redefinição quando o disparo estiver disponível.
+                });
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequestDto request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof UUID userId)) {
+            throw AuthException.invalidCredentials();
+        }
+        String currentPassword = request.getCurrentPassword();
+        String newPassword = request.getNewPassword();
+        String confirmation = request.getNewPasswordConfirmation();
+        if (!StringUtils.hasText(newPassword) || newPassword.length() < 8) {
+            throw AuthException.passwordTooShort();
+        }
+        if (!newPassword.equals(confirmation)) {
+            throw AuthException.passwordMismatch();
+        }
+
+        AppUser user = appUserRepository
+                .findById(userId)
+                .filter(candidate -> candidate.getStatus() != StatusEnum.DELETED)
+                .orElseThrow(AuthException::userNotFound);
+        if (!StringUtils.hasText(user.getPasswordHash())
+                || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw AuthException.invalidCurrentPassword();
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        appUserRepository.save(user);
+    }
+
     private void resolveTenantFromCompanyCode(LoginRequestDto request) {
         if (!multiTenantProperties.isEnabled() || !StringUtils.hasText(request.getCompanyCode())) {
             return;
@@ -315,13 +415,16 @@ public class AuthService implements IAuthService {
             contractedSystemKeys = null;
         }
         CollaboratorOrganizationSnapshot organization = resolveCollaboratorOrganization(user);
+        String displayName = StringUtils.hasText(organization.collaboratorName)
+                ? organization.collaboratorName
+                : user.getUsername();
 
         return TokenResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresInSeconds(jwtProperties.accessTokenMinutes() * 60)
-                .name(user.getName())
+                .name(displayName)
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .tenantSlug(tenantSlug)
@@ -432,6 +535,7 @@ public class AuthService implements IAuthService {
                 .ifPresentOrElse(
                         collaborator -> {
                             snapshot.collaboratorId = collaborator.getId();
+                            snapshot.collaboratorName = collaborator.getFullName();
                             snapshot.photoObjectId = collaborator.getPhotoObjectId();
                         },
                         () -> snapshot.collaboratorId = null);
@@ -502,6 +606,7 @@ public class AuthService implements IAuthService {
 
     private static final class CollaboratorOrganizationSnapshot {
         private UUID collaboratorId;
+        private String collaboratorName;
         private UUID photoObjectId;
         private UUID jobPositionId;
         private String jobPositionName;

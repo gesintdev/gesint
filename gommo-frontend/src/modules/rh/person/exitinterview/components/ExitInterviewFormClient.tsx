@@ -54,7 +54,7 @@ import {
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputAutocomplete, InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { InputAutocomplete, InputCheckbox, InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -799,19 +799,16 @@ export function ExitInterviewFormClient() {
                     </div>
                     <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
                         {EXIT_REASON_ITEMS.map((item) => (
-                            <label
+                            <InputCheckbox
                                 key={item.value}
-                                className="flex min-h-9 items-center gap-2 rounded-lg border border-base-300/50 bg-base-200/20 px-3 py-2 text-sm text-base-content/75 transition-colors hover:bg-base-200/40"
-                            >
-                                <input
-                                    type="checkbox"
-                                    className="checkbox checkbox-xs"
-                                    checked={form.secondaryReasons.includes(item.value as ExitInterviewReason)}
-                                    disabled={isFinal}
-                                    onChange={() => toggleSecondaryReason(item.value as ExitInterviewReason)}
-                                />
-                                <span>{item.label}</span>
-                            </label>
+                                size="xs"
+                                checked={form.secondaryReasons.includes(item.value as ExitInterviewReason)}
+                                disabled={isFinal}
+                                onChange={() => toggleSecondaryReason(item.value as ExitInterviewReason)}
+                                label={item.label}
+                                className="min-h-9 rounded-lg border border-base-300/50 bg-base-200/20 px-3 py-2 transition-colors hover:bg-base-200/40"
+                                labelClassName="text-sm text-base-content/75"
+                            />
                         ))}
                     </div>
                 </section>

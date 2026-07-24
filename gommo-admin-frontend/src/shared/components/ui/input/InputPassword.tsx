@@ -1,5 +1,6 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
@@ -10,15 +11,24 @@ export type InputPasswordProps = InputFieldChromeProps & {
     onValueChange: (value: string) => void;
     placeholder?: string;
     autoComplete?: string;
+    className?: string;
 };
 
-export function InputPassword({ value, onValueChange, autoComplete, required, ...chrome }: InputPasswordProps) {
+export function InputPassword({
+    value,
+    onValueChange,
+    autoComplete,
+    required,
+    className,
+    ...chrome
+}: InputPasswordProps) {
     const [visible, setVisible] = useState(false);
 
     return (
         <InputBase
             {...chrome}
             required={required}
+            className={className}
             type={visible ? "text" : "password"}
             displayValue={value}
             onDisplayChange={onValueChange}
@@ -27,11 +37,15 @@ export function InputPassword({ value, onValueChange, autoComplete, required, ..
                 <button
                     type="button"
                     tabIndex={-1}
-                    className="shrink-0 px-2 text-[11px] font-medium text-base-content/50 hover:text-base-content"
+                    className="gommo-password-toggle"
                     onClick={() => setVisible((current) => !current)}
                     aria-label={visible ? "Ocultar senha" : "Mostrar senha"}
                 >
-                    {visible ? "Ocultar" : "Mostrar"}
+                    {visible ? (
+                        <EyeOff className="size-4" strokeWidth={2} />
+                    ) : (
+                        <Eye className="size-4" strokeWidth={2} />
+                    )}
                 </button>
             }
         />

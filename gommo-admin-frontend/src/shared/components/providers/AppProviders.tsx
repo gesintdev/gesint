@@ -5,8 +5,10 @@ import { SessionProvider } from "next-auth/react";
 import { type ReactNode, useState } from "react";
 import { Toaster } from "sonner";
 
+import { AccessTokenRevealHost } from "@/shared/access-token-reveal";
 import { SessionRefresh } from "@/shared/components/providers/SessionRefresh";
 import { ThemeProvider } from "@/shared/components/providers/ThemeProvider";
+import { SystemAlertHost } from "@/shared/components/system-alert/SystemAlertHost";
 import { createQueryClient } from "@/shared/lib/query-client";
 
 const SESSION_REFETCH_MS = 4 * 60 * 1000;
@@ -20,6 +22,8 @@ export function AppProviders({ children }: { children: ReactNode }) {
             <QueryClientProvider client={queryClient}>
                 <ThemeProvider>
                     {children}
+                    <SystemAlertHost />
+                    <AccessTokenRevealHost />
                     <Toaster richColors position="top-center" closeButton />
                 </ThemeProvider>
             </QueryClientProvider>

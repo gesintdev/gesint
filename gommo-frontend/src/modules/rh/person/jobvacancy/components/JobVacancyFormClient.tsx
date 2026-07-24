@@ -37,6 +37,7 @@ import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import {
     InputCurrency,
+    InputCheckbox,
     InputDate,
     InputMarkdown,
     InputNumber,
@@ -394,18 +395,18 @@ export function JobVacancyFormClient() {
                                 : "border-base-300 bg-base-100 hover:border-base-content/20",
                         )}
                     >
-                        <input
-                            type="checkbox"
-                            className="checkbox checkbox-sm checkbox-primary mt-0.5"
+                        <InputCheckbox
+                            size="sm"
                             checked={Boolean(form.isPublic)}
-                            onChange={(event) => {
-                                const checked = event.target.checked;
+                            onCheckedChange={(checked) => {
                                 setForm((prev) => ({
                                     ...prev,
                                     isPublic: checked,
                                     slug: prev.slug?.trim() || slugFromJobTitle(prev.jobTitle),
                                 }));
                             }}
+                            className="mt-0.5"
+                            aria-label="Publicar página de candidatura"
                         />
                         <span className="min-w-0">
                             <span className="block text-sm font-semibold text-base-content">
@@ -487,11 +488,11 @@ export function JobVacancyFormClient() {
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex items-center gap-2.5">
-                                                <input
-                                                    type="checkbox"
-                                                    className="checkbox checkbox-sm checkbox-primary"
+                                                <InputCheckbox
+                                                    size="sm"
                                                     checked={checked}
                                                     onChange={() => toggleBoard(board.key)}
+                                                    aria-label={board.label}
                                                 />
                                                 <span className="text-sm font-semibold text-base-content">
                                                     {board.label}

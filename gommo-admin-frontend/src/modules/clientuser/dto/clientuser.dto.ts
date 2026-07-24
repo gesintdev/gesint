@@ -8,6 +8,8 @@ export class ClientUser {
     username?: string;
     email?: string;
     displayName?: string;
+    firstAccessCompleted?: boolean;
+    accessToken?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -17,5 +19,4 @@ export class ClientUserCreateDto {
     username!: string;
     email!: string;
     displayName?: string;
-    password?: string;
 }

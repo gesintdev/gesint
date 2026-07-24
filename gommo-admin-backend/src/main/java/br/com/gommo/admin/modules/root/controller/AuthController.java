@@ -8,7 +8,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.gommo.admin.modules.root.dto.ForgotPasswordRequestDto;
 import br.com.gommo.admin.modules.root.dto.LoginRequestDto;
+import br.com.gommo.admin.modules.root.dto.PasswordSetupRequestDto;
+import br.com.gommo.admin.modules.root.dto.PasswordSetupValidateRequestDto;
+import br.com.gommo.admin.modules.root.dto.PasswordSetupValidateResponseDto;
 import br.com.gommo.admin.modules.root.dto.RefreshTokenRequestDto;
 import br.com.gommo.admin.modules.root.dto.TokenResponseDto;
 import br.com.gommo.admin.modules.root.service.IAuthService;
@@ -31,5 +35,23 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponseDto> refresh(@Valid @RequestBody RefreshTokenRequestDto request) {
         return ResponseEntity.ok(authService.refresh(request));
+    }
+
+    @PostMapping("/password-setup/validate")
+    public ResponseEntity<PasswordSetupValidateResponseDto> validatePasswordSetup(
+            @Valid @RequestBody PasswordSetupValidateRequestDto request) {
+        return ResponseEntity.ok(authService.validatePasswordSetupToken(request));
+    }
+
+    @PostMapping("/password-setup")
+    public ResponseEntity<Void> setupPassword(@Valid @RequestBody PasswordSetupRequestDto request) {
+        authService.setupPassword(request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -13,9 +13,9 @@ export type AppUser = {
     /** Rótulo agregado para grid (preenchido no service). */
     rolesLabel?: string;
     lastLogin?: string | null;
-    mustChangePwd?: boolean;
-    /** Presente apenas após create/reset-password. */
-    temporaryPassword?: string;
+    firstAccessCompleted?: boolean;
+    /** Presente apenas após create/reset-access. */
+    accessToken?: string;
     createdAt?: string;
     updatedAt?: string;
 };

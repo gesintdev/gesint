@@ -37,7 +37,7 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputAutocomplete, InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { InputAutocomplete, InputCheckbox, InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { ExceptionCapture } from "@/shared/exceptions";
 
@@ -327,7 +327,18 @@ export function DevelopmentPlanFormClient() {
                                         <InputDate label="Início" value={action.startDate ?? ""} onValueChange={(v) => updateGoalAction(goalIndex, actionIndex, { ...action, startDate: v })} wrapperClassName="sm:col-span-3" />
                                         <InputDate label="Fim" value={action.endDate ?? ""} onValueChange={(v) => updateGoalAction(goalIndex, actionIndex, { ...action, endDate: v })} wrapperClassName="sm:col-span-3" />
                                         <InputString label="Responsável" value={action.assignee ?? ""} onValueChange={(v) => updateGoalAction(goalIndex, actionIndex, { ...action, assignee: v })} wrapperClassName="sm:col-span-4" />
-                                        <label className="flex items-center gap-2 pt-7 text-sm sm:col-span-2"><input type="checkbox" className="checkbox checkbox-sm" checked={Boolean(action.evidenceRequired)} onChange={(e) => updateGoalAction(goalIndex, actionIndex, { ...action, evidenceRequired: e.target.checked })} /> Evidência</label>
+                                        <InputCheckbox
+                                            size="sm"
+                                            checked={Boolean(action.evidenceRequired)}
+                                            onCheckedChange={(next) =>
+                                                updateGoalAction(goalIndex, actionIndex, {
+                                                    ...action,
+                                                    evidenceRequired: next,
+                                                })
+                                            }
+                                            label="Evidência"
+                                            className="pt-7 sm:col-span-2"
+                                        />
                                     </div>
                                 ))}
                                 <div className="flex gap-2">

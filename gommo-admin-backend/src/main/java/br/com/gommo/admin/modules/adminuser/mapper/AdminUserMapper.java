@@ -17,6 +17,7 @@ public class AdminUserMapper {
                 .username(entity.getUsername())
                 .email(entity.getEmail())
                 .fullName(entity.getFullName())
+                .firstAccessCompleted(entity.isFirstAccessCompleted())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

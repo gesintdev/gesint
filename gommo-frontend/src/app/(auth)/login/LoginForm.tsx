@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -10,7 +9,9 @@ import { toast } from "sonner";
 
 import { Button } from "@/shared/components/ui/Button";
 import { Input } from "@/shared/components/ui/Input";
+import { InputCheckbox, InputPassword } from "@/shared/components/ui/input";
 import { resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
+import { applyDocumentTheme, resolveThemePreference } from "@/shared/lib/theme-preference";
 
 export function LoginForm() {
     const router = useRouter();
@@ -18,7 +19,6 @@ export function LoginForm() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [remember, setRemember] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -60,6 +60,7 @@ export function LoginForm() {
             return;
         }
         toast.success("Bem-vindo ao Gommo");
+        applyDocumentTheme(resolveThemePreference());
         router.push("/dashboard");
         router.refresh();
     }
@@ -84,47 +85,35 @@ export function LoginForm() {
                 className="gommo-field--login"
                 wrapperClassName="login-field"
             />
-            <Input
+            <InputPassword
                 label="Senha"
-                type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onValueChange={setPassword}
                 required
                 className="gommo-field--login"
                 wrapperClassName="login-field"
-                rightSlot={
-                    <button
-                        type="button"
-                        className="login-password-toggle"
-                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                        onClick={() => setShowPassword((v) => !v)}
-                    >
-                        {showPassword ? (
-                            <EyeOff className="size-4" strokeWidth={2} />
-                        ) : (
-                            <Eye className="size-4" strokeWidth={2} />
-                        )}
-                    </button>
-                }
             />
             <div className="login-form__meta">
-                <label className="login-remember">
-                    <input
-                        type="checkbox"
-                        checked={remember}
-                        onChange={(e) => setRemember(e.target.checked)}
-                        className="login-remember__input"
-                    />
-                    <span>Lembrar de mim</span>
-                </label>
-                <Link href="#" className="login-forgot" onClick={(e) => e.preventDefault()}>
+                <InputCheckbox
+                    checked={remember}
+                    onCheckedChange={setRemember}
+                    label="Lembrar de mim"
+                    size="sm"
+                    className="login-remember"
+                />
+                <Link href="/esqueci-senha" className="login-forgot">
                     Esqueceu sua senha?
                 </Link>
             </div>
             <Button type="submit" size="lg" className="gommo-btn--block login-submit mt-1" loading={loading}>
                 Entrar
             </Button>
+            <p className="mt-3 text-sm text-base-content/60">
+                <Link href="/definir-senha" className="login-forgot">
+                    Definir senha / primeiro acesso
+                </Link>
+            </p>
             {process.env.NODE_ENV === "development" && (
                 <p className="login-dev-hint">
                     {tenantSlugHint

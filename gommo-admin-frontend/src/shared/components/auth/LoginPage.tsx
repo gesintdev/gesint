@@ -1,6 +1,7 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
@@ -8,6 +9,7 @@ import { useEffect, useState } from "react";
 
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { AdminInput } from "@/shared/components/ui/admin/AdminField";
+import { InputPassword } from "@/shared/components/ui/input";
 
 export function LoginPage() {
     const router = useRouter();
@@ -137,12 +139,13 @@ export function LoginPage() {
                         onChange={setUsername}
                         placeholder="usuario@empresa.com.br"
                     />
-                    <AdminInput
+                    <InputPassword
                         label="Senha"
                         value={password}
-                        onChange={setPassword}
-                        type="password"
+                        onValueChange={setPassword}
+                        autoComplete="current-password"
                         placeholder="••••••••"
+                        required
                     />
 
                     {error ? (
@@ -159,6 +162,15 @@ export function LoginPage() {
                             {error}
                         </div>
                     ) : null}
+
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                        <Link href="/esqueci-senha" style={{ color: "var(--ga-primary)" }}>
+                            Esqueceu sua senha?
+                        </Link>
+                        <Link href="/definir-senha" style={{ color: "var(--ga-primary)" }}>
+                            Definir senha
+                        </Link>
+                    </div>
 
                     <button
                         type="button"

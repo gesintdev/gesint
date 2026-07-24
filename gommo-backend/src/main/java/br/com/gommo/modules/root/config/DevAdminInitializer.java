@@ -74,8 +74,11 @@ public class DevAdminInitializer implements ApplicationRunner {
                     user.getUsername());
         }
 
-        if (!passwordEncoder.matches(devAdminPassword, user.getPasswordHash())) {
+        if (!StringUtils.hasText(user.getPasswordHash())
+                || !passwordEncoder.matches(devAdminPassword, user.getPasswordHash())) {
             user.setPasswordHash(passwordEncoder.encode(devAdminPassword));
+            user.setAccessTokenHash(null);
+            user.setFirstAccessCompleted(true);
             changed = true;
             log.warn(
                     "Usuario '{}' existia com senha diferente; senha de desenvolvimento sincronizada.",
@@ -92,6 +95,7 @@ public class DevAdminInitializer implements ApplicationRunner {
                 .username(devAdminUsername)
                 .email("admin@gommo.local")
                 .passwordHash(passwordEncoder.encode(devAdminPassword))
+                .firstAccessCompleted(true)
                 .status(StatusEnum.ACTIVE)
                 .roles(Set.of(adminRole))
                 .build();

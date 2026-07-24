@@ -17,7 +17,7 @@ import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
-import {InputNumber, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import {InputCheckbox, InputNumber, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
 
 export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentPlanDomainConfig }) {
@@ -114,11 +114,14 @@ function renderField(field: DomainFieldConfig, value: unknown, update: (_field: 
     }
     if (field.type === "checkbox") {
         return (
-            <label key={field.name} className="flex items-center gap-2 pt-7 text-sm sm:col-span-4">
-                <input type="checkbox" className="checkbox checkbox-sm" checked={Boolean(value)}
-                       onChange={(event) => update(field.name, event.target.checked)}/>
-                {field.label}
-            </label>
+            <InputCheckbox
+                key={field.name}
+                size="sm"
+                checked={Boolean(value)}
+                onCheckedChange={(next) => update(field.name, next)}
+                label={field.label}
+                className="pt-7 sm:col-span-4"
+            />
         );
     }
     return <InputString key={field.name} label={field.label} value={String(value ?? "")}

@@ -61,4 +61,19 @@ public interface AppUserRepository extends IBaseRepository<AppUser> {
     boolean existsByCollaboratorIdAndIdNotAndStatusNot(UUID collaboratorId, UUID id, StatusEnum status);
 
     Optional<AppUser> findFirstByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
+
+    @Query(
+            """
+            SELECT u FROM AppUser u
+            WHERE u.accessTokenHash = :tokenHash AND u.status <> :deleted
+            """)
+    Optional<AppUser> findActiveByAccessTokenHash(
+            @Param("tokenHash") String tokenHash, @Param("deleted") StatusEnum deleted);
+
+    @Query(
+            """
+            SELECT u FROM AppUser u
+            WHERE LOWER(u.email) = LOWER(:email) AND u.status <> :deleted
+            """)
+    Optional<AppUser> findActiveByEmail(@Param("email") String email, @Param("deleted") StatusEnum deleted);
 }

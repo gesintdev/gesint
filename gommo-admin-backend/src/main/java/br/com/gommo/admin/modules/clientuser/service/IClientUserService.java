@@ -21,5 +21,7 @@ public interface IClientUserService {
 
     ClientUserResponseDto update(UUID id, ClientUserRequestDto request);
 
+    ClientUserResponseDto resetAccess(UUID id);
+
     void delete(UUID id);
 }

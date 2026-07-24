@@ -5,6 +5,8 @@ export class AdminUser {
     username!: string;
     email!: string;
     fullName!: string;
+    firstAccessCompleted?: boolean;
+    accessToken?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -13,5 +15,4 @@ export class AdminUserCreateDto {
     username!: string;
     email!: string;
     fullName!: string;
-    password?: string;
 }

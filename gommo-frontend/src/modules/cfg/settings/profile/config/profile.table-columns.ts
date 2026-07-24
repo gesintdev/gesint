@@ -13,13 +13,19 @@ export const PROFILE_TABLE_COLUMNS: TableColumnConfig[] = [
         id: "system",
         columnName: "Sistema",
         fieldValue: "system",
-        dataType: TableDataType.TEXT,
+        dataType: TableDataType.BADGE,
+        badgeLabels: {
+            CFG: "CFG",
+            DP: "DP",
+            RH: "RH",
+            CONTABILIDADE: "CTB",
+        },
     },
     {
         id: "status",
         columnName: "Status",
         fieldValue: "status",
-        dataType: TableDataType.TEXT,
+        dataType: TableDataType.BADGE,
     },
     {
         id: "description",

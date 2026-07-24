@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,6 +38,13 @@ public class ClientUser extends AuditEntity {
 
     @Column(name = "password_hash")
     private String passwordHash;
+
+    @Column(name = "access_token_hash", length = 64)
+    private String accessTokenHash;
+
+    @Column(name = "first_access_completed", nullable = false)
+    @Builder.Default
+    private boolean firstAccessCompleted = false;
 
     @Column(name = "display_name", length = 200)
     private String displayName;

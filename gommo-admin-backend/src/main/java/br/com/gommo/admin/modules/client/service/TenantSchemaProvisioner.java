@@ -110,20 +110,21 @@ public class TenantSchemaProvisioner {
             jdbcTemplate.execute(
                     """
                     CREATE TABLE "%s".app_user (
-                        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                        status          public.status_enum NOT NULL DEFAULT 'ACTIVE',
-                        collaborator_id UUID,
-                        name            VARCHAR(255),
-                        username        VARCHAR(100) NOT NULL,
-                        email           VARCHAR(200) NOT NULL,
-                        password_hash   VARCHAR(255) NOT NULL,
-                        last_login      TIMESTAMPTZ,
-                        must_change_pwd BOOLEAN DEFAULT false,
-                        created_by      UUID,
-                        created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-                        updated_by      UUID,
-                        updated_at      TIMESTAMPTZ,
-                        code            INTEGER NOT NULL
+                        id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        status                  public.status_enum NOT NULL DEFAULT 'ACTIVE',
+                        collaborator_id         UUID,
+                        name                    VARCHAR(255),
+                        username                VARCHAR(100) NOT NULL,
+                        email                   VARCHAR(200) NOT NULL,
+                        password_hash           VARCHAR(255),
+                        access_token_hash       VARCHAR(64),
+                        first_access_completed  BOOLEAN NOT NULL DEFAULT false,
+                        last_login              TIMESTAMPTZ,
+                        created_by              UUID,
+                        created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+                        updated_by              UUID,
+                        updated_at              TIMESTAMPTZ,
+                        code                    INTEGER NOT NULL
                     )
                     """
                             .formatted(schema));
@@ -132,6 +133,30 @@ public class TenantSchemaProvisioner {
                     """
                     ALTER TABLE "%s".app_user
                         ADD COLUMN IF NOT EXISTS name VARCHAR(255)
+                    """
+                            .formatted(schema));
+            jdbcTemplate.execute(
+                    """
+                    ALTER TABLE "%s".app_user
+                        ALTER COLUMN password_hash DROP NOT NULL
+                    """
+                            .formatted(schema));
+            jdbcTemplate.execute(
+                    """
+                    ALTER TABLE "%s".app_user
+                        ADD COLUMN IF NOT EXISTS access_token_hash VARCHAR(64)
+                    """
+                            .formatted(schema));
+            jdbcTemplate.execute(
+                    """
+                    ALTER TABLE "%s".app_user
+                        ADD COLUMN IF NOT EXISTS first_access_completed BOOLEAN NOT NULL DEFAULT false
+                    """
+                            .formatted(schema));
+            jdbcTemplate.execute(
+                    """
+                    ALTER TABLE "%s".app_user
+                        DROP COLUMN IF EXISTS must_change_pwd
                     """
                             .formatted(schema));
         }

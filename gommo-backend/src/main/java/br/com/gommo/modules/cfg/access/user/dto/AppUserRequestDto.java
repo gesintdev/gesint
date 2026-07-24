@@ -34,8 +34,5 @@ public class AppUserRequestDto {
     @Size(max = 200)
     private String email;
 
-    @Size(min = 6, max = 100)
-    private String password;
-
     private Map<SystemScopeEnum, List<UUID>> roleIdsBySystem;
 }

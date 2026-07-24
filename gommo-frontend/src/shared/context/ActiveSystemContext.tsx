@@ -227,6 +227,15 @@ export function ActiveSystemProvider({
     const closeSettings = useCallback(() => {
         persistSettingsMode(false);
     }, []);
+
+    useEffect(() => {
+        if (!permissionsReady || !isSettingsMode || unrestrictedPlatformAdmin) {
+            return;
+        }
+        if (filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, permissions).length === 0) {
+            persistSettingsMode(false);
+        }
+    }, [isSettingsMode, permissions, permissionsReady, unrestrictedPlatformAdmin]);
     const value = useMemo(
         () => ({
             activeSystem: resolvedActiveSystem,

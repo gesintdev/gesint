@@ -10,7 +10,7 @@ import { useHasPermission } from "@/shared/auth/permissions";
  */
 export function OperationalPreferencesPage() {
     const canReadAttendance = useHasPermission("attendance:read");
-    const canReadNotification = useHasPermission("notification:read");
+    const canConfigureNotification = useHasPermission("notification:write");
 
     return (
         <div className="flex min-h-0 flex-1 flex-col overflow-auto p-4 md:p-6">
@@ -22,8 +22,8 @@ export function OperationalPreferencesPage() {
                     </p>
                 </div>
                 {canReadAttendance ? <AttendanceSettingsCard /> : null}
-                {canReadNotification ? <NotificationSettingsCard /> : null}
-                {!canReadAttendance && !canReadNotification ? (
+                {canConfigureNotification ? <NotificationSettingsCard /> : null}
+                {!canReadAttendance && !canConfigureNotification ? (
                     <p className="text-sm text-base-content/55">
                         Você não tem permissão para visualizar estas preferências.
                     </p>

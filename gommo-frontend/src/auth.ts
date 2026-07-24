@@ -22,6 +22,7 @@ class TokenResponse {
     refreshToken!: string;
     tokenType!: string;
     expiresInSeconds!: number;
+    name?: string;
     username?: string;
     email?: string;
     collaboratorId?: string;
@@ -92,10 +93,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         headers: buildTenantRequestHeaders(tenantSlug),
                     });
                     setAuthToken(data.accessToken);
+                    const username = data.username ?? (credentials.username as string);
+                    const displayName = data.name?.trim() || username;
                     return {
-                        id: credentials.username as string,
-                        name: data.username ?? (credentials.username as string),
+                        id: username,
+                        name: displayName,
                         email: data.email,
+                        username,
                         collaboratorId: data.collaboratorId,
                         photoObjectId: data.photoObjectId,
                         jobPositionId: data.jobPositionId,
@@ -136,12 +140,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     pages: { signIn: "/login" },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
-            const isLogin = nextUrl.pathname.startsWith("/login");
-            if (isLogin) {
-                return auth ? Response.redirect(new URL("/dashboard", nextUrl)) : true;
+            const pathname = nextUrl.pathname;
+            const isLogin = pathname.startsWith("/login");
+            const isPublicAuth =
+                pathname.startsWith("/definir-senha") || pathname.startsWith("/esqueci-senha");
+            if (isLogin || isPublicAuth) {
+                return auth && isLogin ? Response.redirect(new URL("/dashboard", nextUrl)) : true;
             }
 
-            const isPublicCareers = nextUrl.pathname.startsWith("/careers");
+            const isPublicCareers = pathname.startsWith("/careers");
             if (isPublicCareers) {
                 return true;
             }
@@ -151,7 +158,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
             const granted = auth.user?.permissions ?? [];
             if (
-                !isPathAccessible(nextUrl.pathname, granted, auth.contractedSystemKeys, {
+                !isPathAccessible(pathname, granted, auth.contractedSystemKeys, {
                     tenantSlug: auth.tenantSlug,
                     platformAdmin: auth.platformAdmin,
                     contractedSystemKeys: auth.contractedSystemKeys,
@@ -168,6 +175,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     sub: user.id,
                     name: user.name,
                     email: user.email,
+                    username: user.username,
                     collaboratorId: user.collaboratorId,
                     photoObjectId: user.photoObjectId,
                     jobPositionId: user.jobPositionId,
@@ -204,6 +212,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             if (session.user) {
                 session.user.name = (token.name as string | undefined) ?? session.user.name;
                 session.user.email = (token.email as string | undefined) ?? session.user.email;
+                session.user.username = token.username as string | undefined;
                 session.user.collaboratorId = token.collaboratorId as string | undefined;
                 session.user.photoObjectId = token.photoObjectId as string | undefined;
                 session.user.jobPositionId = token.jobPositionId as string | undefined;

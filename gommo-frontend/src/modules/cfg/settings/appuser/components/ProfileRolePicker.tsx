@@ -6,6 +6,7 @@ import {ProfileDetailModal} from "@/modules/cfg/settings/appuser/components/Prof
 import {filterProfilesBySearch} from "@/modules/cfg/settings/appuser/lib/profile-role-filter";
 import type {Profile, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";
+import {InputCheckbox} from "@/shared/components/ui/input";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 import {findRouteById} from "@/shared/workspace/workspace-routes";
 
@@ -112,11 +113,11 @@ export function ProfileRolePicker({
                                             checked ? "font-medium text-primary" : "text-base-content/85",
                                         )}
                                     >
-                                        <input
-                                            type="checkbox"
-                                            className="checkbox checkbox-sm checkbox-primary shrink-0"
+                                        <InputCheckbox
+                                            size="sm"
                                             checked={checked}
-                                            onChange={(e) => toggle(profile.id, e.target.checked)}
+                                            onCheckedChange={(next) => toggle(profile.id, next)}
+                                            aria-label={profile.name}
                                         />
                                         <span className="truncate">{profile.name}</span>
                                     </label>

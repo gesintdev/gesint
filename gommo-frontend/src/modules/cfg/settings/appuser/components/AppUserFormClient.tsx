@@ -21,6 +21,7 @@ import type {Profile} from "@/modules/cfg/settings/profile/dto/profile.dto";
 import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
 import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
 import {collaboratorService} from "@/modules/rh/person/collaborators/people/services/collaborator.service";
+import {showAccessTokenReveal} from "@/shared/access-token-reveal";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
@@ -48,17 +49,6 @@ const FORM_STEPS: FormStepNavItem[] = [
     {id: "dados", label: "Dados"},
     {id: "perfis", label: "Perfis"},
 ];
-
-async function showTemporaryPassword(password: string, context: "create" | "reset") {
-    await SystemAlert.info.alert({
-        title: context === "create" ? "Usuário cadastrado" : "Senha redefinida",
-        message:
-            `Senha temporária: ${password}\n\n` +
-            "Anote e compartilhe com o usuário. Ela não será exibida novamente. " +
-            "No primeiro acesso, será solicitado o cadastro de uma nova senha.",
-        dismissLabel: "Entendi",
-    });
-}
 
 export function AppUserFormClient() {
     const {editingId, isEditing, goToList} = useCrudScreen();
@@ -148,8 +138,8 @@ export function AppUserFormClient() {
         },
         onSuccess: async (saved: AppUser) => {
             await queryClient.invalidateQueries({queryKey: appUserKeys.all});
-            if (!isEditing && saved.temporaryPassword) {
-                await showTemporaryPassword(saved.temporaryPassword, "create");
+            if (!isEditing && saved.accessToken) {
+                await showAccessTokenReveal(saved.accessToken, "create");
             } else {
                 toast.success(isEditing ? "Usuário atualizado" : "Usuário cadastrado");
             }
@@ -161,38 +151,38 @@ export function AppUserFormClient() {
         },
     });
 
-    const resetPasswordMutation = useMutation({
+    const resetAccessMutation = useMutation({
         mutationFn: async () => {
             if (!editingId) throw new Error("Usuário ainda não foi salvo.");
-            return appUserService.resetPassword(editingId);
+            return appUserService.resetAccess(editingId);
         },
         onSuccess: async (saved) => {
-            if (saved.temporaryPassword) {
-                await showTemporaryPassword(saved.temporaryPassword, "reset");
+            if (saved.accessToken) {
+                await showAccessTokenReveal(saved.accessToken, "reset");
             } else {
-                toast.success("Senha redefinida");
+                toast.success("Novo token gerado");
             }
         },
         onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível resetar a senha."});
+            const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível gerar um novo token."});
             toast.error(ex.displayMessage);
         },
     });
 
-    const handleResetPassword = async () => {
+    const handleResetAccess = async () => {
         if (!isEditing || !editingId) {
-            toast.message("Salve o usuário antes de resetar a senha.");
+            toast.message("Salve o usuário antes de gerar um novo token.");
             return;
         }
         const confirmed = await SystemAlert.confirm({
-            title: "Resetar senha",
+            title: "Gerar novo token",
             message:
-                "Uma senha temporária será gerada e o usuário precisará alterá-la no próximo acesso. Deseja continuar?",
-            confirmLabel: "Resetar senha",
+                "A senha atual será removida e um novo token de acesso será gerado. O token anterior deixará de valer. Deseja continuar?",
+            confirmLabel: "Gerar novo token",
             cancelLabel: "Cancelar",
         });
         if (!confirmed) return;
-        resetPasswordMutation.mutate();
+        resetAccessMutation.mutate();
     };
 
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
@@ -250,19 +240,17 @@ export function AppUserFormClient() {
                     required
                     wrapperClassName="sm:col-span-3"
                 />
-                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-3">
-                    <span className="gommo-field__label">Senha</span>
+                <div className="flex items-end min-w-0 gap-1.5 sm:col-span-3">
                     <Button
                         type="button"
-                        variant="outline"
                         className="w-full justify-center"
                         leftIcon={<KeyRound className="size-4"/>}
-                        disabled={!isEditing || resetPasswordMutation.isPending}
-                        loading={resetPasswordMutation.isPending}
-                        onClick={handleResetPassword}
-                        title={isEditing ? "Gerar senha temporária" : "Disponível após salvar o usuário"}
+                        disabled={!isEditing || resetAccessMutation.isPending}
+                        loading={resetAccessMutation.isPending}
+                        onClick={handleResetAccess}
+                        title={isEditing ? "Gerar novo token de acesso" : "Disponível após salvar o usuário"}
                     >
-                        Resetar senha
+                        Gerar novo token
                     </Button>
                 </div>
             </FormSection>

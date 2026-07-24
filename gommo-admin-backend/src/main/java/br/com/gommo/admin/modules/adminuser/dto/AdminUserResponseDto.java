@@ -24,6 +24,9 @@ public class AdminUserResponseDto {
     private String username;
     private String email;
     private String fullName;
+    private boolean firstAccessCompleted;
+    /** Presente apenas em create/reset-access — token em texto claro para exibir uma vez. */
+    private String accessToken;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

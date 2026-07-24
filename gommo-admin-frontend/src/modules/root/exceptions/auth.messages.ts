@@ -7,6 +7,9 @@ export const AUTH_MESSAGES = {
     AUTH_REVOKED_REFRESH: "Sess\u00e3o expirada. Fa\u00e7a login novamente",
     AUTH_EXPIRED_REFRESH: "Sess\u00e3o expirada. Fa\u00e7a login novamente",
     AUTH_USER_NOT_FOUND: "Usu\u00e1rio n\u00e3o encontrado",
+    AUTH_INVALID_ACCESS_TOKEN: "Token de acesso inv\u00e1lido",
+    AUTH_PASSWORD_MISMATCH: "A senha e a confirma\u00e7\u00e3o n\u00e3o conferem",
+    AUTH_PASSWORD_TOO_SHORT: "A senha deve ter no m\u00ednimo 8 caracteres",
     AUTH_ERROR: "Falha na autentica\u00e7\u00e3o",
 } as const;
 /** Exclusivas do frontend */

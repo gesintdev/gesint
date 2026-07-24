@@ -10,6 +10,10 @@ class ClientUserService extends BaseService<ClientUser, ClientUserCreateDto, Cli
     getByClientId(clientId: string): Promise<ClientUser[]> {
         return apiFetch<ClientUser[]>(`${this.basePath}?clientId=${encodeURIComponent(clientId)}`);
     }
+
+    resetAccess(id: string): Promise<ClientUser> {
+        return apiFetch<ClientUser>(`${this.basePath}/${id}/reset-access`, { method: "POST" });
+    }
 }
 
 export const clientUserService = new ClientUserService();
