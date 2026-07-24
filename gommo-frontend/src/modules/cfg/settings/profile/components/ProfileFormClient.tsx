@@ -119,17 +119,23 @@ export function ProfileFormClient() {
         })),
     });
     const catalogsReady = catalogQueries.every((query) => query.isSuccess);
+    const catalogDataVersion = catalogQueries
+        .map((query) => `${query.fetchStatus}:${query.dataUpdatedAt}`)
+        .join("|");
     const catalogIdsBySystem = useMemo(() => {
         const map: Partial<Record<SystemScope, string[]>> = {};
         ASSIGNABLE_SYSTEM_SCOPES.forEach((scope, index) => {
             map[scope] = collectCatalogPermissionIds(catalogQueries[index]?.data);
         });
         return map;
-    }, [catalogQueries]);
+        // catalogDataVersion cobre mudanças reais dos catálogos; evita nova ref a cada render do useQueries.
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- version signature
+    }, [catalogDataVersion]);
     const activePermissionIds = permissionIdsBySystem[system] ?? [];
     const selectedPermissionIds = useMemo(() => new Set(activePermissionIds), [activePermissionIds]);
+    const activeCatalogGroups = catalogQueries[ASSIGNABLE_SYSTEM_SCOPES.indexOf(system)]?.data;
     const markedRouteIds = useMemo(() => {
-        const groups = catalogQueries[ASSIGNABLE_SYSTEM_SCOPES.indexOf(system)]?.data ?? [];
+        const groups = activeCatalogGroups ?? [];
         const markedModules = new Set<string>();
         for (const group of groups) {
             if (group.permissions.some((permission) => selectedPermissionIds.has(permission.id))) {
@@ -137,7 +143,7 @@ export function ProfileFormClient() {
             }
         }
         return collectMarkedRouteIds(navSections, markedModules);
-    }, [catalogQueries, navSections, selectedPermissionIds, system]);
+    }, [activeCatalogGroups, navSections, selectedPermissionIds]);
     const modulePermissions = useMemo(() => {
         const groups = modulePermissionsQuery.data ?? [];
         return groups.flatMap((group) => group.permissions);
@@ -165,19 +171,19 @@ export function ProfileFormClient() {
     }, [permissionIdsBySystem]);
 
     useEffect(() => {
-        if (!isEditing) {
-            setName("");
-            setDescription("");
-            setSystem("CFG");
-            setPermissionIdsBySystem(emptyPermissionIdsBySystem());
-            setSelectedRoute(findFirstPermissionRoute(getPermissionNavSections("CFG")));
-            setPendingSelectAllSystem(null);
-            setHydratedDetailId(null);
-            setError(null);
-            return;
-        }
+        if (isEditing) return;
+        setName("");
+        setDescription("");
+        setSystem("CFG");
+        setPermissionIdsBySystem(emptyPermissionIdsBySystem());
+        setSelectedRoute(findFirstPermissionRoute(getPermissionNavSections("CFG")));
+        setPendingSelectAllSystem(null);
+        setHydratedDetailId(null);
+        setError(null);
+    }, [editingId, isEditing]);
 
-        if (!detailQuery.data || !catalogsReady) return;
+    useEffect(() => {
+        if (!isEditing || !detailQuery.data || !catalogsReady) return;
         if (hydratedDetailId === detailQuery.data.id) return;
 
         const primarySystem = detailQuery.data.system;
