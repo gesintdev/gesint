@@ -3,11 +3,9 @@ import {
     CalendarDays,
     Network,
     UserMinus,
-    UserPlus,
-    UserRound,
-    Users,
 } from "lucide-react";
 
+import { collaboratorSharedRouteGroup } from "@/modules/rh/person/collaborators/config/collaborator.shared-routes";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
 
@@ -55,63 +53,7 @@ export const organizationRoutes: AppRoute[] = [
             }),
         ],
     }),
-    routeGroup({
-        id: "collaborator",
-        label: "Colaboradores",
-        icon: Users,
-        permission: "admission:read",
-        children: [
-            tabbedCrudRoute({
-                id: "collaborator-admission",
-                href: "/collaborator/admission",
-                label: "Admissão",
-                icon: UserPlus,
-                permission: "admission:read",
-                routeId: "collaborator-admission",
-                tabShortLabel: "Adm",
-                fieldTabName: "fullName",
-                workspace: lazyNamed(
-                    () => import("@/modules/rh/person/collaborators/admission/components/AdmissionWorkspacePage"),
-                    "AdmissionWorkspacePage",
-                ),
-                list: lazyNamed(
-                    () => import("@/modules/rh/person/collaborators/admission/components/AdmissionProcessListClient"),
-                    "AdmissionProcessListClient",
-                ),
-                form: lazyNamed(
-                    () => import("@/modules/rh/person/collaborators/admission/components/AdmissionProcessFormClient"),
-                    "AdmissionProcessFormClient",
-                ),
-            }),
-            tabbedCrudRoute({
-                id: "collaborator-people",
-                href: "/collaborator/people",
-                label: "Pessoas",
-                icon: UserRound,
-                permission: "collaborator:read",
-                routeId: "collaborator-people",
-                tabShortLabel: "Pessoa",
-                fieldTabName: "fullName",
-                editOnly: true,
-                showListToFormButton: false,
-                listToolbar: "Consulte e edite dados pessoais. Novos colaboradores entram somente pela admissão.",
-                formTabLabel: "Dados pessoais",
-                formTabLabelEdit: "Editar pessoa",
-                list: lazyNamed(
-                    () => import("@/modules/rh/person/collaborators/people/components/CollaboratorListClient"),
-                    "CollaboratorListClient",
-                ),
-                form: lazyNamed(
-                    () => import("@/modules/rh/person/collaborators/people/components/CollaboratorFormClient"),
-                    "CollaboratorFormClient",
-                ),
-                listPrimaryAction: lazyNamed(
-                    () => import("@/modules/rh/person/collaborators/people/components/CollaboratorPeoplePrimaryAction"),
-                    "CollaboratorPeoplePrimaryAction",
-                ),
-            }),
-        ],
-    }),
+    collaboratorSharedRouteGroup,
     tabbedCrudRoute({
         id: "attendance",
         href: "/attendance",
@@ -147,13 +89,13 @@ export const organizationRoutes: AppRoute[] = [
     tabbedCrudRoute({
         id: "leave",
         href: "/leave",
-        label: "F\u00e9rias",
+        label: "Férias",
         icon: CalendarDays,
         permission: "leave:read",
         routeId: "leave",
-        tabShortLabel: "F\u00e9rias",
+        tabShortLabel: "Férias",
         listToolbar:
-            "F\u00e9rias concedidas e hist\u00f3rico (CLT). Per\u00edodos aquisitivo e concessivo calculados pelo contrato.",
+            "Férias concedidas e histórico (CLT). Períodos aquisitivo e concessivo calculados pelo contrato.",
         list: lazyNamed(
             () => import("@/modules/rh/person/vacation/components/VacationListClient"),
             "VacationListClient",
@@ -209,5 +151,3 @@ export const organizationRoutes: AppRoute[] = [
         ),
     }),
 ];
-
-

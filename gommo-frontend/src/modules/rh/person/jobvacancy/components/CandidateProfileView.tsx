@@ -1,23 +1,23 @@
 "use client";
 
-import type { Candidate, CandidateExperience } from "@/modules/rh/person/candidate/dto/candidate.dto";
-import { EntityAttachments } from "@/shared/components/storage/EntityAttachments";
-import { formatCpf, formatCellValue, formatPhone } from "@/shared/lib/table/format-cell-value";
-import { TableDataType } from "@/shared/types/table.types";
+import type {Candidate, CandidateExperience} from "@/modules/rh/person/candidate/dto/candidate.dto";
+import {EntityAttachments} from "@/shared/components/storage/EntityAttachments";
+import {formatCellValue, formatCpf, formatPhone} from "@/shared/lib/table/format-cell-value";
+import {TableDataType} from "@/shared/types/table.types";
 
 function InfoItem({
-    label,
-    value,
-    className,
-}: {
+                      label,
+                      value,
+                      className,
+                  }: {
     label: string;
     value: string;
     className?: string;
 }) {
     return (
-        <div className={className ?? "min-w-0"}>
-            <p className="text-xs text-base-content/45">{label}</p>
-            <p className="mt-0.5 text-sm font-normal text-base-content [font-variation-settings:'wght'_400]">
+        <div className={className ?? "text-[9pt] min-w-0 flex items-center gap-2"}>
+            <p className="text-base-content/45">{`${label}:`}</p>
+            <p className="font-normal text-base-content [font-variation-settings:'wght'_400]">
                 {value || "—"}
             </p>
         </div>
@@ -25,29 +25,38 @@ function InfoItem({
 }
 
 function InfoLink({
-    label,
-    href,
-    className,
-}: {
+                      label,
+                      href,
+                      className,
+                  }: {
     label: string;
     href?: string | null;
     className?: string;
 }) {
     const trimmed = href?.trim();
     return (
-        <div className={className ?? "min-w-0"}>
-            <p className="text-xs text-base-content/45">{label}</p>
+        <div className={className ?? "text-[9pt] min-w-0 flex items-center gap-2"}>
+
+            {/*<div className={className ?? "text-[9pt] min-w-0 flex items-center gap-2"}>*/}
+            {/*    <p className="text-base-content/45">{`${label}:`}</p>*/}
+            {/*    <p className="font-normal text-base-content [font-variation-settings:'wght'_400]">*/}
+            {/*        {value || "—"}*/}
+            {/*    </p>*/}
+            {/*</div>*/}
+
+
+            <p className="text-xs text-base-content/45">{`${label}:`}</p>
             {trimmed ? (
                 <a
                     href={trimmed}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-0.5 block truncate text-sm font-normal text-primary [font-variation-settings:'wght'_400] hover:underline"
+                    className="tex-blue-500 block truncate font-normal text-primary [font-variation-settings:'wght'_400] hover:underline"
                 >
                     {trimmed}
                 </a>
             ) : (
-                <p className="mt-0.5 text-sm font-normal text-base-content [font-variation-settings:'wght'_400]">
+                <p className="font-normal text-base-content [font-variation-settings:'wght'_400]">
                     —
                 </p>
             )}
@@ -68,26 +77,22 @@ type CandidateProfileViewProps = {
     candidate: Candidate;
 };
 
-export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
+export function CandidateProfileView({candidate}: CandidateProfileViewProps) {
     const location = [candidate.city?.trim(), candidate.stateCode?.trim()].filter(Boolean).join(" / ");
     const experiences = candidate.experiences ?? [];
 
     return (
         <div className="grid gap-6">
             <section className="grid gap-4">
-                <div>
-                    <h4 className="text-sm font-semibold text-base-content">Informações pessoais</h4>
-                    <div className="mt-2 border-t border-base-content/10" />
-                </div>
-                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                    <InfoItem label="Código" value={candidate.code != null ? String(candidate.code) : "—"} />
+                <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
+                    <InfoItem label="Código" value={candidate.code != null ? String(candidate.code) : "—"}/>
                     <InfoItem
                         label="Status"
                         value={formatCellValue(candidate.status, TableDataType.BADGE)}
                     />
-                    <InfoItem label="Nome completo" value={candidate.fullName ?? "—"} />
-                    <InfoItem label="CPF" value={candidate.cpf ? formatCpf(candidate.cpf) : "—"} />
-                    <InfoItem label="E-mail" value={candidate.email ?? "—"} />
+                    <InfoItem label="Nome completo" value={candidate.fullName ?? "—"}/>
+                    <InfoItem label="CPF" value={candidate.cpf ? formatCpf(candidate.cpf) : "—"}/>
+                    <InfoItem label="E-mail" value={candidate.email ?? "—"}/>
                     <InfoItem
                         label="Telefone"
                         value={candidate.phone ? formatPhone(candidate.phone) : "—"}
@@ -96,12 +101,12 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                         label="Data de nascimento"
                         value={formatCellValue(candidate.birthDate, TableDataType.DATE)}
                     />
-                    <InfoItem label="Cidade / UF" value={location || "—"} />
-                    <InfoLink label="LinkedIn" href={candidate.linkedinUrl} className="min-w-0 sm:col-span-2" />
+                    <InfoItem label="Cidade / UF" value={location || "—"}/>
+                    <InfoLink label="LinkedIn" href={candidate.linkedinUrl} className="min-w-0 sm:col-span-2 flex items-center gap-2"/>
                     <InfoLink
                         label="Portfólio / GitHub"
                         href={candidate.portfolioUrl}
-                        className="min-w-0 sm:col-span-2"
+                        className="min-w-0 sm:col-span-2 flex items-center gap-2"
                     />
                     <InfoItem
                         label="Criado em"
@@ -117,7 +122,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
             <section className="grid gap-3">
                 <div>
                     <h4 className="text-sm font-semibold text-base-content">Experiência profissional</h4>
-                    <div className="mt-2 border-t border-base-content/10" />
+                    <div className="mt-2 border-t border-base-content/10"/>
                 </div>
                 {experiences.length === 0 ? (
                     <p className="text-xs text-base-content/45">Nenhuma experiência cadastrada.</p>
@@ -145,10 +150,6 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
             </section>
 
             <section className="grid gap-3">
-                <div>
-                    <h4 className="text-sm font-semibold text-base-content">Currículo</h4>
-                    <div className="mt-2 border-t border-base-content/10" />
-                </div>
                 <EntityAttachments
                     entityType="candidate"
                     entityId={candidate.id}

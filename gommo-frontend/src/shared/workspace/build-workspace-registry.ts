@@ -30,10 +30,8 @@ export function collectWorkspacePages(modules: readonly TModule[]): WorkspacePag
                 continue;
             }
 
+            // Mesmo href em RH e DP (ex.: colaboradores) é intencional: first-wins.
             if (seen.has(route.href)) {
-                if (process.env.NODE_ENV !== "production") {
-                    console.warn(`[workspace] href duplicado "${route.href}" no módulo "${mod.infos.id}"`);
-                }
                 continue;
             }
             seen.add(route.href);

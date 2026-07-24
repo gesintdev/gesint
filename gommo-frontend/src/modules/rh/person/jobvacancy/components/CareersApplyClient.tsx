@@ -1,11 +1,14 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {useMutation, useQuery} from "@tanstack/react-query";
 import clsx from "clsx";
-import { BriefcaseBusiness, Check, ChevronDown, FileText, Plus, Upload } from "lucide-react";
-import { type ChangeEvent, type DragEvent, type FormEvent, useMemo, useRef, useState } from "react";
+import {BriefcaseBusiness, Check, ChevronDown, FileText, Plus, Upload} from "lucide-react";
+import {type ChangeEvent, type DragEvent, type FormEvent, useMemo, useRef, useState} from "react";
 
-import type { PublicJobApplicationPayload, PublicJobVacancy } from "@/modules/rh/person/jobvacancy/dto/public-careers.dto";
+import type {
+    PublicJobApplicationPayload,
+    PublicJobVacancy
+} from "@/modules/rh/person/jobvacancy/dto/public-careers.dto";
 import {
     BRAZIL_STATE_CODES,
     CAREERS_MONTHS,
@@ -23,13 +26,13 @@ import {
     JOB_VACANCY_SENIORITY_LABELS,
     JOB_VACANCY_WORK_MODALITY_LABELS,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.options";
-import { publicCareersService } from "@/modules/rh/person/jobvacancy/services/public-careers.service";
-import { ThemeToggle } from "@/shared/components/layout/ThemeToggle";
-import { Button } from "@/shared/components/ui/Button";
-import { InputCPF, InputPhone, InputSelect, InputString } from "@/shared/components/ui/input/index";
-import { MarkdownContent } from "@/shared/components/ui/MarkdownContent";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { digitsOnly } from "@/shared/lib/input/digits";
+import {publicCareersService} from "@/modules/rh/person/jobvacancy/services/public-careers.service";
+import {ThemeToggle} from "@/shared/components/layout/ThemeToggle";
+import {Button} from "@/shared/components/ui/Button";
+import {InputCPF, InputPhone, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import {MarkdownContent} from "@/shared/components/ui/MarkdownContent";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {digitsOnly} from "@/shared/lib/input/digits";
 
 type ApplyFormState = {
     firstName: string;
@@ -63,10 +66,10 @@ function emptyForm(): ApplyFormState {
     };
 }
 
-function ProgressBar({ step, total }: { step: number; total: number }) {
+function ProgressBar({step, total}: { step: number; total: number }) {
     return (
         <div className="flex items-center gap-2">
-            {Array.from({ length: total }).map((_, index) => (
+            {Array.from({length: total}).map((_, index) => (
                 <div
                     key={index}
                     className={clsx(
@@ -79,10 +82,11 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
     );
 }
 
-function SectionHeader({ number, title, subtitle }: { number: string; title: string; subtitle?: string }) {
+function SectionHeader({number, title, subtitle}: { number: string; title: string; subtitle?: string }) {
     return (
         <div className="mb-7 flex items-start gap-4">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-content">
+            <div
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-content">
                 {number}
             </div>
             <div>
@@ -94,12 +98,12 @@ function SectionHeader({ number, title, subtitle }: { number: string; title: str
 }
 
 function ExperienceCard({
-    exp,
-    index,
-    onChange,
-    onRemove,
-    isOnly,
-}: {
+                            exp,
+                            index,
+                            onChange,
+                            onRemove,
+                            isOnly,
+                        }: {
     exp: CareersExperienceForm;
     index: number;
     onChange: (id: string, patch: Partial<CareersExperienceForm>) => void;
@@ -107,8 +111,8 @@ function ExperienceCard({
     isOnly: boolean;
 }) {
     const [expanded, setExpanded] = useState(true);
-    const monthItems = CAREERS_MONTHS.map((month) => ({ value: month, label: month }));
-    const yearItems = CAREERS_YEARS.map((year) => ({ value: year, label: year }));
+    const monthItems = CAREERS_MONTHS.map((month) => ({value: month, label: month}));
+    const yearItems = CAREERS_YEARS.map((year) => ({value: year, label: year}));
 
     return (
         <div className="mb-3 overflow-hidden rounded-[10px] border border-base-content/10">
@@ -124,7 +128,7 @@ function ExperienceCard({
                     className="flex min-w-0 flex-1 items-center gap-3 text-left"
                 >
                     <div className="flex size-7 items-center justify-center rounded-md bg-primary/10">
-                        <BriefcaseBusiness className="size-3.5 text-primary" />
+                        <BriefcaseBusiness className="size-3.5 text-primary"/>
                     </div>
                     <div className="min-w-0">
                         <div className="text-[13px] font-semibold text-base-content">
@@ -173,14 +177,14 @@ function ExperienceCard({
                             label="Empresa"
                             required
                             value={exp.companyName}
-                            onValueChange={(value) => onChange(exp.id, { companyName: value })}
+                            onValueChange={(value) => onChange(exp.id, {companyName: value})}
                             placeholder="Nome da empresa"
                         />
                         <InputString
                             label="Cargo"
                             required
                             value={exp.jobTitle}
-                            onValueChange={(value) => onChange(exp.id, { jobTitle: value })}
+                            onValueChange={(value) => onChange(exp.id, {jobTitle: value})}
                             placeholder="Seu cargo"
                         />
                     </div>
@@ -189,21 +193,21 @@ function ExperienceCard({
                             label="Mês início"
                             items={monthItems}
                             value={exp.startMonth}
-                            onValueChange={(value) => onChange(exp.id, { startMonth: value })}
+                            onValueChange={(value) => onChange(exp.id, {startMonth: value})}
                             placeholder="Mês"
                         />
                         <InputSelect
                             label="Ano início"
                             items={yearItems}
                             value={exp.startYear}
-                            onValueChange={(value) => onChange(exp.id, { startYear: value })}
+                            onValueChange={(value) => onChange(exp.id, {startYear: value})}
                             placeholder="Ano"
                         />
                         <InputSelect
                             label="Mês fim"
                             items={monthItems}
                             value={exp.endMonth}
-                            onValueChange={(value) => onChange(exp.id, { endMonth: value })}
+                            onValueChange={(value) => onChange(exp.id, {endMonth: value})}
                             placeholder="Mês"
                             disabled={exp.currentJob}
                         />
@@ -211,7 +215,7 @@ function ExperienceCard({
                             label="Ano fim"
                             items={yearItems}
                             value={exp.endYear}
-                            onValueChange={(value) => onChange(exp.id, { endYear: value })}
+                            onValueChange={(value) => onChange(exp.id, {endYear: value})}
                             placeholder="Ano"
                             disabled={exp.currentJob}
                         />
@@ -238,7 +242,7 @@ function ExperienceCard({
                         <textarea
                             rows={3}
                             value={exp.description}
-                            onChange={(event) => onChange(exp.id, { description: event.target.value })}
+                            onChange={(event) => onChange(exp.id, {description: event.target.value})}
                             placeholder="Descreva suas principais responsabilidades e conquistas..."
                             className="w-full resize-y rounded-lg border border-base-content/15 bg-base-100 px-3.5 py-3 text-sm leading-relaxed outline-none transition-[border-color,box-shadow] focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-primary)_18%,transparent)]"
                         />
@@ -249,7 +253,7 @@ function ExperienceCard({
     );
 }
 
-function ResumeUpload({ file, onChange }: { file: File | null; onChange: (file: File | null) => void }) {
+function ResumeUpload({file, onChange}: { file: File | null; onChange: (file: File | null) => void }) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [dragging, setDragging] = useState(false);
 
@@ -272,10 +276,12 @@ function ResumeUpload({ file, onChange }: { file: File | null; onChange: (file: 
 
     if (file) {
         return (
-            <div className="flex items-center justify-between rounded-[10px] border border-primary bg-primary/5 px-[18px] py-4">
+            <div
+                className="flex items-center justify-between rounded-[10px] border border-primary bg-primary/5 px-[18px] py-4">
                 <div className="flex items-center gap-3">
-                    <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-content">
-                        <FileText className="size-4" />
+                    <div
+                        className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-content">
+                        <FileText className="size-4"/>
                     </div>
                     <div>
                         <div className="text-sm font-semibold text-base-content">{file.name}</div>
@@ -316,7 +322,7 @@ function ResumeUpload({ file, onChange }: { file: File | null; onChange: (file: 
                 className="hidden"
             />
             <div className="mx-auto mb-3.5 flex size-12 items-center justify-center rounded-[10px] bg-primary/10">
-                <Upload className="size-5 text-primary" />
+                <Upload className="size-5 text-primary"/>
             </div>
             <div className="mb-1.5 text-[15px] font-semibold text-base-content">
                 Arraste seu currículo ou clique para selecionar
@@ -326,7 +332,7 @@ function ResumeUpload({ file, onChange }: { file: File | null; onChange: (file: 
     );
 }
 
-function JobSidebar({ vacancy }: { vacancy: PublicJobVacancy }) {
+function JobSidebar({vacancy}: { vacancy: PublicJobVacancy }) {
     const salaryLabel = formatSalaryRange(vacancy.salary, vacancy.salaryMax);
     const publishedLabel = formatPublishedLabel(vacancy.publishedAt);
     const modalityLabel = vacancy.workModality
@@ -344,32 +350,40 @@ function JobSidebar({ vacancy }: { vacancy: PublicJobVacancy }) {
     const contractChip = [contractLabel, vacancy.workSchedule].filter(Boolean).join(" · ");
 
     const chips = [
-        locationChip ? { label: locationChip } : null,
-        contractChip ? { label: contractChip } : null,
-        salaryLabel ? { label: salaryLabel } : null,
-        seniorityLabel ? { label: seniorityLabel } : null,
-        publishedLabel ? { label: `Publicada em ${publishedLabel}` } : null,
+        locationChip ? {label: locationChip} : null,
+        contractChip ? {label: contractChip} : null,
+        salaryLabel ? {label: salaryLabel} : null,
+        seniorityLabel ? {label: seniorityLabel} : null,
+        publishedLabel ? {label: `Publicada em ${publishedLabel}`} : null,
     ].filter(Boolean) as { label: string }[];
 
     return (
-        <aside className="flex h-full min-h-[calc(100vh-3.5rem)] flex-col bg-primary px-8 py-10 text-primary-content lg:sticky lg:top-14 lg:max-h-[calc(100vh-3.5rem)] lg:overflow-y-auto">
-            <div className="mb-7 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold tracking-[0.08em] text-white">
-                <span className="size-1.5 rounded-full bg-success" />
+        <aside
+            className="flex h-full min-h-[calc(100vh-3.5rem)] flex-col bg-primary px-8 py-10 text-primary-content lg:sticky lg:top-14 lg:max-h-[calc(100vh-3.5rem)] lg:overflow-y-auto">
+            <div
+                className="mb-7 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold tracking-[0.08em] text-white">
+                <span className="size-1.5 rounded-full bg-success"/>
                 VAGA ABERTA
             </div>
 
-            <div className="mb-5 flex size-[52px] items-center justify-center rounded-xl border border-white/30 bg-white/20">
-                <BriefcaseBusiness className="size-6 text-white/90" />
+            <div className="flex items-center gap-4">
+                <div className="flex size-13 items-center justify-center rounded-xl border border-white/30 bg-white/20">
+                    <BriefcaseBusiness className="size-6 text-white/90"/>
+                </div>
+                <div className="">
+                    {vacancy.department ? (
+                        <p className="text-xs font-medium text-white/65">{vacancy.department}</p>
+                    ) : null}
+                    <h1 className="text-2xl font-extrabold leading-tight text-white">{vacancy.jobTitle}</h1>
+                </div>
+
             </div>
 
-            {vacancy.department ? (
-                <p className="mb-1.5 text-xs font-medium text-white/65">{vacancy.department}</p>
-            ) : null}
-            <h1 className="mb-1.5 text-2xl font-extrabold leading-tight text-white">{vacancy.jobTitle}</h1>
+
             {seniorityLabel && !chips.some((chip) => chip.label === seniorityLabel) ? (
                 <p className="mb-7 text-sm text-white/75">{seniorityLabel}</p>
             ) : (
-                <div className="mb-7" />
+                <div className="mb-7"/>
             )}
 
             {chips.length > 0 ? (
@@ -401,8 +415,9 @@ function JobSidebar({ vacancy }: { vacancy: PublicJobVacancy }) {
                     <div className="flex flex-col gap-2.5">
                         {requirements.map((item) => (
                             <div key={item} className="flex items-start gap-2.5">
-                                <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-white/20">
-                                    <Check className="size-2 text-white" strokeWidth={3} />
+                                <span
+                                    className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-white/20">
+                                    <Check className="size-2 text-white" strokeWidth={3}/>
                                 </span>
                                 <span className="text-[13px] leading-snug text-white/80">{item}</span>
                             </div>
@@ -453,7 +468,7 @@ function JobSidebar({ vacancy }: { vacancy: PublicJobVacancy }) {
                     <>
                         Código da vaga:{" "}
                         <strong className="text-white/70">#{vacancy.code}</strong>
-                        <br />
+                        <br/>
                     </>
                 ) : null}
                 {publishedLabel ? <>Publicada em {publishedLabel}</> : null}
@@ -462,7 +477,7 @@ function JobSidebar({ vacancy }: { vacancy: PublicJobVacancy }) {
     );
 }
 
-export function CareersApplyClient({ slug }: { slug: string }) {
+export function CareersApplyClient({slug}: { slug: string }) {
     const [form, setForm] = useState<ApplyFormState>(emptyForm);
     const [resumeFile, setResumeFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -476,9 +491,9 @@ export function CareersApplyClient({ slug }: { slug: string }) {
 
     const applyMutation = useMutation({
         mutationFn: ({
-            payload,
-            resume,
-        }: {
+                         payload,
+                         resume,
+                     }: {
             payload: PublicJobApplicationPayload;
             resume: File | null;
         }) => publicCareersService.apply(slug, payload, resume),
@@ -497,11 +512,11 @@ export function CareersApplyClient({ slug }: { slug: string }) {
     });
 
     const stateItems = useMemo(
-        () => BRAZIL_STATE_CODES.map((code) => ({ value: code, label: code })),
+        () => BRAZIL_STATE_CODES.map((code) => ({value: code, label: code})),
         [],
     );
     const referralItems = useMemo(
-        () => CAREERS_REFERRAL_OPTIONS.map((item) => ({ value: item.value, label: item.label })),
+        () => CAREERS_REFERRAL_OPTIONS.map((item) => ({value: item.value, label: item.label})),
         [],
     );
 
@@ -512,13 +527,13 @@ export function CareersApplyClient({ slug }: { slug: string }) {
     ].filter(Boolean).length;
 
     const update = <K extends keyof ApplyFormState>(field: K, value: ApplyFormState[K]) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
+        setForm((prev) => ({...prev, [field]: value}));
     };
 
     const updateExperience = (id: string, patch: Partial<CareersExperienceForm>) => {
         setForm((prev) => ({
             ...prev,
-            experiences: prev.experiences.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+            experiences: prev.experiences.map((item) => (item.id === id ? {...item, ...patch} : item)),
         }));
     };
 
@@ -578,10 +593,10 @@ export function CareersApplyClient({ slug }: { slug: string }) {
         return (
             <div className="min-h-screen bg-base-200 p-8">
                 <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[460px_1fr]">
-                    <div className="skeleton-shimmer h-[70vh] rounded-2xl" />
+                    <div className="skeleton-shimmer h-[70vh] rounded-2xl"/>
                     <div className="grid gap-3">
-                        {Array.from({ length: 4 }).map((_, index) => (
-                            <div key={index} className="skeleton-shimmer h-28 rounded-xl" />
+                        {Array.from({length: 4}).map((_, index) => (
+                            <div key={index} className="skeleton-shimmer h-28 rounded-xl"/>
                         ))}
                     </div>
                 </div>
@@ -592,7 +607,8 @@ export function CareersApplyClient({ slug }: { slug: string }) {
     if (vacancyQuery.isError || !vacancyQuery.data) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-base-200 px-4">
-                <div className="w-full max-w-lg rounded-2xl border border-base-content/10 bg-base-100 p-8 text-center shadow-sm">
+                <div
+                    className="w-full max-w-lg rounded-2xl border border-base-content/10 bg-base-100 p-8 text-center shadow-sm">
                     <h1 className="text-xl font-semibold text-base-content">Vaga não disponível</h1>
                     <p className="mt-2 text-sm text-base-content/60">
                         {ExceptionCapture.displayMessage(
@@ -609,7 +625,8 @@ export function CareersApplyClient({ slug }: { slug: string }) {
 
     return (
         <div className="min-h-screen bg-base-200">
-            <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-base-content/10 bg-base-100 px-6 sm:px-8">
+            <header
+                className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-base-content/10 bg-base-100 px-6 sm:px-8">
                 <div className="flex items-center gap-2.5">
                     <img
                         src="/brand/gommo-logo-blue.svg"
@@ -629,12 +646,12 @@ export function CareersApplyClient({ slug }: { slug: string }) {
                             completedSections === 3 ? "bg-success" : "bg-warning",
                         )}
                     />
-                    <ThemeToggle />
+                    <ThemeToggle/>
                 </div>
             </header>
 
-            <div className="grid min-h-[calc(100vh-3.5rem)] items-start lg:grid-cols-[460px_1fr]">
-                <JobSidebar vacancy={vacancy} />
+            <div className="grid min-h-[calc(100vh-3.5rem)] items-start lg:grid-cols-[520px_1fr]">
+                <JobSidebar vacancy={vacancy}/>
 
                 <div className="px-5 py-10 sm:px-10 lg:px-10 lg:pb-16">
                     <div className="mb-8">
@@ -643,13 +660,15 @@ export function CareersApplyClient({ slug }: { slug: string }) {
                             Preencha os campos abaixo. Campos com{" "}
                             <span className="font-semibold text-primary">*</span> são obrigatórios.
                         </p>
-                        <ProgressBar step={completedSections} total={3} />
+                        <ProgressBar step={completedSections} total={3}/>
                     </div>
 
                     {submitted ? (
-                        <div className="rounded-xl border border-base-content/10 bg-base-100 px-6 py-20 text-center shadow-sm">
-                            <div className="mx-auto mb-6 flex size-[72px] items-center justify-center rounded-full bg-primary text-primary-content shadow-[0_8px_32px_color-mix(in_oklab,var(--color-primary)_30%,transparent)]">
-                                <Check className="size-8" strokeWidth={2.5} />
+                        <div
+                            className="rounded-xl border border-base-content/10 bg-base-100 px-6 py-20 text-center shadow-sm">
+                            <div
+                                className="mx-auto mb-6 flex size-18 items-center justify-center rounded-full bg-primary text-primary-content shadow-[0_8px_32px_color-mix(in_oklab,var(--color-primary)_30%,transparent)]">
+                                <Check className="size-8" strokeWidth={2.5}/>
                             </div>
                             <h3 className="mb-3 text-[26px] font-extrabold text-base-content">
                                 Candidatura enviada!
@@ -671,7 +690,8 @@ export function CareersApplyClient({ slug }: { slug: string }) {
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="grid gap-3.5">
-                            <section className="rounded-xl border border-base-content/10 bg-base-100 p-[26px] shadow-sm">
+                            <section
+                                className="rounded-xl border border-base-content/10 bg-base-100 p-[26px] shadow-sm">
                                 <SectionHeader
                                     number="1"
                                     title="Informações pessoais"
@@ -740,7 +760,8 @@ export function CareersApplyClient({ slug }: { slug: string }) {
                                 </div>
                             </section>
 
-                            <section className="rounded-xl border border-base-content/10 bg-base-100 p-[26px] shadow-sm">
+                            <section
+                                className="rounded-xl border border-base-content/10 bg-base-100 p-[26px] shadow-sm">
                                 <SectionHeader
                                     number="2"
                                     title="Experiências profissionais"
@@ -771,12 +792,13 @@ export function CareersApplyClient({ slug }: { slug: string }) {
                                     }
                                     className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-base-content/25 px-[18px] py-2.5 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary/5"
                                 >
-                                    <Plus className="size-4" />
+                                    <Plus className="size-4"/>
                                     Adicionar experiência
                                 </button>
                             </section>
 
-                            <section className="rounded-xl border border-base-content/10 bg-base-100 p-[26px] shadow-sm">
+                            <section
+                                className="rounded-xl border border-base-content/10 bg-base-100 p-[26px] shadow-sm">
                                 <SectionHeader
                                     number="3"
                                     title="Currículo e carta de apresentação"
@@ -784,7 +806,7 @@ export function CareersApplyClient({ slug }: { slug: string }) {
                                 />
                                 <div className="mb-5 grid gap-1.5">
                                     <span className="text-[13px] font-medium text-base-content/80">Currículo</span>
-                                    <ResumeUpload file={resumeFile} onChange={setResumeFile} />
+                                    <ResumeUpload file={resumeFile} onChange={setResumeFile}/>
                                 </div>
                                 <label className="mb-4 grid gap-1.5">
                                     <span className="text-[13px] font-medium text-base-content/80">

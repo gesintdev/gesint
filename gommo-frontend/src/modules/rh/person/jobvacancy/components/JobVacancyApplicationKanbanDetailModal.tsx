@@ -1,27 +1,31 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import clsx from "clsx";
-import { ChevronDown, Trash2, UserRound, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { toast } from "sonner";
+import {ChevronDown, Trash2, UserRound, X} from "lucide-react";
+import {useEffect, useMemo, useRef, useState} from "react";
+import {createPortal} from "react-dom";
+import {toast} from "sonner";
 
-import type { AdmissionProcessKanbanColumn } from "@/modules/cfg/settings/admissionprocesskanban/dto/admission-process-kanban-column.dto";
-import { candidateKeys } from "@/modules/rh/person/candidate/candidate.query";
-import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
-import { CandidateProfileView } from "@/modules/rh/person/jobvacancy/components/CandidateProfileView";
-import { HIRING_KANBAN_COLUMN_KEY } from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
-import type { JobVacancyApplication } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
-import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
-import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
-import { resolveKanbanColumnColor } from "@/shared/components/kanban";
-import { Button } from "@/shared/components/ui/Button";
-import { fieldClass } from "@/shared/components/ui/input/InputFieldChrome";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { formatCellValue } from "@/shared/lib/table/format-cell-value";
-import { SystemAlert } from "@/shared/system-alert";
-import { TableDataType } from "@/shared/types/table.types";
+import type {
+    AdmissionProcessKanbanColumn
+} from "@/modules/cfg/settings/admissionprocesskanban/dto/admission-process-kanban-column.dto";
+import {candidateKeys} from "@/modules/rh/person/candidate/candidate.query";
+import {candidateService} from "@/modules/rh/person/candidate/services/candidate.service";
+import {CandidateProfileView} from "@/modules/rh/person/jobvacancy/components/CandidateProfileView";
+import {HIRING_KANBAN_COLUMN_KEY} from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
+import type {JobVacancyApplication} from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
+import {jobVacancyApplicationKeys} from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
+import {
+    jobVacancyApplicationService
+} from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
+import {resolveKanbanColumnColor} from "@/shared/components/kanban";
+import {Button} from "@/shared/components/ui/Button";
+import {fieldClass} from "@/shared/components/ui/input/InputFieldChrome";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {formatCellValue} from "@/shared/lib/table/format-cell-value";
+import {SystemAlert} from "@/shared/system-alert";
+import {TableDataType} from "@/shared/types/table.types";
 
 type JobVacancyApplicationKanbanDetailModalProps = {
     open: boolean;
@@ -41,7 +45,7 @@ type EditableStageComment = {
     isCurrent: boolean;
 };
 
-function DetailField({ label, value }: { label: string; value: string }) {
+function DetailField({label, value}: { label: string; value: string }) {
     return (
         <div className="min-w-0 rounded-lg border border-base-content/8 bg-base-content/[0.02] px-3 py-2.5">
             <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.04em] text-base-content/40">
@@ -53,17 +57,17 @@ function DetailField({ label, value }: { label: string; value: string }) {
 }
 
 function StageCommentAccordion({
-    title,
-    value,
-    updatedAt,
-    columnColor,
-    defaultOpen,
-    disabled,
-    canDelete,
-    deleteLoading,
-    onChange,
-    onDelete,
-}: {
+                                   title,
+                                   value,
+                                   updatedAt,
+                                   columnColor,
+                                   defaultOpen,
+                                   disabled,
+                                   canDelete,
+                                   deleteLoading,
+                                   onChange,
+                                   onDelete,
+                               }: {
     title: string;
     value: string;
     updatedAt?: string;
@@ -96,7 +100,7 @@ function StageCommentAccordion({
                 >
                     <span
                         className="size-1.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: color }}
+                        style={{backgroundColor: color}}
                         aria-hidden
                     />
                     <span className="min-w-0 flex-1 truncate text-xs font-semibold text-base-content">
@@ -122,7 +126,7 @@ function StageCommentAccordion({
                         onDelete?.();
                     }}
                 >
-                    <Trash2 className="size-3.5" strokeWidth={2.25} />
+                    <Trash2 className="size-3.5" strokeWidth={2.25}/>
                 </button>
                 <button
                     type="button"
@@ -164,9 +168,9 @@ function StageCommentAccordion({
 }
 
 function CandidateProfileAccordion({
-    candidateId,
-    defaultOpen = true,
-}: {
+                                       candidateId,
+                                       defaultOpen = true,
+                                   }: {
     candidateId: string;
     defaultOpen?: boolean;
 }) {
@@ -185,7 +189,7 @@ function CandidateProfileAccordion({
                 aria-expanded={open}
                 onClick={() => setOpen((current) => !current)}
             >
-                <UserRound className="size-3.5 shrink-0 text-base-content/45" strokeWidth={2.25} />
+                <UserRound className="size-3.5 shrink-0 text-base-content/45" strokeWidth={2.25}/>
                 <span className="min-w-0 flex-1 truncate text-xs font-semibold text-base-content">
                     Perfil do candidato
                 </span>
@@ -198,8 +202,8 @@ function CandidateProfileAccordion({
                 <div className="border-t border-base-content/8 bg-base-100/70 px-3 py-3">
                     {detailQuery.isLoading ? (
                         <div className="grid gap-3 sm:grid-cols-2">
-                            {Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} className="skeleton-shimmer h-14 w-full rounded-lg" />
+                            {Array.from({length: 4}).map((_, i) => (
+                                <div key={i} className="skeleton-shimmer h-14 w-full rounded-lg"/>
                             ))}
                         </div>
                     ) : null}
@@ -211,7 +215,7 @@ function CandidateProfileAccordion({
                             )}
                         </p>
                     ) : null}
-                    {detailQuery.data ? <CandidateProfileView candidate={detailQuery.data} /> : null}
+                    {detailQuery.data ? <CandidateProfileView candidate={detailQuery.data}/> : null}
                 </div>
             ) : null}
         </div>
@@ -230,13 +234,13 @@ function buildDraftsFromApplication(
 }
 
 export function JobVacancyApplicationKanbanDetailModal({
-    open,
-    application,
-    columns,
-    onClose,
-    onCreateAdmission,
-    createAdmissionLoading = false,
-}: JobVacancyApplicationKanbanDetailModalProps) {
+                                                           open,
+                                                           application,
+                                                           columns,
+                                                           onClose,
+                                                           onCreateAdmission,
+                                                           createAdmissionLoading = false,
+                                                       }: JobVacancyApplicationKanbanDetailModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const queryClient = useQueryClient();
     const [mounted, setMounted] = useState(false);
@@ -324,7 +328,7 @@ export function JobVacancyApplicationKanbanDetailModal({
                 queryKey: jobVacancyApplicationKeys.byVacancy(updated.jobVacancyId),
             });
         }
-        await queryClient.invalidateQueries({ queryKey: jobVacancyApplicationKeys.all });
+        await queryClient.invalidateQueries({queryKey: jobVacancyApplicationKeys.all});
     };
 
     const saveMutation = useMutation({
@@ -396,7 +400,7 @@ export function JobVacancyApplicationKanbanDetailModal({
                         className="gommo-btn gommo-btn--ghost gommo-btn--icon-only shrink-0 text-base-content/50"
                         onClick={onClose}
                     >
-                        <X className="size-4" strokeWidth={2} />
+                        <X className="size-4" strokeWidth={2}/>
                     </button>
                 </div>
 
@@ -416,11 +420,6 @@ export function JobVacancyApplicationKanbanDetailModal({
 
                             {application.candidateId ? (
                                 <section className="grid gap-2 text-xs">
-                                    <div>
-                                        <h4 className="text-xs font-semibold text-base-content">
-                                            Perfil
-                                        </h4>
-                                    </div>
                                     <CandidateProfileAccordion
                                         candidateId={application.candidateId}
                                         defaultOpen

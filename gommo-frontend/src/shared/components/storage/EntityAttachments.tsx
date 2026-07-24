@@ -1,22 +1,22 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Download, Eye, Pencil, Trash2, Upload, X } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {Check, Download, Eye, Pencil, Trash2, Upload, X} from "lucide-react";
+import {useMemo, useRef, useState} from "react";
+import {toast} from "sonner";
 
-import { documentTypeLabel } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
-import type { StorageObjectLink } from "@/modules/storage/dto/storage.dto";
-import { formatStorageMaxFileSize, isStorageFileTooLarge } from "@/modules/storage/lib/storage-limits";
-import { storageService } from "@/modules/storage/services/storage.service";
-import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { StoragePdfPreviewModal } from "@/shared/components/storage/StoragePdfPreviewModal";
-import { Button } from "@/shared/components/ui/Button";
-import { DataTable } from "@/shared/components/ui/DataTable";
-import { InputSelect } from "@/shared/components/ui/input/InputSelect";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
-import { SystemAlert } from "@/shared/system-alert";
-import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
+import {documentTypeLabel} from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
+import type {StorageObjectLink} from "@/modules/storage/dto/storage.dto";
+import {formatStorageMaxFileSize, isStorageFileTooLarge} from "@/modules/storage/lib/storage-limits";
+import {storageService} from "@/modules/storage/services/storage.service";
+import {TableActionButton} from "@/shared/components/crud/TableActionButton";
+import {StoragePdfPreviewModal} from "@/shared/components/storage/StoragePdfPreviewModal";
+import {Button} from "@/shared/components/ui/Button";
+import {DataTable} from "@/shared/components/ui/DataTable";
+import {InputSelect} from "@/shared/components/ui/input/InputSelect";
+import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {sortRowsByCreatedAtDesc} from "@/shared/lib/table/sort-rows-by-created-at";
+import {SystemAlert} from "@/shared/system-alert";
+import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types";
 
 export type PendingAttachment = {
     id: string;
@@ -96,15 +96,15 @@ export async function flushPendingAttachments(params: {
 }
 
 export function EntityAttachments({
-    entityType,
-    entityId,
-    linkRole = "DOCUMENT",
-    documentTypeItems,
-    emptyMessage = "Nenhum documento anexado.",
-    deferUpload = false,
-    pendingAttachments = [],
-    onPendingAttachmentsChange,
-}: EntityAttachmentsProps) {
+                                      entityType,
+                                      entityId,
+                                      linkRole = "DOCUMENT",
+                                      documentTypeItems,
+                                      emptyMessage = "Nenhum documento anexado.",
+                                      deferUpload = false,
+                                      pendingAttachments = [],
+                                      onPendingAttachmentsChange,
+                                  }: EntityAttachmentsProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const queryClient = useQueryClient();
     const [uploading, setUploading] = useState(false);
@@ -129,23 +129,23 @@ export function EntityAttachments({
             await storageService.deleteObject(link.storageObjectId);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey });
+            await queryClient.invalidateQueries({queryKey});
             toast.success("Arquivo removido");
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível remover o arquivo" }),
+            ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível remover o arquivo"}),
     });
     const updateDocumentTypeMutation = useMutation({
-        mutationFn: async ({ linkId, documentType: nextType }: { linkId: string; documentType: string }) =>
+        mutationFn: async ({linkId, documentType: nextType}: { linkId: string; documentType: string }) =>
             storageService.updateLinkDocumentType(linkId, nextType),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey });
+            await queryClient.invalidateQueries({queryKey});
             setEditingRowId(null);
             setEditingDocumentType("");
             toast.success("Tipo de documento atualizado");
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível atualizar o tipo de documento" }),
+            ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível atualizar o tipo de documento"}),
     });
     const handleDownload = async (row: AttachmentTableRow) => {
         if (row.pending && row.pendingItem) {
@@ -166,7 +166,7 @@ export function EntityAttachments({
         try {
             await storageService.downloadFile(row.serverLink.storageObjectId, row.displayName);
         } catch (err: unknown) {
-            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível baixar o arquivo" });
+            ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível baixar o arquivo"});
         } finally {
             setDownloadingId(null);
         }
@@ -203,7 +203,7 @@ export function EntityAttachments({
         if (row.pending && row.pendingItem && onPendingAttachmentsChange) {
             onPendingAttachmentsChange(
                 pendingAttachments.map((item) =>
-                    item.id === row.id ? { ...item, documentType: editingDocumentType } : item,
+                    item.id === row.id ? {...item, documentType: editingDocumentType} : item,
                 ),
             );
             cancelEditDocumentType();
@@ -252,11 +252,11 @@ export function EntityAttachments({
                 displayName: file.name,
                 documentType: documentType || undefined,
             });
-            await queryClient.invalidateQueries({ queryKey });
+            await queryClient.invalidateQueries({queryKey});
             setDocumentType("");
             toast.success("Arquivo enviado");
         } catch (err: unknown) {
-            ExceptionCapture.handle(err, { fallbackMessage: "Falha no upload" });
+            ExceptionCapture.handle(err, {fallbackMessage: "Falha no upload"});
         } finally {
             setUploading(false);
         }
@@ -281,18 +281,18 @@ export function EntityAttachments({
     const columns: TableColumnConfig[] = [
         ...(documentTypeItems
             ? [
-                  {
-                      id: "documentType",
-                      columnName: "Tipo",
-                      fieldValue: "documentTypeLabel",
-                      dataType: TableDataType.TEXT,
-                  },
-              ]
+                {
+                    id: "documentType",
+                    columnName: "Tipo",
+                    fieldValue: "documentTypeLabel",
+                    dataType: TableDataType.TEXT,
+                },
+            ]
             : []),
-        { id: "displayName", columnName: "Arquivo", fieldValue: "displayName", dataType: TableDataType.TEXT },
-        { id: "size", columnName: "Tamanho", fieldValue: "sizeLabel", dataType: TableDataType.TEXT },
+        {id: "displayName", columnName: "Arquivo", fieldValue: "displayName", dataType: TableDataType.TEXT},
+        {id: "size", columnName: "Tamanho", fieldValue: "sizeLabel", dataType: TableDataType.TEXT},
         ...(deferUpload
-            ? [{ id: "status", columnName: "Situação", fieldValue: "statusLabel", dataType: TableDataType.TEXT }]
+            ? [{id: "status", columnName: "Situação", fieldValue: "statusLabel", dataType: TableDataType.TEXT}]
             : []),
     ];
     const rows = useMemo(() => {
@@ -361,7 +361,7 @@ export function EntityAttachments({
                     variant="outline"
                     size="sm"
                     loading={uploading}
-                    leftIcon={<Upload className="size-3.5" />}
+                    leftIcon={<Upload className="size-3.5"/>}
                     onClick={() => inputRef.current?.click()}
                 >
                     {deferUpload ? "Anexar arquivo" : "Enviar arquivo"}
@@ -371,7 +371,7 @@ export function EntityAttachments({
                 <p className="text-xs text-base-content/45">Os arquivos serão enviados ao salvar o cadastro.</p>
             ) : null}
             {isLoading ? (
-                <div className="skeleton-shimmer h-24 w-full rounded-lg" />
+                <div className="skeleton-shimmer h-24 w-full rounded-lg"/>
             ) : (
                 <DataTable<AttachmentTableRow>
                     data={rows}
@@ -392,14 +392,14 @@ export function EntityAttachments({
                                     <TableActionButton
                                         actionVariant="edit"
                                         aria-label="Confirmar tipo"
-                                        leftIcon={<Check className="size-3.5" />}
+                                        leftIcon={<Check className="size-3.5"/>}
                                         loading={updateDocumentTypeMutation.isPending}
                                         onClick={() => saveEditDocumentType(row)}
                                     />
                                     <TableActionButton
                                         actionVariant="delete"
                                         aria-label="Cancelar edição"
-                                        leftIcon={<X className="size-3.5" />}
+                                        leftIcon={<X className="size-3.5"/>}
                                         onClick={cancelEditDocumentType}
                                     />
                                 </>
@@ -409,7 +409,7 @@ export function EntityAttachments({
                                         <TableActionButton
                                             actionVariant="edit"
                                             aria-label="Editar tipo de documento"
-                                            leftIcon={<Pencil className="size-3.5" />}
+                                            leftIcon={<Pencil className="size-3.5"/>}
                                             onClick={() => startEditDocumentType(row)}
                                         />
                                     ) : null}
@@ -418,21 +418,21 @@ export function EntityAttachments({
                                             actionVariant="open"
                                             aria-label="Visualizar PDF"
                                             title="Visualizar PDF"
-                                            leftIcon={<Eye className="size-3.5" />}
+                                            leftIcon={<Eye className="size-3.5"/>}
                                             onClick={() => handlePreviewPdf(row)}
                                         />
                                     ) : null}
                                     <TableActionButton
                                         actionVariant="download"
                                         aria-label="Download"
-                                        leftIcon={<Download className="size-3.5" />}
+                                        leftIcon={<Download className="size-3.5"/>}
                                         loading={downloadingId === row.id}
                                         onClick={() => void handleDownload(row)}
                                     />
                                     <TableActionButton
                                         actionVariant="delete"
                                         aria-label="Excluir"
-                                        leftIcon={<Trash2 className="size-3.5" />}
+                                        leftIcon={<Trash2 className="size-3.5"/>}
                                         loading={!row.pending && deleteMutation.isPending}
                                         onClick={async () => {
                                             if (row.pending) {

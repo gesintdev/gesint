@@ -268,6 +268,40 @@ body {
     color: var(--color-base-content);
 }
 
+/*
+  Markdown / TipTap — Inter variable font.
+  font-variation-settings é herdado; sem reset em strong/b o negrito
+  visual fica idêntico ao texto normal (o eixo wght do pai sobrescreve).
+*/
+.gommo-markdown,
+.gommo-markdown .tiptap,
+.gommo-markdown .ProseMirror {
+    font-weight: 400;
+    font-variation-settings: "wght" 350;
+}
+
+.gommo-markdown strong,
+.gommo-markdown b {
+    font-weight: 700;
+    font-variation-settings: "wght" 700;
+}
+
+.gommo-markdown em,
+.gommo-markdown i {
+    font-style: italic;
+    font-variation-settings: "wght" 350;
+}
+
+.gommo-markdown h2 {
+    font-weight: 700;
+    font-variation-settings: "wght" 700;
+}
+
+.gommo-markdown h3 {
+    font-weight: 600;
+    font-variation-settings: "wght" 600;
+}
+
 /* ──────────────────────────────────────────────
    Custom scrollbar — thin, subtle
 ────────────────────────────────────────────── */

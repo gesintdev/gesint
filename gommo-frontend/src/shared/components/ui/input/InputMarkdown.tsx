@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import clsx from "clsx";
 import {
@@ -15,7 +14,7 @@ import {
     ListOrdered,
 } from "lucide-react";
 import { marked } from "marked";
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import TurndownService from "turndown";
 
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
@@ -48,6 +47,25 @@ marked.setOptions({
     breaks: true,
 });
 
+const EDITOR_CLASS = clsx(
+    "gommo-markdown min-h-[180px] px-3 py-2.5 text-sm leading-relaxed text-base-content outline-none",
+    "[&_h2]:mb-2.5 [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:text-base-content",
+    "[&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:text-base [&_h3]:text-base-content",
+    "[&_p]:mb-2.5 [&_p]:last:mb-0",
+    "[&_ul]:mb-2.5 [&_ul]:list-disc [&_ul]:ps-5",
+    "[&_ol]:mb-2.5 [&_ol]:list-decimal [&_ol]:ps-5",
+    "[&_li]:mb-1",
+    "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2",
+    "[&_code]:rounded [&_code]:bg-base-200 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[12px]",
+    "[&_pre]:mb-2.5 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-base-200 [&_pre]:p-3",
+    "[&_blockquote]:my-2.5 [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:ps-3 [&_blockquote]:text-base-content/65",
+    "[&_.is-empty:first-child::before]:pointer-events-none",
+    "[&_.is-empty:first-child::before]:float-left",
+    "[&_.is-empty:first-child::before]:h-0",
+    "[&_.is-empty:first-child::before]:text-base-content/35",
+    "[&_.is-empty:first-child::before]:content-[attr(data-placeholder)]",
+);
+
 function markdownToHtml(markdown: string): string {
     const trimmed = markdown.trim();
     if (!trimmed) return "";
@@ -56,6 +74,10 @@ function markdownToHtml(markdown: string): string {
 
 function htmlToMarkdown(html: string): string {
     return turndown.turndown(html ?? "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function readEditorMarkdown(editor: { isEmpty: boolean; getHTML: () => string }): string {
+    return editor.isEmpty ? "" : htmlToMarkdown(editor.getHTML());
 }
 
 export function InputMarkdown({
@@ -76,16 +98,23 @@ export function InputMarkdown({
     const editable = !disabled && !readOnly;
     const minHeight = Math.max(180, rows * 18);
     const lastEmittedRef = useRef((value ?? "").trim());
+    const onValueChangeRef = useRef(onValueChange);
+    onValueChangeRef.current = onValueChange;
 
-    const editor = useEditor({
-        extensions: [
+    const emitMarkdown = (next: string) => {
+        lastEmittedRef.current = next;
+        onValueChangeRef.current(next);
+    };
+
+    const extensions = useMemo(
+        () => [
             StarterKit.configure({
                 heading: { levels: [2, 3] },
-            }),
-            Link.configure({
-                openOnClick: false,
-                autolink: true,
-                linkOnPaste: true,
+                link: {
+                    openOnClick: false,
+                    autolink: true,
+                    linkOnPaste: true,
+                },
             }),
             ...(placeholder
                 ? [
@@ -96,52 +125,70 @@ export function InputMarkdown({
                   ]
                 : []),
         ],
-        content: markdownToHtml(value) || "",
-        editable,
-        immediatelyRender: false,
-        shouldRerenderOnTransaction: true,
-        editorProps: {
-            attributes: {
-                ...(idProp ? { id: idProp } : {}),
-                class: clsx(
-                    "gommo-markdown min-h-[180px] px-3 py-2.5 text-sm font-normal leading-relaxed text-base-content outline-none",
-                    "[&_h2]:mb-2.5 [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-base-content",
-                    "[&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-base-content",
-                    "[&_p]:mb-2.5 [&_p]:font-normal [&_p]:last:mb-0",
-                    "[&_ul]:mb-2.5 [&_ul]:list-disc [&_ul]:ps-5",
-                    "[&_ol]:mb-2.5 [&_ol]:list-decimal [&_ol]:ps-5",
-                    "[&_li]:mb-1 [&_li]:font-normal",
-                    "[&_a]:font-normal [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2",
-                    "[&_strong]:font-semibold [&_b]:font-semibold",
-                    "[&_code]:rounded [&_code]:bg-base-200 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[12px] [&_code]:font-normal",
-                    "[&_pre]:mb-2.5 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-base-200 [&_pre]:p-3",
-                    "[&_blockquote]:my-2.5 [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:ps-3 [&_blockquote]:font-normal [&_blockquote]:text-base-content/65",
-                    "[&_.is-empty:first-child::before]:pointer-events-none",
-                    "[&_.is-empty:first-child::before]:float-left",
-                    "[&_.is-empty:first-child::before]:h-0",
-                    "[&_.is-empty:first-child::before]:font-normal",
-                    "[&_.is-empty:first-child::before]:text-base-content/35",
-                    "[&_.is-empty:first-child::before]:content-[attr(data-placeholder)]",
-                ),
-                style: `min-height: ${minHeight}px; font-variation-settings: "wght" 450;`,
+        [placeholder],
+    );
+
+    const editor = useEditor(
+        {
+            extensions,
+            content: markdownToHtml(value) || "",
+            editable,
+            immediatelyRender: false,
+            shouldRerenderOnTransaction: false,
+            editorProps: {
+                attributes: {
+                    ...(idProp ? { id: idProp } : {}),
+                    class: EDITOR_CLASS,
+                    style: `min-height: ${minHeight}px;`,
+                },
+            },
+            onUpdate: ({ editor: current }) => {
+                emitMarkdown(readEditorMarkdown(current));
+            },
+            onBlur: ({ editor: current }) => {
+                emitMarkdown(readEditorMarkdown(current));
             },
         },
-        onUpdate: ({ editor: current }) => {
-            const next = current.isEmpty ? "" : htmlToMarkdown(current.getHTML());
-            lastEmittedRef.current = next;
-            onValueChange(next);
+        [extensions, idProp, minHeight],
+    );
+
+    const toolbarState = useEditorState({
+        editor,
+        selector: ({ editor: current }) => {
+            if (!current) {
+                return {
+                    bold: false,
+                    italic: false,
+                    heading: false,
+                    bulletList: false,
+                    orderedList: false,
+                    link: false,
+                    code: false,
+                };
+            }
+            return {
+                bold: current.isActive("bold"),
+                italic: current.isActive("italic"),
+                heading: current.isActive("heading", { level: 2 }),
+                bulletList: current.isActive("bulletList"),
+                orderedList: current.isActive("orderedList"),
+                link: current.isActive("link"),
+                code: current.isActive("code"),
+            };
         },
     });
 
     useEffect(() => {
-        if (!editor) return;
+        if (!editor || editor.isDestroyed) return;
         editor.setEditable(editable);
     }, [editor, editable]);
 
     useEffect(() => {
-        if (!editor) return;
+        if (!editor || editor.isDestroyed) return;
         const incoming = (value ?? "").trim();
         if (incoming === lastEmittedRef.current) return;
+        // Enquanto digita, o editor é a fonte da verdade — não sobrescrever pelo value atrasado do form.
+        if (editor.isFocused) return;
         editor.commands.setContent(markdownToHtml(incoming) || "", { emitUpdate: false });
         lastEmittedRef.current = incoming;
     }, [editor, value]);
@@ -181,43 +228,43 @@ export function InputMarkdown({
         {
             label: "Negrito",
             icon: <Bold className="size-3.5" />,
-            active: editor.isActive("bold"),
+            active: toolbarState?.bold,
             onClick: () => editor.chain().focus().toggleBold().run(),
         },
         {
             label: "Itálico",
             icon: <Italic className="size-3.5" />,
-            active: editor.isActive("italic"),
+            active: toolbarState?.italic,
             onClick: () => editor.chain().focus().toggleItalic().run(),
         },
         {
             label: "Título",
             icon: <Heading2 className="size-3.5" />,
-            active: editor.isActive("heading", { level: 2 }),
+            active: toolbarState?.heading,
             onClick: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
         },
         {
             label: "Lista",
             icon: <List className="size-3.5" />,
-            active: editor.isActive("bulletList"),
+            active: toolbarState?.bulletList,
             onClick: () => editor.chain().focus().toggleBulletList().run(),
         },
         {
             label: "Lista numerada",
             icon: <ListOrdered className="size-3.5" />,
-            active: editor.isActive("orderedList"),
+            active: toolbarState?.orderedList,
             onClick: () => editor.chain().focus().toggleOrderedList().run(),
         },
         {
             label: "Link",
             icon: <Link2 className="size-3.5" />,
-            active: editor.isActive("link"),
+            active: toolbarState?.link,
             onClick: setLink,
         },
         {
             label: "Código",
             icon: <Code2 className="size-3.5" />,
-            active: editor.isActive("code"),
+            active: toolbarState?.code,
             onClick: () => editor.chain().focus().toggleCode().run(),
         },
     ];
@@ -261,10 +308,7 @@ export function InputMarkdown({
                         </button>
                     ))}
                 </div>
-                <EditorContent
-                    editor={editor}
-                    className="font-normal [font-variation-settings:'wght'_450] [&_.tiptap]:font-normal"
-                />
+                <EditorContent editor={editor} className="gommo-markdown" />
             </div>
             {hint ? <p className="mt-1.5 text-[11px] text-base-content/45">{hint}</p> : null}
         </InputFieldChrome>

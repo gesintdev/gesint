@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Copy, ExternalLink } from "lucide-react";
-import { type FormEvent, useEffect, useId, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { JobPositionPickerField } from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
@@ -82,8 +82,18 @@ function TextAreaField({ label, value, onValueChange, wrapperClassName, placehol
 export function JobVacancyFormClient() {
     const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
-    const [form, setForm] = useState<JobVacancyCreateDto>(emptyJobVacancyForm);
+    const [form, setFormState] = useState<JobVacancyCreateDto>(emptyJobVacancyForm);
     const [error, setError] = useState<string | null>(null);
+    const formRef = useRef(form);
+    const wasEditingRef = useRef(isEditing);
+    const setForm = (
+        updater: JobVacancyCreateDto | ((prev: JobVacancyCreateDto) => JobVacancyCreateDto),
+    ) => {
+        const prev = formRef.current;
+        const next = typeof updater === "function" ? updater(prev) : updater;
+        formRef.current = next;
+        setFormState(next);
+    };
     const detailQuery = useQuery({
         queryKey: jobVacancyKeys.detail(editingId ?? ""),
         queryFn: () => jobVacancyService.getById(editingId!),
@@ -91,16 +101,19 @@ export function JobVacancyFormClient() {
     });
 
     useEffect(() => {
-        if (!isEditing) {
+        const wasEditing = wasEditingRef.current;
+        wasEditingRef.current = isEditing;
+        // Só limpa ao sair da edição para um cadastro novo — não a cada mount.
+        if (wasEditing && !isEditing) {
             setForm(emptyJobVacancyForm());
             setError(null);
-            return;
         }
+    }, [isEditing]);
 
-        if (detailQuery.data) {
-            setForm(jobVacancyToFormDto(detailQuery.data));
-            setError(null);
-        }
+    useEffect(() => {
+        if (!isEditing || !detailQuery.data) return;
+        setForm(jobVacancyToFormDto(detailQuery.data));
+        setError(null);
     }, [isEditing, detailQuery.data]);
 
     const saveMutation = useMutation({
@@ -144,19 +157,21 @@ export function JobVacancyFormClient() {
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
-        if (!form.jobTitle.trim()) {
+        // formRef é atualizado de forma síncrona em todo setForm (inclui blur do markdown).
+        const snapshot = formRef.current;
+        if (!snapshot.jobTitle.trim()) {
             setError("Informe o nome do cargo da vaga.");
             return;
         }
-        if (!form.positionsCount || form.positionsCount < 1) {
+        if (!snapshot.positionsCount || snapshot.positionsCount < 1) {
             setError("A quantidade de posições deve ser maior que zero.");
             return;
         }
-        if (form.isPublic && !(form.slug?.trim() || slugFromJobTitle(form.jobTitle))) {
+        if (snapshot.isPublic && !(snapshot.slug?.trim() || slugFromJobTitle(snapshot.jobTitle))) {
             setError("Informe um slug válido para a página pública.");
             return;
         }
-        saveMutation.mutate(form);
+        saveMutation.mutate(snapshot);
     };
     const pickerValue = form.jobPositionId?.trim() || form.jobTitle || "";
     const publicSlug = form.slug?.trim() || slugFromJobTitle(form.jobTitle);
@@ -230,11 +245,17 @@ export function JobVacancyFormClient() {
                     label="Nome do cargo"
                     value={pickerValue}
                     onValueChange={(selection) => {
-                        setForm((prev) => ({
-                            ...prev,
-                            jobPositionId: selection.jobPositionId,
-                            jobTitle: selection.title,
-                        }));
+                        setForm((prev) => {
+                            const title = selection.title;
+                            const autoSlug =
+                                !prev.slug || prev.slug === slugFromJobTitle(prev.jobTitle);
+                            return {
+                                ...prev,
+                                jobPositionId: selection.jobPositionId,
+                                jobTitle: title,
+                                slug: autoSlug ? slugFromJobTitle(title) : prev.slug,
+                            };
+                        });
                     }}
                     required
                     wrapperClassName="sm:col-span-8"
@@ -411,6 +432,12 @@ export function JobVacancyFormClient() {
                                 Link público
                             </p>
                             <p className="mt-1 break-all text-sm text-base-content">{publicCareersUrl}</p>
+                            {!isEditing ? (
+                                <p className="mt-2 text-xs text-warning">
+                                    A página só fica disponível depois de salvar a vaga. Até lá o link ainda não
+                                    funciona.
+                                </p>
+                            ) : null}
                             <div className="mt-3 flex flex-wrap gap-2">
                                 <Button
                                     type="button"
@@ -426,6 +453,12 @@ export function JobVacancyFormClient() {
                                     size="sm"
                                     variant="ghost"
                                     leftIcon={<ExternalLink className="size-3.5" strokeWidth={2.25} />}
+                                    disabled={!isEditing}
+                                    title={
+                                        isEditing
+                                            ? undefined
+                                            : "Salve a vaga para liberar a página pública"
+                                    }
                                     onClick={() => window.open(publicCareersUrl, "_blank", "noopener,noreferrer")}
                                 >
                                     Abrir página
