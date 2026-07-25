@@ -1,4 +1,7 @@
-import { LEAVE_ABSENCE_STATUS_LABELS } from "@/modules/rh/person/leave/lib/leave-types";
+import {
+    LEAVE_ABSENCE_STATUS_LABELS,
+    LEAVE_TYPE_LABELS,
+} from "@/modules/rh/person/leave/lib/leave-types";
 import { ENTITY_CODE_TABLE_COLUMN } from "@/shared/config/entity-code.table-column";
 import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
 
@@ -15,6 +18,7 @@ export const LEAVE_TABLE_COLUMNS: TableColumnConfig[] = [
         columnName: "Tipo",
         fieldValue: "leaveType",
         dataType: TableDataType.BADGE,
+        badgeLabels: LEAVE_TYPE_LABELS,
     },
     {
         id: "absenceStatus",

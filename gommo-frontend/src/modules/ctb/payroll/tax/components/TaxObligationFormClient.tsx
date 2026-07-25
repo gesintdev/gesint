@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import type { TaxObligationCreateDto } from "@/modules/ctb/payroll/tax/dto/tax-obligation.dto";
 import { TAX_CLIENT_MESSAGES } from "@/modules/ctb/payroll/tax/exceptions/tax-obligation.messages";
 import { emptyTaxObligationForm, taxObligationToFormDto } from "@/modules/ctb/payroll/tax/lib/tax-obligation.mapper";
+import { OBLIGATION_TYPE_ITEMS } from "@/modules/ctb/payroll/tax/lib/tax-obligation.options";
 import { taxObligationService } from "@/modules/ctb/payroll/tax/services/tax-obligation.service";
 import { taxObligationKeys } from "@/modules/ctb/payroll/tax/tax.query";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
@@ -19,12 +20,6 @@ import { InputCurrency, InputDate, InputSelect, InputString } from "@/shared/com
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Obrigação" }];
-const OBLIGATION_TYPE_ITEMS = [
-    { value: "IRRF", label: "IRRF" },
-    { value: "INSS", label: "INSS" },
-    { value: "FGTS", label: "FGTS" },
-    { value: "OTHER", label: "Outro" },
-];
 
 export function TaxObligationFormClient() {
     const { editingId, isEditing, goToList, startCreate } = useCrudScreen();

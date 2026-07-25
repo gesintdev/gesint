@@ -106,7 +106,7 @@ const EMBEDDED_STYLES = `
     gap: 0.875rem;
     padding: clamp(2rem, 5vh, 2.75rem) clamp(1.75rem, 4vw, 2.5rem);
     text-align: center;
-    border-radius: 1rem;
+    border-radius: var(--gommo-tab-radius);
     border: 1px solid rgba(255, 255, 255, 0.14);
     background: linear-gradient(
         165deg,

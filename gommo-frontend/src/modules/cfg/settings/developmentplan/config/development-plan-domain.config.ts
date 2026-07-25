@@ -25,6 +25,9 @@ export const COMPETENCY_TYPE_ITEMS = [
     {value: "BEHAVIORAL", label: "Comportamental"},
     {value: "LEADERSHIP", label: "Liderança"},
 ];
+export const COMPETENCY_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+    COMPETENCY_TYPE_ITEMS.map(({value, label}) => [value, label]),
+);
 export const ACTION_TYPE_ITEMS = [
     {value: "COURSE", label: "Curso"},
     {value: "MENTORING", label: "Mentoria"},
@@ -36,7 +39,6 @@ export const ACTION_TYPE_ITEMS = [
     {value: "STRUCTURED_FEEDBACK", label: "Feedback estruturado"},
     {value: "CERTIFICATION", label: "Certificação"},
 ];
-
 export const DEVELOPMENT_PLAN_DOMAIN_CONFIGS: Record<string, DevelopmentPlanDomainConfig> = {
     competencies: {
         id: "competencies",
@@ -51,7 +53,13 @@ export const DEVELOPMENT_PLAN_DOMAIN_CONFIGS: Record<string, DevelopmentPlanDoma
         ],
         columns: baseColumns([
             {id: "name", columnName: "Nome", fieldValue: "name", dataType: TableDataType.TEXT},
-            {id: "type", columnName: "Tipo", fieldValue: "type", dataType: TableDataType.TEXT},
+            {
+                id: "type",
+                columnName: "Tipo",
+                fieldValue: "type",
+                dataType: TableDataType.BADGE,
+                badgeLabels: COMPETENCY_TYPE_LABELS,
+            },
         ]),
     },
     proficiencyLevels: {

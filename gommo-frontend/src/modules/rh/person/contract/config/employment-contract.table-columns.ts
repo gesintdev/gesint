@@ -1,3 +1,4 @@
+import { CONTRACT_TYPE_LABELS } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
 import { ENTITY_CODE_TABLE_COLUMN } from "@/shared/config/entity-code.table-column";
 import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
 
@@ -13,7 +14,8 @@ export const CONTRACT_TABLE_COLUMNS: TableColumnConfig[] = [
         id: "contractType",
         columnName: "Tipo",
         fieldValue: "contractType",
-        dataType: TableDataType.TEXT,
+        dataType: TableDataType.BADGE,
+        badgeLabels: CONTRACT_TYPE_LABELS,
     },
     {
         id: "startDate",

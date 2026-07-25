@@ -2,7 +2,7 @@ import clsx from "clsx";
 import {AnimatePresence, motion} from "framer-motion";
 import {ChevronRight, Search} from "lucide-react";
 import {usePathname} from "next/navigation";
-import {type MouseEvent, useEffect, useMemo, useRef, useState} from "react";
+import {type MouseEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 import {type AppRoute, flattenRoutes} from "@/config/routes";
 import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
@@ -12,12 +12,24 @@ import {useActiveSystem, useActiveSystemRoutes} from "@/shared/context/ActiveSys
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 import {findRouteByHref} from "@/shared/workspace/workspace-routes";
 
+/** Alinhado a `.sidebar-submenu` / `--sidebar-transition-duration`. */
+const SUBMENU_CLOSE_MS = 140;
+const SIDEBAR_WIDTH_MS = 280;
+const FLYOUT_HOVER_OPEN_MS = 1000;
+const FLYOUT_HOVER_CLOSE_MS = 160;
+
 type SidebarProps = {
     collapsed: boolean;
     onCollapsedToggle?: () => void;
     mobileOpen?: boolean;
     onMobileCloseAction?: () => void;
 };
+
+function wait(ms: number) {
+    return new Promise<void>((resolve) => {
+        window.setTimeout(resolve, ms);
+    });
+}
 
 function routeIsActive(route: AppRoute, highlightRouteId: string | null): boolean {
     if (!highlightRouteId) return false;
@@ -56,30 +68,23 @@ function SidebarToolbar({
 }) {
     return (
         <div
-            className={clsx(
-                "sidebar-toolbar flex items-center px-2.5 py-2",
-                panelCollapsed ? "justify-center" : "gap-2",
-            )}
+            className={clsx("sidebar-toolbar", panelCollapsed && "sidebar-toolbar--collapsed")}
         >
-            {panelCollapsed ? (
-                <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle}/>
-            ) : (
-                <>
-                    <div className="min-w-0 flex-1">
-                        <label className="gommo-field sidebar-shell-control relative w-full cursor-text">
-                            <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2}/>
-                            <input
-                                type="search"
-                                placeholder="Buscar no menu..."
-                                value={query}
-                                onChange={(e) => onQueryChange(e.target.value)}
-                                className="pe-2 placeholder:text-base-content/32"
-                            />
-                        </label>
-                    </div>
-                    <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle}/>
-                </>
-            )}
+            {/* Busca permanece no DOM (só some visualmente) — evita salto de altura no collapse. */}
+            <div className="sidebar-toolbar-search" aria-hidden={panelCollapsed}>
+                <label className="gommo-field sidebar-shell-control relative w-full cursor-text">
+                    <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2}/>
+                    <input
+                        type="search"
+                        placeholder="Buscar no menu..."
+                        value={query}
+                        onChange={(e) => onQueryChange(e.target.value)}
+                        tabIndex={panelCollapsed ? -1 : undefined}
+                        className="pe-2 placeholder:text-base-content/32"
+                    />
+                </label>
+            </div>
+            <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle}/>
         </div>
     );
 }
@@ -95,9 +100,70 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     const [query, setQuery] = useState("");
     const [openIds, setOpenIds] = useState<Set<string>>(new Set());
     const [flyout, setFlyout] = useState<{ route: AppRoute; top: number } | null>(null);
+    const savedOpenIdsRef = useRef<Set<string>>(new Set());
+    const toggleLockedRef = useRef(false);
+    const flyoutOpenTimerRef = useRef<number | null>(null);
+    const flyoutCloseTimerRef = useRef<number | null>(null);
     const flat = useMemo(() => flattenRoutes(activeSystemRoutes), [activeSystemRoutes]);
     const isSearching = query.trim().length > 0;
     const panelCollapsed = collapsed && !mobileOpen;
+
+    const clearFlyoutOpenTimer = useCallback(() => {
+        if (flyoutOpenTimerRef.current != null) {
+            window.clearTimeout(flyoutOpenTimerRef.current);
+            flyoutOpenTimerRef.current = null;
+        }
+    }, []);
+
+    const clearFlyoutCloseTimer = useCallback(() => {
+        if (flyoutCloseTimerRef.current != null) {
+            window.clearTimeout(flyoutCloseTimerRef.current);
+            flyoutCloseTimerRef.current = null;
+        }
+    }, []);
+
+    const openFlyoutAt = useCallback(
+        (route: AppRoute, anchor: HTMLElement) => {
+            clearFlyoutOpenTimer();
+            clearFlyoutCloseTimer();
+            setFlyout({route, top: anchor.getBoundingClientRect().top});
+        },
+        [clearFlyoutCloseTimer, clearFlyoutOpenTimer],
+    );
+
+    const scheduleFlyoutOpen = useCallback(
+        (route: AppRoute, anchor: HTMLElement) => {
+            clearFlyoutOpenTimer();
+            clearFlyoutCloseTimer();
+            flyoutOpenTimerRef.current = window.setTimeout(() => {
+                setFlyout({route, top: anchor.getBoundingClientRect().top});
+                flyoutOpenTimerRef.current = null;
+            }, FLYOUT_HOVER_OPEN_MS);
+        },
+        [clearFlyoutCloseTimer, clearFlyoutOpenTimer],
+    );
+
+    const scheduleFlyoutClose = useCallback(() => {
+        clearFlyoutCloseTimer();
+        flyoutCloseTimerRef.current = window.setTimeout(() => {
+            setFlyout(null);
+            flyoutCloseTimerRef.current = null;
+        }, FLYOUT_HOVER_CLOSE_MS);
+    }, [clearFlyoutCloseTimer]);
+
+    const closeFlyout = useCallback(() => {
+        clearFlyoutOpenTimer();
+        clearFlyoutCloseTimer();
+        setFlyout(null);
+    }, [clearFlyoutCloseTimer, clearFlyoutOpenTimer]);
+
+    useEffect(() => {
+        return () => {
+            clearFlyoutOpenTimer();
+            clearFlyoutCloseTimer();
+        };
+    }, [clearFlyoutCloseTimer, clearFlyoutOpenTimer]);
+
     const openRouteFromMenu = (route: AppRoute, event?: MouseEvent) => {
         event?.preventDefault();
         if (!route.href) return;
@@ -105,6 +171,40 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         openRouteModule(route);
         onMobileCloseAction?.();
     };
+
+    /**
+     * Collapse: 1) fecha grupos → 2) estreita sidebar.
+     * Expand: 1) alarga sidebar → 2) reabre grupos que estavam abertos.
+     * Ícones não mudam de lugar; só o texto some/aparece.
+     */
+    const handleCollapsedToggle = useCallback(async () => {
+        if (!onCollapsedToggle || toggleLockedRef.current) return;
+        toggleLockedRef.current = true;
+        try {
+            if (!collapsed) {
+                savedOpenIdsRef.current = new Set(openIds);
+                const hadOpenGroups = openIds.size > 0 || query.trim().length > 0;
+                setQuery("");
+                setOpenIds(new Set());
+                closeFlyout();
+                if (hadOpenGroups) {
+                    await wait(SUBMENU_CLOSE_MS);
+                }
+                onCollapsedToggle();
+                await wait(SIDEBAR_WIDTH_MS);
+                return;
+            }
+
+            onCollapsedToggle();
+            await wait(SIDEBAR_WIDTH_MS);
+            const restoreIds = savedOpenIdsRef.current;
+            if (restoreIds.size > 0) {
+                setOpenIds(new Set(restoreIds));
+            }
+        } finally {
+            toggleLockedRef.current = false;
+        }
+    }, [closeFlyout, collapsed, onCollapsedToggle, openIds, query]);
     const filteredSections = useMemo(() => {
         if (!isSearching) return navSections;
         const q = query.toLowerCase();
@@ -157,7 +257,6 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 className={clsx(
                     "nav-item group w-full",
                     nested && "nav-item-child",
-                    panelCollapsed && !nested && "nav-item-collapsed",
                     active && "nav-item-active",
                 )}
             >
@@ -176,30 +275,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         const Icon = route.icon;
         const hasChildren = Boolean(route.children?.length);
         const active = routeIsActive(route, navHighlightRouteId);
-        const expanded = isOpen(route.id);
-        if (panelCollapsed && hasChildren) {
-            return (
-                <li key={route.id}>
-                    <button
-                        type="button"
-                        aria-label={route.label}
-                        onClick={(e) => setFlyout({route, top: e.currentTarget.getBoundingClientRect().top})}
-                        className={clsx("nav-item nav-item-collapsed", active && "nav-item-active")}
-                    >
-                        <Icon className="size-4.25" strokeWidth={2}/>
-                        <span className="sidebar-copy truncate text-left">{route.label}</span>
-                    </button>
-                </li>
-            );
-        }
-
-        if (panelCollapsed) {
-            return (
-                <li key={route.id}>
-                    <NavLink route={route}/>
-                </li>
-            );
-        }
+        const expanded = isOpen(route.id) && !panelCollapsed;
 
         if (!hasChildren) {
             return (
@@ -208,28 +284,66 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 </li>
             );
         }
+
+        /* Mesma árvore expandido/colapsado — evita salto ao trocar DOM no collapse. */
         return (
             <li key={route.id} className="grid gap-0">
                 <button
                     type="button"
-                    onClick={() => toggleGroup(route.id)}
+                    aria-label={route.label}
                     aria-expanded={expanded}
+                    onClick={(e) => {
+                        if (panelCollapsed) {
+                            openFlyoutAt(route, e.currentTarget);
+                            return;
+                        }
+                        toggleGroup(route.id);
+                    }}
+                    onMouseEnter={(e) => {
+                        if (!panelCollapsed) return;
+                        scheduleFlyoutOpen(route, e.currentTarget);
+                    }}
+                    onMouseLeave={() => {
+                        if (!panelCollapsed) return;
+                        clearFlyoutOpenTimer();
+                        scheduleFlyoutClose();
+                    }}
                     className={clsx(
-                        "nav-item ",
+                        "nav-item",
                         active && !expanded && "font-semibold text-base-content/80",
                         expanded && "nav-item-expanded",
+                        active && panelCollapsed && "nav-item-active",
                     )}
                 >
-                    <Icon className="size-4.25 shrink-0 text-base-content/38" strokeWidth={2}/>
-                    <span className="sidebar-copy truncate text-left">{route.label}</span>
-                    <ChevronRight
+                    <Icon
                         className={clsx(
-                            "sidebar-copy size-3.5 shrink-0 text-base-content/30 transition-transform duration-200",
-                            expanded && "rotate-90",
+                            "size-4.25 shrink-0",
+                            active && panelCollapsed ? "text-primary" : "text-base-content/38",
                         )}
+                        strokeWidth={2}
                     />
+                    {panelCollapsed ? (
+                        <ChevronRight
+                            className="size-3 shrink-0 text-base-content/40"
+                            strokeWidth={2.5}
+                        />
+                    ) : (
+                        <span className="sidebar-copy truncate text-left">{route.label}</span>
+                    )}
+                    {!panelCollapsed ? (
+                        <ChevronRight
+                            className={clsx(
+                                "sidebar-copy size-3.5 shrink-0 text-base-content/30 transition-transform duration-200",
+                                expanded && "rotate-90",
+                            )}
+                        />
+                    ) : null}
                 </button>
-                <div aria-hidden={!expanded} data-open={expanded ? "true" : "false"} className="sidebar-submenu">
+                <div
+                    aria-hidden={!expanded}
+                    data-open={expanded ? "true" : "false"}
+                    className="sidebar-submenu"
+                >
                     <div className="sidebar-submenu__viewport">
                         <div className="sidebar-submenu__reveal">
                             <ul className="nav-group-children flex flex-col gap-0.5">
@@ -251,24 +365,29 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 panelCollapsed={panelCollapsed}
                 desktop={opts.desktop}
                 collapsed={collapsed}
-                onCollapsedToggle={onCollapsedToggle}
+                onCollapsedToggle={() => {
+                    void handleCollapsedToggle();
+                }}
                 query={query}
                 onQueryChange={setQuery}
             />
             {/* Nav */}
             <div className="sidebar-nav-wrap min-h-0 flex-1">
-                <nav className="sidebar-nav space-y-3 px-2.5 py-1.5" aria-label="Navegacao principal">
+                <nav className="sidebar-nav space-y-3 py-1.5" aria-label="Navegacao principal">
                     {filteredSections.map((section) => (
                         <div key={section.id}>
                             <div className="flex flex-col">
-                                <div className="flex min-h-5 items-center px-2.5">
-                                    {panelCollapsed ? (
-                                        <div className="nav-section-rule" aria-hidden="true"/>
-                                    ) : (
-                                        <p className="nav-section-label">{section.label}</p>
-                                    )}
+                                <div className="nav-section-head">
+                                    <div className="nav-section-slot">
+                                        <p className="nav-section-label sidebar-copy">{section.label}</p>
+                                    </div>
+                                    <div className="nav-section-slot" aria-hidden="true">
+                                        <div className="nav-section-rule"/>
+                                    </div>
                                 </div>
-                                <ul className="space-y-0.5 px-1.5">{section.routes.map(renderRoute)}</ul>
+                                <ul className="space-y-0.5 px-[var(--sidebar-nav-list-pad-x)]">
+                                    {section.routes.map(renderRoute)}
+                                </ul>
                             </div>
                         </div>
                     ))}
@@ -352,7 +471,8 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                     anchorTop={flyout.top}
                     highlightRouteId={navHighlightRouteId}
                     onSelectRoute={(route) => setHighlightRouteId(route.id)}
-                    onClose={() => setFlyout(null)}
+                    onMouseEnterFlyout={clearFlyoutCloseTimer}
+                    onClose={closeFlyout}
                 />
             )}
         </>

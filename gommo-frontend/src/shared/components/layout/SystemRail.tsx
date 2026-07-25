@@ -37,7 +37,7 @@ export function SystemRail() {
 
     return (
         <nav
-            className="system-rail flex h-full w-(--system-rail-width) shrink-0 flex-col overflow-x-hidden border-r"
+            className="flex h-full w-(--system-rail-width) bg-blue-300 shrink-0 flex-col overflow-x-hidden border-r"
             style={{
                 background: "var(--system-rail-bg)",
                 borderColor: "var(--system-rail-border)",

@@ -10,6 +10,7 @@ import {
     emptyPerformanceReviewForm,
     performanceReviewToFormDto,
 } from "@/modules/rh/person/performance/lib/performance-review.mapper";
+import { PERFORMANCE_RATING_ITEMS } from "@/modules/rh/person/performance/lib/performance-review.options";
 import { performanceReviewKeys } from "@/modules/rh/person/performance/performance.query";
 import { performanceReviewService } from "@/modules/rh/person/performance/services/performance-review.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
@@ -22,12 +23,6 @@ import { InputDate, InputSelect, InputString } from "@/shared/components/ui/inpu
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Avaliação" }];
-const RATING_ITEMS = [
-    { value: "NEEDS_IMPROVEMENT", label: "Precisa melhorar" },
-    { value: "MEETS", label: "Atende expectativas" },
-    { value: "EXCEEDS", label: "Supera expectativas" },
-    { value: "OUTSTANDING", label: "Excepcional" },
-];
 
 export function PerformanceReviewFormClient() {
     const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
@@ -155,7 +150,7 @@ export function PerformanceReviewFormClient() {
                 />
                 <InputSelect
                     label="Classificação"
-                    items={RATING_ITEMS}
+                    items={PERFORMANCE_RATING_ITEMS}
                     value={form.rating ?? ""}
                     onValueChange={(v) => update("rating", (v || undefined) as PerformanceReviewCreateDto["rating"])}
                     placeholder="Selecione"

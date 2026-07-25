@@ -76,7 +76,7 @@ export function HeaderUserMenu() {
                 aria-haspopup="menu"
                 onClick={() => setOpen((v) => !v)}
                 className={clsx(
-                    "flex items-center gap-2 rounded-[10px] py-1 ps-1 pe-2.5 transition-colors duration-150",
+                    "flex items-center gap-2 rounded-[var(--gommo-tab-radius)] py-1 ps-1 pe-2.5 transition-colors duration-150",
                     open ? "bg-primary/8" : "hover:bg-base-200/70 dark:hover:bg-base-300/40",
                 )}
             >
@@ -100,7 +100,7 @@ export function HeaderUserMenu() {
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                         className="surface-popover absolute right-0 z-50 mt-2 min-w-[14rem] origin-top-right p-1.5"
                     >
-                        <div className="flex items-center gap-3 rounded-[10px] px-3 py-2.5">
+                        <div className="flex items-center gap-3 rounded-[var(--gommo-tab-radius)] px-3 py-2.5">
                             <ProfileAvatar name={name} photoObjectId={photoObjectId} size="md" shape="circle" />
                             <UserIdentity name={name} email={email} />
                         </div>

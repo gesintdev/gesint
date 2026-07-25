@@ -67,7 +67,7 @@ export function SystemShell({
                         borderColor: "var(--sidebar-border)",
                     }}
                 >
-                    <GommoLogo collapsed={collapsed} />
+                    <GommoLogo collapsed={collapsed}/>
                 </div>
                 <header
                     className="surface-header flex min-w-0 flex-1 items-center gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
@@ -81,7 +81,7 @@ export function SystemShell({
                         <Menu className="size-4.5" strokeWidth={2}/>
                     </button>
                     <div className="flex shrink-0 items-center lg:hidden">
-                        <GommoLogo collapsed />
+                        <GommoLogo collapsed/>
                     </div>
                     <label
                         className="gommo-field sidebar-shell-control relative min-w-0 w-full max-w-xs cursor-text lg:max-w-md">
@@ -93,7 +93,7 @@ export function SystemShell({
                         />
                         <kbd className="ms-auto hidden shrink-0 sm:flex">Alt+S</kbd>
                     </label>
-                    <div className="min-w-2 flex-1" aria-hidden />
+                    <div className="min-w-2 flex-1" aria-hidden/>
                     <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
                         <div className="flex items-center gap-1 sm:gap-1.5">
                             <button
@@ -102,7 +102,7 @@ export function SystemShell({
                                 onClick={() => setClockModalOpen(true)}
                                 className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
                             >
-                                <Clock className="size-4" strokeWidth={2} />
+                                <Clock className="size-4" strokeWidth={2}/>
                             </button>
                             <button
                                 type="button"
@@ -110,18 +110,19 @@ export function SystemShell({
                                 onClick={() => setAgendaModalOpen(true)}
                                 className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
                             >
-                                <CalendarDays className="size-4" strokeWidth={2} />
+                                <CalendarDays className="size-4" strokeWidth={2}/>
                             </button>
                         </div>
-                        <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block" />
+                        <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block"/>
                         <div className="flex items-center gap-1 sm:gap-1.5">
-                            <HeaderNotifications />
-                            <HeaderUserMenu />
+                            <HeaderNotifications/>
+                            <HeaderUserMenu/>
                         </div>
                     </div>
                 </header>
             </div>
-            <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal} />            <AgendaModal open={agendaModalOpen} onClose={closeAgendaModal} />
+            <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal}/> <AgendaModal open={agendaModalOpen}
+                                                                                                 onClose={closeAgendaModal}/>
             {/*
               ActiveSystemProvider deve hidratar no mesmo Suspense que a Sidebar.
               Se ficar fora, o useSyncExternalStore promove o localStorage antes da

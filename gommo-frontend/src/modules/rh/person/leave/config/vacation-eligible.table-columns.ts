@@ -25,6 +25,7 @@ export const VACATION_ELIGIBLE_TABLE_COLUMNS: TableColumnConfig[] = [
         badgeLabels: {
             CONCESSIVE: "Apto",
             EXPIRED: "Férias vencidas",
+            CONTRACT_RECESS: "Recesso contratual",
         },
     },
     {

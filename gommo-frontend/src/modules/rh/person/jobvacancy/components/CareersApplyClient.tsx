@@ -115,7 +115,7 @@ function ExperienceCard({
     const yearItems = CAREERS_YEARS.map((year) => ({value: year, label: year}));
 
     return (
-        <div className="mb-3 overflow-hidden rounded-[10px] border border-base-content/10">
+        <div className="mb-3 overflow-hidden rounded-[var(--gommo-tab-radius)] border border-base-content/10">
             <div
                 className={clsx(
                     "flex w-full items-center justify-between px-[18px] py-3.5",
@@ -275,7 +275,7 @@ function ResumeUpload({file, onChange}: { file: File | null; onChange: (file: Fi
     if (file) {
         return (
             <div
-                className="flex items-center justify-between rounded-[10px] border border-primary bg-primary/5 px-[18px] py-4">
+                className="flex items-center justify-between rounded-[var(--gommo-tab-radius)] border border-primary bg-primary/5 px-[18px] py-4">
                 <div className="flex items-center gap-3">
                     <div
                         className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-content">
@@ -308,7 +308,7 @@ function ResumeUpload({file, onChange}: { file: File | null; onChange: (file: Fi
             onDragLeave={() => setDragging(false)}
             onDrop={handleDrop}
             className={clsx(
-                "cursor-pointer rounded-[10px] border-2 border-dashed px-6 py-9 text-center transition-colors",
+                "cursor-pointer rounded-[var(--gommo-tab-radius)] border-2 border-dashed px-6 py-9 text-center transition-colors",
                 dragging ? "border-primary bg-primary/5" : "border-base-content/20 bg-base-200/40",
             )}
         >
@@ -319,7 +319,7 @@ function ResumeUpload({file, onChange}: { file: File | null; onChange: (file: Fi
                 onChange={handleFile}
                 className="hidden"
             />
-            <div className="mx-auto mb-3.5 flex size-12 items-center justify-center rounded-[10px] bg-primary/10">
+            <div className="mx-auto mb-3.5 flex size-12 items-center justify-center rounded-[var(--gommo-tab-radius)] bg-primary/10">
                 <Upload className="size-5 text-primary"/>
             </div>
             <div className="mb-1.5 text-[15px] font-semibold text-base-content">

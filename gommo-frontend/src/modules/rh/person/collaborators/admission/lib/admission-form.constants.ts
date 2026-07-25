@@ -8,6 +8,9 @@ export const CONTRACT_TYPE_ITEMS: SelectItem[] = [
     { value: "APPRENTICE", label: "Aprendiz" },
     { value: "INTERN", label: "Estágio" },
 ];
+export const CONTRACT_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+    CONTRACT_TYPE_ITEMS.map((item) => [item.value, item.label]),
+);
 export const WORKLOAD_SCHEDULE_ITEMS: SelectItem[] = [
     { value: "44h", label: "44h" },
     { value: "40h", label: "40h" },
@@ -66,7 +69,8 @@ export function admissionStatusLabel(value?: string | null): string {
 }
 
 export function contractTypeLabel(value?: string | null): string {
-    return CONTRACT_TYPE_ITEMS.find((item) => item.value === value)?.label ?? value ?? "—";
+    if (!value) return "—";
+    return CONTRACT_TYPE_LABELS[value] ?? value;
 }
 
 export function documentTypeLabel(value?: string | null, items = ADMISSION_DOCUMENT_TYPE_ITEMS): string {

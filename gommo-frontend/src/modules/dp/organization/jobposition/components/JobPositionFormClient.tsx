@@ -8,6 +8,7 @@ import {DepartmentPickerField} from "@/modules/dp/organization/department/compon
 import type {JobPositionCreateDto, JobPositionNature} from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
 import {JOBPOSITION_CLIENT_MESSAGES} from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
 import {jobpositionKeys} from "@/modules/dp/organization/jobposition/jobposition.query";
+import { JOB_POSITION_NATURE_ITEMS } from "@/modules/dp/organization/jobposition/lib/job-position.options";
 import {
     emptyJobPositionForm,
     jobpositionToFormDto,
@@ -23,14 +24,6 @@ import {InputSelect, InputSelectAutocomplete, InputString} from "@/shared/compon
 import {ExceptionCapture} from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Cargo"}];
-
-const JOB_POSITION_NATURE_ITEMS = [
-    {value: "OPERATIONAL", label: "Operacional"},
-    {value: "TECHNICAL", label: "Técnico"},
-    {value: "SPECIALIST", label: "Especialista"},
-    {value: "LEADERSHIP", label: "Gestão"},
-    {value: "EXECUTIVE", label: "Executivo"},
-];
 
 export function JobPositionFormClient() {
     const {editingId, isEditing, goToList, startCreate} = useCrudScreen();

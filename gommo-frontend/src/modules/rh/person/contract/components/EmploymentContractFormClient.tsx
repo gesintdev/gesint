@@ -12,6 +12,7 @@ import {
     emptyEmploymentContractForm,
 } from "@/modules/rh/person/contract/lib/employment-contract.mapper";
 import { employmentcontractService } from "@/modules/rh/person/contract/services/employment-contract.service";
+import { CONTRACT_TYPE_ITEMS } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -22,13 +23,6 @@ import { InputCurrency, InputDate, InputSelect } from "@/shared/components/ui/in
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contrato" }];
-const CONTRACT_TYPE_ITEMS = [
-    { value: "CLT", label: "CLT" },
-    { value: "PJ", label: "Prestador de Serviço" },
-    { value: "INTERMITTENT", label: "Intermitente" },
-    { value: "APPRENTICE", label: "Aprendiz" },
-    { value: "INTERN", label: "Estágio" },
-];
 
 export function EmploymentContractFormClient() {
     const { editingId, isEditing, goToList, startCreate } = useCrudScreen();

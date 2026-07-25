@@ -62,8 +62,17 @@ export function JobVacancyListClient() {
     const permissions = useSessionPermissions();
     const canStartAdmission = hasPermission(permissions, "admission:read");
     const openJobVacancyId = useJobVacancyAdmissionProcessStore((state) => state.jobVacancyId);
+    const selectAdmissionProcess = useJobVacancyAdmissionProcessStore((state) => state.select);
     const startAdmissionProcess = useJobVacancyAdmissionProcessStore((state) => state.start);
     const [expandedId, setExpandedId] = useState<string | null>(null);
+
+    const openEdit = (row: JobVacancy) => {
+        selectAdmissionProcess({
+            jobVacancyId: row.id,
+            jobVacancyTitle: row.jobTitle,
+        });
+        startEdit(row.id, row);
+    };
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => jobVacancyService.remove(id),
@@ -151,7 +160,7 @@ export function JobVacancyListClient() {
                                         <Fragment key={row.id}>
                                             <tr
                                                 className="cursor-pointer"
-                                                onDoubleClick={() => startEdit(row.id, row)}
+                                                onDoubleClick={() => openEdit(row)}
                                             >
                                                 <td
                                                     className="w-10"
@@ -299,7 +308,7 @@ export function JobVacancyListClient() {
                                                         ) : null}
                                                         <CrudTableActions
                                                             row={row}
-                                                            onEdit={() => startEdit(row.id, row)}
+                                                            onEdit={() => openEdit(row)}
                                                             onDelete={() => void handleDelete(row)}
                                                             deleteLoading={
                                                                 deleteMutation.isPending &&

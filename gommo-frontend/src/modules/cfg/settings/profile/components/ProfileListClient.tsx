@@ -69,7 +69,7 @@ export function ProfileListClient() {
             emptyMessage="Nenhum perfil cadastrado."
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (
-                <div className="flex items-center gap-0.5">
+                <>
                     <CrudTableActions
                         row={row}
                         showOpenTab={false}
@@ -100,7 +100,7 @@ export function ProfileListClient() {
                             }}
                         />
                     ) : null}
-                </div>
+                </>
             )}
         />
     );

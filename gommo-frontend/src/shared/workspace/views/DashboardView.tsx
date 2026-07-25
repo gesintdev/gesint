@@ -65,7 +65,7 @@ function MetricsSkeleton() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
                 <Card key={index} animate={false} bodyClassName="!p-5">
-                    <div className="skeleton-shimmer h-24 w-full rounded-[10px]" />
+                    <div className="skeleton-shimmer h-24 w-full rounded-[var(--gommo-tab-radius)]" />
                 </Card>
             ))}
         </div>
@@ -191,7 +191,7 @@ function ModuleHealthPanel({ moduleHealth }: { moduleHealth: DashboardSummary["m
                     <span className="gommo-progress-ring__value">{moduleHealth.progressPercent}</span>
                 </div>
                 <div className="w-full space-y-3">
-                    <div className="flex items-center justify-between rounded-[10px] bg-primary/8 px-3 py-2.5 text-xs">
+                    <div className="flex items-center justify-between rounded-[var(--gommo-tab-radius)] bg-primary/8 px-3 py-2.5 text-xs">
                         <span className="font-medium text-base-content/60">Módulos com registros</span>
                         <span className="font-bold tabular-nums">
                             {moduleHealth.activeModules}/{moduleHealth.totalModules}
@@ -201,7 +201,7 @@ function ModuleHealthPanel({ moduleHealth }: { moduleHealth: DashboardSummary["m
                         {moduleHealth.modules.map((healthModule) => (
                             <div
                                 key={healthModule.key}
-                                className="flex items-center justify-between rounded-[10px] border border-[var(--gommo-border-subtle)] px-3 py-2 text-xs"
+                                className="flex items-center justify-between rounded-[var(--gommo-tab-radius)] border border-[var(--gommo-border-subtle)] px-3 py-2 text-xs"
                             >
                                 <span className="font-medium text-base-content/65">{healthModule.label}</span>
                                 <span
@@ -215,7 +215,7 @@ function ModuleHealthPanel({ moduleHealth }: { moduleHealth: DashboardSummary["m
                             </div>
                         ))}
                     </div>
-                    <div className="flex items-center justify-between rounded-[10px] border border-primary/20 bg-primary/5 px-3 py-2.5 text-xs">
+                    <div className="flex items-center justify-between rounded-[var(--gommo-tab-radius)] border border-primary/20 bg-primary/5 px-3 py-2.5 text-xs">
                         <span className="font-medium text-base-content/70">Cobertura operacional</span>
                         <span className="inline-flex items-center gap-0.5 font-bold text-primary">
                             {moduleHealth.progressPercent >= 70

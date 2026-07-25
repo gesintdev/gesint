@@ -10,9 +10,17 @@ type SidebarFlyoutProps = {
     highlightRouteId: string | null;
     onSelectRoute: (route: AppRoute) => void;
     onClose: () => void;
+    onMouseEnterFlyout?: () => void;
 };
 
-export function SidebarFlyout({ route, anchorTop, highlightRouteId, onSelectRoute, onClose }: SidebarFlyoutProps) {
+export function SidebarFlyout({
+    route,
+    anchorTop,
+    highlightRouteId,
+    onSelectRoute,
+    onClose,
+    onMouseEnterFlyout,
+}: SidebarFlyoutProps) {
     const { openRouteModule } = useWorkspaceNavigation();
 
     return (
@@ -22,14 +30,15 @@ export function SidebarFlyout({ route, anchorTop, highlightRouteId, onSelectRout
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -6 }}
                 transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                className="surface-card fixed z-50 ml-[calc(var(--system-rail-width)+var(--sidebar-collapsed)+0.5rem)] min-w-44 p-2 shadow-lg"
+                className="sidebar-flyout fixed z-50 ml-[calc(var(--system-rail-width)+var(--sidebar-collapsed)+0.125rem)] min-w-44 p-2"
                 style={{ top: anchorTop }}
+                onMouseEnter={onMouseEnterFlyout}
                 onMouseLeave={onClose}
             >
                 <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-base-content/40">
                     {route.label}
                 </p>
-                <ul className="nav-group-children space-y-0.5">
+                <ul className="flex flex-col gap-0.5">
                     {route.children?.map((child) => {
                         const ChildIcon = child.icon;
                         const active = child.id === highlightRouteId;
@@ -44,7 +53,7 @@ export function SidebarFlyout({ route, anchorTop, highlightRouteId, onSelectRout
                                         }
                                         onClose();
                                     }}
-                                    className={clsx("nav-item nav-item-child w-full", active && "nav-item-active")}
+                                    className={clsx("nav-item w-full", active && "nav-item-active")}
                                 >
                                     <ChildIcon
                                         className={clsx(
@@ -53,7 +62,7 @@ export function SidebarFlyout({ route, anchorTop, highlightRouteId, onSelectRout
                                         )}
                                         strokeWidth={active ? 2.25 : 2}
                                     />
-                                    <span className="sidebar-copy truncate">{child.label}</span>
+                                    <span className="truncate">{child.label}</span>
                                 </button>
                             </li>
                         );
