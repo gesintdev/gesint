@@ -5,7 +5,8 @@ export function buildLocationKey(pathname: string, search: URLSearchParams | str
     return qs ? `${pathname}?${qs}` : pathname;
 }
 
-function browserLocationKey(): string | null {
+/** URL real do browser — após `history.replaceState` fica à frente do `usePathname` do Next. */
+export function readBrowserLocationKey(): string | null {
     if (typeof window === "undefined") return null;
     return buildLocationKey(window.location.pathname, window.location.search.slice(1));
 }
@@ -34,7 +35,7 @@ export function replaceUrlIfNeeded(
     searchParams: URLSearchParams,
     targetUrl: string,
 ): void {
-    const current = browserLocationKey() ?? buildLocationKey(pathname, searchParams);
+    const current = readBrowserLocationKey() ?? buildLocationKey(pathname, searchParams);
     if (locationsEqual(current, targetUrl)) return;
     if (typeof window !== "undefined") {
         window.history.replaceState(window.history.state, "", targetUrl);

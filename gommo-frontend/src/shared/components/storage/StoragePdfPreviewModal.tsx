@@ -93,8 +93,21 @@ export function StoragePdfPreviewModal({
     if (!mounted) return null;
 
     return createPortal(
-        <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box flex h-[96vh] max-h-[96vh] w-[min(96vw,90rem)] max-w-[96vw] flex-col overflow-hidden p-0">
+        <dialog
+            ref={dialogRef}
+            className="modal"
+            onClose={(event) => {
+                event.stopPropagation();
+                onClose();
+            }}
+            onCancel={(event) => {
+                event.stopPropagation();
+            }}
+        >
+            <div
+                className="modal-box flex h-[96vh] max-h-[96vh] w-[min(96vw,90rem)] max-w-[96vw] flex-col overflow-hidden p-0"
+                onClick={(event) => event.stopPropagation()}
+            >
                 <div className="flex items-center justify-between gap-3 border-b border-base-content/10 px-4 py-3">
                     <div className="min-w-0">
                         <h4 className="truncate text-base font-semibold text-base-content">
@@ -106,7 +119,11 @@ export function StoragePdfPreviewModal({
                         type="button"
                         className="gommo-btn gommo-btn--ghost gommo-btn--icon-only shrink-0 text-base-content/50"
                         aria-label="Fechar"
-                        onClick={onClose}
+                        onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            onClose();
+                        }}
                     >
                         <X className="size-4" strokeWidth={2} />
                     </button>

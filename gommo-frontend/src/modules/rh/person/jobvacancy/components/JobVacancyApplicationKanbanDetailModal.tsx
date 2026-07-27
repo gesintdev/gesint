@@ -384,7 +384,27 @@ export function JobVacancyApplicationKanbanDetailModal({
     if (!mounted) return null;
 
     return createPortal(
-        <dialog ref={dialogRef} className="modal" onClose={onClose}>
+        <dialog
+            ref={dialogRef}
+            className="modal"
+            onClose={(event) => {
+                event.stopPropagation();
+                if (event.target !== dialogRef.current) return;
+                onClose();
+            }}
+            onCancel={(event) => {
+                event.stopPropagation();
+                if (event.target !== dialogRef.current) {
+                    event.preventDefault();
+                    return;
+                }
+                const openDialogs = document.querySelectorAll("dialog[open]");
+                const topmost = openDialogs[openDialogs.length - 1];
+                if (topmost && topmost !== dialogRef.current) {
+                    event.preventDefault();
+                }
+            }}
+        >
             <div className="modal-box flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-0">
                 <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
                     <div className="min-w-0">

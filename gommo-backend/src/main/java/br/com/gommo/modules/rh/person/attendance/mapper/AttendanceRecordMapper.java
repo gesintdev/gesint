@@ -91,6 +91,7 @@ public class AttendanceRecordMapper {
                 .latitude(entity.getLatitude())
                 .longitude(entity.getLongitude())
                 .locationAccuracyMeters(entity.getLocationAccuracyMeters())
+                .pendingOutsideScheduleApproval(false)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

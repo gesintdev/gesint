@@ -14,6 +14,7 @@ import {
 import {AttendanceRequestDetailModal} from "@/modules/dp/attendance/components/AttendanceRequestDetailModal";
 import {AttendanceRequestRejectDialog} from "@/modules/dp/attendance/components/AttendanceRequestRejectDialog";
 import type {
+    AttendanceCompensationType,
     AttendanceRecord,
     AttendanceRecordCreateDto,
     AttendanceRequest,
@@ -59,6 +60,30 @@ function createDraftRow(collaboratorId: string, workDate = ""): AttendanceRecord
         impactsHourBank: true,
         impactsPayroll: true,
     };
+}
+
+async function confirmOutsideScheduleLaunch(
+    collaboratorId: string,
+    workDate: string,
+): Promise<boolean> {
+    try {
+        const scheduleDay = await attendancerecordService.scheduleDay(collaboratorId, workDate);
+        if (!scheduleDay.outsideWorkSchedule) return true;
+        const scheduleLabel = scheduleDay.workScheduleName
+            ? ` da escala "${scheduleDay.workScheduleName}"`
+            : " da escala";
+        return SystemAlert.warning.confirm({
+            title: "Dia fora da escala",
+            message:
+                `A data informada não faz parte dos dias de trabalho${scheduleLabel} deste colaborador. ` +
+                "O registro entrará como hora extra / banco de horas. Deseja continuar?",
+            confirmLabel: "Confirmar lançamento",
+            cancelLabel: "Cancelar",
+        });
+    } catch (err: unknown) {
+        ExceptionCapture.handle(err, {fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED});
+        return false;
+    }
 }
 
 export function AttendanceRecordFormClient() {
@@ -197,16 +222,21 @@ export function AttendanceRecordFormClient() {
 
     const createTodayMutation = useMutation({
         mutationFn: async () => {
+            const workDate = todayIso();
+            const confirmed = await confirmOutsideScheduleLaunch(focus!.collaboratorId, workDate);
+            if (!confirmed) return null;
             const dto: AttendanceRecordCreateDto = {
                 ...emptyAttendanceRecordForm(),
                 collaboratorId: focus!.collaboratorId,
-                workDate: todayIso(),
+                workDate,
                 occurrenceType: "NORMAL_WORK",
                 occurrenceOrigin: "MANUAL",
+                impactsHourBank: true,
             };
             return attendancerecordService.create(dto);
         },
-        onSuccess: async () => {
+        onSuccess: async (data) => {
+            if (!data) return;
             await invalidateHistory();
             toast.success("Ponto de hoje lançado");
         },
@@ -251,8 +281,17 @@ export function AttendanceRecordFormClient() {
                 setDraftRows((current) => current.map((item) => (item.id === row.id ? merged : item)));
                 return;
             }
-            // Com data preenchida, persiste o lançamento manual.
-            await saveMutation.mutateAsync({row: merged, patch: {...patch, workDate: nextWorkDate}});
+            if (!focus?.collaboratorId) return;
+            const confirmed = await confirmOutsideScheduleLaunch(focus.collaboratorId, nextWorkDate.slice(0, 10));
+            if (!confirmed) {
+                // Mantém o rascunho editavel para o usuario ajustar a data ou cancelar.
+                setDraftRows((current) => current.map((item) => (item.id === row.id ? merged : item)));
+                return;
+            }
+            await saveMutation.mutateAsync({
+                row: merged,
+                patch: {...patch, workDate: nextWorkDate, impactsHourBank: true},
+            });
             return;
         }
         await saveMutation.mutateAsync({row, patch});
@@ -269,8 +308,18 @@ export function AttendanceRecordFormClient() {
     };
 
     const reviewMutation = useMutation({
-        mutationFn: (payload: { id: string; action: AttendanceReviewAction; reason?: string }) =>
-            attendancerecordService.review(payload.id, payload.action, payload.reason),
+        mutationFn: (payload: {
+            id: string;
+            action: AttendanceReviewAction;
+            reason?: string;
+            compensationType?: AttendanceCompensationType;
+        }) =>
+            attendancerecordService.review(
+                payload.id,
+                payload.action,
+                payload.reason,
+                payload.compensationType,
+            ),
         onSuccess: async (_data, variables) => {
             await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
             await queryClient.invalidateQueries({queryKey: notificationKeys.summary});
@@ -410,9 +459,13 @@ export function AttendanceRecordFormClient() {
                         onDirtyChange={setDirty}
                         onCommitRow={handleCommitRow}
                         onDeleteRow={(row) => void handleDeleteRow(row)}
-                        onApproveRequest={(request) =>
-                            reviewMutation.mutate({id: request.id, action: "APPROVE"})
-                        }
+                        onApproveRequest={(request) => {
+                            if (request.requestType === "OUTSIDE_SCHEDULE") {
+                                setSelectedRequest(request);
+                                return;
+                            }
+                            reviewMutation.mutate({id: request.id, action: "APPROVE"});
+                        }}
                         onRejectRequest={setRejectTarget}
                         onDetailRequest={setSelectedRequest}
                     />
@@ -437,9 +490,13 @@ export function AttendanceRecordFormClient() {
                 open={Boolean(selectedRequest)}
                 reviewing={reviewMutation.isPending}
                 onClose={() => setSelectedRequest(null)}
-                onApprove={() => {
+                onApprove={(compensationType) => {
                     if (!selectedRequest) return;
-                    reviewMutation.mutate({id: selectedRequest.id, action: "APPROVE"});
+                    reviewMutation.mutate({
+                        id: selectedRequest.id,
+                        action: "APPROVE",
+                        compensationType,
+                    });
                 }}
                 onReject={(reason) => {
                     if (!selectedRequest) return;

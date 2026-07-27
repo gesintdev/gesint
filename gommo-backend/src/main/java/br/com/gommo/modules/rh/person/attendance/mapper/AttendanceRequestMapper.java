@@ -43,6 +43,7 @@ public class AttendanceRequestMapper {
                 .reviewedAt(entity.getReviewedAt())
                 .reviewedBy(entity.getReviewedBy())
                 .reviewReason(entity.getReviewReason())
+                .compensationType(entity.getCompensationType())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

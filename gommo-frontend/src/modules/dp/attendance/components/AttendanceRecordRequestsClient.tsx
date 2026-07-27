@@ -10,6 +10,7 @@ import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
 import {AttendanceRequestDetailModal} from "@/modules/dp/attendance/components/AttendanceRequestDetailModal";
 import {AttendanceRequestRejectDialog} from "@/modules/dp/attendance/components/AttendanceRequestRejectDialog";
 import type {
+    AttendanceCompensationType,
     AttendanceRequest,
     AttendanceReviewAction,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
@@ -43,6 +44,7 @@ const requestTypeLabel: Record<string, string> = {
     MEDICAL_CERTIFICATE: "Atestado médico",
     LEAVE_ABSENCE: "Afastamento",
     HOUR_BANK: "Banco de horas",
+    OUTSIDE_SCHEDULE: "Fora da escala",
     OTHER: "Outro",
 };
 
@@ -92,8 +94,18 @@ export function AttendanceRecordRequestsClient() {
     const [rejectTarget, setRejectTarget] = useState<AttendanceRequest | null>(null);
 
     const reviewMutation = useMutation({
-        mutationFn: (payload: { id: string; action: AttendanceReviewAction; reason?: string }) =>
-            attendancerecordService.review(payload.id, payload.action, payload.reason),
+        mutationFn: (payload: {
+            id: string;
+            action: AttendanceReviewAction;
+            reason?: string;
+            compensationType?: AttendanceCompensationType;
+        }) =>
+            attendancerecordService.review(
+                payload.id,
+                payload.action,
+                payload.reason,
+                payload.compensationType,
+            ),
         onSuccess: async (_data, variables) => {
             await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
             await queryClient.invalidateQueries({queryKey: [...attendancerecordKeys.all, "requests"]});
@@ -137,6 +149,10 @@ export function AttendanceRecordRequestsClient() {
                                     }
                                     onClick={(event) => {
                                         event.stopPropagation();
+                                        if (row.requestType === "OUTSIDE_SCHEDULE") {
+                                            setSelected(row);
+                                            return;
+                                        }
                                         reviewMutation.mutate({id: row.id, action: "APPROVE"});
                                     }}
                                 />
@@ -171,9 +187,13 @@ export function AttendanceRecordRequestsClient() {
                 open={Boolean(selected)}
                 reviewing={reviewMutation.isPending}
                 onClose={() => setSelected(null)}
-                onApprove={() => {
+                onApprove={(compensationType) => {
                     if (!selected) return;
-                    reviewMutation.mutate({id: selected.id, action: "APPROVE"});
+                    reviewMutation.mutate({
+                        id: selected.id,
+                        action: "APPROVE",
+                        compensationType,
+                    });
                 }}
                 onReject={(reason) => {
                     if (!selected) return;

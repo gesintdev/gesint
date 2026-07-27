@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import br.com.gommo.core.base.repository.IBaseRepository;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequest;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequestTypeEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceSourceEnum;
 
 @Repository
@@ -38,4 +39,11 @@ public interface AttendanceRequestRepository extends IBaseRepository<AttendanceR
             @Param("periodStart") LocalDate periodStart,
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
+
+    Optional<AttendanceRequest> findFirstByCollaboratorIdAndWorkDateAndRequestTypeAndRequestStatusAndStatusNot(
+            UUID collaboratorId,
+            LocalDate workDate,
+            AttendanceRequestTypeEnum requestType,
+            String requestStatus,
+            StatusEnum status);
 }

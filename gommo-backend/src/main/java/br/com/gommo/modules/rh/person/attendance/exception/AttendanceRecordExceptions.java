@@ -10,4 +10,7 @@ public final class AttendanceRecordExceptions {
     public static final String INVALID_SUBMISSION_CODE = "ATTENDANCE_INVALID_SUBMISSION";
     public static final String INVALID_SUBMISSION_MSG =
             "Informe clockIn, clockOut ou workedHours para solicitar ajuste de ponto";
+    public static final String COMPENSATION_REQUIRED_CODE = "ATTENDANCE_COMPENSATION_REQUIRED";
+    public static final String COMPENSATION_REQUIRED_MSG =
+            "Selecione se o ponto fora da escala ser\u00e1 banco de horas ou hora extra";
 }

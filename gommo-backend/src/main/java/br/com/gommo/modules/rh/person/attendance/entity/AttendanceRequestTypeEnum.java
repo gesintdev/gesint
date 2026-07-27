@@ -6,5 +6,6 @@ public enum AttendanceRequestTypeEnum {
     MEDICAL_CERTIFICATE,
     LEAVE_ABSENCE,
     HOUR_BANK,
+    OUTSIDE_SCHEDULE,
     OTHER
 }

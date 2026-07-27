@@ -39,6 +39,10 @@ public class AttendancePresenceResponseDto {
     private final boolean present;
     private final boolean inVacation;
     private final boolean onLeaveActive;
+    /** True when the work date is not a scheduled work day for the collaborator. */
+    private final boolean outsideWorkSchedule;
+    private final UUID workScheduleId;
+    private final String workScheduleName;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

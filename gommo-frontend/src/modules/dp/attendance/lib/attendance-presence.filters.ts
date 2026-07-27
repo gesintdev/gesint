@@ -107,6 +107,7 @@ export function buildPresenceFilterOptions(
 ): Record<string, string[]> {
     return {
         collaboratorName: uniqueSorted(rows.map((row) => row.collaboratorName)),
+        workScheduleName: uniqueSorted(rows.map((row) => row.workScheduleName)),
         workDate: uniqueSorted(rows.map((row) => row.workDate?.slice(0, 10))),
         occurrenceType: uniqueSorted(rows.map((row) => row.occurrenceType)),
         occurrenceOrigin: uniqueSorted(rows.map((row) => row.occurrenceOrigin)),

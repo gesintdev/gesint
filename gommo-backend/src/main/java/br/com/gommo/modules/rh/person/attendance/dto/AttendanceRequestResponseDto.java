@@ -10,6 +10,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.attendance.entity.AttendanceCompensationTypeEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRequestTypeEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceSourceEnum;
 
@@ -45,6 +46,7 @@ public class AttendanceRequestResponseDto {
     private final OffsetDateTime reviewedAt;
     private final UUID reviewedBy;
     private final String reviewReason;
+    private final AttendanceCompensationTypeEnum compensationType;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

@@ -329,6 +329,11 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                                                 index === pinnedCount;
                                             return (
                                                 <Fragment key={tab.id}>
+                                                    {index > 0 && !showPinDivider ? (
+                                                        <span className="workspace-tabbar-sep" aria-hidden>
+                                                            |
+                                                        </span>
+                                                    ) : null}
                                                     {showPinDivider ? (
                                                         <span className="workspace-tabbar-pin-divider" aria-hidden />
                                                     ) : null}

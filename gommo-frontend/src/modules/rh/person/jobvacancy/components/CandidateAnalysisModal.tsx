@@ -46,7 +46,29 @@ export function CandidateAnalysisModal({ open, candidateId, onClose }: Candidate
     const candidate = detailQuery.data;
 
     return createPortal(
-        <dialog ref={dialogRef} className="modal" onClose={onClose}>
+        <dialog
+            ref={dialogRef}
+            className="modal"
+            onClose={(event) => {
+                // close de dialog aninhado (ex.: preview PDF via portal) sobe na árvore React —
+                // ignore se o alvo não for este dialog.
+                event.stopPropagation();
+                if (event.target !== dialogRef.current) return;
+                onClose();
+            }}
+            onCancel={(event) => {
+                event.stopPropagation();
+                if (event.target !== dialogRef.current) {
+                    event.preventDefault();
+                    return;
+                }
+                const openDialogs = document.querySelectorAll("dialog[open]");
+                const topmost = openDialogs[openDialogs.length - 1];
+                if (topmost && topmost !== dialogRef.current) {
+                    event.preventDefault();
+                }
+            }}
+        >
             <div className="modal-box flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-0">
                 <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
                     <div className="min-w-0">
@@ -59,7 +81,10 @@ export function CandidateAnalysisModal({ open, candidateId, onClose }: Candidate
                         type="button"
                         aria-label="Fechar"
                         className="gommo-btn gommo-btn--ghost gommo-btn--icon-only shrink-0 text-base-content/50"
-                        onClick={onClose}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onClose();
+                        }}
                     >
                         <X className="size-4" strokeWidth={2} />
                     </button>

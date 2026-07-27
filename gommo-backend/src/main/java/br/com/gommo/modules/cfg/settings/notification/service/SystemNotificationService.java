@@ -176,7 +176,8 @@ public class SystemNotificationService {
                 attendanceRequestRepository
                         .findByRequestStatusAndStatusNotOrderBySubmittedAtDesc(REQUEST_PENDING, StatusEnum.DELETED)
                         .stream()
-                        .filter(record -> record.getRequestType() == AttendanceRequestTypeEnum.TIME_ADJUSTMENT)
+                        .filter(record -> record.getRequestType() == AttendanceRequestTypeEnum.TIME_ADJUSTMENT
+                                || record.getRequestType() == AttendanceRequestTypeEnum.OUTSIDE_SCHEDULE)
                         .toList();
         Set<UUID> pendingIds = pendingAdjustments.stream().map(AttendanceRequest::getId).collect(Collectors.toSet());
 
@@ -224,10 +225,16 @@ public class SystemNotificationService {
 
     private SystemNotification buildAttendanceAdjustmentNotification(AttendanceRequest record) {
         String date = record.getWorkDate() != null ? record.getWorkDate().format(DATE_FORMATTER) : "sem data";
+        boolean outsideSchedule = record.getRequestType() == AttendanceRequestTypeEnum.OUTSIDE_SCHEDULE;
         return SystemNotification.builder()
                 .notificationType(ATTENDANCE_ADJUSTMENT_REQUEST)
-                .title("Solicitacao de ajuste de ponto")
-                .message("Existe uma solicitacao de ajuste de ponto pendente para " + date + ".")
+                .title(outsideSchedule ? "Ponto fora da escala" : "Solicitacao de ajuste de ponto")
+                .message(
+                        outsideSchedule
+                                ? "Existe um ponto fora da escala pendente de aprovacao (banco de horas/hora extra) para "
+                                        + date
+                                        + "."
+                                : "Existe uma solicitacao de ajuste de ponto pendente para " + date + ".")
                 .referenceType(ATTENDANCE_RECORD_REQUEST)
                 .referenceId(record.getId())
                 .referenceDueDate(record.getWorkDate())

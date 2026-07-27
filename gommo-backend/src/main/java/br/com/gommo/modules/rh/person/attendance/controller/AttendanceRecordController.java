@@ -9,6 +9,7 @@ import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRequestResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceReviewRequestDto;
+import br.com.gommo.modules.rh.person.attendance.dto.AttendanceScheduleDayResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSettingsRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSettingsResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSubmissionRequestDto;
@@ -45,6 +46,13 @@ public class AttendanceRecordController extends BaseController<AttendanceRecordR
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size) {
         return attendanceRecordService.collaboratorHistory(collaboratorId, page, size);
+    }
+
+    @GetMapping("/collaborators/{collaboratorId}/schedule-day")
+    public AttendanceScheduleDayResponseDto scheduleDay(
+        @PathVariable UUID collaboratorId,
+        @RequestParam LocalDate date) {
+        return attendanceRecordService.scheduleDay(collaboratorId, date);
     }
 
     @GetMapping("/mobile/context")

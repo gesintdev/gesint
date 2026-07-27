@@ -141,6 +141,7 @@ function requestTypeLabel(type: string): string {
         MEDICAL_CERTIFICATE: "Atestado médico",
         LEAVE_ABSENCE: "Afastamento",
         HOUR_BANK: "Banco de horas",
+        OUTSIDE_SCHEDULE: "Fora da escala",
         OTHER: "Outro",
     };
     return map[type] ?? type;

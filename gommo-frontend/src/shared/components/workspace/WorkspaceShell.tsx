@@ -22,6 +22,7 @@ import {
 } from "@/shared/workspace/workspace-dashboard";
 import {
     buildLocationKey,
+    readBrowserLocationKey,
     readLastWorkspaceInitLocation,
     replaceUrlIfNeeded,
     writeLastWorkspaceInitLocation,
@@ -63,10 +64,16 @@ export function WorkspaceShell() {
 
     useEffect(() => {
         if (!hasHydrated) return;
-        const currentKey = buildLocationKey(pathname, searchParams);
+        // replaceState atualiza o browser antes do usePathname do Next — usar a URL real evita
+        // reabrir a aba de módulo e “piscar” o Painel (ex.: o 100% do anel de progresso).
+        const browserKey = readBrowserLocationKey();
+        const currentKey = browserKey ?? buildLocationKey(pathname, searchParams);
         if (readLastWorkspaceInitLocation() === currentKey) return;
+
+        const locationPath = browserKey ? window.location.pathname : pathname;
+        const locationSearch = browserKey ? window.location.search.slice(1) : searchParams.toString();
         const state = useWorkspaceStore.getState();
-        const parsed = parseWorkspaceLocation(pathname, searchParams.toString());
+        const parsed = parseWorkspaceLocation(locationPath, locationSearch);
         const route = parsed ? findRouteByHref(parsed.href) : undefined;
         if (parsed && route) {
             if (route.id === DASHBOARD_ROUTE_ID) {
@@ -130,7 +137,7 @@ export function WorkspaceShell() {
             ) : null}
             <div className="workspace-content relative min-h-0 flex-1 overflow-hidden">
                 {showDashboard ? (
-                    <div className="workspace-panel absolute inset-0">
+                    <div className="workspace-panel absolute inset-0 z-10">
                         <DashboardView/>
                     </div>
                 ) : null}
@@ -144,8 +151,9 @@ export function WorkspaceShell() {
                             key={tab.id}
                             className={clsx(
                                 "workspace-panel absolute inset-0",
-                                !active && "pointer-events-none invisible",
+                                active ? "z-10" : "pointer-events-none",
                             )}
+                            hidden={!active}
                             aria-hidden={!active}
                         >
                             <WorkspaceTabProvider tab={tab}>

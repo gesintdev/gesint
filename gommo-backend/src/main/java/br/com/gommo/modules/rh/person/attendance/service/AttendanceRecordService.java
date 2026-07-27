@@ -39,9 +39,12 @@ import java.math.RoundingMode;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -158,6 +161,14 @@ public class AttendanceRecordService
             .stream()
             .collect(Collectors.groupingBy(LeaveRequest::getCollaboratorId));
 
+        Map<UUID, AdmissionProcess> admissionsByCollaborator = latestCompletedAdmissionsByCollaborator(collaboratorIds);
+        Map<UUID, WorkSchedule> schedulesById = loadWorkSchedulesById(
+            admissionsByCollaborator.values().stream()
+                .map(AdmissionProcess::getWorkScheduleId)
+                .filter(id -> id != null)
+                .distinct()
+                .toList());
+
         List<AttendancePresenceResponseDto> rows = new ArrayList<>();
         for (LocalDate day = periodStart; !day.isAfter(periodEnd); day = day.plusDays(1)) {
             for (Collaborator collaborator : collaborators) {
@@ -167,7 +178,21 @@ public class AttendanceRecordService
                 boolean onLeaveActive = coversDate(absencesByCollaborator.get(collaborator.getId()), day)
                     || isJustifiedLeaveOccurrence(record);
                 boolean present = record != null && record.getClockIn() != null;
-                rows.add(toPresenceResponse(collaborator, day, record, present, inVacation, onLeaveActive));
+                AdmissionProcess admission = admissionsByCollaborator.get(collaborator.getId());
+                WorkSchedule schedule = admission != null && admission.getWorkScheduleId() != null
+                    ? schedulesById.get(admission.getWorkScheduleId())
+                    : null;
+                boolean outsideWorkSchedule = isOutsideWorkSchedule(schedule, day);
+                rows.add(toPresenceResponse(
+                    collaborator,
+                    day,
+                    record,
+                    present,
+                    inVacation,
+                    onLeaveActive,
+                    outsideWorkSchedule,
+                    schedule,
+                    admission));
             }
         }
 
@@ -177,6 +202,30 @@ public class AttendanceRecordService
                 row -> row.getCollaboratorName() != null ? row.getCollaboratorName() : "",
                 String.CASE_INSENSITIVE_ORDER));
         return rows;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('attendance:read')")
+    public AttendanceScheduleDayResponseDto scheduleDay(UUID collaboratorId, LocalDate workDate) {
+        if (collaboratorId == null || workDate == null) {
+            throw AttendanceRecordException.invalidSubmission();
+        }
+        AdmissionProcess admission = latestCompletedAdmission(collaboratorId);
+        WorkSchedule schedule = null;
+        if (admission != null && admission.getWorkScheduleId() != null) {
+            schedule = workScheduleRepository
+                .findByIdWithDays(admission.getWorkScheduleId(), StatusEnum.DELETED)
+                .orElse(null);
+        }
+        return AttendanceScheduleDayResponseDto.builder()
+            .collaboratorId(collaboratorId)
+            .outsideWorkSchedule(isOutsideWorkSchedule(schedule, workDate))
+            .workScheduleId(schedule != null
+                ? schedule.getId()
+                : (admission != null ? admission.getWorkScheduleId() : null))
+            .workScheduleName(schedule != null ? schedule.getName() : null)
+            .build();
     }
 
     @Override
@@ -285,22 +334,61 @@ public class AttendanceRecordService
         LocalDate workDate = request.getCapturedAt().atZoneSameInstant(BUSINESS_ZONE).toLocalDate();
         LocalTime time = request.getCapturedAt().atZoneSameInstant(BUSINESS_ZONE).toLocalTime().withNano(0);
         AdmissionProcess admission = latestCompletedAdmission(collaboratorId);
-        BigDecimal expectedHours = expectedHoursFromAdmission(admission, workDate);
+        WorkSchedule schedule = resolveWorkSchedule(admission);
+        boolean outsideWorkSchedule = isOutsideWorkSchedule(schedule, workDate);
+        BigDecimal expectedHours = expectedHoursFromAdmission(admission, workDate, schedule);
 
         AttendanceRecord entity = repository
             .findByCollaboratorIdAndWorkDateAndStatusNot(collaboratorId, workDate, StatusEnum.DELETED)
-            .orElseGet(() -> newWorkdayRecord(collaboratorId, workDate, expectedHours));
+            .orElseGet(() -> newWorkdayRecord(collaboratorId, workDate, expectedHours, outsideWorkSchedule));
 
         applyNextPunch(entity, time);
         entity.setExpectedHours(expectedHours);
         entity.setWorkedHours(calculateWorkedHours(entity));
+
+        AttendanceRequest pendingOutside = null;
+        boolean outsideAlreadyApproved = false;
+        if (outsideWorkSchedule) {
+            pendingOutside = requestRepository
+                .findFirstByCollaboratorIdAndWorkDateAndRequestTypeAndRequestStatusAndStatusNot(
+                    collaboratorId,
+                    workDate,
+                    AttendanceRequestTypeEnum.OUTSIDE_SCHEDULE,
+                    REQUEST_PENDING,
+                    StatusEnum.DELETED)
+                .orElse(null);
+            outsideAlreadyApproved = requestRepository
+                .findFirstByCollaboratorIdAndWorkDateAndRequestTypeAndRequestStatusAndStatusNot(
+                    collaboratorId,
+                    workDate,
+                    AttendanceRequestTypeEnum.OUTSIDE_SCHEDULE,
+                    REQUEST_APPROVED,
+                    StatusEnum.DELETED)
+                .isPresent();
+        }
+
+        if (outsideWorkSchedule && !outsideAlreadyApproved) {
+            entity.setOccurrenceType(AttendanceOccurrenceTypeEnum.TIME_ADJUSTMENT);
+            entity.setOccurrenceOrigin(AttendanceOccurrenceOriginEnum.MOBILE);
+            // Compensacao fica pendente ate aprovacao (banco de horas x hora extra).
+            entity.setImpactsHourBank(Boolean.FALSE);
+            entity.setImpactsPayroll(Boolean.FALSE);
+        }
         entity.setPhotoObjectId(request.getPhoto() != null ? request.getPhoto().getObjectId() : null);
         entity.setLatitude(request.getLatitude());
         entity.setLongitude(request.getLongitude());
         entity.setLocationAccuracyMeters(request.getLocationAccuracyMeters());
         entity = repository.save(entity);
         linkRecordAttachment(entity, request.getPhoto(), PHOTO_LINK_ROLE);
-        return toEnrichedResponse(entity);
+
+        boolean pendingOutsideScheduleApproval = false;
+        if (outsideWorkSchedule && !outsideAlreadyApproved) {
+            upsertOutsideScheduleRequest(entity, request, schedule, pendingOutside);
+            pendingOutsideScheduleApproval = true;
+        }
+        return toEnrichedResponse(entity).toBuilder()
+            .pendingOutsideScheduleApproval(pendingOutsideScheduleApproval)
+            .build();
     }
 
     @Override
@@ -398,6 +486,9 @@ public class AttendanceRecordService
         entity.setReviewedBy(reviewerId);
         entity.setReviewReason(request.getReason());
         if ("APPROVE".equals(action)) {
+            if (entity.getRequestType() == AttendanceRequestTypeEnum.OUTSIDE_SCHEDULE) {
+                entity.setCompensationType(parseCompensationType(request.getCompensationType()));
+            }
             applyApprovedRequest(entity);
             entity.setRequestStatus(REQUEST_APPROVED);
         } else if ("REJECT".equals(action)) {
@@ -508,7 +599,8 @@ public class AttendanceRecordService
             .orElseGet(() -> newWorkdayRecord(
                 request.getCollaboratorId(),
                 request.getWorkDate(),
-                request.getExpectedHours()));
+                request.getExpectedHours(),
+                request.getRequestType() == AttendanceRequestTypeEnum.OUTSIDE_SCHEDULE));
 
         if (request.getRequestType() == AttendanceRequestTypeEnum.DAY_ABSENCE_EXCUSE
             || request.getRequestType() == AttendanceRequestTypeEnum.MEDICAL_CERTIFICATE
@@ -536,10 +628,91 @@ public class AttendanceRecordService
         target.setWorkedHours(calculateWorkedHours(target));
         if (request.getNotes() != null) target.setNotes(request.getNotes());
         target.setOccurrenceType(AttendanceOccurrenceTypeEnum.TIME_ADJUSTMENT);
+
+        if (request.getRequestType() == AttendanceRequestTypeEnum.OUTSIDE_SCHEDULE) {
+            applyCompensationDestination(target, request.getCompensationType());
+        } else if (request.getRequestType() == AttendanceRequestTypeEnum.HOUR_BANK) {
+            target.setImpactsHourBank(Boolean.TRUE);
+            target.setImpactsPayroll(Boolean.FALSE);
+        }
+
         repository.save(target);
         if (request.getAttendanceRecordId() == null) {
             request.setAttendanceRecordId(target.getId());
         }
+    }
+
+    private void applyCompensationDestination(AttendanceRecord target, AttendanceCompensationTypeEnum compensationType) {
+        if (compensationType == AttendanceCompensationTypeEnum.OVERTIME) {
+            target.setImpactsHourBank(Boolean.FALSE);
+            target.setImpactsPayroll(Boolean.TRUE);
+            return;
+        }
+        // Default / HOUR_BANK
+        target.setImpactsHourBank(Boolean.TRUE);
+        target.setImpactsPayroll(Boolean.FALSE);
+    }
+
+    private AttendanceCompensationTypeEnum parseCompensationType(String raw) {
+        if (raw == null || raw.isBlank()) {
+            throw AttendanceRecordException.compensationRequired();
+        }
+        try {
+            return AttendanceCompensationTypeEnum.valueOf(raw.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw AttendanceRecordException.compensationRequired();
+        }
+    }
+
+    private WorkSchedule resolveWorkSchedule(AdmissionProcess admission) {
+        if (admission == null || admission.getWorkScheduleId() == null) {
+            return null;
+        }
+        return workScheduleRepository
+            .findByIdWithDays(admission.getWorkScheduleId(), StatusEnum.DELETED)
+            .orElse(null);
+    }
+
+    private void upsertOutsideScheduleRequest(
+        AttendanceRecord record,
+        AttendanceClockRequestDto clockRequest,
+        WorkSchedule schedule,
+        AttendanceRequest existingPending) {
+        AttendanceRequest pending = existingPending;
+        String scheduleName = schedule != null && schedule.getName() != null ? schedule.getName() : "vinculada";
+        String notes = "Ponto registrado fora dos dias de trabalho da escala \"" + scheduleName
+            + "\". Aguardando aprovacao para definir banco de horas ou hora extra.";
+
+        if (pending == null) {
+            pending = AttendanceRequest.builder()
+                .collaboratorId(record.getCollaboratorId())
+                .workDate(record.getWorkDate())
+                .attendanceRecordId(record.getId())
+                .requestType(AttendanceRequestTypeEnum.OUTSIDE_SCHEDULE)
+                .source(AttendanceSourceEnum.MOBILE)
+                .clientRequestId(clockRequest.getClientRequestId())
+                .submittedAt(OffsetDateTime.now(BUSINESS_ZONE))
+                .requestStatus(REQUEST_PENDING)
+                .notes(notes)
+                .build();
+            pending.setStatus(StatusEnum.ACTIVE);
+        } else {
+            pending.setAttendanceRecordId(record.getId());
+            pending.setClientRequestId(clockRequest.getClientRequestId());
+            pending.setSubmittedAt(OffsetDateTime.now(BUSINESS_ZONE));
+            if (pending.getNotes() == null || pending.getNotes().isBlank()) {
+                pending.setNotes(notes);
+            }
+        }
+
+        pending.setClockIn(record.getClockIn());
+        pending.setBreakStart(record.getBreakStart());
+        pending.setBreakEnd(record.getBreakEnd());
+        pending.setClockOut(record.getClockOut());
+        pending.setBreakMinutes(record.getBreakMinutes());
+        pending.setExpectedHours(record.getExpectedHours());
+        pending.setWorkedHours(record.getWorkedHours());
+        requestRepository.save(pending);
     }
 
     private List<AttendanceRecordResponseDto> mapToResponses(List<AttendanceRecord> entities) {
@@ -582,7 +755,14 @@ public class AttendanceRecordService
         AttendanceRecord record,
         boolean present,
         boolean inVacation,
-        boolean onLeaveActive) {
+        boolean onLeaveActive,
+        boolean outsideWorkSchedule,
+        WorkSchedule schedule,
+        AdmissionProcess admission) {
+        UUID workScheduleId = schedule != null
+            ? schedule.getId()
+            : (admission != null ? admission.getWorkScheduleId() : null);
+        String workScheduleName = schedule != null ? schedule.getName() : null;
         if (record != null) {
             return AttendancePresenceResponseDto.builder()
                 .id(record.getId().toString())
@@ -609,6 +789,9 @@ public class AttendanceRecordService
                 .present(present)
                 .inVacation(inVacation)
                 .onLeaveActive(onLeaveActive)
+                .outsideWorkSchedule(outsideWorkSchedule)
+                .workScheduleId(workScheduleId)
+                .workScheduleName(workScheduleName)
                 .createdAt(record.getCreatedAt())
                 .updatedAt(record.getUpdatedAt())
                 .build();
@@ -621,11 +804,69 @@ public class AttendanceRecordService
             .collaboratorName(collaborator.getFullName())
             .photoObjectId(collaborator.getPhotoObjectId())
             .workDate(workDate)
-            .expectedHours(expectedHoursFromAdmission(latestCompletedAdmission(collaborator.getId()), workDate))
+            .expectedHours(expectedHoursFromAdmission(admission, workDate, schedule))
             .present(false)
             .inVacation(inVacation)
             .onLeaveActive(onLeaveActive)
+            .outsideWorkSchedule(outsideWorkSchedule)
+            .workScheduleId(workScheduleId)
+            .workScheduleName(workScheduleName)
             .build();
+    }
+
+    private Map<UUID, AdmissionProcess> latestCompletedAdmissionsByCollaborator(List<UUID> collaboratorIds) {
+        if (collaboratorIds == null || collaboratorIds.isEmpty()) {
+            return Map.of();
+        }
+        Set<UUID> collaboratorIdSet = new HashSet<>(collaboratorIds);
+        Map<UUID, AdmissionProcess> latestByCollaborator = new HashMap<>();
+        for (AdmissionProcess admission : admissionProcessRepository
+            .findByAdmissionStatusAndCollaboratorIdIsNotNullAndStatusNot(
+                AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED)) {
+            if (admission.getCollaboratorId() == null || !collaboratorIdSet.contains(admission.getCollaboratorId())) {
+                continue;
+            }
+            AdmissionProcess current = latestByCollaborator.get(admission.getCollaboratorId());
+            if (current == null || admissionStartDate(admission).isAfter(admissionStartDate(current))) {
+                latestByCollaborator.put(admission.getCollaboratorId(), admission);
+            }
+        }
+        return latestByCollaborator;
+    }
+
+    private static LocalDate admissionStartDate(AdmissionProcess admission) {
+        LocalDate date = admission.getContractStartDate() != null
+            ? admission.getContractStartDate()
+            : admission.getExpectedStartDate();
+        return date == null ? LocalDate.MIN : date;
+    }
+
+    private Map<UUID, WorkSchedule> loadWorkSchedulesById(List<UUID> scheduleIds) {
+        if (scheduleIds == null || scheduleIds.isEmpty()) {
+            return Map.of();
+        }
+        return workScheduleRepository.findAllByIdWithDays(scheduleIds, StatusEnum.DELETED).stream()
+            .collect(Collectors.toMap(WorkSchedule::getId, Function.identity(), (left, right) -> left));
+    }
+
+    /**
+     * Dia fora da escala: ha escala vinculada e a jornada esperada do dia e zero
+     * (dia ausente no quadro ou com periodos vazios).
+     */
+    private boolean isOutsideWorkSchedule(WorkSchedule schedule, LocalDate workDate) {
+        if (schedule == null || workDate == null) {
+            return false;
+        }
+        BigDecimal expected = hoursForScheduleDay(schedule, workDate);
+        return expected == null || expected.compareTo(BigDecimal.ZERO) <= 0;
+    }
+
+    private BigDecimal expectedHoursFromAdmission(
+        AdmissionProcess admission, LocalDate workDate, WorkSchedule schedule) {
+        if (schedule != null) {
+            return hoursForScheduleDay(schedule, workDate);
+        }
+        return expectedHoursFromAdmission(admission, workDate);
     }
 
     private static String presenceKey(UUID collaboratorId, LocalDate workDate) {
@@ -677,17 +918,20 @@ public class AttendanceRecordService
         return collaboratorNamesById(List.of(collaboratorId)).get(collaboratorId);
     }
 
-    private AttendanceRecord newWorkdayRecord(UUID collaboratorId, LocalDate workDate, BigDecimal expectedHours) {
+    private AttendanceRecord newWorkdayRecord(
+        UUID collaboratorId, LocalDate workDate, BigDecimal expectedHours, boolean outsideWorkSchedule) {
         AttendanceRecord entity = AttendanceRecord.builder()
             .collaboratorId(collaboratorId)
             .workDate(workDate)
             .breakMinutes(0)
             .expectedHours(expectedHours)
             .workedHours(BigDecimal.ZERO)
-            .occurrenceType(AttendanceOccurrenceTypeEnum.NORMAL_WORK)
+            .occurrenceType(outsideWorkSchedule
+                ? AttendanceOccurrenceTypeEnum.TIME_ADJUSTMENT
+                : AttendanceOccurrenceTypeEnum.NORMAL_WORK)
             .occurrenceOrigin(AttendanceOccurrenceOriginEnum.MOBILE)
-            .impactsHourBank(Boolean.TRUE)
-            .impactsPayroll(Boolean.TRUE)
+            .impactsHourBank(!outsideWorkSchedule)
+            .impactsPayroll(!outsideWorkSchedule)
             .build();
         entity.setStatus(StatusEnum.ACTIVE);
         return entity;

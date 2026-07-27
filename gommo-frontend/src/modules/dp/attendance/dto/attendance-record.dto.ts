@@ -16,9 +16,12 @@ export type AttendanceRequestType =
     | "MEDICAL_CERTIFICATE"
     | "LEAVE_ABSENCE"
     | "HOUR_BANK"
+    | "OUTSIDE_SCHEDULE"
     | "OTHER";
 
 export type AttendanceRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export type AttendanceCompensationType = "HOUR_BANK" | "OVERTIME";
 
 export class AttendanceRecord {
     id!: string;
@@ -44,6 +47,7 @@ export class AttendanceRecord {
     latitude?: number;
     longitude?: number;
     locationAccuracyMeters?: number;
+    pendingOutsideScheduleApproval?: boolean;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -73,6 +77,9 @@ export class AttendancePresenceRow {
     present!: boolean;
     inVacation!: boolean;
     onLeaveActive!: boolean;
+    outsideWorkSchedule!: boolean;
+    workScheduleId?: string;
+    workScheduleName?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -125,6 +132,7 @@ export class AttendanceRequest {
     reviewedAt?: string;
     reviewedBy?: string;
     reviewReason?: string;
+    compensationType?: AttendanceCompensationType;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -134,6 +142,13 @@ export type AttendanceReviewAction = "APPROVE" | "REJECT";
 export type AttendanceSettings = {
     requirePhoto: boolean;
     requireLocation: boolean;
+};
+
+export type AttendanceScheduleDay = {
+    collaboratorId: string;
+    outsideWorkSchedule: boolean;
+    workScheduleId?: string;
+    workScheduleName?: string;
 };
 
 export type AttendanceMobileContext = {
@@ -161,14 +176,6 @@ export type AttendanceClockPayload = {
     locationAccuracyMeters?: number;
     clientRequestId: string;
 };
-
-export type AttendanceRequestType =
-    | "TIME_ADJUSTMENT"
-    | "DAY_ABSENCE_EXCUSE"
-    | "MEDICAL_CERTIFICATE"
-    | "LEAVE_ABSENCE"
-    | "HOUR_BANK"
-    | "OTHER";
 
 export type AttendanceSubmissionSource = "MOBILE" | "BACKOFFICE";
 

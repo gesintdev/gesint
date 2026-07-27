@@ -36,6 +36,7 @@ public class AttendanceRecordResponseDto {
     private final BigDecimal latitude;
     private final BigDecimal longitude;
     private final BigDecimal locationAccuracyMeters;
+    private final boolean pendingOutsideScheduleApproval;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

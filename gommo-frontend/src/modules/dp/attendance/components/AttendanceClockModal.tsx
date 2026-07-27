@@ -256,12 +256,16 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                 locationAccuracyMeters: geo?.accuracy,
             });
         },
-        onSuccess: async () => {
+        onSuccess: async (record) => {
             await Promise.all([
                 queryClient.invalidateQueries({queryKey: ["attendance", "mobile-context"]}),
                 queryClient.invalidateQueries({queryKey: ["attendance", "mobile-records"]}),
             ]);
-            toast.success("Ponto registrado");
+            toast.success(
+                record.pendingOutsideScheduleApproval
+                    ? "Ponto registrado e enviado para aprovação como banco de horas / hora extra"
+                    : "Ponto registrado",
+            );
             onClose();
         },
         onError: (err: unknown) => {

@@ -510,11 +510,12 @@ public class AuthService implements IAuthService {
                 .distinct()
                 .toList());
 
-        // Serviços pessoais do header (agenda + bate-ponto): disponíveis a todo usuário autenticado.
+        // Serviços pessoais do header (agenda + bate-ponto + foto de perfil): disponíveis a todo usuário autenticado.
         permissions.add("agenda:read");
         permissions.add("agenda:write");
         permissions.add("agenda:delete");
         permissions.add("attendance:write");
+        permissions.add("storage:read");
         permissions.add("storage:write");
 
         if (user.getCollaboratorId() != null) {
@@ -549,6 +550,8 @@ public class AuthService implements IAuthService {
                 .ifPresent(contract -> applyContract(snapshot, contract));
         latestCompletedAdmission(snapshot.collaboratorId)
                 .ifPresent(admission -> applyAdmissionFallback(snapshot, admission));
+        // Foto do perfil: prioriza a inserida na admissão (mesmo se a admissão ainda não estiver concluída).
+        resolveAdmissionPhoto(snapshot);
         resolveOrganizationNames(snapshot);
         return snapshot;
     }
@@ -575,13 +578,25 @@ public class AuthService implements IAuthService {
     }
 
     private void applyAdmissionFallback(CollaboratorOrganizationSnapshot snapshot, AdmissionProcess admission) {
-        if (snapshot.jobPositionId != null) {
-            return;
+        if (admission.getPhotoObjectId() != null) {
+            snapshot.photoObjectId = admission.getPhotoObjectId();
         }
-        snapshot.jobPositionId = admission.getJobPositionId();
+        if (snapshot.jobPositionId == null) {
+            snapshot.jobPositionId = admission.getJobPositionId();
+        }
         if (snapshot.departmentId == null) {
             snapshot.departmentId = admission.getDepartmentId();
         }
+    }
+
+    private void resolveAdmissionPhoto(CollaboratorOrganizationSnapshot snapshot) {
+        if (snapshot.collaboratorId == null) {
+            return;
+        }
+        admissionProcessRepository
+                .findByCollaboratorIdAndStatusNot(snapshot.collaboratorId, StatusEnum.DELETED)
+                .map(AdmissionProcess::getPhotoObjectId)
+                .ifPresent(photoObjectId -> snapshot.photoObjectId = photoObjectId);
     }
 
     private void resolveOrganizationNames(CollaboratorOrganizationSnapshot snapshot) {

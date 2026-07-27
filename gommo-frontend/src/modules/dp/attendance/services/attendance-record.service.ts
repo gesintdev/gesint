@@ -1,11 +1,13 @@
 import type {
     AttendanceClockPayload,
+    AttendanceCompensationType,
     AttendanceMobileContext,
     AttendancePresenceRow,
     AttendanceRecord,
     AttendanceRecordCreateDto,
     AttendanceRequest,
     AttendanceReviewAction,
+    AttendanceScheduleDay,
     AttendanceSettings,
     AttendanceSubmissionPayload,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
@@ -27,6 +29,13 @@ class AttendanceRecordService extends BaseService<
         return apiFetch<AttendancePresenceRow[]>(`${this.basePath}/presence?${params.toString()}`);
     }
 
+    scheduleDay(collaboratorId: string, date: string) {
+        const params = new URLSearchParams({date});
+        return apiFetch<AttendanceScheduleDay>(
+            `${this.basePath}/collaborators/${collaboratorId}/schedule-day?${params.toString()}`,
+        );
+    }
+
     listCollaboratorHistory(collaboratorId: string, page = 0, size = 20) {
         const params = new URLSearchParams({page: String(page), size: String(size)});
         return apiFetch<PageableResponseDto<AttendanceRecord>>(
@@ -42,10 +51,10 @@ class AttendanceRecordService extends BaseService<
         return apiFetch<AttendanceRequest[]>(`${this.basePath}/requests/pending`);
     }
 
-    review(id: string, action: AttendanceReviewAction, reason?: string) {
+    review(id: string, action: AttendanceReviewAction, reason?: string, compensationType?: AttendanceCompensationType) {
         return apiFetch<AttendanceRequest>(`${this.basePath}/requests/${id}/review`, {
             method: "POST",
-            body: {action, reason},
+            body: {action, reason, compensationType},
         });
     }
 

@@ -103,4 +103,8 @@ public class AttendanceRequest extends AuditEntity {
 
     @Column(name = "review_reason", columnDefinition = "TEXT")
     private String reviewReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "compensation_type", length = 40)
+    private AttendanceCompensationTypeEnum compensationType;
 }

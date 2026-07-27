@@ -1,5 +1,6 @@
 package br.com.gommo.modules.dp.organization.workschedule.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +27,15 @@ public interface WorkScheduleRepository extends IBaseRepository<WorkSchedule> {
             WHERE w.id = :id AND w.status <> :deleted
             """)
     Optional<WorkSchedule> findByIdWithDays(@Param("id") UUID id, @Param("deleted") StatusEnum deleted);
+
+    @Query(
+            """
+            SELECT DISTINCT w FROM WorkSchedule w
+            LEFT JOIN FETCH w.days
+            WHERE w.id IN :ids AND w.status <> :deleted
+            """)
+    List<WorkSchedule> findAllByIdWithDays(
+            @Param("ids") Collection<UUID> ids, @Param("deleted") StatusEnum deleted);
 
     @Query(
             """

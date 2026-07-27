@@ -27,4 +27,11 @@ public final class AttendanceRecordException {
                 AttendanceRecordExceptions.INVALID_SUBMISSION_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException compensationRequired() {
+        return new BusinessException(
+                AttendanceRecordExceptions.COMPENSATION_REQUIRED_CODE,
+                AttendanceRecordExceptions.COMPENSATION_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

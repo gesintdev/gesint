@@ -17,15 +17,23 @@ export const ATTENDANCE_TABLE_COLUMNS: TableColumnConfig[] = [
         avatarTagLabels: {
             PRESENT: "Presente",
             ABSENT: "Ausente",
+            OUTSIDE_SCHEDULE: "Fora da escala",
             IN_VACATION: "Em Férias",
             ON_LEAVE: "Afastado",
         },
         avatarTagClassNames: {
             PRESENT: "border-primary/25 bg-primary/12 text-primary dark:border-primary/35 dark:bg-primary/18",
             ABSENT: "border-warning/25 bg-warning/12 text-warning dark:border-warning/35 dark:bg-warning/18",
+            OUTSIDE_SCHEDULE: "border-info/25 bg-info/12 text-info dark:border-info/35 dark:bg-info/18",
             IN_VACATION: "border-success/25 bg-success/12 text-success dark:border-success/35 dark:bg-success/18",
             ON_LEAVE: "border-warning/25 bg-warning/12 text-warning dark:border-warning/35 dark:bg-warning/18",
         },
+    },
+    {
+        id: "workScheduleName",
+        columnName: "Escala",
+        fieldValue: "workScheduleName",
+        dataType: TableDataType.TEXT,
     },
     {
         id: "workDate",

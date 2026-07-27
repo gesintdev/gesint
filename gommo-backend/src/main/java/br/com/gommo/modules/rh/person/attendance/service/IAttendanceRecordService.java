@@ -9,6 +9,7 @@ import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRequestResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceReviewRequestDto;
+import br.com.gommo.modules.rh.person.attendance.dto.AttendanceScheduleDayResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSettingsRequestDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSettingsResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceSubmissionRequestDto;
@@ -21,6 +22,8 @@ public interface IAttendanceRecordService
         extends IBaseService<AttendanceRecordRequestDto, AttendanceRecordResponseDto> {
 
     List<AttendancePresenceResponseDto> presence(LocalDate from, LocalDate to);
+
+    AttendanceScheduleDayResponseDto scheduleDay(UUID collaboratorId, LocalDate workDate);
 
     PageableResponseDto<AttendanceRecordResponseDto> collaboratorHistory(UUID collaboratorId, int page, int size);
 

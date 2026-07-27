@@ -10,4 +10,6 @@ import lombok.Setter;
 public class AttendanceReviewRequestDto {
     @NotBlank private String action;
     @Size(max = 4000) private String reason;
+    /** HOUR_BANK | OVERTIME — obrigatorio ao aprovar OUTSIDE_SCHEDULE. */
+    @Size(max = 40) private String compensationType;
 }

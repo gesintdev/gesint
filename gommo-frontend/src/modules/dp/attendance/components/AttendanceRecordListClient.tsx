@@ -66,7 +66,10 @@ function presenceTags(row: AttendancePresenceRow): string[] {
     if (row.present) tags.push("PRESENT");
     if (row.inVacation) tags.push("IN_VACATION");
     if (row.onLeaveActive) tags.push("ON_LEAVE");
-    if (!row.present && !row.inVacation && !row.onLeaveActive) tags.push("ABSENT");
+    if (!row.present && !row.inVacation && !row.onLeaveActive) {
+        if (row.outsideWorkSchedule) tags.push("OUTSIDE_SCHEDULE");
+        else tags.push("ABSENT");
+    }
     return tags;
 }
 
