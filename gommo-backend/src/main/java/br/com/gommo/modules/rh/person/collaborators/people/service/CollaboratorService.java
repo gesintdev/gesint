@@ -28,6 +28,9 @@ import br.com.gommo.modules.rh.person.collaborators.people.mapper.CollaboratorMa
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorContactRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.root.repository.AppUserRepository;
+import br.com.gommo.modules.root.search.document.SearchDocumentType;
+import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
+import br.com.gommo.modules.root.search.service.provider.CollaboratorGlobalSearchProvider;
 
 @Service
 public class CollaboratorService extends BaseService<Collaborator, CollaboratorRequestDto, CollaboratorResponseDto>
@@ -40,6 +43,7 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
     private final OffboardingRepository offboardingRepository;
     private final JobPositionRepository jobPositionRepository;
     private final AppUserRepository appUserRepository;
+    private final ISearchDocumentIndexer searchDocumentIndexer;
 
     public CollaboratorService(
             CollaboratorRepository CollaboratorRepository,
@@ -48,7 +52,8 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
             AdmissionProcessRepository admissionProcessRepository,
             OffboardingRepository offboardingRepository,
             JobPositionRepository jobPositionRepository,
-            AppUserRepository appUserRepository) {
+            AppUserRepository appUserRepository,
+            ISearchDocumentIndexer searchDocumentIndexer) {
         super(CollaboratorRepository, CollaboratorMapper::toResponse, CollaboratorMapper::toEntity);
         this.CollaboratorRepository = CollaboratorRepository;
         this.CollaboratorMapper = CollaboratorMapper;
@@ -57,6 +62,7 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
         this.offboardingRepository = offboardingRepository;
         this.jobPositionRepository = jobPositionRepository;
         this.appUserRepository = appUserRepository;
+        this.searchDocumentIndexer = searchDocumentIndexer;
     }
 
     @Override
@@ -195,7 +201,9 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
                 .ifPresent(p -> {
                     throw CollaboratorException.cpfAlreadyExists();
                 });
-        return super.update(id, request);
+        CollaboratorResponseDto updated = super.update(id, request);
+        indexCollaborator(findEntity(id));
+        return updated;
     }
 
     @Override
@@ -203,6 +211,23 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
     @PreAuthorize("hasAuthority('collaborator:delete')")
     public void delete(UUID id) {
         super.delete(id);
+        searchDocumentIndexer.remove(SearchDocumentType.PERSON, id);
+    }
+
+    private void indexCollaborator(Collaborator collaborator) {
+        String displayName = collaborator.getSocialName() != null && !collaborator.getSocialName().isBlank()
+                ? collaborator.getSocialName()
+                : collaborator.getFullName();
+        String searchText = collaborator.getFullName()
+                + (collaborator.getSocialName() != null ? " " + collaborator.getSocialName() : "")
+                + (collaborator.getCpf() != null ? " " + collaborator.getCpf() : "");
+        searchDocumentIndexer.upsert(
+                SearchDocumentType.PERSON,
+                collaborator.getId(),
+                displayName,
+                CollaboratorGlobalSearchProvider.formatCpfLabel(collaborator.getCpf()),
+                searchText,
+                CollaboratorGlobalSearchProvider.HREF);
     }
 
     @Override

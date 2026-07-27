@@ -21,6 +21,9 @@ import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNature
 import br.com.gommo.modules.dp.organization.jobposition.exception.JobPositionException;
 import br.com.gommo.modules.dp.organization.jobposition.mapper.JobPositionMapper;
 import br.com.gommo.modules.dp.organization.jobposition.repository.JobPositionRepository;
+import br.com.gommo.modules.root.search.document.SearchDocumentType;
+import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
+import br.com.gommo.modules.root.search.service.provider.JobPositionGlobalSearchProvider;
 
 @Service
 public class JobPositionService extends BaseService<JobPosition, JobPositionRequestDto, JobPositionResponseDto>
@@ -28,11 +31,16 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
 
     private final JobPositionRepository repository;
     private final JobPositionMapper mapper;
+    private final ISearchDocumentIndexer searchDocumentIndexer;
 
-    public JobPositionService(JobPositionRepository repository, JobPositionMapper mapper) {
+    public JobPositionService(
+            JobPositionRepository repository,
+            JobPositionMapper mapper,
+            ISearchDocumentIndexer searchDocumentIndexer) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
+        this.searchDocumentIndexer = searchDocumentIndexer;
     }
 
     @Override
@@ -84,16 +92,18 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
     @Transactional
     @PreAuthorize("hasAuthority('jobposition:write')")
     public JobPositionResponseDto create(JobPositionRequestDto request) {
-
-        return super.create(request);
+        JobPositionResponseDto created = super.create(request);
+        indexJobPosition(findEntity(created.getId()));
+        return created;
     }
 
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('jobposition:write')")
     public JobPositionResponseDto update(UUID id, JobPositionRequestDto request) {
-
-        return super.update(id, request);
+        JobPositionResponseDto updated = super.update(id, request);
+        indexJobPosition(findEntity(id));
+        return updated;
     }
 
     @Override
@@ -101,6 +111,22 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
     @PreAuthorize("hasAuthority('jobposition:delete')")
     public void delete(UUID id) {
         super.delete(id);
+        searchDocumentIndexer.remove(SearchDocumentType.JOB_POSITION, id);
+    }
+
+    private void indexJobPosition(JobPosition jobPosition) {
+        String subtitle = jobPosition.getCboCode() != null && !jobPosition.getCboCode().isBlank()
+                ? "CBO " + jobPosition.getCboCode()
+                : null;
+        String searchText = jobPosition.getTitle()
+                + (jobPosition.getCboCode() != null ? " " + jobPosition.getCboCode() : "");
+        searchDocumentIndexer.upsert(
+                SearchDocumentType.JOB_POSITION,
+                jobPosition.getId(),
+                jobPosition.getTitle(),
+                subtitle,
+                searchText,
+                JobPositionGlobalSearchProvider.HREF);
     }
 
     @Override

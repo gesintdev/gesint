@@ -32,4 +32,17 @@ public interface JobPositionRepository extends IBaseRepository<JobPosition> {
             @Param("departmentId") UUID departmentId,
             @Param("nature") JobPositionNatureEnum nature,
             Pageable pageable);
+
+    @Query(
+            """
+            SELECT j FROM JobPosition j
+            WHERE j.status <> :deleted
+              AND (
+                   LOWER(FUNCTION('unaccent', j.title)) LIKE LOWER(FUNCTION('unaccent', :pattern))
+                OR (j.cboCode IS NOT NULL AND LOWER(j.cboCode) LIKE LOWER(:pattern))
+              )
+            ORDER BY j.title ASC
+            """)
+    java.util.List<JobPosition> searchForGlobal(
+            @Param("deleted") StatusEnum deleted, @Param("pattern") String pattern, Pageable pageable);
 }

@@ -25,4 +25,17 @@ public interface DepartmentRepository extends IBaseRepository<Department> {
             @Param("namePattern") String namePattern,
             @Param("costCenterPattern") String costCenterPattern,
             Pageable pageable);
+
+    @Query(
+            """
+            SELECT d FROM Department d
+            WHERE d.status <> :deleted
+              AND (
+                   LOWER(FUNCTION('unaccent', d.name)) LIKE LOWER(FUNCTION('unaccent', :pattern))
+                OR (d.costCenter IS NOT NULL AND LOWER(FUNCTION('unaccent', d.costCenter)) LIKE LOWER(FUNCTION('unaccent', :pattern)))
+              )
+            ORDER BY d.name ASC
+            """)
+    java.util.List<Department> searchForGlobal(
+            @Param("deleted") StatusEnum deleted, @Param("pattern") String pattern, Pageable pageable);
 }

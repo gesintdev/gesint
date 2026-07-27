@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -37,4 +38,22 @@ public interface AdmissionProcessRepository extends IBaseRepository<AdmissionPro
 
     List<AdmissionProcess> findByAdmissionStatusAndCollaboratorIdIsNotNullAndStatusNot(
             AdmissionStatusEnum admissionStatus, StatusEnum status);
+
+    @Query(
+            """
+            SELECT a FROM AdmissionProcess a
+            WHERE a.status <> :deleted
+              AND a.admissionStatus <> :cancelled
+              AND (
+                   LOWER(FUNCTION('unaccent', a.fullName)) LIKE LOWER(FUNCTION('unaccent', :pattern))
+                OR (a.socialName IS NOT NULL AND LOWER(FUNCTION('unaccent', a.socialName)) LIKE LOWER(FUNCTION('unaccent', :pattern)))
+                OR LOWER(a.cpf) LIKE LOWER(:pattern)
+              )
+            ORDER BY a.fullName ASC
+            """)
+    List<AdmissionProcess> searchForGlobal(
+            @Param("deleted") StatusEnum deleted,
+            @Param("cancelled") AdmissionStatusEnum cancelled,
+            @Param("pattern") String pattern,
+            Pageable pageable);
 }

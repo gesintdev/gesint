@@ -17,6 +17,9 @@ import br.com.gommo.modules.rh.person.collaborators.people.mapper.CollaboratorMa
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorAddressRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorContactRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.root.search.document.SearchDocumentType;
+import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
+import br.com.gommo.modules.root.search.service.provider.CollaboratorGlobalSearchProvider;
 
 @Service
 public class CollaboratorProfileService {
@@ -26,18 +29,21 @@ public class CollaboratorProfileService {
     private final CollaboratorAddressRepository addressRepository;
     private final CollaboratorContactRepository contactRepository;
     private final AddressReferenceResolver addressReferenceResolver;
+    private final ISearchDocumentIndexer searchDocumentIndexer;
 
     public CollaboratorProfileService(
             CollaboratorRepository collaboratorRepository,
             CollaboratorMapper collaboratorMapper,
             CollaboratorAddressRepository addressRepository,
             CollaboratorContactRepository contactRepository,
-            AddressReferenceResolver addressReferenceResolver) {
+            AddressReferenceResolver addressReferenceResolver,
+            ISearchDocumentIndexer searchDocumentIndexer) {
         this.collaboratorRepository = collaboratorRepository;
         this.collaboratorMapper = collaboratorMapper;
         this.addressRepository = addressRepository;
         this.contactRepository = contactRepository;
         this.addressReferenceResolver = addressReferenceResolver;
+        this.searchDocumentIndexer = searchDocumentIndexer;
     }
 
     /**
@@ -52,7 +58,24 @@ public class CollaboratorProfileService {
                 : createCollaborator(request);
         upsertPrimaryAddress(collaboratorId, request);
         upsertPrimaryContact(collaboratorId, request);
+        collaboratorRepository.findById(collaboratorId).ifPresent(this::indexCollaborator);
         return collaboratorId;
+    }
+
+    private void indexCollaborator(Collaborator collaborator) {
+        String displayName = collaborator.getSocialName() != null && !collaborator.getSocialName().isBlank()
+                ? collaborator.getSocialName()
+                : collaborator.getFullName();
+        String searchText = collaborator.getFullName()
+                + (collaborator.getSocialName() != null ? " " + collaborator.getSocialName() : "")
+                + (collaborator.getCpf() != null ? " " + collaborator.getCpf() : "");
+        searchDocumentIndexer.upsert(
+                SearchDocumentType.PERSON,
+                collaborator.getId(),
+                displayName,
+                CollaboratorGlobalSearchProvider.formatCpfLabel(collaborator.getCpf()),
+                searchText,
+                CollaboratorGlobalSearchProvider.HREF);
     }
 
     private UUID createCollaborator(AdmissionProcessRequestDto request) {

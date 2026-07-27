@@ -69,6 +69,7 @@ DECLARE
         'storage_object',
         'storage_object_link',
         'tax_obligation',
+        'search_document',
         'audit_log'
     ];
 BEGIN

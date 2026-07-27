@@ -20,6 +20,9 @@ import br.com.gommo.modules.dp.organization.department.entity.Department;
 import br.com.gommo.modules.dp.organization.department.exception.DepartmentException;
 import br.com.gommo.modules.dp.organization.department.mapper.DepartmentMapper;
 import br.com.gommo.modules.dp.organization.department.repository.DepartmentRepository;
+import br.com.gommo.modules.root.search.document.SearchDocumentType;
+import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
+import br.com.gommo.modules.root.search.service.provider.DepartmentGlobalSearchProvider;
 
 @Service
 public class DepartmentService extends BaseService<Department, DepartmentRequestDto, DepartmentResponseDto>
@@ -27,11 +30,16 @@ public class DepartmentService extends BaseService<Department, DepartmentRequest
 
     private final DepartmentRepository repository;
     private final DepartmentMapper mapper;
+    private final ISearchDocumentIndexer searchDocumentIndexer;
 
-    public DepartmentService(DepartmentRepository repository, DepartmentMapper mapper) {
+    public DepartmentService(
+            DepartmentRepository repository,
+            DepartmentMapper mapper,
+            ISearchDocumentIndexer searchDocumentIndexer) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
+        this.searchDocumentIndexer = searchDocumentIndexer;
     }
 
     @Override
@@ -80,16 +88,18 @@ public class DepartmentService extends BaseService<Department, DepartmentRequest
     @Transactional
     @PreAuthorize("hasAuthority('department:write')")
     public DepartmentResponseDto create(DepartmentRequestDto request) {
-
-        return super.create(request);
+        DepartmentResponseDto created = super.create(request);
+        indexDepartment(findEntity(created.getId()));
+        return created;
     }
 
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('department:write')")
     public DepartmentResponseDto update(UUID id, DepartmentRequestDto request) {
-
-        return super.update(id, request);
+        DepartmentResponseDto updated = super.update(id, request);
+        indexDepartment(findEntity(id));
+        return updated;
     }
 
     @Override
@@ -97,6 +107,19 @@ public class DepartmentService extends BaseService<Department, DepartmentRequest
     @PreAuthorize("hasAuthority('department:delete')")
     public void delete(UUID id) {
         super.delete(id);
+        searchDocumentIndexer.remove(SearchDocumentType.DEPARTMENT, id);
+    }
+
+    private void indexDepartment(Department department) {
+        String searchText = department.getName()
+                + (department.getCostCenter() != null ? " " + department.getCostCenter() : "");
+        searchDocumentIndexer.upsert(
+                SearchDocumentType.DEPARTMENT,
+                department.getId(),
+                department.getName(),
+                department.getCostCenter(),
+                searchText,
+                DepartmentGlobalSearchProvider.HREF);
     }
 
     @Override

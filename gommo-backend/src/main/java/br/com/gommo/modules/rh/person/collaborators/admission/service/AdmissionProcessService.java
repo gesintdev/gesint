@@ -41,6 +41,9 @@ import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
+import br.com.gommo.modules.root.search.document.SearchDocumentType;
+import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
+import br.com.gommo.modules.root.search.service.provider.AdmissionGlobalSearchProvider;
 import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
 
 @Service
@@ -59,6 +62,7 @@ public class AdmissionProcessService
     private final DepartmentRepository departmentRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final OffboardingRepository offboardingRepository;
+    private final ISearchDocumentIndexer searchDocumentIndexer;
 
     public AdmissionProcessService(
             AdmissionProcessRepository repository,
@@ -70,7 +74,8 @@ public class AdmissionProcessService
             AddressReferenceResolver addressReferenceResolver,
             DepartmentRepository departmentRepository,
             LeaveRequestRepository leaveRequestRepository,
-            OffboardingRepository offboardingRepository) {
+            OffboardingRepository offboardingRepository,
+            ISearchDocumentIndexer searchDocumentIndexer) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -82,6 +87,7 @@ public class AdmissionProcessService
         this.departmentRepository = departmentRepository;
         this.leaveRequestRepository = leaveRequestRepository;
         this.offboardingRepository = offboardingRepository;
+        this.searchDocumentIndexer = searchDocumentIndexer;
     }
 
     @Override
@@ -149,6 +155,7 @@ public class AdmissionProcessService
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
         contractRecessProvisioningService.sync(saved);
+        indexAdmission(saved);
         return toEnrichedResponse(saved);
     }
 
@@ -168,6 +175,7 @@ public class AdmissionProcessService
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
         contractRecessProvisioningService.sync(saved);
+        indexAdmission(saved);
         return toEnrichedResponse(saved);
     }
 
@@ -176,6 +184,27 @@ public class AdmissionProcessService
     @PreAuthorize("hasAuthority('admission:delete')")
     public void delete(UUID id) {
         super.delete(id);
+        searchDocumentIndexer.remove(SearchDocumentType.ADMISSION, id);
+    }
+
+    private void indexAdmission(AdmissionProcess admission) {
+        if (admission.getAdmissionStatus() == AdmissionStatusEnum.CANCELLED) {
+            searchDocumentIndexer.remove(SearchDocumentType.ADMISSION, admission.getId());
+            return;
+        }
+        String displayName = admission.getSocialName() != null && !admission.getSocialName().isBlank()
+                ? admission.getSocialName()
+                : admission.getFullName();
+        String searchText = admission.getFullName()
+                + (admission.getSocialName() != null ? " " + admission.getSocialName() : "")
+                + (admission.getCpf() != null ? " " + admission.getCpf() : "");
+        searchDocumentIndexer.upsert(
+                SearchDocumentType.ADMISSION,
+                admission.getId(),
+                displayName,
+                AdmissionGlobalSearchProvider.subtitle(admission),
+                searchText,
+                AdmissionGlobalSearchProvider.HREF);
     }
 
     @Override

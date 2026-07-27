@@ -22,6 +22,9 @@ import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.exception.CollaboratorException;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.root.search.document.SearchDocumentType;
+import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
+import br.com.gommo.modules.root.search.service.provider.CollaboratorGlobalSearchProvider;
 
 @Service
 public class OffboardingService extends BaseService<Offboarding, OffboardingRequestDto, OffboardingResponseDto>
@@ -29,13 +32,18 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
     private final OffboardingRepository repository;
     private final OffboardingMapper mapper;
     private final CollaboratorRepository collaboratorRepository;
+    private final ISearchDocumentIndexer searchDocumentIndexer;
 
     public OffboardingService(
-        OffboardingRepository repository, OffboardingMapper mapper, CollaboratorRepository collaboratorRepository) {
+        OffboardingRepository repository,
+        OffboardingMapper mapper,
+        CollaboratorRepository collaboratorRepository,
+        ISearchDocumentIndexer searchDocumentIndexer) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.collaboratorRepository = collaboratorRepository;
+        this.searchDocumentIndexer = searchDocumentIndexer;
     }
 
     @Override
@@ -151,6 +159,7 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
             .orElseThrow(CollaboratorException::notFound);
         collaborator.setStatus(StatusEnum.INACTIVE);
         collaboratorRepository.save(collaborator);
+        searchDocumentIndexer.remove(SearchDocumentType.PERSON, collaboratorId);
     }
 
     private void restoreCollaboratorIfNoOffboarding(UUID collaboratorId, UUID exceptSameCollaboratorId) {
@@ -167,6 +176,19 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
         if (collaborator != null) {
             collaborator.setStatus(StatusEnum.ACTIVE);
             collaboratorRepository.save(collaborator);
+            String displayName = collaborator.getSocialName() != null && !collaborator.getSocialName().isBlank()
+                ? collaborator.getSocialName()
+                : collaborator.getFullName();
+            String searchText = collaborator.getFullName()
+                + (collaborator.getSocialName() != null ? " " + collaborator.getSocialName() : "")
+                + (collaborator.getCpf() != null ? " " + collaborator.getCpf() : "");
+            searchDocumentIndexer.upsert(
+                SearchDocumentType.PERSON,
+                collaborator.getId(),
+                displayName,
+                CollaboratorGlobalSearchProvider.formatCpfLabel(collaborator.getCpf()),
+                searchText,
+                CollaboratorGlobalSearchProvider.HREF);
         }
     }
 }

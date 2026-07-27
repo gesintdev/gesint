@@ -13,6 +13,7 @@ export type DoRequestOptions = {
     /** Nao envia Authorization */
     skipAuth?: boolean;
     responseType?: "json" | "blob" | "void";
+    signal?: AbortSignal;
 };
 
 export type HttpClientConfig = {
@@ -109,6 +110,7 @@ export function createHttpClient(config: HttpClientConfig) {
                 headers: await buildRequestHeaders(options, authHeader),
                 body: buildBody(body),
                 cache: "no-store",
+                signal: options.signal,
             });
         let response = await execute(bearer);
         if (

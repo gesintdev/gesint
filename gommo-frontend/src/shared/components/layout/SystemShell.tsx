@@ -1,6 +1,6 @@
 "use client";
 
-import {CalendarDays, Clock, Menu, Search} from "lucide-react";
+import {CalendarDays, Clock, Menu} from "lucide-react";
 import {useSession} from "next-auth/react";
 import {type ReactNode, Suspense, useCallback, useEffect, useState} from "react";
 
@@ -11,6 +11,7 @@ import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
+import {GlobalSearchPalette} from "@/shared/components/search/GlobalSearchPalette";
 import {ActiveSystemProvider} from "@/shared/context/ActiveSystemContext";
 import {setAuthToken} from "@/shared/lib/api.client";
 import {WorkspaceNavigationProvider} from "@/shared/workspace/WorkspaceNavigationProvider";
@@ -54,84 +55,14 @@ export function SystemShell({
 
     return (
         <div className="flex h-dvh flex-col overflow-hidden">
-            {/* Linha superior: Gommo (largura do sidebar) + header principal */}
-            <div
-                className="flex h-(--header-height) shrink-0 border-b"
-                style={{borderColor: "var(--sidebar-border)"}}
-            >
-                <div
-                    className="hidden shrink-0 items-center border-r transition-[width] duration-(--sidebar-transition-duration) ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
-                    style={{
-                        width: "var(--layout-offset)",
-                        background: "var(--sidebar-bg)",
-                        borderColor: "var(--sidebar-border)",
-                    }}
-                >
-                    <GommoLogo collapsed={collapsed}/>
-                </div>
-                <header
-                    className="surface-header flex min-w-0 flex-1 items-center gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
-                    <button
-                        type="button"
-                        aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
-                        aria-expanded={mobileNav}
-                        onClick={toggleMobileNav}
-                        className="gommo-btn gommo-btn--ghost gommo-btn--icon-only shrink-0 text-base-content/50 lg:hidden!"
-                    >
-                        <Menu className="size-4.5" strokeWidth={2}/>
-                    </button>
-                    <div className="flex shrink-0 items-center lg:hidden">
-                        <GommoLogo collapsed/>
-                    </div>
-                    <label
-                        className="gommo-field sidebar-shell-control relative min-w-0 w-full max-w-xs cursor-text lg:max-w-md">
-                        <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2}/>
-                        <input
-                            type="search"
-                            placeholder="Buscar no sistema…"
-                            className="pe-2 placeholder:text-base-content/32"
-                        />
-                        <kbd className="ms-auto hidden shrink-0 sm:flex">Alt+S</kbd>
-                    </label>
-                    <div className="min-w-2 flex-1" aria-hidden/>
-                    <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-                        <div className="flex items-center gap-1 sm:gap-1.5">
-                            <button
-                                type="button"
-                                aria-label="Registro de ponto"
-                                onClick={() => setClockModalOpen(true)}
-                                className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
-                            >
-                                <Clock className="size-4" strokeWidth={2}/>
-                            </button>
-                            <button
-                                type="button"
-                                aria-label="Agenda"
-                                onClick={() => setAgendaModalOpen(true)}
-                                className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
-                            >
-                                <CalendarDays className="size-4" strokeWidth={2}/>
-                            </button>
-                        </div>
-                        <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block"/>
-                        <div className="flex items-center gap-1 sm:gap-1.5">
-                            <HeaderNotifications/>
-                            <HeaderUserMenu/>
-                        </div>
-                    </div>
-                </header>
-            </div>
-            <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal}/> <AgendaModal open={agendaModalOpen}
-                                                                                                 onClose={closeAgendaModal}/>
             {/*
-              ActiveSystemProvider deve hidratar no mesmo Suspense que a Sidebar.
-              Se ficar fora, o useSyncExternalStore promove o localStorage antes da
-              Sidebar hidratar e o menu diverge do HTML do servidor.
+              ActiveSystemProvider e WorkspaceNavigationProvider hidratam no mesmo Suspense
+              que a Sidebar/header (useSearchParams + preferencias de sistema).
             */}
             <Suspense
                 fallback={
                     <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-base-content/50">
-                        Carregando…
+                        Carregando...
                     </div>
                 }
             >
@@ -140,6 +71,63 @@ export function SystemShell({
                         initialStoredSystem={initialStoredSystem}
                         initialSettingsMode={initialSettingsMode}
                     >
+                        <div
+                            className="flex h-(--header-height) shrink-0 border-b"
+                            style={{borderColor: "var(--sidebar-border)"}}
+                        >
+                            <div
+                                className="hidden shrink-0 items-center border-r transition-[width] duration-(--sidebar-transition-duration) ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
+                                style={{
+                                    width: "var(--layout-offset)",
+                                    background: "var(--sidebar-bg)",
+                                    borderColor: "var(--sidebar-border)",
+                                }}
+                            >
+                                <GommoLogo collapsed={collapsed}/>
+                            </div>
+                            <header
+                                className="surface-header flex min-w-0 flex-1 items-center gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
+                                <button
+                                    type="button"
+                                    aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
+                                    aria-expanded={mobileNav}
+                                    onClick={toggleMobileNav}
+                                    className="gommo-btn gommo-btn--ghost gommo-btn--icon-only shrink-0 text-base-content/50 lg:hidden!"
+                                >
+                                    <Menu className="size-4.5" strokeWidth={2}/>
+                                </button>
+                                <div className="flex shrink-0 items-center lg:hidden">
+                                    <GommoLogo collapsed/>
+                                </div>
+                                <GlobalSearchPalette/>
+                                <div className="min-w-2 flex-1" aria-hidden/>
+                                <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+                                    <div className="flex items-center gap-1 sm:gap-1.5">
+                                        <button
+                                            type="button"
+                                            aria-label="Registro de ponto"
+                                            onClick={() => setClockModalOpen(true)}
+                                            className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
+                                        >
+                                            <Clock className="size-4" strokeWidth={2}/>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            aria-label="Agenda"
+                                            onClick={() => setAgendaModalOpen(true)}
+                                            className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
+                                        >
+                                            <CalendarDays className="size-4" strokeWidth={2}/>
+                                        </button>
+                                    </div>
+                                    <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block"/>
+                                    <div className="flex items-center gap-1 sm:gap-1.5">
+                                        <HeaderNotifications/>
+                                        <HeaderUserMenu/>
+                                    </div>
+                                </div>
+                            </header>
+                        </div>
                         <div className="relative flex min-h-0 flex-1 overflow-hidden">
                             <Sidebar
                                 collapsed={collapsed}
@@ -160,6 +148,8 @@ export function SystemShell({
                     </ActiveSystemProvider>
                 </WorkspaceNavigationProvider>
             </Suspense>
+            <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal}/>
+            <AgendaModal open={agendaModalOpen} onClose={closeAgendaModal}/>
         </div>
     );
 }
