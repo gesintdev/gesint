@@ -3522,6 +3522,16 @@ html:has(.login-page) body {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--gommo-primary) 10%, transparent);
 }
 
+[data-theme="dark"] .gommo-metric-card__icon {
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--gommo-primary) 22%, var(--color-base-200)) 0%,
+        color-mix(in srgb, var(--gommo-primary) 12%, var(--color-base-100)) 100%
+    );
+    color: var(--gommo-primary-light);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--gommo-primary) 18%, transparent);
+}
+
 .gommo-chart-bar {
     border-radius: var(--gommo-tab-radius);
     background: linear-gradient(180deg, var(--gommo-primary-light) 0%, var(--gommo-primary) 100%);

@@ -174,8 +174,8 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
 
     /**
      * Collapse: 1) fecha grupos → 2) estreita sidebar.
+     * Se não há grupo/busca aberta, pula o step 1 e o delay do step 2 — colapsa na hora.
      * Expand: 1) alarga sidebar → 2) reabre grupos que estavam abertos.
-     * Ícones não mudam de lugar; só o texto some/aparece.
      */
     const handleCollapsedToggle = useCallback(async () => {
         if (!onCollapsedToggle || toggleLockedRef.current) return;
@@ -189,9 +189,11 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 closeFlyout();
                 if (hadOpenGroups) {
                     await wait(SUBMENU_CLOSE_MS);
+                    onCollapsedToggle();
+                    await wait(SIDEBAR_WIDTH_MS);
+                } else {
+                    onCollapsedToggle();
                 }
-                onCollapsedToggle();
-                await wait(SIDEBAR_WIDTH_MS);
                 return;
             }
 
