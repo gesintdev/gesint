@@ -64,9 +64,14 @@ export function GlobalSearchPalette() {
     const [activeIndex, setActiveIndex] = useState(0);
 
     const navRoutes = useMemo(() => {
-        return flattenRoutes(APP_ROUTES).filter(
-            (route) => Boolean(route.href) && !route.children?.length && canAccessRoute(route, permissions),
-        );
+        const seen = new Set<string>();
+        return flattenRoutes(APP_ROUTES).filter((route) => {
+            if (!route.href || route.children?.length) return false;
+            if (!canAccessRoute(route, permissions)) return false;
+            if (seen.has(route.id)) return false;
+            seen.add(route.id);
+            return true;
+        });
     }, [permissions]);
 
     const navMatches = useMemo(() => {

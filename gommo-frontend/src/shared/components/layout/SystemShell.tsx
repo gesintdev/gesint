@@ -105,14 +105,6 @@ export function SystemShell({
                                     <div className="flex items-center gap-1 sm:gap-1.5">
                                         <button
                                             type="button"
-                                            aria-label="Registro de ponto"
-                                            onClick={() => setClockModalOpen(true)}
-                                            className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
-                                        >
-                                            <Clock className="size-4" strokeWidth={2}/>
-                                        </button>
-                                        <button
-                                            type="button"
                                             aria-label="Agenda"
                                             onClick={() => setAgendaModalOpen(true)}
                                             className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
@@ -122,6 +114,14 @@ export function SystemShell({
                                     </div>
                                     <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block"/>
                                     <div className="flex items-center gap-1 sm:gap-1.5">
+                                        <button
+                                            type="button"
+                                            aria-label="Registro de ponto"
+                                            onClick={() => setClockModalOpen(true)}
+                                            className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/55"
+                                        >
+                                            <Clock className="size-4" strokeWidth={2}/>
+                                        </button>
                                         <HeaderNotifications/>
                                         <HeaderUserMenu/>
                                     </div>
