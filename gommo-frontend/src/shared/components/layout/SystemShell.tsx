@@ -90,8 +90,7 @@ export function SystemShell({
                             >
                                 <GommoLogo collapsed={collapsed}/>
                             </div>
-                            <header
-                                className="surface-header flex min-w-0 flex-1 items-center gap-2.5 px-3 sm:gap-4 sm:px-4 lg:px-2">
+                            <header className="surface-header flex min-w-0 flex-1 items-center gap-2 pe-3 ps-2 sm:gap-2.5 sm:pe-4">
                                 <button
                                     type="button"
                                     aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
@@ -106,8 +105,8 @@ export function SystemShell({
                                 </div>
                                 <GlobalSearchPalette/>
                                 <div className="min-w-2 flex-1" aria-hidden/>
-                                <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-                                    <div className="flex items-center gap-1 sm:gap-1.5">
+                                <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+                                    <div className="flex items-center gap-0.5 sm:gap-1">
                                         <button
                                             type="button"
                                             aria-label="Agenda"
@@ -117,8 +116,8 @@ export function SystemShell({
                                             <CalendarDays className="size-4" strokeWidth={2}/>
                                         </button>
                                     </div>
-                                    <div className="mx-1 hidden h-5 w-px bg-base-content/10 sm:block"/>
-                                    <div className="flex items-center gap-1 sm:gap-1.5">
+                                    <div className="mx-0.5 hidden h-4 w-px bg-base-content/10 sm:block"/>
+                                    <div className="flex items-center gap-0.5 sm:gap-1">
                                         <button
                                             type="button"
                                             aria-label="Registro de ponto"

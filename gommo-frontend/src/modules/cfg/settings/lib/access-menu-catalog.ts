@@ -235,3 +235,35 @@ export function collectMarkedRouteIds(sections: NavSection[], markedModules: Rea
     }
     return ids;
 }
+
+/** Menus folha (com módulos de permissão) sob uma rota ou árvore. */
+export function collectPermissionLeafRoutes(routes: AppRoute[]): AppRoute[] {
+    const leaves: AppRoute[] = [];
+    const walk = (items: AppRoute[]) => {
+        for (const route of items) {
+            if (route.children?.length) {
+                walk(route.children);
+                continue;
+            }
+            if (resolvePermissionModules(route).length > 0) {
+                leaves.push(route);
+            }
+        }
+    };
+    walk(routes);
+    return leaves;
+}
+
+export function collectPermissionLeafRoutesFromSections(sections: NavSection[]): AppRoute[] {
+    return collectPermissionLeafRoutes(sections.flatMap((section) => section.routes));
+}
+
+/** Módulos de permissão cobertos por uma rota (incluindo filhos). */
+export function resolvePermissionModulesForRouteTree(route: AppRoute): string[] {
+    if (route.children?.length) {
+        return [
+            ...new Set(route.children.flatMap((child) => resolvePermissionModulesForRouteTree(child))),
+        ];
+    }
+    return resolvePermissionModules(route);
+}

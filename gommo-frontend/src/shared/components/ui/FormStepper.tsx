@@ -143,7 +143,7 @@ export function FormStepper({ steps, filledStepIds = [], entityCode, children }:
                 </div>
             </div>
             <div ref={scrollRef} className="form-stepper__scroll min-h-0 flex-1 overflow-y-auto">
-                <div className="form-stepper__sections flex flex-col gap-4 p-4">{children}</div>
+                <div className="form-stepper__sections flex flex-col gap-2 p-2">{children}</div>
             </div>
         </div>
     );

@@ -187,8 +187,10 @@
     --system-rail-width: 3.5rem;
     --sidebar-routes-current: var(--sidebar-width);
     --layout-offset: calc(var(--system-rail-width) + var(--sidebar-width));
-    --workspace-content-padding: 0.75rem;
-    --header-height: 3.25rem;
+    --workspace-content-padding: 0.5rem; /* p-2 */
+    --header-pad-y: 0.5rem; /* p-2 */
+    --header-content-h: 1.75rem; /* avatar sm */
+    --header-height: calc(var(--header-pad-y) * 2 + var(--header-content-h));
     --sidebar-transition-duration: 280ms;
 
     /* Controles — altura próxima ao Novo cadastro, radius = aba workspace */
@@ -221,8 +223,8 @@
     --system-rail-bg: color-mix(in srgb, var(--color-base-content) 3.5%, var(--color-base-100));
     --system-rail-border: var(--gommo-border-subtle);
     --system-rail-fg: color-mix(in srgb, var(--color-base-content) 52%, transparent);
-    --system-rail-active-bg: color-mix(in srgb, var(--gommo-primary) 14%, var(--color-base-100));
-    --system-rail-active-fg: var(--gommo-primary);
+    --system-rail-active-bg: color-mix(in srgb, var(--color-base-content) 10%, var(--color-base-100));
+    --system-rail-active-fg: color-mix(in srgb, var(--color-base-content) 88%, transparent);
 
     /* Altura dos itens do menu lateral — toolbar do sidebar + busca global */
     --sidebar-nav-item-h: 1.875rem;
@@ -250,7 +252,8 @@
     --sidebar-border: var(--gommo-border-subtle);
     --sidebar-bg: var(--color-base-100);
     --system-rail-bg: color-mix(in srgb, var(--color-base-content) 6%, var(--color-base-100));
-    --system-rail-active-bg: color-mix(in srgb, var(--gommo-primary) 22%, transparent);
+    --system-rail-active-bg: color-mix(in srgb, var(--color-base-content) 14%, transparent);
+    --system-rail-active-fg: color-mix(in srgb, var(--color-base-content) 92%, transparent);
 }
 
 /* ──────────────────────────────────────────────
@@ -397,15 +400,13 @@ body {
     box-shadow: var(--gommo-shadow-md);
 }
 
-/* Top header — fundo sólido */
+/* Top header — fundo sólido (borda inferior fica no wrapper do SystemShell) */
 .surface-header {
     background: var(--color-base-100);
-    border-bottom: 1px solid var(--gommo-border);
 }
 
 [data-theme="dark"] .surface-header {
     background: var(--color-base-100);
-    border-bottom-color: var(--gommo-border-subtle);
 }
 
 /* Logo alternância claro / escuro */
@@ -481,7 +482,7 @@ body {
 
 .gommo-logo__icon {
     display: block;
-    height: 2rem;
+    height: 1.5rem;
     width: auto;
     flex-shrink: 0;
     pointer-events: none;
@@ -513,7 +514,7 @@ body {
 .gommo-logo__divider {
     display: block;
     width: 1px;
-    height: 1.05rem;
+    height: 0.875rem;
     flex-shrink: 0;
     margin-inline-end: 0.55rem;
     background: color-mix(in srgb, var(--color-base-content) 18%, transparent);
@@ -1166,7 +1167,7 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 }
 
 .system-rail-item--active {
-    border-color: color-mix(in srgb, var(--gommo-primary) 24%, transparent);
+    border-color: color-mix(in srgb, var(--color-base-content) 14%, transparent);
     background: var(--system-rail-active-bg);
     color: var(--system-rail-active-fg);
     box-shadow: var(--gommo-shadow-xs);
@@ -1393,15 +1394,15 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 /* Form stepper (cadastros multi-etapa) */
 .form-stepper__toolbar-shell {
     flex-shrink: 0;
-    padding: 0.75rem 0.875rem 0;
+    padding: 0.5rem 0.5rem 0;
 }
 
 .form-stepper__toolbar {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 0.625rem 0.875rem;
-    padding: 0.625rem 1rem;
+    gap: 0.5rem 0.75rem;
+    padding: 0.5rem;
 }
 
 .form-stepper__toolbar--no-code {
@@ -1412,10 +1413,10 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    padding-right: 0.875rem;
-    margin-right: 0.25rem;
+    padding-right: 0.75rem;
+    margin-right: 0.125rem;
     border-right: 1px solid color-mix(in srgb, var(--gommo-primary) 14%, var(--gommo-border-subtle));
-    min-height: 2.5rem;
+    min-height: 1.875rem;
 }
 
 [data-theme="dark"] .form-stepper__code {
@@ -1444,7 +1445,7 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 
 .gommo-form-stepper__list {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: flex-start;
     gap: 0;
     width: max-content;
@@ -1464,33 +1465,35 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
     position: relative;
     display: flex;
     flex: 0 0 auto;
-    min-width: 6.25rem;
+    min-width: 0;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    justify-content: center;
 }
 
 .gommo-form-stepper__list--spread .gommo-form-stepper__item {
     flex: 1 1 0;
-    min-width: 7.25rem;
+    min-width: 0;
 }
 
 .gommo-form-stepper__item--has-line {
-    padding-right: 0.375rem;
+    padding-right: 0.5rem;
 }
 
 .gommo-form-stepper__list--spread .gommo-form-stepper__item--has-line {
-    padding-right: 0;
+    padding-right: 0.5rem;
 }
 
 .gommo-form-stepper__line {
     position: absolute;
-    top: 0.875rem;
-    left: calc(50% + 0.875rem);
-    right: calc(-50% + 0.875rem);
+    top: 50%;
+    left: calc(100% - 0.5rem);
+    right: 0;
     height: 2px;
     border-radius: 1px;
     background: color-mix(in srgb, var(--color-base-content) 12%, transparent);
     pointer-events: none;
+    transform: translateY(-50%);
 }
 
 .gommo-form-stepper__line--active {
@@ -1498,17 +1501,27 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 }
 
 .gommo-form-stepper__step {
-    display: flex;
+    display: inline-flex;
     width: 100%;
-    flex-direction: column;
+    min-width: 0;
+    flex-direction: row;
     align-items: center;
-    gap: 0.375rem;
-    border: 0;
-    background: transparent;
-    padding: 0 0.5rem 0.125rem;
+    gap: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--color-base-content) 10%, transparent);
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--color-base-content) 5%, var(--color-base-100));
+    padding: 0.25rem 0.625rem 0.25rem 0.25rem;
     font: inherit;
     cursor: pointer;
-    transition: opacity 0.15s ease;
+    transition:
+        opacity 0.15s ease,
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.gommo-form-stepper__step:not(:disabled):hover {
+    border-color: color-mix(in srgb, var(--color-base-content) 16%, transparent);
+    background: color-mix(in srgb, var(--color-base-content) 8%, var(--color-base-100));
 }
 
 .gommo-form-stepper__step:not(:disabled):hover .gommo-form-stepper__label {
@@ -1522,11 +1535,12 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 .gommo-form-stepper__badge {
     display: grid;
     place-items: center;
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 1.375rem;
+    height: 1.375rem;
+    flex-shrink: 0;
     border-radius: 9999px;
     border: 1.5px solid color-mix(in srgb, var(--color-base-content) 18%, transparent);
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     font-variation-settings: "wght" 600;
     color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
     background: var(--color-base-100);
@@ -1543,14 +1557,28 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
     background: var(--gommo-primary);
 }
 
+.gommo-form-stepper__step--active {
+    border-color: color-mix(in srgb, var(--gommo-primary) 35%, transparent);
+    background: color-mix(in srgb, var(--gommo-primary) 12%, var(--color-base-100));
+}
+
+.gommo-form-stepper__step--done {
+    border-color: color-mix(in srgb, var(--gommo-primary) 22%, transparent);
+    background: color-mix(in srgb, var(--gommo-primary) 7%, var(--color-base-100));
+}
+
 .gommo-form-stepper__label {
-    max-width: 6.75rem;
-    text-align: center;
+    min-width: 0;
+    max-width: none;
+    text-align: left;
     font-size: 0.6875rem;
-    line-height: 1.25;
+    line-height: 1.2;
     font-variation-settings: "wght" 500;
     color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
     transition: color 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .gommo-form-stepper__list--spread .gommo-form-stepper__label {
@@ -1567,6 +1595,11 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
     color: color-mix(in srgb, var(--color-base-content) 72%, transparent);
 }
 
+.gommo-form-stepper__step--filled {
+    border-color: color-mix(in srgb, var(--color-success) 28%, transparent);
+    background: color-mix(in srgb, var(--color-success) 8%, var(--color-base-100));
+}
+
 .gommo-form-stepper__step--filled .gommo-form-stepper__badge {
     border-color: var(--color-success);
     color: var(--color-success-content);
@@ -1575,6 +1608,11 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 
 .gommo-form-stepper__step--filled .gommo-form-stepper__label {
     color: color-mix(in srgb, var(--color-success) 88%, var(--color-base-content));
+}
+
+.gommo-form-stepper__step--filled.gommo-form-stepper__step--active {
+    border-color: color-mix(in srgb, var(--gommo-primary) 35%, transparent);
+    background: color-mix(in srgb, var(--gommo-primary) 12%, var(--color-base-100));
 }
 
 .gommo-form-stepper__step--filled.gommo-form-stepper__step--active .gommo-form-stepper__badge {
@@ -1788,6 +1826,66 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 .nav-route-tree--embedded .nav-group-children {
     margin-left: calc(var(--sidebar-nav-item-pl) + (var(--sidebar-nav-icon-col) / 2));
     padding-left: 0.375rem;
+}
+
+/*
+ * Cadastro de perfil: checkbox dentro do .nav-item (mesmo container do ícone/label).
+ * Só com --with-access; sidebar permanece intacto.
+ */
+.nav-route-tree--with-access {
+    --profile-access-checkbox: 1rem;
+}
+
+.nav-route-tree--with-access.nav-route-tree--embedded .nav-item--with-access {
+    display: grid;
+    grid-template-columns: var(--profile-access-checkbox) minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: center;
+    padding-left: 0.5rem;
+    cursor: default;
+}
+
+.nav-route-tree--with-access .nav-item__main {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: var(--sidebar-nav-icon-col) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    appearance: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.nav-route-tree--with-access.nav-route-tree--embedded .nav-group-children {
+    /* guia no centro da coluna do checkbox */
+    margin-left: calc(0.5rem + (var(--profile-access-checkbox) / 2));
+    padding-left: 0.375rem;
+}
+
+.nav-route-tree--with-access.nav-route-tree--embedded .nav-item-child.nav-item--with-access {
+    padding-left: 0.5rem;
+}
+
+.nav-route-tree--with-access .profile-access-checkbox {
+    display: inline-flex;
+    width: var(--profile-access-checkbox);
+    height: var(--profile-access-checkbox);
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-route-tree--with-access .profile-access-checkbox .checkbox {
+    width: var(--profile-access-checkbox);
+    height: var(--profile-access-checkbox);
+    min-width: var(--profile-access-checkbox);
+    min-height: var(--profile-access-checkbox);
 }
 
 .nav-item-marked:not(.nav-item-active) {
@@ -2449,7 +2547,7 @@ html.gommo-workspace-active body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: 0 0.375rem;
+    padding: 0;
     background: var(--color-page);
 }
 

@@ -45,7 +45,7 @@ public class Role implements CodedEntity {
     @Column(nullable = false, updatable = false, unique = true)
     private Integer code;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String name;
 
     private String description;

@@ -6,7 +6,7 @@ import {ProfileDetailModal} from "@/modules/cfg/settings/appuser/components/Prof
 import {filterProfilesBySearch} from "@/modules/cfg/settings/appuser/lib/profile-role-filter";
 import type {Profile, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";
-import {InputCheckbox} from "@/shared/components/ui/input";
+import {InputCheckbox} from "@/shared/components/ui/input/index";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 import {findRouteById} from "@/shared/workspace/workspace-routes";
 

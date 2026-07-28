@@ -70,7 +70,7 @@ public class ProfileService implements IProfileService {
     @Transactional
     @PreAuthorize("hasAuthority('role:write')")
     public ProfileResponseDto create(ProfileRequestDto request) {
-        validateUniqueName(request.getName(), null);
+        validateUniqueName(request.getName(), request.getSystem(), null);
         Role role = Role.builder()
                 .code(EntityCodeIncrementer.nextCode(entityManager, Role.class))
                 .name(request.getName().trim())
@@ -94,7 +94,7 @@ public class ProfileService implements IProfileService {
         if (role.isSystemRole()) {
             throw ProfileException.systemRoleImmutable();
         }
-        validateUniqueName(request.getName(), id);
+        validateUniqueName(request.getName(), request.getSystem(), id);
         role.setName(request.getName().trim());
         role.setDescription(
                 StringUtils.hasText(request.getDescription())
@@ -142,12 +142,14 @@ public class ProfileService implements IProfileService {
                 .orElseThrow(ProfileException::notFound);
     }
 
-    private void validateUniqueName(String name, UUID excludeId) {
-        roleRepository.findByName(name.trim()).ifPresent(existing -> {
-            if (excludeId == null || !existing.getId().equals(excludeId)) {
-                throw ProfileException.duplicateName();
-            }
-        });
+    private void validateUniqueName(String name, SystemScopeEnum system, UUID excludeId) {
+        roleRepository
+                .findByNameIgnoreCaseAndSystemAndStatusNot(name.trim(), system, StatusEnum.DELETED)
+                .ifPresent(existing -> {
+                    if (excludeId == null || !existing.getId().equals(excludeId)) {
+                        throw ProfileException.duplicateName();
+                    }
+                });
     }
 
     private Set<Permission> resolvePermissions(ProfileRequestDto request) {
@@ -155,8 +157,7 @@ public class ProfileService implements IProfileService {
             return new HashSet<>();
         }
         Set<UUID> requestedIds = new HashSet<>(request.getPermissionIds());
-        // Perfil pode agregar permissões de vários sistemas (checkbox por escopo no cadastro).
-        Set<String> allowedModules = PermissionModuleCatalog.allModules();
+        Set<String> allowedModules = PermissionModuleCatalog.modulesFor(request.getSystem());
         List<Permission> permissions = permissionRepository.findAllById(requestedIds);
         if (permissions.size() != requestedIds.size()) {
             throw ProfileException.invalidPermissions();

@@ -14,7 +14,7 @@ type ProfileAvatarProps = {
 };
 
 const SIZE_CLASS: Record<NonNullable<ProfileAvatarProps["size"]>, string> = {
-    sm: "h-7 w-7",
+    sm: "h-[1.75rem] w-[1.75rem]",
     md: "h-9 w-9",
     lg: "h-12 w-12",
     xl: "h-[200px] w-[200px]",

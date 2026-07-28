@@ -10,6 +10,7 @@ import {
     isDashboardTabId,
     stripDashboardTabs,
 } from "@/shared/workspace/workspace-dashboard";
+import { notifyTabClosed } from "@/shared/workspace/dirty-tab-guard";
 import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
 import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
 
@@ -175,6 +176,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             closeTab: (tabId) => {
                 if (isDashboardTabId(tabId)) return;
                 const { tabs, activeTabId } = get();
+                if (!tabs.some((t) => t.id === tabId)) return;
+                notifyTabClosed(tabId);
                 const nextTabs = tabs.filter((t) => t.id !== tabId);
                 let nextActive = activeTabId;
                 if (activeTabId === tabId) {
@@ -184,10 +187,20 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                 }
                 set({ tabs: nextTabs, activeTabId: nextActive });
             },
-            closeAllTabs: () => set({ tabs: [], activeTabId: DASHBOARD_TAB_ID }),
+            closeAllTabs: () => {
+                for (const tab of get().tabs) {
+                    notifyTabClosed(tab.id);
+                }
+                set({ tabs: [], activeTabId: DASHBOARD_TAB_ID });
+            },
             closeUnpinnedTabs: () => {
                 const { tabs, activeTabId } = get();
                 const nextTabs = tabs.filter((t) => t.pinned);
+                for (const tab of tabs) {
+                    if (!tab.pinned) {
+                        notifyTabClosed(tab.id);
+                    }
+                }
                 const nextActive = resolveActiveTabId(activeTabId, nextTabs);
                 set({ tabs: nextTabs, activeTabId: nextActive });
             },

@@ -2,11 +2,14 @@
 
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {Check, PauseCircle} from "lucide-react";
+import {useSession} from "next-auth/react";
+import {useEffect} from "react";
 import {toast} from "sonner";
 
 import {PROFILE_TABLE_COLUMNS} from "@/modules/cfg/settings/profile/config/profile.table-columns";
 import type {Profile} from "@/modules/cfg/settings/profile/dto/profile.dto";
 import {paginateProfiles} from "@/modules/cfg/settings/profile/lib/profile.filters";
+import {clearAllProfileFormDrafts} from "@/modules/cfg/settings/profile/lib/profile-form-draft";
 import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
 import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
@@ -15,10 +18,25 @@ import {TableActionButton} from "@/shared/components/crud/TableActionButton";
 import {QueryPagedTablePanel} from "@/shared/components/data/DataPanel";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {SystemAlert} from "@/shared/system-alert";
+import {registerTabCloseHandler} from "@/shared/workspace/dirty-tab-guard";
+import {useWorkspaceTabOptional} from "@/shared/workspace/WorkspaceTabContext";
 
 export function ProfileListClient() {
     const {startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
+    const workspaceTab = useWorkspaceTabOptional();
+    const {data: session} = useSession();
+    const tenantSlug = session?.tenantSlug?.trim() || "default";
+    const username = session?.user?.username?.trim() || session?.user?.email?.trim() || "anonymous";
+
+    useEffect(() => {
+        const tabId = workspaceTab?.tab.id;
+        if (!tabId) return;
+        return registerTabCloseHandler(tabId, () => {
+            clearAllProfileFormDrafts(tenantSlug, username);
+        });
+    }, [tenantSlug, username, workspaceTab?.tab.id]);
+
     const deleteMutation = useMutation({
         mutationFn: (id: string) => profileService.remove(id),
         onSuccess: async () => {

@@ -34,10 +34,11 @@ export function SystemRail() {
     const handleOpenSettings = () => {
         openSettings();
     };
+    const settingsSelected = mounted && isSettingsMode;
 
     return (
         <nav
-            className="flex h-full w-(--system-rail-width) bg-blue-300 shrink-0 flex-col overflow-x-hidden border-r"
+            className="flex h-full w-(--system-rail-width) shrink-0 flex-col overflow-x-hidden border-r"
             style={{
                 background: "var(--system-rail-bg)",
                 borderColor: "var(--system-rail-border)",
@@ -63,30 +64,28 @@ export function SystemRail() {
                         </button>
                     );
                 })}
-            </div>
-            {canOpenSettings ? (
-                <div
-                    className="mt-auto flex w-full flex-col items-stretch border-t px-1 pb-3 pt-2"
-                    style={{ borderColor: "var(--system-rail-border)" }}
-                >
-                    <button
-                        type="button"
-                        title="Configurações do sistema"
-                        aria-label="Configurações do sistema"
-                        aria-current={mounted && isSettingsMode ? "true" : undefined}
-                        onClick={handleOpenSettings}
-                        className={clsx(
-                            "system-rail-item system-rail-item--icon-only",
-                            mounted && isSettingsMode && "system-rail-item--active",
-                        )}
-                    >
-                        <Settings
-                            className="size-4.5 shrink-0"
-                            strokeWidth={mounted && isSettingsMode ? 2.25 : 2}
+
+                {canOpenSettings ? (
+                    <>
+                        <div
+                            className="mx-1 my-0.5 h-px shrink-0"
+                            style={{ background: "var(--system-rail-border)" }}
+                            aria-hidden
                         />
-                    </button>
-                </div>
-            ) : null}
+                        <button
+                            type="button"
+                            title="Configurações do sistema"
+                            aria-label="Configurações do sistema"
+                            aria-current={settingsSelected ? "true" : undefined}
+                            onClick={handleOpenSettings}
+                            className={clsx("system-rail-item", settingsSelected && "system-rail-item--active")}
+                        >
+                            <Settings className="size-4 shrink-0" strokeWidth={settingsSelected ? 2.25 : 2} />
+                            <span className="system-rail-acronym">CFG</span>
+                        </button>
+                    </>
+                ) : null}
+            </div>
         </nav>
     );
 }

@@ -15,6 +15,9 @@ public interface RoleRepository extends JpaRepository<Role, UUID> {
 
     Optional<Role> findByName(String name);
 
+    Optional<Role> findByNameIgnoreCaseAndSystemAndStatusNot(
+            String name, SystemScopeEnum system, StatusEnum status);
+
     @Query("SELECT r FROM Role r LEFT JOIN FETCH r.permissions WHERE r.id = :id AND r.status <> :deleted")
     Optional<Role> findByIdWithPermissions(UUID id, StatusEnum deleted);
 

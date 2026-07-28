@@ -1,141 +1,138 @@
 "use client";
 
-import {useMutation, useQueries, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type SubmitEvent, useEffect, useMemo, useState} from "react";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useSession} from "next-auth/react";
+import {type SubmitEvent, useEffect, useMemo, useRef, useState} from "react";
 import {toast} from "sonner";
 
 import {
-    ASSIGNABLE_SYSTEM_SCOPES,
     collectMarkedRouteIds,
+    collectPermissionLeafRoutes,
+    collectPermissionLeafRoutesFromSections,
     findFirstPermissionRoute,
     getPermissionNavSections,
     resolvePermissionModules,
+    resolvePermissionModulesForRouteTree,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import {ProfilePermissionAssignmentPanel} from "@/modules/cfg/settings/profile/components/ProfilePermissionAssignmentPanel";
 import type {ProfileCreateDto, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
+import {clearProfileFormDraft, createEmptyProfileDraft, type ProfileDraftItem, readProfileFormDraft, writeProfileFormDraft} from "@/modules/cfg/settings/profile/lib/profile-form-draft";
 import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
 import {permissionCatalogService} from "@/modules/cfg/settings/profile/services/permission-catalog.service";
 import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
-import type {AppRoute} from "@/modules/root/enum/ModuleEnum";
+import type {AppRoute, NavSection} from "@/modules/root/enum/ModuleEnum";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
-import {type CheckboxState, InputString, resolveCheckboxState} from "@/shared/components/ui/input/index";
+import {type CheckboxState, resolveCheckboxState} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
 
-const FORM_STEPS: FormStepNavItem[] = [
-    {id: "identificacao", label: "Identificação"},
-    {id: "permissoes", label: "Permissões"},
-];
-
-type PermissionIdsBySystem = Partial<Record<SystemScope, string[]>>;
+function findRouteById(sections: NavSection[], routeId?: string | null): AppRoute | null {
+    if (!routeId) return null;
+    const walk = (routes: AppRoute[]): AppRoute | null => {
+        for (const route of routes) {
+            if (route.id === routeId) return route;
+            if (route.children?.length) {
+                const nested = walk(route.children);
+                if (nested) return nested;
+            }
+        }
+        return null;
+    };
+    for (const section of sections) {
+        const found = walk(section.routes);
+        if (found) return found;
+    }
+    return null;
+}
 
 function collectCatalogPermissionIds(
-    groups: Array<{permissions: Array<{id: string}>}> | undefined,
+    groups: Array<{module: string; permissions: Array<{id: string}>}> | undefined,
 ): string[] {
     if (!groups?.length) return [];
     return groups.flatMap((group) => group.permissions.map((permission) => permission.id));
 }
 
-function emptyPermissionIdsBySystem(): PermissionIdsBySystem {
-    return Object.fromEntries(ASSIGNABLE_SYSTEM_SCOPES.map((scope) => [scope, []])) as PermissionIdsBySystem;
+function permissionIdsForModules(
+    modules: string[],
+    groups: Array<{module: string; permissions: Array<{id: string}>}> | undefined,
+): string[] {
+    if (!groups?.length || modules.length === 0) return [];
+    const moduleSet = new Set(modules);
+    return groups
+        .filter((group) => moduleSet.has(group.module))
+        .flatMap((group) => group.permissions.map((permission) => permission.id));
 }
 
-function flattenPermissionIds(bySystem: PermissionIdsBySystem): string[] {
-    return Array.from(new Set(ASSIGNABLE_SYSTEM_SCOPES.flatMap((scope) => bySystem[scope] ?? [])));
-}
-
-/** Reparte IDs salvos sem vazar compartilhados para outros sistemas. */
-function partitionPermissionIdsBySystem(
-    permissionIds: string[],
-    catalogIdsBySystem: Partial<Record<SystemScope, string[]>>,
-    primarySystem: SystemScope,
-): PermissionIdsBySystem {
-    const selected = new Set(permissionIds);
-    const systemsForId = new Map<string, SystemScope[]>();
-    for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
-        for (const id of catalogIdsBySystem[scope] ?? []) {
-            const list = systemsForId.get(id) ?? [];
-            list.push(scope);
-            systemsForId.set(id, list);
-        }
-    }
-
-    const result = emptyPermissionIdsBySystem();
-    for (const id of selected) {
-        const systems = systemsForId.get(id) ?? [];
-        if (systems.length === 0) {
-            result[primarySystem] = [...(result[primarySystem] ?? []), id];
-            continue;
-        }
-        if (systems.length === 1) {
-            const scope = systems[0];
-            result[scope] = [...(result[scope] ?? []), id];
-            continue;
-        }
-        const target = systems.includes(primarySystem) ? primarySystem : systems[0];
-        result[target] = [...(result[target] ?? []), id];
-    }
-    return result;
+function draftHasContent(draft: ProfileDraftItem): boolean {
+    return Boolean(draft.name.trim()) || draft.permissionIds.length > 0 || Boolean(draft.description.trim());
 }
 
 export function ProfileFormClient() {
-    const {editingId, isEditing, goToList} = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
-    const [name, setName] = useState("");
-    const [description, setDescription] = useState("");
-    const [system, setSystem] = useState<SystemScope>("CFG");
-    const [permissionIdsBySystem, setPermissionIdsBySystem] = useState<PermissionIdsBySystem>(emptyPermissionIdsBySystem);
-    const [selectedRoute, setSelectedRoute] = useState<AppRoute | null>(null);
+    const {data: session} = useSession();
+    const tenantSlug = session?.tenantSlug?.trim() || "default";
+    const username = session?.user?.username?.trim() || session?.user?.email?.trim() || "anonymous";
+
+    const [activeSystem, setActiveSystem] = useState<SystemScope>("CFG");
+    const [drafts, setDrafts] = useState<ProfileDraftItem[]>([]);
+    const [activeClientId, setActiveClientId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [pendingSelectAllSystem, setPendingSelectAllSystem] = useState<SystemScope | null>(null);
     const [hydratedDetailId, setHydratedDetailId] = useState<string | null>(null);
-    const navSections = useMemo(() => getPermissionNavSections(system), [system]);
+    const [draftBootstrapped, setDraftBootstrapped] = useState(false);
+    const restoredToastShown = useRef(false);
+
+    const navSections = useMemo(() => getPermissionNavSections(activeSystem), [activeSystem]);
+    const activeDraft = useMemo(
+        () => drafts.find((draft) => draft.clientId === activeClientId) ?? null,
+        [activeClientId, drafts],
+    );
+    const draftsForSystem = useMemo(
+        () => drafts.filter((draft) => draft.system === activeSystem),
+        [activeSystem, drafts],
+    );
+    const selectedRoute = useMemo(() => {
+        if (!activeDraft) return null;
+        return (
+            findRouteById(navSections, activeDraft.selectedRouteId) ??
+            findFirstPermissionRoute(navSections)
+        );
+    }, [activeDraft, navSections]);
     const selectedPermissionModules = useMemo(
         () => (selectedRoute ? resolvePermissionModules(selectedRoute) : []),
         [selectedRoute],
     );
+
     const detailQuery = useQuery({
         queryKey: profileKeys.detail(editingId ?? ""),
         queryFn: () => profileService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
     });
     const modulePermissionsQuery = useQuery({
-        queryKey: ["permission-catalog", system, selectedPermissionModules.join("|")],
+        queryKey: ["permission-catalog", activeSystem, selectedPermissionModules.join("|")],
         queryFn: async () => {
             const groups = await Promise.all(
-                selectedPermissionModules.map((module) => permissionCatalogService.getBySystem(system, module)),
+                selectedPermissionModules.map((module) =>
+                    permissionCatalogService.getBySystem(activeSystem, module),
+                ),
             );
             return groups.flat();
         },
         enabled: selectedPermissionModules.length > 0,
     });
-    const catalogQueries = useQueries({
-        queries: ASSIGNABLE_SYSTEM_SCOPES.map((scope) => ({
-            queryKey: ["permission-catalog", scope, "all"] as const,
-            queryFn: () => permissionCatalogService.getBySystem(scope),
-        })),
+    const systemCatalogQuery = useQuery({
+        queryKey: ["permission-catalog", activeSystem, "all"],
+        queryFn: () => permissionCatalogService.getBySystem(activeSystem),
     });
-    const catalogsReady = catalogQueries.every((query) => query.isSuccess);
-    const catalogDataVersion = catalogQueries
-        .map((query) => `${query.fetchStatus}:${query.dataUpdatedAt}`)
-        .join("|");
-    const catalogIdsBySystem = useMemo(() => {
-        const map: Partial<Record<SystemScope, string[]>> = {};
-        ASSIGNABLE_SYSTEM_SCOPES.forEach((scope, index) => {
-            map[scope] = collectCatalogPermissionIds(catalogQueries[index]?.data);
-        });
-        return map;
-        // catalogDataVersion cobre mudanças reais dos catálogos; evita nova ref a cada render do useQueries.
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- version signature
-    }, [catalogDataVersion]);
-    const activePermissionIds = permissionIdsBySystem[system] ?? [];
-    const selectedPermissionIds = useMemo(() => new Set(activePermissionIds), [activePermissionIds]);
-    const activeCatalogGroups = catalogQueries[ASSIGNABLE_SYSTEM_SCOPES.indexOf(system)]?.data;
+
+    const selectedPermissionIds = useMemo(
+        () => new Set(activeDraft?.permissionIds ?? []),
+        [activeDraft?.permissionIds],
+    );
     const markedRouteIds = useMemo(() => {
-        const groups = activeCatalogGroups ?? [];
+        const groups = systemCatalogQuery.data ?? [];
         const markedModules = new Set<string>();
         for (const group of groups) {
             if (group.permissions.some((permission) => selectedPermissionIds.has(permission.id))) {
@@ -143,91 +140,184 @@ export function ProfileFormClient() {
             }
         }
         return collectMarkedRouteIds(navSections, markedModules);
-    }, [activeCatalogGroups, navSections, selectedPermissionIds]);
+    }, [navSections, selectedPermissionIds, systemCatalogQuery.data]);
+
+    const routeAccessStateById = useMemo(() => {
+        const map = new Map<string, CheckboxState>();
+        const groups = systemCatalogQuery.data;
+        const walk = (routes: AppRoute[]) => {
+            for (const route of routes) {
+                const catalogIds = permissionIdsForModules(
+                    resolvePermissionModulesForRouteTree(route),
+                    groups,
+                );
+                const selectedCount = catalogIds.filter((id) => selectedPermissionIds.has(id)).length;
+                map.set(route.id, resolveCheckboxState(selectedCount, catalogIds.length));
+                if (route.children?.length) {
+                    walk(route.children);
+                }
+            }
+        };
+        for (const section of navSections) {
+            walk(section.routes);
+        }
+        return map;
+    }, [navSections, selectedPermissionIds, systemCatalogQuery.data]);
+
+    const allCatalogPermissionIds = useMemo(
+        () => collectCatalogPermissionIds(systemCatalogQuery.data),
+        [systemCatalogQuery.data],
+    );
+    const allMenusAccessState = useMemo(() => {
+        const selectedCount = allCatalogPermissionIds.filter((id) => selectedPermissionIds.has(id)).length;
+        return resolveCheckboxState(selectedCount, allCatalogPermissionIds.length);
+    }, [allCatalogPermissionIds, selectedPermissionIds]);
+
     const modulePermissions = useMemo(() => {
         const groups = modulePermissionsQuery.data ?? [];
         return groups.flatMap((group) => group.permissions);
     }, [modulePermissionsQuery.data]);
-    const systemAccessStateByScope = useMemo(() => {
-        const map: Partial<Record<SystemScope, CheckboxState>> = {};
-        for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
-            const catalogIds = catalogIdsBySystem[scope] ?? [];
-            const selectedIds = permissionIdsBySystem[scope] ?? [];
-            if (catalogIds.length === 0) {
-                map[scope] = selectedIds.length > 0 ? "indeterminate" : "unchecked";
-                continue;
-            }
-            const selectedInCatalog = catalogIds.filter((id) => selectedIds.includes(id)).length;
-            map[scope] = resolveCheckboxState(selectedInCatalog, catalogIds.length);
-        }
-        return map;
-    }, [catalogIdsBySystem, permissionIdsBySystem]);
-    const selectedPermissionCountByScope = useMemo(() => {
+    const systemProfileCountByScope = useMemo(() => {
         const map: Partial<Record<SystemScope, number>> = {};
-        for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
-            map[scope] = (permissionIdsBySystem[scope] ?? []).length;
+        for (const draft of drafts) {
+            map[draft.system] = (map[draft.system] ?? 0) + 1;
         }
         return map;
-    }, [permissionIdsBySystem]);
+    }, [drafts]);
+
+    const draftMode = isEditing ? "edit" : "create";
 
     useEffect(() => {
-        if (isEditing) return;
-        setName("");
-        setDescription("");
-        setSystem("CFG");
-        setPermissionIdsBySystem(emptyPermissionIdsBySystem());
-        setSelectedRoute(findFirstPermissionRoute(getPermissionNavSections("CFG")));
-        setPendingSelectAllSystem(null);
+        restoredToastShown.current = false;
+        setDraftBootstrapped(false);
         setHydratedDetailId(null);
         setError(null);
-    }, [editingId, isEditing]);
+
+        if (isEditing) return;
+
+        const stored = readProfileFormDraft(tenantSlug, username, "create");
+        if (stored && stored.drafts.length > 0) {
+            setDrafts(stored.drafts);
+            setActiveSystem(stored.activeSystem);
+            setActiveClientId(
+                stored.activeClientId &&
+                    stored.drafts.some((draft) => draft.clientId === stored.activeClientId)
+                    ? stored.activeClientId
+                    : stored.drafts[0]?.clientId ?? null,
+            );
+            if (!restoredToastShown.current) {
+                restoredToastShown.current = true;
+                toast.message("Rascunho de perfis restaurado");
+            }
+        } else {
+            const first = createEmptyProfileDraft(
+                "CFG",
+                findFirstPermissionRoute(getPermissionNavSections("CFG"))?.id ?? null,
+            );
+            setDrafts([first]);
+            setActiveSystem("CFG");
+            setActiveClientId(first.clientId);
+        }
+        setDraftBootstrapped(true);
+    }, [editingId, isEditing, tenantSlug, username]);
 
     useEffect(() => {
-        if (!isEditing || !detailQuery.data || !catalogsReady) return;
-        if (hydratedDetailId === detailQuery.data.id) return;
+        if (!isEditing || !detailQuery.data || hydratedDetailId === detailQuery.data.id) return;
 
-        const primarySystem = detailQuery.data.system;
-        setName(detailQuery.data.name);
-        setDescription(detailQuery.data.description ?? "");
-        setSystem(primarySystem);
-        setPermissionIdsBySystem(
-            partitionPermissionIdsBySystem(
-                detailQuery.data.permissions?.map((p) => p.id) ?? [],
-                catalogIdsBySystem,
-                primarySystem,
+        const stored = readProfileFormDraft(tenantSlug, username, "edit", detailQuery.data.id);
+        if (stored && stored.drafts.length === 1 && stored.drafts[0]?.system === detailQuery.data.system) {
+            setDrafts(stored.drafts);
+            setActiveSystem(stored.activeSystem);
+            setActiveClientId(stored.drafts[0].clientId);
+            if (!restoredToastShown.current) {
+                restoredToastShown.current = true;
+                toast.message("Rascunho restaurado");
+            }
+        } else {
+            const system = detailQuery.data.system;
+            const draft: ProfileDraftItem = {
+                ...createEmptyProfileDraft(
+                    system,
+                    findFirstPermissionRoute(getPermissionNavSections(system))?.id ?? null,
+                ),
+                name: detailQuery.data.name,
+                description: detailQuery.data.description ?? "",
+                permissionIds: detailQuery.data.permissions?.map((permission) => permission.id) ?? [],
+            };
+            setDrafts([draft]);
+            setActiveSystem(system);
+            setActiveClientId(draft.clientId);
+        }
+        setHydratedDetailId(detailQuery.data.id);
+        setDraftBootstrapped(true);
+        setError(null);
+    }, [detailQuery.data, hydratedDetailId, isEditing, tenantSlug, username]);
+
+    useEffect(() => {
+        if (!draftBootstrapped) return;
+        if (isEditing && !editingId) return;
+
+        const timer = window.setTimeout(() => {
+            writeProfileFormDraft(
+                tenantSlug,
+                username,
+                draftMode,
+                {
+                    activeSystem,
+                    activeClientId,
+                    drafts,
+                },
+                editingId,
+            );
+        }, 400);
+        return () => window.clearTimeout(timer);
+    }, [
+        activeClientId,
+        activeSystem,
+        draftBootstrapped,
+        draftMode,
+        drafts,
+        editingId,
+        isEditing,
+        tenantSlug,
+        username,
+    ]);
+
+    useEffect(() => {
+        if (!activeDraft) return;
+        if (activeDraft.selectedRouteId) return;
+        const first = findFirstPermissionRoute(navSections);
+        if (!first) return;
+        setDrafts((prev) =>
+            prev.map((draft) =>
+                draft.clientId === activeDraft.clientId
+                    ? {...draft, selectedRouteId: first.id}
+                    : draft,
             ),
         );
-        setSelectedRoute(findFirstPermissionRoute(getPermissionNavSections(primarySystem)));
-        setPendingSelectAllSystem(null);
-        setHydratedDetailId(detailQuery.data.id);
-        setError(null);
-    }, [catalogIdsBySystem, catalogsReady, detailQuery.data, hydratedDetailId, isEditing]);
-
-    useEffect(() => {
-        if (!selectedRoute && navSections.length > 0) {
-            setSelectedRoute(findFirstPermissionRoute(navSections));
-        }
-    }, [navSections, selectedRoute]);
-
-    useEffect(() => {
-        if (!pendingSelectAllSystem || pendingSelectAllSystem !== system) return;
-        const catalogIds = catalogIdsBySystem[pendingSelectAllSystem] ?? [];
-        if (catalogIds.length === 0) return;
-        setPermissionIdsBySystem((prev) => ({
-            ...prev,
-            [pendingSelectAllSystem]: catalogIds,
-        }));
-        setPendingSelectAllSystem(null);
-    }, [catalogIdsBySystem, pendingSelectAllSystem, system]);
+    }, [activeDraft, navSections]);
 
     const saveMutation = useMutation({
-        mutationFn: async (dto: ProfileCreateDto) => {
-            if (isEditing && editingId) return profileService.update(editingId, dto);
-            return profileService.create(dto);
+        mutationFn: async (items: ProfileCreateDto[]) => {
+            if (isEditing && editingId) {
+                return profileService.update(editingId, items[0]!);
+            }
+            const created = [];
+            for (const item of items) {
+                created.push(await profileService.create(item));
+            }
+            return created;
         },
         onSuccess: async () => {
+            clearProfileFormDraft(tenantSlug, username, draftMode, editingId);
             await queryClient.invalidateQueries({queryKey: profileKeys.all});
-            toast.success(isEditing ? "Perfil atualizado" : "Perfil cadastrado");
+            toast.success(
+                isEditing
+                    ? "Perfil atualizado"
+                    : drafts.filter((draft) => draft.name.trim()).length > 1
+                      ? "Perfis cadastrados"
+                      : "Perfil cadastrado",
+            );
             goToList();
         },
         onError: (err: unknown) => {
@@ -235,59 +325,173 @@ export function ProfileFormClient() {
             setError(ex.displayMessage);
         },
     });
-    const togglePermission = (permissionId: string, checked: boolean) => {
-        setPermissionIdsBySystem((prev) => {
-            const current = new Set(prev[system] ?? []);
-            if (checked) current.add(permissionId);
-            else current.delete(permissionId);
-            return {...prev, [system]: Array.from(current)};
+
+    const updateActiveDraft = (patch: Partial<ProfileDraftItem>) => {
+        if (!activeClientId) return;
+        setDrafts((prev) =>
+            prev.map((draft) => (draft.clientId === activeClientId ? {...draft, ...patch} : draft)),
+        );
+    };
+
+    const handleSystemChange = (nextSystem: SystemScope) => {
+        if (isEditing) return;
+        if (nextSystem === activeSystem) return;
+        setActiveSystem(nextSystem);
+        const existing = drafts.filter((draft) => draft.system === nextSystem);
+        if (existing.length > 0) {
+            setActiveClientId(existing[0]!.clientId);
+            return;
+        }
+        const created = createEmptyProfileDraft(
+            nextSystem,
+            findFirstPermissionRoute(getPermissionNavSections(nextSystem))?.id ?? null,
+        );
+        setDrafts((prev) => [...prev, created]);
+        setActiveClientId(created.clientId);
+    };
+
+    const handleAddDraft = () => {
+        if (isEditing) return;
+        const created = createEmptyProfileDraft(
+            activeSystem,
+            findFirstPermissionRoute(getPermissionNavSections(activeSystem))?.id ?? null,
+        );
+        setDrafts((prev) => [...prev, created]);
+        setActiveClientId(created.clientId);
+    };
+
+    const handleRemoveDraft = (clientId: string) => {
+        if (isEditing) return;
+        setDrafts((prev) => {
+            const target = prev.find((draft) => draft.clientId === clientId);
+            if (!target) return prev;
+            const next = prev.filter((draft) => draft.clientId !== clientId);
+            const remainingInSystem = next.filter((draft) => draft.system === target.system);
+            if (remainingInSystem.length === 0) {
+                const replacement = createEmptyProfileDraft(
+                    target.system,
+                    findFirstPermissionRoute(getPermissionNavSections(target.system))?.id ?? null,
+                );
+                setActiveClientId(replacement.clientId);
+                return [...next, replacement];
+            }
+            if (activeClientId === clientId) {
+                setActiveClientId(remainingInSystem[0]!.clientId);
+            }
+            return next;
         });
     };
-    const handleSystemChange = (nextSystem: SystemScope) => {
-        if (nextSystem === system) return;
-        setPendingSelectAllSystem(null);
-        setSystem(nextSystem);
-        setSelectedRoute(findFirstPermissionRoute(getPermissionNavSections(nextSystem)));
+
+    const togglePermission = (permissionId: string, checked: boolean) => {
+        if (!activeDraft) return;
+        const current = new Set(activeDraft.permissionIds);
+        if (checked) current.add(permissionId);
+        else current.delete(permissionId);
+        updateActiveDraft({permissionIds: Array.from(current)});
     };
-    const handleSystemAccessToggle = (nextSystem: SystemScope) => {
-        const catalogIds = catalogIdsBySystem[nextSystem] ?? [];
-        const accessState = systemAccessStateByScope[nextSystem] ?? "unchecked";
 
-        if (nextSystem !== system) {
-            setSystem(nextSystem);
-            setSelectedRoute(findFirstPermissionRoute(getPermissionNavSections(nextSystem)));
+    const handleRouteAccessToggle = (route: AppRoute) => {
+        if (!activeDraft) return;
+        const catalogIds = permissionIdsForModules(
+            resolvePermissionModulesForRouteTree(route),
+            systemCatalogQuery.data,
+        );
+        if (catalogIds.length === 0) {
+            updateActiveDraft({selectedRouteId: route.id});
+            return;
         }
-
+        const accessState = routeAccessStateById.get(route.id) ?? "unchecked";
+        const current = new Set(activeDraft.permissionIds);
         if (accessState === "checked") {
-            setPermissionIdsBySystem((prev) => ({...prev, [nextSystem]: []}));
-            setPendingSelectAllSystem(null);
-            return;
+            for (const id of catalogIds) current.delete(id);
+        } else {
+            for (const id of catalogIds) current.add(id);
         }
-
-        if (catalogIds.length > 0) {
-            setPermissionIdsBySystem((prev) => ({...prev, [nextSystem]: catalogIds}));
-            setPendingSelectAllSystem(null);
-            return;
-        }
-
-        setPendingSelectAllSystem(nextSystem);
+        const leaf = collectPermissionLeafRoutes([route])[0];
+        updateActiveDraft({
+            permissionIds: Array.from(current),
+            selectedRouteId: leaf?.id ?? route.id,
+        });
     };
+
+    const handleSelectAllMenus = () => {
+        if (!activeDraft) return;
+        if (allMenusAccessState === "checked") {
+            updateActiveDraft({permissionIds: []});
+            return;
+        }
+        const firstLeaf = collectPermissionLeafRoutesFromSections(navSections)[0];
+        updateActiveDraft({
+            permissionIds: allCatalogPermissionIds,
+            selectedRouteId: firstLeaf?.id ?? activeDraft.selectedRouteId,
+        });
+    };
+
+    const handleCancel = () => {
+        clearProfileFormDraft(tenantSlug, username, draftMode, editingId);
+        goToList();
+    };
+
+    const resetToEmptyCreate = () => {
+        const first = createEmptyProfileDraft(
+            "CFG",
+            findFirstPermissionRoute(getPermissionNavSections("CFG"))?.id ?? null,
+        );
+        setDrafts([first]);
+        setActiveSystem("CFG");
+        setActiveClientId(first.clientId);
+        setError(null);
+        setHydratedDetailId(null);
+        setDraftBootstrapped(true);
+        restoredToastShown.current = false;
+    };
+
+    const handleNewCadastro = () => {
+        clearProfileFormDraft(tenantSlug, username, draftMode, editingId);
+        clearProfileFormDraft(tenantSlug, username, "create");
+        if (isEditing) {
+            startCreate();
+            return;
+        }
+        resetToEmptyCreate();
+    };
+
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
-        saveMutation.mutate({
-            name,
-            description,
-            system,
-            permissionIds: flattenPermissionIds(permissionIdsBySystem),
-        });
+
+        const toSave = (isEditing ? drafts : drafts.filter(draftHasContent))
+            .map((draft) => ({
+                name: draft.name.trim(),
+                description: draft.description.trim() || undefined,
+                system: draft.system,
+                permissionIds: draft.permissionIds,
+            }))
+            .filter((draft) => draft.name.length > 0);
+
+        if (toSave.length === 0) {
+            setError("Informe o nome de pelo menos um perfil.");
+            return;
+        }
+
+        const seen = new Set<string>();
+        for (const item of toSave) {
+            const key = `${item.system}::${item.name.toLowerCase()}`;
+            if (seen.has(key)) {
+                setError(`Há nomes duplicados no sistema ${item.system}.`);
+                return;
+            }
+            seen.add(key);
+        }
+
+        saveMutation.mutate(toSave);
     };
 
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
                 {Array.from({length: 4}).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full"/>
+                    <div key={i} className="skeleton-shimmer h-10 w-full" />
                 ))}
             </div>
         );
@@ -296,57 +500,61 @@ export function ProfileFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                resetKey: editingId ?? "new",
-            }}
+            bodyClassName="!flex !min-h-0 !flex-1 !flex-col !overflow-hidden !p-0"
             footer={
                 <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
+                    <Button type="button" variant="ghost" onClick={handleCancel}>
                         Cancelar
                     </Button>
+                    <Button type="button" variant="outline" onClick={handleNewCadastro}>
+                        Novo cadastro
+                    </Button>
                     <Button type="submit" variant="primary" loading={saveMutation.isPending}>
-                        Salvar perfil
+                        {isEditing
+                            ? "Salvar perfil"
+                            : drafts.filter((draft) => draft.name.trim()).length > 1
+                              ? "Salvar perfis"
+                              : "Salvar perfil"}
                     </Button>
                 </>
             }
         >
-            <FormSection id="identificacao" title="Identificação">
-                <div className="grid w-full grid-cols-1 gap-4 sm:col-span-12 sm:grid-cols-2">
-                    <InputString
-                        label="Nome do perfil"
-                        value={name}
-                        onValueChange={setName}
-                        required
-                        wrapperClassName="min-w-0"
-                    />
-                    <InputString
-                        label="Descrição"
-                        value={description}
-                        onValueChange={setDescription}
-                        wrapperClassName="min-w-0"
-                    />
-                </div>
-            </FormSection>
-            <FormSection id="permissoes" title="Permissões por sistema" bodyClassName="!p-0 !gap-0">
+            <FormSection
+                id="permissoes"
+                title="Perfis por sistema"
+                className="flex min-h-0 flex-1 flex-col overflow-hidden !rounded-none !border-0 !shadow-none"
+                bodyClassName="!flex !min-h-0 !flex-1 !flex-col !overflow-hidden !p-0 !gap-0"
+            >
                 <ProfilePermissionAssignmentPanel
-                    system={system}
+                    system={activeSystem}
                     onSystemChange={handleSystemChange}
-                    onSystemAccessToggle={handleSystemAccessToggle}
-                    systemAccessStateByScope={systemAccessStateByScope}
+                    systemProfileCountByScope={systemProfileCountByScope}
+                    systemsLocked={isEditing}
+                    draftsForSystem={draftsForSystem}
+                    activeDraft={activeDraft}
+                    onSelectDraft={setActiveClientId}
+                    onAddDraft={handleAddDraft}
+                    onRemoveDraft={handleRemoveDraft}
+                    allowMultipleDrafts={!isEditing}
+                    name={activeDraft?.name ?? ""}
+                    description={activeDraft?.description ?? ""}
+                    onNameChange={(value) => updateActiveDraft({name: value})}
+                    onDescriptionChange={(value) => updateActiveDraft({description: value})}
                     navSections={navSections}
                     selectedRoute={selectedRoute}
                     markedRouteIds={markedRouteIds}
-                    onRouteSelect={setSelectedRoute}
+                    routeAccessStateById={routeAccessStateById}
+                    onRouteAccessToggle={handleRouteAccessToggle}
+                    onSelectAllMenus={handleSelectAllMenus}
+                    allMenusAccessState={allMenusAccessState}
+                    onRouteSelect={(route) => updateActiveDraft({selectedRouteId: route.id})}
                     permissions={modulePermissions}
                     selectedPermissionIds={selectedPermissionIds}
                     onTogglePermission={togglePermission}
                     permissionsLoading={modulePermissionsQuery.isLoading}
-                    selectedPermissionCount={activePermissionIds.length}
-                    selectedPermissionCountByScope={selectedPermissionCountByScope}
                 />
             </FormSection>
-            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
+            {error ? <p className="shrink-0 px-5 py-3 text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );
 }

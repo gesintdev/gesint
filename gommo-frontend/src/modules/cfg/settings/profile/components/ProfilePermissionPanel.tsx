@@ -1,7 +1,7 @@
 import clsx from "clsx";
 
 import type {PermissionSummary} from "@/modules/cfg/settings/profile/dto/profile.dto";
-import {InputCheckbox} from "@/shared/components/ui/input";
+import {InputCheckbox} from "@/shared/components/ui/input/index";
 
 const ACTION_LABELS: Record<string, string> = {
     read: "Consultar",

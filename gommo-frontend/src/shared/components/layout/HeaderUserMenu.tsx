@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, LogOut, Settings } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
@@ -13,17 +13,6 @@ import { showLoggingOutOverlay } from "@/shared/lib/logging-out-overlay";
 import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
-
-function UserIdentity({ name, email, compact = false }: { name: string; email?: string | null; compact?: boolean }) {
-    return (
-        <span className={clsx("min-w-0 text-left", compact ? "hidden sm:block" : "block")}>
-            <span className="block truncate text-[13px] font-semibold leading-tight text-base-content">{name}</span>
-            {email ? (
-                <span className="mt-0.5 block truncate text-[11px] leading-tight text-base-content/45">{email}</span>
-            ) : null}
-        </span>
-    );
-}
 
 export function HeaderUserMenu() {
     const { data: session } = useSession();
@@ -68,7 +57,7 @@ export function HeaderUserMenu() {
     };
 
     return (
-        <div ref={rootRef} className="relative ms-0.5 sm:ms-1">
+        <div ref={rootRef} className="relative ms-0.5">
             <button
                 type="button"
                 aria-label="Menu do usuário"
@@ -76,18 +65,13 @@ export function HeaderUserMenu() {
                 aria-haspopup="menu"
                 onClick={() => setOpen((v) => !v)}
                 className={clsx(
-                    "flex items-center gap-2 rounded-[var(--gommo-tab-radius)] py-1 ps-1 pe-2.5 transition-colors duration-150",
-                    open ? "bg-primary/8" : "hover:bg-base-200/70 dark:hover:bg-base-300/40",
+                    "flex size-7 items-center justify-center rounded-full transition-colors duration-150",
+                    open
+                        ? "bg-primary/10 ring-2 ring-primary/25"
+                        : "hover:bg-base-200/70 dark:hover:bg-base-300/40",
                 )}
             >
                 <ProfileAvatar name={name} photoObjectId={photoObjectId} size="sm" shape="circle" />
-                <UserIdentity name={name} email={email} compact />
-                <ChevronDown
-                    className={clsx(
-                        "hidden size-3 shrink-0 text-base-content/35 transition-transform duration-200 sm:block",
-                        open && "rotate-180",
-                    )}
-                />
             </button>
             <AnimatePresence>
                 {open && (
@@ -102,7 +86,16 @@ export function HeaderUserMenu() {
                     >
                         <div className="flex items-center gap-3 rounded-[var(--gommo-tab-radius)] px-3 py-2.5">
                             <ProfileAvatar name={name} photoObjectId={photoObjectId} size="md" shape="circle" />
-                            <UserIdentity name={name} email={email} />
+                            <span className="min-w-0 text-left">
+                                <span className="block truncate text-[13px] font-semibold leading-tight text-base-content">
+                                    {name}
+                                </span>
+                                {email ? (
+                                    <span className="mt-0.5 block truncate text-[11px] leading-tight text-base-content/45">
+                                        {email}
+                                    </span>
+                                ) : null}
+                            </span>
                         </div>
                         <div className="my-1 h-px bg-base-content/8" />
                         <button

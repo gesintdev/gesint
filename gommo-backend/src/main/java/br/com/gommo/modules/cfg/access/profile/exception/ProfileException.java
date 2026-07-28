@@ -21,7 +21,9 @@ public final class ProfileException {
 
     public static BusinessException duplicateName() {
         return new BusinessException(
-                "PROFILE_DUPLICATE_NAME", "Já existe um perfil com este nome.", HttpStatus.CONFLICT);
+                "PROFILE_DUPLICATE_NAME",
+                "Já existe um perfil com este nome neste sistema.",
+                HttpStatus.CONFLICT);
     }
 
     public static BusinessException invalidPermissions() {
