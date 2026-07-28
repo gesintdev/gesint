@@ -8,8 +8,10 @@ import {AgendaModal} from "@/modules/cfg/settings/agenda/components/AgendaModal"
 import {AttendanceClockModal} from "@/modules/dp/attendance/components/AttendanceClockModal";
 import type {SystemEnum} from "@/modules/root/enum/SystemEnum";
 import {GommoLogo} from "@/shared/components/layout/GommoLogo";
+import {HeaderAiAssistant} from "@/shared/components/layout/HeaderAiAssistant";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
+import {AiAssistantPanel} from "@/shared/components/assistant/AiAssistantPanel";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
 import {GlobalSearchPalette} from "@/shared/components/search/GlobalSearchPalette";
 import {ActiveSystemProvider} from "@/shared/context/ActiveSystemContext";
@@ -29,11 +31,14 @@ export function SystemShell({
     const [mobileNav, setMobileNav] = useState(false);
     const [clockModalOpen, setClockModalOpen] = useState(false);
     const [agendaModalOpen, setAgendaModalOpen] = useState(false);
+    const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
     const {data: session} = useSession();
     const closeMobileNav = useCallback(() => setMobileNav(false), []);
     const toggleMobileNav = useCallback(() => setMobileNav((open) => !open), []);
     const closeClockModal = useCallback(() => setClockModalOpen(false), []);
     const closeAgendaModal = useCallback(() => setAgendaModalOpen(false), []);
+    const closeAiAssistant = useCallback(() => setAiAssistantOpen(false), []);
+    const toggleAiAssistant = useCallback(() => setAiAssistantOpen((open) => !open), []);
 
     useEffect(() => {
         setAuthToken(session?.accessToken ?? null);
@@ -123,6 +128,10 @@ export function SystemShell({
                                             <Clock className="size-4" strokeWidth={2}/>
                                         </button>
                                         <HeaderNotifications/>
+                                        <HeaderAiAssistant
+                                            open={aiAssistantOpen}
+                                            onClick={toggleAiAssistant}
+                                        />
                                         <HeaderUserMenu/>
                                     </div>
                                 </div>
@@ -150,6 +159,7 @@ export function SystemShell({
             </Suspense>
             <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal}/>
             <AgendaModal open={agendaModalOpen} onClose={closeAgendaModal}/>
+            <AiAssistantPanel open={aiAssistantOpen} onClose={closeAiAssistant}/>
         </div>
     );
 }

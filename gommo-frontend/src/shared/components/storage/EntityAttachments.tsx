@@ -1,6 +1,6 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Check, Download, Eye, Pencil, Trash2, Upload, X} from "lucide-react";
-import {useMemo, useRef, useState} from "react";
+import {useMemo, useRef, useState, type ReactNode} from "react";
 import {toast} from "sonner";
 
 import {documentTypeLabel} from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
@@ -47,6 +47,8 @@ type EntityAttachmentsProps = {
     deferUpload?: boolean;
     pendingAttachments?: PendingAttachment[];
     onPendingAttachmentsChange?: (attachments: PendingAttachment[]) => void;
+    /** Ações extras na coluna de ações de cada arquivo da grid. */
+    rowActionsExtra?: ReactNode;
 };
 
 function formatFileSize(bytes: number): string {
@@ -104,6 +106,7 @@ export function EntityAttachments({
                                       deferUpload = false,
                                       pendingAttachments = [],
                                       onPendingAttachmentsChange,
+                                      rowActionsExtra,
                                   }: EntityAttachmentsProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const queryClient = useQueryClient();
@@ -445,6 +448,7 @@ export function EntityAttachments({
                                             deleteMutation.mutate(row.serverLink!);
                                         }}
                                     />
+                                    {rowActionsExtra}
                                 </>
                             )}
                         </div>

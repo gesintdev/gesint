@@ -10,10 +10,18 @@ import { admissionProcessKanbanColumnKeys } from "@/modules/cfg/settings/admissi
 import { admissionProcessKanbanColumnService } from "@/modules/cfg/settings/admissionprocesskanban/services/admission-process-kanban-column.service";
 import { JobVacancyApplicationKanbanDetailModal } from "@/modules/rh/person/jobvacancy/components/JobVacancyApplicationKanbanDetailModal";
 import {
+    CandidateMatchScoreDetailModal,
+    type CandidateMatchScoreDetailTarget,
+} from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
+import { CandidateMatchScoreTag } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreTag";
+import {
     createAdmissionFromKanbanCard,
     HIRING_KANBAN_COLUMN_KEY,
 } from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
 import { useJobVacancyAdmissionProcessStore } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-admission-process.store";
+import { mockMatchScore } from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
+import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
+import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import type { JobVacancyApplication } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
@@ -31,6 +39,7 @@ import { formatPhone } from "@/shared/lib/table/format-cell-value";
 type AdmissionKanbanCard = KanbanItem & {
     applicationId: string;
     candidateId: string;
+    score: number;
 };
 
 export function JobVacancyAdmissionProcessTab() {
@@ -40,6 +49,9 @@ export function JobVacancyAdmissionProcessTab() {
     const jobVacancyTitle = useJobVacancyAdmissionProcessStore((state) => state.jobVacancyTitle);
     const [pendingItemIds, setPendingItemIds] = useState<Set<string>>(() => new Set());
     const [detailApplicationId, setDetailApplicationId] = useState<string | null>(null);
+    const [scoreDetailTarget, setScoreDetailTarget] = useState<CandidateMatchScoreDetailTarget | null>(
+        null,
+    );
 
     const columnsQuery = useQuery({
         queryKey: admissionProcessKanbanColumnKeys.all,
@@ -49,6 +61,12 @@ export function JobVacancyAdmissionProcessTab() {
     const applicationsQuery = useQuery({
         queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId ?? ""),
         queryFn: () => jobVacancyApplicationService.getByVacancy(jobVacancyId!),
+        enabled: Boolean(jobVacancyId),
+    });
+
+    const vacancyQuery = useQuery({
+        queryKey: jobVacancyKeys.detail(jobVacancyId ?? ""),
+        queryFn: () => jobVacancyService.getById(jobVacancyId!),
         enabled: Boolean(jobVacancyId),
     });
 
@@ -86,19 +104,49 @@ export function JobVacancyAdmissionProcessTab() {
         setDetailApplicationId(item.applicationId);
     }, []);
 
+    const openScoreDetail = useCallback((row: {
+        applicationId: string;
+        candidateId: string;
+        candidateName?: string | null;
+    }) => {
+        setScoreDetailTarget({
+            applicationId: row.applicationId,
+            candidateId: row.candidateId,
+            candidateName: row.candidateName ?? undefined,
+        });
+    }, []);
+
     const boardColumns = useMemo((): KanbanColumn<AdmissionKanbanCard>[] => {
         const applications = (applicationsQuery.data ?? []).filter(
             (row) => row.status !== "DELETED" && Boolean(row.kanbanColumnKey?.trim()),
         );
 
-        const cards: AdmissionKanbanCard[] = applications.map((row) => ({
-            id: row.id,
-            applicationId: row.id,
-            candidateId: row.candidateId,
-            title: row.candidateFullName ?? "Candidato",
-            subtitle: row.candidateEmail ?? undefined,
-            meta: row.candidatePhone ? formatPhone(row.candidatePhone) : undefined,
-        }));
+        const cards: AdmissionKanbanCard[] = applications
+            .map((row) => {
+                const score = mockMatchScore(row.id, vacancyQuery.data);
+                return {
+                    id: row.id,
+                    applicationId: row.id,
+                    candidateId: row.candidateId,
+                    title: row.candidateFullName ?? "Candidato",
+                    subtitle: row.candidateEmail ?? undefined,
+                    meta: row.candidatePhone ? formatPhone(row.candidatePhone) : undefined,
+                    badge: (
+                        <CandidateMatchScoreTag
+                            score={score}
+                            onClick={() =>
+                                openScoreDetail({
+                                    applicationId: row.id,
+                                    candidateId: row.candidateId,
+                                    candidateName: row.candidateFullName,
+                                })
+                            }
+                        />
+                    ),
+                    score,
+                };
+            })
+            .sort((a, b) => b.score - a.score);
 
         return sortedColumns.map((column) => {
             const isHiring = column.columnKey === HIRING_KANBAN_COLUMN_KEY;
@@ -113,7 +161,7 @@ export function JobVacancyAdmissionProcessTab() {
                 onDrop: isHiring ? handleHiringDrop : undefined,
             };
         });
-    }, [applicationsQuery.data, handleHiringDrop, sortedColumns]);
+    }, [applicationsQuery.data, handleHiringDrop, openScoreDetail, sortedColumns, vacancyQuery.data]);
 
     const markPending = (itemId: string, pending: boolean) => {
         setPendingItemIds((current) => {
@@ -302,6 +350,12 @@ export function JobVacancyAdmissionProcessTab() {
                         : undefined
                 }
                 createAdmissionLoading={hireMutation.isPending}
+            />
+            <CandidateMatchScoreDetailModal
+                open={Boolean(scoreDetailTarget)}
+                jobVacancyId={jobVacancyId}
+                target={scoreDetailTarget}
+                onClose={() => setScoreDetailTarget(null)}
             />
         </div>
     );

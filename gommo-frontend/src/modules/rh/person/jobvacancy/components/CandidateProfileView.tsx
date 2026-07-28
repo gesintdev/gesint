@@ -1,5 +1,7 @@
 "use client";
 
+import type {ReactNode} from "react";
+
 import type {Candidate, CandidateExperience} from "@/modules/rh/person/candidate/dto/candidate.dto";
 import {EntityAttachments} from "@/shared/components/storage/EntityAttachments";
 import {formatCellValue, formatCpf, formatPhone} from "@/shared/lib/table/format-cell-value";
@@ -75,9 +77,11 @@ function formatExperiencePeriod(experience: CandidateExperience): string {
 
 type CandidateProfileViewProps = {
     candidate: Candidate;
+    /** Ações extras na coluna de ações de cada currículo na grid. */
+    curriculumRowActionsExtra?: ReactNode;
 };
 
-export function CandidateProfileView({candidate}: CandidateProfileViewProps) {
+export function CandidateProfileView({candidate, curriculumRowActionsExtra}: CandidateProfileViewProps) {
     const location = [candidate.city?.trim(), candidate.stateCode?.trim()].filter(Boolean).join(" / ");
     const experiences = candidate.experiences ?? [];
 
@@ -155,6 +159,7 @@ export function CandidateProfileView({candidate}: CandidateProfileViewProps) {
                     entityId={candidate.id}
                     linkRole="CURRICULUM"
                     emptyMessage="Nenhum currículo anexado."
+                    rowActionsExtra={curriculumRowActionsExtra}
                 />
             </section>
         </div>

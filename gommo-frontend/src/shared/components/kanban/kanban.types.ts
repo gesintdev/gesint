@@ -7,6 +7,8 @@ export type KanbanItem = {
     title: string;
     subtitle?: string;
     meta?: ReactNode;
+    /** Badge opcional exibido ao lado do título (ex.: score de ranking). */
+    badge?: ReactNode;
 };
 
 export type KanbanColumn<TItem extends KanbanItem = KanbanItem> = {

@@ -7,6 +7,10 @@ import { useMemo, useState } from "react";
 import { admissionProcessKanbanColumnKeys } from "@/modules/cfg/settings/admissionprocesskanban/admission-process-kanban-column.query";
 import { admissionProcessKanbanColumnService } from "@/modules/cfg/settings/admissionprocesskanban/services/admission-process-kanban-column.service";
 import { CandidateAnalysisModal } from "@/modules/rh/person/jobvacancy/components/CandidateAnalysisModal";
+import { CandidateMatchScoreTag } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreTag";
+import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
+import { mockMatchScore } from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
+import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import type { JobVacancyApplication } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
@@ -17,6 +21,12 @@ import { TableDataType } from "@/shared/types/table.types";
 
 type JobVacancyCandidatesPanelProps = {
     jobVacancyId: string;
+};
+
+type AnalysisTarget = {
+    candidateId: string;
+    applicationId: string;
+    candidateName?: string;
 };
 
 function FieldCell({ label, value }: { label: string; value: string }) {
@@ -32,10 +42,14 @@ function FieldCell({ label, value }: { label: string; value: string }) {
 }
 
 export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidatesPanelProps) {
-    const [analysisCandidateId, setAnalysisCandidateId] = useState<string | null>(null);
+    const [analysisTarget, setAnalysisTarget] = useState<AnalysisTarget | null>(null);
     const query = useQuery({
         queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId),
         queryFn: () => jobVacancyApplicationService.getByVacancy(jobVacancyId),
+    });
+    const vacancyQuery = useQuery({
+        queryKey: jobVacancyKeys.detail(jobVacancyId),
+        queryFn: () => jobVacancyService.getById(jobVacancyId),
     });
     const columnsQuery = useQuery({
         queryKey: admissionProcessKanbanColumnKeys.all,
@@ -53,7 +67,11 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
 
     const openAnalysis = (row: JobVacancyApplication) => {
         if (!row.candidateId) return;
-        setAnalysisCandidateId(row.candidateId);
+        setAnalysisTarget({
+            candidateId: row.candidateId,
+            applicationId: row.id,
+            candidateName: row.candidateFullName,
+        });
     };
 
     const situationLabel = (row: JobVacancyApplication): string => {
@@ -61,6 +79,14 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
         if (!key) return "Não iniciado";
         return columnNameByKey.get(key) ?? key;
     };
+
+    const rows = useMemo(() => {
+        const list = query.data ?? [];
+        const vacancy = vacancyQuery.data ?? null;
+        return [...list]
+            .map((row) => ({ row, score: mockMatchScore(row.id, vacancy) }))
+            .sort((a, b) => b.score - a.score);
+    }, [query.data, vacancyQuery.data]);
 
     if (query.isLoading) {
         return (
@@ -80,7 +106,6 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
         );
     }
 
-    const rows = query.data ?? [];
     if (rows.length === 0) {
         return <p className="px-3 py-4 text-sm text-base-content/45">Nenhum candidato nesta vaga.</p>;
     }
@@ -89,7 +114,7 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
         <>
             <div className="job-vacancy-candidates-scroll">
                 <div className="job-vacancy-candidates-grid">
-                    {rows.map((row) => (
+                    {rows.map(({ row, score }) => (
                         <div
                             key={row.id}
                             className="job-vacancy-candidates-grid__row"
@@ -108,6 +133,9 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
                                 label="Candidatura"
                                 value={formatCellValue(row.appliedAt, TableDataType.DATETIME)}
                             />
+                            <div className="flex justify-center">
+                                <CandidateMatchScoreTag score={score} />
+                            </div>
                             <div
                                 className="gommo-table-actions justify-end"
                                 onClick={(event) => event.stopPropagation()}
@@ -130,9 +158,12 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
             </div>
 
             <CandidateAnalysisModal
-                open={Boolean(analysisCandidateId)}
-                candidateId={analysisCandidateId}
-                onClose={() => setAnalysisCandidateId(null)}
+                open={Boolean(analysisTarget)}
+                candidateId={analysisTarget?.candidateId ?? null}
+                applicationId={analysisTarget?.applicationId ?? null}
+                candidateName={analysisTarget?.candidateName ?? null}
+                jobVacancyId={jobVacancyId}
+                onClose={() => setAnalysisTarget(null)}
             />
         </>
     );

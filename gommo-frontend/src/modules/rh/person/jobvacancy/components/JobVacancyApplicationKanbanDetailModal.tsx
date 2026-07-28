@@ -2,7 +2,7 @@
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import clsx from "clsx";
-import {ChevronDown, Trash2, UserRound, X} from "lucide-react";
+import {ChevronDown, Gauge, Trash2, UserRound, X} from "lucide-react";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {toast} from "sonner";
@@ -13,12 +13,20 @@ import type {
 import {candidateKeys} from "@/modules/rh/person/candidate/candidate.query";
 import {candidateService} from "@/modules/rh/person/candidate/services/candidate.service";
 import {CandidateProfileView} from "@/modules/rh/person/jobvacancy/components/CandidateProfileView";
+import {
+    CandidateMatchScoreDetailModal,
+    type CandidateMatchScoreDetailTarget,
+} from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
 import {HIRING_KANBAN_COLUMN_KEY} from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
+import {mockMatchScore} from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
+import {jobVacancyKeys} from "@/modules/rh/person/jobvacancy/jobvacancy.query";
+import {jobVacancyService} from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import type {JobVacancyApplication} from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import {jobVacancyApplicationKeys} from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import {
     jobVacancyApplicationService
 } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
+import {TableActionButton} from "@/shared/components/crud/TableActionButton";
 import {resolveKanbanColumnColor} from "@/shared/components/kanban";
 import {Button} from "@/shared/components/ui/Button";
 import {fieldClass} from "@/shared/components/ui/input/InputFieldChrome";
@@ -169,17 +177,40 @@ function StageCommentAccordion({
 
 function CandidateProfileAccordion({
                                        candidateId,
+                                       jobVacancyId,
+                                       applicationId,
+                                       candidateName,
                                        defaultOpen = true,
                                    }: {
     candidateId: string;
+    jobVacancyId?: string | null;
+    applicationId?: string | null;
+    candidateName?: string | null;
     defaultOpen?: boolean;
 }) {
     const [open, setOpen] = useState(defaultOpen);
+    const [scoreDetailOpen, setScoreDetailOpen] = useState(false);
     const detailQuery = useQuery({
         queryKey: candidateKeys.detail(candidateId),
         queryFn: () => candidateService.getById(candidateId),
         enabled: open && Boolean(candidateId),
     });
+    const vacancyQuery = useQuery({
+        queryKey: jobVacancyKeys.detail(jobVacancyId ?? ""),
+        queryFn: () => jobVacancyService.getById(jobVacancyId!),
+        enabled: open && Boolean(jobVacancyId),
+    });
+
+    const canOpenScore = Boolean(jobVacancyId && applicationId && candidateId);
+    const score = applicationId ? mockMatchScore(applicationId, vacancyQuery.data) : null;
+    const scoreTarget: CandidateMatchScoreDetailTarget | null =
+        canOpenScore && applicationId
+            ? {
+                  applicationId,
+                  candidateId,
+                  candidateName: candidateName ?? detailQuery.data?.fullName,
+              }
+            : null;
 
     return (
         <div className="overflow-hidden rounded-lg border border-base-content/10">
@@ -215,9 +246,30 @@ function CandidateProfileAccordion({
                             )}
                         </p>
                     ) : null}
-                    {detailQuery.data ? <CandidateProfileView candidate={detailQuery.data}/> : null}
+                    {detailQuery.data ? (
+                        <CandidateProfileView
+                            candidate={detailQuery.data}
+                            curriculumRowActionsExtra={
+                                canOpenScore && score != null ? (
+                                    <TableActionButton
+                                        actionVariant="open"
+                                        aria-label={`Análise de compatibilidade: ${score}%`}
+                                        title={`Compatibilidade: ${score}%`}
+                                        leftIcon={<Gauge className="size-3.5"/>}
+                                        onClick={() => setScoreDetailOpen(true)}
+                                    />
+                                ) : null
+                            }
+                        />
+                    ) : null}
                 </div>
             ) : null}
+            <CandidateMatchScoreDetailModal
+                open={scoreDetailOpen && Boolean(scoreTarget)}
+                jobVacancyId={jobVacancyId ?? null}
+                target={scoreTarget}
+                onClose={() => setScoreDetailOpen(false)}
+            />
         </div>
     );
 }
@@ -442,6 +494,9 @@ export function JobVacancyApplicationKanbanDetailModal({
                                 <section className="grid gap-2 text-xs">
                                     <CandidateProfileAccordion
                                         candidateId={application.candidateId}
+                                        jobVacancyId={application.jobVacancyId}
+                                        applicationId={application.id}
+                                        candidateName={application.candidateFullName}
                                         defaultOpen
                                     />
                                 </section>

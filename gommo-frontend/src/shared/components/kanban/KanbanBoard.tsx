@@ -73,7 +73,12 @@ function DefaultKanbanCard({
     return (
         <div className="flex items-start gap-2 px-3 py-2.5">
             <div className="min-w-0 flex-1 grid gap-0.5">
-                <p className="m-0 text-[0.8125rem] font-semibold leading-snug text-base-content">{item.title}</p>
+                <div className="flex min-w-0 items-center gap-1.5">
+                    {item.badge}
+                    <p className="m-0 min-w-0 truncate text-[0.8125rem] font-semibold leading-snug text-base-content">
+                        {item.title}
+                    </p>
+                </div>
                 {item.subtitle ? (
                     <p className="m-0 text-[0.6875rem] text-base-content/50">{item.subtitle}</p>
                 ) : null}
