@@ -12,9 +12,12 @@ import {
     type CandidateMatchScoreDetailTarget,
 } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
 import { CandidateProfileView } from "@/modules/rh/person/jobvacancy/components/CandidateProfileView";
-import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
-import { mockMatchScore } from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
-import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
+import {
+    applicationAiScore,
+    isApplicationAiPending,
+} from "@/modules/rh/person/jobvacancy/lib/application-match-score";
+import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
+import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { Button } from "@/shared/components/ui/Button";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -46,11 +49,13 @@ export function CandidateAnalysisModal({
         enabled: open && Boolean(candidateId),
     });
 
-    const vacancyQuery = useQuery({
-        queryKey: jobVacancyKeys.detail(jobVacancyId ?? ""),
-        queryFn: () => jobVacancyService.getById(jobVacancyId!),
+    const applicationsQuery = useQuery({
+        queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId ?? ""),
+        queryFn: () => jobVacancyApplicationService.getByVacancy(jobVacancyId!),
         enabled: open && Boolean(jobVacancyId),
     });
+
+    const application = (applicationsQuery.data ?? []).find((row) => row.id === applicationId) ?? null;
 
     useEffect(() => {
         setMounted(true);
@@ -74,7 +79,8 @@ export function CandidateAnalysisModal({
 
     const candidate = detailQuery.data;
     const canOpenScore = Boolean(jobVacancyId && applicationId && candidateId);
-    const score = applicationId ? mockMatchScore(applicationId, vacancyQuery.data) : null;
+    const score = applicationAiScore(application);
+    const pending = isApplicationAiPending(application);
     const scoreTarget: CandidateMatchScoreDetailTarget | null =
         canOpenScore && applicationId && candidateId
             ? {
@@ -152,11 +158,23 @@ export function CandidateAnalysisModal({
                             <CandidateProfileView
                                 candidate={candidate}
                                 curriculumRowActionsExtra={
-                                    canOpenScore && score != null ? (
+                                    canOpenScore ? (
                                         <TableActionButton
                                             actionVariant="open"
-                                            aria-label={`Análise de compatibilidade: ${score}%`}
-                                            title={`Compatibilidade: ${score}%`}
+                                            aria-label={
+                                                pending
+                                                    ? "Análise em andamento"
+                                                    : score != null
+                                                      ? `Análise de compatibilidade: ${score}%`
+                                                      : "Abrir análise de compatibilidade"
+                                            }
+                                            title={
+                                                pending
+                                                    ? "Análise em andamento"
+                                                    : score != null
+                                                      ? `Compatibilidade: ${score}%`
+                                                      : "Análise de compatibilidade"
+                                            }
                                             leftIcon={<Gauge className="size-3.5" />}
                                             onClick={() => setScoreDetailOpen(true)}
                                         />

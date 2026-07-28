@@ -29,7 +29,7 @@ import {
 import {publicCareersService} from "@/modules/rh/person/jobvacancy/services/public-careers.service";
 import {ThemeToggle} from "@/shared/components/layout/ThemeToggle";
 import {Button} from "@/shared/components/ui/Button";
-import {InputCPF, InputCheckbox, InputPhone, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import {InputCPF, InputCheckbox, InputCurrency, InputPhone, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import {MarkdownContent} from "@/shared/components/ui/MarkdownContent";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {digitsOnly} from "@/shared/lib/input/digits";
@@ -46,6 +46,7 @@ type ApplyFormState = {
     portfolioUrl: string;
     coverLetter: string;
     referralSource: string;
+    salaryExpectation: string;
     experiences: CareersExperienceForm[];
 };
 
@@ -62,6 +63,7 @@ function emptyForm(): ApplyFormState {
         portfolioUrl: "",
         coverLetter: "",
         referralSource: "",
+        salaryExpectation: "",
         experiences: [createEmptyCareersExperience()],
     };
 }
@@ -520,7 +522,8 @@ export function CareersApplyClient({slug}: { slug: string }) {
 
     const completedSections = [
         form.firstName && form.lastName && form.email && form.cpf,
-        form.experiences.some((item) => item.companyName && item.jobTitle),
+        form.experiences.some((item) => item.companyName && item.jobTitle && item.startMonth && item.startYear) ||
+            Boolean(resumeFile),
         resumeFile || form.coverLetter,
     ].filter(Boolean).length;
 
@@ -569,6 +572,15 @@ export function CareersApplyClient({slug}: { slug: string }) {
             })
             .filter((item): item is NonNullable<typeof item> => item != null);
 
+        if (!resumeFile && experiences.length === 0) {
+            setError("Envie um currículo ou informe ao menos uma experiência profissional.");
+            return;
+        }
+
+        const salaryExpectation = form.salaryExpectation.trim()
+            ? Number(form.salaryExpectation)
+            : undefined;
+
         applyMutation.mutate({
             payload: {
                 fullName: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
@@ -581,6 +593,10 @@ export function CareersApplyClient({slug}: { slug: string }) {
                 portfolioUrl: form.portfolioUrl.trim() || undefined,
                 coverLetter: form.coverLetter.trim() || undefined,
                 referralSource: form.referralSource || undefined,
+                salaryExpectation:
+                    salaryExpectation != null && !Number.isNaN(salaryExpectation)
+                        ? salaryExpectation
+                        : undefined,
                 experiences,
             },
             resume: resumeFile,
@@ -753,7 +769,13 @@ export function CareersApplyClient({slug}: { slug: string }) {
                                         value={form.portfolioUrl}
                                         onValueChange={(value) => update("portfolioUrl", value)}
                                         placeholder="github.com/usuario"
-                                        wrapperClassName="sm:col-span-2"
+                                    />
+                                    <InputCurrency
+                                        label="Pretensão salarial"
+                                        value={form.salaryExpectation}
+                                        onValueChange={(value) => update("salaryExpectation", value)}
+                                        emitAsDecimal
+                                        placeholder="Opcional"
                                     />
                                 </div>
                             </section>
@@ -763,7 +785,7 @@ export function CareersApplyClient({slug}: { slug: string }) {
                                 <SectionHeader
                                     number="2"
                                     title="Experiências profissionais"
-                                    subtitle="Adicione suas experiências mais relevantes"
+                                    subtitle="Obrigatório se não anexar currículo — adicione ao menos uma experiência completa"
                                 />
                                 {form.experiences.map((exp, index) => (
                                     <ExperienceCard
@@ -800,11 +822,16 @@ export function CareersApplyClient({slug}: { slug: string }) {
                                 <SectionHeader
                                     number="3"
                                     title="Currículo e carta de apresentação"
-                                    subtitle="Documentos complementares"
+                                    subtitle="Currículo recomendado (ou informe experiências na seção anterior)"
                                 />
                                 <div className="mb-5 grid gap-1.5">
-                                    <span className="text-[13px] font-medium text-base-content/80">Currículo</span>
+                                    <span className="text-[13px] font-medium text-base-content/80">
+                                        Currículo <span className="font-normal text-base-content/45">(recomendado)</span>
+                                    </span>
                                     <ResumeUpload file={resumeFile} onChange={setResumeFile}/>
+                                    <p className="text-[12px] text-base-content/45">
+                                        PDF ou Word. Se não anexar, é obrigatório informar ao menos uma experiência.
+                                    </p>
                                 </div>
                                 <label className="mb-4 grid gap-1.5">
                                     <span className="text-[13px] font-medium text-base-content/80">

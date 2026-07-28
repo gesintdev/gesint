@@ -14,6 +14,7 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -59,4 +60,21 @@ public class JobVacancyApplication extends AuditEntity {
 
     @Column(name = "referral_source", length = 80)
     private String referralSource;
+
+    @Column(name = "salary_expectation", precision = 14, scale = 2)
+    private BigDecimal salaryExpectation;
+
+    @Column(name = "ai_score", precision = 5, scale = 2)
+    private BigDecimal aiScore;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ai_status", length = 32)
+    private ApplicationAiStatusEnum aiStatus;
+
+    @Column(name = "ai_analyzed_at")
+    private OffsetDateTime aiAnalyzedAt;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "ai_analysis", columnDefinition = "jsonb")
+    private Map<String, Object> aiAnalysis;
 }

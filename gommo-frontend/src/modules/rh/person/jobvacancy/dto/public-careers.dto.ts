@@ -39,6 +39,7 @@ export type PublicJobApplicationPayload = {
     portfolioUrl?: string;
     coverLetter?: string;
     referralSource?: string;
+    salaryExpectation?: number;
     experiences?: PublicJobExperiencePayload[];
 };
 

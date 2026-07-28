@@ -27,9 +27,15 @@ public interface IStorageService {
 
     List<StorageObjectLinkResponseDto> listByEntity(String entityType, UUID entityId);
 
+    /** Listagem sem checagem de authority — uso interno (ex.: análise async de currículo). */
+    List<StorageObjectLinkResponseDto> listByEntityInternal(String entityType, UUID entityId);
+
     StorageObjectLinkResponseDto updateLinkDocumentType(UUID linkId, String documentType);
 
     InputStream download(UUID objectId);
+
+    /** Download sem checagem de authority — uso interno (ex.: análise async de currículo). */
+    InputStream downloadInternal(UUID objectId);
 
     StorageObjectResponseDto findObject(UUID objectId);
 

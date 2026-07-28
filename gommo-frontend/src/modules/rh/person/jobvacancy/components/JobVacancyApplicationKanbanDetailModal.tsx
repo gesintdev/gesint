@@ -18,9 +18,10 @@ import {
     type CandidateMatchScoreDetailTarget,
 } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
 import {HIRING_KANBAN_COLUMN_KEY} from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
-import {mockMatchScore} from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
-import {jobVacancyKeys} from "@/modules/rh/person/jobvacancy/jobvacancy.query";
-import {jobVacancyService} from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
+import {
+    applicationAiScore,
+    isApplicationAiPending,
+} from "@/modules/rh/person/jobvacancy/lib/application-match-score";
 import type {JobVacancyApplication} from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import {jobVacancyApplicationKeys} from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import {
@@ -180,12 +181,14 @@ function CandidateProfileAccordion({
                                        jobVacancyId,
                                        applicationId,
                                        candidateName,
+                                       application,
                                        defaultOpen = true,
                                    }: {
     candidateId: string;
     jobVacancyId?: string | null;
     applicationId?: string | null;
     candidateName?: string | null;
+    application?: JobVacancyApplication | null;
     defaultOpen?: boolean;
 }) {
     const [open, setOpen] = useState(defaultOpen);
@@ -195,14 +198,10 @@ function CandidateProfileAccordion({
         queryFn: () => candidateService.getById(candidateId),
         enabled: open && Boolean(candidateId),
     });
-    const vacancyQuery = useQuery({
-        queryKey: jobVacancyKeys.detail(jobVacancyId ?? ""),
-        queryFn: () => jobVacancyService.getById(jobVacancyId!),
-        enabled: open && Boolean(jobVacancyId),
-    });
 
     const canOpenScore = Boolean(jobVacancyId && applicationId && candidateId);
-    const score = applicationId ? mockMatchScore(applicationId, vacancyQuery.data) : null;
+    const score = applicationAiScore(application);
+    const pending = isApplicationAiPending(application);
     const scoreTarget: CandidateMatchScoreDetailTarget | null =
         canOpenScore && applicationId
             ? {
@@ -250,11 +249,23 @@ function CandidateProfileAccordion({
                         <CandidateProfileView
                             candidate={detailQuery.data}
                             curriculumRowActionsExtra={
-                                canOpenScore && score != null ? (
+                                canOpenScore ? (
                                     <TableActionButton
                                         actionVariant="open"
-                                        aria-label={`Análise de compatibilidade: ${score}%`}
-                                        title={`Compatibilidade: ${score}%`}
+                                        aria-label={
+                                            pending
+                                                ? "Análise em andamento"
+                                                : score != null
+                                                  ? `Análise de compatibilidade: ${score}%`
+                                                  : "Abrir análise de compatibilidade"
+                                        }
+                                        title={
+                                            pending
+                                                ? "Análise em andamento"
+                                                : score != null
+                                                  ? `Compatibilidade: ${score}%`
+                                                  : "Análise de compatibilidade"
+                                        }
                                         leftIcon={<Gauge className="size-3.5"/>}
                                         onClick={() => setScoreDetailOpen(true)}
                                     />
@@ -497,6 +508,7 @@ export function JobVacancyApplicationKanbanDetailModal({
                                         jobVacancyId={application.jobVacancyId}
                                         applicationId={application.id}
                                         candidateName={application.candidateFullName}
+                                        application={application}
                                         defaultOpen
                                     />
                                 </section>

@@ -2,14 +2,19 @@ package br.com.gommo.modules.rh.person.jobvacancy.publicapi.service;
 
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.entity.AdmissionProcessKanbanColumn;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.repository.AdmissionProcessKanbanColumnRepository;
+import br.com.gommo.modules.rh.person.candidate.dto.CandidateExperienceDto;
 import br.com.gommo.modules.rh.person.candidate.entity.Candidate;
 import br.com.gommo.modules.rh.person.candidate.repository.CandidateRepository;
 import br.com.gommo.modules.rh.person.candidate.service.CandidateExperienceService;
@@ -20,9 +25,11 @@ import br.com.gommo.modules.rh.person.jobvacancy.publicapi.dto.PublicJobApplicat
 import br.com.gommo.modules.rh.person.jobvacancy.publicapi.dto.PublicJobVacancyResponseDto;
 import br.com.gommo.modules.rh.person.jobvacancy.publicapi.exception.PublicCareersException;
 import br.com.gommo.modules.rh.person.jobvacancy.repository.JobVacancyRepository;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.ApplicationAiStatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplication;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationStatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.repository.JobVacancyApplicationRepository;
+import br.com.gommo.modules.rh.person.recruiting.ai.ApplicationAiAnalysisService;
 import br.com.gommo.modules.storage.dto.StorageObjectResponseDto;
 import br.com.gommo.modules.storage.service.IStorageService;
 
@@ -38,6 +45,7 @@ public class PublicCareersService {
     private final AdmissionProcessKanbanColumnRepository kanbanColumnRepository;
     private final CandidateExperienceService experienceService;
     private final IStorageService storageService;
+    private final ApplicationAiAnalysisService applicationAiAnalysisService;
 
     public PublicCareersService(
             JobVacancyRepository jobVacancyRepository,
@@ -45,13 +53,15 @@ public class PublicCareersService {
             JobVacancyApplicationRepository applicationRepository,
             AdmissionProcessKanbanColumnRepository kanbanColumnRepository,
             CandidateExperienceService experienceService,
-            IStorageService storageService) {
+            IStorageService storageService,
+            ApplicationAiAnalysisService applicationAiAnalysisService) {
         this.jobVacancyRepository = jobVacancyRepository;
         this.candidateRepository = candidateRepository;
         this.applicationRepository = applicationRepository;
         this.kanbanColumnRepository = kanbanColumnRepository;
         this.experienceService = experienceService;
         this.storageService = storageService;
+        this.applicationAiAnalysisService = applicationAiAnalysisService;
     }
 
     @Transactional(readOnly = true)
@@ -90,6 +100,12 @@ public class PublicCareersService {
         String cpf = digitsOnly(request.getCpf());
         if (cpf.isEmpty()) {
             throw PublicCareersException.cpfRequired();
+        }
+
+        boolean hasResume = resume != null && !resume.isEmpty();
+        boolean hasExperience = hasCompleteExperience(request.getExperiences());
+        if (!hasResume && !hasExperience) {
+            throw PublicCareersException.resumeOrExperienceRequired();
         }
 
         Candidate candidate = candidateRepository
@@ -142,15 +158,48 @@ public class PublicCareersService {
                 .stageComments(new LinkedHashMap<>())
                 .coverLetter(trimToNull(request.getCoverLetter()))
                 .referralSource(trimToNull(request.getReferralSource()))
+                .salaryExpectation(request.getSalaryExpectation())
+                .aiStatus(ApplicationAiStatusEnum.PENDING)
                 .build();
-        applicationRepository.save(application);
+        application = applicationRepository.save(application);
+        enqueueAnalysisAfterCommit(application.getId());
 
         return PublicJobApplicationResponseDto.builder()
                 .message("Candidatura enviada com sucesso")
                 .build();
     }
 
-    private void storeResumeIfPresent(java.util.UUID candidateId, MultipartFile resume) {
+    private void enqueueAnalysisAfterCommit(UUID applicationId) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            applicationAiAnalysisService.analyzeAsync(applicationId);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                applicationAiAnalysisService.analyzeAsync(applicationId);
+            }
+        });
+    }
+
+    private static boolean hasCompleteExperience(List<CandidateExperienceDto> experiences) {
+        if (experiences == null || experiences.isEmpty()) {
+            return false;
+        }
+        for (CandidateExperienceDto item : experiences) {
+            if (item == null) {
+                continue;
+            }
+            String company = item.getCompanyName() == null ? "" : item.getCompanyName().trim();
+            String title = item.getJobTitle() == null ? "" : item.getJobTitle().trim();
+            if (!company.isEmpty() && !title.isEmpty() && item.getStartDate() != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void storeResumeIfPresent(UUID candidateId, MultipartFile resume) {
         if (resume == null || resume.isEmpty()) {
             return;
         }

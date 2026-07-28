@@ -1,25 +1,29 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { toast } from "sonner";
 
 import { candidateKeys } from "@/modules/rh/person/candidate/candidate.query";
 import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
 import { CandidateMatchScoreTag } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreTag";
 import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
 import {
+    buildMatchBreakdownFromApplication,
+    isApplicationAiPending,
+} from "@/modules/rh/person/jobvacancy/lib/application-match-score";
+import {
     JOB_VACANCY_CONTRACT_TYPE_LABELS,
     JOB_VACANCY_SENIORITY_LABELS,
     JOB_VACANCY_WORK_MODALITY_LABELS,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.options";
 import { splitLines } from "@/modules/rh/person/jobvacancy/lib/careers-form.util";
-import {
-    buildMockMatchBreakdown,
-    type MatchScoreCriterion,
-} from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
+import type { MatchScoreCriterion } from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
+import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
+import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { Button } from "@/shared/components/ui/Button";
 import { MarkdownContent } from "@/shared/components/ui/MarkdownContent";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -73,6 +77,7 @@ export function CandidateMatchScoreDetailModal({
 }: CandidateMatchScoreDetailModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [mounted, setMounted] = useState(false);
+    const queryClient = useQueryClient();
 
     const vacancyQuery = useQuery({
         queryKey: jobVacancyKeys.detail(jobVacancyId ?? ""),
@@ -86,10 +91,37 @@ export function CandidateMatchScoreDetailModal({
         enabled: open && Boolean(target?.candidateId),
     });
 
-    const breakdown = useMemo(() => {
-        if (!target || !vacancyQuery.data) return null;
-        return buildMockMatchBreakdown(target.applicationId, vacancyQuery.data, candidateQuery.data);
-    }, [target, vacancyQuery.data, candidateQuery.data]);
+    const applicationsQuery = useQuery({
+        queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId ?? ""),
+        queryFn: () => jobVacancyApplicationService.getByVacancy(jobVacancyId!),
+        enabled: open && Boolean(jobVacancyId),
+        refetchInterval: (current) => {
+            const row = (current.state.data ?? []).find((item) => item.id === target?.applicationId);
+            return isApplicationAiPending(row) ? 3000 : false;
+        },
+    });
+
+    const application = useMemo(
+        () => (applicationsQuery.data ?? []).find((row) => row.id === target?.applicationId) ?? null,
+        [applicationsQuery.data, target?.applicationId],
+    );
+
+    const breakdown = useMemo(() => buildMatchBreakdownFromApplication(application), [application]);
+    const pending = isApplicationAiPending(application);
+
+    const reanalyzeMutation = useMutation({
+        mutationFn: () => jobVacancyApplicationService.reanalyze(target!.applicationId),
+        onSuccess: async () => {
+            toast.success("Reanálise iniciada");
+            if (jobVacancyId) {
+                await queryClient.invalidateQueries({
+                    queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId),
+                });
+            }
+        },
+        onError: (err: unknown) =>
+            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível reanalisar." }),
+    });
 
     useEffect(() => {
         setMounted(true);
@@ -120,8 +152,7 @@ export function CandidateMatchScoreDetailModal({
         vacancy?.contractType ? JOB_VACANCY_CONTRACT_TYPE_LABELS[vacancy.contractType] : null,
     ].filter(Boolean) as string[];
 
-    const candidateName =
-        target?.candidateName ?? candidateQuery.data?.fullName ?? "Candidato";
+    const candidateName = target?.candidateName ?? candidateQuery.data?.fullName ?? "Candidato";
 
     return createPortal(
         <dialog
@@ -152,28 +183,44 @@ export function CandidateMatchScoreDetailModal({
                             <h3 className="text-base font-semibold text-base-content">
                                 Análise de compatibilidade
                             </h3>
-                            {breakdown ? <CandidateMatchScoreTag score={breakdown.totalScore} /> : null}
+                            <CandidateMatchScoreTag
+                                score={breakdown?.totalScore}
+                                pending={pending}
+                            />
                         </div>
                         <p className="mt-0.5 truncate text-sm text-base-content/55">
                             {candidateName}
                             {vacancy?.jobTitle ? ` · ${vacancy.jobTitle}` : ""}
                         </p>
                     </div>
-                    <button
-                        type="button"
-                        aria-label="Fechar"
-                        className="gommo-btn gommo-btn--ghost gommo-btn--icon-only shrink-0 text-base-content/50"
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            onClose();
-                        }}
-                    >
-                        <X className="size-4" strokeWidth={2} />
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            leftIcon={<RefreshCw className="size-3.5" strokeWidth={2.25} />}
+                            loading={reanalyzeMutation.isPending}
+                            disabled={!target?.applicationId || pending}
+                            onClick={() => reanalyzeMutation.mutate()}
+                        >
+                            Reanalisar
+                        </Button>
+                        <button
+                            type="button"
+                            aria-label="Fechar"
+                            className="gommo-btn gommo-btn--ghost gommo-btn--icon-only text-base-content/50"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                onClose();
+                            }}
+                        >
+                            <X className="size-4" strokeWidth={2} />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-                    {vacancyQuery.isLoading ? (
+                    {vacancyQuery.isLoading || applicationsQuery.isLoading ? (
                         <div className="grid gap-3">
                             {Array.from({ length: 4 }).map((_, i) => (
                                 <div key={i} className="skeleton-shimmer h-16 w-full rounded-lg" />
@@ -275,51 +322,41 @@ export function CandidateMatchScoreDetailModal({
                                         </ul>
                                     </div>
                                 ) : null}
-
-                                {!vacancy.description &&
-                                requirements.length === 0 &&
-                                assignments.length === 0 &&
-                                activities.length === 0 ? (
-                                    <p className="mt-3 text-xs text-base-content/45">
-                                        Esta vaga ainda não possui requisitos detalhados cadastrados.
-                                    </p>
-                                ) : null}
                             </section>
 
                             <section className="min-w-0">
                                 <h4 className="m-0 text-xs font-bold uppercase tracking-[0.06em] text-base-content/45">
-                                    O que foi encontrado na candidatura
+                                    Avaliação do candidato
                                 </h4>
-                                <p className="mt-1 text-[0.6875rem] text-base-content/40">
-                                    Detalhamento fictício para layout — será substituído pela análise de IA.
-                                </p>
-                                {breakdown ? (
-                                    <>
-                                        <p className="mt-3 text-xs leading-relaxed text-base-content/70">
-                                            {breakdown.summary}
-                                        </p>
-                                        <div className="mt-3 grid gap-2.5">
-                                            {breakdown.criteria.map((item) => (
-                                                <CriterionRow key={item.id} item={item} />
-                                            ))}
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="mt-3 grid gap-2">
-                                        {Array.from({ length: 3 }).map((_, i) => (
-                                            <div key={i} className="skeleton-shimmer h-20 w-full rounded-lg" />
+                                {pending ? (
+                                    <p className="mt-3 text-sm text-base-content/55">
+                                        Análise em andamento. O score será atualizado automaticamente.
+                                    </p>
+                                ) : null}
+                                {breakdown?.summary ? (
+                                    <p className="mt-3 text-sm leading-relaxed text-base-content/75">
+                                        {breakdown.summary}
+                                    </p>
+                                ) : null}
+                                {application?.aiStatus === "FAILED" && application.aiAnalysis?.error ? (
+                                    <p className="mt-2 text-xs leading-relaxed text-error/80">
+                                        Detalhe: {application.aiAnalysis.error}
+                                    </p>
+                                ) : null}
+                                {breakdown && breakdown.criteria.length > 0 ? (
+                                    <div className="mt-4 grid gap-2.5">
+                                        {breakdown.criteria.map((item) => (
+                                            <CriterionRow key={item.id} item={item} />
                                         ))}
                                     </div>
-                                )}
+                                ) : !pending ? (
+                                    <p className="mt-3 text-sm text-base-content/45">
+                                        Ainda não há breakdown de score para esta candidatura.
+                                    </p>
+                                ) : null}
                             </section>
                         </div>
                     ) : null}
-                </div>
-
-                <div className="flex justify-end border-t border-base-content/10 px-5 py-3">
-                    <Button type="button" variant="ghost" onClick={onClose}>
-                        Fechar
-                    </Button>
                 </div>
             </div>
             <form method="dialog" className="modal-backdrop">

@@ -148,6 +148,12 @@ public class StorageService implements IStorageService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('storage:read')")
     public List<StorageObjectLinkResponseDto> listByEntity(String entityType, UUID entityId) {
+        return listByEntityInternal(entityType, entityId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StorageObjectLinkResponseDto> listByEntityInternal(String entityType, UUID entityId) {
         return linkRepository
                 .findAllByEntityTypeAndEntityIdAndStatusNot(entityType, entityId, StatusEnum.DELETED)
                 .stream()
@@ -179,6 +185,12 @@ public class StorageService implements IStorageService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('storage:read')")
     public InputStream download(UUID objectId) {
+        return downloadInternal(objectId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InputStream downloadInternal(UUID objectId) {
         StorageObject object = findActiveObject(objectId);
         Path path = Path.of(object.getLocalFilePath());
         if (!Files.isRegularFile(path)) {

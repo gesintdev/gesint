@@ -62,6 +62,11 @@ public class JobVacancyApplicationMapper {
                 .kanbanColumnKey(entity.getKanbanColumnKey())
                 .stageComments(copyStageComments(entity.getStageComments()))
                 .appliedAt(entity.getAppliedAt())
+                .salaryExpectation(entity.getSalaryExpectation())
+                .aiScore(entity.getAiScore())
+                .aiStatus(entity.getAiStatus())
+                .aiAnalyzedAt(entity.getAiAnalyzedAt())
+                .aiAnalysis(entity.getAiAnalysis() == null ? Map.of() : Map.copyOf(entity.getAiAnalysis()))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

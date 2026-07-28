@@ -19,9 +19,10 @@ import {
     HIRING_KANBAN_COLUMN_KEY,
 } from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
 import { useJobVacancyAdmissionProcessStore } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-admission-process.store";
-import { mockMatchScore } from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
-import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
-import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
+import {
+    applicationAiScore,
+    isApplicationAiPending,
+} from "@/modules/rh/person/jobvacancy/lib/application-match-score";
 import type { JobVacancyApplication } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
@@ -40,6 +41,7 @@ type AdmissionKanbanCard = KanbanItem & {
     applicationId: string;
     candidateId: string;
     score: number;
+    hasCurriculum?: boolean;
 };
 
 export function JobVacancyAdmissionProcessTab() {
@@ -62,12 +64,10 @@ export function JobVacancyAdmissionProcessTab() {
         queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId ?? ""),
         queryFn: () => jobVacancyApplicationService.getByVacancy(jobVacancyId!),
         enabled: Boolean(jobVacancyId),
-    });
-
-    const vacancyQuery = useQuery({
-        queryKey: jobVacancyKeys.detail(jobVacancyId ?? ""),
-        queryFn: () => jobVacancyService.getById(jobVacancyId!),
-        enabled: Boolean(jobVacancyId),
+        refetchInterval: (current) => {
+            const rows = current.state.data ?? [];
+            return rows.some((row) => isApplicationAiPending(row)) ? 4000 : false;
+        },
     });
 
     const sortedColumns = useMemo(() => {
@@ -123,7 +123,8 @@ export function JobVacancyAdmissionProcessTab() {
 
         const cards: AdmissionKanbanCard[] = applications
             .map((row) => {
-                const score = mockMatchScore(row.id, vacancyQuery.data);
+                const score = applicationAiScore(row) ?? -1;
+                const pending = isApplicationAiPending(row);
                 return {
                     id: row.id,
                     applicationId: row.id,
@@ -133,7 +134,8 @@ export function JobVacancyAdmissionProcessTab() {
                     meta: row.candidatePhone ? formatPhone(row.candidatePhone) : undefined,
                     badge: (
                         <CandidateMatchScoreTag
-                            score={score}
+                            score={score < 0 ? null : score}
+                            pending={pending}
                             onClick={() =>
                                 openScoreDetail({
                                     applicationId: row.id,
@@ -144,9 +146,15 @@ export function JobVacancyAdmissionProcessTab() {
                         />
                     ),
                     score,
+                    hasCurriculum: Boolean(row.aiAnalysis?.hasCurriculum),
                 };
             })
-            .sort((a, b) => b.score - a.score);
+            .sort((a, b) => {
+                if (Boolean(a.hasCurriculum) !== Boolean(b.hasCurriculum)) {
+                    return a.hasCurriculum ? -1 : 1;
+                }
+                return b.score - a.score;
+            });
 
         return sortedColumns.map((column) => {
             const isHiring = column.columnKey === HIRING_KANBAN_COLUMN_KEY;
@@ -161,7 +169,7 @@ export function JobVacancyAdmissionProcessTab() {
                 onDrop: isHiring ? handleHiringDrop : undefined,
             };
         });
-    }, [applicationsQuery.data, handleHiringDrop, openScoreDetail, sortedColumns, vacancyQuery.data]);
+    }, [applicationsQuery.data, handleHiringDrop, openScoreDetail, sortedColumns]);
 
     const markPending = (itemId: string, pending: boolean) => {
         setPendingItemIds((current) => {

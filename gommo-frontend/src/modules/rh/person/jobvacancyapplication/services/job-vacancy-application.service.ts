@@ -41,6 +41,12 @@ class JobVacancyApplicationService extends BaseService<
             body: input,
         });
     }
+
+    reanalyze(id: string): Promise<JobVacancyApplication> {
+        return apiFetch<JobVacancyApplication>(`${this.basePath}/${id}/reanalyze`, {
+            method: "POST",
+        });
+    }
 }
 
 export const jobVacancyApplicationService = new JobVacancyApplicationService();

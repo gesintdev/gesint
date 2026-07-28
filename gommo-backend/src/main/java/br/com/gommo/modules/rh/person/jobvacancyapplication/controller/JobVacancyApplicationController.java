@@ -55,4 +55,9 @@ public class JobVacancyApplicationController
             @PathVariable UUID id, @Valid @RequestBody JobVacancyApplicationStageCommentRequestDto request) {
         return ResponseEntity.ok(applicationService.upsertStageComment(id, request));
     }
+
+    @PostMapping("/{id}/reanalyze")
+    public ResponseEntity<JobVacancyApplicationResponseDto> reanalyze(@PathVariable UUID id) {
+        return ResponseEntity.ok(applicationService.reanalyze(id));
+    }
 }

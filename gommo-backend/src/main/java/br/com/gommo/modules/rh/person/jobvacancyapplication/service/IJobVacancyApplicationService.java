@@ -20,4 +20,6 @@ public interface IJobVacancyApplicationService
 
     JobVacancyApplicationResponseDto upsertStageComment(
             UUID id, JobVacancyApplicationStageCommentRequestDto request);
+
+    JobVacancyApplicationResponseDto reanalyze(UUID id);
 }

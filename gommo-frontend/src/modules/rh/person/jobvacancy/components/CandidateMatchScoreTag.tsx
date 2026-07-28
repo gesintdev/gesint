@@ -1,8 +1,10 @@
 "use client";
 
-import { mockMatchScore } from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
-
-export { mockMatchScore };
+type CandidateMatchScoreTagProps = {
+    score?: number | null;
+    pending?: boolean;
+    onClick?: () => void;
+};
 
 function matchScoreTone(score: number): {
     background: string;
@@ -10,7 +12,6 @@ function matchScoreTone(score: number): {
     color: string;
 } {
     const clamped = Math.max(0, Math.min(100, score));
-    // Verde (120°) → vermelho (0°) conforme a pontuação cai
     const hue = (clamped / 100) * 120;
     const solid = `hsl(${hue} 68% 38%)`;
     return {
@@ -20,16 +21,42 @@ function matchScoreTone(score: number): {
     };
 }
 
-type CandidateMatchScoreTagProps = {
-    score: number;
-    onClick?: () => void;
-};
-
-export function CandidateMatchScoreTag({ score, onClick }: CandidateMatchScoreTagProps) {
-    const tone = matchScoreTone(score);
+export function CandidateMatchScoreTag({ score, pending = false, onClick }: CandidateMatchScoreTagProps) {
     const baseClassName =
         "inline-flex shrink-0 items-center gap-0.5 rounded-md border px-1.5 py-0.5 text-[0.6875rem] font-bold tabular-nums leading-none shadow-sm";
 
+    if (pending || score == null) {
+        const pendingTone = {
+            background: "color-mix(in srgb, var(--color-base-content) 12%, transparent)",
+            border: "color-mix(in srgb, var(--color-base-content) 18%, transparent)",
+            color: "color-mix(in srgb, var(--color-base-content) 55%, transparent)",
+        };
+        const label = pending ? "…" : "—";
+        const title = pending ? "Análise em andamento" : "Sem score ainda";
+        if (!onClick) {
+            return (
+                <span className={baseClassName} style={pendingTone} title={title}>
+                    {label}
+                </span>
+            );
+        }
+        return (
+            <button
+                type="button"
+                className={`${baseClassName} cursor-pointer transition hover:brightness-110`}
+                style={pendingTone}
+                title={title}
+                onClick={(event) => {
+                    event.stopPropagation();
+                    onClick();
+                }}
+            >
+                {label}
+            </button>
+        );
+    }
+
+    const tone = matchScoreTone(score);
     const content = (
         <>
             {score}
@@ -52,16 +79,13 @@ export function CandidateMatchScoreTag({ score, onClick }: CandidateMatchScoreTa
     return (
         <button
             type="button"
-            className={`${baseClassName} cursor-pointer transition-[filter,transform,box-shadow] duration-150 hover:scale-105 hover:brightness-125 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-100`}
+            className={`${baseClassName} cursor-pointer transition hover:brightness-110`}
             style={tone}
-            title={`Ver detalhe da compatibilidade: ${score}%`}
-            aria-label={`Ver detalhe da compatibilidade: ${score}%`}
-            onPointerDown={(event) => event.stopPropagation()}
+            title={`Compatibilidade: ${score}% — clique para detalhes`}
             onClick={(event) => {
                 event.stopPropagation();
                 onClick();
             }}
-            onDoubleClick={(event) => event.stopPropagation()}
         >
             {content}
         </button>

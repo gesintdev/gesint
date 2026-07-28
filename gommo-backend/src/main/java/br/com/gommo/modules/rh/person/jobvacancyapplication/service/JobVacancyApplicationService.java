@@ -14,6 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
@@ -33,6 +35,7 @@ import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApp
 import br.com.gommo.modules.rh.person.jobvacancyapplication.exception.JobVacancyApplicationException;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.mapper.JobVacancyApplicationMapper;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.repository.JobVacancyApplicationRepository;
+import br.com.gommo.modules.rh.person.recruiting.ai.ApplicationAiAnalysisService;
 
 @Service
 public class JobVacancyApplicationService
@@ -43,19 +46,22 @@ public class JobVacancyApplicationService
     private final JobVacancyRepository jobVacancyRepository;
     private final CandidateRepository candidateRepository;
     private final AdmissionProcessKanbanColumnRepository kanbanColumnRepository;
+    private final ApplicationAiAnalysisService applicationAiAnalysisService;
 
     public JobVacancyApplicationService(
             JobVacancyApplicationRepository repository,
             JobVacancyApplicationMapper mapper,
             JobVacancyRepository jobVacancyRepository,
             CandidateRepository candidateRepository,
-            AdmissionProcessKanbanColumnRepository kanbanColumnRepository) {
+            AdmissionProcessKanbanColumnRepository kanbanColumnRepository,
+            ApplicationAiAnalysisService applicationAiAnalysisService) {
         super(repository, entity -> mapper.toResponse(entity, null, null), mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.jobVacancyRepository = jobVacancyRepository;
         this.candidateRepository = candidateRepository;
         this.kanbanColumnRepository = kanbanColumnRepository;
+        this.applicationAiAnalysisService = applicationAiAnalysisService;
     }
 
     @Override
@@ -296,6 +302,25 @@ public class JobVacancyApplicationService
         if (value == null) return null;
         String trimmed = value.trim().toLowerCase();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('jobvacancyapplication:write')")
+    public JobVacancyApplicationResponseDto reanalyze(UUID id) {
+        JobVacancyApplication application = applicationAiAnalysisService.reanalyze(id);
+        UUID applicationId = application.getId();
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    applicationAiAnalysisService.analyzeAsync(applicationId);
+                }
+            });
+        } else {
+            applicationAiAnalysisService.analyzeAsync(applicationId);
+        }
+        return enrich(application);
     }
 
     private UUID currentUserId() {

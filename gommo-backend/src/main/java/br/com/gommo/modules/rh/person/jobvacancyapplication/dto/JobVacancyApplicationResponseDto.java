@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.ApplicationAiStatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationStatusEnum;
 
 @Getter
@@ -27,6 +28,11 @@ public class JobVacancyApplicationResponseDto {
     private final String kanbanColumnKey;
     private final Map<String, JobVacancyApplicationStageCommentDto> stageComments;
     private final OffsetDateTime appliedAt;
+    private final java.math.BigDecimal salaryExpectation;
+    private final java.math.BigDecimal aiScore;
+    private final ApplicationAiStatusEnum aiStatus;
+    private final OffsetDateTime aiAnalyzedAt;
+    private final Map<String, Object> aiAnalysis;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

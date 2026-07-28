@@ -8,9 +8,10 @@ import { admissionProcessKanbanColumnKeys } from "@/modules/cfg/settings/admissi
 import { admissionProcessKanbanColumnService } from "@/modules/cfg/settings/admissionprocesskanban/services/admission-process-kanban-column.service";
 import { CandidateAnalysisModal } from "@/modules/rh/person/jobvacancy/components/CandidateAnalysisModal";
 import { CandidateMatchScoreTag } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreTag";
-import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
-import { mockMatchScore } from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
-import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
+import {
+    applicationAiScore,
+    isApplicationAiPending,
+} from "@/modules/rh/person/jobvacancy/lib/application-match-score";
 import type { JobVacancyApplication } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
@@ -46,10 +47,10 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
     const query = useQuery({
         queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId),
         queryFn: () => jobVacancyApplicationService.getByVacancy(jobVacancyId),
-    });
-    const vacancyQuery = useQuery({
-        queryKey: jobVacancyKeys.detail(jobVacancyId),
-        queryFn: () => jobVacancyService.getById(jobVacancyId),
+        refetchInterval: (current) => {
+            const rows = current.state.data ?? [];
+            return rows.some((row) => isApplicationAiPending(row)) ? 4000 : false;
+        },
     });
     const columnsQuery = useQuery({
         queryKey: admissionProcessKanbanColumnKeys.all,
@@ -82,11 +83,18 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
 
     const rows = useMemo(() => {
         const list = query.data ?? [];
-        const vacancy = vacancyQuery.data ?? null;
         return [...list]
-            .map((row) => ({ row, score: mockMatchScore(row.id, vacancy) }))
-            .sort((a, b) => b.score - a.score);
-    }, [query.data, vacancyQuery.data]);
+            .map((row) => ({
+                row,
+                score: applicationAiScore(row),
+                pending: isApplicationAiPending(row),
+                hasCurriculum: Boolean(row.aiAnalysis?.hasCurriculum),
+            }))
+            .sort((a, b) => {
+                if (a.hasCurriculum !== b.hasCurriculum) return a.hasCurriculum ? -1 : 1;
+                return (b.score ?? -1) - (a.score ?? -1);
+            });
+    }, [query.data]);
 
     if (query.isLoading) {
         return (
@@ -114,7 +122,7 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
         <>
             <div className="job-vacancy-candidates-scroll">
                 <div className="job-vacancy-candidates-grid">
-                    {rows.map(({ row, score }) => (
+                    {rows.map(({ row, score, pending }) => (
                         <div
                             key={row.id}
                             className="job-vacancy-candidates-grid__row"
@@ -134,7 +142,7 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
                                 value={formatCellValue(row.appliedAt, TableDataType.DATETIME)}
                             />
                             <div className="flex justify-center">
-                                <CandidateMatchScoreTag score={score} />
+                                <CandidateMatchScoreTag score={score} pending={pending} />
                             </div>
                             <div
                                 className="gommo-table-actions justify-end"

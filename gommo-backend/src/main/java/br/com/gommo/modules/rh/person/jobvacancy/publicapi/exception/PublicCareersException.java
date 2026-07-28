@@ -32,4 +32,11 @@ public final class PublicCareersException {
                 PublicCareersExceptions.CPF_REQUIRED_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException resumeOrExperienceRequired() {
+        return new BusinessException(
+                PublicCareersExceptions.RESUME_OR_EXPERIENCE_REQUIRED_CODE,
+                PublicCareersExceptions.RESUME_OR_EXPERIENCE_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

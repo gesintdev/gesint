@@ -57,4 +57,6 @@ public class PublicJobApplicationRequestDto {
     @Valid
     @Builder.Default
     private List<CandidateExperienceDto> experiences = new ArrayList<>();
+
+    private java.math.BigDecimal salaryExpectation;
 }
