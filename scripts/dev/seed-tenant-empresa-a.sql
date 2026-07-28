@@ -34,6 +34,7 @@ DECLARE
         'admission_process',
         'admission_process_kanban_column',
         'attendance_record',
+        'attendance_request',
         'benefit_plan',
         'benefit_enrollment',
         'leave_request',

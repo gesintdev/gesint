@@ -445,7 +445,7 @@ public class AttendanceRecordService
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('attendance:write')")
+    @PreAuthorize("isAuthenticated()")
     public List<AttendanceRequestResponseDto> mobileSubmissions(LocalDate from, LocalDate to) {
         UUID collaboratorId = resolveCurrentCollaboratorId();
         LocalDate periodEnd = to != null ? to : LocalDate.now(BUSINESS_ZONE);
