@@ -294,25 +294,25 @@ export function JobVacancyFormClient() {
                     emitAsDecimal
                     wrapperClassName="sm:col-span-4"
                 />
-                <InputDate
-                    label="Previsão de conclusão"
-                    value={form.expectedCompletionDate ?? ""}
-                    onValueChange={(v) => update("expectedCompletionDate", v)}
-                    wrapperClassName="sm:col-span-4"
-                />
                 <InputString
                     label="Área / departamento"
                     value={form.department ?? ""}
                     onValueChange={(v) => update("department", v)}
                     placeholder="Ex.: Engenharia de Produto"
-                    wrapperClassName="sm:col-span-6"
+                    wrapperClassName="sm:col-span-4"
                 />
                 <InputString
                     label="Local"
                     value={form.location ?? ""}
                     onValueChange={(v) => update("location", v)}
                     placeholder="Ex.: São Paulo, SP"
-                    wrapperClassName="sm:col-span-6"
+                    wrapperClassName="sm:col-span-4"
+                />
+                <InputDate
+                    label="Previsão de conclusão"
+                    value={form.expectedCompletionDate ?? ""}
+                    onValueChange={(v) => update("expectedCompletionDate", v)}
+                    wrapperClassName="sm:col-span-4"
                 />
                 <InputSelect
                     label="Modalidade"
@@ -385,102 +385,108 @@ export function JobVacancyFormClient() {
                 />
             </FormSection>
 
-            <FormSection id="publicacao" title="Publicação">
-                <div className="sm:col-span-12 grid gap-5">
-                    <label
-                        className={clsx(
-                            "flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors",
-                            form.isPublic
-                                ? "border-primary/40 bg-primary/5"
-                                : "border-base-300 bg-base-100 hover:border-base-content/20",
-                        )}
-                    >
-                        <InputCheckbox
-                            size="sm"
-                            checked={Boolean(form.isPublic)}
-                            onCheckedChange={(checked) => {
-                                setForm((prev) => ({
-                                    ...prev,
-                                    isPublic: checked,
-                                    slug: prev.slug?.trim() || slugFromJobTitle(prev.jobTitle),
-                                }));
-                            }}
-                            className="mt-0.5"
-                            aria-label="Publicar página de candidatura"
+            <FormSection id="publicacao" title="Publicação" bodyClassName="!grid-cols-1">
+                <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
+                    <div className="grid gap-4 content-start lg:col-span-5">
+                        <label
+                            className={clsx(
+                                "flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors",
+                                form.isPublic
+                                    ? "border-primary/40 bg-primary/5"
+                                    : "border-base-300 bg-base-100 hover:border-base-content/20",
+                            )}
+                        >
+                            <InputCheckbox
+                                size="sm"
+                                checked={Boolean(form.isPublic)}
+                                onCheckedChange={(checked) => {
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        isPublic: checked,
+                                        slug: prev.slug?.trim() || slugFromJobTitle(prev.jobTitle),
+                                    }));
+                                }}
+                                className="mt-0.5"
+                                aria-label="Publicar página de candidatura"
+                            />
+                            <span className="min-w-0">
+                                <span className="block text-sm font-semibold text-base-content">
+                                    Publicar página de candidatura
+                                </span>
+                                <span className="mt-0.5 block text-xs text-base-content/55">
+                                    Gera um link público para candidatos se inscreverem sem login.
+                                </span>
+                            </span>
+                        </label>
+
+                        <InputString
+                            label="Slug do link"
+                            value={form.slug ?? ""}
+                            onValueChange={(v) => update("slug", v)}
+                            placeholder="ex.: analista-rh-sp"
+                            disabled={!form.isPublic}
                         />
-                        <span className="min-w-0">
-                            <span className="block text-sm font-semibold text-base-content">
-                                Publicar página de candidatura
-                            </span>
-                            <span className="mt-0.5 block text-xs text-base-content/55">
-                                Gera um link público para candidatos se inscreverem sem login.
-                            </span>
-                        </span>
-                    </label>
 
-                    <InputString
-                        label="Slug do link"
-                        value={form.slug ?? ""}
-                        onValueChange={(v) => update("slug", v)}
-                        placeholder="ex.: analista-rh-sp"
-                        disabled={!form.isPublic}
-                        wrapperClassName="sm:col-span-12"
-                    />
-
-                    {form.isPublic && publicSlug ? (
-                        <div className="rounded-xl border border-base-content/10 bg-base-200/40 px-4 py-3">
-                            <p className="text-xs font-semibold uppercase tracking-[0.04em] text-base-content/45">
-                                Link público
-                            </p>
-                            <p className="mt-1 break-all text-sm text-base-content">{publicCareersUrl}</p>
-                            {!isEditing ? (
-                                <p className="mt-2 text-xs text-warning">
-                                    A página só fica disponível depois de salvar a vaga. Até lá o link ainda não
-                                    funciona.
+                        {form.isPublic && publicSlug ? (
+                            <div className="rounded-xl border border-base-content/10 bg-base-200/40 px-4 py-3">
+                                <p className="text-xs font-semibold uppercase tracking-[0.04em] text-base-content/45">
+                                    Link público
                                 </p>
-                            ) : null}
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    leftIcon={<Copy className="size-3.5" strokeWidth={2.25} />}
-                                    onClick={() => void copyPublicLink()}
-                                >
-                                    Copiar link
-                                </Button>
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    leftIcon={<ExternalLink className="size-3.5" strokeWidth={2.25} />}
-                                    disabled={!isEditing}
-                                    title={
-                                        isEditing
-                                            ? undefined
-                                            : "Salve a vaga para liberar a página pública"
-                                    }
-                                    onClick={() => window.open(publicCareersUrl, "_blank", "noopener,noreferrer")}
-                                >
-                                    Abrir página
-                                </Button>
+                                <p className="mt-1 break-all text-sm text-base-content">{publicCareersUrl}</p>
+                                {!isEditing ? (
+                                    <p className="mt-2 text-xs text-warning">
+                                        A página só fica disponível depois de salvar a vaga. Até lá o link ainda não
+                                        funciona.
+                                    </p>
+                                ) : null}
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        leftIcon={<Copy className="size-3.5" strokeWidth={2.25} />}
+                                        onClick={() => void copyPublicLink()}
+                                    >
+                                        Copiar link
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        leftIcon={<ExternalLink className="size-3.5" strokeWidth={2.25} />}
+                                        disabled={!isEditing}
+                                        title={
+                                            isEditing
+                                                ? undefined
+                                                : "Salve a vaga para liberar a página pública"
+                                        }
+                                        onClick={() =>
+                                            window.open(publicCareersUrl, "_blank", "noopener,noreferrer")
+                                        }
+                                    >
+                                        Abrir página
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    ) : null}
+                        ) : null}
+                    </div>
 
-                    <div>
-                        <p className="mb-3 text-sm text-base-content/60">
-                            Selecione os sites onde pretende divulgar a vaga. O envio automático será liberado depois;
-                            por enquanto apenas a preferência é salva.
-                        </p>
-                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-3 content-start lg:col-span-7">
+                        <div>
+                            <p className="text-sm font-medium text-base-content">Sites de divulgação</p>
+                            <p className="mt-1 text-sm text-base-content/60">
+                                Selecione onde pretende divulgar a vaga. O envio automático será liberado depois; por
+                                enquanto apenas a preferência é salva.
+                            </p>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
                             {JOB_BOARD_OPTIONS.map((board) => {
                                 const checked = form.targetBoards?.includes(board.key) ?? false;
                                 return (
                                     <label
                                         key={board.key}
                                         className={clsx(
-                                            "flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 transition-colors",
+                                            "flex h-full cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 transition-colors",
                                             checked
                                                 ? "border-primary/40 bg-primary/5"
                                                 : "border-base-300 bg-base-100 hover:border-base-content/20",
@@ -505,12 +511,12 @@ export function JobVacancyFormClient() {
                                         <p className="text-xs leading-relaxed text-base-content/55">
                                             {board.description}
                                         </p>
-                                        <p className="text-[11px] text-base-content/45">{board.accessNote}</p>
+                                        <p className="mt-auto text-[11px] text-base-content/45">{board.accessNote}</p>
                                     </label>
                                 );
                             })}
                         </div>
-                        <div className="mt-4">
+                        <div>
                             <Button
                                 type="button"
                                 variant="outline"
