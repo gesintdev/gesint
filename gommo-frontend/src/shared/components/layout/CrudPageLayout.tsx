@@ -17,7 +17,7 @@ export function CrudPageCard({ children }: { children: ReactNode }) {
     return (
         <Card
             animate={false}
-            className="flex min-h-0 flex-1 flex-col"
+            className="crud-page-card flex min-h-0 flex-1 flex-col"
             bodyClassName="flex min-h-0 flex-1 flex-col !p-0"
         >
             {children}

@@ -37,7 +37,7 @@ export function Card({
     const inner = (
         <>
             {(title || subtitle || headerAction) && (
-                <div className="flex items-center justify-between gap-3 border-b border-[var(--gommo-border-subtle)] px-4 py-3 md:px-5">
+                <div className="flex items-center justify-between gap-3 border-b border-(--gommo-border-subtle) px-4 py-3 md:px-5">
                     <div className="min-w-0 flex-1">
                         {title && (
                             <h3 className="truncate text-[13px] font-semibold tracking-tight text-base-content">

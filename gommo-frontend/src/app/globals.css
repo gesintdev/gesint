@@ -193,8 +193,7 @@
     --header-height: calc(var(--header-pad-y) * 2 + var(--header-content-h));
     --sidebar-transition-duration: 280ms;
 
-    /* Controles — altura próxima ao Novo cadastro, radius = aba workspace */
-    --gommo-tab-height: 1.75rem;
+    /* Controles — radius = aba workspace */
     --gommo-tab-radius: 5px;
     --gommo-control-h: 36px;
     --gommo-control-px: 12px;
@@ -229,6 +228,10 @@
     /* Altura dos itens do menu lateral — toolbar do sidebar + busca global */
     --sidebar-nav-item-h: 1.875rem;
     --sidebar-nav-section-h: 1.25rem;
+    /* Toolbar search/collapse e tabbar do workspace compartilham padding e altura */
+    --sidebar-toolbar-pad-y: 0.5rem;
+    --sidebar-toolbar-h: calc(var(--sidebar-nav-item-h) + (var(--sidebar-toolbar-pad-y) * 2));
+    --gommo-tab-height: var(--sidebar-nav-item-h);
     /* Inset do ícone: centro alinha com o toggle no collapse (painel = --sidebar-collapsed) */
     --sidebar-nav-pad-x: 2px; /* .sidebar-nav padding-inline */
     --sidebar-nav-list-pad-x: 0.375rem; /* ul px-1.5 */
@@ -1096,11 +1099,12 @@ aside[data-collapsed="true"] .sidebar-copy,
     align-items: center;
     gap: 0.5rem;
     box-sizing: border-box;
-    height: calc(var(--sidebar-nav-item-h) + 1rem); /* item + py-2 */
-    min-height: calc(var(--sidebar-nav-item-h) + 1rem);
-    max-height: calc(var(--sidebar-nav-item-h) + 1rem);
+    height: var(--sidebar-toolbar-h);
+    min-height: var(--sidebar-toolbar-h);
+    max-height: var(--sidebar-toolbar-h);
     flex-shrink: 0;
     padding-inline: 0.625rem;
+    padding-block: var(--sidebar-toolbar-pad-y);
     overflow: hidden;
 }
 
@@ -2541,6 +2545,12 @@ html.gommo-workspace-active body {
     background: var(--color-page);
 }
 
+/* Só no painel de página do CRUD: sem radius e sem borda esquerda (evita duplicar o sidebar). */
+.crud-page-card.surface-card {
+    border-radius: 0;
+    border-left: none;
+}
+
 .workspace-panel {
     min-height: 0;
     flex: 1;
@@ -2561,7 +2571,10 @@ html.gommo-workspace-active body {
 .workspace-tabbar,
 .workspace-tabbar-empty {
     flex-shrink: 0;
-    min-height: 2.25rem;
+    box-sizing: border-box;
+    height: var(--sidebar-toolbar-h);
+    min-height: var(--sidebar-toolbar-h);
+    max-height: var(--sidebar-toolbar-h);
     background: var(--color-page);
 }
 
@@ -2582,7 +2595,7 @@ html.gommo-workspace-active body {
 }
 
 .workspace-tabbar-menu-trigger {
-    height: 2rem;
+    height: var(--gommo-tab-height);
     margin-inline: 0.25rem;
     border-radius: var(--gommo-control-radius);
     color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
@@ -2609,7 +2622,7 @@ html.gommo-workspace-active body {
 .workspace-tabbar-divider {
     align-self: stretch;
     width: 1px;
-    margin-block: 0.4375rem;
+    margin-block: var(--sidebar-toolbar-pad-y);
     flex-shrink: 0;
     background: var(--gommo-border-subtle);
 }
@@ -2729,16 +2742,18 @@ button.gommo-workspace-tab.gommo-workspace-tab--drag-overlay.gommo-workspace-tab
     flex-wrap: nowrap;
     align-items: center;
     gap: 0.25rem;
-    min-height: 2.25rem;
-    padding: 0.1875rem 0.375rem;
+    box-sizing: border-box;
+    height: 100%;
+    min-height: 100%;
+    padding: var(--sidebar-toolbar-pad-y) 0.375rem;
 }
 
 .gommo-workspace-tab {
     position: relative;
     display: inline-flex;
-    height: 1.625rem;
-    min-height: 1.625rem;
-    max-height: 1.625rem;
+    height: var(--gommo-tab-height);
+    min-height: var(--gommo-tab-height);
+    max-height: var(--gommo-tab-height);
     flex-shrink: 0;
     align-items: center;
     gap: 0.3125rem;
