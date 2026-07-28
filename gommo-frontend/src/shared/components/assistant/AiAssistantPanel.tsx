@@ -5,6 +5,10 @@ import {AnimatePresence, motion} from "framer-motion";
 import {History, MessageSquarePlus, Search, SendHorizontal, Sparkles, Trash2, X} from "lucide-react";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 
+import {assistantService, type AssistantLlmUsage} from "@/shared/components/assistant/assistant.service";
+import {MarkdownContent} from "@/shared/components/ui/MarkdownContent";
+import {ExceptionCapture} from "@/shared/exceptions";
+
 type ChatMessage = {
     id: string;
     role: "assistant" | "user";
@@ -70,6 +74,35 @@ function formatConversationDate(value: number): string {
     }).format(new Date(value));
 }
 
+function formatTokenCount(value?: number | null): string {
+    if (value == null || Number.isNaN(value)) return "0";
+    return new Intl.NumberFormat("pt-BR", {
+        notation: value >= 10_000 ? "compact" : "standard",
+        maximumFractionDigits: value >= 10_000 ? 1 : 0,
+    }).format(value);
+}
+
+function buildUsageFooter(usage: AssistantLlmUsage | null): string | null {
+    if (!usage) return null;
+    const last = usage.lastTotalTokens ?? 0;
+    const session = usage.sessionTotalTokens ?? 0;
+    const requests = usage.sessionRequests ?? 0;
+    const parts: string[] = [
+        `última ${formatTokenCount(last)} tok`,
+    ];
+    if (usage.dailyTokenLimit && usage.dailyTokenLimit > 0) {
+        const pct = Math.min(100, Math.round((session / usage.dailyTokenLimit) * 100));
+        parts.push(`sessão ${formatTokenCount(session)}/${formatTokenCount(usage.dailyTokenLimit)} (${pct}%)`);
+    } else {
+        parts.push(`sessão ${formatTokenCount(session)} tok`);
+    }
+    parts.push(`${formatTokenCount(requests)} req`);
+    if (usage.modelInputTokenLimit && usage.modelInputTokenLimit > 0) {
+        parts.push(`ctx ${formatTokenCount(usage.modelInputTokenLimit)}`);
+    }
+    return `Dev · ${parts.join(" · ")}`;
+}
+
 type AiAssistantPanelProps = {
     open: boolean;
     onClose: () => void;
@@ -81,7 +114,9 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
     const [showHistory, setShowHistory] = useState(false);
     const [historyQuery, setHistoryQuery] = useState("");
     const [draft, setDraft] = useState("");
+    const [sending, setSending] = useState(false);
     const [hydrated, setHydrated] = useState(false);
+    const [usage, setUsage] = useState<AssistantLlmUsage | null>(null);
     const listRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const historySearchRef = useRef<HTMLInputElement>(null);
@@ -188,33 +223,82 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
         el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
     }, [draft, open, showHistory]);
 
-    const sendMessage = () => {
+    const sendMessage = async () => {
         const text = draft.trim();
-        if (!text || !activeId) return;
+        if (!text || !activeId || sending) return;
+
         const userMessage: ChatMessage = {
             id: `user-${Date.now()}`,
             role: "user",
             content: text,
         };
-        const assistantMessage: ChatMessage = {
-            id: `assistant-${Date.now()}`,
-            role: "assistant",
-            content:
-                "Recebi sua mensagem. A integração com a IA ainda está em construção — em breve respondo com o Gemini.",
-        };
+        const conversationId = activeId;
+        const historyForApi = [
+            ...(activeConversation?.messages ?? [])
+                .filter((message) => message.role === "user" || message.role === "assistant")
+                .map((message) => ({role: message.role, content: message.content})),
+            {role: "user" as const, content: text},
+        ];
+
+        setDraft("");
+        setSending(true);
         setConversations((prev) =>
             prev.map((conversation) => {
-                if (conversation.id !== activeId) return conversation;
-                const nextMessages = [...conversation.messages, userMessage, assistantMessage];
+                if (conversation.id !== conversationId) return conversation;
+                const nextMessages = [...conversation.messages, userMessage];
                 return {
                     ...conversation,
-                    title: conversation.title === "Nova conversa" ? titleFromMessages(nextMessages) : conversation.title,
+                    title:
+                        conversation.title === "Nova conversa"
+                            ? titleFromMessages(nextMessages)
+                            : conversation.title,
                     updatedAt: Date.now(),
                     messages: nextMessages,
                 };
             }),
         );
-        setDraft("");
+
+        try {
+            const response = await assistantService.chat(historyForApi);
+            const assistantMessage: ChatMessage = {
+                id: `assistant-${Date.now()}`,
+                role: "assistant",
+                content: response.reply?.trim() || "Não consegui gerar uma resposta agora.",
+            };
+            if (response.usage) {
+                setUsage(response.usage);
+            }
+            setConversations((prev) =>
+                prev.map((conversation) => {
+                    if (conversation.id !== conversationId) return conversation;
+                    return {
+                        ...conversation,
+                        updatedAt: Date.now(),
+                        messages: [...conversation.messages, assistantMessage],
+                    };
+                }),
+            );
+        } catch (error) {
+            const fallback =
+                ExceptionCapture.displayMessage(error, "Não foi possível falar com o assistente agora.");
+            const assistantMessage: ChatMessage = {
+                id: `assistant-error-${Date.now()}`,
+                role: "assistant",
+                content: fallback,
+            };
+            setConversations((prev) =>
+                prev.map((conversation) => {
+                    if (conversation.id !== conversationId) return conversation;
+                    return {
+                        ...conversation,
+                        updatedAt: Date.now(),
+                        messages: [...conversation.messages, assistantMessage],
+                    };
+                }),
+            );
+        } finally {
+            setSending(false);
+        }
     };
 
     return (
@@ -414,14 +498,28 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                             <div
                                                 className={
                                                     message.role === "user"
-                                                        ? "rounded-2xl rounded-br-md bg-primary px-3 py-2 text-[13px] leading-5 text-primary-content"
-                                                        : "rounded-2xl rounded-bl-md bg-base-200 px-3 py-2 text-[13px] leading-5 text-base-content"
+                                                        ? "rounded-2xl rounded-br-md bg-primary px-3 py-2 text-[13px] leading-5 text-primary-content whitespace-pre-wrap"
+                                                        : "rounded-2xl rounded-bl-md bg-base-200 px-3 py-2 text-base-content"
                                                 }
                                             >
-                                                {message.content}
+                                                {message.role === "assistant" ? (
+                                                    <MarkdownContent
+                                                        value={message.content}
+                                                        className="text-[13px] leading-5 text-base-content [&_p]:mb-2 [&_ul]:mb-2 [&_ol]:mb-2"
+                                                    />
+                                                ) : (
+                                                    message.content
+                                                )}
                                             </div>
                                         </div>
                                     ))}
+                                    {sending ? (
+                                        <div className="mr-8 flex justify-start">
+                                            <div className="rounded-2xl rounded-bl-md bg-base-200 px-3 py-2 text-[13px] leading-5 text-base-content/55">
+                                                Pensando…
+                                            </div>
+                                        </div>
+                                    ) : null}
                                 </div>
 
                                 <footer
@@ -434,28 +532,39 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                             value={draft}
                                             rows={1}
                                             placeholder="Escreva sua mensagem..."
-                                            className="max-h-40 min-h-9 flex-1 resize-none overflow-y-hidden bg-transparent px-2 py-1.5 text-[13px] leading-5 text-base-content outline-none placeholder:text-base-content/40"
+                                            className="max-h-40 min-h-9 flex-1 resize-none overflow-y-hidden bg-transparent px-2 py-1.5 text-[13px] leading-5 text-base-content outline-none placeholder:text-base-content/40 disabled:opacity-60"
+                                            disabled={sending}
                                             onChange={(event) => setDraft(event.target.value)}
                                             onKeyDown={(event) => {
                                                 if (event.key === "Enter" && !event.shiftKey) {
                                                     event.preventDefault();
-                                                    sendMessage();
+                                                    void sendMessage();
                                                 }
                                             }}
                                         />
                                         <button
                                             type="button"
                                             aria-label="Enviar"
-                                            disabled={!draft.trim()}
-                                            onClick={sendMessage}
+                                            disabled={!draft.trim() || sending}
+                                            onClick={() => void sendMessage()}
                                             className="gommo-btn gommo-btn--primary gommo-btn--icon-only shrink-0 disabled:opacity-40"
                                         >
                                             <SendHorizontal className="size-4" strokeWidth={2}/>
                                         </button>
                                     </div>
                                     <p className="mt-2 text-center text-[10px] text-base-content/35">
-                                        Respostas mock por enquanto. A IA será ligada em seguida.
+                                        Assistente conectado ao Gemini. A base de conhecimento será enriquecida com o
+                                        tempo.
                                     </p>
+                                    {process.env.NODE_ENV === "development" ? (
+                                        <p
+                                            className="mt-1 text-center text-[10px] tabular-nums text-base-content/40"
+                                            title="Uso de tokens desta sessão do backend. A Google não expõe cota restante só com API key."
+                                        >
+                                            {buildUsageFooter(usage)
+                                                ?? "Dev · envie uma mensagem para ver o uso de tokens"}
+                                        </p>
+                                    ) : null}
                                 </footer>
                             </>
                         )}

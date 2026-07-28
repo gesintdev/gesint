@@ -180,14 +180,14 @@ Campos em `job_vacancy_application` (Flyway):
 
 - [x] Botão "Assistente IA" no header (pill ao lado do avatar)
 - [x] Chat lateral direito (sidebar) abrindo pelo botão — UI mock
-- [ ] **Aguardando:** próximos comandos de UI do usuário
-- [ ] UI análise de currículo (score, matched/missing, reanalisar) com mock
+- [x] UI ranking de currículo (score %, modal, kanban/listagem) com mock
+- [x] `LlmClient` + `GeminiLlmClient` + `OpenAiLlmClient` + factory por env
+- [x] Ligar chat ao `LlmClient` (prompt inicial de rotas)
 - [ ] Flyway `ai_score` / `ai_status` / `ai_analysis`
-- [ ] `LlmClient` + `GeminiLlmClient` + `OpenAiLlmClient` + factory por env
 - [ ] Job async no apply + reanalisar
 - [ ] Ligar UI de score/ranking ao backend real
-- [ ] Ligar chat ao `LlmClient`
+- [ ] Enriquecer base do assistente (FAQ/fluxos)
 
 ## Próximo passo
 
-Aguardando próximos comandos de UI (painel do assistente / chat). Integração LLM só depois.
+Enriquecer o prompt do assistente e/ou pipeline real de análise de currículo.

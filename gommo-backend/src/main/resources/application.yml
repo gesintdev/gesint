@@ -58,6 +58,16 @@ gommo:
     production-base-domain: ${GOMMO_TENANT_PRODUCTION_BASE_DOMAIN:gommo.com.br}
   internal:
     event-secret: ${GOMMO_INTERNAL_EVENT_SECRET:}
+  llm:
+    provider: ${LLM_PROVIDER:gemini}
+    model: ${LLM_MODEL:gemini-flash-lite-latest}
+    api-key: ${LLM_API_KEY:}
+    gemini-base-url: ${LLM_GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+    openai-base-url: ${LLM_OPENAI_BASE_URL:https://api.openai.com/v1}
+    temperature: ${LLM_TEMPERATURE:0.3}
+    max-output-tokens: ${LLM_MAX_OUTPUT_TOKENS:1024}
+    # Soft budget for the assistant usage footer (dev). Copy the TPM/daily figure from AI Studio.
+    daily-token-limit: ${LLM_DAILY_TOKEN_LIMIT:0}
 
 logging:
   pattern:
