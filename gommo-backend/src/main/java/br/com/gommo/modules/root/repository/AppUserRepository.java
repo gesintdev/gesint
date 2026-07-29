@@ -52,9 +52,27 @@ public interface AppUserRepository extends IBaseRepository<AppUser> {
 
     boolean existsByUsernameAndIdNot(String username, UUID id);
 
+    Optional<AppUser> findByUsername(String username);
+
+    @Query(
+            "SELECT u FROM AppUser u LEFT JOIN FETCH u.roles WHERE u.username = :username AND u.status = :status")
+    Optional<AppUser> findByUsernameAndStatus(
+            @Param("username") String username, @Param("status") StatusEnum status);
+
     boolean existsByEmail(String email);
 
     boolean existsByEmailAndIdNot(String email, UUID id);
+
+    Optional<AppUser> findByEmailIgnoreCase(String email);
+
+    @Query(
+            """
+            SELECT u FROM AppUser u
+            LEFT JOIN FETCH u.roles
+            WHERE LOWER(u.email) = LOWER(:email) AND u.status = :status
+            """)
+    Optional<AppUser> findByEmailIgnoreCaseAndStatus(
+            @Param("email") String email, @Param("status") StatusEnum status);
 
     boolean existsByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
 

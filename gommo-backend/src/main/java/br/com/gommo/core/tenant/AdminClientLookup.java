@@ -14,4 +14,6 @@ public interface AdminClientLookup {
     Optional<TenantContext> findBySubdomain(String subdomain);
 
     Optional<TenantContext> findByCustomDomain(String customDomain);
+
+    Optional<String> findMobileLoginCodeByClientId(UUID clientId);
 }

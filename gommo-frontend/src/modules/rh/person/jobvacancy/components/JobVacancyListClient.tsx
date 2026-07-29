@@ -235,11 +235,11 @@ export function JobVacancyListClient() {
                                                                 >
                                                                     /careers/{row.slug}
                                                                 </a>
-                                                                <TableActionButton
-                                                                    actionVariant="open"
+                                                                <button
+                                                                    type="button"
+                                                                    className="job-vacancy-link-icon"
                                                                     aria-label="Copiar link da candidatura"
                                                                     title="Copiar link"
-                                                                    leftIcon={<Copy className="size-3.5" />}
                                                                     onClick={async (event) => {
                                                                         event.stopPropagation();
                                                                         try {
@@ -251,14 +251,14 @@ export function JobVacancyListClient() {
                                                                             );
                                                                         }
                                                                     }}
-                                                                />
-                                                                <TableActionButton
-                                                                    actionVariant="open"
+                                                                >
+                                                                    <Copy className="size-3.5" strokeWidth={2} />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    className="job-vacancy-link-icon"
                                                                     aria-label="Abrir página de candidatura"
                                                                     title="Abrir página"
-                                                                    leftIcon={
-                                                                        <ExternalLink className="size-3.5" />
-                                                                    }
                                                                     onClick={(event) => {
                                                                         event.stopPropagation();
                                                                         window.open(
@@ -267,7 +267,9 @@ export function JobVacancyListClient() {
                                                                             "noopener,noreferrer",
                                                                         );
                                                                     }}
-                                                                />
+                                                                >
+                                                                    <ExternalLink className="size-3.5" strokeWidth={2} />
+                                                                </button>
                                                             </div>
                                                         );
                                                     })()}

@@ -80,6 +80,27 @@ public class JdbcAdminClientLookup implements AdminClientLookup {
         return findOne(BASE_SELECT + " AND e.custom_domain = ?", customDomain);
     }
 
+    @Override
+    public Optional<String> findMobileLoginCodeByClientId(UUID clientId) {
+        if (clientId == null) {
+            return Optional.empty();
+        }
+        try {
+            return jdbcTemplate.query(
+                    """
+                    SELECT c.mobile_login_code
+                    FROM admin.client c
+                    WHERE c.id = ?
+                      AND c.status <> 'DELETED'
+                    """,
+                    rs -> rs.next() ? Optional.ofNullable(rs.getString("mobile_login_code")) : Optional.empty(),
+                    clientId);
+        } catch (DataAccessException ex) {
+            log.warn("admin.client mobile login code lookup failed: {}", ex.getMessage());
+            return Optional.empty();
+        }
+    }
+
     private String normalizeMobileLoginCode(String mobileLoginCode) {
         return mobileLoginCode == null ? "" : mobileLoginCode.replaceAll("\\D", "");
     }

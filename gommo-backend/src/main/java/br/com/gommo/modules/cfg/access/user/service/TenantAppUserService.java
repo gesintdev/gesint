@@ -87,6 +87,29 @@ public class TenantAppUserService implements ITenantAppUserService {
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('user:write')")
+    public AppUserResponseDto reactivate(AppUserRequestDto request) {
+        AppUser user = findDeletedUserForReactivation(request);
+        assertMutableUser(user);
+        validateUnique(request, user.getId());
+        if (appUserRepository.existsByCollaboratorIdAndIdNotAndStatusNot(
+            request.getCollaboratorId(), user.getId(), StatusEnum.DELETED)) {
+            throw TenantAppUserException.collaboratorAlreadyLinked();
+        }
+        Collaborator collaborator = resolveActiveCollaborator(request.getCollaboratorId());
+        assertCollaboratorNotLinkedToSystemAdmin(collaborator.getId());
+        user.setStatus(StatusEnum.ACTIVE);
+        user.setCollaboratorId(collaborator.getId());
+        user.setUsername(request.getUsername().trim());
+        user.setName(Objects.isNull(request.getName()) ? collaborator.getFullName() : request.getName().trim());
+        user.setEmail(request.getEmail().trim().toLowerCase());
+        user.setRoles(resolveAssignedRoles(request));
+        AppUser saved = appUserRepository.save(user);
+        return mapper.toResponse(saved, collaborator);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('user:write')")
     public AppUserResponseDto update(UUID id, AppUserRequestDto request) {
         AppUser user = findUser(id);
         assertMutableUser(user);
@@ -190,21 +213,44 @@ public class TenantAppUserService implements ITenantAppUserService {
     }
 
     private void validateUnique(AppUserRequestDto request, UUID excludeId) {
+        String username = request.getUsername().trim();
+        String email = request.getEmail().trim().toLowerCase();
+
         if (excludeId == null) {
-            if (appUserRepository.existsByUsername(request.getUsername().trim())) {
-                throw TenantAppUserException.duplicateUsername();
-            }
-            if (appUserRepository.existsByEmail(request.getEmail().trim().toLowerCase())) {
-                throw TenantAppUserException.duplicateEmail();
-            }
+            appUserRepository
+                .findByUsername(username)
+                .ifPresent(existing -> {
+                    if (existing.getStatus() == StatusEnum.DELETED) {
+                        throw TenantAppUserException.deletedUserExists();
+                    }
+                    throw TenantAppUserException.duplicateUsername();
+                });
+            appUserRepository
+                .findByEmailIgnoreCase(email)
+                .ifPresent(existing -> {
+                    if (existing.getStatus() == StatusEnum.DELETED) {
+                        throw TenantAppUserException.deletedUserExists();
+                    }
+                    throw TenantAppUserException.duplicateEmail();
+                });
             return;
         }
-        if (appUserRepository.existsByUsernameAndIdNot(request.getUsername().trim(), excludeId)) {
+
+        if (appUserRepository.existsByUsernameAndIdNot(username, excludeId)) {
             throw TenantAppUserException.duplicateUsername();
         }
-        if (appUserRepository.existsByEmailAndIdNot(request.getEmail().trim().toLowerCase(), excludeId)) {
+        if (appUserRepository.existsByEmailAndIdNot(email, excludeId)) {
             throw TenantAppUserException.duplicateEmail();
         }
+    }
+
+    private AppUser findDeletedUserForReactivation(AppUserRequestDto request) {
+        String username = request.getUsername().trim();
+        String email = request.getEmail().trim().toLowerCase();
+        return appUserRepository
+            .findByUsernameAndStatus(username, StatusEnum.DELETED)
+            .or(() -> appUserRepository.findByEmailIgnoreCaseAndStatus(email, StatusEnum.DELETED))
+            .orElseThrow(TenantAppUserException::notFound);
     }
 
     private Set<Role> resolveAssignedRoles(AppUserRequestDto request) {

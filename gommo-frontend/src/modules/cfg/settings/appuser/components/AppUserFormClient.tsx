@@ -8,6 +8,7 @@ import {toast} from "sonner";
 import {appUserKeys} from "@/modules/cfg/settings/appuser/appuser.query";
 import {AppUserProfileAssignmentPanel} from "@/modules/cfg/settings/appuser/components/AppUserProfileAssignmentPanel";
 import type {AppUser, AppUserCreateDto} from "@/modules/cfg/settings/appuser/dto/appuser.dto";
+import {APP_USER_CLIENT_MESSAGES} from "@/modules/cfg/settings/appuser/exceptions/appuser.messages";
 import {
     suggestEmailFromCollaborator,
     suggestUsernameFromCollaborator,
@@ -38,6 +39,17 @@ function emptyRoleIdsBySystem(): Partial<Record<SystemScope, string[]>> {
     >;
 }
 
+function toSavePayload(dto: AppUserCreateDto): AppUserCreateDto {
+    const roleIdsBySystem = emptyRoleIdsBySystem();
+    for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
+        roleIdsBySystem[scope] = dto.roleIdsBySystem?.[scope] ?? [];
+    }
+    return {
+        ...dto,
+        roleIdsBySystem,
+    };
+}
+
 const emptyForm = (): AppUserCreateDto => ({
     collaboratorId: "",
     username: "",
@@ -49,6 +61,8 @@ const FORM_STEPS: FormStepNavItem[] = [
     {id: "dados", label: "Dados"},
     {id: "perfis", label: "Perfis"},
 ];
+
+const DELETED_USER_CONFLICT_CODE = "APP_USER_DELETED_EXISTS";
 
 export function AppUserFormClient() {
     const {editingId, isEditing, goToList} = useCrudScreen();
@@ -123,30 +137,67 @@ export function AppUserFormClient() {
         }
     }, []);
 
+    const handleSaveSuccess = useCallback(
+        async (saved: AppUser, mode: "create" | "update" | "reactivate") => {
+            await queryClient.invalidateQueries({queryKey: appUserKeys.all});
+            if (mode === "create" && saved.accessToken) {
+                await showAccessTokenReveal(saved.accessToken, "create");
+            } else if (mode === "reactivate") {
+                toast.success("Usuário reativado e atualizado");
+            } else {
+                toast.success(mode === "update" ? "Usuário atualizado" : "Usuário cadastrado");
+            }
+            goToList();
+        },
+        [goToList, queryClient],
+    );
+
+    const reactivateMutation = useMutation({
+        mutationFn: async (dto: AppUserCreateDto) => appUserService.reactivate(toSavePayload(dto)),
+        onSuccess: async (saved: AppUser) => {
+            await handleSaveSuccess(saved, "reactivate");
+        },
+        onError: (err: unknown) => {
+            const ex = ExceptionCapture.handle(err, {
+                fallbackMessage: APP_USER_CLIENT_MESSAGES.APP_USER_REACTIVATE_FAILED,
+            });
+            setError(ex.displayMessage);
+        },
+    });
+
+    const offerReactivate = useCallback(
+        async (dto: AppUserCreateDto) => {
+            const confirmed = await SystemAlert.warning.confirm({
+                title: "Usuário já existe",
+                message:
+                    "Já existe um usuário excluído com estes dados. Deseja reativá-lo e aplicar as informações preenchidas neste cadastro?",
+                confirmLabel: "Reativar",
+                cancelLabel: "Cancelar",
+            });
+            if (!confirmed) return;
+            reactivateMutation.mutate(dto);
+        },
+        [reactivateMutation],
+    );
+
     const saveMutation = useMutation({
         mutationFn: async (dto: AppUserCreateDto) => {
-            const roleIdsBySystem = emptyRoleIdsBySystem();
-            for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
-                roleIdsBySystem[scope] = dto.roleIdsBySystem?.[scope] ?? [];
-            }
-            const payload: AppUserCreateDto = {
-                ...dto,
-                roleIdsBySystem,
-            };
+            const payload = toSavePayload(dto);
             if (isEditing && editingId) return appUserService.update(editingId, payload);
             return appUserService.create(payload);
         },
         onSuccess: async (saved: AppUser) => {
-            await queryClient.invalidateQueries({queryKey: appUserKeys.all});
-            if (!isEditing && saved.accessToken) {
-                await showAccessTokenReveal(saved.accessToken, "create");
-            } else {
-                toast.success(isEditing ? "Usuário atualizado" : "Usuário cadastrado");
-            }
-            goToList();
+            await handleSaveSuccess(saved, isEditing ? "update" : "create");
         },
-        onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível salvar o usuário."});
+        onError: (err: unknown, dto: AppUserCreateDto) => {
+            const ex = ExceptionCapture.fromUnknown(err, APP_USER_CLIENT_MESSAGES.APP_USER_SAVE_FAILED);
+            if (!isEditing && ex.code === DELETED_USER_CONFLICT_CODE) {
+                void offerReactivate(dto);
+                return;
+            }
+            ExceptionCapture.handle(err, {
+                fallbackMessage: APP_USER_CLIENT_MESSAGES.APP_USER_SAVE_FAILED,
+            });
             setError(ex.displayMessage);
         },
     });
@@ -191,6 +242,8 @@ export function AppUserFormClient() {
         saveMutation.mutate(form);
     };
 
+    const saving = saveMutation.isPending || reactivateMutation.isPending;
+
     if (isEditing && detailQuery.isLoading) {
         return (
             <div className="grid gap-2 p-5">
@@ -213,7 +266,7 @@ export function AppUserFormClient() {
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="primary" loading={saveMutation.isPending}>
+                    <Button type="submit" variant="primary" loading={saving}>
                         Salvar usuário
                     </Button>
                 </>

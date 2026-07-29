@@ -12,7 +12,6 @@ import {admissionprocessKeys} from "@/modules/rh/person/collaborators/admission/
 import {
     AdmissionEmergencyContactsField
 } from "@/modules/rh/person/collaborators/admission/components/AdmissionEmergencyContactsField";
-import {AdmissionSummary} from "@/modules/rh/person/collaborators/admission/components/AdmissionSummary";
 import type {AdmissionProcessCreateDto} from "@/modules/rh/person/collaborators/admission/dto/admission-process.dto";
 import {
     ADMISSION_CLIENT_MESSAGES
@@ -263,9 +262,6 @@ export function AdmissionProcessFormClient() {
     const activeStepIds = useMemo(() => admissionFormSteps.map((step) => step.id), [admissionFormSteps]);
     const filledStepIds = computeFilledAdmissionSteps(form, stepContext, activeStepIds);
     const contractDocTypeItems = useMemo(() => contractDocumentTypeItems(form.contractType), [form.contractType]);
-    const summaryAdmissionStatus = detailQuery.data?.admissionStatus ?? "IN_PROGRESS";
-    const summaryCompletedStepCount = detailQuery.data?.completedStepCount ?? filledStepIds.length;
-    const summaryRequiredStepCount = detailQuery.data?.requiredStepCount ?? 6;
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -325,7 +321,7 @@ export function AdmissionProcessFormClient() {
                 bodyClassName="!block"
             >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-                    <div className="flex flex-col gap-4 lg:h-full lg:max-w-60 lg:shrink-0">
+                    <div className="lg:max-w-60 lg:shrink-0">
                         <ProfilePhotoField
                             photoObjectId={form.photoObjectId || undefined}
                             pendingPreviewUrl={pendingPreviewUrl}
@@ -333,15 +329,6 @@ export function AdmissionProcessFormClient() {
                             onClear={handlePhotoClear}
                             displayName={form.fullName || "Colaborador"}
                         />
-                        <div className="min-h-0 flex-1">
-                            <AdmissionSummary
-                                form={form}
-                                entityCode={isEditing ? detailQuery.data?.code : undefined}
-                                admissionStatus={summaryAdmissionStatus}
-                                completedStepCount={summaryCompletedStepCount}
-                                requiredStepCount={summaryRequiredStepCount}
-                            />
-                        </div>
                     </div>
                     <div className="grid min-w-0 flex-1 content-start gap-x-4 gap-y-2.5 sm:grid-cols-12">
                         <InputSelect

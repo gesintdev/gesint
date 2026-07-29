@@ -1,5 +1,6 @@
 "use client";
 
+import {AccountMobileAccessCard} from "@/modules/cfg/account/components/AccountMobileAccessCard";
 import {AccountPasswordCard} from "@/modules/cfg/account/components/AccountPasswordCard";
 import {AccountProfileCard} from "@/modules/cfg/account/components/AccountProfileCard";
 import {AccountThemeCard} from "@/modules/cfg/account/components/AccountThemeCard";
@@ -15,6 +16,7 @@ export function AccountSettingsPage() {
                     </p>
                 </div>
                 <AccountProfileCard />
+                <AccountMobileAccessCard />
                 <AccountThemeCard />
                 <AccountPasswordCard />
             </div>

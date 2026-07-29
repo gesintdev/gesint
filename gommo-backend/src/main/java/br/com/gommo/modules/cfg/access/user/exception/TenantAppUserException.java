@@ -21,6 +21,13 @@ public final class TenantAppUserException {
         return new BusinessException("APP_USER_DUPLICATE_EMAIL", "E-mail já cadastrado.", HttpStatus.CONFLICT);
     }
 
+    public static BusinessException deletedUserExists() {
+        return new BusinessException(
+                "APP_USER_DELETED_EXISTS",
+                "Já existe um usuário excluído com estes dados. Você pode reativá-lo.",
+                HttpStatus.CONFLICT);
+    }
+
     public static BusinessException collaboratorAlreadyLinked() {
         return new BusinessException(
                 "APP_USER_COLLABORATOR_LINKED", "Este colaborador já possui usuário no sistema.", HttpStatus.CONFLICT);

@@ -14,6 +14,8 @@ public interface ITenantAppUserService {
 
     AppUserResponseDto create(AppUserRequestDto request);
 
+    AppUserResponseDto reactivate(AppUserRequestDto request);
+
     AppUserResponseDto update(UUID id, AppUserRequestDto request);
 
     AppUserResponseDto resetPassword(UUID id);

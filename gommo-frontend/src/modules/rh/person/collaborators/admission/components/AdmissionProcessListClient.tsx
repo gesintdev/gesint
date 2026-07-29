@@ -2,16 +2,19 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
+import { Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { admissionprocessKeys } from "@/modules/rh/person/collaborators/admission/admission.query";
+import { AdmissionDetailModal } from "@/modules/rh/person/collaborators/admission/components/AdmissionDetailModal";
 import { ADMISSION_TABLE_COLUMNS } from "@/modules/rh/person/collaborators/admission/config/admission-process.table-columns";
 import type { AdmissionProcess } from "@/modules/rh/person/collaborators/admission/dto/admission-process.dto";
 import { ADMISSION_CLIENT_MESSAGES } from "@/modules/rh/person/collaborators/admission/exceptions/admission-process.messages";
 import { admissionprocessService } from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
+import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
@@ -54,6 +57,7 @@ function admissionRowClassName(row: AdmissionListingRow) {
 export function AdmissionProcessListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
+    const [selected, setSelected] = useState<AdmissionProcess | null>(null);
     const [profileFilter, setProfileFilter] = useState<AdmissionProfileFilter>("ACTIVE");
     const baseFilters = useMemo(() => {
         const next: Record<string, string[]> = {};
@@ -78,55 +82,74 @@ export function AdmissionProcessListClient() {
     };
 
     return (
-        <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] gap-2">
-            <div
-                className="flex flex-wrap items-center gap-2 px-1 pt-3"
-                role="radiogroup"
-                aria-label="Filtrar admissões"
-            >
-                {PROFILE_FILTERS.map((filter) => (
-                    <button
-                        key={filter.value}
-                        type="button"
-                        role="radio"
-                        aria-checked={profileFilter === filter.value}
-                        onClick={() => setProfileFilter(filter.value)}
-                        className={clsx(
-                            "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
-                            profileFilter === filter.value
-                                ? "bg-primary/12 text-primary"
-                                : "bg-base-content/5 text-base-content/60 hover:bg-base-content/8",
-                        )}
-                    >
-                        {filter.label}
-                    </button>
-                ))}
+        <>
+            <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] gap-2">
+                <div
+                    className="flex flex-wrap items-center gap-2 px-1 pt-3"
+                    role="radiogroup"
+                    aria-label="Filtrar admissões"
+                >
+                    {PROFILE_FILTERS.map((filter) => (
+                        <button
+                            key={filter.value}
+                            type="button"
+                            role="radio"
+                            aria-checked={profileFilter === filter.value}
+                            onClick={() => setProfileFilter(filter.value)}
+                            className={clsx(
+                                "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
+                                profileFilter === filter.value
+                                    ? "bg-primary/12 text-primary"
+                                    : "bg-base-content/5 text-base-content/60 hover:bg-base-content/8",
+                            )}
+                        >
+                            {filter.label}
+                        </button>
+                    ))}
+                </div>
+                <QueryPagedTablePanel<AdmissionListingRow>
+                    queryKey={[...admissionprocessKeys.all, profileFilter]}
+                    baseFilters={baseFilters}
+                    paginationMode="load-more"
+                    request={async (page, size, filters) => {
+                        const result = await admissionprocessService.getPage(page, size, filters);
+                        return {
+                            ...result,
+                            content: result.content.map((row) => ({ ...row, admissionTags: admissionTags(row) })),
+                        };
+                    }}
+                    columns={ADMISSION_TABLE_COLUMNS}
+                    rowKey="id"
+                    emptyMessage="Nenhuma admissão cadastrada."
+                    getRowClassName={admissionRowClassName}
+                    onRowActivate={(row) => startEdit(row.id, row)}
+                    renderActions={(row) => (
+                        <>
+                            <TableActionButton
+                                actionVariant="open"
+                                aria-label="Visualizar detalhes da admissão"
+                                title="Visualizar detalhes"
+                                leftIcon={<Eye className="size-3.5" />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    setSelected(row);
+                                }}
+                            />
+                            <CrudTableActions
+                                row={row}
+                                onEdit={() => startEdit(row.id, row)}
+                                onDelete={() => void handleDelete(row)}
+                                deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                            />
+                        </>
+                    )}
+                />
             </div>
-            <QueryPagedTablePanel<AdmissionListingRow>
-                queryKey={[...admissionprocessKeys.all, profileFilter]}
-                baseFilters={baseFilters}
-                paginationMode="load-more"
-                request={async (page, size, filters) => {
-                    const result = await admissionprocessService.getPage(page, size, filters);
-                    return {
-                        ...result,
-                        content: result.content.map((row) => ({ ...row, admissionTags: admissionTags(row) })),
-                    };
-                }}
-                columns={ADMISSION_TABLE_COLUMNS}
-                rowKey="id"
-                emptyMessage="Nenhuma admissão cadastrada."
-                getRowClassName={admissionRowClassName}
-                onRowActivate={(row) => startEdit(row.id, row)}
-                renderActions={(row) => (
-                    <CrudTableActions
-                        row={row}
-                        onEdit={() => startEdit(row.id, row)}
-                        onDelete={() => void handleDelete(row)}
-                        deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
-                    />
-                )}
+            <AdmissionDetailModal
+                row={selected}
+                open={Boolean(selected)}
+                onClose={() => setSelected(null)}
             />
-        </div>
+        </>
     );
 }

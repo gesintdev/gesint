@@ -34,6 +34,10 @@ import {
     ADMISSION_MESSAGES,
 } from "@/modules/rh/person/collaborators/admission/exceptions/admission-process.messages";
 import {
+    APP_USER_CLIENT_MESSAGES,
+    APP_USER_MESSAGES,
+} from "@/modules/cfg/settings/appuser/exceptions/appuser.messages";
+import {
     COLLABORATOR_CLIENT_MESSAGES,
     COLLABORATOR_MESSAGES,
 } from "@/modules/rh/person/collaborators/people/exceptions/collaborator.messages";
@@ -83,6 +87,8 @@ const REGISTRY: Record<string, string> = {
     ...BENEFIT_CLIENT_MESSAGES,
     ...ADMISSION_MESSAGES,
     ...ADMISSION_CLIENT_MESSAGES,
+    ...APP_USER_MESSAGES,
+    ...APP_USER_CLIENT_MESSAGES,
     ...OFFBOARDING_MESSAGES,
     ...OFFBOARDING_CLIENT_MESSAGES,
     ...EXITINTERVIEW_MESSAGES,

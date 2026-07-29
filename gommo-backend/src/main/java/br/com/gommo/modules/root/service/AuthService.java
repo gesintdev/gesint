@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.security.JwtProperties;
 import br.com.gommo.core.security.JwtService;
+import br.com.gommo.core.tenant.AdminClientLookup;
 import br.com.gommo.core.tenant.MultiTenantProperties;
 import br.com.gommo.core.tenant.PlatformAdminUserLookup;
 import br.com.gommo.core.tenant.TenantAuthValidator;
@@ -84,6 +85,7 @@ public class AuthService implements IAuthService {
     private final TenantResolver tenantResolver;
     private final PlatformAdminUserLookup platformAdminUserLookup;
     private final TenantContractedSystemsLookup tenantContractedSystemsLookup;
+    private final AdminClientLookup adminClientLookup;
 
     public AuthService(
             AppUserRepository appUserRepository,
@@ -102,7 +104,8 @@ public class AuthService implements IAuthService {
             TenantAuthValidator tenantAuthValidator,
             TenantResolver tenantResolver,
             PlatformAdminUserLookup platformAdminUserLookup,
-            TenantContractedSystemsLookup tenantContractedSystemsLookup) {
+            TenantContractedSystemsLookup tenantContractedSystemsLookup,
+            AdminClientLookup adminClientLookup) {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
         this.collaboratorRepository = collaboratorRepository;
@@ -120,6 +123,7 @@ public class AuthService implements IAuthService {
         this.tenantResolver = tenantResolver;
         this.platformAdminUserLookup = platformAdminUserLookup;
         this.tenantContractedSystemsLookup = tenantContractedSystemsLookup;
+        this.adminClientLookup = adminClientLookup;
     }
 
     @Override
@@ -268,7 +272,19 @@ public class AuthService implements IAuthService {
                                 tenant.isDevelopmentPublic()
                                         ? null
                                         : resolveContractedSystemKeys(tenant.clientId()))
+                        .mobileLoginCode(resolveMobileLoginCode(tenant))
                         .build());
+    }
+
+    private String resolveMobileLoginCode(TenantContext tenant) {
+        if (tenant.isDevelopmentPublic()) {
+            String code = multiTenantProperties.getDevPublicCompanyCode();
+            return StringUtils.hasText(code) ? code.trim() : null;
+        }
+        if (tenant.clientId() == null) {
+            return null;
+        }
+        return adminClientLookup.findMobileLoginCodeByClientId(tenant.clientId()).orElse(null);
     }
 
     @Override

@@ -10,8 +10,6 @@ export type AppUser = {
     username: string;
     email: string;
     rolesBySystem?: Partial<Record<SystemScope, Profile[]>>;
-    /** Rótulo agregado para grid (preenchido no service). */
-    rolesLabel?: string;
     lastLogin?: string | null;
     firstAccessCompleted?: boolean;
     /** Presente apenas após create/reset-access. */

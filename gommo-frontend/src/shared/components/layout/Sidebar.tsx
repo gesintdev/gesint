@@ -380,12 +380,10 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                         <div key={section.id}>
                             <div className="flex flex-col">
                                 <div className="nav-section-head">
-                                    <div className="nav-section-slot">
-                                        <p className="nav-section-label sidebar-copy">{section.label}</p>
-                                    </div>
-                                    <div className="nav-section-slot" aria-hidden="true">
-                                        <div className="nav-section-rule"/>
-                                    </div>
+                                    <p className="nav-section-label sidebar-copy pl-2">{section.label}</p>
+                                    <p className="nav-section-abbr" aria-hidden="true">
+                                        {section.shortLabel || section.label.slice(0, 2)}
+                                    </p>
                                 </div>
                                 <ul className="space-y-0.5 px-[var(--sidebar-nav-list-pad-x)]">
                                     {section.routes.map(renderRoute)}
@@ -404,7 +402,9 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 className={clsx(
                     "sidebar-routes-panel flex min-w-0 shrink-0 flex-col overflow-hidden border-r transition-[width] duration-(--sidebar-transition-duration) ease-[cubic-bezier(0.22,1,0.36,1)]",
                     opts.desktop && collapsed ? "w-(--sidebar-collapsed)" : "w-(--sidebar-width)",
+                    opts.desktop && collapsed && "sidebar-routes-panel--collapsed",
                 )}
+                data-collapsed={opts.desktop && collapsed ? "true" : undefined}
                 style={{
                     background: "var(--sidebar-bg)",
                     borderColor: "var(--sidebar-border)",

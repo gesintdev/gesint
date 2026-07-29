@@ -34,6 +34,8 @@ export type AppRoute = {
 export type NavSection = {
     id: string;
     label: string;
+    /** Abbreviation shown in the collapsed sidebar instead of the section rule. */
+    shortLabel: string;
     routes: AppRoute[];
 };
 
@@ -42,6 +44,8 @@ export type TModuleInfos = {
     id: string;
     /** Human-readable section label shown in the sidebar */
     name: string;
+    /** Compact label for collapsed sidebar section headers */
+    shortName: string;
     /** Optional display order when building NAV_SECTIONS */
     order?: number;
 };
@@ -87,56 +91,67 @@ export class ModuleEnumHelper implements IModuleHelper {
         [ModuleEnum.ROOT]: {
             id: "root",
             name: "Sistema",
+            shortName: "SIS",
             order: 0,
         },
         [ModuleEnum.DASHBOARD]: {
             id: "overview",
             name: "Visão geral",
+            shortName: "VG",
             order: 1,
         },
         [ModuleEnum.ORGANIZATION]: {
             id: "organization",
             name: "Organização",
+            shortName: "ORG",
             order: 2,
         },
         [ModuleEnum.PERSON]: {
             id: "people",
             name: "Colaboradores e vínculos",
+            shortName: "PES",
             order: 3,
         },
         [ModuleEnum.PAYROLL]: {
             id: "accounting",
             name: "Contabilidade",
+            shortName: "CTB",
             order: 4,
         },
         [ModuleEnum.PAYMENTS]: {
             id: "payments",
             name: "Pagamentos",
+            shortName: "PAG",
             order: 3,
         },
         [ModuleEnum.INSIGHTS]: {
             id: "insights",
             name: "Insights",
+            shortName: "INS",
             order: 5,
         },
         [ModuleEnum.SETTINGS]: {
             id: "settings",
             name: "Configurações",
+            shortName: "CFG",
             order: 99,
         },
         [ModuleEnum.SETTINGS_ACCESS]: {
             id: "settings-access",
             name: "Acesso",
+            shortName: "AC",
             order: 1,
         },
         [ModuleEnum.SETTINGS_DP]: {
             id: "settings-dp",
             name: "Departamento Pessoal",
+            shortName: "DP",
             order: 2,
         },
         [ModuleEnum.SETTINGS_RH]: {
             id: "settings-rh",
             name: "Recursos Humanos",
+            shortName: "RH",
             order: 3,
         },
     };
@@ -159,6 +174,7 @@ export class ModuleEnumHelper implements IModuleHelper {
             .map((m) => ({
                 id: m.infos.id,
                 label: m.infos.name,
+                shortLabel: m.infos.shortName,
                 routes: m.routes,
             }));
     }

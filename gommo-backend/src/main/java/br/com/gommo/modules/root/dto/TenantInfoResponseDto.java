@@ -13,4 +13,6 @@ public class TenantInfoResponseDto {
     private final String name;
     /** Keys do catalogo Admin (DP, RH, CTB) com contrato ACTIVE. */
     private final List<String> contractedSystemKeys;
+    /** Código numérico usado no login do app mobile (Gommo Tick). */
+    private final String mobileLoginCode;
 }

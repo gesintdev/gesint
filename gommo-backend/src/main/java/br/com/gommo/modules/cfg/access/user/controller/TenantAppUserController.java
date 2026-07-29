@@ -45,6 +45,11 @@ public class TenantAppUserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(tenantAppUserService.create(request));
     }
 
+    @PostMapping("/reactivate")
+    public ResponseEntity<AppUserResponseDto> reactivate(@Valid @RequestBody AppUserRequestDto request) {
+        return ResponseEntity.ok(tenantAppUserService.reactivate(request));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<AppUserResponseDto> update(
             @PathVariable UUID id, @Valid @RequestBody AppUserRequestDto request) {

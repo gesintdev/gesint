@@ -21,10 +21,4 @@ export const APP_USER_TABLE_COLUMNS: TableColumnConfig[] = [
         fieldValue: "email",
         dataType: TableDataType.EMAIL,
     },
-    {
-        id: "roles",
-        columnName: "Perfis",
-        fieldValue: "rolesLabel",
-        dataType: TableDataType.TEXT,
-    },
 ];
