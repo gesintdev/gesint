@@ -64,6 +64,28 @@ public class BenefitPlanService extends BaseService<BenefitPlan, BenefitPlanRequ
         return super.update(id, request);
     }
 
+    
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('benefit:read')")
+    public List<BenefitPlanResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('benefit:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('benefit:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('benefit:delete')")

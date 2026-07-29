@@ -10,13 +10,24 @@ import { taxObligationService } from "@/modules/ctb/payroll/tax/services/tax-obl
 import { taxObligationKeys } from "@/modules/ctb/payroll/tax/tax.query";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { useCrudStatusActions } from "@/shared/components/crud/useCrudStatusActions";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import {
+    CATALOG_STATUS_INITIAL_FILTERS,
+    loadActiveAndInactiveRows,
+    paginateCatalogRows,
+} from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
 export function TaxObligationListClient() {
-    const { startEdit } = useCrudScreen();
+    const {startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
+    const {activateMutation, deactivateMutation, handleActivate, handleDeactivate} = useCrudStatusActions({
+        service: taxObligationService,
+        queryKey: taxObligationKeys.all,
+        entityLabel: "Obrigação",
+    });
     const deleteMutation = useMutation({
         mutationFn: (id: string) => taxObligationService.remove(id),
         onSuccess: async () => {
@@ -32,9 +43,13 @@ export function TaxObligationListClient() {
     };
 
     return (
-        <QueryTablePanel<TaxObligation>
+        <QueryPagedTablePanel<TaxObligation>
             queryKey={taxObligationKeys.all}
-            request={() => taxObligationService.getAll()}
+            initialFilters={CATALOG_STATUS_INITIAL_FILTERS}
+            request={async (page, size, filters) => {
+                const rows = await loadActiveAndInactiveRows((options) => taxObligationService.getAll(options));
+                return paginateCatalogRows(rows, page, size, filters);
+            }}
             columns={TAX_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhuma obrigação fiscal cadastrada."
@@ -45,7 +60,11 @@ export function TaxObligationListClient() {
                     onEdit={() => startEdit(row.id, row)}
                     onDelete={() => void handleDelete(row)}
                     deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
-                />
+                        onActivate={() => handleActivate(row.id)}
+                        onDeactivate={() => void handleDeactivate(row.id)}
+                        activateLoading={activateMutation.isPending && activateMutation.variables === row.id}
+                        deactivateLoading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
+                    />
             )}
         />
     );

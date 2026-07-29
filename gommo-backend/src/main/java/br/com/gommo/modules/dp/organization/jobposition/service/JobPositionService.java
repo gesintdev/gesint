@@ -106,6 +106,28 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
         return updated;
     }
 
+    
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('jobposition:read')")
+    public List<JobPositionResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('jobposition:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('jobposition:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('jobposition:delete')")

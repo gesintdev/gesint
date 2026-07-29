@@ -260,6 +260,29 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         return findById(saved.getId());
     }
 
+    
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('leave:read')")
+    public List<LeaveRequestResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('leave:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('leave:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('leave:delete')")

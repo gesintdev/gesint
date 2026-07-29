@@ -17,7 +17,11 @@ public interface IBaseRepository<T extends AuditEntity> extends JpaRepository<T,
 
     List<T> findAllByStatusNotOrderByCreatedAtDesc(StatusEnum status);
 
+    List<T> findAllByStatusOrderByCreatedAtDesc(StatusEnum status);
+
     Page<T> findAllByStatusNot(StatusEnum status, Pageable pageable);
+
+    Page<T> findAllByStatus(StatusEnum status, Pageable pageable);
 
     Optional<T> findByIdAndStatusNot(UUID id, StatusEnum status);
 }

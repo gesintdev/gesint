@@ -28,6 +28,13 @@ export type DataTableProps<T extends object> = {
     renderActions?: (_row: T) => ReactNode;
     actionsHeader?: string;
     actionsClassName?: string;
+    /** Conteúdo na área de filtro do header da coluna Ações (ex.: Limpar filtros). */
+    actionsFilterSlot?: ReactNode;
+    /**
+     * Força a coluna Ações mesmo sem `renderActions` (ex.: só o slot de limpar filtros).
+     * Se omitido, a coluna aparece quando há `renderActions` ou `actionsFilterSlot`.
+     */
+    showActionsColumn?: boolean;
     renderColumnHeader?: (_column: TableColumnConfig) => ReactNode;
     getRowClassName?: (_row: T) => string | undefined;
 };
@@ -174,6 +181,8 @@ export function DataTable<T extends object>({
     renderActions,
     actionsHeader = "Ações",
     actionsClassName,
+    actionsFilterSlot,
+    showActionsColumn,
     renderColumnHeader,
     getRowClassName,
 }: DataTableProps<T>) {
@@ -185,8 +194,9 @@ export function DataTable<T extends object>({
         onRowClick,
         onRowDoubleClick,
     });
-    const hasActions = Boolean(renderActions);
-    const colSpan = columns.length + (hasActions ? 1 : 0);
+    const hasActionsColumn =
+        showActionsColumn ?? (Boolean(renderActions) || actionsFilterSlot != null);
+    const colSpan = columns.length + (hasActionsColumn ? 1 : 0);
     const stopRowClick = (e: MouseEvent) => e.stopPropagation();
 
     return (
@@ -210,15 +220,28 @@ export function DataTable<T extends object>({
                                 )}
                             </th>
                         ))}
-                        {hasActions && (
+                        {hasActionsColumn && (
                             <th
                                 className={clsx(
                                     stickyHeader && "sticky top-0 z-[1]",
-                                    "text-left",
+                                    "text-right",
                                     actionsClassName,
                                 )}
                             >
-                                <span className="gommo-table-col-title">{actionsHeader}</span>
+                                {actionsFilterSlot !== undefined ? (
+                                    <div className="flex min-w-[7.5rem] flex-col items-end gap-1.5">
+                                        <span className="gommo-table-col-title">{actionsHeader}</span>
+                                        <div
+                                            className="gommo-column-filter-host w-full"
+                                            onClick={stopRowClick}
+                                            onDoubleClick={stopRowClick}
+                                        >
+                                            {actionsFilterSlot}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <span className="gommo-table-col-title">{actionsHeader}</span>
+                                )}
                             </th>
                         )}
                     </tr>
@@ -263,15 +286,17 @@ export function DataTable<T extends object>({
                                             </td>
                                         );
                                     })}
-                                    {hasActions && (
+                                    {hasActionsColumn && (
                                         <td className={clsx("text-right", actionsClassName)}>
-                                            <div
-                                                className="gommo-table-actions"
-                                                onClick={stopRowClick}
-                                                onDoubleClick={stopRowClick}
-                                            >
-                                                {renderActions?.(row)}
-                                            </div>
+                                            {renderActions ? (
+                                                <div
+                                                    className="gommo-table-actions"
+                                                    onClick={stopRowClick}
+                                                    onDoubleClick={stopRowClick}
+                                                >
+                                                    {renderActions(row)}
+                                                </div>
+                                            ) : null}
                                         </td>
                                     )}
                                 </tr>

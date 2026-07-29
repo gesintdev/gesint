@@ -81,6 +81,29 @@ public class PaymentPeriodService extends BaseService<PaymentPeriod, PaymentPeri
         return mapper.toPeriodResponse(repository.save(entity));
     }
 
+    
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('payment:read')")
+    public List<PaymentPeriodResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('payment:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('payment:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('payment:delete')")

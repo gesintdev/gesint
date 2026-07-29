@@ -1,18 +1,31 @@
 import { type QueryKey, useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { X } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { ColumnFilterControl } from "@/shared/components/data/ColumnFilterControl";
 import { useRegisterQueryRefresh } from "@/shared/components/data/QueryRefreshContext";
+import { TableGridToolbar } from "@/shared/components/data/TableGridToolbar";
 import { TablePagination } from "@/shared/components/data/TablePagination";
 import { Button } from "@/shared/components/ui/Button";
 import { DataTable, type DataTableRowActivateOn } from "@/shared/components/ui/DataTable";
 import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
 import { ExceptionCapture } from "@/shared/exceptions";
+import { exportTableToExcel } from "@/shared/lib/table/export-table-excel";
 import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
 import { isColumnFilterable, type TableColumnConfig } from "@/shared/types/table.types";
 
 const EMPTY_FILTERS: Record<string, string[]> = {};
+
+function filtersEqual(left: Record<string, string[]>, right: Record<string, string[]>): boolean {
+    const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+    for (const key of keys) {
+        const a = left[key] ?? [];
+        const b = right[key] ?? [];
+        if (a.length !== b.length) return false;
+        if (a.some((value, index) => value !== b[index])) return false;
+    }
+    return true;
+}
 
 /** Props do render prop de {@link QueryPanel} (lista: `data` é sempre `TRow[]`). */
 export type QueryPanelRenderProps<TRow> = {
@@ -62,6 +75,10 @@ export type QueryPagedTablePanelProps<TRow extends object> = QueryTablePanelTabl
     request: (_page: number, _size: number, _filters: Record<string, string[]>) => Promise<PageableResponseDto<TRow>>;
     columns: TableColumnConfig[];
     baseFilters?: Record<string, string[]>;
+    /** Filtros iniciais das colunas (ex.: status ACTIVE). “Limpar filtros” restaura este valor. */
+    initialFilters?: Record<string, string[]>;
+    /** Nome base do arquivo Excel (sem extensão). */
+    exportFileName?: string;
     paginationMode?: "pages" | "load-more";
     pageSize?: number;
     pageSizeOptions?: number[];
@@ -194,6 +211,8 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         request,
         columns,
         baseFilters = EMPTY_FILTERS,
+        initialFilters = EMPTY_FILTERS,
+        exportFileName = "exportacao",
         paginationMode = "pages",
         pageSize = 20,
         pageSizeOptions,
@@ -204,11 +223,15 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     } = props;
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(pageSize);
-    const [filters, setFilters] = useState<Record<string, string[]>>({});
+    const [filters, setFilters] = useState<Record<string, string[]>>(() => ({...initialFilters}));
+    const [exporting, setExporting] = useState(false);
+    const columnIdsKey = columns.map((column) => column.id).join("|");
+    const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => columns.map((column) => column.id));
     const didMountRef = useRef(false);
-    const activeFilterCount = useMemo(
-        () => Object.values(filters).filter((value) => value.length > 0).length,
-        [filters],
+    const canClearFilters = useMemo(() => !filtersEqual(filters, initialFilters), [filters, initialFilters]);
+    const visibleColumns = useMemo(
+        () => columns.filter((column) => visibleColumnIds.includes(column.id)),
+        [columns, visibleColumnIds],
     );
     const query = useQuery({
         queryKey: [...queryKey, "page", page, size, filters, baseFilters],
@@ -216,6 +239,14 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         placeholderData: (previousData) => previousData,
     });
     useQueryPanelRefresh(query);
+
+    useEffect(() => {
+        const nextIds = columnIdsKey ? columnIdsKey.split("|") : [];
+        setVisibleColumnIds((current) => {
+            const retained = current.filter((id) => nextIds.includes(id));
+            return retained.length > 0 ? retained : nextIds;
+        });
+    }, [columnIdsKey]);
 
     // Base filters come from external segmented chips; changing them should start a fresh feed.
     useEffect(() => {
@@ -225,8 +256,8 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         }
         setPage(0);
         setSize(pageSize);
-        setFilters({});
-    }, [baseFilters, pageSize]);
+        setFilters({...initialFilters});
+    }, [baseFilters, initialFilters, pageSize]);
 
     if (query.isLoading) {
         return <>{fallback ?? <TableSkeleton />}</>;
@@ -265,28 +296,50 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     const clearFilters = () => {
         setPage(0);
         setSize(pageSize);
-        setFilters({});
+        setFilters({...initialFilters});
     };
+
+    const handleExportExcel = async () => {
+        if (exporting || visibleColumns.length === 0) return;
+        setExporting(true);
+        try {
+            const mergedFilters = { ...baseFilters, ...filters };
+            const total = Math.max(query.data.totalElements, 1);
+            const result = await request(0, total, mergedFilters);
+            exportTableToExcel({
+                rows: result.content,
+                columns: visibleColumns,
+                fileName: exportFileName,
+            });
+            toast.success("Planilha exportada");
+        } catch (err: unknown) {
+            ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível exportar a planilha."});
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const toolbarSlot = (
+        <TableGridToolbar
+            columns={columns}
+            visibleColumnIds={visibleColumnIds}
+            onVisibleColumnIdsChange={setVisibleColumnIds}
+            onExportExcel={() => void handleExportExcel()}
+            onClearFilters={clearFilters}
+            canClearFilters={canClearFilters}
+            exportDisabled={exporting || visibleColumns.length === 0}
+        />
+    );
 
     return (
         <div className="min-h-0 flex-1 p-1.5">
             <div className="overflow-visible rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 shadow-sm">
-                {activeFilterCount > 0 ? (
-                    <div className="flex items-center justify-end border-b border-[var(--gommo-border-subtle)] px-3 py-1.5">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            leftIcon={<X className="size-3.5" />}
-                            onClick={clearFilters}
-                        >
-                            Limpar filtros
-                        </Button>
-                    </div>
-                ) : null}
                 <DataTable<TRow>
                     data={query.data.content}
-                    columns={columns}
+                    columns={visibleColumns}
                     rowActivateOn={rowActivateOn}
+                    actionsFilterSlot={toolbarSlot}
+                    showActionsColumn
                     renderColumnHeader={(column) => (
                         <ColumnHeaderWithFilter
                             column={column}

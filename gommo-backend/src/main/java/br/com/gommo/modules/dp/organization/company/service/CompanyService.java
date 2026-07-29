@@ -74,6 +74,28 @@ public class CompanyService extends BaseService<Company, CompanyRequestDto, Comp
         return super.update(id, request);
     }
 
+    
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('company:read')")
+    public List<CompanyResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('company:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('company:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('company:delete')")

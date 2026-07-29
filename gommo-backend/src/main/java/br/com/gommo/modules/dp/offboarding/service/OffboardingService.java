@@ -102,6 +102,29 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
         return toEnrichedResponse(saved);
     }
 
+    
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('offboarding:read')")
+    public List<OffboardingResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('offboarding:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('offboarding:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('offboarding:delete')")

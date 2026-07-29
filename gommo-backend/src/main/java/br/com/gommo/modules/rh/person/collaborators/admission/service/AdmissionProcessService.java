@@ -179,6 +179,29 @@ public class AdmissionProcessService
         return toEnrichedResponse(saved);
     }
 
+    
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('admission:read')")
+    public List<AdmissionProcessResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('admission:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('admission:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('admission:delete')")

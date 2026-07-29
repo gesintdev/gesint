@@ -71,6 +71,29 @@ public class PayslipService extends BaseService<Payslip, PayslipRequestDto, Pays
         return super.update(id, request);
     }
 
+    
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('payslip:read')")
+    public List<PayslipResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('payslip:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('payslip:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('payslip:delete')")

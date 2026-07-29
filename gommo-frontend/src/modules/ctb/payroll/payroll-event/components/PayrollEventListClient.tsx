@@ -10,13 +10,24 @@ import { payrollEventKeys } from "@/modules/ctb/payroll/payroll-event/payroll-ev
 import { payrollEventService } from "@/modules/ctb/payroll/payroll-event/services/payroll-event.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { useCrudStatusActions } from "@/shared/components/crud/useCrudStatusActions";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import {
+    CATALOG_STATUS_INITIAL_FILTERS,
+    loadActiveAndInactiveRows,
+    paginateCatalogRows,
+} from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
 export function PayrollEventListClient() {
-    const { startEdit } = useCrudScreen();
+    const {startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
+    const {activateMutation, deactivateMutation, handleActivate, handleDeactivate} = useCrudStatusActions({
+        service: payrollEventService,
+        queryKey: payrollEventKeys.all,
+        entityLabel: "Evento",
+    });
     const deleteMutation = useMutation({
         mutationFn: (id: string) => payrollEventService.remove(id),
         onSuccess: async () => {
@@ -32,9 +43,13 @@ export function PayrollEventListClient() {
     };
 
     return (
-        <QueryTablePanel<PayrollEvent>
+        <QueryPagedTablePanel<PayrollEvent>
             queryKey={payrollEventKeys.all}
-            request={() => payrollEventService.getAll()}
+            initialFilters={CATALOG_STATUS_INITIAL_FILTERS}
+            request={async (page, size, filters) => {
+                const rows = await loadActiveAndInactiveRows((options) => payrollEventService.getAll(options));
+                return paginateCatalogRows(rows, page, size, filters);
+            }}
             columns={PAYROLL_EVENT_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum evento de folha cadastrado."
@@ -45,7 +60,11 @@ export function PayrollEventListClient() {
                     onEdit={() => startEdit(row.id, row)}
                     onDelete={() => void handleDelete(row)}
                     deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
-                />
+                        onActivate={() => handleActivate(row.id)}
+                        onDeactivate={() => void handleDeactivate(row.id)}
+                        activateLoading={activateMutation.isPending && activateMutation.variables === row.id}
+                        deactivateLoading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
+                    />
             )}
         />
     );

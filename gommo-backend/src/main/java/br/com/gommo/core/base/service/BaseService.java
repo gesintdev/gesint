@@ -1,6 +1,7 @@
 package br.com.gommo.core.base.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -19,6 +20,9 @@ import br.com.gommo.core.exception.BusinessException;
 
 public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto>
         implements IBaseService<RequestDto, ResponseDto> {
+
+    private static final List<String> STATUS_FILTER_OPTIONS = List.of(
+            StatusEnum.ACTIVE.name(), StatusEnum.INACTIVE.name());
 
     private final IBaseRepository<T> repository;
     private final Function<T, ResponseDto> toResponse;
@@ -47,7 +51,14 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
     @Override
     @Transactional(readOnly = true)
     public List<ResponseDto> findAll() {
-        return repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+        return findAll(StatusEnum.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResponseDto> findAll(StatusEnum status) {
+        StatusEnum resolved = resolveListStatus(status);
+        return repository.findAllByStatusOrderByCreatedAtDesc(resolved).stream()
                 .map(toResponse)
                 .toList();
     }
@@ -83,10 +94,26 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
     }
 
     @Override
+    @Transactional
+    public void activate(UUID id) {
+        T entity = findEntity(id);
+        entity.setStatus(StatusEnum.ACTIVE);
+        repository.save(entity);
+    }
+
+    @Override
+    @Transactional
+    public void deactivate(UUID id) {
+        T entity = findEntity(id);
+        entity.setStatus(StatusEnum.INACTIVE);
+        repository.save(entity);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public PageableResponseDto<ResponseDto> findPage(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<T> result = repository.findAllByStatusNot(StatusEnum.DELETED, pageable);
+        Page<T> result = repository.findAllByStatus(StatusEnum.ACTIVE, pageable);
         List<ResponseDto> content = result.getContent().stream().map(toResponse).toList();
         return PageableResponseDto.<ResponseDto>builder()
                 .content(content)
@@ -94,7 +121,7 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
                 .size(size)
                 .totalElements(result.getTotalElements())
                 .totalPages(result.getTotalPages())
-                .filterOptions(java.util.Map.of())
+                .filterOptions(Map.of("status", STATUS_FILTER_OPTIONS))
                 .build();
     }
 
@@ -109,5 +136,27 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
             return new BusinessException(notFoundCode, notFoundMessage, HttpStatus.NOT_FOUND);
         }
         throw new IllegalStateException("findEntity() must be overridden or notFoundCode/message provided");
+    }
+
+    protected static StatusEnum resolveListStatus(StatusEnum status) {
+        if (status == StatusEnum.INACTIVE) {
+            return StatusEnum.INACTIVE;
+        }
+        return StatusEnum.ACTIVE;
+    }
+
+    protected static StatusEnum resolveStatusFilter(Map<String, List<String>> filters) {
+        if (filters == null || filters.isEmpty()) {
+            return StatusEnum.ACTIVE;
+        }
+        List<String> values = filters.get("status");
+        if (values == null || values.isEmpty()) {
+            return StatusEnum.ACTIVE;
+        }
+        String raw = values.getFirst();
+        if (raw != null && raw.equalsIgnoreCase(StatusEnum.INACTIVE.name())) {
+            return StatusEnum.INACTIVE;
+        }
+        return StatusEnum.ACTIVE;
     }
 }

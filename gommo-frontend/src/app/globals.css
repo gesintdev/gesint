@@ -2011,6 +2011,58 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
     color: var(--color-base-content) !important;
 }
 
+.gommo-table thead th .gommo-column-filter-spacer {
+    box-sizing: border-box;
+    height: var(--gommo-table-action-button-size, 2rem);
+    min-height: var(--gommo-table-action-button-size, 2rem);
+}
+
+.gommo-table thead th .gommo-table-grid-toolbar {
+    justify-content: flex-end;
+    min-height: var(--gommo-table-action-button-size, 2rem);
+}
+
+.gommo-table-grid-toolbar__panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 40;
+    min-width: 13.5rem;
+    max-height: 18rem;
+    overflow: auto;
+    padding: 0.65rem 0.75rem;
+}
+
+.gommo-table-grid-toolbar__panel-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+}
+
+.gommo-table-grid-toolbar__panel-list {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gommo-table-grid-toolbar__panel-list .checkbox {
+    width: 0.875rem;
+    height: 0.875rem;
+    min-width: 0.875rem;
+    min-height: 0.875rem;
+}
+
+.gommo-table-grid-toolbar__panel-list .text-sm {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: color-mix(in srgb, var(--color-base-content) 82%, transparent);
+}
+
 [data-theme="dark"] .gommo-table th {
     background: color-mix(in srgb, var(--color-base-content) 4%, var(--color-base-100));
 }

@@ -109,6 +109,29 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
         return mapper.toResponse(repository.save(entity), count);
     }
 
+    
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('jobvacancy:read')")
+    public List<JobVacancyResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('jobvacancy:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('jobvacancy:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('jobvacancy:delete')")

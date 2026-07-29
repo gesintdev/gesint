@@ -35,7 +35,16 @@ public class ProficiencyLevelService
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('developmentplanconfig:read')")
     public List<ProficiencyLevelResponseDto> findAll() {
+        return findAll(StatusEnum.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    public List<ProficiencyLevelResponseDto> findAll(StatusEnum status) {
+        StatusEnum resolved = status == StatusEnum.INACTIVE ? StatusEnum.INACTIVE : StatusEnum.ACTIVE;
         return repository.findAllByStatusNotOrderByLevelOrderAsc(StatusEnum.DELETED).stream()
+                .filter(entity -> entity.getStatus() == resolved)
                 .map(mapper::toResponse)
                 .toList();
     }
@@ -66,6 +75,21 @@ public class ProficiencyLevelService
     @PreAuthorize("hasAuthority('developmentplanconfig:write')")
     public ProficiencyLevelResponseDto update(UUID id, ProficiencyLevelRequestDto request) {
         return super.update(id, request);
+    }
+
+    
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('developmentplanconfig:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('developmentplanconfig:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
     }
 
     @Override

@@ -39,7 +39,16 @@ public class DevelopmentActionTemplateService
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('developmentplanconfig:read')")
     public List<DevelopmentActionTemplateResponseDto> findAll() {
+        return findAll(StatusEnum.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    public List<DevelopmentActionTemplateResponseDto> findAll(StatusEnum status) {
+        StatusEnum resolved = status == StatusEnum.INACTIVE ? StatusEnum.INACTIVE : StatusEnum.ACTIVE;
         return repository.findAllByStatusNotOrderByTitleAsc(StatusEnum.DELETED).stream()
+                .filter(entity -> entity.getStatus() == resolved)
                 .map(mapper::toResponse)
                 .toList();
     }
@@ -70,6 +79,21 @@ public class DevelopmentActionTemplateService
     @PreAuthorize("hasAuthority('developmentplanconfig:write')")
     public DevelopmentActionTemplateResponseDto update(UUID id, DevelopmentActionTemplateRequestDto request) {
         return super.update(id, request);
+    }
+
+    
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('developmentplanconfig:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('developmentplanconfig:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
     }
 
     @Override

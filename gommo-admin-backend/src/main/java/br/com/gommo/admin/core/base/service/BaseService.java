@@ -47,7 +47,14 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
     @Override
     @Transactional(readOnly = true)
     public List<ResponseDto> findAll() {
-        return repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
+        return findAll(StatusEnum.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResponseDto> findAll(StatusEnum status) {
+        StatusEnum resolved = status == StatusEnum.INACTIVE ? StatusEnum.INACTIVE : StatusEnum.ACTIVE;
+        return repository.findAllByStatusOrderByCreatedAtDesc(resolved).stream()
                 .map(toResponse)
                 .toList();
     }
@@ -83,10 +90,26 @@ public abstract class BaseService<T extends AuditEntity, RequestDto, ResponseDto
     }
 
     @Override
+    @Transactional
+    public void activate(UUID id) {
+        T entity = findEntity(id);
+        entity.setStatus(StatusEnum.ACTIVE);
+        repository.save(entity);
+    }
+
+    @Override
+    @Transactional
+    public void deactivate(UUID id) {
+        T entity = findEntity(id);
+        entity.setStatus(StatusEnum.INACTIVE);
+        repository.save(entity);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public PageableResponseDto<ResponseDto> findPage(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<T> result = repository.findAllByStatusNot(StatusEnum.DELETED, pageable);
+        Page<T> result = repository.findAllByStatus(StatusEnum.ACTIVE, pageable);
         List<ResponseDto> content = result.getContent().stream().map(toResponse).toList();
         return PageableResponseDto.<ResponseDto>builder()
                 .content(content)

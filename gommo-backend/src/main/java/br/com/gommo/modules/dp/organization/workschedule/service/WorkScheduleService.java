@@ -99,6 +99,28 @@ public class WorkScheduleService extends BaseService<WorkSchedule, WorkScheduleR
         return super.update(id, request);
     }
 
+    
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('workschedule:read')")
+    public List<WorkScheduleResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('workschedule:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('workschedule:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('workschedule:delete')")

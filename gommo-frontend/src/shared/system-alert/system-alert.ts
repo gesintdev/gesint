@@ -95,4 +95,14 @@ export const SystemAlert = {
             destructive: true,
         });
     },
+    /** Atalho para inativação em grids de cadastro. */
+    confirmInactivate(message = "O registro deixará de aparecer nas listagens ativas. Deseja inativar?"): Promise<boolean> {
+        return SystemAlert.confirm({
+            variant: "warning",
+            title: "Confirmar inativação",
+            message,
+            confirmLabel: "Inativar",
+            cancelLabel: "Cancelar",
+        });
+    },
 };

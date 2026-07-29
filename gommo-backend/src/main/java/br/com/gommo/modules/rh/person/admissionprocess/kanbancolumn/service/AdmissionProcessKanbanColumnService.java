@@ -39,7 +39,16 @@ public class AdmissionProcessKanbanColumnService
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('admission:read')")
     public List<AdmissionProcessKanbanColumnResponseDto> findAll() {
+        return findAll(StatusEnum.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('admission:read')")
+    public List<AdmissionProcessKanbanColumnResponseDto> findAll(StatusEnum status) {
+        StatusEnum resolved = status == StatusEnum.INACTIVE ? StatusEnum.INACTIVE : StatusEnum.ACTIVE;
         return repository.findAllByStatusNotOrderByDisplayOrderAscNameAsc(StatusEnum.DELETED).stream()
+                .filter(column -> column.getStatus() == resolved)
                 .map(mapper::toResponse)
                 .toList();
     }
@@ -72,6 +81,20 @@ public class AdmissionProcessKanbanColumnService
     public AdmissionProcessKanbanColumnResponseDto update(UUID id, AdmissionProcessKanbanColumnRequestDto request) {
         normalize(request);
         return super.update(id, request);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('admission:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('admission:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
     }
 
     @Override

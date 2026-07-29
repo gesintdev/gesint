@@ -1,7 +1,6 @@
 "use client";
 
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {Check, PauseCircle} from "lucide-react";
 import {useSession} from "next-auth/react";
 import {useEffect} from "react";
 import {toast} from "sonner";
@@ -14,9 +13,10 @@ import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
 import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudTableActions} from "@/shared/components/crud/CrudTableActions";
-import {TableActionButton} from "@/shared/components/crud/TableActionButton";
+import {useCrudStatusActions} from "@/shared/components/crud/useCrudStatusActions";
 import {QueryPagedTablePanel} from "@/shared/components/data/DataPanel";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {CATALOG_STATUS_INITIAL_FILTERS} from "@/shared/lib/table/paginate-catalog-rows";
 import {SystemAlert} from "@/shared/system-alert";
 import {registerTabCloseHandler} from "@/shared/workspace/dirty-tab-guard";
 import {useWorkspaceTabOptional} from "@/shared/workspace/WorkspaceTabContext";
@@ -28,6 +28,11 @@ export function ProfileListClient() {
     const {data: session} = useSession();
     const tenantSlug = session?.tenantSlug?.trim() || "default";
     const username = session?.user?.username?.trim() || session?.user?.email?.trim() || "anonymous";
+    const {activateMutation, deactivateMutation, handleActivate, handleDeactivate} = useCrudStatusActions({
+        service: profileService,
+        queryKey: profileKeys.all,
+        entityLabel: "Perfil",
+    });
 
     useEffect(() => {
         const tabId = workspaceTab?.tab.id;
@@ -46,24 +51,6 @@ export function ProfileListClient() {
         onError: (err: unknown) =>
             ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível excluir o perfil."}),
     });
-    const activateMutation = useMutation({
-        mutationFn: (id: string) => profileService.activate(id),
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: profileKeys.all});
-            toast.success("Perfil ativado");
-        },
-        onError: (err: unknown) =>
-            ExceptionCapture.handle(err, {fallbackMessage: "Nao foi possivel ativar o perfil."}),
-    });
-    const deactivateMutation = useMutation({
-        mutationFn: (id: string) => profileService.deactivate(id),
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: profileKeys.all});
-            toast.success("Perfil inativado");
-        },
-        onError: (err: unknown) =>
-            ExceptionCapture.handle(err, {fallbackMessage: "Nao foi possivel inativar o perfil."}),
-    });
     const handleDelete = async (row: Profile) => {
         if (
             !(await SystemAlert.confirmDelete(
@@ -77,6 +64,7 @@ export function ProfileListClient() {
     return (
         <QueryPagedTablePanel<Profile>
             queryKey={profileKeys.list()}
+            initialFilters={CATALOG_STATUS_INITIAL_FILTERS}
             request={async (page, size, filters) => {
                 const rows = await profileService.getAll(undefined, true);
                 const visible = rows.filter((row) => row.status !== "DELETED");
@@ -87,38 +75,17 @@ export function ProfileListClient() {
             emptyMessage="Nenhum perfil cadastrado."
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (
-                <>
-                    <CrudTableActions
-                        row={row}
-                        showOpenTab={false}
-                        onEdit={() => startEdit(row.id, row)}
-                        onDelete={() => void handleDelete(row)}
-                        deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
-                    />
-                    {row.status === "INACTIVE" ? (
-                        <TableActionButton
-                            actionVariant="open"
-                            aria-label="Ativar perfil"
-                            leftIcon={<Check className="size-3.5"/>}
-                            loading={activateMutation.isPending && activateMutation.variables === row.id}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                activateMutation.mutate(row.id);
-                            }}
-                        />
-                    ) : row.status === "ACTIVE" ? (
-                        <TableActionButton
-                            actionVariant="open"
-                            aria-label="Inativar perfil"
-                            leftIcon={<PauseCircle className="size-3.5"/>}
-                            loading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                deactivateMutation.mutate(row.id);
-                            }}
-                        />
-                    ) : null}
-                </>
+                <CrudTableActions
+                    row={row}
+                    showOpenTab={false}
+                    onEdit={() => startEdit(row.id, row)}
+                    onDelete={() => void handleDelete(row)}
+                    onActivate={() => handleActivate(row.id)}
+                    onDeactivate={() => void handleDeactivate(row.id)}
+                    deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                    activateLoading={activateMutation.isPending && activateMutation.variables === row.id}
+                    deactivateLoading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
+                />
             )}
         />
     );

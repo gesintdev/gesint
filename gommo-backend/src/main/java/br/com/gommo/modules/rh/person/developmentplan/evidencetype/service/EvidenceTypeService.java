@@ -34,7 +34,16 @@ public class EvidenceTypeService extends BaseService<EvidenceType, EvidenceTypeR
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('developmentplanconfig:read')")
     public List<EvidenceTypeResponseDto> findAll() {
+        return findAll(StatusEnum.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    public List<EvidenceTypeResponseDto> findAll(StatusEnum status) {
+        StatusEnum resolved = status == StatusEnum.INACTIVE ? StatusEnum.INACTIVE : StatusEnum.ACTIVE;
         return repository.findAllByStatusNotOrderByNameAsc(StatusEnum.DELETED).stream()
+                .filter(entity -> entity.getStatus() == resolved)
                 .map(mapper::toResponse)
                 .toList();
     }
@@ -65,6 +74,21 @@ public class EvidenceTypeService extends BaseService<EvidenceType, EvidenceTypeR
     @PreAuthorize("hasAuthority('developmentplanconfig:write')")
     public EvidenceTypeResponseDto update(UUID id, EvidenceTypeRequestDto request) {
         return super.update(id, request);
+    }
+
+    
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('developmentplanconfig:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('developmentplanconfig:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
     }
 
     @Override

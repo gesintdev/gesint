@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.IBaseService;
+import br.com.gommo.core.entity.StatusEnum;
 
 /**
  * CRUD REST padrão. RBAC por módulo fica no {@link IBaseService} (ex.: {@code PersonService}).
@@ -27,8 +28,9 @@ public abstract class BaseController<RequestDto, ResponseDto> {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResponseDto>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<ResponseDto>> findAll(
+            @RequestParam(defaultValue = "ACTIVE") StatusEnum status) {
+        return ResponseEntity.ok(service.findAll(status));
     }
 
     @GetMapping("/page")
@@ -60,6 +62,18 @@ public abstract class BaseController<RequestDto, ResponseDto> {
     @PutMapping(UUID_PATH)
     public ResponseEntity<ResponseDto> update(@PathVariable UUID id, @Valid @RequestBody RequestDto request) {
         return ResponseEntity.ok(service.update(id, request));
+    }
+
+    @PutMapping(UUID_PATH + "/activate")
+    public ResponseEntity<Void> activate(@PathVariable UUID id) {
+        service.activate(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(UUID_PATH + "/deactivate")
+    public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
+        service.deactivate(id);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping(UUID_PATH)

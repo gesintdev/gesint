@@ -9,13 +9,24 @@ import { exitInterviewReturnChecklistConfigKeys } from "@/modules/cfg/settings/e
 import { exitInterviewReturnChecklistConfigService } from "@/modules/cfg/settings/exitinterviewchecklist/services/exit-interview-return-checklist-config.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { useCrudStatusActions } from "@/shared/components/crud/useCrudStatusActions";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import {
+    CATALOG_STATUS_INITIAL_FILTERS,
+    loadActiveAndInactiveRows,
+    paginateCatalogRows,
+} from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
 export function ExitInterviewReturnChecklistConfigListClient() {
-    const { startEdit } = useCrudScreen();
+    const {startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
+    const {activateMutation, deactivateMutation, handleActivate, handleDeactivate} = useCrudStatusActions({
+        service: exitInterviewReturnChecklistConfigService,
+        queryKey: exitInterviewReturnChecklistConfigKeys.all,
+        entityLabel: "Item",
+    });
     const deleteMutation = useMutation({
         mutationFn: (id: string) => exitInterviewReturnChecklistConfigService.remove(id),
         onSuccess: async () => {
@@ -31,9 +42,13 @@ export function ExitInterviewReturnChecklistConfigListClient() {
     };
 
     return (
-        <QueryTablePanel<ExitInterviewReturnChecklistConfig>
+        <QueryPagedTablePanel<ExitInterviewReturnChecklistConfig>
             queryKey={exitInterviewReturnChecklistConfigKeys.all}
-            request={() => exitInterviewReturnChecklistConfigService.getAll()}
+            initialFilters={CATALOG_STATUS_INITIAL_FILTERS}
+            request={async (page, size, filters) => {
+                const rows = await loadActiveAndInactiveRows((options) => exitInterviewReturnChecklistConfigService.getAll(options));
+                return paginateCatalogRows(rows, page, size, filters);
+            }}
             columns={EXIT_INTERVIEW_RETURN_CHECKLIST_CONFIG_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum item de devolução cadastrado."
@@ -44,7 +59,11 @@ export function ExitInterviewReturnChecklistConfigListClient() {
                     onEdit={() => startEdit(row.id, row)}
                     onDelete={() => void handleDelete(row)}
                     deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
-                />
+                        onActivate={() => handleActivate(row.id)}
+                        onDeactivate={() => void handleDeactivate(row.id)}
+                        activateLoading={activateMutation.isPending && activateMutation.variables === row.id}
+                        deactivateLoading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
+                    />
             )}
         />
     );

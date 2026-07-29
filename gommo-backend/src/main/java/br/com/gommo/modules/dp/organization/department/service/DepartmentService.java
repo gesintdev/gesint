@@ -102,6 +102,28 @@ public class DepartmentService extends BaseService<Department, DepartmentRequest
         return updated;
     }
 
+    
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('department:read')")
+    public List<DepartmentResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('department:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('department:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('department:delete')")

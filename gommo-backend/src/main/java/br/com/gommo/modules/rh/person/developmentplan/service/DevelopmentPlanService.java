@@ -93,6 +93,29 @@ public class DevelopmentPlanService extends BaseService<DevelopmentPlan, Develop
         return mapper.toResponse(repository.save(entity));
     }
 
+    
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('developmentplan:read')")
+    public List<DevelopmentPlanResponseDto> findAll(StatusEnum status) {
+        return super.findAll(status);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('developmentplan:write')")
+    public void activate(UUID id) {
+        super.activate(id);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('developmentplan:write')")
+    public void deactivate(UUID id) {
+        super.deactivate(id);
+    }
+
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('developmentplan:delete')")
