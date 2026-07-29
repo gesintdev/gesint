@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { publicAuthService } from "@/modules/root/services/public-auth.service";
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { AdminInput } from "@/shared/components/ui/admin/AdminField";
-import { InputPassword } from "@/shared/components/ui/input";
+import { InputPassword } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
 
 function AuthCard({

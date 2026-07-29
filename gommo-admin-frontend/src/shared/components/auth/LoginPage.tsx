@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { AdminInput } from "@/shared/components/ui/admin/AdminField";
-import { InputPassword } from "@/shared/components/ui/input";
+import { InputPassword } from "@/shared/components/ui/input/index";
 
 export function LoginPage() {
     const router = useRouter();

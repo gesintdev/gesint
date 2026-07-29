@@ -8,8 +8,8 @@ import { toast } from "sonner";
 
 import { publicAuthService } from "@/modules/root/services/public-auth.service";
 import { Button } from "@/shared/components/ui/Button";
-import { Input } from "@/shared/components/ui/Input";
-import { InputPassword } from "@/shared/components/ui/input";
+import { FormInput } from "@/shared/components/ui/FormInput";
+import { InputPassword } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 function PasswordSetupForm() {
@@ -112,7 +112,7 @@ function PasswordSetupForm() {
                         : "Informe o token de acesso, a nova senha e a confirmação."}
                 </p>
             </div>
-            <Input
+            <FormInput
                 label="Token de acesso"
                 type="text"
                 inputMode="numeric"

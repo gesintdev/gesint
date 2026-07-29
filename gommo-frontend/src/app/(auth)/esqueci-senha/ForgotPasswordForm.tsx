@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { publicAuthService } from "@/modules/root/services/public-auth.service";
 import { Button } from "@/shared/components/ui/Button";
-import { Input } from "@/shared/components/ui/Input";
+import { FormInput } from "@/shared/components/ui/FormInput";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 export function ForgotPasswordForm() {
@@ -56,7 +56,7 @@ export function ForgotPasswordForm() {
                     Se o e-mail informado estiver cadastrado, você receberá as instruções em breve.
                 </p>
             ) : (
-                <Input
+                <FormInput
                     label="E-mail"
                     type="email"
                     autoComplete="email"

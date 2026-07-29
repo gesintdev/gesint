@@ -22,6 +22,7 @@ export type OpenWorkspaceTabInput = {
     shortLabel?: string;
     icon?: LucideIcon;
     titleSuffix?: string;
+    entityKey?: string;
 };
 
 export type OpenWorkspaceRecordInput = OpenWorkspaceTabInput & {

@@ -8,8 +8,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/shared/components/ui/Button";
-import { Input } from "@/shared/components/ui/Input";
-import { InputCheckbox, InputPassword } from "@/shared/components/ui/input";
+import { FormInput } from "@/shared/components/ui/FormInput";
+import { InputCheckbox, InputPassword } from "@/shared/components/ui/input/index";
 import { resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
 import { applyDocumentTheme, resolveThemePreference } from "@/shared/lib/theme-preference";
 
@@ -74,7 +74,7 @@ export function LoginForm() {
             className="login-form"
             noValidate
         >
-            <Input
+            <FormInput
                 label="Usuário ou e-mail"
                 type="text"
                 autoComplete="username"

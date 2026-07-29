@@ -7,7 +7,7 @@ import {toast} from "sonner";
 import {accountService} from "@/modules/cfg/account/services/account.service";
 import {Button} from "@/shared/components/ui/Button";
 import {Card} from "@/shared/components/ui/Card";
-import {InputPassword} from "@/shared/components/ui/input";
+import {InputPassword} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
 
 export function AccountPasswordCard() {

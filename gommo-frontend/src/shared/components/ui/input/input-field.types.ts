@@ -11,6 +11,7 @@ export type InputFieldChromeProps = {
     id?: string;
     /** Quando false, o rótulo não dispara o controle (ex.: select com botão). */
     labelFor?: boolean;
+    placeholder?: string;
 };
 
 export type InputBaseProps = InputFieldChromeProps & {

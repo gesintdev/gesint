@@ -1,7 +1,7 @@
 "use client";
 
-import {useMemo} from "react";
 import {ChevronLeft, ChevronRight} from "lucide-react";
+import {useMemo} from "react";
 
 import {
     isSameDay,
@@ -12,7 +12,7 @@ import {
     visibleWeekHighlightDays,
     weekdayShortLabels,
 } from "@/modules/cfg/settings/agenda/lib/agenda-calendar.util";
-import {InputCheckbox} from "@/shared/components/ui/input";
+import {InputCheckbox} from "@/shared/components/ui/input/index";
 
 type AgendaSidebarProps = {
     visibleMonth: Date;

@@ -29,7 +29,7 @@ export function nextPunchIndex(record?: AttendanceRecord | null) {
     if (!record.breakStart) return 1;
     if (!record.breakEnd) return 2;
     if (!record.clockOut) return 3;
-    return 4;
+    return 3;
 }
 
 export function nextPunchLabel(record?: AttendanceRecord | null) {

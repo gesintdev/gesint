@@ -4,8 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import type { AdmissionProcessKanbanColumnCreateDto } from "@/modules/cfg/settings/admissionprocesskanban/dto/admission-process-kanban-column.dto";
 import { admissionProcessKanbanColumnKeys } from "@/modules/cfg/settings/admissionprocesskanban/admission-process-kanban-column.query";
+import type { AdmissionProcessKanbanColumnCreateDto } from "@/modules/cfg/settings/admissionprocesskanban/dto/admission-process-kanban-column.dto";
 import {
     admissionProcessKanbanColumnToFormDto,
     emptyAdmissionProcessKanbanColumnForm,

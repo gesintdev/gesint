@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
-export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
+export type FormInputProps = InputHTMLAttributes<HTMLInputElement> & {
     label?: string;
     hint?: string;
     error?: string;
@@ -12,7 +12,7 @@ export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
     wrapperClassName?: string;
 };
 
-export function Input({
+export function FormInput({
     label,
     hint,
     error,
@@ -22,7 +22,7 @@ export function Input({
     wrapperClassName,
     id,
     ...props
-}: InputProps) {
+}: FormInputProps) {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
