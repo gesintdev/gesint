@@ -7,10 +7,7 @@ import {toast} from "sonner";
 
 import {notificationKeys} from "@/modules/cfg/settings/notification/notification.query";
 import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
-import {
-    AttendanceEditableGrid,
-    isAttendanceDraftId,
-} from "@/modules/dp/attendance/components/AttendanceEditableGrid";
+import {AttendanceEditableGrid, isAttendanceDraftId,} from "@/modules/dp/attendance/components/AttendanceEditableGrid";
 import {AttendanceRequestDetailModal} from "@/modules/dp/attendance/components/AttendanceRequestDetailModal";
 import {AttendanceRequestRejectDialog} from "@/modules/dp/attendance/components/AttendanceRequestRejectDialog";
 import type {
@@ -336,7 +333,7 @@ export function AttendanceRecordFormClient() {
         return (
             <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-6">
                 <div
-                    className="w-full max-w-md rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 px-5 py-6">
+                    className="w-full max-w-md rounded-xl border border-(--gommo-border-subtle) bg-base-100 px-5 py-6">
                     <h3 className="text-sm font-semibold text-base-content">Selecione um colaborador</h3>
                     <p className="mt-1 text-sm text-base-content/55">
                         Escolha na listagem ou busque abaixo para editar o histórico de pontos.
@@ -392,7 +389,7 @@ export function AttendanceRecordFormClient() {
     return (
         <div className="flex min-h-0 flex-1 flex-col">
             <header
-                className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--gommo-border-subtle)] px-4 py-3">
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-(--gommo-border-subtle) px-4 py-3">
                 <div className="min-w-0">
                     <h3 className="truncate text-sm font-semibold text-base-content">
                         {focus.collaboratorName ?? "Colaborador"}
@@ -470,7 +467,7 @@ export function AttendanceRecordFormClient() {
                         onDetailRequest={setSelectedRequest}
                     />
                     {historyQuery.hasNextPage ? (
-                        <div className="border-t border-[var(--gommo-border-subtle)] px-4 py-3">
+                        <div className="border-t border-(--gommo-border-subtle) px-4 py-3">
                             <Button
                                 type="button"
                                 variant="ghost"

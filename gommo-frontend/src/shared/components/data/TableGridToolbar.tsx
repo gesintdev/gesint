@@ -92,6 +92,7 @@ export function TableGridToolbar({
                                                 checked={checked}
                                                 disabled={onlyOne}
                                                 label={column.columnName}
+                                                className={'px-2 py-2 rounded-[var(--gommo-radius)] hover:bg-[var(--color-base-300)]'}
                                                 onCheckedChange={(next) => toggleColumn(column.id, next)}
                                             />
                                         </li>

@@ -9,6 +9,7 @@ import {notificationKeys} from "@/modules/cfg/settings/notification/notification
 import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
 import {AttendanceRequestDetailModal} from "@/modules/dp/attendance/components/AttendanceRequestDetailModal";
 import {AttendanceRequestRejectDialog} from "@/modules/dp/attendance/components/AttendanceRequestRejectDialog";
+import {REQUEST_COLUMNS} from "@/modules/dp/attendance/config/request.table-columns";
 import type {
     AttendanceCompensationType,
     AttendanceRequest,
@@ -18,25 +19,6 @@ import {attendancerecordService} from "@/modules/dp/attendance/services/attendan
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";
 import {QueryTablePanel} from "@/shared/components/data/DataPanel";
 import {ExceptionCapture} from "@/shared/exceptions";
-import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types";
-
-const REQUEST_COLUMNS: TableColumnConfig[] = [
-    {id: "code", columnName: "Código", fieldValue: "code", dataType: TableDataType.TEXT},
-    {id: "collaboratorName", columnName: "Colaborador", fieldValue: "collaboratorName", dataType: TableDataType.TEXT},
-    {id: "workDate", columnName: "Data", fieldValue: "workDate", dataType: TableDataType.DATE},
-    {id: "requestTypeLabel", columnName: "Tipo", fieldValue: "requestTypeLabel", dataType: TableDataType.TEXT},
-    {id: "requestStatusLabel", columnName: "Status", fieldValue: "requestStatusLabel", dataType: TableDataType.TEXT},
-    {id: "clockInCompare", columnName: "Entrada", fieldValue: "clockInCompare", dataType: TableDataType.TEXT},
-    {
-        id: "breakStartCompare",
-        columnName: "Saída almoço",
-        fieldValue: "breakStartCompare",
-        dataType: TableDataType.TEXT
-    },
-    {id: "breakEndCompare", columnName: "Retorno almoço", fieldValue: "breakEndCompare", dataType: TableDataType.TEXT},
-    {id: "clockOutCompare", columnName: "Saída", fieldValue: "clockOutCompare", dataType: TableDataType.TEXT},
-    {id: "notes", columnName: "Justificativa", fieldValue: "notes", dataType: TableDataType.TEXT},
-];
 
 const requestTypeLabel: Record<string, string> = {
     TIME_ADJUSTMENT: "Ajuste de ponto",

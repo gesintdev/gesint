@@ -2043,8 +2043,9 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 }
 
 .gommo-table-grid-toolbar__panel-list {
-    display: grid;
-    gap: 0.65rem;
+    gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
     margin: 0;
     padding: 0;
     list-style: none;

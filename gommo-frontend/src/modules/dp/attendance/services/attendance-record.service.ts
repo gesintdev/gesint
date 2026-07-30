@@ -47,10 +47,6 @@ class AttendanceRecordService extends BaseService<
         return apiFetch<AttendanceRequest[]>(`${this.basePath}/requests`);
     }
 
-    pendingRequests() {
-        return apiFetch<AttendanceRequest[]>(`${this.basePath}/requests/pending`);
-    }
-
     review(id: string, action: AttendanceReviewAction, reason?: string, compensationType?: AttendanceCompensationType) {
         return apiFetch<AttendanceRequest>(`${this.basePath}/requests/${id}/review`, {
             method: "POST",

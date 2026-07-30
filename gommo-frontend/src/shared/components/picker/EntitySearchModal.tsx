@@ -135,11 +135,11 @@ export function EntitySearchModal<T extends object>({
                     </div>
                     <button
                         type="button"
-                        className="btn btn-ghost btn-sm btn-circle"
+                        className="gommo-btn gommo-btn--ghost gommo-btn--icon-only shrink-0 text-base-content/50"
                         aria-label="Fechar"
                         onClick={onClose}
                     >
-                        <X className="size-4" />
+                        <X className="size-4" strokeWidth={2} />
                     </button>
                 </div>
                 <div

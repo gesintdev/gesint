@@ -47,7 +47,15 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('jobvacancy:read')")
     public List<JobVacancyResponseDto> findAll() {
-        List<JobVacancy> vacancies = repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED);
+        return findAll(StatusEnum.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('jobvacancy:read')")
+    public List<JobVacancyResponseDto> findAll(StatusEnum status) {
+        StatusEnum resolved = resolveListStatus(status);
+        List<JobVacancy> vacancies = repository.findAllByStatusOrderByCreatedAtDesc(resolved);
         Map<UUID, Integer> counts = loadCandidateCounts();
         return vacancies.stream()
                 .map(entity -> mapper.toResponse(entity, counts.getOrDefault(entity.getId(), 0)))
@@ -69,7 +77,7 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
     public PageableResponseDto<JobVacancyResponseDto> findPage(int page, int size) {
         var pageable = org.springframework.data.domain.PageRequest.of(
                 page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
-        var result = repository.findAllByStatusNot(StatusEnum.DELETED, pageable);
+        var result = repository.findAllByStatus(StatusEnum.ACTIVE, pageable);
         Map<UUID, Integer> counts = loadCandidateCounts();
         List<JobVacancyResponseDto> content = result.getContent().stream()
                 .map(entity -> mapper.toResponse(entity, counts.getOrDefault(entity.getId(), 0)))
@@ -80,7 +88,7 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
                 .size(size)
                 .totalElements(result.getTotalElements())
                 .totalPages(result.getTotalPages())
-                .filterOptions(java.util.Map.of())
+                .filterOptions(java.util.Map.of("status", List.of(StatusEnum.ACTIVE.name(), StatusEnum.INACTIVE.name())))
                 .build();
     }
 
@@ -107,15 +115,6 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
         applyPublishState(entity, previousPublishedAt);
         int count = (int) applicationRepository.countByJobVacancyIdAndStatusNot(id, StatusEnum.DELETED);
         return mapper.toResponse(repository.save(entity), count);
-    }
-
-    
-
-    @Override
-    @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('jobvacancy:read')")
-    public List<JobVacancyResponseDto> findAll(StatusEnum status) {
-        return super.findAll(status);
     }
 
     @Override

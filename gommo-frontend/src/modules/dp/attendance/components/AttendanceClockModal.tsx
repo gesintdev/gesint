@@ -222,10 +222,10 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
 
             let photo:
                 | {
-                      objectId: string;
-                      fileName: string;
-                      documentType: string;
-                  }
+                objectId: string;
+                fileName: string;
+                documentType: string;
+            }
                 | undefined;
 
             if (context.requirePhoto) {
@@ -295,10 +295,10 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
         cameraStatus === "requesting"
             ? "Aguardando permissão da câmera..."
             : cameraStatus === "denied"
-              ? "Permissão da câmera necessária. Autorize o acesso no navegador."
-              : cameraStatus === "unavailable"
-                ? "Não foi possível acessar a câmera neste dispositivo."
-                : null;
+                ? "Permissão da câmera necessária. Autorize o acesso no navegador."
+                : cameraStatus === "unavailable"
+                    ? "Não foi possível acessar a câmera neste dispositivo."
+                    : null;
 
     const contextErrorMessage =
         contextQuery.isError && !contextQuery.isFetching
@@ -326,7 +326,7 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                         onClick={onClose}
                         disabled={clockMutation.isPending}
                     >
-                        <X className="size-4" strokeWidth={2} />
+                        <X className="size-4" strokeWidth={2}/>
                     </button>
                 </div>
 
@@ -344,12 +344,13 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                                     {contextQuery.isLoading
                                         ? "Carregando..."
                                         : journeyDone
-                                          ? "Jornada concluída"
-                                          : punchLabel}
+                                            ? "Jornada concluída"
+                                            : punchLabel}
                                 </p>
                             </div>
 
-                            <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-2xl border border-base-content/10 bg-base-300">
+                            <div
+                                className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-2xl border border-base-content/10 bg-base-300">
                                 <video
                                     ref={videoRef}
                                     className="size-full scale-x-[-1] object-cover"
@@ -358,14 +359,15 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                                     autoPlay
                                 />
                                 {cameraStatus !== "ready" && cameraOverlayMessage ? (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-base-300 px-6 text-center">
+                                    <div
+                                        className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-base-300 px-6 text-center">
                                         {cameraStatus === "requesting" ? (
                                             <Loader2
                                                 className="size-8 animate-spin text-base-content/35"
                                                 strokeWidth={1.75}
                                             />
                                         ) : (
-                                            <CameraOff className="size-8 text-base-content/35" strokeWidth={1.75} />
+                                            <CameraOff className="size-8 text-base-content/35" strokeWidth={1.75}/>
                                         )}
                                         <p className="text-sm text-base-content/65">{cameraOverlayMessage}</p>
                                     </div>
@@ -390,7 +392,7 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                     </div>
 
                     <div className="flex min-h-0 min-w-0 flex-col bg-base-200/20">
-                        <AttendanceWeekHistoryPanel enabled={open && mounted} />
+                        <AttendanceWeekHistoryPanel enabled={open && mounted}/>
                     </div>
                 </div>
 

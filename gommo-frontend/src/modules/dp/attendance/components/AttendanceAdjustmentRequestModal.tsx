@@ -95,8 +95,8 @@ function buildDetails(reason: string, note: string, changedLabels: string[]) {
         changedLabels.length === 0
             ? "Ajuste de ponto"
             : changedLabels.length === 1
-              ? `Alteração de ${changedLabels[0]}`
-              : `Alteração de ${changedLabels.join(", ")}`;
+                ? `Alteração de ${changedLabels[0]}`
+                : `Alteração de ${changedLabels.join(", ")}`;
     const lines = [`Ação: ${action}`, `Motivo: ${reason}`];
     const trimmed = note.trim();
     if (trimmed) lines.push(`Observação: ${trimmed}`);
@@ -118,10 +118,10 @@ function collectChangedPunches(values: PunchValues, original: PunchValues) {
 }
 
 export function AttendanceAdjustmentRequestModal({
-    open,
-    target,
-    onClose,
-}: AttendanceAdjustmentRequestModalProps) {
+                                                     open,
+                                                     target,
+                                                     onClose,
+                                                 }: AttendanceAdjustmentRequestModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const queryClient = useQueryClient();
     const [mounted, setMounted] = useState(false);
@@ -166,7 +166,7 @@ export function AttendanceAdjustmentRequestModal({
         }
     }, [open, mounted]);
 
-    const closeOnlyThisModal = (event?: {stopPropagation?: () => void}) => {
+    const closeOnlyThisModal = (event?: { stopPropagation?: () => void }) => {
         event?.stopPropagation?.();
         onClose();
     };
