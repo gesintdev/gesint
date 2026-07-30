@@ -18,6 +18,8 @@ public final class TenantSchemaTableCatalog {
             "employment_contract",
             "contract_recess_policy",
             "contract_recess_period",
+            "work_schedule",
+            "work_schedule_day",
             "admission_process",
             "admission_process_kanban_column",
             "attendance_record",

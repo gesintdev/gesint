@@ -5,6 +5,10 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   jackson:
     time-zone: America/Sao_Paulo
+  datasource:
+    hikari:
+      # Enums de negocio ficam em gommo_types (movidos de public). Sem isso, CAST(? AS status_enum) quebra.
+      connection-init-sql: SET search_path TO admin, public, gommo_types
   jpa:
     open-in-view: false
     hibernate:

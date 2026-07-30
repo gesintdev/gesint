@@ -1,5 +1,6 @@
 package br.com.gommo.core.tenant;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +29,7 @@ class TenantSchemaDataSourceTest {
     }
 
     @Test
-    void applySearchPathUsesTenantSchema() throws Exception {
+    void applySearchPathUsesTenantSchemaOnlyFailClosed() throws Exception {
         when(connection.createStatement()).thenReturn(statement);
         TenantContextHolder.set(new TenantContext(
                 UUID.randomUUID(),
@@ -40,7 +41,7 @@ class TenantSchemaDataSourceTest {
 
         TenantSchemaDataSource.applySearchPath(connection);
 
-        verify(statement).execute("SET search_path TO \"tenant_empresa_a\", public");
+        verify(statement).execute("SET search_path TO \"tenant_empresa_a\", gommo_types");
     }
 
     @Test
@@ -50,15 +51,38 @@ class TenantSchemaDataSourceTest {
 
         TenantSchemaDataSource.applySearchPath(connection);
 
-        verify(statement).execute("SET search_path TO public");
+        verify(statement).execute("SET search_path TO public, gommo_types");
     }
 
     @Test
-    void applySearchPathUsesPublicWhenNoTenantContext() throws Exception {
+    void applySearchPathUsesPublicAndTypesForDevelopmentPublicTenant() throws Exception {
+        when(connection.createStatement()).thenReturn(statement);
+        TenantContextHolder.set(TenantContext.developmentPublic("dev-public"));
+
+        TenantSchemaDataSource.applySearchPath(connection);
+
+        verify(statement).execute("SET search_path TO public, gommo_types");
+    }
+
+    @Test
+    void applySearchPathUsesPublicAndTypesWhenNoTenantContext() throws Exception {
         when(connection.createStatement()).thenReturn(statement);
 
         TenantSchemaDataSource.applySearchPath(connection);
 
-        verify(statement).execute("SET search_path TO public");
+        verify(statement).execute("SET search_path TO public, gommo_types");
+    }
+
+    @Test
+    void usesDedicatedTenantSchemaIgnoresPublicSchemaName() {
+        TenantContext publicNamed = new TenantContext(
+                UUID.randomUUID(),
+                "weird",
+                "public",
+                "Weird",
+                TenantProvisioningStatus.READY,
+                "ACTIVE");
+
+        assertThat(TenantSchemaDataSource.usesDedicatedTenantSchema(publicNamed)).isFalse();
     }
 }

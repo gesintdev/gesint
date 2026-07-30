@@ -22,15 +22,15 @@ type TableGridToolbarProps = {
 };
 
 export function TableGridToolbar({
-    columns,
-    visibleColumnIds,
-    onVisibleColumnIdsChange,
-    onExportExcel,
-    onClearFilters,
-    canClearFilters,
-    exportDisabled = false,
-    className,
-}: TableGridToolbarProps) {
+                                     columns,
+                                     visibleColumnIds,
+                                     onVisibleColumnIdsChange,
+                                     onExportExcel,
+                                     onClearFilters,
+                                     canClearFilters,
+                                     exportDisabled = false,
+                                     className,
+                                 }: TableGridToolbarProps) {
     const [columnsOpen, setColumnsOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
     const panelId = useId();
@@ -66,7 +66,7 @@ export function TableGridToolbar({
                     aria-expanded={columnsOpen}
                     aria-controls={panelId}
                     title="Colunas visíveis"
-                    leftIcon={<Columns3 className="size-3.5" />}
+                    leftIcon={<Columns3 className="size-3.5"/>}
                     onClick={() => setColumnsOpen((open) => !open)}
                 />
                 <AnimatePresence>
@@ -110,7 +110,7 @@ export function TableGridToolbar({
                 aria-label="Exportar para Excel"
                 title="Exportar Excel"
                 disabled={exportDisabled}
-                leftIcon={<FileSpreadsheet className="size-3.5" />}
+                leftIcon={<FileSpreadsheet className="size-3.5"/>}
                 onClick={onExportExcel}
             />
 
@@ -120,7 +120,7 @@ export function TableGridToolbar({
                 aria-label="Limpar filtros"
                 title="Limpar filtros"
                 disabled={!canClearFilters}
-                leftIcon={<RotateCcw className="size-3.5" />}
+                leftIcon={<RotateCcw className="size-3.5"/>}
                 onClick={onClearFilters}
             />
         </div>

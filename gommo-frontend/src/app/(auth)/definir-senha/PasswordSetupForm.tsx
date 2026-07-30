@@ -10,7 +10,23 @@ import { publicAuthService } from "@/modules/root/services/public-auth.service";
 import { Button } from "@/shared/components/ui/Button";
 import { FormInput } from "@/shared/components/ui/FormInput";
 import { InputPassword } from "@/shared/components/ui/input/index";
-import { ExceptionCapture } from "@/shared/exceptions";
+import { AppException, ExceptionCapture } from "@/shared/exceptions";
+
+function tokenValidationErrorMessage(error: unknown): string {
+    if (error instanceof AppException) {
+        if (error.code === "TENANT_NOT_FOUND") {
+            return "Ambiente do cliente não encontrado.";
+        }
+        if (error.code === "TENANT_NOT_READY") {
+            return "Ambiente do cliente ainda não está pronto.";
+        }
+        if (error.code === "TENANT_SUSPENDED") {
+            return "Licença suspensa ou cancelada.";
+        }
+        return error.displayMessage || "Token inválido.";
+    }
+    return "Token inválido.";
+}
 
 function PasswordSetupForm() {
     const router = useRouter();
@@ -20,6 +36,7 @@ function PasswordSetupForm() {
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
     const [firstAccessCompleted, setFirstAccessCompleted] = useState(false);
     const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+    const [tokenError, setTokenError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [validating, setValidating] = useState(false);
 
@@ -34,6 +51,7 @@ function PasswordSetupForm() {
         const trimmed = token.trim();
         if (trimmed.length < 8) {
             setTokenValid(null);
+            setTokenError(null);
             return;
         }
         let cancelled = false;
@@ -43,10 +61,12 @@ function PasswordSetupForm() {
                 const result = await publicAuthService.validatePasswordSetupToken(trimmed);
                 if (cancelled) return;
                 setTokenValid(result.valid);
+                setTokenError(result.valid ? null : "Token inválido.");
                 setFirstAccessCompleted(result.firstAccessCompleted);
-            } catch {
+            } catch (error) {
                 if (!cancelled) {
                     setTokenValid(false);
+                    setTokenError(tokenValidationErrorMessage(error));
                 }
             } finally {
                 if (!cancelled) {
@@ -128,8 +148,8 @@ function PasswordSetupForm() {
             {validating ? (
                 <p className="text-left text-xs text-base-content/50">Validando token...</p>
             ) : null}
-            {tokenValid === false ? (
-                <p className="text-left text-xs text-error">Token inválido.</p>
+            {tokenValid === false && tokenError ? (
+                <p className="text-left text-xs text-error">{tokenError}</p>
             ) : null}
             <InputPassword
                 label="Senha"

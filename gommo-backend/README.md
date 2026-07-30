@@ -57,7 +57,7 @@ Desligado por padrao (`GOMMO_MULTI_TENANT_ENABLED=false`). Quando ativo:
 
 - `TenantResolutionFilter` resolve o tenant pelo `Host` (ou `X-Tenant-Slug` / `GOMMO_DEV_TENANT_SLUG` em dev)
 - Metadados lidos de `admin.client` no mesmo Postgres
-- `TenantSchemaDataSource` executa `SET search_path` por conexao
+- `TenantSchemaDataSource` executa `SET search_path` por conexao (tenant = schema do cliente + `gommo_types`; sem tenant/`localhost` = `public, gommo_types`)
 - Login/refresh/JWT validam vinculo em `admin.client_user` e claims `tenantId` / `tenantSlug`
 
 Documentacao: [docs/arquitetura/multi-tenant-dev.md](../docs/arquitetura/multi-tenant-dev.md)

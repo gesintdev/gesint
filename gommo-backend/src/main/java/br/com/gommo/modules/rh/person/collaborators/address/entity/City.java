@@ -14,8 +14,12 @@ import lombok.experimental.SuperBuilder;
 
 import br.com.gommo.core.entity.AuditEntity;
 
+/**
+ * Catálogo IBGE compartilhado (não é dado de tenant).
+ * Schema {@code public} explícito: com search_path fail-closed o Hibernate não resolve {@code city} no schema do cliente.
+ */
 @Entity
-@Table(name = "city")
+@Table(schema = "public", name = "city")
 @Getter
 @Setter
 @SuperBuilder

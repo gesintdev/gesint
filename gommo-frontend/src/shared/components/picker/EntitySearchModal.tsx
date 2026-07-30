@@ -1,12 +1,12 @@
-import { ChevronLeft, ChevronRight, Loader2, Search, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import {ChevronLeft, ChevronRight, Loader2, Search, X} from "lucide-react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {createPortal} from "react-dom";
 
-import { Button } from "@/shared/components/ui/Button";
-import { DataTable } from "@/shared/components/ui/DataTable";
-import { InputString } from "@/shared/components/ui/input/InputString";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
-import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
+import {Button} from "@/shared/components/ui/Button";
+import {DataTable} from "@/shared/components/ui/DataTable";
+import {InputString} from "@/shared/components/ui/input/InputString";
+import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+import {ExceptionCapture} from "@/shared/exceptions/exception-capture";
 import type {
     EntityPickerAdvancedSearch,
     EntityPickerFilterField,
@@ -31,12 +31,12 @@ function hasFilledFilter(filters: Record<string, string>): boolean {
 }
 
 export function EntitySearchModal<T extends object>({
-    open,
-    config,
-    onClose,
-    onSelect,
-    fixedFilters,
-}: EntitySearchModalProps<T>) {
+                                                        open,
+                                                        config,
+                                                        onClose,
+                                                        onSelect,
+                                                        fixedFilters,
+                                                    }: EntitySearchModalProps<T>) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const pageSize = config.pageSize ?? 10;
     const [mounted, setMounted] = useState(false);
@@ -48,7 +48,7 @@ export function EntitySearchModal<T extends object>({
     const [totalElements, setTotalElements] = useState(0);
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
-    const mergedFilters = useMemo(() => ({ ...appliedFilters, ...fixedFilters }), [appliedFilters, fixedFilters]);
+    const mergedFilters = useMemo(() => ({...appliedFilters, ...fixedFilters}), [appliedFilters, fixedFilters]);
     const actionLabel = hasFilledFilter(filters) ? "Buscar" : "Listar todos";
 
     useEffect(() => {
@@ -70,7 +70,7 @@ export function EntitySearchModal<T extends object>({
                 const params: EntityPickerSearchParams = {
                     page: nextPage,
                     size: pageSize,
-                    filters: { ...nextFilters, ...fixedFilters },
+                    filters: {...nextFilters, ...fixedFilters},
                 };
                 const result = await config.search(params);
                 setRows(result.content);
@@ -106,7 +106,7 @@ export function EntitySearchModal<T extends object>({
     }, [open, config.filters]);
 
     const handleApplyFilters = () => {
-        setAppliedFilters({ ...filters });
+        setAppliedFilters({...filters});
         void runSearch(0, filters);
     };
     const handleSelectRow = (row: T) => {
@@ -139,7 +139,7 @@ export function EntitySearchModal<T extends object>({
                         aria-label="Fechar"
                         onClick={onClose}
                     >
-                        <X className="size-4" strokeWidth={2} />
+                        <X className="size-4" strokeWidth={2}/>
                     </button>
                 </div>
                 <div
@@ -159,7 +159,7 @@ export function EntitySearchModal<T extends object>({
                                 label={field.label}
                                 placeholder={field.placeholder}
                                 value={filters[field.id] ?? ""}
-                                onValueChange={(value) => setFilters((prev) => ({ ...prev, [field.id]: value }))}
+                                onValueChange={(value) => setFilters((prev) => ({...prev, [field.id]: value}))}
                             />
                         ))}
                     </div>
@@ -167,7 +167,7 @@ export function EntitySearchModal<T extends object>({
                         <Button
                             type="button"
                             size="sm"
-                            leftIcon={<Search className="size-3.5" />}
+                            leftIcon={<Search className="size-3.5"/>}
                             loading={loading}
                             onClick={handleApplyFilters}
                         >
@@ -178,7 +178,7 @@ export function EntitySearchModal<T extends object>({
                 <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
                     {loading && rows.length === 0 ? (
                         <div className="flex items-center justify-center py-16 text-sm text-base-content/45">
-                            <Loader2 className="me-2 size-4 animate-spin" />
+                            <Loader2 className="me-2 size-4 animate-spin"/>
                             Carregando...
                         </div>
                     ) : (
@@ -202,8 +202,8 @@ export function EntitySearchModal<T extends object>({
                         {totalElements > 0
                             ? `${totalElements} registro(s) · página ${page + 1} de ${Math.max(totalPages, 1)}`
                             : searched
-                              ? "Nenhum resultado"
-                              : "Nenhuma busca executada"}
+                                ? "Nenhum resultado"
+                                : "Nenhuma busca executada"}
                     </p>
                     <div className="flex items-center gap-2">
                         <Button
@@ -211,7 +211,7 @@ export function EntitySearchModal<T extends object>({
                             variant="ghost"
                             size="sm"
                             disabled={loading || !searched || page <= 0}
-                            leftIcon={<ChevronLeft className="size-3.5" />}
+                            leftIcon={<ChevronLeft className="size-3.5"/>}
                             onClick={() => void runSearch(page - 1, mergedFilters)}
                         >
                             Anterior
@@ -221,7 +221,7 @@ export function EntitySearchModal<T extends object>({
                             variant="ghost"
                             size="sm"
                             disabled={loading || !searched || page + 1 >= totalPages}
-                            leftIcon={<ChevronRight className="size-3.5" />}
+                            leftIcon={<ChevronRight className="size-3.5"/>}
                             onClick={() => void runSearch(page + 1, mergedFilters)}
                         >
                             Próxima
@@ -232,7 +232,7 @@ export function EntitySearchModal<T extends object>({
                     </div>
                 </div>
             </div>
-            <button type="button" className="modal-backdrop" aria-label="Fechar modal" onClick={onClose} />
+            <button type="button" className="modal-backdrop" aria-label="Fechar modal" onClick={onClose}/>
         </dialog>,
         document.body,
     );

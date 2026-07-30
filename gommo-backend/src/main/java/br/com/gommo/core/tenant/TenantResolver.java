@@ -1,6 +1,9 @@
 package br.com.gommo.core.tenant;
 
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -29,9 +32,9 @@ public class TenantResolver {
             if (byMobileLoginCode.isPresent()) {
                 return findAndValidate(byMobileLoginCode);
             }
-            Optional<TenantContext> bySlug = adminClientLookup.findBySlug(tenantKey);
-            if (bySlug.isPresent()) {
-                return findAndValidate(bySlug);
+            Optional<TenantContext> byHeaderKey = resolveBySlugOrSubdomain(tenantKey);
+            if (byHeaderKey.isPresent()) {
+                return byHeaderKey;
             }
             Optional<TenantContext> developmentTenant = resolveDevelopmentPublicTenantByCompanyCode(tenantKey);
             if (developmentTenant.isPresent()) {
@@ -45,11 +48,7 @@ public class TenantResolver {
         Optional<String> subdomain =
                 hostParser.extractSubdomain(host, properties.getBaseDomain(), properties.getProductionBaseDomain());
         if (subdomain.isPresent()) {
-            Optional<TenantContext> bySubdomain = adminClientLookup.findBySubdomain(subdomain.get());
-            if (bySubdomain.isPresent()) {
-                return findAndValidate(bySubdomain);
-            }
-            return findAndValidate(adminClientLookup.findBySlug(subdomain.get()));
+            return resolveBySlugOrSubdomain(subdomain.get());
         }
 
         Optional<TenantContext> byCustomDomain = adminClientLookup.findByCustomDomain(host);
@@ -64,6 +63,41 @@ public class TenantResolver {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * O frontend envia o label do host em {@code X-Tenant-Slug} (ex.: subdomínio {@code posto-sjb}),
+     * que pode diferir do slug comercial do cliente. Tenta slug e subdomínio, inclusive variantes
+     * hífen/underscore usadas em schema vs DNS.
+     */
+    private Optional<TenantContext> resolveBySlugOrSubdomain(String tenantKey) {
+        for (String candidate : tenantKeyVariants(tenantKey)) {
+            Optional<TenantContext> bySlug = adminClientLookup.findBySlug(candidate);
+            if (bySlug.isPresent()) {
+                return findAndValidate(bySlug);
+            }
+            Optional<TenantContext> bySubdomain = adminClientLookup.findBySubdomain(candidate);
+            if (bySubdomain.isPresent()) {
+                return findAndValidate(bySubdomain);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static List<String> tenantKeyVariants(String tenantKey) {
+        String trimmed = tenantKey == null ? "" : tenantKey.trim();
+        if (trimmed.isEmpty()) {
+            return List.of();
+        }
+        Set<String> variants = new LinkedHashSet<>();
+        variants.add(trimmed);
+        if (trimmed.indexOf('-') >= 0) {
+            variants.add(trimmed.replace('-', '_'));
+        }
+        if (trimmed.indexOf('_') >= 0) {
+            variants.add(trimmed.replace('_', '-'));
+        }
+        return List.copyOf(variants);
     }
 
     public Optional<TenantContext> resolveByMobileLoginCode(String mobileLoginCode) {

@@ -36,6 +36,7 @@ class TenantResolverTest {
     @Test
     void resolvesBySubdomainWhenReady() {
         TenantContext context = readyTenant("empresa-a", "tenant_empresa_a");
+        when(adminClientLookup.findBySlug("empresa-a")).thenReturn(Optional.empty());
         when(adminClientLookup.findBySubdomain("empresa-a")).thenReturn(Optional.of(context));
 
         Optional<TenantContext> resolved = resolver.resolve("empresa-a.localhost:8081", null);
@@ -77,6 +78,32 @@ class TenantResolverTest {
     }
 
     @Test
+    void resolvesHeaderBySubdomainWhenSlugDiffers() {
+        properties.setHeaderEnabled(true);
+        TenantContext context = readyTenant("posto-sao-joao-batista-ii", "posto_sjb");
+        when(adminClientLookup.findBySlug("posto-sjb")).thenReturn(Optional.empty());
+        when(adminClientLookup.findBySubdomain("posto-sjb")).thenReturn(Optional.of(context));
+
+        Optional<TenantContext> resolved = resolver.resolve("localhost:8081", "posto-sjb");
+
+        assertThat(resolved).contains(context);
+    }
+
+    @Test
+    void resolvesHeaderWithUnderscoreVariantOfSubdomain() {
+        properties.setHeaderEnabled(true);
+        TenantContext context = readyTenant("posto-sao-joao-batista-ii", "posto_sjb");
+        when(adminClientLookup.findBySlug("posto_sjb")).thenReturn(Optional.empty());
+        when(adminClientLookup.findBySubdomain("posto_sjb")).thenReturn(Optional.empty());
+        when(adminClientLookup.findBySlug("posto-sjb")).thenReturn(Optional.empty());
+        when(adminClientLookup.findBySubdomain("posto-sjb")).thenReturn(Optional.of(context));
+
+        Optional<TenantContext> resolved = resolver.resolve("localhost:8081", "posto_sjb");
+
+        assertThat(resolved).contains(context);
+    }
+
+    @Test
     void rejectsPendingProvisioning() {
         TenantContext pending = new TenantContext(
                 UUID.randomUUID(),
@@ -85,6 +112,7 @@ class TenantResolverTest {
                 "Empresa A",
                 TenantProvisioningStatus.PENDING,
                 "ACTIVE");
+        when(adminClientLookup.findBySlug("empresa-a")).thenReturn(Optional.empty());
         when(adminClientLookup.findBySubdomain("empresa-a")).thenReturn(Optional.of(pending));
 
         assertThatThrownBy(() -> resolver.resolve("empresa-a.localhost", null))

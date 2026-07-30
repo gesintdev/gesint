@@ -1,18 +1,18 @@
-import { type QueryKey, useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import {type QueryKey, useQuery, type UseQueryResult} from "@tanstack/react-query";
+import {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
+import {toast} from "sonner";
 
-import { ColumnFilterControl } from "@/shared/components/data/ColumnFilterControl";
-import { useRegisterQueryRefresh } from "@/shared/components/data/QueryRefreshContext";
-import { TableGridToolbar } from "@/shared/components/data/TableGridToolbar";
-import { TablePagination } from "@/shared/components/data/TablePagination";
-import { Button } from "@/shared/components/ui/Button";
-import { DataTable, type DataTableRowActivateOn } from "@/shared/components/ui/DataTable";
-import type { PageableResponseDto } from "@/shared/dto/pageable.dto";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { exportTableToExcel } from "@/shared/lib/table/export-table-excel";
-import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
-import { isColumnFilterable, type TableColumnConfig } from "@/shared/types/table.types";
+import {ColumnFilterControl} from "@/shared/components/data/ColumnFilterControl";
+import {useRegisterQueryRefresh} from "@/shared/components/data/QueryRefreshContext";
+import {TableGridToolbar} from "@/shared/components/data/TableGridToolbar";
+import {TablePagination} from "@/shared/components/data/TablePagination";
+import {Button} from "@/shared/components/ui/Button";
+import {DataTable, type DataTableRowActivateOn} from "@/shared/components/ui/DataTable";
+import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {exportTableToExcel} from "@/shared/lib/table/export-table-excel";
+import {sortRowsByCreatedAtDesc} from "@/shared/lib/table/sort-rows-by-created-at";
+import {isColumnFilterable, type TableColumnConfig} from "@/shared/types/table.types";
 
 const EMPTY_FILTERS: Record<string, string[]> = {};
 
@@ -89,8 +89,8 @@ export type QueryPagedTablePanelProps<TRow extends object> = QueryTablePanelTabl
 function TableSkeleton() {
     return (
         <div className="grid gap-2 p-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="skeleton-shimmer h-10 w-full" style={{ animationDelay: `${i * 70}ms` }} />
+            {Array.from({length: 5}).map((_, i) => (
+                <div key={i} className="skeleton-shimmer h-10 w-full" style={{animationDelay: `${i * 70}ms`}}/>
             ))}
         </div>
     );
@@ -110,17 +110,17 @@ function useQueryPanelRefresh(query: Pick<UseQueryResult, "refetch" | "isFetchin
 }
 
 export function QueryPanel<TRow extends object>({
-    queryKey,
-    request,
-    children,
-    fallback,
-    errorFallback,
-}: QueryPanelProps<TRow>) {
-    const query = useQuery({ queryKey, queryFn: request });
+                                                    queryKey,
+                                                    request,
+                                                    children,
+                                                    fallback,
+                                                    errorFallback,
+                                                }: QueryPanelProps<TRow>) {
+    const query = useQuery({queryKey, queryFn: request});
     useQueryPanelRefresh(query);
 
     if (query.isLoading) {
-        return <>{fallback ?? <TableSkeleton />}</>;
+        return <>{fallback ?? <TableSkeleton/>}</>;
     }
 
     if (query.isError) {
@@ -142,7 +142,7 @@ export function QueryPanel<TRow extends object>({
 
     return (
         <div className="min-h-0 flex-1 p-1.5">
-            {children({ data: query.data, refetch: query.refetch, isFetching: query.isFetching })}
+            {children({data: query.data, refetch: query.refetch, isFetching: query.isFetching})}
         </div>
     );
 }
@@ -166,7 +166,7 @@ export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps
             fallback={fallback}
             errorFallback={errorFallback}
         >
-            {({ data }) => (
+            {({data}) => (
                 <DataTable<TRow>
                     data={sortRowsByCreatedAtDesc(data)}
                     columns={columns}
@@ -179,11 +179,11 @@ export function QueryTablePanel<TRow extends object>(props: QueryTablePanelProps
 }
 
 function ColumnHeaderWithFilter({
-    column,
-    options,
-    value,
-    onChange,
-}: {
+                                    column,
+                                    options,
+                                    value,
+                                    onChange,
+                                }: {
     column: TableColumnConfig;
     options: string[];
     value: string[];
@@ -198,7 +198,7 @@ function ColumnHeaderWithFilter({
                     onClick={(event) => event.stopPropagation()}
                     onDoubleClick={(event) => event.stopPropagation()}
                 >
-                    <ColumnFilterControl column={column} options={options} value={value} onChange={onChange} />
+                    <ColumnFilterControl column={column} options={options} value={value} onChange={onChange}/>
                 </div>
             ) : null}
         </div>
@@ -235,7 +235,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     );
     const query = useQuery({
         queryKey: [...queryKey, "page", page, size, filters, baseFilters],
-        queryFn: () => request(page, size, { ...baseFilters, ...filters }),
+        queryFn: () => request(page, size, {...baseFilters, ...filters}),
         placeholderData: (previousData) => previousData,
     });
     useQueryPanelRefresh(query);
@@ -260,7 +260,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     }, [baseFilters, initialFilters, pageSize]);
 
     if (query.isLoading) {
-        return <>{fallback ?? <TableSkeleton />}</>;
+        return <>{fallback ?? <TableSkeleton/>}</>;
     }
 
     if (query.isError) {
@@ -284,7 +284,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         setPage(0);
         setSize(pageSize);
         setFilters((current) => {
-            const next = { ...current };
+            const next = {...current};
             if (value.length === 0) {
                 delete next[fieldValue];
             } else {
@@ -303,7 +303,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         if (exporting || visibleColumns.length === 0) return;
         setExporting(true);
         try {
-            const mergedFilters = { ...baseFilters, ...filters };
+            const mergedFilters = {...baseFilters, ...filters};
             const total = Math.max(query.data.totalElements, 1);
             const result = await request(0, total, mergedFilters);
             exportTableToExcel({
@@ -333,7 +333,8 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
 
     return (
         <div className="min-h-0 flex-1 p-1.5">
-            <div className="overflow-visible rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 shadow-sm">
+            <div
+                className="overflow-visible rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 shadow-sm">
                 <DataTable<TRow>
                     data={query.data.content}
                     columns={visibleColumns}

@@ -166,7 +166,7 @@ Em **producao**, preferir **same-origin** (frontend + API no mesmo host via prox
 | `TENANT_NOT_FOUND` | Subdominio nao cadastrado em `admin.client` |
 | `TENANT_NOT_READY` | Provisionamento nao executado |
 | `TENANT_HOST_REQUIRED` | Usuario de cliente tentou login em `localhost` sem subdominio |
-| Login OK mas erro ao carregar dados | Schema vazio ou enums (`search_path` sem `public`) |
+| Login OK mas erro ao carregar dados | Schema incompleto (fail-closed: tabela so existia em `public`) ou enum |
 | Logout vai para `localhost` | Frontend sem rebuild ou `signOut` client em vez de `signOutToTenantLogin` |
 | CORS error | Falta `http://*.localhost:3000` em `CORS_ORIGINS` |
-| Mesmos dados em A e B | Schema nao trocado ou tabelas so em `public` |
+| Mesmos dados em A e B | Schema nao trocado ou catalogo de provisionamento desatualizado |

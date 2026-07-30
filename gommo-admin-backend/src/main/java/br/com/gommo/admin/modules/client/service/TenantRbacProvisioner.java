@@ -41,8 +41,8 @@ public class TenantRbacProvisioner {
                         code        INTEGER NOT NULL,
                         name        VARCHAR(50) NOT NULL,
                         description TEXT,
-                        system      public.system_scope_enum NOT NULL DEFAULT 'RH',
-                        status      public.status_enum NOT NULL DEFAULT 'ACTIVE',
+                        system      gommo_types.system_scope_enum NOT NULL DEFAULT 'RH',
+                        status      gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
                         is_system   BOOLEAN NOT NULL DEFAULT false,
                         created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
                         updated_at  TIMESTAMPTZ

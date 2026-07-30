@@ -31,6 +31,8 @@ DECLARE
         'employment_contract',
         'contract_recess_policy',
         'contract_recess_period',
+        'work_schedule',
+        'work_schedule_day',
         'admission_process',
         'admission_process_kanban_column',
         'attendance_record',
@@ -130,7 +132,7 @@ BEGIN
         EXECUTE format($sql$
             CREATE TABLE %I.app_user (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                status public.status_enum NOT NULL DEFAULT 'ACTIVE',
+                status gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
                 collaborator_id UUID,
                 username VARCHAR(100) NOT NULL,
                 email VARCHAR(200) NOT NULL,
@@ -173,8 +175,8 @@ BEGIN
         EXECUTE format($sql$
             CREATE TABLE %I.role (
                 id UUID PRIMARY KEY, code INTEGER NOT NULL, name VARCHAR(50) NOT NULL, description TEXT,
-                system public.system_scope_enum NOT NULL DEFAULT 'RH',
-                status public.status_enum NOT NULL DEFAULT 'ACTIVE',
+                system gommo_types.system_scope_enum NOT NULL DEFAULT 'RH',
+                status gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
                 is_system BOOLEAN NOT NULL DEFAULT false,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ
             )

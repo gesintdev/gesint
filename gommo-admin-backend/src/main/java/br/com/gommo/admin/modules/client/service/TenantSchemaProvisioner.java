@@ -111,7 +111,7 @@ public class TenantSchemaProvisioner {
                     """
                     CREATE TABLE "%s".app_user (
                         id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                        status                  public.status_enum NOT NULL DEFAULT 'ACTIVE',
+                        status                  gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
                         collaborator_id         UUID,
                         name                    VARCHAR(255),
                         username                VARCHAR(100) NOT NULL,

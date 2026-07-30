@@ -11,8 +11,12 @@ import lombok.experimental.SuperBuilder;
 
 import br.com.gommo.core.entity.AuditEntity;
 
+/**
+ * Catálogo IBGE compartilhado (não é dado de tenant).
+ * Schema {@code public} explícito para search_path fail-closed por tenant.
+ */
 @Entity
-@Table(name = "state")
+@Table(schema = "public", name = "state")
 @Getter
 @Setter
 @SuperBuilder

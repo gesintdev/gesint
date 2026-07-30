@@ -161,10 +161,13 @@ public class ClientUserService implements IClientUserService {
         clientUserRepository.save(link);
 
         ClientEnvironmentConfig config = findEnvironmentConfig(link.getClientId());
-        if (link.getTenantAppUserId() != null
-                && config != null
-                && config.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
-            tenantUserProvisioner.syncTenantUserCredentials(config, link);
+        if (config != null && config.getProvisioningStatus() == TenantProvisioningStatusEnum.READY) {
+            if (link.getTenantAppUserId() != null) {
+                tenantUserProvisioner.syncTenantUserCredentials(config, link);
+            } else {
+                // Usuário criado antes do schema ficar READY: gera token no admin e provisiona no tenant.
+                tenantUserProvisioner.provisionUser(config, link);
+            }
         }
 
         Client client = clientRepository.findById(link.getClientId()).orElse(null);

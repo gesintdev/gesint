@@ -16,7 +16,7 @@ import {useWorkspaceTabOptional} from "@/shared/workspace/WorkspaceTabContext";
 
 type CrudStatus = "ACTIVE" | "INACTIVE" | "DELETED" | string;
 
-type CrudTableActionsProps<T extends {id: string; status?: CrudStatus}> = {
+type CrudTableActionsProps<T extends { id: string; status?: CrudStatus }> = {
     row: T;
     onEdit: (row: T) => void;
     onDelete?: (row: T) => void;
@@ -34,22 +34,22 @@ type CrudTableActionsProps<T extends {id: string; status?: CrudStatus}> = {
     deletePermission?: string;
 };
 
-export function CrudTableActions<T extends {id: string; status?: CrudStatus}>({
-    row,
-    onEdit,
-    onDelete,
-    onActivate,
-    onDeactivate,
-    deleteLoading,
-    deleteDisabled = false,
-    deleteDisabledTitle,
-    activateLoading,
-    deactivateLoading,
-    editAriaLabel = "Editar",
-    showOpenTab = true,
-    writePermission,
-    deletePermission,
-}: CrudTableActionsProps<T>) {
+export function CrudTableActions<T extends { id: string; status?: CrudStatus }>({
+                                                                                    row,
+                                                                                    onEdit,
+                                                                                    onDelete,
+                                                                                    onActivate,
+                                                                                    onDeactivate,
+                                                                                    deleteLoading,
+                                                                                    deleteDisabled = false,
+                                                                                    deleteDisabledTitle,
+                                                                                    activateLoading,
+                                                                                    deactivateLoading,
+                                                                                    editAriaLabel = "Editar",
+                                                                                    showOpenTab = true,
+                                                                                    writePermission,
+                                                                                    deletePermission,
+                                                                                }: CrudTableActionsProps<T>) {
     const permissions = useSessionPermissions();
     const wsTab = useWorkspaceTabOptional();
     const route = wsTab ? findRouteById(wsTab.tab.routeId) : undefined;
@@ -60,12 +60,12 @@ export function CrudTableActions<T extends {id: string; status?: CrudStatus}>({
 
     return (
         <>
-            {showOpenTab ? <OpenInWorkspaceTabButton row={row} /> : null}
+            {showOpenTab ? <OpenInWorkspaceTabButton row={row}/> : null}
             {canEdit ? (
                 <TableActionButton
                     actionVariant="edit"
                     aria-label={editAriaLabel}
-                    leftIcon={<Pencil className="size-3.5" />}
+                    leftIcon={<Pencil className="size-3.5"/>}
                     onClick={(e) => {
                         e.stopPropagation();
                         onEdit(row);
@@ -76,7 +76,7 @@ export function CrudTableActions<T extends {id: string; status?: CrudStatus}>({
                 <TableActionButton
                     actionVariant="open"
                     aria-label="Reativar"
-                    leftIcon={<Check className="size-3.5" />}
+                    leftIcon={<Check className="size-3.5"/>}
                     loading={activateLoading}
                     onClick={(e) => {
                         e.stopPropagation();
@@ -88,7 +88,7 @@ export function CrudTableActions<T extends {id: string; status?: CrudStatus}>({
                 <TableActionButton
                     actionVariant="open"
                     aria-label="Inativar"
-                    leftIcon={<PauseCircle className="size-3.5" />}
+                    leftIcon={<PauseCircle className="size-3.5"/>}
                     loading={deactivateLoading}
                     onClick={(e) => {
                         e.stopPropagation();
@@ -101,7 +101,7 @@ export function CrudTableActions<T extends {id: string; status?: CrudStatus}>({
                     actionVariant="delete"
                     aria-label="Excluir"
                     title={deleteDisabled ? deleteDisabledTitle : undefined}
-                    leftIcon={<Trash2 className="size-3.5" />}
+                    leftIcon={<Trash2 className="size-3.5"/>}
                     loading={deleteLoading}
                     disabled={deleteDisabled}
                     onClick={(e) => {

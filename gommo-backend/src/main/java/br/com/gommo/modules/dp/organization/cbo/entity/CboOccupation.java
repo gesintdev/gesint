@@ -11,8 +11,12 @@ import lombok.experimental.SuperBuilder;
 
 import br.com.gommo.core.entity.AuditEntity;
 
+/**
+ * Catálogo CBO compartilhado (não é dado de tenant).
+ * Schema {@code public} explícito para search_path fail-closed por tenant.
+ */
 @Entity
-@Table(name = "cbo_occupation")
+@Table(schema = "public", name = "cbo_occupation")
 @Getter
 @Setter
 @SuperBuilder

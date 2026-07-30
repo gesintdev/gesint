@@ -1,28 +1,28 @@
 # Arquitetura multi-tenant ? Gommo
 
-Documentação oficial do modelo **control plane + data plane** do Gommo ERP.
+Documenta??o oficial do modelo **control plane + data plane** do Gommo ERP.
 
-**Status:** em implementação (resolver, JWT, schema por tenant e frontend multi-host).
+**Status:** em implementa??o (resolver, JWT, schema por tenant e frontend multi-host).
 
 **Relacionado:**
 
 - Painel admin: [gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md](../../gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md)
 - Desenvolvimento local: [multi-tenant-dev.md](./multi-tenant-dev.md)
-- Plano de implementação: [multi-tenant-implementacao.md](./multi-tenant-implementacao.md)
+- Plano de implementa??o: [multi-tenant-implementacao.md](./multi-tenant-implementacao.md)
 
 ---
 
-## 1. Visão de negócio
+## 1. Vis?o de neg?cio
 
-A **Gommo** vende licenças de ERP de RH. Cada **cliente comprador** (tenant) opera o sistema de forma isolada:
+A **Gommo** vende licen?as de ERP de RH. Cada **cliente comprador** (tenant) opera o sistema de forma isolada:
 
 | Ator | Sistema | URL (exemplo) |
 |------|---------|---------------|
 | Equipe Gommo (vendas, suporte) | Admin | `https://admin.gommo.com.br` |
-| Cliente Empresa A (sócios, RH, DP) | ERP HR | `https://empresa-a.gommo.com.br` |
+| Cliente Empresa A (s?cios, RH, DP) | ERP HR | `https://empresa-a.gommo.com.br` |
 | Cliente Empresa B | ERP HR | `https://empresa-b.gommo.com.br` |
 
-O usuário do cliente **não escolhe empresa** ao usar folha, admissão ou departamentos. Ele já está no contexto da licença que comprou. A empresa do cadastro comercial (`admin.client`) coincide com o empregador legal (`company` no schema do tenant), criada no provisionamento.
+O usu?rio do cliente **n?o escolhe empresa** ao usar folha, admiss?o ou departamentos. Ele j? est? no contexto da licen?a que comprou. A empresa do cadastro comercial (`admin.client`) coincide com o empregador legal (`company` no schema do tenant), criada no provisionamento.
 
 ---
 
@@ -43,17 +43,17 @@ flowchart TB
     PR[payroll_run]
   end
 
-  CL -->|metadados DNS + conexão| data
+  CL -->|metadados DNS + conex?o| data
   CU -->|app_user_id| data
   SUB -->|ACTIVE / SUSPENDED| data
 ```
 
-| Plano | Schema / app | Conteúdo |
+| Plano | Schema / app | Conte?do |
 |-------|--------------|----------|
-| **Control plane** | `admin.*`, `gommo-admin-*` | Quem é o cliente, subdomínio, assinatura, operadores Gommo |
-| **Data plane** | `tenant_*` ou DB dedicado, `gommo-backend` + `gommo-frontend` | Colaboradores, folha, ponto, férias |
+| **Control plane** | `admin.*`, `gommo-admin-*` | Quem ? o cliente, subdom?nio, assinatura, operadores Gommo |
+| **Data plane** | `tenant_*` ou DB dedicado, `gommo-backend` + `gommo-frontend` | Colaboradores, folha, ponto, f?rias |
 
-O HR **nunca** consulta dados de RH de outro tenant no mesmo request. O admin **nunca** mistura metadados de clientes no data plane ? só registra como conectar.
+O HR **nunca** consulta dados de RH de outro tenant no mesmo request. O admin **nunca** mistura metadados de clientes no data plane ? s? registra como conectar.
 
 ---
 
@@ -61,18 +61,18 @@ O HR **nunca** consulta dados de RH de outro tenant no mesmo request. O admin **
 
 | Termo | Onde | Significado |
 |-------|------|-------------|
-| **Tenant** | `admin.client` | Cliente que comprou a licença (Empresa A) |
+| **Tenant** | `admin.client` | Cliente que comprou a licen?a (Empresa A) |
 | **Slug** | `admin.client.slug` | Identificador curto (`empresa-a`) |
-| **Subdomínio** | `admin.client.subdomain` | Parte DNS (`empresa-a` ? `empresa-a.gommo.com.br`) |
+| **Subdom?nio** | `admin.client.subdomain` | Parte DNS (`empresa-a` ? `empresa-a.gommo.com.br`) |
 | **Empresa (RH)** | `company` no schema do tenant | CNPJ empregador ? holerite, eSocial, contratos |
-| **Operador plataforma** | `admin.admin_user` | Funcionário Gommo com `platform:admin` |
-| **Usuário do tenant** | `admin.client_user` ? `public.app_user` | Sócio / admin inicial do cliente |
+| **Operador plataforma** | `admin.admin_user` | Funcion?rio Gommo com `platform:admin` |
+| **Usu?rio do tenant** | `admin.client_user` ? `public.app_user` | S?cio / admin inicial do cliente |
 
-**Regra:** 1 tenant (licença) = 1 empresa empregadora no MVP. Vários CNPJs no mesmo tenant é cenário futuro (holding).
+**Regra:** 1 tenant (licen?a) = 1 empresa empregadora no MVP. V?rios CNPJs no mesmo tenant ? cen?rio futuro (holding).
 
 ---
 
-## 4. Resolução de tenant (produção)
+## 4. Resolu??o de tenant (produ??o)
 
 Fluxo em cada request ao ERP:
 
@@ -100,28 +100,30 @@ sequenceDiagram
 | `SUBDOMAIN` | `subdomain` | `empresa-a.gommo.com.br` |
 | `CUSTOM_DOMAIN` | `custom_domain` | `rh.empresa-a.com.br` |
 
-### 4.2 Algoritmo de resolução (contrato)
+### 4.2 Algoritmo de resolu??o (contrato)
 
 1. Ler header `Host` (sem porta) ou `X-Tenant-Slug` (API separada / dev).
-2. Se host = domínio admin ? **não** aplicar tenant (rotas admin usam outro backend).
-3. Se host termina com `.gommo.com.br` ? extrair subdomínio ? `WHERE subdomain = ?`.
-4. Se não ? `WHERE custom_domain = ?`.
+2. Se host = dom?nio admin ? **n?o** aplicar tenant (rotas admin usam outro backend).
+3. Se host termina com `.gommo.com.br` ? extrair subdom?nio ? `WHERE subdomain = ?`.
+4. Se n?o ? `WHERE custom_domain = ?`.
 5. Validar `provisioning_status = READY` e assinatura `ACTIVE` (ou equivalente).
 6. Publicar `TenantContext` (clientId, slug, schema) no thread/request.
-7. `SET search_path TO "tenant_*", public` (tabelas de negócio no tenant; enums/auth em `public`).
+7. `SET search_path TO "tenant_*", gommo_types` (fail-closed para tabelas).
+   Enums vivem em `gommo_types` (sem tabelas). Sem tenant (`localhost` / platform) ?
+   `search_path` = `public, gommo_types`. Consultas ao control plane usam `admin.*` schema-qualified.
 8. Limpar contexto ao fim do request.
 
 ---
 
-## 5. Isolamento de dados (decisão MVP)
+## 5. Isolamento de dados (decis?o MVP)
 
 **Escolha:** `DEDICATED_SCHEMA` ? um schema PostgreSQL por tenant no mesmo cluster.
 
-| Estratégia | MVP | Enterprise futuro |
+| Estrat?gia | MVP | Enterprise futuro |
 |------------|-----|-------------------|
 | `DEDICATED_SCHEMA` | **Sim** | ? |
 | `DEDICATED_DATABASE` | Opcional manual | Clientes grandes / contrato |
-| Coluna `tenant_id` em todas as tabelas | **Não** | Risco alto em DP |
+| Coluna `tenant_id` em todas as tabelas | **N?o** | Risco alto em DP |
 
 Exemplo local:
 
@@ -135,7 +137,7 @@ postgres / database gommo
 
 ---
 
-## 6. Autenticação e escopo
+## 6. Autentica??o e escopo
 
 ### 6.1 Admin (`gommo-admin-backend`)
 
@@ -145,30 +147,30 @@ postgres / database gommo
 
 ### 6.2 ERP (`gommo-backend`)
 
-- JWT com `tenantId` (UUID do `admin.client`) após login.
+- JWT com `tenantId` (UUID do `admin.client`) ap?s login.
 - Login valida:
   1. Tenant resolvido pelo `Host` ou header `X-Tenant-Slug`.
   2. Credenciais em `public.app_user` (auth compartilhado).
   3. `admin.client_user` liga `app_user_id` ao `client_id` do tenant resolvido.
 - Request autenticado rejeitado se `JWT.tenantId` ? `TenantContext.clientId`.
-- **Host sem subdomínio** (`localhost` em dev): modo *platform* ? só usuários em `admin.admin_user`, schema `public`.
-- **Host com subdomínio** (`empresa-a.gommo.com.br`): modo *tenant* ? dados de negócio no schema do cliente.
+- **Host sem subdom?nio** (`localhost` em dev): modo *platform* ? s? usu?rios em `admin.admin_user`, schema `public`.
+- **Host com subdom?nio** (`empresa-a.gommo.com.br`): modo *tenant* ? dados de neg?cio no schema do cliente.
 
 ### 6.3 Frontend HR (`gommo-frontend`) ? multi-host
 
-Cada tenant acessa o **mesmo deploy** Next.js por URL diferente. Implicações:
+Cada tenant acessa o **mesmo deploy** Next.js por URL diferente. Implica??es:
 
-| Tópico | Decisão |
+| T?pico | Decis?o |
 |--------|---------|
-| Sessão | Cookie por host ? sessões **não** compartilhadas entre tenants |
-| `AUTH_URL` no `.env` | Um valor canônico ? **não** cobre todos os subdomínios |
-| Logout | `signOutToTenantLogin()` ? navegação única para `/api/auth/signout?callbackUrl=<login no host atual>` |
-| Login tenant | Bloqueado em host sem subdomínio quando `NEXT_PUBLIC_MULTI_TENANT_ENABLED=true` |
-| API | Header `X-Tenant-Slug` derivado do hostname ou da sessão |
+| Sess?o | Cookie por host ? sess?es **n?o** compartilhadas entre tenants |
+| `AUTH_URL` no `.env` | Um valor can?nico ? **n?o** cobre todos os subdom?nios |
+| Logout | `signOutToTenantLogin()` ? navega??o ?nica para `/api/auth/signout?callbackUrl=<login no host atual>` |
+| Login tenant | Bloqueado em host sem subdom?nio quando `NEXT_PUBLIC_MULTI_TENANT_ENABLED=true` |
+| API | Header `X-Tenant-Slug` derivado do hostname ou da sess?o |
 
-Padrão válido em **dev e produção** enquanto houver múltiplos hosts e `AUTH_URL` fixo no Auth.js.
+Padr?o v?lido em **dev e produ??o** enquanto houver m?ltiplos hosts e `AUTH_URL` fixo no Auth.js.
 
-**Produção (recomendado):** same-origin ? `https://empresa-a.gommo.com.br` serve UI e faz proxy de `/api` para o backend.
+**Produ??o (recomendado):** same-origin ? `https://empresa-a.gommo.com.br` serve UI e faz proxy de `/api` para o backend.
 
 Detalhes de dev local: [multi-tenant-dev.md](./multi-tenant-dev.md).
 
@@ -190,10 +192,10 @@ Detalhes de dev local: [multi-tenant-dev.md](./multi-tenant-dev.md).
 
 Fluxo operado pela equipe Gommo no admin:
 
-1. **Clientes ? Novo** ? nome, slug, CNPJ, contato, subdomínio, schema (`tenant_empresa_a`).
-2. **Testar conexão** ? **Executar provisionamento** (schema + tabelas; Flyway por tenant em evolução).
+1. **Clientes ? Novo** ? nome, slug, CNPJ, contato, subdom?nio, schema (`tenant_empresa_a`).
+2. **Testar conex?o** ? **Executar provisionamento** (schema + tabelas; Flyway por tenant em evolu??o).
 3. **Assinatura** ? plano `PRO`, status `ACTIVE`.
-4. **Usuários administrativos** ? login inicial do sócio.
+4. **Usu?rios administrativos** ? login inicial do s?cio.
 5. Cliente acessa `https://empresa-a.gommo.com.br` e completa cadastros.
 
 ### Seed no provisionamento (MVP)
@@ -201,12 +203,12 @@ Fluxo operado pela equipe Gommo no admin:
 | Artefato | Origem |
 |----------|--------|
 | `company` no schema tenant | Dados de `admin.client` (nome, CNPJ, contato) |
-| Roles / permissões | Padrão do plano |
-| Primeiro admin | Já criado em `client_user` |
+| Roles / permiss?es | Padr?o do plano |
+| Primeiro admin | J? criado em `client_user` |
 
 ---
 
-## 8. DNS e infraestrutura (produção)
+## 8. DNS e infraestrutura (produ??o)
 
 | Registro DNS | Destino |
 |--------------|---------|
@@ -216,18 +218,18 @@ Fluxo operado pela equipe Gommo no admin:
 | API no **mesmo host** do app (recomendado) | `gommo-backend` via reverse proxy `/api` |
 | `api.gommo.com.br` (alternativa) | `gommo-backend` + CORS por origem |
 
-Traefik/Coolify encaminha todos os subdomínios para o mesmo serviço Next.js; **a aplicação** resolve o tenant pelo `Host`.
+Traefik/Coolify encaminha todos os subdom?nios para o mesmo servi?o Next.js; **a aplica??o** resolve o tenant pelo `Host`.
 
-### Dev vs produção (resumo)
+### Dev vs produ??o (resumo)
 
-| | Dev | Produção |
+| | Dev | Produ??o |
 |---|-----|----------|
-| Subdomínio tenant | `{slug}.localhost` | `{slug}.gommo.com.br` |
+| Subdom?nio tenant | `{slug}.localhost` | `{slug}.gommo.com.br` |
 | `GOMMO_TENANT_BASE_DOMAIN` | `localhost` | `gommo.com.br` |
 | API separada na porta | `:8081` / `:3000` | Preferir same-origin |
 | Schema `public` | Dev legado + auth | Auth/enums; dados novos no `tenant_*` |
 
-Domínio customizado: cliente configura CNAME `rh.cliente.com.br` ? `empresa-a.gommo.com.br`; registrar em `admin.client.custom_domain`.
+Dom?nio customizado: cliente configura CNAME `rh.cliente.com.br` ? `empresa-a.gommo.com.br`; registrar em `admin.client.custom_domain`.
 
 Detalhes de deploy: [infra/coolify/README.md](../../infra/coolify/README.md).
 
@@ -237,32 +239,32 @@ Detalhes de deploy: [infra/coolify/README.md](../../infra/coolify/README.md).
 
 | Antes (single-tenant) | Depois (multi-tenant) |
 |-----------------------|------------------------|
-| Picker "Empresa" na competência | Removido ? `companyId` automático |
-| `localhost:3000` único | `{slug}.localhost:3000` (tenant) ou `localhost` (platform) |
+| Picker "Empresa" na compet?ncia | Removido ? `companyId` autom?tico |
+| `localhost:3000` ?nico | `{slug}.localhost:3000` (tenant) ou `localhost` (platform) |
 | Um schema `public` | Schema por tenant |
-| Sem validação de assinatura | Bloqueio se `SUSPENDED` / não provisionado |
+| Sem valida??o de assinatura | Bloqueio se `SUSPENDED` / n?o provisionado |
 
 ---
 
-## 10. O que já existe vs. o que falta
+## 10. O que j? existe vs. o que falta
 
-| Peça | Status |
+| Pe?a | Status |
 |------|--------|
 | `admin.client` + DNS + DB metadata | Implementado |
 | CRUD assinatura / pagamento / client_user | Implementado |
 | Tenant resolver + `search_path` no `gommo-backend` | Implementado |
-| JWT com `tenantId` + validação `client_user` | Implementado |
+| JWT com `tenantId` + valida??o `client_user` | Implementado |
 | Provisionamento schema + clone tabelas (admin) | Implementado |
 | Frontend: header tenant + logout multi-host | Implementado |
 | Job provisionamento (Flyway por tenant + seed company) | Pendente |
-| Wildcard DNS produção + same-origin API | Pendente (infra) |
+| Wildcard DNS produ??o + same-origin API | Pendente (infra) |
 | Remover picker empresa / auto `companyId` | Pendente |
 
 ---
 
-## 11. Glossário
+## 11. Gloss?rio
 
-| Termo | Definição |
+| Termo | Defini??o |
 |-------|-----------|
 | Control plane | Admin + schema `admin` |
 | Data plane | Banco/schema onde vive o RH do tenant |
