@@ -24,6 +24,8 @@ export type { InputMarkdownProps } from "./InputMarkdown";
 export { InputMarkdown } from "./InputMarkdown";
 export type { InputMonthProps } from "./InputMonth";
 export { InputMonth } from "./InputMonth";
+export type { InputMultiValueProps } from "./InputMultiValue";
+export { InputMultiValue } from "./InputMultiValue";
 export type { InputNumberAlign, InputNumberProps } from "./InputNumber";
 export { InputNumber } from "./InputNumber";
 export type { InputPhoneProps } from "./InputPhone";

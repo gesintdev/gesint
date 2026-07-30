@@ -40,6 +40,7 @@ import {
     InputCheckbox,
     InputDate,
     InputMarkdown,
+    InputMultiValue,
     InputNumber,
     InputSelect,
     InputString,
@@ -85,6 +86,8 @@ export function JobVacancyFormClient() {
     const queryClient = useQueryClient();
     const [form, setFormState] = useState<JobVacancyCreateDto>(emptyJobVacancyForm);
     const [error, setError] = useState<string | null>(null);
+    /** Garante que o InputMarkdown só monte depois do form estar hidratado com o GET. */
+    const [seededForId, setSeededForId] = useState<string | null>(null);
     const formRef = useRef(form);
     const wasEditingRef = useRef(isEditing);
     const setForm = (
@@ -107,6 +110,7 @@ export function JobVacancyFormClient() {
         // Só limpa ao sair da edição para um cadastro novo — não a cada mount.
         if (wasEditing && !isEditing) {
             setForm(emptyJobVacancyForm());
+            setSeededForId(null);
             setError(null);
         }
     }, [isEditing]);
@@ -114,6 +118,7 @@ export function JobVacancyFormClient() {
     useEffect(() => {
         if (!isEditing || !detailQuery.data) return;
         setForm(jobVacancyToFormDto(detailQuery.data));
+        setSeededForId(detailQuery.data.id);
         setError(null);
     }, [isEditing, detailQuery.data]);
 
@@ -190,16 +195,6 @@ export function JobVacancyFormClient() {
         }
     };
 
-    if (isEditing && detailQuery.isLoading) {
-        return (
-            <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
-                ))}
-            </div>
-        );
-    }
-
     if (isEditing && detailQuery.isError) {
         return (
             <div className="p-5">
@@ -212,6 +207,17 @@ export function JobVacancyFormClient() {
                 <Button variant="ghost" size="sm" className="mt-3" onClick={goToList}>
                     Voltar
                 </Button>
+            </div>
+        );
+    }
+
+    // Espera o GET e a hidratação do state — senão o TipTap monta com description vazia.
+    if (isEditing && (detailQuery.isLoading || seededForId !== editingId)) {
+        return (
+            <div className="grid gap-2 p-5">
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="skeleton-shimmer h-10 w-full" />
+                ))}
             </div>
         );
     }
@@ -349,32 +355,33 @@ export function JobVacancyFormClient() {
 
             <FormSection id="detalhes" title="Detalhes">
                 <InputMarkdown
+                    key={`description-${editingId ?? "new"}`}
                     label="Descrição"
                     value={form.description ?? ""}
                     onValueChange={(v) => update("description", v)}
                     wrapperClassName="sm:col-span-12"
                     rows={12}
                 />
-                <TextAreaField
+                <InputMultiValue
                     label="Atividades"
-                    value={form.activities}
+                    value={form.activities ?? ""}
                     onValueChange={(v) => update("activities", v)}
                     wrapperClassName="sm:col-span-12"
-                    placeholder="Principais atividades do dia a dia"
+                    placeholder="Digite e pressione Tab"
                 />
-                <TextAreaField
+                <InputMultiValue
                     label="Atribuições"
-                    value={form.assignments}
+                    value={form.assignments ?? ""}
                     onValueChange={(v) => update("assignments", v)}
                     wrapperClassName="sm:col-span-12"
-                    placeholder="Responsabilidades e entregas esperadas"
+                    placeholder="Digite e pressione Tab"
                 />
-                <TextAreaField
+                <InputMultiValue
                     label="Requisitos"
-                    value={form.requirements}
+                    value={form.requirements ?? ""}
                     onValueChange={(v) => update("requirements", v)}
                     wrapperClassName="sm:col-span-12"
-                    placeholder="Um requisito por linha"
+                    placeholder="Digite e pressione Tab"
                 />
                 <TextAreaField
                     label="Benefícios"

@@ -98,7 +98,9 @@ export function InputMarkdown({
     const editable = !disabled && !readOnly;
     const minHeight = Math.max(180, rows * 18);
     const lastEmittedRef = useRef((value ?? "").trim());
+    const valueRef = useRef(value);
     const onValueChangeRef = useRef(onValueChange);
+    valueRef.current = value;
     onValueChangeRef.current = onValueChange;
 
     const emitMarkdown = (next: string) => {
@@ -131,7 +133,8 @@ export function InputMarkdown({
     const editor = useEditor(
         {
             extensions,
-            content: markdownToHtml(value) || "",
+            // useEditor só aplica content na criação; valueRef evita fechar sobre value stale.
+            content: markdownToHtml(valueRef.current) || "",
             editable,
             immediatelyRender: false,
             shouldRerenderOnTransaction: false,
@@ -186,9 +189,14 @@ export function InputMarkdown({
     useEffect(() => {
         if (!editor || editor.isDestroyed) return;
         const incoming = (value ?? "").trim();
-        if (incoming === lastEmittedRef.current) return;
+        const current = readEditorMarkdown(editor);
+        if (incoming === lastEmittedRef.current && incoming === current) return;
         // Enquanto digita, o editor é a fonte da verdade — não sobrescrever pelo value atrasado do form.
         if (editor.isFocused) return;
+        if (incoming === current) {
+            lastEmittedRef.current = incoming;
+            return;
+        }
         editor.commands.setContent(markdownToHtml(incoming) || "", { emitUpdate: false });
         lastEmittedRef.current = incoming;
     }, [editor, value]);

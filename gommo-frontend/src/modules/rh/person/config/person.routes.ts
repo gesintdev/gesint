@@ -2,7 +2,6 @@ import {
     Briefcase,
     CalendarDays,
     ClipboardList,
-    FileUser,
     MessageSquare,
     Target,
     UserSearch,
@@ -65,11 +64,11 @@ export const personRoutes: AppRoute[] = [
     tabbedCrudRoute({
         id: "candidate",
         href: "/candidate",
-        label: "Candidatos",
+        label: "Banco de talentos",
         icon: UserSearch,
         permission: "candidate:read",
         routeId: "candidate",
-        tabShortLabel: "Cand",
+        tabShortLabel: "Talento",
         fieldTabName: "fullName",
         list: lazyNamed(
             () => import("@/modules/rh/person/candidate/components/CandidateListClient"),
@@ -78,30 +77,6 @@ export const personRoutes: AppRoute[] = [
         form: lazyNamed(
             () => import("@/modules/rh/person/candidate/components/CandidateFormClient"),
             "CandidateFormClient",
-        ),
-    }),
-    tabbedCrudRoute({
-        id: "job-vacancy-application",
-        href: "/job-vacancy-application",
-        label: "Candidaturas",
-        icon: FileUser,
-        permission: "jobvacancyapplication:read",
-        routeId: "job-vacancy-application",
-        tabShortLabel: "Candat",
-        fieldTabName: "candidateFullName",
-        list: lazyNamed(
-            () =>
-                import(
-                    "@/modules/rh/person/jobvacancyapplication/components/JobVacancyApplicationListClient"
-                ),
-            "JobVacancyApplicationListClient",
-        ),
-        form: lazyNamed(
-            () =>
-                import(
-                    "@/modules/rh/person/jobvacancyapplication/components/JobVacancyApplicationFormClient"
-                ),
-            "JobVacancyApplicationFormClient",
         ),
     }),
     tabbedCrudRoute({
@@ -142,11 +117,11 @@ export const personRoutes: AppRoute[] = [
     tabbedCrudRoute({
         id: "performance",
         href: "/performance",
-        label: "Desempenho",
+        label: "Feedback",
         icon: Target,
         permission: "performance:read",
         routeId: "performance",
-        tabShortLabel: "Desemp",
+        tabShortLabel: "Feedback",
         list: lazyNamed(
             () => import("@/modules/rh/person/performance/components/PerformanceReviewListClient"),
             "PerformanceReviewListClient",
