@@ -64,6 +64,7 @@ export function SystemAlertHost() {
                 border: "none",
                 borderRadius: "var(--ga-radius)",
                 padding: 0,
+                margin: "auto",
                 maxWidth: 420,
                 width: "calc(100% - 32px)",
                 background: "var(--ga-surface)",
@@ -76,9 +77,6 @@ export function SystemAlertHost() {
             }}
             onClose={() => {
                 if (useSystemAlertStore.getState().current) handleClose(false);
-            }}
-            onClick={(e) => {
-                if (e.target === dialogRef.current) handleClose(false);
             }}
         >
             {current && meta ? (

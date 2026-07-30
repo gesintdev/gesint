@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +15,7 @@ import { applyDocumentTheme, resolveThemePreference } from "@/shared/lib/theme-p
 
 export function LoginForm() {
     const router = useRouter();
+    const { data: session, status } = useSession();
     const [tenantSlugHint, setTenantSlugHint] = useState<string | null>(null);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -24,6 +25,20 @@ export function LoginForm() {
     useEffect(() => {
         setTenantSlugHint(resolveTenantSlugFromHostname());
     }, []);
+
+    // Cookies Auth.js ficam em AUTH_URL (localhost). Sessão comercial (ex.: posto-sjb)
+    // sobra ao abrir localhost — limpa só se o slug NÃO for o tenant sintético de dev.
+    useEffect(() => {
+        if (status !== "authenticated") {
+            return;
+        }
+        const hostSlug = resolveTenantSlugFromHostname();
+        const sessionSlug = session?.tenantSlug?.trim() || null;
+        const devPublicSlug = (process.env.NEXT_PUBLIC_DEV_TENANT_SLUG ?? "dev-public").trim();
+        if (!hostSlug && sessionSlug && sessionSlug !== devPublicSlug) {
+            void signOut({ redirect: false });
+        }
+    }, [session?.tenantSlug, status]);
 
     async function handleSubmit(e: React.SubmitEvent) {
         e.preventDefault();

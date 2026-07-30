@@ -91,6 +91,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                             password: credentials.password,
                         },
                         headers: buildTenantRequestHeaders(tenantSlug),
+                        // Login nunca reenvia Bearer de sessão anterior (ex.: JWT do posto-sjb
+                        // ainda em memória no server após trocar para localhost).
+                        skipAuth: true,
+                        skipAuthRetry: true,
                     });
                     setAuthToken(data.accessToken);
                     const username = data.username ?? (credentials.username as string);
@@ -117,6 +121,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         refreshTokenIssuedAt: Date.now(),
                     };
                 } catch (err) {
+                    setAuthToken(null);
                     const code =
                         err instanceof AppException
                             ? err.code

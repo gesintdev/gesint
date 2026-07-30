@@ -7,14 +7,20 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8081";
 export {ApiError, AppException} from "@/shared/exceptions/app.exception";
 export type {DoRequestOptions} from "@/shared/lib/create-http-client";
 
+/**
+ * Resolve X-Tenant-Slug a partir do host (fonte da verdade).
+ * Em localhost sem subdomínio não reaproveita session.tenantSlug — cookies Auth.js
+ * ficam em AUTH_URL (localhost) e vazariam o tenant de posto-sjb.localhost.
+ */
 export async function resolveClientTenantHeaders(extra?: Record<string, string>): Promise<Record<string, string>> {
-    const fromExtra = extra?.["X-Tenant-Slug"];
+    const fromExtra = extra?.["X-Tenant-Slug"]?.trim();
     if (fromExtra) {
         return {
             ...buildTenantRequestHeaders(fromExtra),
             ...extra,
         };
     }
+
     const fromHost = typeof window !== "undefined" ? resolveTenantSlugFromHostname() : null;
     if (fromHost) {
         return {
@@ -23,16 +29,6 @@ export async function resolveClientTenantHeaders(extra?: Record<string, string>)
         };
     }
 
-    if (typeof window !== "undefined") {
-        const {getSession} = await import("next-auth/react");
-        const session = await getSession({broadcast: false});
-        if (session?.tenantSlug) {
-            return {
-                ...buildTenantRequestHeaders(session.tenantSlug),
-                ...extra,
-            };
-        }
-    }
     return {...(extra ?? {})};
 }
 
