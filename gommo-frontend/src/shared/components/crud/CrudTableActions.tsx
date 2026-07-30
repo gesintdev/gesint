@@ -23,6 +23,9 @@ type CrudTableActionsProps<T extends {id: string; status?: CrudStatus}> = {
     onActivate?: (row: T) => void;
     onDeactivate?: (row: T) => void;
     deleteLoading?: boolean;
+    /** Exibe o botão de exclusão desabilitado (ex.: regra de negócio). */
+    deleteDisabled?: boolean;
+    deleteDisabledTitle?: string;
     activateLoading?: boolean;
     deactivateLoading?: boolean;
     editAriaLabel?: string;
@@ -38,6 +41,8 @@ export function CrudTableActions<T extends {id: string; status?: CrudStatus}>({
     onActivate,
     onDeactivate,
     deleteLoading,
+    deleteDisabled = false,
+    deleteDisabledTitle,
     activateLoading,
     deactivateLoading,
     editAriaLabel = "Editar",
@@ -95,10 +100,13 @@ export function CrudTableActions<T extends {id: string; status?: CrudStatus}>({
                 <TableActionButton
                     actionVariant="delete"
                     aria-label="Excluir"
+                    title={deleteDisabled ? deleteDisabledTitle : undefined}
                     leftIcon={<Trash2 className="size-3.5" />}
                     loading={deleteLoading}
+                    disabled={deleteDisabled}
                     onClick={(e) => {
                         e.stopPropagation();
+                        if (deleteDisabled) return;
                         onDelete(row);
                     }}
                 />

@@ -3,11 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import get from "lodash/get";
-import { ChevronDown, Copy, ExternalLink, KanbanSquare } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
-import { JobVacancyCandidatesPanel } from "@/modules/rh/person/jobvacancy/components/JobVacancyCandidatesPanel";
 import { JOB_VACANCY_TABLE_COLUMNS } from "@/modules/rh/person/jobvacancy/config/job-vacancy.table-columns";
 import type { JobVacancy } from "@/modules/rh/person/jobvacancy/dto/job-vacancy.dto";
 import { JOB_VACANCY_CLIENT_MESSAGES } from "@/modules/rh/person/jobvacancy/exceptions/job-vacancy.messages";
@@ -15,14 +13,12 @@ import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query"
 import { useJobVacancyAdmissionProcessStore } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-admission-process.store";
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
-import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
-import { hasPermission, useSessionPermissions } from "@/shared/auth/permissions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { QueryPanel } from "@/shared/components/data/DataPanel";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { badgeClassForStatus, formatBadgeCellValue, formatCellValue } from "@/shared/lib/table/format-cell-value";
+import { sortRowsByCreatedAtDesc } from "@/shared/lib/table/sort-rows-by-created-at";
 import { TableDataType } from "@/shared/types/table.types";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -59,15 +55,19 @@ function renderCell(
 export function JobVacancyListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
-    const permissions = useSessionPermissions();
-    const canStartAdmission = hasPermission(permissions, "admission:read");
-    const openJobVacancyId = useJobVacancyAdmissionProcessStore((state) => state.jobVacancyId);
-    const selectAdmissionProcess = useJobVacancyAdmissionProcessStore((state) => state.select);
-    const startAdmissionProcess = useJobVacancyAdmissionProcessStore((state) => state.start);
-    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const selectVacancy = useJobVacancyAdmissionProcessStore((state) => state.select);
+    const openDetail = useJobVacancyAdmissionProcessStore((state) => state.openDetail);
 
     const openEdit = (row: JobVacancy) => {
-        selectAdmissionProcess({
+        selectVacancy({
+            jobVacancyId: row.id,
+            jobVacancyTitle: row.jobTitle,
+        });
+        startEdit(row.id, row);
+    };
+
+    const openDetailTab = (row: JobVacancy) => {
+        openDetail({
             jobVacancyId: row.id,
             jobVacancyTitle: row.jobTitle,
         });
@@ -85,108 +85,57 @@ export function JobVacancyListClient() {
             ExceptionCapture.handle(err, { fallbackMessage: JOB_VACANCY_CLIENT_MESSAGES.JOB_VACANCY_LOAD_FAILED }),
     });
 
-    const startProcessMutation = useMutation({
-        mutationFn: (row: JobVacancy) => jobVacancyApplicationService.startAdmissionProcess(row.id),
-        onSuccess: async (_data, row) => {
-            await queryClient.invalidateQueries({
-                queryKey: jobVacancyApplicationKeys.byVacancy(row.id),
-            });
-            await queryClient.invalidateQueries({ queryKey: jobVacancyApplicationKeys.all });
-            startAdmissionProcess({
-                jobVacancyId: row.id,
-                jobVacancyTitle: row.jobTitle,
-            });
-            toast.success("Processo de admissão iniciado");
-        },
-        onError: (err: unknown) =>
-            ExceptionCapture.handle(err, {
-                fallbackMessage: "Não foi possível iniciar o processo de admissão desta vaga.",
-            }),
-    });
-
     const handleDelete = async (row: JobVacancy) => {
+        if ((row.candidateCount ?? 0) > 0) {
+            toast.message("Não é possível excluir uma vaga que já possui candidatos.");
+            return;
+        }
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);
     };
 
-    const toggleExpand = (rowId: string) => {
-        setExpandedId((current) => (current === rowId ? null : rowId));
-    };
-
     return (
         <QueryPanel<JobVacancy> queryKey={jobVacancyKeys.all} request={() => jobVacancyService.getAll()}>
-            {({ data }) => (
-                <div className="gommo-table-scroll">
-                    <table className="gommo-table w-full">
-                        <thead>
-                            <tr>
-                                <th className="w-10">
-                                    <span className="sr-only">Expandir</span>
-                                </th>
-                                {JOB_VACANCY_TABLE_COLUMNS.map((col) => (
-                                    <th key={col.id} className={alignClass(col.align)}>
-                                        <span className="gommo-table-col-title">{col.columnName}</span>
-                                    </th>
-                                ))}
-                                <th className="text-center">
-                                    <span className="gommo-table-col-title">Candidatos</span>
-                                </th>
-                                <th>
-                                    <span className="gommo-table-col-title">Link</span>
-                                </th>
-                                <th className="text-right">
-                                    <span className="gommo-table-col-title">Ações</span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.length === 0 ? (
+            {({ data }) => {
+                const rows = sortRowsByCreatedAtDesc(data);
+                return (
+                    <div className="gommo-table-scroll">
+                        <table className="gommo-table gommo-table--compact w-full">
+                            <thead>
                                 <tr>
-                                    <td
-                                        colSpan={JOB_VACANCY_TABLE_COLUMNS.length + 4}
-                                        className="py-16 text-center text-sm text-base-content/38"
-                                    >
-                                        Nenhuma vaga cadastrada.
-                                    </td>
+                                    {JOB_VACANCY_TABLE_COLUMNS.map((col) => (
+                                        <th key={col.id} className={alignClass(col.align)}>
+                                            <span className="gommo-table-col-title">{col.columnName}</span>
+                                        </th>
+                                    ))}
+                                    <th>
+                                        <span className="gommo-table-col-title">Link</span>
+                                    </th>
+                                    <th className="text-right">
+                                        <span className="gommo-table-col-title">Ações</span>
+                                    </th>
                                 </tr>
-                            ) : (
-                                data.map((row) => {
-                                    const expanded = expandedId === row.id;
-                                    const count = row.candidateCount ?? 0;
-                                    const starting =
-                                        startProcessMutation.isPending &&
-                                        startProcessMutation.variables?.id === row.id;
-                                    return (
-                                        <Fragment key={row.id}>
+                            </thead>
+                            <tbody>
+                                {rows.length === 0 ? (
+                                    <tr>
+                                        <td
+                                            colSpan={JOB_VACANCY_TABLE_COLUMNS.length + 2}
+                                            className="py-16 text-center text-sm text-base-content/38"
+                                        >
+                                            Nenhuma vaga cadastrada.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    rows.map((row) => {
+                                        const count = row.candidateCount ?? 0;
+                                        const url = publicCareersUrl(row);
+                                        return (
                                             <tr
+                                                key={row.id}
                                                 className="cursor-pointer"
-                                                onDoubleClick={() => openEdit(row)}
+                                                onDoubleClick={() => openDetailTab(row)}
                                             >
-                                                <td
-                                                    className="w-10"
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        toggleExpand(row.id);
-                                                    }}
-                                                >
-                                                    <button
-                                                        type="button"
-                                                        className="inline-flex size-7 items-center justify-center rounded-md text-base-content/55 transition hover:bg-base-content/5 hover:text-base-content"
-                                                        aria-expanded={expanded}
-                                                        aria-label={
-                                                            expanded
-                                                                ? "Recolher candidatos"
-                                                                : "Expandir candidatos"
-                                                        }
-                                                    >
-                                                        <ChevronDown
-                                                            className={clsx(
-                                                                "size-4 transition-transform",
-                                                                expanded && "rotate-180",
-                                                            )}
-                                                        />
-                                                    </button>
-                                                </td>
                                                 {JOB_VACANCY_TABLE_COLUMNS.map((col, index) => (
                                                     <td
                                                         key={col.id}
@@ -206,73 +155,60 @@ export function JobVacancyListClient() {
                                                         )}
                                                     </td>
                                                 ))}
-                                                <td className="text-center">
-                                                    <span className="inline-flex min-w-7 items-center justify-center rounded-md border border-base-content/10 bg-base-content/5 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-base-content/75">
-                                                        {count}
-                                                    </span>
-                                                </td>
                                                 <td
                                                     onClick={(event) => event.stopPropagation()}
                                                     onDoubleClick={(event) => event.stopPropagation()}
                                                 >
-                                                    {(() => {
-                                                        const url = publicCareersUrl(row);
-                                                        if (!url) {
-                                                            return (
-                                                                <span className="text-xs text-base-content/35">
-                                                                    —
-                                                                </span>
-                                                            );
-                                                        }
-                                                        return (
-                                                            <div className="flex min-w-[12rem] max-w-[18rem] items-center gap-1.5">
-                                                                <a
-                                                                    href={url}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="truncate text-xs font-medium text-primary hover:underline"
-                                                                    title={url}
-                                                                >
-                                                                    /careers/{row.slug}
-                                                                </a>
-                                                                <button
-                                                                    type="button"
-                                                                    className="job-vacancy-link-icon"
-                                                                    aria-label="Copiar link da candidatura"
-                                                                    title="Copiar link"
-                                                                    onClick={async (event) => {
-                                                                        event.stopPropagation();
-                                                                        try {
-                                                                            await navigator.clipboard.writeText(url);
-                                                                            toast.success("Link copiado");
-                                                                        } catch {
-                                                                            toast.error(
-                                                                                "Não foi possível copiar o link.",
-                                                                            );
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <Copy className="size-3.5" strokeWidth={2} />
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    className="job-vacancy-link-icon"
-                                                                    aria-label="Abrir página de candidatura"
-                                                                    title="Abrir página"
-                                                                    onClick={(event) => {
-                                                                        event.stopPropagation();
-                                                                        window.open(
-                                                                            url,
-                                                                            "_blank",
-                                                                            "noopener,noreferrer",
+                                                    {url ? (
+                                                        <div className="flex min-w-[12rem] max-w-[18rem] items-center gap-1.5">
+                                                            <a
+                                                                href={url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="truncate text-xs font-medium text-primary hover:underline"
+                                                                title={url}
+                                                            >
+                                                                /careers/{row.slug}
+                                                            </a>
+                                                            <button
+                                                                type="button"
+                                                                className="job-vacancy-link-icon"
+                                                                aria-label="Copiar link da candidatura"
+                                                                title="Copiar link"
+                                                                onClick={async (event) => {
+                                                                    event.stopPropagation();
+                                                                    try {
+                                                                        await navigator.clipboard.writeText(url);
+                                                                        toast.success("Link copiado");
+                                                                    } catch {
+                                                                        toast.error(
+                                                                            "Não foi possível copiar o link.",
                                                                         );
-                                                                    }}
-                                                                >
-                                                                    <ExternalLink className="size-3.5" strokeWidth={2} />
-                                                                </button>
-                                                            </div>
-                                                        );
-                                                    })()}
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <Copy className="size-3.5" strokeWidth={2} />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="job-vacancy-link-icon"
+                                                                aria-label="Abrir página de candidatura"
+                                                                title="Abrir página"
+                                                                onClick={(event) => {
+                                                                    event.stopPropagation();
+                                                                    window.open(
+                                                                        url,
+                                                                        "_blank",
+                                                                        "noopener,noreferrer",
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <ExternalLink className="size-3.5" strokeWidth={2} />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-base-content/35">—</span>
+                                                    )}
                                                 </td>
                                                 <td className="text-right">
                                                     <div
@@ -280,34 +216,6 @@ export function JobVacancyListClient() {
                                                         onClick={(event) => event.stopPropagation()}
                                                         onDoubleClick={(event) => event.stopPropagation()}
                                                     >
-                                                        {canStartAdmission ? (
-                                                            <TableActionButton
-                                                                actionVariant="open"
-                                                                aria-label="Abrir processo de admissão"
-                                                                title="Abrir processo de admissão"
-                                                                leftIcon={<KanbanSquare className="size-3.5" />}
-                                                                loading={starting}
-                                                                disabled={count === 0 || starting}
-                                                                onClick={(event) => {
-                                                                    event.stopPropagation();
-                                                                    if (count === 0) {
-                                                                        toast.message(
-                                                                            "Esta vaga não possui candidatos.",
-                                                                        );
-                                                                        return;
-                                                                    }
-                                                                    // Vaga já aberta na aba de processo: só foca a aba, sem reload/API.
-                                                                    if (openJobVacancyId === row.id) {
-                                                                        startAdmissionProcess({
-                                                                            jobVacancyId: row.id,
-                                                                            jobVacancyTitle: row.jobTitle,
-                                                                        });
-                                                                        return;
-                                                                    }
-                                                                    startProcessMutation.mutate(row);
-                                                                }}
-                                                            />
-                                                        ) : null}
                                                         <CrudTableActions
                                                             row={row}
                                                             onEdit={() => openEdit(row)}
@@ -316,33 +224,20 @@ export function JobVacancyListClient() {
                                                                 deleteMutation.isPending &&
                                                                 deleteMutation.variables === row.id
                                                             }
+                                                            deleteDisabled={count > 0}
+                                                            deleteDisabledTitle="Não é possível excluir uma vaga que já possui candidatos."
                                                         />
                                                     </div>
                                                 </td>
                                             </tr>
-                                            {expanded ? (
-                                                <tr className="job-vacancy-expand-row">
-                                                    <td
-                                                        colSpan={JOB_VACANCY_TABLE_COLUMNS.length + 4}
-                                                        className="!p-0"
-                                                    >
-                                                        <div className="border-t border-base-content/8 bg-base-content/[0.02] px-2 py-2">
-                                                            <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-base-content/45">
-                                                                Candidatos ({count})
-                                                            </p>
-                                                            <JobVacancyCandidatesPanel jobVacancyId={row.id} />
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ) : null}
-                                        </Fragment>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                );
+            }}
         </QueryPanel>
     );
 }

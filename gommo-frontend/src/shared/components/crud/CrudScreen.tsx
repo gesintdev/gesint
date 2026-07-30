@@ -274,6 +274,8 @@ export function CrudScreen({
         if (isCoreTab) return;
         const activeExtra = visibleExtraTabs.find((tab) => tab.id === activeTab);
         if (activeExtra && !activeExtra.disabled) return;
+        // Evita bounce para Listagem enquanto abas extras ainda estao sendo publicadas.
+        if (visibleExtraTabs.length === 0) return;
         setActiveTab(isEditing && canWrite ? CRUD_TAB_FORM : CRUD_TAB_LIST);
     }, [activeTab, canWrite, isEditing, visibleExtraTabs]);
 
@@ -354,9 +356,7 @@ export function CrudScreen({
                                     "min-h-0 flex-1",
                                     activeTab === CRUD_TAB_LIST
                                         ? "overflow-y-auto"
-                                        : activeTab === CRUD_TAB_FORM
-                                          ? "flex flex-col overflow-hidden"
-                                          : "overflow-y-auto",
+                                        : "flex flex-col overflow-hidden",
                                 )}
                             >
                                 <div
@@ -368,9 +368,11 @@ export function CrudScreen({
                                 >
                                     {list}
                                 </div>
-                                {activeTab !== CRUD_TAB_LIST && activeTab !== CRUD_TAB_FORM
-                                    ? extraTabPanel
-                                    : null}
+                                {activeTab !== CRUD_TAB_LIST && activeTab !== CRUD_TAB_FORM ? (
+                                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                                        {extraTabPanel}
+                                    </div>
+                                ) : null}
                                 {formSessionActive ? (
                                     <div
                                         className={clsx(

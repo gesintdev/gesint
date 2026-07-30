@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { ArrowLeftRight, RefreshCw } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { admissionProcessKanbanColumnKeys } from "@/modules/cfg/settings/admissionprocesskanban/admission-process-kanban-column.query";
@@ -48,12 +48,12 @@ export function JobVacancyAdmissionProcessTab() {
     const { goToTab } = useCrudScreen();
     const queryClient = useQueryClient();
     const jobVacancyId = useJobVacancyAdmissionProcessStore((state) => state.jobVacancyId);
-    const jobVacancyTitle = useJobVacancyAdmissionProcessStore((state) => state.jobVacancyTitle);
     const [pendingItemIds, setPendingItemIds] = useState<Set<string>>(() => new Set());
     const [detailApplicationId, setDetailApplicationId] = useState<string | null>(null);
     const [scoreDetailTarget, setScoreDetailTarget] = useState<CandidateMatchScoreDetailTarget | null>(
         null,
     );
+    const startedForVacancyRef = useRef<string | null>(null);
 
     const columnsQuery = useQuery({
         queryKey: admissionProcessKanbanColumnKeys.all,
@@ -69,6 +69,53 @@ export function JobVacancyAdmissionProcessTab() {
             return rows.some((row) => isApplicationAiPending(row)) ? 4000 : false;
         },
     });
+
+    const startProcessMutation = useMutation({
+        mutationFn: (vacancyId: string) => jobVacancyApplicationService.startAdmissionProcess(vacancyId),
+        onSuccess: async (_data, vacancyId) => {
+            await queryClient.invalidateQueries({
+                queryKey: jobVacancyApplicationKeys.byVacancy(vacancyId),
+            });
+            await queryClient.invalidateQueries({ queryKey: jobVacancyApplicationKeys.all });
+        },
+        onError: (err: unknown) =>
+            ExceptionCapture.handle(err, {
+                fallbackMessage: "Não foi possível posicionar os candidatos no kanban.",
+            }),
+    });
+
+    useEffect(() => {
+        startedForVacancyRef.current = null;
+    }, [jobVacancyId]);
+
+    useEffect(() => {
+        if (!jobVacancyId || !applicationsQuery.isSuccess) return;
+        if (startedForVacancyRef.current === jobVacancyId) return;
+        if (startProcessMutation.isPending) return;
+
+        const rows = (applicationsQuery.data ?? []).filter((row) => row.status !== "DELETED");
+        if (rows.length === 0) {
+            startedForVacancyRef.current = jobVacancyId;
+            return;
+        }
+
+        const needsStart = rows.some((row) => !row.kanbanColumnKey?.trim());
+        if (!needsStart) {
+            startedForVacancyRef.current = jobVacancyId;
+            return;
+        }
+
+        startedForVacancyRef.current = jobVacancyId;
+        startProcessMutation.mutate(jobVacancyId, {
+            onError: () => {
+                if (startedForVacancyRef.current === jobVacancyId) {
+                    startedForVacancyRef.current = null;
+                }
+            },
+        });
+        // mutate/isPending are stable enough; avoid depending on the whole mutation object.
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+    }, [applicationsQuery.data, applicationsQuery.isSuccess, jobVacancyId]);
 
     const sortedColumns = useMemo(() => {
         const rows = (columnsQuery.data ?? []).filter((row) => row.status !== "DELETED");
@@ -231,7 +278,8 @@ export function JobVacancyAdmissionProcessTab() {
         goToTab(CRUD_TAB_LIST);
     };
 
-    const isBoardRefreshing = columnsQuery.isFetching || applicationsQuery.isFetching;
+    const isBoardRefreshing =
+        columnsQuery.isFetching || applicationsQuery.isFetching || startProcessMutation.isPending;
 
     const handleRefreshBoard = () => {
         void columnsQuery.refetch();
@@ -241,10 +289,9 @@ export function JobVacancyAdmissionProcessTab() {
     if (!jobVacancyId) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-16 text-center">
-                <p className="text-sm font-medium text-base-content/70">Processo De Admissão</p>
+                <p className="text-sm font-medium text-base-content/70">Candidatos</p>
                 <p className="max-w-md text-sm text-base-content/45">
-                    Selecione uma vaga na listagem e clique no botão de kanban para abrir o processo com os
-                    candidatos.
+                    Selecione uma vaga na listagem com duplo clique para movimentar os candidatos no kanban.
                 </p>
                 <Button type="button" variant="outline" size="sm" className="mt-2" onClick={handleSwitchVacancy}>
                     Ir para listagem
@@ -253,7 +300,7 @@ export function JobVacancyAdmissionProcessTab() {
         );
     }
 
-    if (columnsQuery.isLoading || applicationsQuery.isLoading) {
+    if (columnsQuery.isLoading || applicationsQuery.isLoading || startProcessMutation.isPending) {
         return (
             <div className="grid gap-2 p-4">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -292,7 +339,7 @@ export function JobVacancyAdmissionProcessTab() {
     if (sortedColumns.length === 0) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-16 text-center">
-                <p className="text-sm font-medium text-base-content/70">Processo De Admissão</p>
+                <p className="text-sm font-medium text-base-content/70">Candidatos</p>
                 <p className="max-w-md text-sm text-base-content/45">
                     Nenhuma coluna configurada. Cadastre as etapas em Configurações &gt; Recursos Humanos &gt;
                     Processo de Admissão.
@@ -302,12 +349,9 @@ export function JobVacancyAdmissionProcessTab() {
     }
 
     return (
-        <div className="flex min-h-[28rem] flex-1 flex-col overflow-hidden">
+        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-base-content/8 px-4 py-2">
                 <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-base-content">
-                        {jobVacancyTitle ?? "Vaga selecionada"}
-                    </p>
                     <p className="text-xs text-base-content/45">
                         {(applicationsQuery.data ?? []).filter((row) => row.kanbanColumnKey).length} candidato(s) no
                         quadro

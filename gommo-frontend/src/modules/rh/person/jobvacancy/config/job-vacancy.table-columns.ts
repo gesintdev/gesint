@@ -31,5 +31,13 @@ export const JOB_VACANCY_TABLE_COLUMNS: TableColumnConfig[] = [
         fieldValue: "expectedCompletionDate",
         dataType: TableDataType.DATE,
     },
+    {
+        id: "candidateCount",
+        columnName: "Candidatos",
+        fieldValue: "candidateCount",
+        dataType: TableDataType.INTEGER,
+        align: "center",
+        notFilterable: true,
+    },
     { id: "status", columnName: "Status", fieldValue: "status", dataType: TableDataType.BADGE },
 ];
