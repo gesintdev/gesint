@@ -10,13 +10,24 @@ import { CANDIDATE_CLIENT_MESSAGES } from "@/modules/rh/person/candidate/excepti
 import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { useCrudStatusActions } from "@/shared/components/crud/useCrudStatusActions";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
 import { ExceptionCapture } from "@/shared/exceptions";
+import {
+    CATALOG_STATUS_INITIAL_FILTERS,
+    loadActiveAndInactiveRows,
+    paginateCatalogRows,
+} from "@/shared/lib/table/paginate-catalog-rows";
 import { SystemAlert } from "@/shared/system-alert";
 
 export function CandidateListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
+    const { activateMutation, deactivateMutation, handleActivate, handleDeactivate } = useCrudStatusActions({
+        service: candidateService,
+        queryKey: candidateKeys.all,
+        entityLabel: "Candidato",
+    });
     const deleteMutation = useMutation({
         mutationFn: (id: string) => candidateService.remove(id),
         onSuccess: async () => {
@@ -32,9 +43,13 @@ export function CandidateListClient() {
     };
 
     return (
-        <QueryTablePanel<Candidate>
+        <QueryPagedTablePanel<Candidate>
             queryKey={candidateKeys.all}
-            request={() => candidateService.getAll()}
+            initialFilters={CATALOG_STATUS_INITIAL_FILTERS}
+            request={async (page, size, filters) => {
+                const rows = await loadActiveAndInactiveRows((options) => candidateService.getAll(options));
+                return paginateCatalogRows(rows, page, size, filters);
+            }}
             columns={CANDIDATE_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum candidato cadastrado."
@@ -45,6 +60,10 @@ export function CandidateListClient() {
                     onEdit={() => startEdit(row.id, row)}
                     onDelete={() => void handleDelete(row)}
                     deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                    onActivate={() => handleActivate(row.id)}
+                    onDeactivate={() => void handleDeactivate(row.id)}
+                    activateLoading={activateMutation.isPending && activateMutation.variables === row.id}
+                    deactivateLoading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
                 />
             )}
         />
