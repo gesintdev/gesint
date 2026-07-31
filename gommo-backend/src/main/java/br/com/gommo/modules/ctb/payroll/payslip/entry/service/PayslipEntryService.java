@@ -23,7 +23,7 @@ import br.com.gommo.modules.ctb.payroll.payslip.repository.PayslipRepository;
 
 @Service
 public class PayslipEntryService extends BaseService<PayslipEntry, PayslipEntryRequestDto, PayslipEntryResponseDto>
-        implements IPayslipEntryService {
+    implements IPayslipEntryService {
 
     private final PayslipEntryRepository repository;
     private final PayslipEntryMapper mapper;
@@ -31,10 +31,10 @@ public class PayslipEntryService extends BaseService<PayslipEntry, PayslipEntryR
     private final PayrollRunLockService payrollRunLockService;
 
     public PayslipEntryService(
-            PayslipEntryRepository repository,
-            PayslipEntryMapper mapper,
-            PayslipRepository payslipRepository,
-            PayrollRunLockService payrollRunLockService) {
+        PayslipEntryRepository repository,
+        PayslipEntryMapper mapper,
+        PayslipRepository payslipRepository,
+        PayrollRunLockService payrollRunLockService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -80,8 +80,6 @@ public class PayslipEntryService extends BaseService<PayslipEntry, PayslipEntryR
         return super.update(id, request);
     }
 
-    
-
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('payslip:read')")
@@ -124,8 +122,8 @@ public class PayslipEntryService extends BaseService<PayslipEntry, PayslipEntryR
 
     private void assertWritablePayslip(UUID payslipId) {
         Payslip payslip = payslipRepository
-                .findByIdAndStatusNot(payslipId, StatusEnum.DELETED)
-                .orElseThrow(PayslipException::notFound);
+            .findByIdAndStatusNot(payslipId, StatusEnum.DELETED)
+            .orElseThrow(PayslipException::notFound);
         payrollRunLockService.requireWritable(payslip.getPayrollRunId());
     }
 }

@@ -1,12 +1,5 @@
 package br.com.gommo.modules.ctb.payroll.benefitenrollment.service;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -16,11 +9,17 @@ import br.com.gommo.modules.ctb.payroll.benefitenrollment.entity.BenefitEnrollme
 import br.com.gommo.modules.ctb.payroll.benefitenrollment.exception.BenefitEnrollmentException;
 import br.com.gommo.modules.ctb.payroll.benefitenrollment.mapper.BenefitEnrollmentMapper;
 import br.com.gommo.modules.ctb.payroll.benefitenrollment.repository.BenefitEnrollmentRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class BenefitEnrollmentService
-        extends BaseService<BenefitEnrollment, BenefitEnrollmentRequestDto, BenefitEnrollmentResponseDto>
-        implements IBenefitEnrollmentService {
+    extends BaseService<BenefitEnrollment, BenefitEnrollmentRequestDto, BenefitEnrollmentResponseDto>
+    implements IBenefitEnrollmentService {
     private final BenefitEnrollmentRepository repository;
     private final BenefitEnrollmentMapper mapper;
 
@@ -65,8 +64,6 @@ public class BenefitEnrollmentService
         return super.update(id, request);
     }
 
-    
-
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('benefitenrollment:read')")
@@ -98,8 +95,8 @@ public class BenefitEnrollmentService
     @Override
     protected BenefitEnrollment findEntity(UUID id) {
         return repository
-                .findByIdAndStatusNot(id, StatusEnum.DELETED)
-                .orElseThrow(BenefitEnrollmentException::notFound);
+            .findByIdAndStatusNot(id, StatusEnum.DELETED)
+            .orElseThrow(BenefitEnrollmentException::notFound);
     }
 
     @Override
