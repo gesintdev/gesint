@@ -219,7 +219,7 @@ public class JobVacancyApplicationService
         return enrich(repository.save(entity));
     }
 
-    
+
 
     @Override
     @Transactional(readOnly = true)
@@ -286,7 +286,7 @@ public class JobVacancyApplicationService
         repository
                 .findByJobVacancyIdAndCandidateIdAndStatusNot(
                         request.getJobVacancyId(), request.getCandidateId(), StatusEnum.DELETED)
-                .filter(existing -> currentId == null || !existing.getId().equals(currentId))
+                .filter(existing -> !existing.getId().equals(currentId))
                 .ifPresent(existing -> {
                     throw JobVacancyApplicationException.duplicate();
                 });
@@ -312,10 +312,13 @@ public class JobVacancyApplicationService
 
         Map<UUID, JobVacancy> vacancies = jobVacancyRepository.findAllById(vacancyIds).stream()
                 .collect(Collectors.toMap(JobVacancy::getId, Function.identity()));
-        Map<UUID, Candidate> candidates = candidateRepository.findAllById(candidateIds).stream()
+        Map<UUID, Candidate> candidates = candidateRepository
+                .findAllByIdInAndStatus(candidateIds, StatusEnum.ACTIVE)
+                .stream()
                 .collect(Collectors.toMap(Candidate::getId, Function.identity()));
 
         return entities.stream()
+                .filter(entity -> candidates.containsKey(entity.getCandidateId()))
                 .map(entity -> mapper.toResponse(
                         entity, vacancies.get(entity.getJobVacancyId()), candidates.get(entity.getCandidateId())))
                 .toList();

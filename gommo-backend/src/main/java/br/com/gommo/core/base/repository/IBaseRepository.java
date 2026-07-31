@@ -2,6 +2,7 @@ package br.com.gommo.core.base.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -24,4 +25,6 @@ public interface IBaseRepository<T extends AuditEntity> extends JpaRepository<T,
     Page<T> findAllByStatus(StatusEnum status, Pageable pageable);
 
     Optional<T> findByIdAndStatusNot(UUID id, StatusEnum status);
+
+    List<T> findAllByIdInAndStatus(Set<UUID> ids, StatusEnum status);
 }

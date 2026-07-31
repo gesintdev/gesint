@@ -726,7 +726,7 @@ export function ExitInterviewFormClient() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-[var(--gommo-control-h)] whitespace-nowrap"
+                        className="h-(--gommo-control-h) whitespace-nowrap"
                         leftIcon={<UserRoundCheck className="size-4" />}
                         disabled={isFinal}
                         onClick={handleBindCurrentUser}
@@ -895,7 +895,7 @@ export function ExitInterviewFormClient() {
             <FormSection id="devolucoes" title="Checklist de devoluções" bodyClassName="!block">
                 <div className="overflow-hidden rounded-lg border border-base-300/70 bg-base-100 shadow-sm">
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[760px] text-sm">
+                        <table className="w-full min-w-190 text-sm">
                             <thead className="border-b border-base-300/70 bg-base-200/40 text-left text-xs font-semibold uppercase text-base-content/55">
                                 <tr>
                                     <th className="px-3 py-2">Item</th>

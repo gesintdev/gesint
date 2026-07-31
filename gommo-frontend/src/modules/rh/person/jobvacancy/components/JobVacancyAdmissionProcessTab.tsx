@@ -8,21 +8,21 @@ import { toast } from "sonner";
 
 import { admissionProcessKanbanColumnKeys } from "@/modules/cfg/settings/admissionprocesskanban/admission-process-kanban-column.query";
 import { admissionProcessKanbanColumnService } from "@/modules/cfg/settings/admissionprocesskanban/services/admission-process-kanban-column.service";
-import { JobVacancyApplicationKanbanDetailModal } from "@/modules/rh/person/jobvacancy/components/JobVacancyApplicationKanbanDetailModal";
 import {
     CandidateMatchScoreDetailModal,
     type CandidateMatchScoreDetailTarget,
 } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
 import { CandidateMatchScoreTag } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreTag";
+import { JobVacancyApplicationKanbanDetailModal } from "@/modules/rh/person/jobvacancy/components/JobVacancyApplicationKanbanDetailModal";
+import {
+    applicationAiScore,
+    isApplicationAiPending,
+} from "@/modules/rh/person/jobvacancy/lib/application-match-score";
 import {
     createAdmissionFromKanbanCard,
     HIRING_KANBAN_COLUMN_KEY,
 } from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
 import { useJobVacancyAdmissionProcessStore } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-admission-process.store";
-import {
-    applicationAiScore,
-    isApplicationAiPending,
-} from "@/modules/rh/person/jobvacancy/lib/application-match-score";
 import type { JobVacancyApplication } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
