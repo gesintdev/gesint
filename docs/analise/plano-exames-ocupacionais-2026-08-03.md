@@ -180,12 +180,57 @@ frontend.
 |---|---|---|
 | Fase 1 — Fundacao | `MedicalClinic`, `OccupationalPhysician`, `ExamRequirement` (matriz versionada), `OccupationalExam` + `ComplementaryExam`, upload de ASO via storage existente, RBAC com `occupationalexam:clinical`, telas de cadastro/listagem | Nenhum vencimento digitado a mao; nenhum ASO sem medico identificado; dado clinico invisivel ao perfil RH sem a autoridade `clinical` |
 | Fase 2 — Motor de conformidade | Gatilhos automaticos (admissao, retorno de afastamento, mudanca de funcao, desligamento com regra de dispensa), maquina de estados completa, alertas 30/60/90, painel de indicadores | Sistema decide quando um exame e exigivel e documenta a base da decisao |
-| Fase 3 — Transmissao e integracao | `EsocialTable27Procedure` seedada, `EsocialHealthEvent` (payload S-2220, protocolo/recibo, status), consistencia com S-2240 (se/quando existir modulo de PGR/GRO), politica de retencao automatizada | Aderencia de transmissao >= 99% no prazo; auditoria ponta a ponta de qualquer ASO em menos de 1 minuto |
+| Fase 3 — Transmissao e integracao | `EsocialTable27Procedure` seedada, `EsocialHealthEvent` (payload S-2220, protocolo/recibo, status), **certificado digital por tenant**, consistencia com S-2240 (se/quando existir modulo de PGR/GRO), politica de retencao automatizada | Aderencia de transmissao >= 99% no prazo; auditoria ponta a ponta de qualquer ASO em menos de 1 minuto |
 
 Este plano cobre prompts detalhados para as Fases 1 e 2 (motor de dados e de
 regras — onde esta o valor juridico do modulo) e um prompt de preparacao para
 a Fase 3 (schema pronto para eSocial, sem exigir a integracao de transmissao
 real agora).
+
+### 6.1 Certificado digital — por cliente (tenant), nao pelo Gommo
+
+O certificado usado para assinar/enviar eventos eSocial e **do empregador
+(cliente do Gommo)**, nunca um certificado unico da plataforma.
+
+Exemplo: Cliente A contrata o Gommo. Para haver envios ao eSocial, o Cliente A
+precisa ja ter (ou obter) suas proprias credenciais no eSocial e um certificado
+digital ICP-Brasil valido (tipicamente e-CNPJ A1). O Gommo apenas armazena e
+usa esse certificado **no schema/tenant daquele cliente**, sem misturar com
+outros tenants.
+
+#### O que sistemas de mercado costumam oferecer
+
+| Campo / recurso | Mercado tipico | Essencial no Gommo? |
+|---|---|---|
+| Upload A1 (.pfx / .p12) + senha | Sim | **Sim** |
+| Alias / apelido do certificado | Sim | **Sim** |
+| Validade (inicio/fim) lida do certificado | Sim | **Sim** (extraida no upload) |
+| Titular / CNPJ-CPF do certificado | Sim | **Sim** (extraido; editavel se preciso) |
+| Ambiente homologacao vs producao | Frequente | **Sim** |
+| Marcar certificado padrao | Frequente | **Sim** (um default por tenant) |
+| Finalidade (eSocial, NF-e, geral) | Frequente | **Sim** (inicio: `ESOCIAL`) |
+| Serial / thumbprint | Frequente | **Sim** (auditoria / unicidade) |
+| Aviso de vencimento (30/15/7 dias) | Frequente | Depois (notificacao) |
+| Teste de assinatura / conexao | Frequente | Fase 3 transmissao |
+| A3 (token/cartao/HSM) | Em desktop/on-prem | **Nao no SaaS inicial** (exige hardware/HSM) |
+| Cadeia ICP completa manual | Raro/avancado | Nao |
+| Multiplos certificados ativos | Sim | Sim (com 1 default) |
+
+#### Requisitos de seguranca do cadastro
+
+- PKCS#12 e senha **nunca** retornam na API de leitura.
+- Conteudo e senha ficam cifrados em repouso (chave de aplicacao por ambiente).
+- Isolamento por tenant (schema); certificado do Cliente A nao e visivel/usavel
+  pelo Cliente B.
+- Tela em **Configuracoes > Certificados digitais** (`CFG`), nao no modulo RH
+  de exames — porque o mesmo certificado serve a transmissao eSocial futura
+  alem do S-2220.
+
+#### Escopo ja implementavel sem transmissao
+
+Cadastro/listagem/edicao/exclusao do certificado A1 por tenant, com metadados
+extraidos do PKCS#12. A transmissao real (assinatura + webservice) continua
+pendente da Fase 3 completa e usa o certificado marcado como padrao do tenant.
 
 ## 7. Prompts para o Cursor
 
@@ -702,7 +747,10 @@ Branch: `feature/exames-ocupacionais`
 - [x] `EsocialS2220Service.ensurePendingEvent` ao REGISTRADO;
   `buildS2220Payload` em memoria (sem envio).
 - [x] Teste `EsocialS2220ServiceTest`.
-- [ ] Transmissao real do webservice eSocial (fora do escopo deste plano / Prompt 8).
+- [x] Cadastro de certificado digital A1 por tenant (`V85`, CFG >
+  Certificados digitais): PKCS#12 + senha cifrados; metadados extraidos;
+  default/ambiente/finalidade. Sem transmissao ainda.
+- [ ] Transmissao real do webservice eSocial (assinatura + envio + recibo).
 
 ### Prompt 9 — Validacao final
 - [x] Backend `mvnw -DskipTests compile`: passou.
@@ -729,5 +777,6 @@ Branch: `feature/exames-ocupacionais`
 - [x] V84: `occupational_physician.crm_state` CHAR(2) -> VARCHAR(2).
 - [x] Historico Flyway reparado apos ajustes de checksum da V80.
 
-### Pendente fora do plano (Fase 3 completa)
-- Transmissao real S-2220 / aderencia de transmissao / tempo de ciclo.
+### Pendente (Fase 3 completa)
+- Transmissao real S-2220 (usar certificado padrao do tenant) / aderencia /
+  tempo de ciclo / alerta de vencimento do certificado.

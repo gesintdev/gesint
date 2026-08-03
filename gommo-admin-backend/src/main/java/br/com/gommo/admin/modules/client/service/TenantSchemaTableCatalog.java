@@ -34,6 +34,7 @@ public final class TenantSchemaTableCatalog {
             "occupational_exam",
             "complementary_exam",
             "esocial_health_event",
+            "digital_certificate",
             "system_setting",
             "system_notification",
             "agenda_event",
