@@ -57,6 +57,7 @@ import br.com.gommo.modules.rh.person.leave.exception.LeaveRequestException;
 import br.com.gommo.modules.rh.person.leave.exception.LeaveRequestExceptions;
 import br.com.gommo.modules.rh.person.leave.mapper.LeaveRequestMapper;
 import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
+import br.com.gommo.modules.rh.person.occupationalexam.exam.service.OccupationalExamTriggerService;
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 
@@ -73,6 +74,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     private final ContractRecessPolicyRepository recessPolicyRepository;
     private final AttendanceRecordRepository attendanceRecordRepository;
     private final AppUserRepository appUserRepository;
+    private final OccupationalExamTriggerService occupationalExamTriggerService;
 
     public LeaveRequestService(
             LeaveRequestRepository repository,
@@ -83,7 +85,8 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
             ContractRecessPeriodRepository recessPeriodRepository,
             ContractRecessPolicyRepository recessPolicyRepository,
             AttendanceRecordRepository attendanceRecordRepository,
-            AppUserRepository appUserRepository) {
+            AppUserRepository appUserRepository,
+            OccupationalExamTriggerService occupationalExamTriggerService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -94,6 +97,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         this.recessPolicyRepository = recessPolicyRepository;
         this.attendanceRecordRepository = attendanceRecordRepository;
         this.appUserRepository = appUserRepository;
+        this.occupationalExamTriggerService = occupationalExamTriggerService;
     }
 
     @Override
@@ -154,6 +158,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         applyVacationDefaultsOnCreate(entity, request);
         LeaveRequest saved = repository.save(entity);
         syncAttendanceOccurrences(saved);
+        triggerReturnExamIfNeeded(saved);
         return findById(saved.getId());
     }
 
@@ -257,10 +262,19 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         mapper.updateEntity(entity, request);
         LeaveRequest saved = repository.save(entity);
         syncAttendanceOccurrences(saved);
+        triggerReturnExamIfNeeded(saved);
         return findById(saved.getId());
     }
 
-    
+    private void triggerReturnExamIfNeeded(LeaveRequest saved) {
+        if (saved.getLeaveType() == LeaveTypeEnum.VACATION) {
+            return;
+        }
+        if (!LeaveAbsenceRules.isApprovedAbsenceStatus(saved.getAbsenceStatus())) {
+            return;
+        }
+        occupationalExamTriggerService.onLeaveValidated(saved);
+    }
 
     @Override
     @Transactional(readOnly = true)

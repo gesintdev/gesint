@@ -22,6 +22,8 @@ import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.exception.CollaboratorException;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
+import br.com.gommo.modules.rh.person.occupationalexam.exam.service.OccupationalExamTriggerService;
 import br.com.gommo.modules.root.search.document.SearchDocumentType;
 import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
 import br.com.gommo.modules.root.search.service.provider.CollaboratorGlobalSearchProvider;
@@ -33,17 +35,23 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
     private final OffboardingMapper mapper;
     private final CollaboratorRepository collaboratorRepository;
     private final ISearchDocumentIndexer searchDocumentIndexer;
+    private final OccupationalExamTriggerService occupationalExamTriggerService;
+    private final EmploymentContractRepository employmentContractRepository;
 
     public OffboardingService(
         OffboardingRepository repository,
         OffboardingMapper mapper,
         CollaboratorRepository collaboratorRepository,
-        ISearchDocumentIndexer searchDocumentIndexer) {
+        ISearchDocumentIndexer searchDocumentIndexer,
+        OccupationalExamTriggerService occupationalExamTriggerService,
+        EmploymentContractRepository employmentContractRepository) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.collaboratorRepository = collaboratorRepository;
         this.searchDocumentIndexer = searchDocumentIndexer;
+        this.occupationalExamTriggerService = occupationalExamTriggerService;
+        this.employmentContractRepository = employmentContractRepository;
     }
 
     @Override
@@ -86,6 +94,13 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
         entity.setStatus(StatusEnum.ACTIVE);
         Offboarding saved = repository.save(entity);
         markCollaboratorOffboarded(saved.getCollaboratorId());
+        UUID jobPositionId = employmentContractRepository
+                .findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(
+                        saved.getCollaboratorId(), StatusEnum.DELETED)
+                .map(contract -> contract.getJobPositionId())
+                .orElse(null);
+        occupationalExamTriggerService.onTermination(
+                saved.getCollaboratorId(), jobPositionId, saved.getDismissalDate(), 2);
         return toEnrichedResponse(saved);
     }
 

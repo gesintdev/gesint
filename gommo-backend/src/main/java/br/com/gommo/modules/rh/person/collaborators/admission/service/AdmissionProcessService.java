@@ -41,6 +41,7 @@ import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
+import br.com.gommo.modules.rh.person.occupationalexam.exam.service.OccupationalExamTriggerService;
 import br.com.gommo.modules.root.search.document.SearchDocumentType;
 import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
 import br.com.gommo.modules.root.search.service.provider.AdmissionGlobalSearchProvider;
@@ -63,6 +64,7 @@ public class AdmissionProcessService
     private final LeaveRequestRepository leaveRequestRepository;
     private final OffboardingRepository offboardingRepository;
     private final ISearchDocumentIndexer searchDocumentIndexer;
+    private final OccupationalExamTriggerService occupationalExamTriggerService;
 
     public AdmissionProcessService(
             AdmissionProcessRepository repository,
@@ -75,7 +77,8 @@ public class AdmissionProcessService
             DepartmentRepository departmentRepository,
             LeaveRequestRepository leaveRequestRepository,
             OffboardingRepository offboardingRepository,
-            ISearchDocumentIndexer searchDocumentIndexer) {
+            ISearchDocumentIndexer searchDocumentIndexer,
+            OccupationalExamTriggerService occupationalExamTriggerService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -88,6 +91,7 @@ public class AdmissionProcessService
         this.leaveRequestRepository = leaveRequestRepository;
         this.offboardingRepository = offboardingRepository;
         this.searchDocumentIndexer = searchDocumentIndexer;
+        this.occupationalExamTriggerService = occupationalExamTriggerService;
     }
 
     @Override
@@ -152,6 +156,8 @@ public class AdmissionProcessService
         applyComputedStatus(entity, null);
         UUID collaboratorId = collaboratorProfileService.syncFromAdmission(request, null);
         entity.setCollaboratorId(collaboratorId);
+        occupationalExamTriggerService.ensureAdmissionalPredicted(entity.getCollaboratorId(), entity.getJobPositionId());
+        assertAdmissionalExamIfCompleting(entity);
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
         contractRecessProvisioningService.sync(saved);
@@ -172,11 +178,22 @@ public class AdmissionProcessService
         applyComputedStatus(entity, id);
         UUID collaboratorId = collaboratorProfileService.syncFromAdmission(request, entity.getCollaboratorId());
         entity.setCollaboratorId(collaboratorId);
+        occupationalExamTriggerService.ensureAdmissionalPredicted(entity.getCollaboratorId(), entity.getJobPositionId());
+        assertAdmissionalExamIfCompleting(entity);
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
         contractRecessProvisioningService.sync(saved);
         indexAdmission(saved);
         return toEnrichedResponse(saved);
+    }
+
+    private void assertAdmissionalExamIfCompleting(AdmissionProcess entity) {
+        if (entity.getAdmissionStatus() != AdmissionStatusEnum.COMPLETED) {
+            return;
+        }
+        if (!occupationalExamTriggerService.hasAdmissionalFit(entity.getCollaboratorId())) {
+            throw AdmissionProcessException.admissionalExamRequired();
+        }
     }
 
     

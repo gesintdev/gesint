@@ -16,6 +16,7 @@ import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
 import br.com.gommo.modules.rh.person.contract.exception.EmploymentContractException;
 import br.com.gommo.modules.rh.person.contract.mapper.EmploymentContractMapper;
 import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
+import br.com.gommo.modules.rh.person.occupationalexam.exam.service.OccupationalExamTriggerService;
 
 @Service
 public class EmploymentContractService
@@ -23,11 +24,16 @@ public class EmploymentContractService
         implements IEmploymentContractService {
     private final EmploymentContractRepository repository;
     private final EmploymentContractMapper mapper;
+    private final OccupationalExamTriggerService occupationalExamTriggerService;
 
-    public EmploymentContractService(EmploymentContractRepository repository, EmploymentContractMapper mapper) {
+    public EmploymentContractService(
+            EmploymentContractRepository repository,
+            EmploymentContractMapper mapper,
+            OccupationalExamTriggerService occupationalExamTriggerService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
+        this.occupationalExamTriggerService = occupationalExamTriggerService;
     }
 
     @Override
@@ -62,7 +68,18 @@ public class EmploymentContractService
     @Transactional
     @PreAuthorize("hasAuthority('contract:write')")
     public EmploymentContractResponseDto update(UUID id, EmploymentContractRequestDto request) {
-        return super.update(id, request);
+        EmploymentContract entity = findEntity(id);
+        UUID previousJobPositionId = entity.getJobPositionId();
+        mapper.updateEntity(entity, request);
+        EmploymentContract saved = repository.save(entity);
+        if (request.getJobPositionId() != null && !request.getJobPositionId().equals(previousJobPositionId)) {
+            occupationalExamTriggerService.onJobPositionChange(
+                    saved.getCollaboratorId(),
+                    previousJobPositionId,
+                    saved.getJobPositionId(),
+                    saved.getStartDate());
+        }
+        return mapper.toResponse(saved);
     }
 
     
