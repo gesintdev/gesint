@@ -210,15 +210,17 @@ export function OccupationalExamFormClient() {
                 </>
             }
         >
-            <FormSection id="cadastro" title="Exame ocupacional" description="Obrigacao e convocacao.">
-                <div className="sm:col-span-12">
+            <FormSection id="cadastro"
+                         title="Exame ocupacional"
+                         description="Obrigacao e convocacao.">
+                <div className="sm:col-span-6">
                     <CollaboratorPickerField
                         value={form.collaboratorId}
                         onValueChange={(v) => update("collaboratorId", v)}
                         required
                     />
                 </div>
-                <div className="sm:col-span-12">
+                <div className="sm:col-span-6">
                     <JobPositionPickerField
                         value={form.jobPositionId}
                         onValueChange={(v) => update("jobPositionId", v)}

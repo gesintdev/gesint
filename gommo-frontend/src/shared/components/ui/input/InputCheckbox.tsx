@@ -45,7 +45,7 @@ export function InputCheckbox({
     disabled = false,
     readOnly = false,
     className,
-    size = "md",
+    size = "sm",
     "aria-label": ariaLabel,
 }: InputCheckboxProps) {
     const inputRef = useRef<HTMLInputElement>(null);

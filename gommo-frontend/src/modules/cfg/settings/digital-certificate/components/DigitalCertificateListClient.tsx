@@ -35,10 +35,6 @@ export function DigitalCertificateListClient() {
 
     return (
         <div className="grid gap-4">
-            <p className="px-1 text-sm text-base-content/65">
-                O certificado e do empregador (seu cliente), nao do Gommo. Cadastre o A1 (.pfx) deste
-                tenant para usos futuros de transmissao eSocial.
-            </p>
             <QueryTablePanel<DigitalCertificate>
                 queryKey={digitalCertificateKeys.all}
                 request={() => digitalCertificateService.getAll()}

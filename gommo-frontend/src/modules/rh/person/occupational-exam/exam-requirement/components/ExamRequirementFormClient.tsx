@@ -227,7 +227,7 @@ export function ExamRequirementFormClient() {
                     {(proceduresQuery.data ?? []).map((procedure) => (
                         <InputCheckbox
                             key={procedure.id}
-                            label={`${procedure.procedureCode} — ${procedure.description}`}
+                            label={`${procedure.procedureCode} - ${procedure.description}`}
                             checked={selectedCodes.has(procedure.procedureCode)}
                             onCheckedChange={(checked) =>
                                 toggleProcedure(procedure.procedureCode, Boolean(checked))
