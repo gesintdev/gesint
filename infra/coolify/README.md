@@ -112,7 +112,29 @@ O Compose único é mais simples para começar.
 | Sintoma | O que verificar |
 |---------|-----------------|
 | Build Maven falha | Logs do Coolify; memória da VPS |
+| Deploy morre no meio do `docker compose build` com `exit code 255` / `Error code: 0` sem erro de compile | Quase sempre **falta de RAM** (OOM). Ver secção abaixo |
 | CORS no browser | `CORS_ORIGINS` / `ADMIN_CORS_ORIGINS` com URL exata do frontend |
 | NextAuth redirect | `HR_NEXTAUTH_URL` / `ADMIN_NEXTAUTH_URL` com https e sem barra final |
 | 502 no proxy | Healthcheck do backend; Postgres healthy |
 | Flyway error | Postgres vazio vs. volume antigo; conferir schemas `public` e `admin` |
+
+### Build abortado no Coolify (notebook / VPS pequena)
+
+O compose sobe **4 imagens** (2× Maven + 2× Next). O Coolify as constrói **em paralelo**. Sem RAM/swap suficiente o kernel ou o Coolify matam o processo no meio — o log para em `#44 RUN mvn ... package` / `Running TypeScript` e fecha com `DeploymentException` / `exit 255`, **sem** falha de compilação.
+
+Mitigações (nessa ordem):
+
+1. **Criar swap** no host do Coolify (notebook ou VPS), ex. 8 GB:
+
+```bash
+sudo fallocate -l 8G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+free -h
+```
+
+2. **Redeploy** — layers já construídos ficam em cache; retries costumam avançar.
+3. Em máquina fraca, prefira o caminho “Deploy alternativo” (apps separados) em vez do compose único.
+4. Na VPS de produção, use pelo menos **8–12 GB RAM** (padrão Terraform: 2 OCPU / 12 GB).

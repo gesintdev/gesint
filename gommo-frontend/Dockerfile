@@ -11,6 +11,9 @@ COPY . .
 
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+# Cap heap: TypeScript/Next com muitos workers estoura RAM no build paralelo
+ENV NODE_OPTIONS="--max-old-space-size=1536"
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
 

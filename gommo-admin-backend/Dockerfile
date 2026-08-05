@@ -2,11 +2,14 @@
 FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
+# Cap heap: Coolify/VPS/notebook costuma OOM com Maven+Next em paralelo
+ENV MAVEN_OPTS="-Xmx768m -XX:MaxMetaspaceSize=256m"
+
 COPY pom.xml ./
-RUN mvn -q -DskipTests dependency:go-offline
+RUN mvn -q -B -DskipTests dependency:go-offline
 
 COPY src ./src
-RUN mvn -q -DskipTests package
+RUN mvn -q -B -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app

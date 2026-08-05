@@ -58,9 +58,10 @@ gommo-admin:
     internal-event-secret: ${GOMMO_INTERNAL_EVENT_SECRET:}
   outbox:
     poll-interval-ms: ${GOMMO_ADMIN_OUTBOX_POLL_MS:5000}
+  # Só usado em profiles dev/test (DevAdminInitializer). Em prod pode ficar vazio.
   dev:
     admin-username: ${DEV_ADMIN_USERNAME:admin}
-    admin-password: ${DEV_ADMIN_PASSWORD}
+    admin-password: ${DEV_ADMIN_PASSWORD:}
 
 logging:
   pattern:
