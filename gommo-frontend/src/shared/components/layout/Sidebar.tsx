@@ -385,7 +385,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                                         {section.shortLabel || section.label.slice(0, 2)}
                                     </p>
                                 </div>
-                                <ul className="space-y-0.5 px-[var(--sidebar-nav-list-pad-x)]">
+                                <ul className="space-y-0.5 px-(--sidebar-nav-list-pad-x)">
                                     {section.routes.map(renderRoute)}
                                 </ul>
                             </div>

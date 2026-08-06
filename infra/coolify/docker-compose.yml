@@ -41,6 +41,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       CORS_ORIGINS: ${CORS_ORIGINS}
+      GOMMO_INTERNAL_EVENT_SECRET: ${GOMMO_INTERNAL_EVENT_SECRET}
       SERVER_PORT: "8081"
       STORAGE_LOCAL_PATH: /data/storage
       STORAGE_BUCKET: ${STORAGE_BUCKET:-gommo-prod}
@@ -74,6 +75,9 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       ADMIN_CORS_ORIGINS: ${ADMIN_CORS_ORIGINS}
+      # Rede Docker interna (nao use a URL publica do Coolify aqui)
+      GOMMO_HR_BASE_URL: ${GOMMO_HR_BASE_URL:-http://gommo-backend:8081}
+      GOMMO_INTERNAL_EVENT_SECRET: ${GOMMO_INTERNAL_EVENT_SECRET}
       ADMIN_SERVER_PORT: "8082"
     depends_on:
       postgres:

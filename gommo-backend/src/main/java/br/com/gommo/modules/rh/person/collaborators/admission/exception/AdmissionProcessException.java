@@ -34,4 +34,11 @@ public final class AdmissionProcessException {
                 AdmissionProcessExceptions.PJ_RECESS_INVALID_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException admissionalExamRequired() {
+        return new BusinessException(
+                AdmissionProcessExceptions.ADMISSIONAL_EXAM_REQUIRED_CODE,
+                AdmissionProcessExceptions.ADMISSIONAL_EXAM_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

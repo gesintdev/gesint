@@ -46,6 +46,8 @@ gommo:
       secret: ${JWT_SECRET}
       access-token-minutes: 8
       refresh-token-rotation-minutes: 15
+    # Chave para cifrar segredos em repouso (certificado A1/senha). Fallback: JWT_SECRET.
+    secret-encryption-key: ${GOMMO_SECRET_ENCRYPTION_KEY:}
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://*.localhost:3000,http://localhost:8090}
   multi-tenant:

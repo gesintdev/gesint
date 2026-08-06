@@ -4,6 +4,7 @@ import {
     Columns3,
     GraduationCap,
     KanbanSquare,
+    KeyRound,
     Settings2,
     Shield,
     StickyNote,
@@ -78,6 +79,35 @@ const dpRoutes: AppRoute[] = [
             () => import("@/modules/cfg/settings/workschedule/components/WorkScheduleFormClient"),
             "WorkScheduleFormClient",
         ),
+    }),
+    tabbedCrudRoute({
+        id: "settings-digital-certificates",
+        href: "/settings/digital-certificates",
+        label: "Certificados digitais",
+        icon: KeyRound,
+        permission: "digitalcertificate:read",
+        routeId: "settings-digital-certificates",
+        tabShortLabel: "Cert.",
+        fieldTabName: "alias",
+        listToolbar:
+            "Certificado A1 do empregador deste tenant (para eSocial). Nao e o certificado do Gommo.",
+        list: lazyNamed(
+            () =>
+                import(
+                    "@/modules/cfg/settings/digital-certificate/components/DigitalCertificateListClient"
+                ),
+            "DigitalCertificateListClient",
+        ),
+        form: lazyNamed(
+            () =>
+                import(
+                    "@/modules/cfg/settings/digital-certificate/components/DigitalCertificateFormClient"
+                ),
+            "DigitalCertificateFormClient",
+        ),
+        formTabLabel: "Certificado digital",
+        listToFormLabel: "Novo certificado",
+        showListToFormButton: true,
     }),
 ];
 
