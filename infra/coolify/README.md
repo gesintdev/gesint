@@ -54,18 +54,38 @@ Acesse `http://SEU_IP:8000`, crie o usuário admin e conecte o servidor (localho
 
 4. Em **Environment Variables**, copie as chaves de [`.env.example`](.env.example) e preencha com valores reais (senhas fortes).
 
-## 3. Domínios e HTTPS
+## 3. URLs públicas (sem domínio próprio ou com domínio)
 
-Após o primeiro deploy, em cada serviço exposto pelo Coolify, associe um domínio e ative **Let's Encrypt**:
+Cada serviço do Compose precisa de uma URL pública no Coolify (exceto `postgres`).
 
-| Serviço | Sugestão de host | Porta interna |
-|---------|------------------|---------------|
-| `gommo-frontend` | `app.seudominio.com.br` | 3000 |
-| `gommo-admin-frontend` | `admin.seudominio.com.br` | 3001 |
-| `gommo-backend` | `api.seudominio.com.br` | 8081 |
-| `gommo-admin-backend` | `admin-api.seudominio.com.br` | 8082 |
+### Teste sem domínio próprio (FQDN do Coolify)
 
-Atualize as variáveis de ambiente para usar **https** nas URLs (`CORS_ORIGINS`, `NEXT_PUBLIC_*`, `NEXTAUTH_URL`, etc.) e faça **Redeploy**.
+1. Abra **cada serviço** (`gommo-frontend`, `gommo-admin-frontend`, `gommo-backend`, `gommo-admin-backend`).
+2. Em Domains / Settings, use a **FQDN gerada pelo Coolify** (ex.: `*.sslip.io`) e deixe HTTPS ativo se o Coolify oferecer.
+3. Copie a URL completa de cada serviço (**https**, **sem barra final**) e cole nas variáveis de ambiente (veja [`.env.example`](.env.example)).
+4. Salve as envs e faça **Redeploy com rebuild** — `NEXT_PUBLIC_*` entram no build do Next.js.
+
+| Serviço | Porta interna | Onde colar a FQDN do Coolify |
+|---------|---------------|------------------------------|
+| `gommo-frontend` | 3000 | `HR_NEXTAUTH_URL` e primeiro item de `CORS_ORIGINS` |
+| `gommo-backend` | 8081 | `NEXT_PUBLIC_API_URL` e `NEXT_PUBLIC_HR_API_URL` |
+| `gommo-admin-frontend` | 3001 | `ADMIN_NEXTAUTH_URL`, `ADMIN_AUTH_URL`, `ADMIN_CORS_ORIGINS` e segundo item de `CORS_ORIGINS` |
+| `gommo-admin-backend` | 8082 | `NEXT_PUBLIC_ADMIN_API_URL` |
+
+**Importante:** `GOMMO_HR_BASE_URL` **não** é a FQDN pública. É a URL interna Docker: `http://gommo-backend:8081` (já com default no compose).
+
+### Depois, com domínio próprio
+
+Troque as FQDNs do Coolify pelos hosts desejados e ative Let's Encrypt:
+
+| Serviço | Sugestão de host |
+|---------|------------------|
+| `gommo-frontend` | `app.seudominio.com.br` |
+| `gommo-admin-frontend` | `admin.seudominio.com.br` |
+| `gommo-backend` | `api.seudominio.com.br` |
+| `gommo-admin-backend` | `admin-api.seudominio.com.br` |
+
+Atualize as envs e faça **Redeploy com rebuild**.
 
 O Postgres **não** recebe domínio público — apenas a rede interna Docker.
 
@@ -79,8 +99,9 @@ Gere segredos (PowerShell):
 
 Mínimo para subir:
 
-- `POSTGRES_PASSWORD`, `JWT_SECRET`, `NEXTAUTH_SECRET`
-- URLs públicas alinhadas aos domínios do passo 3
+- `POSTGRES_PASSWORD`, `JWT_SECRET`, `NEXTAUTH_SECRET`, `GOMMO_INTERNAL_EVENT_SECRET`
+- URLs públicas = FQDNs do Coolify (ou domínio próprio) alinhadas ao passo 3
+- `GOMMO_HR_BASE_URL=http://gommo-backend:8081` (interno; default no compose)
 
 Consulte [`.env.example`](.env.example) para a lista completa.
 
@@ -112,7 +133,9 @@ O Compose único é mais simples para começar.
 | Sintoma | O que verificar |
 |---------|-----------------|
 | Build Maven falha | Logs do Coolify; memória da VPS |
-| CORS no browser | `CORS_ORIGINS` / `ADMIN_CORS_ORIGINS` com URL exata do frontend |
-| NextAuth redirect | `HR_NEXTAUTH_URL` / `ADMIN_NEXTAUTH_URL` com https e sem barra final |
-| 502 no proxy | Healthcheck do backend; Postgres healthy |
+| CORS no browser | `CORS_ORIGINS` / `ADMIN_CORS_ORIGINS` com a FQDN **exata** do frontend (incluindo https) |
+| NextAuth redirect | `HR_NEXTAUTH_URL` / `ADMIN_NEXTAUTH_URL` = FQDN do frontend, sem barra final |
+| API aponta pro lugar errado | `NEXT_PUBLIC_*` = FQDN do **backend** correspondente + **rebuild** após mudar |
+| Admin não fala com Client | `GOMMO_HR_BASE_URL` deve ser `http://gommo-backend:8081`, não a URL pública |
+| 502 no proxy | Healthcheck do backend; Postgres healthy; FQDN ligada ao serviço certo |
 | Flyway error | Postgres vazio vs. volume antigo; conferir schemas `public` e `admin` |
