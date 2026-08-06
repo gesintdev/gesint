@@ -1,6 +1,10 @@
 # Deploy Gommo com Coolify
 
-O [Coolify](https://coolify.io) roda na sua VPS (provisionada com [Terraform](../terraform/oci/README.md)) e faz build + proxy HTTPS dos containers.
+O [Coolify](https://coolify.io) roda na sua VPS e faz build + proxy HTTPS dos containers.
+
+**Caminho recomendado (VPS 8 GB / Hostinger KVM 2):** [4 Applications + 1 Database](#caminho-recomendado-apps-separados) — deploys isolados, menos pico de RAM.
+
+**Alternativa (mais simples, pior no deploy):** [Docker Compose único](#alternativa-docker-compose-unico).
 
 ## Visão geral
 
@@ -9,7 +13,7 @@ flowchart LR
   subgraph internet [Internet]
     U[Usuarios]
   end
-  subgraph vps [VPS Oracle]
+  subgraph vps [VPS + Coolify]
     C[Coolify / Traefik]
     HR[gommo-frontend :3000]
     ADM[gommo-admin-frontend :3001]
@@ -27,129 +31,51 @@ flowchart LR
   ADM --> API
   API --> PG
   AAPI --> PG
+  AAPI -.->|rede interna| API
 ```
+
+Monorepo único no GitHub (`gommo`). No Coolify você cria **vários recursos** apontando para pastas diferentes do mesmo repo.
+
+## Simulação local (builds como no servidor)
+
+Cada app tem um `.env` no próprio diretório (mesmo formato do Coolify). Copie de `.env.example` se ainda não tiver.
+
+| App | Arquivo |
+|-----|---------|
+| Client backend | `gommo-backend/.env` |
+| Admin backend | `gommo-admin-backend/.env` |
+| Client frontend | `gommo-frontend/.env` |
+| Admin frontend | `gommo-admin-frontend/.env` |
+
+**Nativo (IDE / mvn / next):** localhost lê esses `.env` (perfil `prod` nos backends; Next carrega `.env` automaticamente).
+
+**Docker (simula deploy separado):** na raiz do monorepo (pare o `docker compose` de dev antes — mesmas portas):
+
+```bash
+docker compose -f infra/coolify/docker-compose.local.yml --env-file .env up -d --build
+```
+
+O compose usa `env_file` de cada pasta e só sobrescreve hostnames da rede (`DB_HOST=postgres`, `GOMMO_HR_BASE_URL=http://gommo-backend:8081`).
+
+Build de um serviço só (como watch path no Coolify):
+
+```bash
+docker compose -f infra/coolify/docker-compose.local.yml build gommo-backend
+docker compose -f infra/coolify/docker-compose.local.yml up -d gommo-backend
+```
+
+URLs: Client `http://localhost:3000` · Admin `http://localhost:3001` · APIs `:8081` / `:8082`.
 
 ## 1. Instalar Coolify na VPS
 
-Se ainda não instalou:
-
 ```bash
-ssh ubuntu@SEU_IP_PUBLICO
+ssh root@SEU_IP_PUBLICO
 curl -fsSL https://cdn.coollabs.io/coolify/install.sh | sudo bash
 ```
 
 Acesse `http://SEU_IP:8000`, crie o usuário admin e conecte o servidor (localhost).
 
-## 2. Criar o projeto no Coolify
-
-1. **+ Add Resource** → **Docker Compose**
-2. Conecte o repositório Git do Gommo (GitHub/GitLab)
-3. Configuração importante:
-
-| Campo | Valor |
-|-------|--------|
-| **Base Directory** | `/` (raiz do monorepo) |
-| **Docker Compose location** | `infra/coolify/docker-compose.yml` |
-| **Build pack** | Docker Compose |
-
-4. Em **Environment Variables**, copie as chaves de [`.env.example`](.env.example) e preencha com valores reais (senhas fortes).
-
-## 3. URLs públicas (sem domínio próprio ou com domínio)
-
-Cada serviço do Compose precisa de uma URL pública no Coolify (exceto `postgres`).
-
-### Teste sem domínio próprio (FQDN do Coolify)
-
-1. Abra **cada serviço** (`gommo-frontend`, `gommo-admin-frontend`, `gommo-backend`, `gommo-admin-backend`).
-2. Em Domains / Settings, use a **FQDN gerada pelo Coolify** (ex.: `*.sslip.io`) e deixe HTTPS ativo se o Coolify oferecer.
-3. Copie a URL completa de cada serviço (**https**, **sem barra final**) e cole nas variáveis de ambiente (veja [`.env.example`](.env.example)).
-4. Salve as envs e faça **Redeploy com rebuild** — `NEXT_PUBLIC_*` entram no build do Next.js.
-
-| Serviço | Porta interna | Onde colar a FQDN do Coolify |
-|---------|---------------|------------------------------|
-| `gommo-frontend` | 3000 | `HR_NEXTAUTH_URL` e primeiro item de `CORS_ORIGINS` |
-| `gommo-backend` | 8081 | `NEXT_PUBLIC_API_URL` e `NEXT_PUBLIC_HR_API_URL` |
-| `gommo-admin-frontend` | 3001 | `ADMIN_NEXTAUTH_URL`, `ADMIN_AUTH_URL`, `ADMIN_CORS_ORIGINS` e segundo item de `CORS_ORIGINS` |
-| `gommo-admin-backend` | 8082 | `NEXT_PUBLIC_ADMIN_API_URL` |
-
-**Importante:** `GOMMO_HR_BASE_URL` **não** é a FQDN pública. É a URL interna Docker: `http://gommo-backend:8081` (já com default no compose).
-
-### Depois, com domínio próprio
-
-Troque as FQDNs do Coolify pelos hosts desejados e ative Let's Encrypt:
-
-| Serviço | Sugestão de host |
-|---------|------------------|
-| `gommo-frontend` | `app.seudominio.com.br` |
-| `gommo-admin-frontend` | `admin.seudominio.com.br` |
-| `gommo-backend` | `api.seudominio.com.br` |
-| `gommo-admin-backend` | `admin-api.seudominio.com.br` |
-
-Atualize as envs e faça **Redeploy com rebuild**.
-
-O Postgres **não** recebe domínio público — apenas a rede interna Docker.
-
-## 4. Variáveis obrigatórias
-
-Gere segredos (PowerShell):
-
-```powershell
-[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }) -as [byte[]])
-```
-
-Mínimo para subir:
-
-- `POSTGRES_PASSWORD`, `JWT_SECRET`, `NEXTAUTH_SECRET`, `GOMMO_INTERNAL_EVENT_SECRET`
-- URLs públicas = FQDNs do Coolify (ou domínio próprio) alinhadas ao passo 3
-- `GOMMO_HR_BASE_URL=http://gommo-backend:8081` (interno; default no compose)
-
-Consulte [`.env.example`](.env.example) para a lista completa.
-
-## 5. Primeiro deploy
-
-1. **Deploy** no Coolify e acompanhe os logs de build (Maven + Next podem levar 10–20 min na primeira vez em VPS Free Tier).
-2. Flyway roda automaticamente nos backends (`public` e `admin`).
-3. Crie o usuário admin inicial conforme o README do `gommo-admin-backend` (seed/migration de dev **não** deve ir para produção sem revisão).
-
-## 6. Recursos na Oracle Free Tier
-
-Stack completa (~4 GB RAM nos limites do compose). Recomendado na VM Ampere:
-
-- **2 OCPU / 12 GB RAM** (padrão do Terraform)
-- Se faltar memória, reduza limites em `docker-compose.yml` ou suba só HR primeiro
-
-## Deploy alternativo (serviços separados)
-
-Em vez de um Compose único, você pode criar **4 Applications** + **1 Database** no Coolify:
-
-- Database: PostgreSQL 16
-- Apps com **Dockerfile** em `gommo-backend/`, `gommo-admin-backend/`, etc.
-- Mesmas variáveis de ambiente, apontando `DB_HOST` para o hostname interno do Postgres no Coolify
-
-O Compose único é mais simples para começar.
-
-## Troubleshooting
-
-| Sintoma | O que verificar |
-|---------|-----------------|
-| Build Maven falha | Logs do Coolify; memória da VPS |
-| Deploy morre no meio do `docker compose build` com `exit code 255` / `Error code: 0` sem erro de compile | Quase sempre **falta de RAM** (OOM). Ver secção abaixo |
-| CORS no browser | `CORS_ORIGINS` / `ADMIN_CORS_ORIGINS` com a FQDN **exata** do frontend (incluindo https) |
-| NextAuth redirect | `HR_NEXTAUTH_URL` / `ADMIN_NEXTAUTH_URL` = FQDN do frontend, sem barra final |
-| API aponta pro lugar errado | `NEXT_PUBLIC_*` = FQDN do **backend** correspondente + **rebuild** após mudar |
-| Admin não fala com Client | `GOMMO_HR_BASE_URL` deve ser `http://gommo-backend:8081`, não a URL pública |
-| 502 no proxy | Healthcheck do backend; Postgres healthy; FQDN ligada ao serviço certo |
-| Flyway error | Postgres vazio vs. volume antigo; conferir schemas `public` e `admin` |
-| `gommo-backend` unhealthy / deploy aborta no `up -d` | Abra **Logs** do serviço `gommo-backend` no Coolify (ou `docker logs` do container). Causas comuns: `JWT_SECRET` com menos de 32 caracteres, `POSTGRES_PASSWORD` diferente do volume antigo, OOM, erro Flyway |
-| Mudei `POSTGRES_PASSWORD` e o backend nao conecta | Volume `gommo_pg_data` guarda a senha antiga. Apague o volume no Coolify **ou** volte a senha original |
-
-### Build abortado no Coolify (notebook / VPS pequena)
-
-O compose sobe **4 imagens** (2× Maven + 2× Next). O Coolify as constrói **em paralelo**. Sem RAM/swap suficiente o kernel ou o Coolify matam o processo no meio — o log para em `#44 RUN mvn ... package` / `Running TypeScript` e fecha com `DeploymentException` / `exit 255`, **sem** falha de compilação.
-
-Mitigações (nessa ordem):
-
-1. **Criar swap** no host do Coolify (notebook ou VPS), ex. 8 GB:
+Na KVM 2 / VPS com 8 GB, crie **swap** antes do primeiro build:
 
 ```bash
 sudo fallocate -l 8G /swapfile
@@ -160,6 +86,203 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 free -h
 ```
 
-2. **Redeploy** — layers já construídos ficam em cache; retries costumam avançar.
-3. Em máquina fraca, prefira o caminho “Deploy alternativo” (apps separados) em vez do compose único.
-4. Na VPS de produção, use pelo menos **8–12 GB RAM** (padrão Terraform: 2 OCPU / 12 GB).
+## Caminho recomendado: apps separados
+
+Um push que muda só o Client **não rebuilda** o Admin (com watch paths). Builds ficam menores e sequenciais por app — bem mais seguro em 8 GB de RAM.
+
+### Checklist rápido
+
+1. Criar **Database** PostgreSQL 16
+2. Criar 4 **Applications** (mesmo repo Git, pastas diferentes)
+3. Atribuir domínio/FQDN em cada app
+4. Preencher envs (arquivos em [`env/`](env/))
+5. Deploy na ordem: backends → frontends
+6. (Opcional) Watch paths para isolar deploys
+
+### 2. Database PostgreSQL
+
+1. **+ Add Resource** → **Database** → **PostgreSQL** (16)
+2. Anote (Coolify mostra após criar):
+   - Host interno (ex.: `gommo-postgres` ou UUID do recurso)
+   - Porta (`5432`)
+   - User / Password / Database name
+3. **Não** exponha o Postgres na internet
+
+Sugestão de nomes no Coolify: `gommo-postgres`.
+
+### 3. Criar as 4 Applications
+
+Para **cada** app: **+ Add Resource** → **Application** → conecte o mesmo repositório Git do Gommo.
+
+| Coolify name (sugestão) | Base Directory | Dockerfile | Build target | Porta | Limite RAM (KVM 2) |
+|-------------------------|----------------|------------|--------------|-------|---------------------|
+| `gommo-backend` | `/gommo-backend` | `Dockerfile` | **`prod`** | 8081 | 1792M |
+| `gommo-admin-backend` | `/gommo-admin-backend` | `Dockerfile` | _(default)_ | 8082 | 640M |
+| `gommo-frontend` | `/gommo-frontend` | `Dockerfile` | _(default)_ | 3000 | 512M |
+| `gommo-admin-frontend` | `/gommo-admin-frontend` | `Dockerfile` | _(default)_ | 3001 | 256M |
+
+Configuração comum a todas:
+
+| Campo | Valor |
+|-------|--------|
+| **Repository** | mesmo monorepo `gommo` |
+| **Build Pack** | Dockerfile |
+| **Base Directory** | pasta da tabela acima (sem `infra/coolify`) |
+| **Ports Exposes** | porta da tabela |
+
+**Atenção — Client backend:** o `Dockerfile` tem stages `dev` e `prod`. No Coolify, em Build → **Docker Build Target** = `prod`. Sem isso o build pode pegar o stage errado.
+
+**Persistent storage (só Client backend):**
+
+| Mount path no container | Uso |
+|-------------------------|-----|
+| `/data/storage` | uploads / arquivos locais |
+
+Crie um volume persistente no Coolify e monte em `/data/storage`.
+
+### 4. Domínios (FQDN)
+
+Em cada Application → Domains, use FQDN do Coolify (`*.sslip.io`) ou domínio próprio. HTTPS ligado. URLs **sem barra final**.
+
+| App | Sugestão com domínio próprio |
+|-----|------------------------------|
+| `gommo-frontend` | `app.seudominio.com.br` |
+| `gommo-backend` | `api.seudominio.com.br` |
+| `gommo-admin-frontend` | `admin.seudominio.com.br` |
+| `gommo-admin-backend` | `admin-api.seudominio.com.br` |
+
+Anote as 4 URLs públicas — entram nas envs e nos **build args** dos Next.js.
+
+### 5. Rede interna (Admin → Client)
+
+`GOMMO_HR_BASE_URL` **não** é a URL pública.
+
+1. Abra a Application `gommo-backend`
+2. Copie a **Internal URL** / hostname interno do Coolify (ou use o nome do container se você fixou `gommo-backend`)
+3. No Admin backend:
+
+```text
+GOMMO_HR_BASE_URL=http://<hostname-interno-do-gommo-backend>:8081
+```
+
+Exemplo típico: `http://gommo-backend:8081` (se o container name for esse).
+
+Os dois backends e o Postgres precisam estar no **mesmo servidor** Coolify (mesma Docker network).
+
+### 6. Variáveis de ambiente
+
+Arquivos prontos para copiar/colar:
+
+| App | Arquivo |
+|-----|---------|
+| Client backend | [`env/client-backend.env.example`](env/client-backend.env.example) |
+| Admin backend | [`env/admin-backend.env.example`](env/admin-backend.env.example) |
+| Client frontend | [`env/client-frontend.env.example`](env/client-frontend.env.example) |
+| Admin frontend | [`env/admin-frontend.env.example`](env/admin-frontend.env.example) |
+
+Gere segredos (PowerShell):
+
+```powershell
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }) -as [byte[]])
+```
+
+Mínimo: `JWT_SECRET`, `NEXTAUTH_SECRET` / `AUTH_SECRET`, `GOMMO_INTERNAL_EVENT_SECRET`, senha do Postgres.
+
+**Build-time (Next.js):** `NEXT_PUBLIC_*` precisam estar disponíveis no **build** (Build Arguments / Build Variables no Coolify), não só em runtime. Depois de mudar essas URLs, faça **Redeploy with rebuild**.
+
+| Build arg | App |
+|-----------|-----|
+| `NEXT_PUBLIC_API_URL` | `gommo-frontend` |
+| `NEXT_PUBLIC_ADMIN_API_URL` | `gommo-admin-frontend` |
+| `NEXT_PUBLIC_HR_API_URL` | `gommo-admin-frontend` |
+
+### 7. Ordem do primeiro deploy
+
+1. **Postgres** — healthy
+2. **gommo-backend** — healthcheck `/actuator/health` (Flyway `public`)
+3. **gommo-admin-backend** — Flyway schema `admin`; precisa de `GOMMO_HR_BASE_URL` interno
+4. **gommo-frontend** — com `NEXT_PUBLIC_API_URL` já apontando para a FQDN do backend
+5. **gommo-admin-frontend** — com as duas `NEXT_PUBLIC_*`
+
+Crie o usuário admin inicial conforme o README do `gommo-admin-backend` (seed de dev **não** vai para produção sem revisão).
+
+### 8. Watch paths (deploys isolados)
+
+Em cada Application → Advanced / Watch Paths (sintaxe pode variar por versão do Coolify):
+
+| App | Watch path |
+|-----|------------|
+| `gommo-backend` | `gommo-backend/**` |
+| `gommo-admin-backend` | `gommo-admin-backend/**` |
+| `gommo-frontend` | `gommo-frontend/**` |
+| `gommo-admin-frontend` | `gommo-admin-frontend/**` |
+
+Com isso:
+
+- Push só em `gommo-frontend/` → rebuild só do Client web
+- Push só em `gommo-backend/` → rebuild só da Client API
+- Admin permanece no ar sem restart
+
+Sem watch paths, o Coolify pode disparar deploy em todas as apps ligadas ao repo a cada push (mesmo com cache Docker). Configure os paths.
+
+### 9. Limites de memória (KVM 2)
+
+Partição sugerida (Admin leve, Client com mais folga):
+
+| Serviço | Limite |
+|---------|--------|
+| Client backend | 1792M |
+| Admin backend | 640M |
+| Client frontend | 512M |
+| Admin frontend | 256M |
+| Postgres (Coolify DB) | ~768M |
+
+No Client e Admin backends, mantenha:
+
+```text
+JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError
+```
+
+(já nos `.env.example` de cada backend).
+
+---
+
+## Alternativa: Docker Compose único
+
+Mais simples de subir a primeira vez; **pior** em VPS 8 GB (build paralelo dos 4 serviços).
+
+1. **+ Add Resource** → **Docker Compose**
+2. Repositório Git do Gommo
+3. Configuração:
+
+| Campo | Valor |
+|-------|--------|
+| **Base Directory** | `/` (raiz do monorepo) |
+| **Docker Compose location** | `infra/coolify/docker-compose.yml` |
+| **Build pack** | Docker Compose |
+
+4. Environment Variables: copie de [`.env.example`](.env.example)
+
+Cada serviço do Compose (exceto `postgres`) precisa de FQDN pública. `GOMMO_HR_BASE_URL` fica `http://gommo-backend:8081` (hostname do compose).
+
+Detalhes de URLs e troubleshooting gerais valem o mesmo espírito da secção de apps separados.
+
+Na KVM 2, se o compose OOM no build: use swap + prefira o caminho de apps separados.
+
+---
+
+## Troubleshooting
+
+| Sintoma | O que verificar |
+|---------|-----------------|
+| Build Maven falha / exit 255 sem erro de compile | Falta de RAM (OOM). Swap 8G; apps separados; um deploy por vez |
+| CORS no browser | `CORS_ORIGINS` / `ADMIN_CORS_ORIGINS` com a FQDN **exata** do frontend (https, sem barra) |
+| NextAuth redirect | `NEXTAUTH_URL` / `AUTH_URL` = FQDN do frontend, sem barra final |
+| API aponta pro lugar errado | `NEXT_PUBLIC_*` no **build** + rebuild após mudar |
+| Admin não fala com Client | `GOMMO_HR_BASE_URL` = URL **interna**, não a pública |
+| 502 no proxy | Healthcheck; Postgres healthy; domínio no serviço certo |
+| Flyway error | Volume PG antigo vs senha nova; schemas `public` e `admin` |
+| Client backend sobe com stage errado | Docker Build Target = `prod` |
+| Push no Client rebuilda Admin | Configurar watch paths |
+| `JWT_SECRET` rejeitado | Mínimo 32 caracteres |
+| Mudei senha do Postgres e backend não conecta | Volume guarda senha antiga — alinhar senha ou recriar DB (apaga dados) |

@@ -1,6 +1,6 @@
-# Stack Gommo para Coolify (Docker Compose).
-# No Coolify: Base Directory = raiz do repositorio, Compose path = infra/coolify/docker-compose.yml
-# Documentacao: infra/coolify/README.md
+# Stack Gommo para Coolify (Docker Compose unico — alternativa).
+# Preferencial em VPS 8 GB: 4 Applications + 1 Database (ver infra/coolify/README.md).
+# No Coolify Compose: Base Directory = raiz, Compose path = infra/coolify/docker-compose.yml
 
 name: gommo
 
@@ -63,7 +63,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1536M
+          # Client leva a carga (folha/PDF/tenants). Admin fica mais enxuto.
+          memory: 1792M
 
   gommo-admin-backend:
     build:
@@ -100,7 +101,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1024M
+          memory: 640M
 
   gommo-frontend:
     build:
@@ -146,7 +147,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 256M
 
 volumes:
   gommo_pg_data:

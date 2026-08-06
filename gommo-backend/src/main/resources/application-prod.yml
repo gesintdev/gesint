@@ -1,4 +1,7 @@
 spring:
+  config:
+    # Local: le gommo-backend/.env (simulacao Coolify). No container Coolify o arquivo nao existe — envs vem do painel.
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     username: ${DB_USER}
