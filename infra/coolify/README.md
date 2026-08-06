@@ -140,6 +140,8 @@ O Compose único é mais simples para começar.
 | Admin não fala com Client | `GOMMO_HR_BASE_URL` deve ser `http://gommo-backend:8081`, não a URL pública |
 | 502 no proxy | Healthcheck do backend; Postgres healthy; FQDN ligada ao serviço certo |
 | Flyway error | Postgres vazio vs. volume antigo; conferir schemas `public` e `admin` |
+| `gommo-backend` unhealthy / deploy aborta no `up -d` | Abra **Logs** do serviço `gommo-backend` no Coolify (ou `docker logs` do container). Causas comuns: `JWT_SECRET` com menos de 32 caracteres, `POSTGRES_PASSWORD` diferente do volume antigo, OOM, erro Flyway |
+| Mudei `POSTGRES_PASSWORD` e o backend nao conecta | Volume `gommo_pg_data` guarda a senha antiga. Apague o volume no Coolify **ou** volte a senha original |
 
 ### Build abortado no Coolify (notebook / VPS pequena)
 

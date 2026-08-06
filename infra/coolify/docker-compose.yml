@@ -41,25 +41,29 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       CORS_ORIGINS: ${CORS_ORIGINS}
-      GOMMO_INTERNAL_EVENT_SECRET: ${GOMMO_INTERNAL_EVENT_SECRET}
+      GOMMO_INTERNAL_EVENT_SECRET: ${GOMMO_INTERNAL_EVENT_SECRET:-}
       SERVER_PORT: "8081"
       STORAGE_LOCAL_PATH: /data/storage
       STORAGE_BUCKET: ${STORAGE_BUCKET:-gommo-prod}
+      # Evita OOM do JVM dentro do limite do container
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError}
     volumes:
       - gommo_storage:/data/storage
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
+      # Spring + Flyway em VPS pequena costuma passar de 2 min
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8081/actuator/health || exit 1"]
-      interval: 30s
+      interval: 15s
       timeout: 5s
-      start_period: 120s
-      retries: 5
+      start_period: 300s
+      start_interval: 10s
+      retries: 10
     deploy:
       resources:
         limits:
-          memory: 1024M
+          memory: 1536M
 
   gommo-admin-backend:
     build:
@@ -77,19 +81,22 @@ services:
       ADMIN_CORS_ORIGINS: ${ADMIN_CORS_ORIGINS}
       # Rede Docker interna (nao use a URL publica do Coolify aqui)
       GOMMO_HR_BASE_URL: ${GOMMO_HR_BASE_URL:-http://gommo-backend:8081}
-      GOMMO_INTERNAL_EVENT_SECRET: ${GOMMO_INTERNAL_EVENT_SECRET}
+      GOMMO_INTERNAL_EVENT_SECRET: ${GOMMO_INTERNAL_EVENT_SECRET:-}
       ADMIN_SERVER_PORT: "8082"
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError}
     depends_on:
       postgres:
         condition: service_healthy
+      # service_started: nao aborta o deploy inteiro se o Client ainda estiver no Flyway
       gommo-backend:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8082/actuator/health || exit 1"]
-      interval: 30s
+      interval: 15s
       timeout: 5s
-      start_period: 120s
-      retries: 5
+      start_period: 300s
+      start_interval: 10s
+      retries: 10
     deploy:
       resources:
         limits:
@@ -110,7 +117,7 @@ services:
       AUTH_SECRET: ${NEXTAUTH_SECRET}
     depends_on:
       gommo-backend:
-        condition: service_healthy
+        condition: service_started
     deploy:
       resources:
         limits:
@@ -133,9 +140,9 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
     depends_on:
       gommo-admin-backend:
-        condition: service_healthy
+        condition: service_started
       gommo-backend:
-        condition: service_healthy
+        condition: service_started
     deploy:
       resources:
         limits:

@@ -43,7 +43,7 @@ ENV SPRING_PROFILES_ACTIVE=prod
 ENV SERVER_PORT=8081
 EXPOSE 8081
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+HEALTHCHECK --interval=15s --timeout=5s --start-period=300s --retries=10 \
   CMD curl -fsS "http://127.0.0.1:${SERVER_PORT}/actuator/health" || exit 1
 
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-jar", "/app/app.jar"]
