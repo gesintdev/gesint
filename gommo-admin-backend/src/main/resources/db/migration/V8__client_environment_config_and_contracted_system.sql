@@ -2,7 +2,7 @@
 
 CREATE TABLE admin.client_environment_config (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    status                  public.status_enum NOT NULL DEFAULT 'ACTIVE',
+    status                  gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
     code                    INTEGER,
     client_id               UUID NOT NULL REFERENCES admin.client(id),
     routing_mode            VARCHAR(32) NOT NULL DEFAULT 'SUBDOMAIN',
@@ -76,7 +76,7 @@ ALTER TABLE admin.client
 -- Sistemas contratados por cliente (1:N)
 CREATE TABLE admin.client_contracted_system (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    status              public.status_enum NOT NULL DEFAULT 'ACTIVE',
+    status              gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
     code                INTEGER NOT NULL,
     client_id           UUID NOT NULL REFERENCES admin.client(id),
     name                VARCHAR(150) NOT NULL,

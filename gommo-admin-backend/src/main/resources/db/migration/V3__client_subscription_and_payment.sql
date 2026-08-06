@@ -2,7 +2,7 @@
 
 CREATE TABLE admin.client_subscription (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    status          public.status_enum NOT NULL DEFAULT 'ACTIVE',
+    status          gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
     client_id       UUID NOT NULL REFERENCES admin.client(id),
     plan_code       VARCHAR(50) NOT NULL,
     billing_status  VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
@@ -23,7 +23,7 @@ CREATE UNIQUE INDEX idx_client_subscription_client_active
 
 CREATE TABLE admin.client_payment (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    status          public.status_enum NOT NULL DEFAULT 'ACTIVE',
+    status          gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
     client_id       UUID NOT NULL REFERENCES admin.client(id),
     reference_code  VARCHAR(100),
     amount          NUMERIC(12, 2) NOT NULL,

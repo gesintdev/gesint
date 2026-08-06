@@ -2,7 +2,7 @@
 
 CREATE TABLE admin.product_system (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    status              public.status_enum NOT NULL DEFAULT 'ACTIVE',
+    status              gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
     code                INTEGER NOT NULL,
     key                 VARCHAR(32) NOT NULL,
     name                VARCHAR(150) NOT NULL,
