@@ -18,9 +18,6 @@ gommo:
     local-base-path: ${STORAGE_LOCAL_PATH:./data/storage}
     bucket: gommo-local
     max-file-size: ${GOMMO_STORAGE_MAX_FILE_SIZE:25MB}
-  dev:
-    admin-username: ${DEV_ADMIN_USERNAME:admin}
-    admin-password: ${DEV_ADMIN_PASSWORD}
   payment:
     ocr:
       # Vazio = auto-detecta ./data/tessdata e ../data/tessdata (IDE na raiz vs mvn em gommo-backend)

@@ -20,7 +20,7 @@ public class JdbcPlatformAdminUserLookup implements PlatformAdminUserLookup {
                 SELECT 1
                 FROM admin.admin_user
                 WHERE LOWER(username) = LOWER(?)
-                  AND status::text <> 'DELETED'
+                  AND status::text = 'ACTIVE'
             )
             """;
 
@@ -31,8 +31,8 @@ public class JdbcPlatformAdminUserLookup implements PlatformAdminUserLookup {
                 FROM admin.admin_user au
                 INNER JOIN public.app_user u ON LOWER(au.username) = LOWER(u.username)
                 WHERE u.id = ?
-                  AND au.status::text <> 'DELETED'
-                  AND u.status::text <> 'DELETED'
+                  AND au.status::text = 'ACTIVE'
+                  AND u.status::text = 'ACTIVE'
             )
             """;
 

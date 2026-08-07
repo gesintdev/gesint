@@ -35,7 +35,9 @@ cd gommo-admin-backend
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Variáveis: use o `.env` da raiz do repositório (`JWT_SECRET`, `DEV_ADMIN_PASSWORD`, credenciais do banco).
+Variáveis: use o `.env` da raiz do repositório (`JWT_SECRET`, `GOMMO_PLATFORM_ADMIN_PASSWORD` ou `DEV_ADMIN_PASSWORD`, credenciais do banco).
+
+No startup, o `PlatformAdminBootstrap` cria/sincroniza o sudo `admGommo` (`gommo.admin@gmail.com`) em `admin.admin_user` e o espelho em `public.app_user`, e desativa o usuario legado `admin`.
 
 ### IntelliJ (Debug)
 

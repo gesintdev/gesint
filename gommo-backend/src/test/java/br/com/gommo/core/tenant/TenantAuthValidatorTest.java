@@ -64,9 +64,31 @@ class TenantAuthValidatorTest {
     void allowsPlatformAdminOnPlatformHostEvenWhenRegisteredClientUsernameExists() {
         UUID userId = UUID.randomUUID();
         TenantContextHolder.set(TenantContext.platform());
-        when(platformAdminUserLookup.isPlatformAdmin("admin")).thenReturn(true);
+        when(platformAdminUserLookup.isPlatformAdmin("admGommo")).thenReturn(true);
 
-        validator.assertLoginAllowed(userId, "admin");
+        validator.assertLoginAllowed(userId, "admGommo");
+    }
+
+    @Test
+    void allowsPlatformAdminOnDevelopmentPublic() {
+        UUID userId = UUID.randomUUID();
+        TenantContextHolder.set(TenantContext.developmentPublic("dev-public"));
+        when(platformAdminUserLookup.isPlatformAdmin("admGommo")).thenReturn(true);
+
+        validator.assertLoginAllowed(userId, "admGommo");
+    }
+
+    @Test
+    void rejectsPlatformAdminOnCommercialTenant() {
+        UUID userId = UUID.randomUUID();
+        TenantContextHolder.set(
+                new TenantContext(UUID.randomUUID(), "empresa-a", "tenant_a", "A", TenantProvisioningStatus.READY, "ACTIVE"));
+        when(platformAdminUserLookup.isPlatformAdmin("admGommo")).thenReturn(true);
+
+        assertThatThrownBy(() -> validator.assertLoginAllowed(userId, "admGommo"))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getCode())
+                .isEqualTo(TenantExceptions.MISMATCH_CODE);
     }
 
     @Test
@@ -83,14 +105,26 @@ class TenantAuthValidatorTest {
     }
 
     @Test
-    void allowsPlatformAdminTokenWithoutTenantOnTenantHost() {
+    void allowsPlatformAdminTokenWithoutTenantOnDevelopmentPublic() {
+        UUID userId = UUID.randomUUID();
+        TenantContextHolder.set(TenantContext.developmentPublic("dev-public"));
+        when(platformAdminUserLookup.isPlatformAdminAppUser(userId)).thenReturn(true);
+
+        validator.assertTokenMatchesCurrentTenant(null, userId);
+    }
+
+    @Test
+    void rejectsPlatformAdminTokenWithoutTenantOnCommercialTenant() {
         UUID userId = UUID.randomUUID();
         UUID clientId = UUID.randomUUID();
         TenantContextHolder.set(
                 new TenantContext(clientId, "empresa-a", "tenant_a", "A", TenantProvisioningStatus.READY, "ACTIVE"));
         when(platformAdminUserLookup.isPlatformAdminAppUser(userId)).thenReturn(true);
 
-        validator.assertTokenMatchesCurrentTenant(null, userId);
+        assertThatThrownBy(() -> validator.assertTokenMatchesCurrentTenant(null, userId))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getCode())
+                .isEqualTo(TenantExceptions.MISMATCH_CODE);
     }
 
     @Test

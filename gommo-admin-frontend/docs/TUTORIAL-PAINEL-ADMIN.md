@@ -49,7 +49,7 @@ O painel admin **nunca mistura** dados de RH de clientes diferentes no mesmo ban
 - **Operadores da plataforma** (`/admin-users`): funcionários da Gommo com permissão `platform:admin`.
 - **Usuários administrativos do cliente** (`/client-users`): login inicial do tenant no RH (criados no admin, gravados também no schema `public` do HR).
 
-Login do admin: `http://localhost:3001` (dev). Credenciais padrão vêm do `.env` (`DEV_ADMIN_USERNAME` / `DEV_ADMIN_PASSWORD`).
+Login do admin: `http://localhost:3001` (dev). Usuario sudo: `admGommo` / senha em `GOMMO_PLATFORM_ADMIN_PASSWORD` ou `DEV_ADMIN_PASSWORD` no `.env` da raiz.
 
 ---
 

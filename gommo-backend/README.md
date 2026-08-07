@@ -17,7 +17,7 @@ docker compose up -d
 
 ## Testes
 
-Requer PostgreSQL. Com **Docker** rodando, os testes sobem um Postgres via Testcontainers; sem Docker, use `docker compose up -d postgres` e o `.env` da raiz (`DB_*` / `DEV_ADMIN_PASSWORD`).
+Requer PostgreSQL. Com **Docker** rodando, os testes sobem um Postgres via Testcontainers; sem Docker, use `docker compose up -d postgres` e o `.env` da raiz (`DB_*` / `GOMMO_PLATFORM_ADMIN_PASSWORD` ou `DEV_ADMIN_PASSWORD`).
 
 ```bash
 cd gommo-backend
@@ -31,7 +31,7 @@ cd gommo-backend
 mvn spring-boot:run
 ```
 
-Perfil `dev`: cria usuário admin se `DEV_ADMIN_PASSWORD` estiver definido (veja `.env.example`).
+Perfil `dev`: cria o usuario sudo `admGommo` se `GOMMO_PLATFORM_ADMIN_PASSWORD` ou `DEV_ADMIN_PASSWORD` estiver definido (veja `.env.example`).
 
 ## Endpoints
 

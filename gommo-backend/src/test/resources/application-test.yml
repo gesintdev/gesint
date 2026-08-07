@@ -21,6 +21,8 @@ gommo:
     allowed-origins: http://localhost:3000
   multi-tenant:
     enabled: false
-  dev:
-    admin-username: admin
-    admin-password: ${DEV_ADMIN_PASSWORD:${TEST_ADMIN_PASSWORD:test-integration-password}}
+  platform-admin:
+    username: admGommo
+    full-name: Administrador Gommo
+    email: gommo.admin@gmail.com
+    password: ${GOMMO_PLATFORM_ADMIN_PASSWORD:${DEV_ADMIN_PASSWORD:${TEST_ADMIN_PASSWORD:test-integration-password}}}

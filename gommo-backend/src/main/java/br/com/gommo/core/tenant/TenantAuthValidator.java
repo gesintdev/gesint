@@ -34,9 +34,11 @@ public class TenantAuthValidator {
             }
             throw TenantException.mismatch();
         }
-        if (platformAdminUserLookup.isPlatformAdmin(username)
-                || platformAdminUserLookup.isPlatformAdminAppUser(appUserId)) {
-            return;
+        if (isPlatformAdmin(username, appUserId)) {
+            if (tenant.isDevelopmentPublic()) {
+                return;
+            }
+            throw TenantException.mismatch();
         }
         if (tenantClientUserLookup.isLinkedToClient(tenant.clientId(), appUserId)) {
             return;
@@ -57,7 +59,10 @@ public class TenantAuthValidator {
             return;
         }
         if (platformAdminUserLookup.isPlatformAdminAppUser(appUserId)) {
-            return;
+            if (tenant.isDevelopmentPublic()) {
+                return;
+            }
+            throw TenantException.mismatch();
         }
     }
 
@@ -79,9 +84,17 @@ public class TenantAuthValidator {
         if (tokenTenantId != null && tokenTenantId.equals(tenant.clientId())) {
             return;
         }
-        if (tokenTenantId == null && appUserId != null && platformAdminUserLookup.isPlatformAdminAppUser(appUserId)) {
+        if (tokenTenantId == null
+                && appUserId != null
+                && platformAdminUserLookup.isPlatformAdminAppUser(appUserId)
+                && tenant.isDevelopmentPublic()) {
             return;
         }
         throw TenantException.mismatch();
+    }
+
+    private boolean isPlatformAdmin(String username, UUID appUserId) {
+        return platformAdminUserLookup.isPlatformAdmin(username)
+                || platformAdminUserLookup.isPlatformAdminAppUser(appUserId);
     }
 }

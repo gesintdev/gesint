@@ -26,11 +26,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Tag("integration")
 public abstract class AbstractIntegrationTest {
 
-    protected static final String TEST_ADMIN_USERNAME = "admin";
+    protected static final String TEST_ADMIN_USERNAME = "admGommo";
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    @Value("${gommo.dev.admin-password}")
+    @Value("${gommo.platform-admin.password}")
     private String configuredAdminPassword;
 
     protected String testAdminPassword;

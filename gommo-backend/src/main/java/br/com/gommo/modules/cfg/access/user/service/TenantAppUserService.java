@@ -44,9 +44,8 @@ public class TenantAppUserService implements ITenantAppUserService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('user:read')")
     public List<AppUserResponseDto> findAll() {
-        boolean viewerIsSystemAdmin = currentUserIsSystemAdmin();
         return appUserRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
-            .filter(user -> viewerIsSystemAdmin || !SystemAdminUsers.isSystemAdmin(user))
+            .filter(user -> !SystemAdminUsers.isSystemAdmin(user))
             .map(user -> mapper.toResponse(user, resolveCollaborator(user.getCollaboratorId())))
             .toList();
     }
@@ -151,7 +150,7 @@ public class TenantAppUserService implements ITenantAppUserService {
 
     private AppUser findVisibleUser(UUID id) {
         AppUser user = findUser(id);
-        if (SystemAdminUsers.isSystemAdmin(user) && !currentUserIsSystemAdmin()) {
+        if (SystemAdminUsers.isSystemAdmin(user)) {
             throw TenantAppUserException.notFound();
         }
         return user;
@@ -175,13 +174,6 @@ public class TenantAppUserService implements ITenantAppUserService {
         if (adminCollaboratorIds.contains(collaboratorId)) {
             throw TenantAppUserException.notFound();
         }
-    }
-
-    private boolean currentUserIsSystemAdmin() {
-        return SystemAdminUsers.currentUserId()
-            .flatMap(id -> appUserRepository.findByIdWithRoles(id, StatusEnum.DELETED))
-            .map(SystemAdminUsers::isSystemAdmin)
-            .orElse(false);
     }
 
     private Collaborator resolveActiveCollaborator(UUID collaboratorId) {

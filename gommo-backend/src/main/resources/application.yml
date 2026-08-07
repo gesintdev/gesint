@@ -70,6 +70,12 @@ gommo:
     max-output-tokens: ${LLM_MAX_OUTPUT_TOKENS:1024}
     # Soft budget for the assistant usage footer (dev). Copy the TPM/daily figure from AI Studio.
     daily-token-limit: ${LLM_DAILY_TOKEN_LIMIT:0}
+  # Bootstrap fino do sudo em public.app_user (PlatformAdminPublicBootstrap).
+  platform-admin:
+    username: admGommo
+    full-name: Administrador Gommo
+    email: gommo.admin@gmail.com
+    password: ${GOMMO_PLATFORM_ADMIN_PASSWORD:${DEV_ADMIN_PASSWORD:}}
 
 logging:
   pattern:

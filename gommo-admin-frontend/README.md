@@ -22,6 +22,6 @@ npm install
 npm run dev
 ```
 
-Login com o usuário criado em `admin.admin_user` (dev: `DEV_ADMIN_PASSWORD` no `.env` da raiz).
+Login com o sudo `admGommo` criado em `admin.admin_user` (`GOMMO_PLATFORM_ADMIN_PASSWORD` ou `DEV_ADMIN_PASSWORD` no `.env` da raiz).
 
 Usuários admin também podem acessar o `gommo-frontend` com o mesmo token (permissões completas no HR).

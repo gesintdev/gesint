@@ -204,7 +204,7 @@ Mínimo: `JWT_SECRET`, `NEXTAUTH_SECRET` / `AUTH_SECRET`, `GOMMO_INTERNAL_EVENT_
 4. **gommo-frontend** — com `NEXT_PUBLIC_API_URL` já apontando para a FQDN do backend
 5. **gommo-admin-frontend** — com as duas `NEXT_PUBLIC_*`
 
-Crie o usuário admin inicial conforme o README do `gommo-admin-backend` (seed de dev **não** vai para produção sem revisão).
+No startup, defina `GOMMO_PLATFORM_ADMIN_PASSWORD` (ou `DEV_ADMIN_PASSWORD`) para o `PlatformAdminBootstrap` criar o sudo `admGommo` — revise antes de usar em produção.
 
 ### 8. Watch paths (deploys isolados)
 
