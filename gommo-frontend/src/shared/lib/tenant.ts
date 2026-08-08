@@ -1,5 +1,36 @@
 const LOCALHOST_SUFFIX = ".localhost";
+/** Prefixo de host que nunca é slug de tenant (API/Admin/apex utilitários). */
+const RESERVED_SUBDOMAINS = new Set(["www", "api", "admin"]);
 
+/**
+ * Domínios base onde `{slug}.{domain}` identifica o tenant.
+ * Espelha `GOMMO_TENANT_BASE_DOMAIN` / `GOMMO_TENANT_PRODUCTION_BASE_DOMAIN` do backend.
+ */
+function resolveTenantBaseDomains(): string[] {
+    const configured = [
+        process.env.NEXT_PUBLIC_TENANT_BASE_DOMAIN,
+        process.env.NEXT_PUBLIC_TENANT_PRODUCTION_BASE_DOMAIN,
+        "gommo.local",
+        "gommo.com.br",
+    ]
+        .map((value) => value?.trim().toLowerCase())
+        .filter((value): value is string => Boolean(value));
+    return [...new Set(configured)];
+}
+
+function singleLabelPrefix(host: string, suffix: string): string | null {
+    const prefix = host.slice(0, -suffix.length);
+    if (!prefix || prefix.includes(".") || RESERVED_SUBDOMAINS.has(prefix)) {
+        return null;
+    }
+    return prefix;
+}
+
+/**
+ * Extrai o slug do tenant a partir do hostname do browser.
+ * Exemplos: `posto-sjb.localhost` → `posto-sjb`; `teste.gommo.local` → `teste`.
+ * Apex (`gommo.local`) e hosts de API (`api.gommo.local`) retornam null.
+ */
 export function resolveTenantSlugFromHostname(hostname?: string): string | null {
     const host = (hostname ?? (typeof window !== "undefined" ? window.location.hostname : "")).trim().toLowerCase();
     if (!host || host === "localhost" || host === "127.0.0.1") {
@@ -7,11 +38,17 @@ export function resolveTenantSlugFromHostname(hostname?: string): string | null 
     }
 
     if (host.endsWith(LOCALHOST_SUFFIX)) {
-        const slug = host.slice(0, -LOCALHOST_SUFFIX.length);
-        if (!slug || slug.includes(".")) {
+        return singleLabelPrefix(host, LOCALHOST_SUFFIX);
+    }
+
+    for (const baseDomain of resolveTenantBaseDomains()) {
+        if (host === baseDomain) {
             return null;
         }
-        return slug;
+        const suffix = `.${baseDomain}`;
+        if (host.endsWith(suffix)) {
+            return singleLabelPrefix(host, suffix);
+        }
     }
     return null;
 }
