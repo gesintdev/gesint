@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/Button";
 import { FormInput } from "@/shared/components/ui/FormInput";
 import { InputCheckbox, InputPassword } from "@/shared/components/ui/input/index";
-import { resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
+import { buildTenantRequestHeaders, resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
 import { applyDocumentTheme, resolveThemePreference } from "@/shared/lib/theme-preference";
 
 export function LoginForm() {
@@ -46,16 +46,32 @@ export function LoginForm() {
         const login = username.trim();
         const tenantSlug = resolveTenantSlugFromHostname();
         try {
-            // Same-origin proxy → HR API (evita fetch server→api.gommo.local no Coolify lab).
-            const loginResponse = await fetch("/api/auth/client-login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username: login,
-                    password,
-                    tenantSlug: tenantSlug ?? "",
-                }),
-            });
+            // Browser → HR API (mesmo padrão do definir-senha). Evita fetch
+            // server→api.gommo.local que falha no Coolify lab (DNS/TLS).
+            // Fallback: proxy same-origin com API_INTERNAL_URL.
+            const apiBase = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+            let loginResponse = apiBase
+                ? await fetch(`${apiBase}/api/v1/auth/login`, {
+                      method: "POST",
+                      headers: {
+                          "Content-Type": "application/json",
+                          Accept: "application/json",
+                          ...buildTenantRequestHeaders(tenantSlug),
+                      },
+                      body: JSON.stringify({ username: login, password }),
+                  })
+                : null;
+            if (!loginResponse || loginResponse.status >= 500 || loginResponse.status === 0) {
+                loginResponse = await fetch("/api/auth/client-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: login,
+                        password,
+                        tenantSlug: tenantSlug ?? "",
+                    }),
+                });
+            }
             if (!loginResponse.ok) {
                 let code = "AUTH_INVALID_CREDENTIALS";
                 try {

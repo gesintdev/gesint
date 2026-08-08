@@ -30,6 +30,8 @@ export async function POST(request: Request) {
 
     const bases = [
         process.env.API_INTERNAL_URL?.trim(),
+        // Fallback Docker UUID do gommo-backend no lab Coolify (mesmo host da rede).
+        process.env.GOMMO_BACKEND_INTERNAL_URL?.trim(),
         process.env.NEXT_PUBLIC_API_URL?.trim(),
     ].filter(Boolean) as string[];
 
