@@ -13,38 +13,81 @@ class TokenResponse {
     email?: string;
 }
 
-/** Base URL do Admin API no server (Auth.js). Preferir HTTP interno Docker. */
-function resolveAdminApiBaseUrl(): string {
-    const internal = process.env.ADMIN_API_INTERNAL_URL?.trim();
-    if (internal) {
-        return internal.replace(/\/$/, "");
+/** Candidatos de Admin API no server (Auth.js / refresh). */
+function resolveAdminApiBaseUrlCandidates(): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const raw of [
+        process.env.ADMIN_API_INTERNAL_URL,
+        process.env.NEXT_PUBLIC_ADMIN_API_URL,
+        "http://localhost:8082",
+    ]) {
+        const url = raw?.trim().replace(/\/$/, "");
+        if (!url || seen.has(url)) continue;
+        seen.add(url);
+        out.push(url);
     }
-    return (process.env.NEXT_PUBLIC_ADMIN_API_URL ?? "http://localhost:8082").replace(/\/$/, "");
+    return out;
 }
 
 /**
- * Login direto via fetch runtime — evita baseUrl capturado no load do módulo
- * e TLS self-signed do Traefik quando a URL pública *.local é usada.
+ * Login direto via fetch runtime. Tenta URL interna Docker e, se falhar,
+ * a FQDN pública com TLS lab (NODE_TLS_REJECT_UNAUTHORIZED=0).
  */
 async function loginAgainstAdminApi(username: string, password: string): Promise<TokenResponse> {
-    const baseUrl = resolveAdminApiBaseUrl();
-    if (baseUrl.includes(".local") || process.env.GOMMO_TLS_INSECURE === "true") {
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    const errors: string[] = [];
+    for (const baseUrl of resolveAdminApiBaseUrlCandidates()) {
+        try {
+            const response = await fetch(`${baseUrl}/api/v1/auth/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+                cache: "no-store",
+            });
+            if (!response.ok) {
+                const body = await response.text().catch(() => "");
+                errors.push(`${baseUrl} → HTTP ${response.status}: ${body.slice(0, 120)}`);
+                continue;
+            }
+            return (await response.json()) as TokenResponse;
+        } catch (error) {
+            errors.push(`${baseUrl} → ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
-    const response = await fetch(`${baseUrl}/api/v1/auth/login`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-        cache: "no-store",
-    });
-    if (!response.ok) {
-        const body = await response.text().catch(() => "");
-        throw new Error(`Admin login HTTP ${response.status} via ${baseUrl}: ${body.slice(0, 200)}`);
+    throw new Error(`Admin login failed on all bases: ${errors.join(" | ")}`);
+}
+
+function tokenResponseFromCredentials(credentials: Record<string, unknown>): TokenResponse | null {
+    const accessToken = credentials.accessToken;
+    const refreshToken = credentials.refreshToken;
+    const expiresInSeconds = credentials.expiresInSeconds;
+    if (
+        typeof accessToken !== "string" ||
+        !accessToken ||
+        typeof refreshToken !== "string" ||
+        !refreshToken
+    ) {
+        return null;
     }
-    return (await response.json()) as TokenResponse;
+    const expires =
+        typeof expiresInSeconds === "string" || typeof expiresInSeconds === "number"
+            ? Number(expiresInSeconds)
+            : NaN;
+    if (!Number.isFinite(expires) || expires <= 0) {
+        return null;
+    }
+    return {
+        accessToken,
+        refreshToken,
+        tokenType: "Bearer",
+        expiresInSeconds: expires,
+        username: typeof credentials.username === "string" ? credentials.username : undefined,
+        email: typeof credentials.email === "string" ? credentials.email : undefined,
+    };
 }
 
 const secureCookies = process.env.NODE_ENV === "production";
@@ -85,19 +128,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             credentials: {
                 username: { label: "Usuário", type: "text" },
                 password: { label: "Senha", type: "password" },
+                accessToken: { label: "Access token", type: "text" },
+                refreshToken: { label: "Refresh token", type: "text" },
+                expiresInSeconds: { label: "Expires", type: "text" },
+                email: { label: "Email", type: "text" },
             },
             async authorize(credentials) {
-                if (!credentials?.username || !credentials?.password) {
+                if (!credentials) {
                     return null;
                 }
-                const username = String(credentials.username).trim();
-                const password = String(credentials.password);
+                const username = credentials.username ? String(credentials.username).trim() : "";
                 try {
-                    const data = await loginAgainstAdminApi(username, password);
+                    // Preferência: tokens já obtidos no browser (evita fetch server→API no Coolify lab).
+                    const fromClient = tokenResponseFromCredentials(credentials as Record<string, unknown>);
+                    const data =
+                        fromClient ??
+                        (username && credentials.password
+                            ? await loginAgainstAdminApi(username, String(credentials.password))
+                            : null);
+                    if (!data) {
+                        return null;
+                    }
+                    const id = username || data.username || "admin";
                     setAuthToken(data.accessToken);
                     return {
-                        id: username,
-                        name: data.username ?? username,
+                        id,
+                        name: data.username ?? id,
                         email: data.email,
                         accessToken: data.accessToken,
                         refreshToken: data.refreshToken,

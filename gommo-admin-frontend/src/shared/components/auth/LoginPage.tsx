@@ -10,6 +10,15 @@ import { useEffect, useState } from "react";
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { AdminInput } from "@/shared/components/ui/admin/AdminField";
 import { InputPassword } from "@/shared/components/ui/input/index";
+import { apiFetch } from "@/shared/lib/api.client";
+
+type AdminLoginTokenResponse = {
+    accessToken: string;
+    refreshToken: string;
+    expiresInSeconds: number;
+    username?: string;
+    email?: string;
+};
 
 export function LoginPage() {
     const router = useRouter();
@@ -35,18 +44,33 @@ export function LoginPage() {
         }
         setLoading(true);
         setError("");
-        const result = await signIn("credentials", {
-            username: username.trim(),
-            password,
-            redirect: false,
-        });
-        setLoading(false);
-        if (result?.error) {
+        try {
+            // Login no browser (FQDN pública) — no Coolify lab o Auth.js server-side
+            // frequentemente não alcança a API (DNS/TLS internos).
+            const tokens = await apiFetch<AdminLoginTokenResponse>("/api/v1/auth/login", {
+                method: "POST",
+                body: { username: username.trim(), password },
+                skipAuth: true,
+            });
+            const result = await signIn("credentials", {
+                username: tokens.username ?? username.trim(),
+                email: tokens.email ?? "",
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                expiresInSeconds: String(tokens.expiresInSeconds),
+                redirect: false,
+            });
+            if (result?.error) {
+                setError("Usuário ou senha inválidos.");
+                return;
+            }
+            router.replace("/clients/list");
+            router.refresh();
+        } catch {
             setError("Usuário ou senha inválidos.");
-            return;
+        } finally {
+            setLoading(false);
         }
-        router.replace("/clients/list");
-        router.refresh();
     };
 
     return (
