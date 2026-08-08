@@ -1,0 +1,12 @@
+# IntelliJ Data Source — Postgres do Coolify (lab LAN)
+# Pré-requisito: Coolify → gommo-db → Make it publicly available = ON, Public Port = 5432
+#
+# Database → New → Data Source → PostgreSQL
+Host: <LAB_LAN_HOST>
+Port: 5432
+Database: gommo
+User: gommo
+Password: <POSTGRES_PASSWORD>
+URL: jdbc:postgresql://<LAB_LAN_HOST>:5432/gommo
+#
+# Schemas para marcar: admin, public, gommo_types (e tenant_* quando existirem)

@@ -155,10 +155,10 @@ Anote as 4 URLs públicas — entram nas envs e nos **build args** dos Next.js.
 
 ### 5. Rede interna (Admin → Client)
 
-`GOMMO_HR_BASE_URL` **não** é a URL pública.
+`GOMMO_HR_BASE_URL` **não** é a URL pública **nem** a URL do frontend (`https://gommo.local`).
 
 1. Abra a Application `gommo-backend`
-2. Copie a **Internal URL** / hostname interno do Coolify (ou use o nome do container se você fixou `gommo-backend`)
+2. Copie a **Internal URL** / hostname interno do Coolify (UUID do app ou nome fixo)
 3. No Admin backend:
 
 ```text
@@ -168,6 +168,18 @@ GOMMO_HR_BASE_URL=http://<hostname-interno-do-gommo-backend>:8081
 Exemplo típico: `http://gommo-backend:8081` (se o container name for esse).
 
 Os dois backends e o Postgres precisam estar no **mesmo servidor** Coolify (mesma Docker network).
+
+### 5.1 Lab LAN (`*.gommo.local`)
+
+Arquivo pronto: [`env/lab-gommo.local.env`](env/lab-gommo.local.env).
+
+Checklist mínimo para o Admin logar do Windows:
+
+1. `AUTH_URL` / `NEXTAUTH_URL` do admin-frontend = `https://admin.gommo.local` (nunca `sslip.io`)
+2. `NODE_TLS_REJECT_UNAUTHORIZED=0` no admin-frontend (cert self-signed; Auth.js chama a API no server)
+3. Ports Exposes do admin-frontend = `3001`
+4. Login: `https://admin.gommo.local` → `admGommo` / `GOMMO_PLATFORM_ADMIN_PASSWORD`
+5. IntelliJ: em `gommo-db` marque **Make it publicly available**, porta `5432`, host `LAB_LAN_HOST`
 
 ### 6. Variáveis de ambiente
 
