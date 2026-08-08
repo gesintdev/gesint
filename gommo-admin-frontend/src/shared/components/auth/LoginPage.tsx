@@ -10,8 +10,6 @@ import { useEffect, useState } from "react";
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { AdminInput } from "@/shared/components/ui/admin/AdminField";
 import { InputPassword } from "@/shared/components/ui/input/index";
-import { apiFetch } from "@/shared/lib/api.client";
-
 type AdminLoginTokenResponse = {
     accessToken: string;
     refreshToken: string;
@@ -45,13 +43,17 @@ export function LoginPage() {
         setLoading(true);
         setError("");
         try {
-            // Login no browser (FQDN pública) — no Coolify lab o Auth.js server-side
-            // frequentemente não alcança a API (DNS/TLS internos).
-            const tokens = await apiFetch<AdminLoginTokenResponse>("/api/v1/auth/login", {
+            // Same-origin proxy → Admin API (evita cert/CORS de api.admin.gommo.local no browser).
+            const loginResponse = await fetch("/api/auth/admin-login", {
                 method: "POST",
-                body: { username: username.trim(), password },
-                skipAuth: true,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: username.trim(), password }),
             });
+            if (!loginResponse.ok) {
+                setError("Usuário ou senha inválidos.");
+                return;
+            }
+            const tokens = (await loginResponse.json()) as AdminLoginTokenResponse;
             const result = await signIn("credentials", {
                 username: tokens.username ?? username.trim(),
                 email: tokens.email ?? "",
