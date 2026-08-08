@@ -25,6 +25,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3001
 ENV HOSTNAME=0.0.0.0
+# Lab Coolify: cert Traefik self-signed em *.local; Auth.js faz fetch server-side.
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
 RUN addgroup -S gommo && adduser -S gommo -G gommo \
     && apk add --no-cache curl
