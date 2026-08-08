@@ -2,7 +2,17 @@ import {createHttpClient} from "@/shared/lib/create-http-client";
 import {signOutToTenantLogin} from "@/shared/lib/sign-out.client";
 import {buildTenantRequestHeaders, resolveTenantSlugFromHostname} from "@/shared/lib/tenant";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8081";
+/**
+ * No browser usa a FQDN pública. No server preferir URL interna Docker
+ * (`API_INTERNAL_URL`) para evitar DNS/TLS de api.gommo.local no Coolify lab.
+ */
+function resolveApiBaseUrl(): string {
+    const publicApiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8081";
+    if (typeof window === "undefined") {
+        return process.env.API_INTERNAL_URL?.trim() || publicApiUrl;
+    }
+    return publicApiUrl;
+}
 
 export {ApiError, AppException} from "@/shared/exceptions/app.exception";
 export type {DoRequestOptions} from "@/shared/lib/create-http-client";
@@ -33,7 +43,7 @@ export async function resolveClientTenantHeaders(extra?: Record<string, string>)
 }
 
 const httpClient = createHttpClient({
-    baseUrl: API_BASE_URL,
+    getBaseUrl: resolveApiBaseUrl,
     resolveExtraHeaders: resolveClientTenantHeaders,
     onSessionExpired: () => signOutToTenantLogin(),
 });

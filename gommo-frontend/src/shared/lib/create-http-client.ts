@@ -17,12 +17,21 @@ export type DoRequestOptions = {
 };
 
 export type HttpClientConfig = {
-    baseUrl: string;
+    /** URL fixa, ou getter para ler env Coolify em runtime no server. */
+    baseUrl?: string;
+    getBaseUrl?: () => string;
     resolveExtraHeaders?: (headers?: Record<string, string>) => Promise<Record<string, string>>;
     onSessionExpired?: () => void;
 };
 
 export function createHttpClient(config: HttpClientConfig) {
+    const resolveBaseUrl = () => {
+        const url = config.getBaseUrl?.() ?? config.baseUrl;
+        if (!url) {
+            throw new Error("HttpClientConfig requires baseUrl or getBaseUrl");
+        }
+        return url.replace(/\/$/, "");
+    };
     let authToken: string | null = null;
     function setAuthToken(token: string | null) {
         authToken = token;
@@ -105,7 +114,7 @@ export function createHttpClient(config: HttpClientConfig) {
         const { method = "GET", body, token, skipAuthRetry = false, skipAuth = false, responseType = "json" } = options;
         const bearer = skipAuth ? null : await resolveAuthToken(token);
         const execute = async (authHeader: string | null) =>
-            fetch(`${config.baseUrl}${path}`, {
+            fetch(`${resolveBaseUrl()}${path}`, {
                 method,
                 headers: await buildRequestHeaders(options, authHeader),
                 body: buildBody(body),

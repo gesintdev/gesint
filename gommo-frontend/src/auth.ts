@@ -4,7 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import { isPathAccessible } from "@/shared/auth/route-permissions";
 import { AppException } from "@/shared/exceptions/app.exception";
-import { apiFetch, setAuthToken } from "@/shared/lib/api.client";
+import { setAuthToken } from "@/shared/lib/api.client";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 
 class LoginRejectedError extends CredentialsSignin {
@@ -36,6 +36,117 @@ class TokenResponse {
     tenantSlug?: string;
     tenantName?: string;
     contractedSystemKeys?: string[] | null;
+}
+
+/** Candidatos de HR API no server (Auth.js / fallback). */
+function resolveHrApiBaseUrlCandidates(): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const raw of [
+        process.env.API_INTERNAL_URL,
+        process.env.NEXT_PUBLIC_API_URL,
+        "http://localhost:8081",
+    ]) {
+        const url = raw?.trim().replace(/\/$/, "");
+        if (!url || seen.has(url)) continue;
+        seen.add(url);
+        out.push(url);
+    }
+    return out;
+}
+
+function tokenResponseFromCredentials(credentials: Record<string, unknown>): TokenResponse | null {
+    const accessToken = credentials.accessToken;
+    const refreshToken = credentials.refreshToken;
+    const expiresInSeconds = credentials.expiresInSeconds;
+    if (
+        typeof accessToken !== "string" ||
+        !accessToken ||
+        typeof refreshToken !== "string" ||
+        !refreshToken
+    ) {
+        return null;
+    }
+    const expires =
+        typeof expiresInSeconds === "string" || typeof expiresInSeconds === "number"
+            ? Number(expiresInSeconds)
+            : NaN;
+    if (!Number.isFinite(expires) || expires <= 0) {
+        return null;
+    }
+
+    const asString = (value: unknown) => (typeof value === "string" ? value : undefined);
+    const asStringArray = (value: unknown): string[] | null | undefined => {
+        if (value == null) return value as null | undefined;
+        if (typeof value === "string") {
+            try {
+                const parsed = JSON.parse(value) as unknown;
+                return Array.isArray(parsed) ? parsed.map(String) : undefined;
+            } catch {
+                return undefined;
+            }
+        }
+        return Array.isArray(value) ? value.map(String) : undefined;
+    };
+
+    return {
+        accessToken,
+        refreshToken,
+        tokenType: "Bearer",
+        expiresInSeconds: expires,
+        name: asString(credentials.name),
+        username: asString(credentials.username),
+        email: asString(credentials.email),
+        collaboratorId: asString(credentials.collaboratorId),
+        photoObjectId: asString(credentials.photoObjectId),
+        jobPositionId: asString(credentials.jobPositionId),
+        jobPositionName: asString(credentials.jobPositionName),
+        departmentId: asString(credentials.departmentId),
+        departmentName: asString(credentials.departmentName),
+        permissions: asStringArray(credentials.permissions) ?? [],
+        platformAdmin: credentials.platformAdmin === true || credentials.platformAdmin === "true",
+        tenantSlug: asString(credentials.tenantSlug),
+        tenantName: asString(credentials.tenantName),
+        contractedSystemKeys: asStringArray(credentials.contractedSystemKeys) ?? null,
+    };
+}
+
+async function loginAgainstHrApi(
+    username: string,
+    password: string,
+    tenantSlug?: string,
+): Promise<TokenResponse> {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    const errors: string[] = [];
+    for (const baseUrl of resolveHrApiBaseUrlCandidates()) {
+        try {
+            const response = await fetch(`${baseUrl}/api/v1/auth/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    ...buildTenantRequestHeaders(tenantSlug),
+                },
+                body: JSON.stringify({ username, password }),
+                cache: "no-store",
+            });
+            if (!response.ok) {
+                const body = await response.text().catch(() => "");
+                errors.push(`${baseUrl} → HTTP ${response.status}: ${body.slice(0, 120)}`);
+                if (response.status === 401 || response.status === 403) {
+                    throw new LoginRejectedError("AUTH_INVALID_CREDENTIALS");
+                }
+                continue;
+            }
+            return (await response.json()) as TokenResponse;
+        } catch (error) {
+            if (error instanceof LoginRejectedError) {
+                throw error;
+            }
+            errors.push(`${baseUrl} → ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+    throw new Error(`HR login failed on all bases: ${errors.join(" | ")}`);
 }
 
 const secureCookies = process.env.NODE_ENV === "production";
@@ -77,27 +188,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 username: { label: "Usuário", type: "text" },
                 password: { label: "Senha", type: "password" },
                 tenantSlug: { label: "Tenant", type: "text" },
+                accessToken: { label: "Access token", type: "text" },
+                refreshToken: { label: "Refresh token", type: "text" },
+                expiresInSeconds: { label: "Expires", type: "text" },
+                name: { label: "Name", type: "text" },
+                email: { label: "Email", type: "text" },
+                collaboratorId: { label: "Collaborator", type: "text" },
+                photoObjectId: { label: "Photo", type: "text" },
+                jobPositionId: { label: "Job position id", type: "text" },
+                jobPositionName: { label: "Job position", type: "text" },
+                departmentId: { label: "Department id", type: "text" },
+                departmentName: { label: "Department", type: "text" },
+                permissions: { label: "Permissions", type: "text" },
+                platformAdmin: { label: "Platform admin", type: "text" },
+                tenantName: { label: "Tenant name", type: "text" },
+                contractedSystemKeys: { label: "Systems", type: "text" },
             },
             async authorize(credentials) {
-                if (!credentials?.username || !credentials?.password) {
+                if (!credentials) {
                     return null;
                 }
                 const tenantSlug = (credentials.tenantSlug as string | undefined)?.trim() || undefined;
+                const usernameHint = (credentials.username as string | undefined)?.trim() || "";
                 try {
-                    const data = await apiFetch<TokenResponse>("/api/v1/auth/login", {
-                        method: "POST",
-                        body: {
-                            username: credentials.username,
-                            password: credentials.password,
-                        },
-                        headers: buildTenantRequestHeaders(tenantSlug),
-                        // Login nunca reenvia Bearer de sessão anterior (ex.: JWT do posto-sjb
-                        // ainda em memória no server após trocar para localhost).
-                        skipAuth: true,
-                        skipAuthRetry: true,
-                    });
+                    // Preferência: tokens já obtidos no browser via /api/auth/client-login.
+                    const fromClient = tokenResponseFromCredentials(credentials as Record<string, unknown>);
+                    const data =
+                        fromClient ??
+                        (usernameHint && credentials.password
+                            ? await loginAgainstHrApi(usernameHint, String(credentials.password), tenantSlug)
+                            : null);
+                    if (!data) {
+                        return null;
+                    }
                     setAuthToken(data.accessToken);
-                    const username = data.username ?? (credentials.username as string);
+                    const username = data.username ?? usernameHint;
                     const displayName = data.name?.trim() || username;
                     return {
                         id: username,
@@ -123,12 +248,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 } catch (err) {
                     setAuthToken(null);
                     const code =
-                        err instanceof AppException
+                        err instanceof LoginRejectedError
                             ? err.code
-                            : "AUTH_INVALID_CREDENTIALS";
+                            : err instanceof AppException
+                              ? err.code
+                              : "AUTH_INVALID_CREDENTIALS";
                     console.error("[auth] login failed", {
                         tenantSlug,
-                        username: credentials.username,
+                        username: usernameHint,
                         code,
                         error: err instanceof Error ? err.message : err,
                     });

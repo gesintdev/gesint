@@ -45,39 +45,93 @@ export function LoginForm() {
         setLoading(true);
         const login = username.trim();
         const tenantSlug = resolveTenantSlugFromHostname();
-        const result = await signIn("credentials", {
-            username: login,
-            password,
-            tenantSlug: tenantSlug ?? "",
-            redirect: false,
-        });
-        setLoading(false);
-        if (result?.error) {
-            const code = result.code ?? result.error;
-            if (code === "AUTH_NO_ACTIVE_SYSTEM") {
-                toast.error(
-                    "Não foi possível acessar o sistema. Entre em contato com seu departamento administrativo",
-                );
-            } else if (
-                code === "AUTH_INVALID_CREDENTIALS" ||
-                code === "credentials" ||
-                code === "CredentialsSignin"
-            ) {
-                toast.error("Usuário ou senha inválidos");
-            } else if (tenantSlug) {
-                // Ambiente não READY, suspenso, etc. — não é erro de senha.
-                toast.error(
-                    "Não foi possível acessar o sistema. Entre em contato com seu departamento administrativo",
-                );
-            } else {
-                toast.error("Usuário ou senha inválidos");
+        try {
+            // Same-origin proxy → HR API (evita fetch server→api.gommo.local no Coolify lab).
+            const loginResponse = await fetch("/api/auth/client-login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: login,
+                    password,
+                    tenantSlug: tenantSlug ?? "",
+                }),
+            });
+            if (!loginResponse.ok) {
+                let code = "AUTH_INVALID_CREDENTIALS";
+                try {
+                    const payload = (await loginResponse.json()) as { code?: string };
+                    if (payload.code) {
+                        code = payload.code;
+                    }
+                } catch {
+                    // sem JSON
+                }
+                if (code === "AUTH_NO_ACTIVE_SYSTEM" || (loginResponse.status >= 500 && tenantSlug)) {
+                    toast.error(
+                        "Não foi possível acessar o sistema. Entre em contato com seu departamento administrativo",
+                    );
+                } else if (tenantSlug && code !== "AUTH_INVALID_CREDENTIALS") {
+                    toast.error(
+                        "Não foi possível acessar o sistema. Entre em contato com seu departamento administrativo",
+                    );
+                } else {
+                    toast.error("Usuário ou senha inválidos");
+                }
+                return;
             }
-            return;
+            const tokens = (await loginResponse.json()) as {
+                accessToken: string;
+                refreshToken: string;
+                expiresInSeconds: number;
+                name?: string;
+                username?: string;
+                email?: string;
+                collaboratorId?: string;
+                photoObjectId?: string;
+                jobPositionId?: string;
+                jobPositionName?: string;
+                departmentId?: string;
+                departmentName?: string;
+                permissions?: string[];
+                platformAdmin?: boolean;
+                tenantSlug?: string;
+                tenantName?: string;
+                contractedSystemKeys?: string[] | null;
+            };
+            const result = await signIn("credentials", {
+                username: tokens.username ?? login,
+                password: "",
+                tenantSlug: tokens.tenantSlug ?? tenantSlug ?? "",
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                expiresInSeconds: String(tokens.expiresInSeconds),
+                name: tokens.name ?? "",
+                email: tokens.email ?? "",
+                collaboratorId: tokens.collaboratorId ?? "",
+                photoObjectId: tokens.photoObjectId ?? "",
+                jobPositionId: tokens.jobPositionId ?? "",
+                jobPositionName: tokens.jobPositionName ?? "",
+                departmentId: tokens.departmentId ?? "",
+                departmentName: tokens.departmentName ?? "",
+                permissions: JSON.stringify(tokens.permissions ?? []),
+                platformAdmin: String(tokens.platformAdmin ?? false),
+                tenantName: tokens.tenantName ?? "",
+                contractedSystemKeys: JSON.stringify(tokens.contractedSystemKeys ?? null),
+                redirect: false,
+            });
+            if (result?.error) {
+                toast.error("Usuário ou senha inválidos");
+                return;
+            }
+            toast.success("Bem-vindo ao Gommo");
+            applyDocumentTheme(resolveThemePreference());
+            router.push("/dashboard");
+            router.refresh();
+        } catch {
+            toast.error("Usuário ou senha inválidos");
+        } finally {
+            setLoading(false);
         }
-        toast.success("Bem-vindo ao Gommo");
-        applyDocumentTheme(resolveThemePreference());
-        router.push("/dashboard");
-        router.refresh();
     }
 
     return (
