@@ -2,6 +2,7 @@
 
 import clsx from "clsx";
 
+import { SystemLogo } from "@/shared/components/brand/SystemLogo";
 import { useClientDisplayName } from "@/shared/hooks/useClientDisplayName";
 
 type GommoLogoProps = {
@@ -47,13 +48,8 @@ export function GommoLogo({
             role="img"
         >
             <span className="gommo-logo__icon-slot">
-                {/* eslint-disable-next-line @next/next/no-img-element -- SVG de marca */}
-                <img
-                    src="/brand/gommo-logo-letter-g.svg"
-                    alt=""
-                    className="gommo-logo__icon"
-                    draggable={false}
-                />
+                {/* size espelha o height de .gommo-logo__icon — o posicionamento segue vindo do CSS. */}
+                <SystemLogo variant="monogram" size="1.5rem" className="gommo-logo__icon" />
             </span>
             <span className={clsx("gommo-logo__name", !showName && "gommo-logo__name--hidden")} aria-hidden={!showName}>
                 {displayName ? (

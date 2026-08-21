@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { SystemLogo } from "@/shared/components/brand/SystemLogo";
 import { ThemeToggle } from "@/shared/components/layout/ThemeToggle";
 
 type CareersShellProps = {
@@ -18,12 +19,7 @@ export function CareersShell({ children }: CareersShellProps) {
             </div>
             <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-10 sm:px-6">
                 <div className="mb-8 flex items-center gap-3">
-                    <img
-                        src="/brand/gommo-logo-blue.svg"
-                        alt="Gommo"
-                        className="h-8 w-auto"
-                        draggable={false}
-                    />
+                    <SystemLogo size="2rem" title="Gommo" />
                     <span className="text-sm font-medium text-base-content/55">Carreiras</span>
                 </div>
                 <div className="flex-1">{children}</div>

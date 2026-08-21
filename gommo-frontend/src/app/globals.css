@@ -12,6 +12,9 @@
    Brand guide: azul Gommo (#007BFF) · Inter
 ────────────────────────────────────────────── */
 :root {
+    /* Cor do SystemLogo. Único token que o componente consome; branco no dark. */
+    --system-logo-color: #007bff;
+
     /* Brand — azul Gommo */
     --gommo-primary: #007bff;
     --gommo-primary-dark: #0062cc;
@@ -66,6 +69,9 @@
 }
 
 [data-theme="dark"] {
+    /* Logo em branco sobre as superfícies escuras (login, sidebar, carreiras). */
+    --system-logo-color: #fff;
+
     --gommo-surface: oklch(19% 0.014 260);
     --gommo-surface-muted: oklch(15% 0.014 260);
     --gommo-content: oklch(95% 0.008 260);
@@ -428,6 +434,12 @@ body {
 [data-theme="dark"] .sidebar-logo-dark {
     display: block;
 }
+
+/*
+ * SystemLogo: sem regra aqui de propósito. Tamanho, cor e máscara vão em style inline no
+ * componente (src/shared/components/brand/SystemLogo.tsx), para o logo não depender da
+ * ordem/frescor deste arquivo. A classe .system-logo existe só como gancho de inspeção.
+ */
 
 /* Hero login — ícone claro sobre fundo brand */
 .gommo-logo-on-brand,
@@ -3400,8 +3412,25 @@ html:has(.login-page) body {
     z-index: 1;
 }
 
+/* Lockup da marca: logo · bolinha · "Gestão Integrada", tudo centrado no eixo vertical. */
 .login-page__brand {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.5rem, 2vw, 0.875rem);
     margin-bottom: 1.75rem;
+}
+
+.login-page__brand-tagline {
+    /* Outfit é a fonte de display da marca (mesma de .gommo-logo__client). */
+    font-family: var(--font-outfit), var(--font-jakarta), system-ui, sans-serif;
+    font-size: clamp(1rem, 3.4vw, 1.6rem);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--color-base-content) 78%, transparent);
 }
 
 .login-page__tagline {

@@ -27,6 +27,7 @@ import {
     JOB_VACANCY_WORK_MODALITY_LABELS,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.options";
 import {publicCareersService} from "@/modules/rh/person/jobvacancy/services/public-careers.service";
+import {SystemLogo} from "@/shared/components/brand/SystemLogo";
 import {ThemeToggle} from "@/shared/components/layout/ThemeToggle";
 import {Button} from "@/shared/components/ui/Button";
 import {InputCPF, InputCheckbox, InputCurrency, InputPhone, InputSelect, InputString} from "@/shared/components/ui/input/index";
@@ -642,12 +643,7 @@ export function CareersApplyClient({slug}: { slug: string }) {
             <header
                 className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-base-content/10 bg-base-100 px-6 sm:px-8">
                 <div className="flex items-center gap-2.5">
-                    <img
-                        src="/brand/gommo-logo-blue.svg"
-                        alt="Gommo"
-                        className="h-7 w-auto"
-                        draggable={false}
-                    />
+                    <SystemLogo size="1.75rem" title="Gommo"/>
                     <span className="text-sm font-bold text-base-content">Carreiras</span>
                 </div>
                 <div className="flex items-center gap-3">
