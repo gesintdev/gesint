@@ -14,11 +14,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-    title: "Gommo Admin",
-    description: "Sistema administrativo Gommo",
+    title: "Gesint - Adm",
+    description: "Sistema administrativo Gesint",
     icons: {
-        icon: "/brand/gommo-admin-logo-favicon-blue.svg",
-        apple: "/brand/gommo-admin-logo-favicon-blue.svg",
+        icon: "/brand/gommo-logo-favicon-blue.svg",
+        apple: "/brand/gommo-logo-favicon-blue.svg",
     },
 };
 

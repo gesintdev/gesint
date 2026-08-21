@@ -14,7 +14,7 @@ export function GommoLogo({ variant = "mark", className, markSize = 28 }: GommoL
             // eslint-disable-next-line @next/next/no-img-element
             <img
                 src="/brand/gommo-logo-blue.svg"
-                alt="Gommo"
+                alt="Gesint"
                 width={120}
                 height={28}
                 className={cn("h-7 w-auto", className)}
@@ -25,8 +25,8 @@ export function GommoLogo({ variant = "mark", className, markSize = 28 }: GommoL
     return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-            src="/brand/gommo-logo-letter-g.svg"
-            alt="Gommo"
+            src="/brand/logo-gesint-letterb-blue.svg"
+            alt="Gesint"
             width={markSize}
             height={markSize}
             className={cn("shrink-0", className)}
