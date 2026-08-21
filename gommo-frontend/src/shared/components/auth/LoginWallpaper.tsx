@@ -31,7 +31,7 @@ export function LoginWallpaper() {
         <div className="login-page__visual-pan">
             <div className="login-page__visual-zoom">
                 <img
-                    src="/brand/background-light.png"
+                    src="/brand/background-light.avif"
                     alt=""
                     className={clsx(
                         "login-page__visual-img login-page__visual-img--light",
@@ -41,7 +41,7 @@ export function LoginWallpaper() {
                     decoding="async"
                 />
                 <img
-                    src="/brand/background-dark.png"
+                    src="/brand/background-dark.avif"
                     alt=""
                     className={clsx(
                         "login-page__visual-img login-page__visual-img--dark",

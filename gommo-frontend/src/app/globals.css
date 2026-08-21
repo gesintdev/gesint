@@ -3392,9 +3392,9 @@ html:has(.login-page) body {
 
 .login-stage__mark {
     height: min(78vh, 44vw);
-    /* Proporção do arquivo: logo-metalic.png é 848x1264. */
+    /* Proporção do arquivo: logo-metalic.avif é 848x1264. */
     aspect-ratio: 848 / 1264;
-    background-image: url("/brand/logo-metalic.png");
+    background-image: url("/brand/logo-metalic.avif");
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;

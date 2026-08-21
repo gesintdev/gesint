@@ -207,18 +207,18 @@ const EMBEDDED_STYLES = `
 
 function resolveLogoutWallpaperSrc(): string {
     if (typeof document === "undefined") {
-        return "/brand/background-dark.png";
+        return "/brand/background-dark.avif";
     }
     const theme = document.documentElement.getAttribute("data-theme");
     if (theme === "light") {
-        return "/brand/background-light.png";
+        return "/brand/background-light.avif";
     }
     if (theme === "dark") {
-        return "/brand/background-dark.png";
+        return "/brand/background-dark.avif";
     }
     return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "/brand/background-dark.png"
-        : "/brand/background-light.png";
+        ? "/brand/background-dark.avif"
+        : "/brand/background-light.avif";
 }
 
 function ensureOverlayStyles(): void {
