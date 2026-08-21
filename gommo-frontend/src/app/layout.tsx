@@ -26,7 +26,7 @@ const outfit = Outfit({
     weight: ["500", "600", "700"],
 });
 export const metadata: Metadata = {
-    title: "Gommo — Departamento Pessoal",
+    title: "Gesint",
     description: "Sistema de gestão de RH e departamento pessoal",
     icons: {
         icon: "/brand/gommo-logo-favicon-blue.svg",
