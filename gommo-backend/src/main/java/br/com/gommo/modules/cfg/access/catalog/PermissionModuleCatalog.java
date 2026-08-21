@@ -64,6 +64,10 @@ public final class PermissionModuleCatalog {
                         "candidate",
                         "jobvacancyapplication",
                         "developmentplan",
+                        // Sem isto, findBySystem/findByModule nao devolvem as permissoes de
+                        // occupationalexam e o cadastro de perfis mostra "Nenhuma permissao"
+                        // para o menu Exames, impedindo conceder acesso a ele.
+                        "occupationalexam",
                         "notification",
                         "agenda",
                         "storage"));

@@ -9,7 +9,9 @@ import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
 
 export const occupationalExamSharedRouteGroup: AppRoute = routeGroup({
     id: "occupational-exam-group",
-    label: "Exames ocupacionais",
+    // "Exames" e nao "Exames ocupacionais": o grupo ja tem um filho chamado
+    // "Exames Ocupacionais", e o nome repetido confundia lista e menu.
+    label: "Exames",
     icon: Stethoscope,
     permission: "occupationalexam:read",
     children: [
