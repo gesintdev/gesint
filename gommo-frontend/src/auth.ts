@@ -5,6 +5,7 @@ import { hrAuthCookies } from "@/auth/cookies";
 import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import { isPathAccessible } from "@/shared/auth/route-permissions";
 import { AppException } from "@/shared/exceptions/app.exception";
+import { serverApiPost } from "@/shared/lib/server-api";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 
 class LoginRejectedError extends CredentialsSignin {
@@ -36,23 +37,6 @@ class TokenResponse {
     tenantSlug?: string;
     tenantName?: string;
     contractedSystemKeys?: string[] | null;
-}
-
-/** Candidatos de HR API no server (Auth.js / fallback). */
-function resolveHrApiBaseUrlCandidates(): string[] {
-    const seen = new Set<string>();
-    const out: string[] = [];
-    for (const raw of [
-        process.env.API_INTERNAL_URL,
-        process.env.NEXT_PUBLIC_API_URL,
-        "http://localhost:8081",
-    ]) {
-        const url = raw?.trim().replace(/\/$/, "");
-        if (!url || seen.has(url)) continue;
-        seen.add(url);
-        out.push(url);
-    }
-    return out;
 }
 
 function tokenResponseFromCredentials(credentials: Record<string, unknown>): TokenResponse | null {
@@ -116,37 +100,18 @@ async function loginAgainstHrApi(
     password: string,
     tenantSlug?: string,
 ): Promise<TokenResponse> {
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-    const errors: string[] = [];
-    for (const baseUrl of resolveHrApiBaseUrlCandidates()) {
-        try {
-            const response = await fetch(`${baseUrl}/api/v1/auth/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    ...buildTenantRequestHeaders(tenantSlug),
-                },
-                body: JSON.stringify({ username, password }),
-                cache: "no-store",
-            });
-            if (!response.ok) {
-                const body = await response.text().catch(() => "");
-                errors.push(`${baseUrl} → HTTP ${response.status}: ${body.slice(0, 120)}`);
-                if (response.status === 401 || response.status === 403) {
-                    throw new LoginRejectedError("AUTH_INVALID_CREDENTIALS");
-                }
-                continue;
-            }
-            return (await response.json()) as TokenResponse;
-        } catch (error) {
-            if (error instanceof LoginRejectedError) {
-                throw error;
-            }
-            errors.push(`${baseUrl} → ${error instanceof Error ? error.message : String(error)}`);
-        }
+    const result = await serverApiPost(
+        "/api/v1/auth/login",
+        { username, password },
+        buildTenantRequestHeaders(tenantSlug),
+    );
+    if (result.status === 401 || result.status === 403) {
+        throw new LoginRejectedError("AUTH_INVALID_CREDENTIALS");
     }
-    throw new Error(`HR login failed on all bases: ${errors.join(" | ")}`);
+    if (!result.ok) {
+        throw new Error(`${result.baseUrl} → HTTP ${result.status}: ${result.text.slice(0, 200)}`);
+    }
+    return result.json as TokenResponse;
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

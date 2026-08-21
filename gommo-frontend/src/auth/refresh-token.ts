@@ -2,7 +2,8 @@ import type { JWT } from "next-auth/jwt";
 
 import { canPersistSessionCookie } from "@/auth/session-write-context";
 import { isSessionDeadCode } from "@/shared/auth/session-dead-codes";
-import { doRequest } from "@/shared/lib/api.client";
+import { AppException } from "@/shared/exceptions/app.exception";
+import { serverApiPost, toErrorPayload } from "@/shared/lib/server-api";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 
 /** Renova o access token ~60s antes de expirar */
@@ -78,13 +79,18 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
 
 async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise<JWT> {
     try {
-        const data = await doRequest<TokenResponse>("/api/v1/auth/refresh", {
-            method: "POST",
-            body: { refreshToken },
-            skipAuthRetry: true,
-            skipAuth: true,
-            headers: buildTenantRequestHeaders(token.tenantSlug as string | undefined),
-        });
+        const result = await serverApiPost(
+            "/api/v1/auth/refresh",
+            { refreshToken },
+            buildTenantRequestHeaders(token.tenantSlug as string | undefined),
+        );
+        if (!result.ok) {
+            const payload = toErrorPayload(result);
+            throw payload
+                ? AppException.fromApiResponse(payload, result.status)
+                : new Error(`${result.baseUrl} → HTTP ${result.status}: ${result.text.slice(0, 200)}`);
+        }
+        const data = result.json as TokenResponse;
         const refreshTokenChanged = data.refreshToken !== refreshToken;
         const username = data.username ?? (token.username as string | undefined);
         const displayName = data.name?.trim() || username || (token.name as string | undefined);
@@ -123,7 +129,10 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
                 ? String((error as { code?: unknown }).code)
                 : "UNKNOWN";
         const failureCount = (token.refreshFailureCount ?? 0) + 1;
-        console.warn(`Falha ao renovar access token (${code}), tentativa ${failureCount}.`);
+        // Sem o motivo no log, uma falha de rede/TLS server→API era indistinguível de refresh
+        // revogado — as duas apareciam como "UNKNOWN".
+        const reason = error instanceof Error ? error.message : String(error);
+        console.warn(`[auth] falha ao renovar access token (${code}), tentativa ${failureCount}: ${reason}`);
         // Revogação / refresh inválido: encerra a sessão mesmo com access ainda válido.
         if (isSessionDeadCode(code)) {
             return { ...token, error: "RefreshAccessTokenError" };
