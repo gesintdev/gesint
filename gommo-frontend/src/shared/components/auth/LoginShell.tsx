@@ -1,5 +1,6 @@
 import type {ReactNode} from "react";
 
+import {LoginStage} from "@/shared/components/auth/LoginStage";
 import {LoginWallpaper} from "@/shared/components/auth/LoginWallpaper";
 import {SystemLogo} from "@/shared/components/brand/SystemLogo";
 
@@ -18,6 +19,7 @@ export function LoginShell({children}: LoginShellProps) {
             <section className="login-page__visual" aria-hidden="true">
                 <LoginWallpaper/>
                 <div className="login-page__visual-scrim"/>
+                <LoginStage/>
             </section>
             <section className="login-page__form" aria-label="Autenticação">
                 <div
@@ -29,7 +31,7 @@ export function LoginShell({children}: LoginShellProps) {
                                 lockup (logo + bolinha + texto) estoure a largura no mobile. */}
                             <div className={'flex items-center gap-3 mb-6'}>
                                 <SystemLogo size="clamp(2.25rem, 9vw, 3.5rem)"/>
-                                <div className={`w-2 h-2 rounded-full bg-white`}/>
+                                <span className="login-page__brand-dot" aria-hidden="true"/>
                                 <span className="login-page__brand-tagline">Gestão Integrada</span>
                             </div>
                         </div>

@@ -15,6 +15,9 @@
     /* Cor do SystemLogo. Único token que o componente consome; branco no dark. */
     --system-logo-color: #007bff;
 
+    /* Tinta do lockup do login (bolinha separadora + "Gestão Integrada"). */
+    --login-brand-ink: #000029;
+
     /* Brand — azul Gommo */
     --gommo-primary: #007bff;
     --gommo-primary-dark: #0062cc;
@@ -71,6 +74,8 @@
 [data-theme="dark"] {
     /* Logo em branco sobre as superfícies escuras (login, sidebar, carreiras). */
     --system-logo-color: #fff;
+
+    --login-brand-ink: #fff;
 
     --gommo-surface: oklch(19% 0.014 260);
     --gommo-surface-muted: oklch(15% 0.014 260);
@@ -3257,6 +3262,47 @@ html:has(.login-page) body {
     overflow: hidden;
 }
 
+/*
+ * Panorâmica do fundo. O zoom é fixo (1.12) e só a translação anima: animar `scale` num PNG
+ * de 4096px força o navegador a re-rasterizar a camada a cada quadro, enquanto translação pura
+ * é só composição. O zoom existe justamente para dar folga ao movimento — com 12% de sobra,
+ * 6% para cada lado, e deriva máxima de ~1,8%, a borda da imagem nunca aparece.
+ *
+ * Períodos primos (43s / 59s) e diferentes dos do LoginStage (23/31/41): nada entra em sincronia.
+ */
+.login-page__visual-pan,
+.login-page__visual-zoom {
+    position: absolute;
+    inset: 0;
+}
+
+.login-page__visual-pan {
+    animation: login-bg-pan-x 43s ease-in-out infinite alternate;
+}
+
+.login-page__visual-zoom {
+    animation: login-bg-pan-y 59s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+@keyframes login-bg-pan-x {
+    from {
+        transform: translate3d(-1.8%, 0, 0);
+    }
+    to {
+        transform: translate3d(1.8%, 0, 0);
+    }
+}
+
+@keyframes login-bg-pan-y {
+    from {
+        transform: scale(1.12) translate3d(0, -1.3%, 0);
+    }
+    to {
+        transform: scale(1.12) translate3d(0, 1.3%, 0);
+    }
+}
+
 .login-page__visual-img {
     position: absolute;
     inset: 0;
@@ -3290,6 +3336,171 @@ html:has(.login-page) body {
         transparent 52%
     );
     pointer-events: none;
+}
+
+/* ──────────────────────────────────────────────
+   LoginStage — "G" metálico à deriva + bolhas
+   Fica acima do scrim (que só escurece a metade esquerda) e abaixo do formulário.
+   Componente: shared/components/auth/LoginStage.tsx
+────────────────────────────────────────────── */
+/*
+ * Escondido por padrão: abaixo de 1024px o formulário ocupa a tela toda e a coluna do ícone
+ * não existe. `display: none` também faz o browser não baixar o PNG do "G" no mobile — por
+ * isso a marca usa background-image em vez de <img>, que seria baixado mesmo escondido.
+ */
+.login-stage {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Mesmo breakpoint em que .login-page__form passa a ocupar 50%: ancorando o palco na metade
+   direita, nem as bolhas nem o "G" chegam ao formulário. */
+@media (min-width: 1024px) {
+    .login-stage {
+        display: block;
+        left: 50%;
+    }
+}
+
+/* Deriva: dois eixos + rotação, com períodos primos entre si (23/31/41s) para o
+   movimento composto não repetir de forma perceptível. */
+.login-stage__mark-x,
+.login-stage__mark-y {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+}
+
+.login-stage__mark-x {
+    animation: login-mark-drift-x 23s ease-in-out infinite alternate;
+}
+
+/*
+ * A sombra fica aqui, no wrapper que NÃO gira. Se estivesse na marca, giraria junto e a
+ * direção da luz mudaria — que é justamente o que denuncia uma imagem chapada girando.
+ * Assim o "G" inclina e a sombra continua caindo para baixo.
+ */
+.login-stage__mark-y {
+    animation: login-mark-drift-y 31s ease-in-out infinite alternate;
+    filter: drop-shadow(0 2.5rem 4rem color-mix(in srgb, var(--gommo-primary-950) 45%, transparent));
+}
+
+.login-stage__mark {
+    height: min(78vh, 44vw);
+    /* Proporção do arquivo: logo-metalic.png é 848x1264. */
+    aspect-ratio: 848 / 1264;
+    background-image: url("/brand/logo-metalic.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    animation: login-mark-turn 41s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+@keyframes login-mark-drift-x {
+    from {
+        transform: translate3d(-3.2%, 0, 0);
+    }
+    to {
+        transform: translate3d(3.2%, 0, 0);
+    }
+}
+
+@keyframes login-mark-drift-y {
+    from {
+        transform: translate3d(0, -3.6%, 0);
+    }
+    to {
+        transform: translate3d(0, 3.6%, 0);
+    }
+}
+
+/*
+ * Só 2D: horário/anti-horário, sem perspectiva. Com a sombra fixa no wrapper, ±11° ainda lê
+ * como peça metálica inclinando; a partir de ~15° o brilho assado no bitmap começa a girar
+ * junto e entrega que é imagem plana. Ajuste a amplitude aqui.
+ */
+@keyframes login-mark-turn {
+    from {
+        transform: rotate(-11deg) scale(0.98);
+    }
+    to {
+        transform: rotate(11deg) scale(1.02);
+    }
+}
+
+.login-stage__bubbles {
+    position: absolute;
+    inset: 0;
+}
+
+/*
+ * Cada bolha some onde termina e reaparece onde começou — com opacity 0 nas duas pontas, o
+ * salto de volta é invisível, dando a leitura de "apareceu em outro lugar". Sem `alternate`:
+ * refazer o caminho de volta entregaria o truque.
+ */
+.login-bubble {
+    position: absolute;
+    left: var(--bubble-x);
+    top: var(--bubble-y);
+    width: var(--bubble-size);
+    height: var(--bubble-size);
+    border-radius: 50%;
+    /* Cor chapada: a suavidade vem do blur, que varia por bolha — sem gradiente. */
+    background-color: var(--bubble-color);
+    filter: blur(var(--bubble-blur));
+    opacity: 0;
+    animation: login-bubble-float var(--bubble-duration) ease-in-out var(--bubble-delay) infinite;
+    will-change: transform, opacity;
+}
+
+/*
+ * Escala contida (0.88 → 1.12): com filter: blur() o navegador re-rasteriza a camada quando o
+ * tamanho muda, então uma amplitude grande custaria caro em 14 elementos. O blur sangra para
+ * fora da caixa, mas o overflow:hidden de .login-stage recorta — a contenção em relação ao
+ * formulário continua valendo.
+ */
+@keyframes login-bubble-float {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 0, 0) scale(0.88);
+    }
+    18% {
+        opacity: var(--bubble-opacity);
+    }
+    64% {
+        opacity: var(--bubble-opacity);
+    }
+    100% {
+        opacity: 0;
+        transform: translate3d(var(--bubble-dx), var(--bubble-dy), 0) scale(1.12);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .login-page__visual-pan,
+    .login-stage__mark-x,
+    .login-stage__mark-y,
+    .login-stage__mark {
+        animation: none;
+    }
+
+    /* Sem panorâmica, mas mantendo o enquadramento com zoom que todo mundo vê. */
+    .login-page__visual-zoom {
+        animation: none;
+        transform: scale(1.12);
+    }
+
+    /* Mantém as bolhas visíveis e paradas em vez de piscar. */
+    .login-bubble {
+        animation: none;
+        opacity: var(--bubble-opacity);
+    }
 }
 
 .login-page__form {
@@ -3422,6 +3633,15 @@ html:has(.login-page) body {
     margin-bottom: 1.75rem;
 }
 
+/* Bolinha separadora — mesma tinta da tagline, para lerem como um par. */
+.login-page__brand-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: var(--login-brand-ink);
+}
+
 .login-page__brand-tagline {
     /* Outfit é a fonte de display da marca (mesma de .gommo-logo__client). */
     font-family: var(--font-outfit), var(--font-jakarta), system-ui, sans-serif;
@@ -3430,7 +3650,7 @@ html:has(.login-page) body {
     letter-spacing: -0.01em;
     line-height: 1;
     white-space: nowrap;
-    color: color-mix(in srgb, var(--color-base-content) 78%, transparent);
+    color: var(--login-brand-ink);
 }
 
 .login-page__tagline {

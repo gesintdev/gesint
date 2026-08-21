@@ -207,18 +207,18 @@ const EMBEDDED_STYLES = `
 
 function resolveLogoutWallpaperSrc(): string {
     if (typeof document === "undefined") {
-        return "/brand/gommo-login-bg-dark.png";
+        return "/brand/background-dark.png";
     }
     const theme = document.documentElement.getAttribute("data-theme");
     if (theme === "light") {
-        return "/brand/gommo-login-bg-light.png";
+        return "/brand/background-light.png";
     }
     if (theme === "dark") {
-        return "/brand/gommo-login-bg-dark.png";
+        return "/brand/background-dark.png";
     }
     return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "/brand/gommo-login-bg-dark.png"
-        : "/brand/gommo-login-bg-light.png";
+        ? "/brand/background-dark.png"
+        : "/brand/background-light.png";
 }
 
 function ensureOverlayStyles(): void {

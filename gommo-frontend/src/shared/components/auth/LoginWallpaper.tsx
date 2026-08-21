@@ -25,26 +25,31 @@ export function LoginWallpaper() {
     }, [mounted, resolvedTheme, theme]);
 
     return (
-        <>
-            <img
-                src="/brand/gommo-login-bg-light.png"
-                alt=""
-                className={clsx(
-                    "login-page__visual-img login-page__visual-img--light",
-                    !isDark && "login-page__visual-img--visible",
-                )}
-                fetchPriority="high"
-                decoding="async"
-            />
-            <img
-                src="/brand/gommo-login-bg-dark.png"
-                alt=""
-                className={clsx(
-                    "login-page__visual-img login-page__visual-img--dark",
-                    isDark && "login-page__visual-img--visible",
-                )}
-                decoding="async"
-            />
-        </>
+        // Panorâmica lenta em dois eixos. Os dois fundos ficam dentro dos mesmos wrappers para
+        // o movimento não sair de sincronia durante a troca de tema, e para o compositor lidar
+        // com uma única textura em vez de duas animando em paralelo.
+        <div className="login-page__visual-pan">
+            <div className="login-page__visual-zoom">
+                <img
+                    src="/brand/background-light.png"
+                    alt=""
+                    className={clsx(
+                        "login-page__visual-img login-page__visual-img--light",
+                        !isDark && "login-page__visual-img--visible",
+                    )}
+                    fetchPriority="high"
+                    decoding="async"
+                />
+                <img
+                    src="/brand/background-dark.png"
+                    alt=""
+                    className={clsx(
+                        "login-page__visual-img login-page__visual-img--dark",
+                        isDark && "login-page__visual-img--visible",
+                    )}
+                    decoding="async"
+                />
+            </div>
+        </div>
     );
 }
