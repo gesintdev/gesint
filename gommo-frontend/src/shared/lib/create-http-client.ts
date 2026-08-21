@@ -1,4 +1,5 @@
 import { AUTH_CLIENT_MESSAGES } from "@/modules/root/exceptions/auth.messages";
+import { isSessionDeadCode } from "@/shared/auth/session-dead-codes";
 import { AppException } from "@/shared/exceptions/app.exception";
 import type { ErrorResponseDto } from "@/shared/exceptions/error-response.dto";
 
@@ -32,14 +33,17 @@ export function createHttpClient(config: HttpClientConfig) {
         }
         return url.replace(/\/$/, "");
     };
+    // Cache só no browser: no server o módulo é compartilhado por todos os requests,
+    // e guardar o access token aqui vazaria a sessão de um usuário para outro.
     let authToken: string | null = null;
     function setAuthToken(token: string | null) {
+        if (typeof window === "undefined") return;
         authToken = token;
     }
     async function resolveAuthToken(explicit?: string | null): Promise<string | null> {
         if (explicit) return explicit;
-        if (authToken) return authToken;
         if (typeof window === "undefined") return null;
+        if (authToken) return authToken;
         const { getSession } = await import("next-auth/react");
         // broadcast:false evita cascata SessionProvider ↔ BroadcastChannel em /api/auth/session
         const session = await getSession({ broadcast: false });
@@ -92,23 +96,26 @@ export function createHttpClient(config: HttpClientConfig) {
         }
         return (await response.json()) as T;
     }
-    async function handleErrorResponse(response: Response): Promise<never> {
-        let payload: ErrorResponseDto = {
+    async function readErrorPayload(response: Response): Promise<ErrorResponseDto> {
+        const fallback: ErrorResponseDto = {
             code: "UNKNOWN",
             message: response.statusText,
         };
         try {
             const body = (await response.json()) as Partial<ErrorResponseDto>;
-            payload = {
-                code: body.code ?? payload.code,
-                message: body.message ?? payload.message,
+            return {
+                code: body.code ?? fallback.code,
+                message: body.message ?? fallback.message,
                 correlationId: body.correlationId,
                 timestamp: body.timestamp,
             };
         } catch {
             // resposta sem JSON
+            return fallback;
         }
-        throw AppException.fromApiResponse(payload, response.status);
+    }
+    async function handleErrorResponse(response: Response): Promise<never> {
+        throw AppException.fromApiResponse(await readErrorPayload(response), response.status);
     }
     async function doRequest<T>(path: string, options: DoRequestOptions = {}): Promise<T> {
         const { method = "GET", body, token, skipAuthRetry = false, skipAuth = false, responseType = "json" } = options;
@@ -142,12 +149,14 @@ export function createHttpClient(config: HttpClientConfig) {
                 }
             }
 
-            // Access ainda "válido" no cookie, mas backend rejeitou (ex.: FORCE_LOGOUT).
-            if (response.status === 401) {
+            // Sessão morta de verdade (FORCE_LOGOUT, refresh revogado) → desloga.
+            // Um 401 genérico com token inalterado pode ser só um soluço da API durante o
+            // backoff de refresh; nesse caso propaga o erro em vez de encerrar a sessão.
+            const payload = await readErrorPayload(response);
+            if (isSessionDeadCode(payload.code)) {
                 config.onSessionExpired?.();
-                throw AppException.client("AUTH_SESSION_EXPIRED", AUTH_CLIENT_MESSAGES.AUTH_SESSION_EXPIRED, 401);
             }
-            return handleErrorResponse(response);
+            throw AppException.fromApiResponse(payload, response.status);
         }
 
         if (!response.ok) {

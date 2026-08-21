@@ -66,7 +66,12 @@ import br.com.gommo.modules.root.security.AccessTokenSupport;
 public class AuthService implements IAuthService {
 
     private static final ZoneId SESSION_ZONE = ZoneId.of("America/Sao_Paulo");
-    private static final long REFRESH_REPLAY_GRACE_SECONDS = 30;
+    /**
+     * Janela em que o refresh token rotacionado continua aceito. Cobre respostas de rotacao que o
+     * cliente nao conseguiu persistir (abas paralelas, retry de rede, render RSC) e evita logout
+     * falso por token recem-substituido.
+     */
+    private static final long REFRESH_REPLAY_GRACE_SECONDS = 120;
 
     private final AppUserRepository appUserRepository;
     private final PermissionRepository permissionRepository;

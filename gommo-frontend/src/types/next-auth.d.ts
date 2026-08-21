@@ -51,6 +51,8 @@ declare module "next-auth/jwt" {
         refreshTokenIssuedAt?: number;
         accessTokenExpires?: number;
         refreshRetryAfter?: number;
+        /** Falhas transitórias consecutivas de /auth/refresh (zerado no sucesso). */
+        refreshFailureCount?: number;
         error?: AuthTokenError;
         email?: string | null;
         username?: string;

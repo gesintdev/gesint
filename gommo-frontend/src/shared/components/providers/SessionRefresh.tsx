@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { systemModuleGroups } from "@/config/routes";
 import { SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 import { canAccessRoute } from "@/shared/auth/route-access";
-import { AppException } from "@/shared/exceptions/app.exception";
+import { isSessionDeadError } from "@/shared/auth/session-dead-codes";
 import { useContractedSystemKeys } from "@/shared/hooks/useContractedSystemKeys";
 import { doRequest, setAuthToken } from "@/shared/lib/api.client";
 import {
@@ -20,18 +20,6 @@ import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
 
 const SESSION_CHECK_INTERVAL_MS = 15_000;
-
-function isSessionDeadError(error: unknown): boolean {
-    if (!(error instanceof AppException)) {
-        return false;
-    }
-    return (
-        error.code === "AUTH_REVOKED_REFRESH" ||
-        error.code === "AUTH_INVALID_REFRESH" ||
-        error.code === "AUTH_EXPIRED_REFRESH" ||
-        error.code === "AUTH_SESSION_EXPIRED"
-    );
-}
 
 /** Mantém o token em memória sincronizado e reage a falha de refresh / FORCE_LOGOUT */
 export function SessionRefresh() {

@@ -1,12 +1,16 @@
 import type { JWT } from "next-auth/jwt";
 
+import { canPersistSessionCookie } from "@/auth/session-write-context";
+import { isSessionDeadCode } from "@/shared/auth/session-dead-codes";
 import { doRequest } from "@/shared/lib/api.client";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 
 /** Renova o access token ~60s antes de expirar */
 export const ACCESS_TOKEN_REFRESH_BUFFER_MS = 60_000;
 export const REFRESH_TOKEN_ROTATION_INTERVAL_MS = 15 * 60_000;
-const REFRESH_FAILURE_RETRY_DELAY_MS = 15_000;
+const REFRESH_FAILURE_RETRY_DELAY_MS = 5_000;
+/** Falhas transitórias consecutivas toleradas antes de encerrar a sessão. */
+const MAX_TRANSIENT_REFRESH_FAILURES = 6;
 
 type TokenResponse = {
     accessToken: string;
@@ -46,15 +50,16 @@ function isRefreshTokenRotationDue(token: JWT): boolean {
     return typeof issuedAt === "number" && Date.now() >= issuedAt + REFRESH_TOKEN_ROTATION_INTERVAL_MS;
 }
 
-function isAccessTokenHardExpired(token: JWT): boolean {
-    const expires = token.accessTokenExpires;
-    return typeof expires !== "number" || Date.now() >= expires;
-}
-
 export async function refreshAccessToken(token: JWT): Promise<JWT> {
     const refreshToken = token.refreshToken as string | undefined;
     if (!refreshToken) {
         return { ...token, error: "RefreshTokenMissing" };
+    }
+
+    // Render RSC / prefetch: o Set-Cookie seria descartado pelo next-auth. Rotacionar aqui
+    // revogaria o refresh token no backend sem entregar o substituto ao browser.
+    if (!canPersistSessionCookie()) {
+        return token;
     }
 
     const pending = refreshRequests.get(refreshToken);
@@ -109,6 +114,7 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
                     ? data.platformAdmin
                     : ((token.platformAdmin as boolean | undefined) ?? false),
             refreshRetryAfter: undefined,
+            refreshFailureCount: undefined,
             error: undefined,
         };
     } catch (error) {
@@ -116,24 +122,22 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
             typeof error === "object" && error !== null && "code" in error
                 ? String((error as { code?: unknown }).code)
                 : "UNKNOWN";
-        console.warn(`Falha ao renovar access token (${code}).`);
+        const failureCount = (token.refreshFailureCount ?? 0) + 1;
+        console.warn(`Falha ao renovar access token (${code}), tentativa ${failureCount}.`);
         // Revogação / refresh inválido: encerra a sessão mesmo com access ainda válido.
-        if (isHardRefreshFailure(code) || isAccessTokenHardExpired(token)) {
+        if (isSessionDeadCode(code)) {
+            return { ...token, error: "RefreshAccessTokenError" };
+        }
+        // Falha transitória (5xx, timeout, backend reiniciando): mantém a sessão e tenta de novo.
+        // Encerrar aqui só porque o access token venceu derruba o usuário por um soluço da API.
+        if (failureCount >= MAX_TRANSIENT_REFRESH_FAILURES) {
             return { ...token, error: "RefreshAccessTokenError" };
         }
         return {
             ...token,
             refreshRetryAfter: Date.now() + REFRESH_FAILURE_RETRY_DELAY_MS,
+            refreshFailureCount: failureCount,
             error: undefined,
         };
     }
-}
-
-function isHardRefreshFailure(code: string): boolean {
-    return (
-        code === "AUTH_REVOKED_REFRESH" ||
-        code === "AUTH_INVALID_REFRESH" ||
-        code === "AUTH_EXPIRED_REFRESH" ||
-        code === "AUTH_SESSION_EXPIRED"
-    );
 }

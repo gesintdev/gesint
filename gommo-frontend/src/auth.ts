@@ -1,10 +1,10 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
+import { hrAuthCookies } from "@/auth/cookies";
 import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import { isPathAccessible } from "@/shared/auth/route-permissions";
 import { AppException } from "@/shared/exceptions/app.exception";
-import { setAuthToken } from "@/shared/lib/api.client";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 
 class LoginRejectedError extends CredentialsSignin {
@@ -149,37 +149,6 @@ async function loginAgainstHrApi(
     throw new Error(`HR login failed on all bases: ${errors.join(" | ")}`);
 }
 
-const secureCookies = process.env.NODE_ENV === "production";
-const cookiePrefix = secureCookies ? "__Secure-gommo-hr" : "gommo-hr";
-const hrAuthCookies = {
-    sessionToken: {
-        name: `${cookiePrefix}.authjs.session-token`,
-        options: {
-            httpOnly: true,
-            sameSite: "lax" as const,
-            path: "/",
-            secure: secureCookies,
-        },
-    },
-    callbackUrl: {
-        name: `${cookiePrefix}.authjs.callback-url`,
-        options: {
-            httpOnly: true,
-            sameSite: "lax" as const,
-            path: "/",
-            secure: secureCookies,
-        },
-    },
-    csrfToken: {
-        name: `${cookiePrefix}.authjs.csrf-token`,
-        options: {
-            httpOnly: true,
-            sameSite: "lax" as const,
-            path: "/",
-            secure: secureCookies,
-        },
-    },
-};
 export const { handlers, auth, signIn, signOut } = NextAuth({
     cookies: hrAuthCookies,
     providers: [
@@ -221,7 +190,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     if (!data) {
                         return null;
                     }
-                    setAuthToken(data.accessToken);
                     const username = data.username ?? usernameHint;
                     const displayName = data.name?.trim() || username;
                     return {
@@ -246,7 +214,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         refreshTokenIssuedAt: Date.now(),
                     };
                 } catch (err) {
-                    setAuthToken(null);
                     const code =
                         err instanceof LoginRejectedError
                             ? err.code
