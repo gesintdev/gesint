@@ -19,7 +19,8 @@ import { VACATION_TABLE_COLUMNS } from "@/modules/rh/person/vacation/config/vaca
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -43,11 +44,16 @@ export function VacationListClient() {
 
     return (
         <>
-            <QueryTablePanel<VacationHistoryRow>
+            <QueryPagedTablePanel<VacationHistoryRow>
                 queryKey={[...leaverequestKeys.all, "vacation-approved"]}
-                request={async () => {
+                request={async (page, size, filters) => {
                     const rows = await leaverequestService.getAll();
-                    return enrichVacationHistoryRows(rows.filter(isApprovedVacation));
+                    return paginateCatalogRows(
+                        enrichVacationHistoryRows(rows.filter(isApprovedVacation)),
+                        page,
+                        size,
+                        filters,
+                    );
                 }}
                 columns={VACATION_TABLE_COLUMNS}
                 rowKey="id"

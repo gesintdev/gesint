@@ -11,7 +11,8 @@ import { occupationalExamKeys } from "@/modules/rh/person/occupational-exam/occu
 import { occupationalExamService } from "@/modules/rh/person/occupational-exam/services/occupational-exam.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -39,9 +40,11 @@ export function OccupationalExamListClient() {
     return (
         <div>
             <OccupationalExamIndicatorsPanel />
-            <QueryTablePanel<OccupationalExam>
+            <QueryPagedTablePanel<OccupationalExam>
                 queryKey={occupationalExamKeys.all}
-                request={() => occupationalExamService.getAll()}
+                request={async (page, size, filters) =>
+                    paginateCatalogRows(await occupationalExamService.getAll(), page, size, filters)
+                }
                 columns={OCCUPATIONAL_EXAM_TABLE_COLUMNS}
                 rowKey="id"
                 emptyMessage="Nenhum exame ocupacional cadastrado."

@@ -8,8 +8,9 @@ import { leaverequestKeys } from "@/modules/rh/person/leave/leave.query";
 import type { VacationEligibleCollaborator } from "@/modules/rh/person/leave/lib/vacation-eligible";
 import { loadVacationEligibleCollaborators } from "@/modules/rh/person/leave/lib/vacation-eligible";
 import { CRUD_TAB_FORM, useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
 import { Button } from "@/shared/components/ui/Button";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 
 export function VacationEligibleCollaboratorsClient() {
     const { startCreate, goToTab } = useCrudScreen();
@@ -36,9 +37,11 @@ export function VacationEligibleCollaboratorsClient() {
     };
 
     return (
-        <QueryTablePanel<VacationEligibleCollaborator>
+        <QueryPagedTablePanel<VacationEligibleCollaborator>
             queryKey={[...leaverequestKeys.all, "vacation-eligible"]}
-            request={loadVacationEligibleCollaborators}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await loadVacationEligibleCollaborators(), page, size, filters)
+            }
             columns={VACATION_ELIGIBLE_TABLE_COLUMNS}
             rowKey="collaboratorId"
             compact

@@ -10,7 +10,8 @@ import { examRequirementService } from "@/modules/rh/person/occupational-exam/ex
 import { OCCUPATIONAL_EXAM_CLIENT_MESSAGES } from "@/modules/rh/person/occupational-exam/exceptions/occupational-exam.messages";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -35,9 +36,11 @@ export function ExamRequirementListClient() {
     };
 
     return (
-        <QueryTablePanel<ExamRequirement>
+        <QueryPagedTablePanel<ExamRequirement>
             queryKey={examRequirementKeys.all}
-            request={() => examRequirementService.getAll()}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await examRequirementService.getAll(), page, size, filters)
+            }
             columns={EXAM_REQUIREMENT_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum requisito na matriz de exames."

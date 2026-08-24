@@ -334,7 +334,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     return (
         <div className="min-h-0 flex-1 p-1.5">
             <div
-                className="overflow-visible rounded-xl border border-[var(--gommo-border-subtle)] bg-base-100 shadow-sm">
+                className="overflow-visible rounded-xl border border-(--gommo-border-subtle) bg-base-100 shadow-sm">
                 <DataTable<TRow>
                     data={query.data.content}
                     columns={visibleColumns}

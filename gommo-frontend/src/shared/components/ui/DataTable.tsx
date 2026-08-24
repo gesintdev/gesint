@@ -229,7 +229,7 @@ export function DataTable<T extends object>({
                                 )}
                             >
                                 {actionsFilterSlot !== undefined ? (
-                                    <div className="flex min-w-[7.5rem] flex-col items-end gap-1.5">
+                                    <div className="flex min-w-30 flex-col items-end gap-1.5">
                                         <span className="gommo-table-col-title">{actionsHeader}</span>
                                         <div
                                             className="gommo-column-filter-host w-full"

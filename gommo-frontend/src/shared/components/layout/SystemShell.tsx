@@ -77,7 +77,7 @@ export function SystemShell({
                         initialSettingsMode={initialSettingsMode}
                     >
                         <div
-                            className="flex h-(--header-height) shrink-0 border-b"
+                            className="relative z-30 flex h-(--header-height) shrink-0 border-b"
                             style={{borderColor: "var(--sidebar-border)"}}
                         >
                             <div
@@ -103,7 +103,6 @@ export function SystemShell({
                                 <div className="flex shrink-0 items-center lg:hidden">
                                     <GommoLogo collapsed/>
                                 </div>
-                                <GlobalSearchPalette/>
                                 <div className="min-w-2 flex-1" aria-hidden/>
                                 <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
                                     <div className="flex items-center gap-0.5 sm:gap-1">
@@ -127,6 +126,7 @@ export function SystemShell({
                                             <Clock className="size-4" strokeWidth={2}/>
                                         </button>
                                         <HeaderNotifications/>
+                                        <GlobalSearchPalette/>
                                         <HeaderAiAssistant
                                             open={aiAssistantOpen}
                                             onClick={toggleAiAssistant}

@@ -2064,10 +2064,6 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 }
 
 .gommo-table-grid-toolbar__panel {
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    right: 0;
-    z-index: 40;
     min-width: 13.5rem;
     max-height: 18rem;
     overflow: auto;

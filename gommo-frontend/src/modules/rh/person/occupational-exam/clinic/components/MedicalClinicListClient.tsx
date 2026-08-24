@@ -10,7 +10,8 @@ import { medicalClinicService } from "@/modules/rh/person/occupational-exam/clin
 import { OCCUPATIONAL_EXAM_CLIENT_MESSAGES } from "@/modules/rh/person/occupational-exam/exceptions/occupational-exam.messages";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -35,9 +36,11 @@ export function MedicalClinicListClient() {
     };
 
     return (
-        <QueryTablePanel<MedicalClinic>
+        <QueryPagedTablePanel<MedicalClinic>
             queryKey={medicalClinicKeys.all}
-            request={() => medicalClinicService.getAll()}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await medicalClinicService.getAll(), page, size, filters)
+            }
             columns={MEDICAL_CLINIC_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhuma clinica medica cadastrada."

@@ -13,7 +13,8 @@ import { deriveWritePermission, useSessionPermissions } from "@/shared/auth/perm
 import { canWriteRoute } from "@/shared/auth/route-access";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
@@ -56,9 +57,11 @@ export function PaymentPeriodListClient() {
     };
 
     return (
-        <QueryTablePanel<PaymentPeriodListRow>
+        <QueryPagedTablePanel<PaymentPeriodListRow>
             queryKey={paymentPeriodKeys.all}
-            request={loadPaymentPeriodRows}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await loadPaymentPeriodRows(), page, size, filters)
+            }
             columns={PAYMENT_PERIOD_TABLE_COLUMNS}
             onRowActivate={(row) => startEdit(row.id, row)}
             renderActions={(row) => (

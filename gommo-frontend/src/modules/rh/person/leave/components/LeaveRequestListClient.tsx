@@ -11,7 +11,8 @@ import { isRegisteredLeave } from "@/modules/rh/person/leave/lib/leave-request.f
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -33,11 +34,11 @@ export function LeaveRequestListClient() {
     };
 
     return (
-        <QueryTablePanel<LeaveRequest>
+        <QueryPagedTablePanel<LeaveRequest>
             queryKey={[...leaverequestKeys.all, "registered"]}
-            request={async () => {
+            request={async (page, size, filters) => {
                 const rows = await leaverequestService.getAll();
-                return rows.filter(isRegisteredLeave);
+                return paginateCatalogRows(rows.filter(isRegisteredLeave), page, size, filters);
             }}
             columns={LEAVE_TABLE_COLUMNS}
             rowKey="id"

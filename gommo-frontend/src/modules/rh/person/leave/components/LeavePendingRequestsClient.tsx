@@ -14,8 +14,9 @@ import {
     type VacationReviewAction,
 } from "@/modules/rh/person/leave/services/leave-request.service";
 import { CRUD_TAB_FORM, useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
 import { Button } from "@/shared/components/ui/Button";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 type ReviewDialogState = {
@@ -54,11 +55,11 @@ export function LeavePendingRequestsClient() {
 
     return (
         <>
-            <QueryTablePanel<LeaveRequest>
+            <QueryPagedTablePanel<LeaveRequest>
                 queryKey={[...leaverequestKeys.all, "pending-vacation"]}
-                request={async () => {
+                request={async (page, size, filters) => {
                     const rows = await leaverequestService.getAll();
-                    return rows.filter(isPendingVacationRequest);
+                    return paginateCatalogRows(rows.filter(isPendingVacationRequest), page, size, filters);
                 }}
                 columns={LEAVE_PENDING_TABLE_COLUMNS}
                 rowKey="id"

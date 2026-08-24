@@ -11,7 +11,8 @@ import {offboardingService} from "@/modules/dp/offboarding/services/offboarding.
 import {collaboratorKeys} from "@/modules/rh/person/collaborators/people/collaborator.query";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudTableActions} from "@/shared/components/crud/CrudTableActions";
-import {QueryTablePanel} from "@/shared/components/data/DataPanel";
+import {QueryPagedTablePanel} from "@/shared/components/data/DataPanel";
+import {paginateCatalogRows} from "@/shared/lib/table/paginate-catalog-rows";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {SystemAlert} from "@/shared/system-alert";
 
@@ -35,9 +36,11 @@ export function OffboardingListClient() {
     };
 
     return (
-        <QueryTablePanel<Offboarding>
+        <QueryPagedTablePanel<Offboarding>
             queryKey={offboardingKeys.all}
-            request={() => offboardingService.getAll()}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await offboardingService.getAll(), page, size, filters)
+            }
             columns={OFFBOARDING_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum desligamento cadastrado."

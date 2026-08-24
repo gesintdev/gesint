@@ -13,8 +13,9 @@ import { usePaymentBatchUpload } from "@/modules/dp/payment/hooks/usePaymentBatc
 import { paymentBatchKeys } from "@/modules/dp/payment/payment.query";
 import { paymentBatchService } from "@/modules/dp/payment/services/payment-batch.service";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
 import { Button } from "@/shared/components/ui/Button";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -136,9 +137,11 @@ export function PaymentBatchPanel({ periodId, periodLabel, upload, showUploadBut
                 />
             ) : null}
             <div className="min-w-0 w-full">
-                <QueryTablePanel<PaymentBatchRow>
+                <QueryPagedTablePanel<PaymentBatchRow>
                     queryKey={paymentBatchKeys.byPeriod(periodId)}
-                    request={loadBatchRows}
+                    request={async (page, size, filters) =>
+                        paginateCatalogRows(await loadBatchRows(), page, size, filters)
+                    }
                     columns={PAYMENT_BATCH_TABLE_COLUMNS}
                     onRowClick={(row) => {
                         setSelectedBatchId(row.id);

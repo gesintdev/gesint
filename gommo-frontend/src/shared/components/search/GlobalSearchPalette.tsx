@@ -26,6 +26,8 @@ const MIN_CHARS = 2;
 const DEBOUNCE_MS = 250;
 const LIMIT_PER_TYPE = 5;
 const MAX_NAV_RESULTS = 6;
+const FLOATING_WIDTH_PX = 320;
+const FLOATING_MAX_WIDTH = "calc(100vw - 7rem)";
 
 type FlatNavRoute = AppRoute & { searchLabel: string };
 
@@ -105,6 +107,7 @@ export function GlobalSearchPalette() {
         setOpen(false);
         setActiveIndex(0);
         abortRef.current?.abort();
+        inputRef.current?.blur();
     }, []);
 
     const focusSearch = useCallback(() => {
@@ -112,22 +115,34 @@ export function GlobalSearchPalette() {
         requestAnimationFrame(() => inputRef.current?.focus());
     }, []);
 
+    useEffect(() => {
+        if (!open) return;
+        inputRef.current?.focus();
+    }, [open]);
+
+    const toggleSearch = useCallback(() => {
+        if (open) {
+            closePalette();
+            return;
+        }
+        focusSearch();
+    }, [closePalette, focusSearch, open]);
+
     const selectEntry = useCallback(
         (entry: PaletteEntry) => {
-            if (entry.kind === "nav") {
-                openRouteModule(entry.route);
-            } else {
-                const route = findRouteByHref(entry.item.href);
-                if (!route) return;
-                openRouteRecord(route, entry.item.id, {
-                    titleSuffix: entry.item.title,
-                    shortLabel: defaultShortLabel(entry.item.title),
-                });
-            }
             setQuery("");
             setGroups([]);
             closePalette();
-            inputRef.current?.blur();
+            if (entry.kind === "nav") {
+                openRouteModule(entry.route);
+                return;
+            }
+            const route = findRouteByHref(entry.item.href);
+            if (!route) return;
+            openRouteRecord(route, entry.item.id, {
+                titleSuffix: entry.item.title,
+                shortLabel: defaultShortLabel(entry.item.title),
+            });
         },
         [closePalette, openRouteModule, openRouteRecord],
     );
@@ -213,41 +228,69 @@ export function GlobalSearchPalette() {
     const hasResults = entries.length > 0;
 
     return (
-        <div ref={rootRef} className="relative min-w-0 w-full max-w-xs lg:max-w-md">
-            <label className="gommo-field sidebar-shell-control relative w-full cursor-text">
-                <Search className="size-4 shrink-0 text-primary/55" strokeWidth={2} />
-                <input
-                    ref={inputRef}
-                    type="search"
-                    value={query}
-                    placeholder="Buscar no sistema..."
-                    className="pe-2 placeholder:text-base-content/32"
-                    aria-label="Buscar no sistema"
-                    aria-expanded={showPanel}
-                    aria-controls="global-search-palette"
-                    aria-autocomplete="list"
-                    onFocus={() => setOpen(true)}
-                    onChange={(event) => {
-                        setQuery(event.target.value);
-                        setOpen(true);
-                    }}
-                    onKeyDown={(event) => {
-                        if (!showPanel || entries.length === 0) return;
-                        if (event.key === "ArrowDown") {
-                            event.preventDefault();
-                            setActiveIndex((index) => (index + 1) % entries.length);
-                        } else if (event.key === "ArrowUp") {
-                            event.preventDefault();
-                            setActiveIndex((index) => (index - 1 + entries.length) % entries.length);
-                        } else if (event.key === "Enter") {
-                            event.preventDefault();
-                            const entry = entries[activeIndex];
-                            if (entry) selectEntry(entry);
-                        }
-                    }}
-                />
-                <kbd className="ms-auto hidden shrink-0 sm:flex">Alt+S</kbd>
-            </label>
+        <div ref={rootRef} className="relative shrink-0">
+            <button
+                type="button"
+                aria-label="Buscar no sistema"
+                aria-expanded={open}
+                aria-haspopup="listbox"
+                aria-controls="global-search-palette"
+                onClick={toggleSearch}
+                className={clsx(
+                    "gommo-btn gommo-btn--ghost gommo-btn--icon-only relative z-20 text-base-content/55",
+                    open && "!bg-transparent text-primary hover:!bg-transparent active:!bg-transparent",
+                )}
+            >
+                <Search className="size-4" strokeWidth={2} />
+            </button>
+
+            <AnimatePresence>
+                {open ? (
+                    <motion.div
+                        key="global-search-float"
+                        initial={{ opacity: 0, width: 36 }}
+                        animate={{ opacity: 1, width: FLOATING_WIDTH_PX }}
+                        exit={{ opacity: 0, width: 36 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ maxWidth: FLOATING_MAX_WIDTH }}
+                        className="absolute right-0 top-0 z-10 overflow-hidden"
+                    >
+                        <label className="gommo-field cursor-text shadow-[var(--gommo-shadow-md)]">
+                            <input
+                                ref={inputRef}
+                                type="search"
+                                value={query}
+                                placeholder="Buscar no sistema..."
+                                className="placeholder:text-base-content/32"
+                                aria-label="Buscar no sistema"
+                                aria-expanded={showPanel}
+                                aria-controls="global-search-palette"
+                                aria-autocomplete="list"
+                                onChange={(event) => {
+                                    setQuery(event.target.value);
+                                    setOpen(true);
+                                }}
+                                onKeyDown={(event) => {
+                                    if (!showPanel || entries.length === 0) return;
+                                    if (event.key === "ArrowDown") {
+                                        event.preventDefault();
+                                        setActiveIndex((index) => (index + 1) % entries.length);
+                                    } else if (event.key === "ArrowUp") {
+                                        event.preventDefault();
+                                        setActiveIndex((index) => (index - 1 + entries.length) % entries.length);
+                                    } else if (event.key === "Enter") {
+                                        event.preventDefault();
+                                        const entry = entries[activeIndex];
+                                        if (entry) selectEntry(entry);
+                                    }
+                                }}
+                            />
+                            <kbd className="ms-auto hidden shrink-0 sm:flex">Alt+S</kbd>
+                            <span className="w-6 shrink-0" aria-hidden />
+                        </label>
+                    </motion.div>
+                ) : null}
+            </AnimatePresence>
 
             <AnimatePresence>
                 {showPanel ? (
@@ -258,7 +301,8 @@ export function GlobalSearchPalette() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.14 }}
-                        className="absolute inset-x-0 top-[calc(100%+0.4rem)] z-50 overflow-hidden rounded-xl border border-base-content/10 bg-base-100 shadow-lg"
+                        style={{ width: FLOATING_WIDTH_PX, maxWidth: FLOATING_MAX_WIDTH }}
+                        className="surface-popover absolute right-0 top-full z-50 mt-2 overflow-hidden"
                     >
                         <div className="max-h-[min(24rem,70vh)] overflow-y-auto py-1.5">
                             {loading && query.trim().length >= MIN_CHARS ? (
@@ -374,7 +418,10 @@ function PaletteRow({
             type="button"
             role="option"
             aria-selected={active}
-            onClick={onClick}
+            onMouseDown={(event) => {
+                event.preventDefault();
+                onClick();
+            }}
             onMouseEnter={onMouseEnter}
             className={clsx(
                 "flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors",

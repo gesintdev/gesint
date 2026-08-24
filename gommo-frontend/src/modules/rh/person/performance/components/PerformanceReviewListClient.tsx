@@ -10,7 +10,8 @@ import { performanceReviewKeys } from "@/modules/rh/person/performance/performan
 import { performanceReviewService } from "@/modules/rh/person/performance/services/performance-review.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -32,9 +33,11 @@ export function PerformanceReviewListClient() {
     };
 
     return (
-        <QueryTablePanel<PerformanceReview>
+        <QueryPagedTablePanel<PerformanceReview>
             queryKey={performanceReviewKeys.all}
-            request={() => performanceReviewService.getAll()}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await performanceReviewService.getAll(), page, size, filters)
+            }
             columns={PERFORMANCE_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhuma avaliação de desempenho cadastrada."

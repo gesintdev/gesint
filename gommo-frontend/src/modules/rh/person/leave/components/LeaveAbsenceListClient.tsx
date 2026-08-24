@@ -11,7 +11,8 @@ import { isAbsenceLeave } from "@/modules/rh/person/leave/lib/leave-request.filt
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -33,11 +34,11 @@ export function LeaveAbsenceListClient() {
     };
 
     return (
-        <QueryTablePanel<LeaveRequest>
+        <QueryPagedTablePanel<LeaveRequest>
             queryKey={[...leaverequestKeys.all, "absence"]}
-            request={async () => {
+            request={async (page, size, filters) => {
                 const rows = await leaverequestService.getAll();
-                return rows.filter(isAbsenceLeave);
+                return paginateCatalogRows(rows.filter(isAbsenceLeave), page, size, filters);
             }}
             columns={LEAVE_TABLE_COLUMNS}
             rowKey="id"

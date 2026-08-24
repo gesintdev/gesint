@@ -13,18 +13,24 @@ import {
 import { isRhVacationListing } from "@/modules/rh/person/leave/lib/leave-request.filters";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 
 export function LeaveRequestRhListClient() {
     const [selected, setSelected] = useState<VacationHistoryRow | null>(null);
 
     return (
         <>
-            <QueryTablePanel<VacationHistoryRow>
+            <QueryPagedTablePanel<VacationHistoryRow>
                 queryKey={[...leaverequestKeys.all, "rh-vacation"]}
-                request={async () => {
+                request={async (page, size, filters) => {
                     const rows = await leaverequestService.getAll();
-                    return enrichVacationHistoryRows(rows.filter(isRhVacationListing));
+                    return paginateCatalogRows(
+                        enrichVacationHistoryRows(rows.filter(isRhVacationListing)),
+                        page,
+                        size,
+                        filters,
+                    );
                 }}
                 columns={LEAVE_HISTORY_TABLE_COLUMNS}
                 rowKey="id"

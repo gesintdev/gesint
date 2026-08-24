@@ -10,7 +10,8 @@ import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplica
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -34,9 +35,11 @@ export function JobVacancyApplicationListClient() {
     };
 
     return (
-        <QueryTablePanel<JobVacancyApplication>
+        <QueryPagedTablePanel<JobVacancyApplication>
             queryKey={jobVacancyApplicationKeys.all}
-            request={() => jobVacancyApplicationService.getAll()}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await jobVacancyApplicationService.getAll(), page, size, filters)
+            }
             columns={JOB_VACANCY_APPLICATION_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhuma candidatura cadastrada."

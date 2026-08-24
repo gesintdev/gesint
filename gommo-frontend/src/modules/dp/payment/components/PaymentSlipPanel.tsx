@@ -18,8 +18,9 @@ import { formatPersonName } from "@/modules/dp/payment/lib/format-person-name";
 import { paymentBatchKeys } from "@/modules/dp/payment/payment.query";
 import { paymentBatchService } from "@/modules/dp/payment/services/payment-batch.service";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
 import { Button } from "@/shared/components/ui/Button";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -227,10 +228,12 @@ export function PaymentSlipPanel({
                 ))}
             </div>
             <div className="min-w-0 w-full">
-                <QueryTablePanel<PaymentSlipRow>
+                <QueryPagedTablePanel<PaymentSlipRow>
                     key={`${activeTab}-${refreshToken}`}
                     queryKey={queryKey}
-                    request={loadSlipRows}
+                    request={async (page, size, filters) =>
+                        paginateCatalogRows(await loadSlipRows(), page, size, filters)
+                    }
                     columns={columns}
                     renderActions={(row) => (
                         <div className="flex items-center gap-1">

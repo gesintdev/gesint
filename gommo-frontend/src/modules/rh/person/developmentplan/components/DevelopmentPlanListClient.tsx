@@ -11,7 +11,8 @@ import { developmentPlanService } from "@/modules/rh/person/developmentplan/serv
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -65,9 +66,11 @@ export function DevelopmentPlanListClient() {
         flowMutation.isPending && flowMutation.variables?.id === rowId && flowMutation.variables?.action === action;
 
     return (
-        <QueryTablePanel<DevelopmentPlan>
+        <QueryPagedTablePanel<DevelopmentPlan>
             queryKey={developmentPlanKeys.all}
-            request={() => developmentPlanService.getAll()}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await developmentPlanService.getAll(), page, size, filters)
+            }
             columns={DEVELOPMENT_PLAN_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum PDI cadastrado."

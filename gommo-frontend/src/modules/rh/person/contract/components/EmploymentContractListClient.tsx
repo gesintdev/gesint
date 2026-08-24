@@ -10,7 +10,8 @@ import { CONTRACT_CLIENT_MESSAGES } from "@/modules/rh/person/contract/exception
 import { employmentcontractService } from "@/modules/rh/person/contract/services/employment-contract.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -32,9 +33,11 @@ export function EmploymentContractListClient() {
     };
 
     return (
-        <QueryTablePanel<EmploymentContract>
+        <QueryPagedTablePanel<EmploymentContract>
             queryKey={employmentcontractKeys.all}
-            request={() => employmentcontractService.getAll()}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await employmentcontractService.getAll(), page, size, filters)
+            }
             columns={CONTRACT_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum(a) contrato cadastrado(a)."

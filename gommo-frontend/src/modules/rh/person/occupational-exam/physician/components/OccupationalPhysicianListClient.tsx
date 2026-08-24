@@ -10,7 +10,8 @@ import { occupationalPhysicianKeys } from "@/modules/rh/person/occupational-exam
 import { occupationalPhysicianService } from "@/modules/rh/person/occupational-exam/physician/services/occupational-physician.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -35,9 +36,11 @@ export function OccupationalPhysicianListClient() {
     };
 
     return (
-        <QueryTablePanel<OccupationalPhysician>
+        <QueryPagedTablePanel<OccupationalPhysician>
             queryKey={occupationalPhysicianKeys.all}
-            request={() => occupationalPhysicianService.getAll()}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await occupationalPhysicianService.getAll(), page, size, filters)
+            }
             columns={OCCUPATIONAL_PHYSICIAN_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum medico ocupacional cadastrado."

@@ -17,7 +17,8 @@ import type {
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
 import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";
-import {QueryTablePanel} from "@/shared/components/data/DataPanel";
+import {QueryPagedTablePanel} from "@/shared/components/data/DataPanel";
+import {paginateCatalogRows} from "@/shared/lib/table/paginate-catalog-rows";
 import {ExceptionCapture} from "@/shared/exceptions";
 
 const requestTypeLabel: Record<string, string> = {
@@ -104,11 +105,11 @@ export function AttendanceRecordRequestsClient() {
 
     return (
         <>
-            <QueryTablePanel<RequestRow>
+            <QueryPagedTablePanel<RequestRow>
                 queryKey={[...attendancerecordKeys.all, "requests"]}
-                request={async () => {
+                request={async (page, size, filters) => {
                     const rows = await attendancerecordService.listRequests();
-                    return rows.map(toRow);
+                    return paginateCatalogRows(rows.map(toRow), page, size, filters);
                 }}
                 columns={REQUEST_COLUMNS}
                 rowKey="id"

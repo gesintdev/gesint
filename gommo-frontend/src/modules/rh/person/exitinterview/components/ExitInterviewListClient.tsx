@@ -10,7 +10,8 @@ import { exitinterviewKeys } from "@/modules/rh/person/exitinterview/exitintervi
 import { exitinterviewService } from "@/modules/rh/person/exitinterview/services/exit-interview.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
-import { QueryTablePanel } from "@/shared/components/data/DataPanel";
+import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -32,9 +33,11 @@ export function ExitInterviewListClient() {
     };
 
     return (
-        <QueryTablePanel<ExitInterview>
+        <QueryPagedTablePanel<ExitInterview>
             queryKey={exitinterviewKeys.all}
-            request={() => exitinterviewService.getAll()}
+            request={async (page, size, filters) =>
+                paginateCatalogRows(await exitinterviewService.getAll(), page, size, filters)
+            }
             columns={EXITINTERVIEW_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum(a) entrevista de desligamento cadastrado(a)."
