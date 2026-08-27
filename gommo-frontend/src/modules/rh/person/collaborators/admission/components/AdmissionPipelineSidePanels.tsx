@@ -18,11 +18,12 @@ import {
 import { Card } from "@/shared/components/ui/Card";
 
 /**
- * `flex-initial` mantém o card do tamanho do conteúdo e só o encolhe quando os dois painéis juntos
- * não cabem — encolhendo proporcionalmente, de modo que o painel maior ceda mais espaço.
+ * Cada painel cresce com o próprio conteúdo até um teto e então rola por dentro, em vez de dividir
+ * uma altura emprestada da esteira. Com poucas admissões os dois aparecem inteiros; com muitas,
+ * nenhum deles engole o outro. O cabeçalho fica fora da área rolável e continua visível.
  */
-const PANEL_CLASS = "flex min-h-0 flex-initial flex-col";
-const PANEL_BODY_CLASS = "min-h-0 flex-1 overflow-y-auto !p-0";
+const PANEL_CLASS = "flex min-h-0 flex-col";
+const PANEL_BODY_CLASS = "max-h-[40vh] min-h-0 overflow-y-auto !p-0";
 
 export function AdmissionPipelineDeadlines({ deadlines }: { deadlines: AdmissionPipelineDeadline[] }) {
     return (

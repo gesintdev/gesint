@@ -66,7 +66,11 @@ export function AdmissionPipelineTab() {
                     </div>
                 )}
 
-                <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_23rem]">
+                {/*
+                  `items-start` deixa cada coluna com a própria altura: a esteira não estica para
+                  acompanhar os painéis nem o contrário. Cada painel se limita sozinho.
+                */}
+                <div className="grid items-start gap-3 xl:grid-cols-[minmax(0,1fr)_23rem]">
                     <AdmissionPipelineTrack
                         rows={pageData?.content ?? []}
                         page={pageData?.page ?? page}
@@ -81,16 +85,9 @@ export function AdmissionPipelineTab() {
                         }}
                         onOpen={(row) => startEdit(row.admissionId, { fullName: row.fullName })}
                     />
-                    {/*
-                      A coluna absoluta não entra no cálculo de altura da linha, então a régua passa a
-                      ser só o card da esteira. `inset-0` devolve exatamente essa altura aos painéis.
-                      Abaixo de xl o layout empilha e os painéis voltam a crescer com o conteúdo.
-                    */}
-                    <div className="relative">
-                        <div className="flex flex-col gap-3 xl:absolute xl:inset-0">
-                            <AdmissionPipelineDeadlines deadlines={summary?.deadlines ?? []} />
-                            <AdmissionPipelineBlocks blocks={summary?.blocks ?? []} />
-                        </div>
+                    <div className="flex flex-col gap-3">
+                        <AdmissionPipelineDeadlines deadlines={summary?.deadlines ?? []} />
+                        <AdmissionPipelineBlocks blocks={summary?.blocks ?? []} />
                     </div>
                 </div>
             </div>
