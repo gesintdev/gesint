@@ -26,6 +26,9 @@ public interface OccupationalExamRepository extends IBaseRepository<Occupational
     List<OccupationalExam> findByCollaboratorIdAndExamTypeAndStatusNot(
             UUID collaboratorId, OccupationalExamTypeEnum examType, StatusEnum status);
 
+    List<OccupationalExam> findByCollaboratorIdInAndExamTypeAndStatusNot(
+            List<UUID> collaboratorIds, OccupationalExamTypeEnum examType, StatusEnum status);
+
     List<OccupationalExam> findByCollaboratorIdAndExamTypeAndResultAndStatusNot(
             UUID collaboratorId,
             OccupationalExamTypeEnum examType,

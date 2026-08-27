@@ -30,6 +30,7 @@ import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionPr
 import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.admission.exception.AdmissionProcessException;
 import br.com.gommo.modules.rh.person.collaborators.admission.mapper.AdmissionProcessMapper;
+import br.com.gommo.modules.rh.person.collaborators.admission.pipeline.service.IAdmissionPipelineService;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
@@ -65,6 +66,7 @@ public class AdmissionProcessService
     private final OffboardingRepository offboardingRepository;
     private final ISearchDocumentIndexer searchDocumentIndexer;
     private final OccupationalExamTriggerService occupationalExamTriggerService;
+    private final IAdmissionPipelineService admissionPipelineService;
 
     public AdmissionProcessService(
             AdmissionProcessRepository repository,
@@ -78,7 +80,8 @@ public class AdmissionProcessService
             LeaveRequestRepository leaveRequestRepository,
             OffboardingRepository offboardingRepository,
             ISearchDocumentIndexer searchDocumentIndexer,
-            OccupationalExamTriggerService occupationalExamTriggerService) {
+            OccupationalExamTriggerService occupationalExamTriggerService,
+            IAdmissionPipelineService admissionPipelineService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -92,6 +95,7 @@ public class AdmissionProcessService
         this.offboardingRepository = offboardingRepository;
         this.searchDocumentIndexer = searchDocumentIndexer;
         this.occupationalExamTriggerService = occupationalExamTriggerService;
+        this.admissionPipelineService = admissionPipelineService;
     }
 
     @Override
@@ -161,6 +165,7 @@ public class AdmissionProcessService
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
         contractRecessProvisioningService.sync(saved);
+        admissionPipelineService.ensureSteps(saved.getId());
         indexAdmission(saved);
         return toEnrichedResponse(saved);
     }
@@ -183,6 +188,7 @@ public class AdmissionProcessService
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
         contractRecessProvisioningService.sync(saved);
+        admissionPipelineService.ensureSteps(saved.getId());
         indexAdmission(saved);
         return toEnrichedResponse(saved);
     }
@@ -235,9 +241,14 @@ public class AdmissionProcessService
         String displayName = admission.getSocialName() != null && !admission.getSocialName().isBlank()
                 ? admission.getSocialName()
                 : admission.getFullName();
+        String departmentName = departmentName(admission, loadDepartments(List.of(admission)));
         String searchText = admission.getFullName()
                 + (admission.getSocialName() != null ? " " + admission.getSocialName() : "")
-                + (admission.getCpf() != null ? " " + admission.getCpf() : "");
+                + (admission.getCpf() != null ? " " + admission.getCpf() : "")
+                + (departmentName != null ? " " + departmentName : "")
+                + (admission.getAdmissionStatus() != null
+                        ? " " + admission.getAdmissionStatus().name()
+                        : "");
         searchDocumentIndexer.upsert(
                 SearchDocumentType.ADMISSION,
                 admission.getId(),
