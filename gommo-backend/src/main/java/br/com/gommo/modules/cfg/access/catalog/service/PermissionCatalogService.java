@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.gommo.modules.cfg.access.catalog.PermissionModuleCatalog;
 import br.com.gommo.modules.cfg.access.catalog.dto.PermissionModuleGroupDto;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
+import br.com.gommo.modules.cfg.access.security.AccessScopePolicy;
 import br.com.gommo.modules.root.dto.PermissionSummaryDto;
 import br.com.gommo.modules.root.entity.Permission;
 import br.com.gommo.modules.root.repository.PermissionRepository;
@@ -48,15 +50,20 @@ public class PermissionCatalogService implements IPermissionCatalogService {
             Map.entry("agenda", "Agenda"));
 
     private final PermissionRepository permissionRepository;
+    private final AccessScopePolicy accessScopePolicy;
 
-    public PermissionCatalogService(PermissionRepository permissionRepository) {
+    public PermissionCatalogService(PermissionRepository permissionRepository, AccessScopePolicy accessScopePolicy) {
         this.permissionRepository = permissionRepository;
+        this.accessScopePolicy = accessScopePolicy;
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('role:read')")
     public List<PermissionModuleGroupDto> findBySystem(SystemScopeEnum system) {
+        if (!accessScopePolicy.isSystemContracted(system)) {
+            return List.of();
+        }
         return groupPermissions(
                 permissionRepository.findAllByModuleInOrderByAuthorityAsc(PermissionModuleCatalog.modulesFor(system)));
     }
@@ -65,15 +72,21 @@ public class PermissionCatalogService implements IPermissionCatalogService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('role:read')")
     public List<PermissionModuleGroupDto> findByModule(SystemScopeEnum system, String module) {
+        if (!accessScopePolicy.isSystemContracted(system)) {
+            return List.of();
+        }
         if (!PermissionModuleCatalog.modulesFor(system).contains(module)) {
             return List.of();
         }
         return groupPermissions(permissionRepository.findAllByModuleInOrderByAuthorityAsc(List.of(module)));
     }
 
+    /** Somente permissoes que o usuario logado possui podem ser oferecidas no cadastro de perfis. */
     private List<PermissionModuleGroupDto> groupPermissions(List<Permission> permissions) {
+        Set<String> grantedAuthorities = accessScopePolicy.currentAuthorities();
         Map<String, List<PermissionSummaryDto>> grouped = new LinkedHashMap<>();
         permissions.stream()
+                .filter(permission -> grantedAuthorities.contains(permission.getAuthority()))
                 .sorted(Comparator.comparing(Permission::getModule).thenComparing(Permission::getAuthority))
                 .forEach(permission -> grouped.computeIfAbsent(permission.getModule(), key -> new ArrayList<>())
                         .add(toSummary(permission)));

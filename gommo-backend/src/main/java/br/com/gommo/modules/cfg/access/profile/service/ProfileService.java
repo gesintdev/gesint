@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import br.com.gommo.modules.cfg.access.profile.dto.ProfileRequestDto;
 import br.com.gommo.modules.cfg.access.profile.dto.ProfileResponseDto;
 import br.com.gommo.modules.cfg.access.profile.exception.ProfileException;
 import br.com.gommo.modules.cfg.access.profile.mapper.ProfileMapper;
+import br.com.gommo.modules.cfg.access.security.AccessScopePolicy;
 import br.com.gommo.modules.root.entity.Permission;
 import br.com.gommo.modules.root.entity.Role;
 import br.com.gommo.modules.root.repository.PermissionRepository;
@@ -32,16 +34,19 @@ public class ProfileService implements IProfileService {
     private final PermissionRepository permissionRepository;
     private final ProfileMapper mapper;
     private final EntityManager entityManager;
+    private final AccessScopePolicy accessScopePolicy;
 
     public ProfileService(
             RoleRepository roleRepository,
             PermissionRepository permissionRepository,
             ProfileMapper mapper,
-            EntityManager entityManager) {
+            EntityManager entityManager,
+            AccessScopePolicy accessScopePolicy) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.mapper = mapper;
         this.entityManager = entityManager;
+        this.accessScopePolicy = accessScopePolicy;
     }
 
     @Override
@@ -70,6 +75,7 @@ public class ProfileService implements IProfileService {
     @Transactional
     @PreAuthorize("hasAuthority('role:write')")
     public ProfileResponseDto create(ProfileRequestDto request) {
+        validateSystemContracted(request.getSystem());
         validateUniqueName(request.getName(), request.getSystem(), null);
         Role role = Role.builder()
                 .code(EntityCodeIncrementer.nextCode(entityManager, Role.class))
@@ -81,7 +87,7 @@ public class ProfileService implements IProfileService {
                 .system(request.getSystem())
                 .status(StatusEnum.ACTIVE)
                 .systemRole(false)
-                .permissions(resolvePermissions(request))
+                .permissions(resolvePermissions(request, Set.of()))
                 .build();
         return mapper.toResponse(roleRepository.save(role));
     }
@@ -94,14 +100,18 @@ public class ProfileService implements IProfileService {
         if (role.isSystemRole()) {
             throw ProfileException.systemRoleImmutable();
         }
+        validateSystemContracted(request.getSystem());
         validateUniqueName(request.getName(), request.getSystem(), id);
+        Set<UUID> currentPermissionIds = role.getPermissions() == null
+                ? Set.of()
+                : role.getPermissions().stream().map(Permission::getId).collect(Collectors.toSet());
         role.setName(request.getName().trim());
         role.setDescription(
                 StringUtils.hasText(request.getDescription())
                         ? request.getDescription().trim()
                         : null);
         role.setSystem(request.getSystem());
-        role.setPermissions(resolvePermissions(request));
+        role.setPermissions(resolvePermissions(request, currentPermissionIds));
         return mapper.toResponse(roleRepository.save(role));
     }
 
@@ -152,12 +162,23 @@ public class ProfileService implements IProfileService {
                 });
     }
 
-    private Set<Permission> resolvePermissions(ProfileRequestDto request) {
+    private void validateSystemContracted(SystemScopeEnum system) {
+        if (!accessScopePolicy.isSystemContracted(system)) {
+            throw ProfileException.systemNotContracted();
+        }
+    }
+
+    /**
+     * Permissoes ja vinculadas ao perfil sao preservadas mesmo que o usuario logado nao as possua;
+     * novas concessoes exigem que o usuario tenha a mesma authority.
+     */
+    private Set<Permission> resolvePermissions(ProfileRequestDto request, Set<UUID> keptPermissionIds) {
         if (request.getPermissionIds() == null || request.getPermissionIds().isEmpty()) {
             return new HashSet<>();
         }
         Set<UUID> requestedIds = new HashSet<>(request.getPermissionIds());
         Set<String> allowedModules = PermissionModuleCatalog.modulesFor(request.getSystem());
+        Set<String> grantedAuthorities = accessScopePolicy.currentAuthorities();
         List<Permission> permissions = permissionRepository.findAllById(requestedIds);
         if (permissions.size() != requestedIds.size()) {
             throw ProfileException.invalidPermissions();
@@ -166,6 +187,10 @@ public class ProfileService implements IProfileService {
         for (Permission permission : permissions) {
             if (!allowedModules.contains(permission.getModule())) {
                 throw ProfileException.invalidPermissions();
+            }
+            if (!keptPermissionIds.contains(permission.getId())
+                    && !grantedAuthorities.contains(permission.getAuthority())) {
+                throw ProfileException.permissionNotGranted();
             }
             resolved.add(permission);
         }

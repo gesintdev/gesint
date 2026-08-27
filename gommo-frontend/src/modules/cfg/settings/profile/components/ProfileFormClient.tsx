@@ -2,7 +2,7 @@
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {useSession} from "next-auth/react";
-import {type SubmitEvent, useEffect, useMemo, useRef, useState} from "react";
+import {type SubmitEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {toast} from "sonner";
 
 import {
@@ -16,7 +16,9 @@ import {
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import {ProfilePermissionAssignmentPanel} from "@/modules/cfg/settings/profile/components/ProfilePermissionAssignmentPanel";
 import type {ProfileCreateDto, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
+import {useProfileScopeAccess} from "@/modules/cfg/settings/profile/hooks/useProfileScopeAccess";
 import {clearProfileFormDraft, createEmptyProfileDraft, type ProfileDraftItem, readProfileFormDraft, writeProfileFormDraft} from "@/modules/cfg/settings/profile/lib/profile-form-draft";
+import {filterNavSectionsByPermission} from "@/modules/cfg/settings/profile/lib/profile-scope-access";
 import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
 import {permissionCatalogService} from "@/modules/cfg/settings/profile/services/permission-catalog.service";
 import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
@@ -76,6 +78,9 @@ export function ProfileFormClient() {
     const tenantSlug = session?.tenantSlug?.trim() || "default";
     const username = session?.user?.username?.trim() || session?.user?.email?.trim() || "anonymous";
 
+    const {scopes: allowedSystems, granted, unrestricted, ready: scopeReady} = useProfileScopeAccess();
+    const defaultSystem = allowedSystems[0] ?? "CFG";
+
     const [activeSystem, setActiveSystem] = useState<SystemScope>("CFG");
     const [drafts, setDrafts] = useState<ProfileDraftItem[]>([]);
     const [activeClientId, setActiveClientId] = useState<string | null>(null);
@@ -84,7 +89,17 @@ export function ProfileFormClient() {
     const [draftBootstrapped, setDraftBootstrapped] = useState(false);
     const restoredToastShown = useRef(false);
 
-    const navSections = useMemo(() => getPermissionNavSections(activeSystem), [activeSystem]);
+    /** Menus do sistema limitados ao que o usuario logado pode acessar. */
+    const permissionSectionsFor = useCallback(
+        (scope: SystemScope) =>
+            filterNavSectionsByPermission(getPermissionNavSections(scope), granted, unrestricted),
+        [granted, unrestricted],
+    );
+
+    const navSections = useMemo(
+        () => permissionSectionsFor(activeSystem),
+        [activeSystem, permissionSectionsFor],
+    );
     const activeDraft = useMemo(
         () => drafts.find((draft) => draft.clientId === activeClientId) ?? null,
         [activeClientId, drafts],
@@ -195,15 +210,21 @@ export function ProfileFormClient() {
 
         if (isEditing) return;
 
+        if (!scopeReady) return;
+
         const stored = readProfileFormDraft(tenantSlug, username, "create");
-        if (stored && stored.drafts.length > 0) {
-            setDrafts(stored.drafts);
-            setActiveSystem(stored.activeSystem);
+        // Rascunhos de sistemas nao contratados / sem acesso do usuario sao descartados.
+        const storedDrafts = stored?.drafts.filter((draft) => allowedSystems.includes(draft.system)) ?? [];
+        if (storedDrafts.length > 0) {
+            setDrafts(storedDrafts);
+            setActiveSystem(
+                allowedSystems.includes(stored!.activeSystem) ? stored!.activeSystem : defaultSystem,
+            );
             setActiveClientId(
-                stored.activeClientId &&
-                    stored.drafts.some((draft) => draft.clientId === stored.activeClientId)
+                stored?.activeClientId &&
+                    storedDrafts.some((draft) => draft.clientId === stored.activeClientId)
                     ? stored.activeClientId
-                    : stored.drafts[0]?.clientId ?? null,
+                    : storedDrafts[0]?.clientId ?? null,
             );
             if (!restoredToastShown.current) {
                 restoredToastShown.current = true;
@@ -211,15 +232,24 @@ export function ProfileFormClient() {
             }
         } else {
             const first = createEmptyProfileDraft(
-                "CFG",
-                findFirstPermissionRoute(getPermissionNavSections("CFG"))?.id ?? null,
+                defaultSystem,
+                findFirstPermissionRoute(permissionSectionsFor(defaultSystem))?.id ?? null,
             );
             setDrafts([first]);
-            setActiveSystem("CFG");
+            setActiveSystem(defaultSystem);
             setActiveClientId(first.clientId);
         }
         setDraftBootstrapped(true);
-    }, [editingId, isEditing, tenantSlug, username]);
+    }, [
+        allowedSystems,
+        defaultSystem,
+        editingId,
+        isEditing,
+        permissionSectionsFor,
+        scopeReady,
+        tenantSlug,
+        username,
+    ]);
 
     useEffect(() => {
         if (!isEditing || !detailQuery.data || hydratedDetailId === detailQuery.data.id) return;
@@ -238,7 +268,7 @@ export function ProfileFormClient() {
             const draft: ProfileDraftItem = {
                 ...createEmptyProfileDraft(
                     system,
-                    findFirstPermissionRoute(getPermissionNavSections(system))?.id ?? null,
+                    findFirstPermissionRoute(permissionSectionsFor(system))?.id ?? null,
                 ),
                 name: detailQuery.data.name,
                 description: detailQuery.data.description ?? "",
@@ -251,7 +281,7 @@ export function ProfileFormClient() {
         setHydratedDetailId(detailQuery.data.id);
         setDraftBootstrapped(true);
         setError(null);
-    }, [detailQuery.data, hydratedDetailId, isEditing, tenantSlug, username]);
+    }, [detailQuery.data, hydratedDetailId, isEditing, permissionSectionsFor, tenantSlug, username]);
 
     useEffect(() => {
         if (!draftBootstrapped) return;
@@ -336,6 +366,7 @@ export function ProfileFormClient() {
     const handleSystemChange = (nextSystem: SystemScope) => {
         if (isEditing) return;
         if (nextSystem === activeSystem) return;
+        if (!allowedSystems.includes(nextSystem)) return;
         setActiveSystem(nextSystem);
         const existing = drafts.filter((draft) => draft.system === nextSystem);
         if (existing.length > 0) {
@@ -344,7 +375,7 @@ export function ProfileFormClient() {
         }
         const created = createEmptyProfileDraft(
             nextSystem,
-            findFirstPermissionRoute(getPermissionNavSections(nextSystem))?.id ?? null,
+            findFirstPermissionRoute(permissionSectionsFor(nextSystem))?.id ?? null,
         );
         setDrafts((prev) => [...prev, created]);
         setActiveClientId(created.clientId);
@@ -354,7 +385,7 @@ export function ProfileFormClient() {
         if (isEditing) return;
         const created = createEmptyProfileDraft(
             activeSystem,
-            findFirstPermissionRoute(getPermissionNavSections(activeSystem))?.id ?? null,
+            findFirstPermissionRoute(permissionSectionsFor(activeSystem))?.id ?? null,
         );
         setDrafts((prev) => [...prev, created]);
         setActiveClientId(created.clientId);
@@ -370,7 +401,7 @@ export function ProfileFormClient() {
             if (remainingInSystem.length === 0) {
                 const replacement = createEmptyProfileDraft(
                     target.system,
-                    findFirstPermissionRoute(getPermissionNavSections(target.system))?.id ?? null,
+                    findFirstPermissionRoute(permissionSectionsFor(target.system))?.id ?? null,
                 );
                 setActiveClientId(replacement.clientId);
                 return [...next, replacement];
@@ -434,11 +465,11 @@ export function ProfileFormClient() {
 
     const resetToEmptyCreate = () => {
         const first = createEmptyProfileDraft(
-            "CFG",
-            findFirstPermissionRoute(getPermissionNavSections("CFG"))?.id ?? null,
+            defaultSystem,
+            findFirstPermissionRoute(permissionSectionsFor(defaultSystem))?.id ?? null,
         );
         setDrafts([first]);
-        setActiveSystem("CFG");
+        setActiveSystem(defaultSystem);
         setActiveClientId(first.clientId);
         setError(null);
         setHydratedDetailId(null);
@@ -527,6 +558,7 @@ export function ProfileFormClient() {
             >
                 <ProfilePermissionAssignmentPanel
                     system={activeSystem}
+                    availableSystems={allowedSystems}
                     onSystemChange={handleSystemChange}
                     systemProfileCountByScope={systemProfileCountByScope}
                     systemsLocked={isEditing}
