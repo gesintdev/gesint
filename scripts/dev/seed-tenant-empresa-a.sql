@@ -35,6 +35,8 @@ DECLARE
         'work_schedule_day',
         'admission_process',
         'admission_process_kanban_column',
+        'admission_step',
+        'esocial_event',
         'attendance_record',
         'attendance_request',
         'benefit_plan',

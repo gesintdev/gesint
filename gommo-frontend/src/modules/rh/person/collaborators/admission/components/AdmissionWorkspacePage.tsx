@@ -8,12 +8,14 @@ import { admissionprocessService } from "@/modules/rh/person/collaborators/admis
 import { leaverequestKeys } from "@/modules/rh/person/leave/leave.query";
 import { isAbsenceLeave, isVacationHistory } from "@/modules/rh/person/leave/lib/leave-request.filters";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
+import { SystemEnum } from "@/modules/root/enum/SystemEnum";
 import {
     type CrudExtraTab,
     useCrudExtraTabs,
     useCrudScreen,
 } from "@/shared/components/crud/CrudScreen";
 import { TabbedCrudPage } from "@/shared/components/layout/TabbedCrudPage";
+import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
 
 const List = lazy(() =>
     import("@/modules/rh/person/collaborators/admission/components/AdmissionProcessListClient").then((m) => ({
@@ -35,9 +37,15 @@ const AbsenceHistory = lazy(() =>
         default: m.AdmissionAbsenceHistoryTab,
     })),
 );
+const Pipeline = lazy(() =>
+    import("@/modules/rh/person/collaborators/admission/components/AdmissionPipelineTab").then((m) => ({
+        default: m.AdmissionPipelineTab,
+    })),
+);
 
 function AdmissionHistoryExtraTabsController() {
     const { editingId } = useCrudScreen();
+    const { activeSystem } = useActiveSystem();
 
     const admissionQuery = useQuery({
         queryKey: admissionprocessKeys.detail(editingId ?? ""),
@@ -60,11 +68,28 @@ function AdmissionHistoryExtraTabsController() {
     });
 
     const extraTabs = useMemo((): CrudExtraTab[] => {
-        if (!editingId || !collaboratorId) return [];
-        const presence = historyPresenceQuery.data;
-        if (!presence) return [];
-
         const tabs: CrudExtraTab[] = [];
+
+        // Acompanhamento e exclusivo do DP: no RH o menu de Admissao e o mesmo, mas a esteira nao.
+        if (activeSystem === SystemEnum.DP) {
+            tabs.push({
+                id: "pipeline",
+                label: "Acompanhamento",
+                placement: "leading",
+                initial: true,
+                permission: "admission:pipeline",
+                content: (
+                    <Suspense fallback={null}>
+                        <Pipeline />
+                    </Suspense>
+                ),
+            });
+        }
+
+        if (!editingId || !collaboratorId) return tabs;
+        const presence = historyPresenceQuery.data;
+        if (!presence) return tabs;
+
         if (presence.hasVacationHistory) {
             tabs.push({
                 id: "vacation-history",
@@ -90,7 +115,7 @@ function AdmissionHistoryExtraTabsController() {
             });
         }
         return tabs;
-    }, [collaboratorId, editingId, historyPresenceQuery.data]);
+    }, [activeSystem, collaboratorId, editingId, historyPresenceQuery.data]);
 
     useCrudExtraTabs(extraTabs);
     return null;

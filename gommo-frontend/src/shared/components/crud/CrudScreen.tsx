@@ -10,6 +10,7 @@ import {
     useEffect,
     useLayoutEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 
@@ -41,7 +42,16 @@ export type CrudExtraTab = {
     visibleWhenEditing?: boolean;
     /** Aba visível, mas não clicável (ex.: processo sem candidato selecionado). */
     disabled?: boolean;
+    /** Posição na régua de abas. Por padrão a aba entra depois de Listagem/Cadastro. */
+    placement?: CrudExtraTabPlacement;
+    /**
+     * Abre esta aba no lugar da Listagem ao entrar no módulo. Só vale na entrada pela listagem:
+     * link direto para um registro continua abrindo o formulário.
+     */
+    initial?: boolean;
 };
+
+export type CrudExtraTabPlacement = "leading" | "trailing";
 
 type CrudScreenContextValue = {
     activeTab: string;
@@ -181,6 +191,8 @@ export function CrudScreen({
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [editingId, setEditingId] = useState<string | null>(initialEditingId);
     const [overrideExtraTabs, setOverrideExtraTabs] = useState<CrudExtraTab[] | null>(null);
+    const [initialExtraTabResolved, setInitialExtraTabResolved] = useState(false);
+    const hadExtraTabsRef = useRef(false);
     const permissions = useSessionPermissions();
     const crudConfig = useTabbedCrudConfigOptional();
     const workspaceTabCtx = useWorkspaceTabOptional();
@@ -213,7 +225,14 @@ export function CrudScreen({
         [isEditing, permissions, resolvedExtraTabs],
     );
     const tabs = useMemo(() => {
+        const toItem = (t: CrudExtraTab) => ({
+            id: t.id,
+            label: t.label,
+            badge: t.badge,
+            disabled: t.disabled,
+        });
         const items: { id: string; label: string; badge?: number; disabled?: boolean }[] = [
+            ...visibleExtraTabs.filter((t) => t.placement === "leading").map(toItem),
             { id: CRUD_TAB_LIST, label: listTabLabel },
         ];
         const showFormTab = canWrite && (!editOnly || isEditing || activeTab === CRUD_TAB_FORM);
@@ -223,14 +242,7 @@ export function CrudScreen({
                 label: isEditing ? formTabLabelEdit : formTabLabel,
             });
         }
-        items.push(
-            ...visibleExtraTabs.map((t) => ({
-                id: t.id,
-                label: t.label,
-                badge: t.badge,
-                disabled: t.disabled,
-            })),
-        );
+        items.push(...visibleExtraTabs.filter((t) => t.placement !== "leading").map(toItem));
         return items;
     }, [activeTab, canWrite, editOnly, formTabLabel, formTabLabelEdit, isEditing, listTabLabel, visibleExtraTabs]);
     const goToList = useCallback(() => {
@@ -269,13 +281,33 @@ export function CrudScreen({
         }
     }, [activeTab, canWrite]);
 
+    // Abas extras chegam depois da montagem, entao a aba inicial e escolhida quando elas aparecem.
+    // Roda uma vez so: sem isso, cada clique em Listagem seria desfeito pelo proprio efeito.
+    useEffect(() => {
+        if (initialExtraTabResolved) return;
+        if (defaultTab !== CRUD_TAB_LIST || isEditing) {
+            setInitialExtraTabResolved(true);
+            return;
+        }
+        const initialTab = visibleExtraTabs.find((tab) => tab.initial && !tab.disabled);
+        if (!initialTab) return;
+        setInitialExtraTabResolved(true);
+        setActiveTab((current) => (current === CRUD_TAB_LIST ? initialTab.id : current));
+    }, [defaultTab, initialExtraTabResolved, isEditing, visibleExtraTabs]);
+
+    useEffect(() => {
+        if (visibleExtraTabs.length > 0) hadExtraTabsRef.current = true;
+    }, [visibleExtraTabs]);
+
     useEffect(() => {
         const isCoreTab = activeTab === CRUD_TAB_LIST || activeTab === CRUD_TAB_FORM;
         if (isCoreTab) return;
         const activeExtra = visibleExtraTabs.find((tab) => tab.id === activeTab);
         if (activeExtra && !activeExtra.disabled) return;
-        // Evita bounce para Listagem enquanto abas extras ainda estao sendo publicadas.
-        if (visibleExtraTabs.length === 0) return;
+        // Lista vazia e ambigua: pode ser o estado antes das abas extras serem publicadas (voltar
+        // para Listagem daria bounce) ou a ultima aba extra tendo sumido, por troca de sistema ou de
+        // permissao. So o segundo caso precisa de fallback, e o ref distingue os dois.
+        if (visibleExtraTabs.length === 0 && !hadExtraTabsRef.current) return;
         setActiveTab(isEditing && canWrite ? CRUD_TAB_FORM : CRUD_TAB_LIST);
     }, [activeTab, canWrite, isEditing, visibleExtraTabs]);
 
