@@ -40,6 +40,10 @@ function formatPercent(value?: number | null) {
     return `${value.toFixed(1)}%`;
 }
 
+// Mesmo recuo que o QueryPagedTablePanel aplica em volta da tabela, para os cards
+// alinharem com as bordas dela em vez de vazarem para as laterais do painel.
+const ROW_CLASS = "mb-4 grid gap-2 px-1.5 pt-1.5 sm:grid-cols-2 lg:grid-cols-4";
+
 export function OccupationalExamIndicatorsPanel() {
     const query = useQuery({
         queryKey: occupationalExamKeys.indicators,
@@ -48,7 +52,7 @@ export function OccupationalExamIndicatorsPanel() {
 
     if (query.isLoading) {
         return (
-            <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className={ROW_CLASS}>
                 {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="skeleton-shimmer h-16 rounded-box" />
                 ))}
@@ -58,7 +62,7 @@ export function OccupationalExamIndicatorsPanel() {
 
     if (query.isError) {
         return (
-            <p className="mb-4 text-sm text-error">
+            <p className="mb-4 px-1.5 pt-1.5 text-sm text-error">
                 {ExceptionCapture.displayMessage(query.error, OCCUPATIONAL_EXAM_CLIENT_MESSAGES.LOAD_FAILED)}
             </p>
         );
@@ -68,7 +72,7 @@ export function OccupationalExamIndicatorsPanel() {
     if (!data) return null;
 
     return (
-        <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={ROW_CLASS}>
             <MetricCard
                 label="Conformidade"
                 value={formatPercent(data.complianceRatePercent)}
