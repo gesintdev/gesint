@@ -26,6 +26,20 @@ public final class ProfileException {
                 HttpStatus.CONFLICT);
     }
 
+    public static BusinessException systemNotContracted() {
+        return new BusinessException(
+                "PROFILE_SYSTEM_NOT_CONTRACTED",
+                "Este sistema não está contratado pelo cliente.",
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException permissionNotGranted() {
+        return new BusinessException(
+                "PROFILE_PERMISSION_NOT_GRANTED",
+                "Você não pode conceder permissões que não possui.",
+                HttpStatus.FORBIDDEN);
+    }
+
     public static BusinessException invalidPermissions() {
         return new BusinessException(
                 "PROFILE_INVALID_PERMISSIONS",

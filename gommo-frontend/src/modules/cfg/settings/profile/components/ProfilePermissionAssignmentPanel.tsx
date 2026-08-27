@@ -3,16 +3,15 @@
 import clsx from "clsx";
 import {Plus, Trash2} from "lucide-react";
 
-import {ProfilePermissionPanel} from "@/modules/cfg/settings/profile/components/ProfilePermissionPanel";
 import {
-    ASSIGNABLE_SYSTEM_SCOPES,
+    type SystemScope,
     systemScopeInfos,
     systemScopeLabel,
     systemScopeShortLabel,
-    type SystemScope,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
-import type {ProfileDraftItem} from "@/modules/cfg/settings/profile/lib/profile-form-draft";
+import {ProfilePermissionPanel} from "@/modules/cfg/settings/profile/components/ProfilePermissionPanel";
 import type {PermissionSummary} from "@/modules/cfg/settings/profile/dto/profile.dto";
+import type {ProfileDraftItem} from "@/modules/cfg/settings/profile/lib/profile-form-draft";
 import type {AppRoute, NavSection} from "@/modules/root/enum/ModuleEnum";
 import {NavRouteTree} from "@/shared/components/layout/NavRouteTree";
 import {Button} from "@/shared/components/ui/Button";
@@ -20,6 +19,8 @@ import {type CheckboxState, InputString} from "@/shared/components/ui/input/inde
 
 type ProfilePermissionAssignmentPanelProps = {
     system: SystemScope;
+    /** Sistemas contratados pelo cliente e acessiveis ao usuario logado. */
+    availableSystems: SystemScope[];
     onSystemChange: (system: SystemScope) => void;
     systemProfileCountByScope: Partial<Record<SystemScope, number>>;
     systemsLocked?: boolean;
@@ -49,6 +50,7 @@ type ProfilePermissionAssignmentPanelProps = {
 
 export function ProfilePermissionAssignmentPanel({
     system,
+    availableSystems,
     onSystemChange,
     systemProfileCountByScope,
     systemsLocked = false,
@@ -87,7 +89,12 @@ export function ProfilePermissionAssignmentPanel({
                     </p>
                 </div>
                 <ul className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-3 pb-3">
-                    {ASSIGNABLE_SYSTEM_SCOPES.map((scope) => {
+                    {availableSystems.length === 0 ? (
+                        <li className="rounded-xl border border-dashed border-base-content/15 px-3 py-4 text-center text-xs text-base-content/50">
+                            Nenhum sistema disponível para o seu acesso.
+                        </li>
+                    ) : null}
+                    {availableSystems.map((scope) => {
                         const infos = systemScopeInfos(scope);
                         const Icon = infos.icon;
                         const active = scope === system;
