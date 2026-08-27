@@ -14,10 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
 @Table(name = "department")
@@ -26,10 +27,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Department extends AuditEntity {
-
-    @Column(name = "company_id")
-    private UUID companyId;
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class Department extends BranchScopedEntity {
 
     @Column(name = "parent_id")
     private UUID parentId;

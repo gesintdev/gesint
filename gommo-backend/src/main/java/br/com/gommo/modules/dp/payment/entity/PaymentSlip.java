@@ -14,10 +14,11 @@ import lombok.experimental.SuperBuilder;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
 @Table(name = "payment_slip")
@@ -26,7 +27,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentSlip extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class PaymentSlip extends BranchScopedEntity {
 
     @Column(name = "payment_batch_id", nullable = false)
     private UUID paymentBatchId;

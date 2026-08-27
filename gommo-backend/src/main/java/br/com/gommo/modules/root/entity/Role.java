@@ -28,6 +28,7 @@ import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.entity.CodedEntity;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.cfg.access.entity.RoleTypeEnum;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 
 @Entity
@@ -66,6 +67,12 @@ public class Role implements CodedEntity {
     @Builder.Default
     private boolean systemRole = false;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "role_type", nullable = false, columnDefinition = "role_type_enum")
+    @Builder.Default
+    private RoleTypeEnum roleType = RoleTypeEnum.CUSTOM;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
@@ -79,6 +86,20 @@ public class Role implements CodedEntity {
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     @Builder.Default
     private Set<Permission> permissions = new HashSet<>();
+
+    /** Perfis que aparecem no cadastro de perfis e podem ser vinculados a usuarios. */
+    public boolean isAssignableProfile() {
+        return roleType == RoleTypeEnum.ADMIN || roleType == RoleTypeEnum.CUSTOM;
+    }
+
+    /** Somente perfis criados pelo cliente podem ser alterados ou excluidos. */
+    public boolean isEditableProfile() {
+        return roleType == RoleTypeEnum.CUSTOM;
+    }
+
+    public boolean isGlobalAdmin() {
+        return roleType == RoleTypeEnum.GLOBAL_ADMIN;
+    }
 
     @PrePersist
     void onCreate() {

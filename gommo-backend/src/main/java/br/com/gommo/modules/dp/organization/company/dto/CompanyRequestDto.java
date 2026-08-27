@@ -1,5 +1,7 @@
 package br.com.gommo.modules.dp.organization.company.dto;
 
+import java.util.UUID;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -14,6 +16,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompanyRequestDto {
+
+    /** Matriz a que esta filial pertence. Nulo apenas na propria matriz. */
+    private UUID parentId;
+
+    private int sortOrder;
 
     @NotBlank @Size(max = 255) private String legalName;
 

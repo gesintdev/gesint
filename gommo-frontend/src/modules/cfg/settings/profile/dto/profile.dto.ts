@@ -3,6 +3,12 @@ import type { SystemScope } from "@/modules/cfg/settings/lib/access-menu-catalog
 export type { SystemScope };
 export type ProfileStatus = "ACTIVE" | "INACTIVE" | "DELETED";
 
+/**
+ * GLOBAL_ADMIN e INTERNAL nao sao retornados pela API de perfis.
+ * ADMIN e o administrador padrao de um sistema, criado no provisionamento e nao editavel.
+ */
+export type ProfileRoleType = "GLOBAL_ADMIN" | "ADMIN" | "INTERNAL" | "CUSTOM";
+
 export type PermissionSummary = {
     id: string;
     code?: number;
@@ -17,6 +23,8 @@ export type Profile = {
     name: string;
     description?: string | null;
     system: SystemScope;
+    roleType?: ProfileRoleType;
+    editable?: boolean;
     status?: ProfileStatus;
     permissions?: PermissionSummary[];
     createdAt?: string;

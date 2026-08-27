@@ -3,6 +3,8 @@ package br.com.gommo.modules.cfg.settings.agenda.entity;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.Filter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -12,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
 @Table(name = "agenda_event")
@@ -21,7 +23,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AgendaEvent extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class AgendaEvent extends BranchScopedEntity {
 
     @Column(name = "owner_user_id", nullable = false)
     private UUID ownerUserId;

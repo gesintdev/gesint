@@ -1,3 +1,4 @@
+import {BRANCH_HEADER, buildBranchRequestHeaders, readActiveBranch} from "@/shared/lib/branch";
 import {createHttpClient} from "@/shared/lib/create-http-client";
 import {signOutToTenantLogin} from "@/shared/lib/sign-out.client";
 import {buildTenantRequestHeaders, resolveTenantSlugFromHostname} from "@/shared/lib/tenant";
@@ -23,10 +24,16 @@ export type {DoRequestOptions} from "@/shared/lib/create-http-client";
  * ficam em AUTH_URL (localhost) e vazariam o tenant de posto-sjb.localhost.
  */
 export async function resolveClientTenantHeaders(extra?: Record<string, string>): Promise<Record<string, string>> {
+    // Ao contrario do tenant, a filial nao pode vir do host: ela e a escolha do seletor.
+    const branchHeaders = extra?.[BRANCH_HEADER]?.trim()
+        ? {}
+        : buildBranchRequestHeaders(typeof window !== "undefined" ? readActiveBranch() : null);
+
     const fromExtra = extra?.["X-Tenant-Slug"]?.trim();
     if (fromExtra) {
         return {
             ...buildTenantRequestHeaders(fromExtra),
+            ...branchHeaders,
             ...extra,
         };
     }
@@ -35,11 +42,12 @@ export async function resolveClientTenantHeaders(extra?: Record<string, string>)
     if (fromHost) {
         return {
             ...buildTenantRequestHeaders(fromHost),
+            ...branchHeaders,
             ...extra,
         };
     }
 
-    return {...(extra ?? {})};
+    return {...branchHeaders, ...(extra ?? {})};
 }
 
 const httpClient = createHttpClient({

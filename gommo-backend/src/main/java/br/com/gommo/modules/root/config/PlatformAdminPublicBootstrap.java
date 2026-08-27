@@ -1,7 +1,5 @@
 package br.com.gommo.modules.root.config;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -17,8 +15,10 @@ import org.springframework.util.StringUtils;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.entity.Role;
+import br.com.gommo.modules.root.entity.UserRoleAssignment;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.root.repository.RoleRepository;
+import br.com.gommo.modules.root.repository.UserRoleAssignmentRepository;
 
 /**
  * Sync fino do sudo da plataforma em public.app_user para boot/testes sem o admin-backend.
@@ -33,6 +33,7 @@ public class PlatformAdminPublicBootstrap implements ApplicationRunner {
 
     private final AppUserRepository appUserRepository;
     private final RoleRepository roleRepository;
+    private final UserRoleAssignmentRepository assignmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final String username;
     private final String fullName;
@@ -42,6 +43,7 @@ public class PlatformAdminPublicBootstrap implements ApplicationRunner {
     public PlatformAdminPublicBootstrap(
             AppUserRepository appUserRepository,
             RoleRepository roleRepository,
+            UserRoleAssignmentRepository assignmentRepository,
             PasswordEncoder passwordEncoder,
             @Value("${gommo.platform-admin.username:admGommo}") String username,
             @Value("${gommo.platform-admin.full-name:Administrador Gommo}") String fullName,
@@ -49,6 +51,7 @@ public class PlatformAdminPublicBootstrap implements ApplicationRunner {
             @Value("${gommo.platform-admin.password:}") String password) {
         this.appUserRepository = appUserRepository;
         this.roleRepository = roleRepository;
+        this.assignmentRepository = assignmentRepository;
         this.passwordEncoder = passwordEncoder;
         this.username = username;
         this.fullName = fullName;
@@ -84,11 +87,7 @@ public class PlatformAdminPublicBootstrap implements ApplicationRunner {
             changed = true;
         }
 
-        Set<Role> roles = new HashSet<>(user.getRoles());
-        if (!roles.contains(adminRole)) {
-            roles.add(adminRole);
-            user.setRoles(roles);
-            changed = true;
+        if (assignAdminRole(user.getId(), adminRole)) {
             log.warn(
                     "Usuario '{}' existia sem role ADMIN; role vinculada. Faca login novamente para atualizar o token.",
                     user.getUsername());
@@ -132,10 +131,28 @@ public class PlatformAdminPublicBootstrap implements ApplicationRunner {
                 .passwordHash(passwordEncoder.encode(password))
                 .firstAccessCompleted(true)
                 .status(StatusEnum.ACTIVE)
-                .roles(Set.of(adminRole))
                 .build();
-        appUserRepository.save(admin);
+        AppUser saved = appUserRepository.save(admin);
+        assignAdminRole(saved.getId(), adminRole);
         log.info("Usuario sudo da plataforma criado em public.app_user (username={})", username);
+    }
+
+    /**
+     * O admin da plataforma nao pertence a nenhuma filial: o vinculo nasce com {@code companyId}
+     * nulo, que {@code BranchAccessResolver} interpreta como "vale em todas".
+     */
+    private boolean assignAdminRole(UUID userId, Role adminRole) {
+        boolean alreadyAssigned = assignmentRepository.findAllByUserId(userId).stream()
+                .anyMatch(assignment -> adminRole.getId().equals(assignment.getRoleId()));
+        if (alreadyAssigned) {
+            return false;
+        }
+        assignmentRepository.save(UserRoleAssignment.builder()
+                .userId(userId)
+                .roleId(adminRole.getId())
+                .companyId(null)
+                .build());
+        return true;
     }
 
     private void deactivateLegacyAdmin() {

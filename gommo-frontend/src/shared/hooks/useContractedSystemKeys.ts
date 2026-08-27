@@ -1,9 +1,10 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { apiFetch } from "@/shared/lib/api.client";
+import { readActiveBranch, subscribeActiveBranch } from "@/shared/lib/branch";
 import { isPlatformAdminWithoutTenant } from "@/shared/lib/contracted-systems";
 
 /**
@@ -17,6 +18,14 @@ export function useContractedSystemKeys(): {
 } {
     const { data: session, status } = useSession();
     const [hydratedKeys, setHydratedKeys] = useState<string[] | null | undefined>(undefined);
+    // Lido da fonte externa em vez do ActiveBranchContext: este hook também roda fora do shell.
+    const activeBranchId = useSyncExternalStore(subscribeActiveBranch, readActiveBranch, () => null);
+    const overrides = session?.contractedSystemKeyOverrides ?? null;
+    /** Um contrato restrito a algumas filiais só aparece nas keys da filial em que vale. */
+    const scopedKeys =
+        activeBranchId && overrides?.[activeBranchId]
+            ? overrides[activeBranchId]
+            : (session?.contractedSystemKeys ?? null);
     const noCommercialFilter = isPlatformAdminWithoutTenant({
         platformAdmin: session?.platformAdmin,
         tenantSlug: session?.tenantSlug,
@@ -36,8 +45,8 @@ export function useContractedSystemKeys(): {
             setHydratedKeys(null);
             return;
         }
-        if (session.contractedSystemKeys != null) {
-            setHydratedKeys(session.contractedSystemKeys);
+        if (scopedKeys != null) {
+            setHydratedKeys(scopedKeys);
             return;
         }
 
@@ -57,7 +66,7 @@ export function useContractedSystemKeys(): {
         return () => {
             cancelled = true;
         };
-    }, [noCommercialFilter, session?.contractedSystemKeys, session?.tenantSlug, status]);
+    }, [noCommercialFilter, scopedKeys, session?.tenantSlug, status]);
 
     const keys = useMemo(() => {
         if (status === "loading") {
@@ -67,25 +76,17 @@ export function useContractedSystemKeys(): {
         if (noCommercialFilter) {
             return null;
         }
-        if (session?.contractedSystemKeys != null) {
-            return session.contractedSystemKeys;
+        if (scopedKeys != null) {
+            return scopedKeys;
         }
         if (hydratedKeys !== undefined) {
             return hydratedKeys;
         }
         return [];
-    }, [
-        hydratedKeys,
-        noCommercialFilter,
-        session?.contractedSystemKeys,
-        status,
-    ]);
+    }, [hydratedKeys, noCommercialFilter, scopedKeys, status]);
 
     const ready =
-        status !== "loading" &&
-        (noCommercialFilter ||
-            session?.contractedSystemKeys != null ||
-            hydratedKeys !== undefined);
+        status !== "loading" && (noCommercialFilter || scopedKeys != null || hydratedKeys !== undefined);
 
     return { keys, ready };
 }

@@ -11,6 +11,8 @@ import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
+import br.com.gommo.core.branch.BranchContextHolder;
+import br.com.gommo.core.branch.BranchScopedTables;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.ctb.payroll.entity.PayrollStatusEnum;
 
@@ -19,17 +21,27 @@ public class DashboardMetricsDao {
 
     private static final String TIME_ZONE = "America/Sao_Paulo";
     private static final String STATUS_NOT_DELETED = "status <> CAST(:deleted AS status_enum)";
+    private static final String BRANCH_SCOPE = " AND company_id = :branchId";
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    /**
+     * SQL nativo nao passa pelo filtro de filial do Hibernate: aqui o escopo e explicito.
+     * Todas as tabelas usadas neste DAO sao escopadas por filial.
+     */
+    private static String notDeletedInBranch() {
+        return BranchContextHolder.isUnscoped() ? STATUS_NOT_DELETED : STATUS_NOT_DELETED + BRANCH_SCOPE;
+    }
 
     public long countActiveCollaborators() {
         return countWhere(
                 """
                 SELECT COUNT(*)
                 FROM collaborator
-                WHERE status = CAST(:active AS status_enum)
-                """,
+                WHERE status = CAST(:active AS status_enum)%s
+                """
+                        .formatted(BranchContextHolder.isUnscoped() ? "" : BRANCH_SCOPE),
                 Map.of("active", StatusEnum.ACTIVE.name()));
     }
 
@@ -41,7 +53,7 @@ public class DashboardMetricsDao {
                 WHERE %s
                   AND created_at >= :since
                 """
-                        .formatted(STATUS_NOT_DELETED),
+                        .formatted(notDeletedInBranch()),
                 Map.of("deleted", StatusEnum.DELETED.name(), "since", since));
     }
 
@@ -53,7 +65,7 @@ public class DashboardMetricsDao {
                 WHERE %s
                   AND (end_date IS NULL OR end_date >= :today)
                 """
-                        .formatted(STATUS_NOT_DELETED),
+                        .formatted(notDeletedInBranch()),
                 Map.of("deleted", StatusEnum.DELETED.name(), "today", today));
     }
 
@@ -69,7 +81,7 @@ public class DashboardMetricsDao {
                   )
                   AND reference_date = :referenceDate
                 """
-                        .formatted(STATUS_NOT_DELETED),
+                        .formatted(notDeletedInBranch()),
                 Map.of(
                         "deleted", StatusEnum.DELETED.name(),
                         "open", PayrollStatusEnum.OPEN.name(),
@@ -85,15 +97,13 @@ public class DashboardMetricsDao {
                 WHERE %s
                   AND approved = FALSE
                 """
-                        .formatted(STATUS_NOT_DELETED),
+                        .formatted(notDeletedInBranch()),
                 Map.of("deleted", StatusEnum.DELETED.name()));
     }
 
     public Map<LocalDate, Long> countMovementSince(OffsetDateTime since) {
-        @SuppressWarnings("unchecked")
-        List<Object[]> rows = entityManager
-                .createNativeQuery(
-                        """
+        String sql =
+                """
                         SELECT day, SUM(total) AS total
                         FROM (
                             SELECT CAST(created_at AT TIME ZONE '%s' AS date) AS day, COUNT(*) AS total
@@ -119,18 +129,24 @@ public class DashboardMetricsDao {
                         GROUP BY day
                         ORDER BY day
                         """
-                                .formatted(
-                                        TIME_ZONE,
-                                        STATUS_NOT_DELETED,
-                                        TIME_ZONE,
-                                        STATUS_NOT_DELETED,
-                                        TIME_ZONE,
-                                        STATUS_NOT_DELETED,
-                                        TIME_ZONE,
-                                        STATUS_NOT_DELETED))
+                        .formatted(
+                                TIME_ZONE,
+                                notDeletedInBranch(),
+                                TIME_ZONE,
+                                notDeletedInBranch(),
+                                TIME_ZONE,
+                                notDeletedInBranch(),
+                                TIME_ZONE,
+                                notDeletedInBranch());
+
+        var query = entityManager
+                .createNativeQuery(sql)
                 .setParameter("deleted", StatusEnum.DELETED.name())
-                .setParameter("since", since)
-                .getResultList();
+                .setParameter("since", since);
+        bindBranch(query, sql);
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = query.getResultList();
 
         Map<LocalDate, Long> totals = new HashMap<>();
         for (Object[] row : rows) {
@@ -142,18 +158,13 @@ public class DashboardMetricsDao {
     }
 
     public Map<String, Long> countAdmissionsByStatus() {
-        @SuppressWarnings("unchecked")
-        List<Object[]> rows = entityManager
-                .createNativeQuery(
-                        """
-                        SELECT admission_status, COUNT(*)
-                        FROM admission_process
-                        WHERE %s
-                        GROUP BY admission_status
-                        """
-                                .formatted(STATUS_NOT_DELETED))
-                .setParameter("deleted", StatusEnum.DELETED.name())
-                .getResultList();
+        List<Object[]> rows = groupedCount(
+                """
+                SELECT admission_status, COUNT(*)
+                FROM admission_process
+                WHERE %s
+                GROUP BY admission_status
+                """);
 
         Map<String, Long> totals = new HashMap<>();
         for (Object[] row : rows) {
@@ -163,18 +174,13 @@ public class DashboardMetricsDao {
     }
 
     public Map<String, Long> countLeaveByType() {
-        @SuppressWarnings("unchecked")
-        List<Object[]> rows = entityManager
-                .createNativeQuery(
-                        """
-                        SELECT leave_type, COUNT(*)
-                        FROM leave_request
-                        WHERE %s
-                        GROUP BY leave_type
-                        """
-                                .formatted(STATUS_NOT_DELETED))
-                .setParameter("deleted", StatusEnum.DELETED.name())
-                .getResultList();
+        List<Object[]> rows = groupedCount(
+                """
+                SELECT leave_type, COUNT(*)
+                FROM leave_request
+                WHERE %s
+                GROUP BY leave_type
+                """);
 
         Map<String, Long> totals = new HashMap<>();
         for (Object[] row : rows) {
@@ -190,14 +196,31 @@ public class DashboardMetricsDao {
                 FROM %s
                 WHERE %s
                 """
-                        .formatted(tableName, STATUS_NOT_DELETED),
+                        .formatted(tableName, BranchScopedTables.isScoped(tableName) ? notDeletedInBranch() : STATUS_NOT_DELETED),
                 Map.of("deleted", StatusEnum.DELETED.name()));
+    }
+
+    /** @param sqlTemplate com um unico {@code %s} para o predicado de status e filial. */
+    private List<Object[]> groupedCount(String sqlTemplate) {
+        String sql = sqlTemplate.formatted(notDeletedInBranch());
+        var query = entityManager.createNativeQuery(sql).setParameter("deleted", StatusEnum.DELETED.name());
+        bindBranch(query, sql);
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = query.getResultList();
+        return rows;
     }
 
     private long countWhere(String sql, Map<String, Object> params) {
         var query = entityManager.createNativeQuery(sql);
         params.forEach(query::setParameter);
+        bindBranch(query, sql);
         return ((Number) query.getSingleResult()).longValue();
+    }
+
+    private void bindBranch(jakarta.persistence.Query query, String sql) {
+        if (sql.contains(":branchId")) {
+            query.setParameter("branchId", BranchContextHolder.require());
+        }
     }
 
     private LocalDate toLocalDate(Object value) {

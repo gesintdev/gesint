@@ -1,6 +1,12 @@
 import type {SystemScope} from "@/modules/cfg/settings/lib/access-menu-catalog";
 import type {Profile} from "@/modules/cfg/settings/profile/dto/profile.dto";
 
+/** Perfis atribuidos ao usuario em cada filial, por sistema: filial -> sistema -> perfis. */
+export type RolesByBranch = Record<string, Partial<Record<SystemScope, Profile[]>>>;
+
+/** Ids de perfis por filial e sistema enviados no cadastro do usuario. */
+export type RoleIdsByBranch = Record<string, Partial<Record<SystemScope, string[]>>>;
+
 export type AppUser = {
     id: string;
     code?: number;
@@ -9,7 +15,7 @@ export type AppUser = {
     collaboratorName?: string | null;
     username: string;
     email: string;
-    rolesBySystem?: Partial<Record<SystemScope, Profile[]>>;
+    rolesByBranch?: RolesByBranch;
     lastLogin?: string | null;
     firstAccessCompleted?: boolean;
     /** Presente apenas após create/reset-access. */
@@ -22,5 +28,5 @@ export type AppUserCreateDto = {
     collaboratorId: string;
     username: string;
     email: string;
-    roleIdsBySystem?: Partial<Record<SystemScope, string[]>>;
+    roleIdsByBranch?: RoleIdsByBranch;
 };

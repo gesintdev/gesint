@@ -15,10 +15,11 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
 @Table(name = "esocial_health_event")
@@ -27,7 +28,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EsocialHealthEvent extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class EsocialHealthEvent extends BranchScopedEntity {
 
     @Column(name = "occupational_exam_id", nullable = false)
     private UUID occupationalExamId;

@@ -11,6 +11,8 @@ public class CompanyMapper {
 
     public Company toEntity(CompanyRequestDto dto) {
         return Company.builder()
+                .parentId(dto.getParentId())
+                .sortOrder(dto.getSortOrder())
                 .legalName(dto.getLegalName())
                 .tradeName(dto.getTradeName())
                 .cnpj(dto.getCnpj())
@@ -31,7 +33,9 @@ public class CompanyMapper {
                 .build();
     }
 
+    /** parentId e headquarters sao decididos pelo CompanyService, nao pelo payload cru. */
     public void updateEntity(Company entity, CompanyRequestDto dto) {
+        entity.setSortOrder(dto.getSortOrder());
         entity.setLegalName(dto.getLegalName());
         entity.setTradeName(dto.getTradeName());
         entity.setCnpj(dto.getCnpj());
@@ -56,6 +60,9 @@ public class CompanyMapper {
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
+                .parentId(entity.getParentId())
+                .headquarters(entity.isHeadquarters())
+                .sortOrder(entity.getSortOrder())
                 .legalName(entity.getLegalName())
                 .tradeName(entity.getTradeName())
                 .cnpj(entity.getCnpj())

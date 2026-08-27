@@ -20,10 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 import br.com.gommo.modules.rh.person.collaborators.address.entity.City;
 import br.com.gommo.modules.rh.person.collaborators.address.entity.State;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
@@ -39,7 +40,8 @@ import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialMode
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdmissionProcess extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class AdmissionProcess extends BranchScopedEntity {
 
     @Column(name = "collaborator_id")
     private UUID collaboratorId;
@@ -135,9 +137,6 @@ public class AdmissionProcess extends AuditEntity {
 
     @Column(name = "expected_start_date")
     private LocalDate expectedStartDate;
-
-    @Column(name = "company_id")
-    private UUID companyId;
 
     @Column(name = "department_id")
     private UUID departmentId;

@@ -21,6 +21,10 @@ import {SystemAlert} from "@/shared/system-alert";
 import {registerTabCloseHandler} from "@/shared/workspace/dirty-tab-guard";
 import {useWorkspaceTabOptional} from "@/shared/workspace/WorkspaceTabContext";
 
+function isEditable(profile: Profile): boolean {
+    return profile.editable ?? profile.roleType !== "ADMIN";
+}
+
 export function ProfileListClient() {
     const {startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
@@ -73,20 +77,26 @@ export function ProfileListClient() {
             columns={PROFILE_TABLE_COLUMNS}
             rowKey="id"
             emptyMessage="Nenhum perfil cadastrado."
-            onRowActivate={(row) => startEdit(row.id, row)}
-            renderActions={(row) => (
-                <CrudTableActions
-                    row={row}
-                    showOpenTab={false}
-                    onEdit={() => startEdit(row.id, row)}
-                    onDelete={() => void handleDelete(row)}
-                    onActivate={() => handleActivate(row.id)}
-                    onDeactivate={() => void handleDeactivate(row.id)}
-                    deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
-                    activateLoading={activateMutation.isPending && activateMutation.variables === row.id}
-                    deactivateLoading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
-                />
-            )}
+            onRowActivate={(row) => {
+                if (!isEditable(row)) return;
+                startEdit(row.id, row);
+            }}
+            renderActions={(row) =>
+                // Perfis Administrador vem do provisionamento do tenant e nao podem ser alterados.
+                isEditable(row) ? (
+                    <CrudTableActions
+                        row={row}
+                        showOpenTab={false}
+                        onEdit={() => startEdit(row.id, row)}
+                        onDelete={() => void handleDelete(row)}
+                        onActivate={() => handleActivate(row.id)}
+                        onDeactivate={() => void handleDeactivate(row.id)}
+                        deleteLoading={deleteMutation.isPending && deleteMutation.variables === row.id}
+                        activateLoading={activateMutation.isPending && activateMutation.variables === row.id}
+                        deactivateLoading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
+                    />
+                ) : null
+            }
         />
     );
 }

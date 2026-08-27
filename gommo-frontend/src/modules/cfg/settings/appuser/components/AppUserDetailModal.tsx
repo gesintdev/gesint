@@ -7,10 +7,11 @@ import { createPortal } from "react-dom";
 import type { AppUser } from "@/modules/cfg/settings/appuser/dto/appuser.dto";
 import {
     ASSIGNABLE_SYSTEM_SCOPES,
-    systemScopeLabel,
     type SystemScope,
+    systemScopeLabel,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import type { Profile } from "@/modules/cfg/settings/profile/dto/profile.dto";
+import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
 
 function DetailField({
     label,
@@ -36,7 +37,7 @@ function DetailField({
 }
 
 function profilesForSystem(
-    rolesBySystem: AppUser["rolesBySystem"],
+    rolesBySystem: Partial<Record<SystemScope, Profile[]>> | undefined,
     scope: SystemScope,
 ): Profile[] {
     return rolesBySystem?.[scope] ?? [];
@@ -58,6 +59,7 @@ type AppUserDetailModalProps = {
 export function AppUserDetailModal({ row, open, onClose }: AppUserDetailModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [mounted, setMounted] = useState(false);
+    const { branches } = useActiveBranch();
 
     useEffect(() => {
         setMounted(true);
@@ -77,9 +79,19 @@ export function AppUserDetailModal({ row, open, onClose }: AppUserDetailModalPro
         return null;
     }
 
-    const systemsWithProfiles = ASSIGNABLE_SYSTEM_SCOPES.filter(
-        (scope) => profilesForSystem(row.rolesBySystem, scope).length > 0,
-    );
+    const rolesByBranch = row.rolesByBranch ?? {};
+    const branchNameById = new Map(branches.map((branch) => [branch.id, branch.name]));
+    const branchesWithProfiles = Object.keys(rolesByBranch)
+        .map((branchId) => ({
+            branchId,
+            name: branchNameById.get(branchId) ?? "Filial",
+            systems: ASSIGNABLE_SYSTEM_SCOPES.filter(
+                (scope) => profilesForSystem(rolesByBranch[branchId], scope).length > 0,
+            ),
+        }))
+        .filter((entry) => entry.systems.length > 0)
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    const singleBranch = branches.length <= 1;
 
     return createPortal(
         <dialog
@@ -129,37 +141,48 @@ export function AppUserDetailModal({ row, open, onClose }: AppUserDetailModalPro
 
                     <section className="mt-4">
                         <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-base-content/45">
-                            Perfis por sistema
+                            {singleBranch ? "Perfis por sistema" : "Perfis por filial e sistema"}
                         </p>
-                        {systemsWithProfiles.length === 0 ? (
+                        {branchesWithProfiles.length === 0 ? (
                             <div className="rounded-lg border border-base-content/8 bg-base-200/30 px-3 py-4 text-sm text-base-content/55">
                                 Nenhum perfil atribuído.
                             </div>
                         ) : (
                             <div className="grid gap-2">
-                                {systemsWithProfiles.map((scope) => {
-                                    const profiles = profilesForSystem(row.rolesBySystem, scope);
-                                    return (
-                                        <div
-                                            key={scope}
-                                            className="min-w-0 rounded-lg border border-base-content/8 bg-base-200/30 px-3 py-2.5"
-                                        >
-                                            <p className="text-xs font-semibold text-base-content/70">
-                                                {systemScopeLabel(scope)}
+                                {branchesWithProfiles.map((branch) => (
+                                    <div
+                                        key={branch.branchId}
+                                        className="min-w-0 rounded-lg border border-base-content/8 bg-base-200/30 px-3 py-2.5"
+                                    >
+                                        {singleBranch ? null : (
+                                            <p className="mb-1.5 text-xs font-semibold text-base-content">
+                                                {branch.name}
                                             </p>
-                                            <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                                {profiles.map((profile) => (
-                                                    <span
-                                                        key={profile.id}
-                                                        className="gommo-badge gommo-badge--info"
-                                                    >
-                                                        {profile.name}
-                                                    </span>
-                                                ))}
-                                            </div>
+                                        )}
+                                        <div className="grid gap-1.5">
+                                            {branch.systems.map((scope) => (
+                                                <div key={scope} className="min-w-0">
+                                                    <p className="text-xs font-semibold text-base-content/70">
+                                                        {systemScopeLabel(scope)}
+                                                    </p>
+                                                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                                        {profilesForSystem(
+                                                            rolesByBranch[branch.branchId],
+                                                            scope,
+                                                        ).map((profile) => (
+                                                            <span
+                                                                key={profile.id}
+                                                                className="gommo-badge gommo-badge--info"
+                                                            >
+                                                                {profile.name}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    );
-                                })}
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </section>

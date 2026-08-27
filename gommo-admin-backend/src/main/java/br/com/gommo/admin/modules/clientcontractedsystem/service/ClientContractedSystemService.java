@@ -15,12 +15,14 @@ import br.com.gommo.admin.modules.client.entity.Client;
 import br.com.gommo.admin.modules.client.repository.ClientRepository;
 import br.com.gommo.admin.modules.clientcontractedsystem.dto.ClientContractedSystemRequestDto;
 import br.com.gommo.admin.modules.clientcontractedsystem.dto.ClientContractedSystemResponseDto;
+import br.com.gommo.admin.modules.clientcontractedsystem.entity.BranchModeEnum;
 import br.com.gommo.admin.modules.clientcontractedsystem.entity.ClientContractedSystem;
 import br.com.gommo.admin.modules.clientcontractedsystem.entity.OperationalStatusEnum;
 import br.com.gommo.admin.modules.clientcontractedsystem.entity.SessionPolicyEnum;
 import br.com.gommo.admin.modules.clientcontractedsystem.exception.ClientContractedSystemException;
 import br.com.gommo.admin.modules.clientcontractedsystem.mapper.ClientContractedSystemMapper;
 import br.com.gommo.admin.modules.clientcontractedsystem.repository.ClientContractedSystemRepository;
+import br.com.gommo.admin.modules.clientcontractedsystem.repository.ContractedSystemBranchScopeRepository;
 import br.com.gommo.admin.modules.clientenvironmentconfig.repository.ClientEnvironmentConfigRepository;
 import br.com.gommo.admin.modules.platformoutbox.service.PlatformOutboxPublisher;
 import br.com.gommo.admin.modules.productsystem.entity.ProductSystem;
@@ -38,6 +40,7 @@ public class ClientContractedSystemService
     private final ClientEnvironmentConfigRepository environmentConfigRepository;
     private final ProductSystemRepository productSystemRepository;
     private final PlatformOutboxPublisher outboxPublisher;
+    private final ContractedSystemBranchScopeRepository branchScopeRepository;
 
     public ClientContractedSystemService(
             ClientContractedSystemRepository repository,
@@ -45,14 +48,16 @@ public class ClientContractedSystemService
             ClientRepository clientRepository,
             ClientEnvironmentConfigRepository environmentConfigRepository,
             ProductSystemRepository productSystemRepository,
-            PlatformOutboxPublisher outboxPublisher) {
+            PlatformOutboxPublisher outboxPublisher,
+            ContractedSystemBranchScopeRepository branchScopeRepository) {
         super(
                 repository,
                 entity -> mapper.toResponse(
                         entity,
                         productSystemRepository
                                 .findById(entity.getProductSystemId())
-                                .orElse(null)),
+                                .orElse(null),
+                        branchScopeRepository.findBranchIds(entity.getId())),
                 request -> {
                     throw new UnsupportedOperationException("Use create override");
                 });
@@ -62,6 +67,7 @@ public class ClientContractedSystemService
         this.environmentConfigRepository = environmentConfigRepository;
         this.productSystemRepository = productSystemRepository;
         this.outboxPublisher = outboxPublisher;
+        this.branchScopeRepository = branchScopeRepository;
     }
 
     @Override
@@ -76,7 +82,10 @@ public class ClientContractedSystemService
     @PreAuthorize("hasAuthority('platform:admin')")
     public List<ClientContractedSystemResponseDto> findAllByClientId(UUID clientId) {
         return repository.findAllByClientIdAndStatusNotOrderByCreatedAtDesc(clientId, StatusEnum.DELETED).stream()
-                .map(entity -> mapper.toResponse(entity, resolveProduct(entity.getProductSystemId())))
+                .map(entity -> mapper.toResponse(
+                        entity,
+                        resolveProduct(entity.getProductSystemId()),
+                        branchScopeRepository.findBranchIds(entity.getId())))
                 .toList();
     }
 
@@ -109,8 +118,9 @@ public class ClientContractedSystemService
         }
         normalizeLifecycleForPersistence(entity);
         ClientContractedSystem saved = repository.save(entity);
-        publishOutbox(saved, client, productSystem.getKey());
-        return mapper.toResponse(saved, productSystem);
+        List<UUID> scope = persistBranchScope(saved, request);
+        publishOutbox(saved, client, productSystem.getKey(), scope);
+        return mapper.toResponse(saved, productSystem, scope);
     }
 
     @Override
@@ -125,8 +135,9 @@ public class ClientContractedSystemService
         mapper.updateEntity(entity, request, productSystem);
         normalizeLifecycleForPersistence(entity);
         ClientContractedSystem saved = repository.save(entity);
-        publishOutbox(saved, client, productSystem.getKey());
-        return mapper.toResponse(saved, productSystem);
+        List<UUID> scope = persistBranchScope(saved, request);
+        publishOutbox(saved, client, productSystem.getKey(), scope);
+        return mapper.toResponse(saved, productSystem, scope);
     }
 
     @Override
@@ -138,16 +149,37 @@ public class ClientContractedSystemService
         ProductSystem product = resolveProduct(entity.getProductSystemId());
         entity.setStatus(StatusEnum.DELETED);
         repository.save(entity);
-        publishOutbox(entity, client, product.getKey());
+        branchScopeRepository.clear(entity.getId());
+        publishOutbox(entity, client, product.getKey(), List.of());
     }
 
-    private void publishOutbox(ClientContractedSystem entity, Client client, String productKey) {
+    /**
+     * Em {@code ALL} nao ha linhas de associacao, e por isso filial cadastrada depois herda o
+     * contrato sem intervencao. Em {@code SELECTED} sem nenhuma filial marcada o contrato nao
+     * valeria em lugar nenhum, entao a matriz entra como minimo.
+     */
+    private List<UUID> persistBranchScope(ClientContractedSystem entity, ClientContractedSystemRequestDto request) {
+        if (entity.getBranchMode() != BranchModeEnum.SELECTED) {
+            branchScopeRepository.clear(entity.getId());
+            return List.of();
+        }
+
+        List<UUID> branchIds = request.getClientBranchIds() != null ? request.getClientBranchIds() : List.of();
+        boolean includeHeadquarters =
+                Boolean.TRUE.equals(request.getIncludeHeadquarters()) || branchIds.isEmpty();
+        branchScopeRepository.replace(entity.getId(), includeHeadquarters, branchIds);
+        return branchScopeRepository.findBranchIds(entity.getId());
+    }
+
+    private void publishOutbox(
+            ClientContractedSystem entity, Client client, String productKey, List<UUID> scopedBranchIds) {
         String databaseSchema = environmentConfigRepository
                 .findByClientIdAndStatusNot(client.getId(), StatusEnum.DELETED)
                 .map(config -> config.getDatabaseSchema())
                 .filter(schema -> schema != null && !schema.isBlank())
                 .orElse(null);
-        outboxPublisher.publishContractedSystemChanged(entity, client.getSlug(), productKey, databaseSchema);
+        outboxPublisher.publishContractedSystemChanged(
+                entity, client.getSlug(), productKey, databaseSchema, scopedBranchIds);
     }
 
     @Override

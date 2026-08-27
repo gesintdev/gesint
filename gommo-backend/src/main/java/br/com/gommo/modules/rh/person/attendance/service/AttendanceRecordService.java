@@ -26,6 +26,7 @@ import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
 import br.com.gommo.modules.root.entity.AppUser;
+import br.com.gommo.modules.root.entity.Role;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.storage.service.IStorageService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -1050,7 +1051,7 @@ public class AttendanceRecordService
         }
         return user.getRoles().stream()
             .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
-            .anyMatch(role -> role.isSystemRole() && "ADMIN".equalsIgnoreCase(role.getName()));
+            .anyMatch(Role::isGlobalAdmin);
     }
 
     private UUID ensurePersonalCollaborator(AppUser user) {

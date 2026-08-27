@@ -14,9 +14,25 @@ import { notifyTabClosed } from "@/shared/workspace/dirty-tab-guard";
 import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
 import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
 
+/** Abas de uma filial que nao esta ativa no momento. */
+type WorkspaceTabGroup = {
+    tabs: WorkspaceTab[];
+    activeTabId: string | null;
+};
+
 type WorkspaceState = {
     tabs: WorkspaceTab[];
     activeTabId: string | null;
+    /** Filial dona das abas atualmente em `tabs`. */
+    activeBranchId: string | null;
+    /** Abas das demais filiais, preservadas para quando o usuario voltar a elas. */
+    branchGroups: Record<string, WorkspaceTabGroup>;
+    /**
+     * Troca o grupo de abas ao mudar de filial, como grupos de guias do navegador: as abas da
+     * filial anterior ficam guardadas e as da nova voltam onde pararam. Sem isso, abas abertas
+     * apontariam para registros de outra filial.
+     */
+    switchBranchGroup: (branchId: string) => void;
     _hasHydrated: boolean;
     setHasHydrated: (value: boolean) => void;
     openModuleTab: (input: OpenWorkspaceTabInput) => void;
@@ -129,6 +145,27 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         (set, get) => ({
             tabs: [],
             activeTabId: null,
+            activeBranchId: null,
+            branchGroups: {},
+            switchBranchGroup: (branchId) => {
+                const { activeBranchId, tabs, activeTabId, branchGroups } = get();
+                if (activeBranchId === branchId) return;
+
+                const nextGroups = { ...branchGroups };
+                if (activeBranchId) {
+                    nextGroups[activeBranchId] = { tabs, activeTabId };
+                }
+                const target = nextGroups[branchId];
+                delete nextGroups[branchId];
+
+                const nextTabs = target ? stripDashboardTabs(normalizeTabs(target.tabs)) : [];
+                set({
+                    activeBranchId: branchId,
+                    branchGroups: nextGroups,
+                    tabs: nextTabs,
+                    activeTabId: resolveActiveTabId(target?.activeTabId ?? null, nextTabs),
+                });
+            },
             _hasHydrated: false,
             setHasHydrated: (value) => {
                 if (!value) {
@@ -268,6 +305,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     return rest;
                 }),
                 activeTabId: state.activeTabId,
+                activeBranchId: state.activeBranchId,
+                branchGroups: state.branchGroups,
             }),
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);

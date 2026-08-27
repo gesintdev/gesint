@@ -22,6 +22,10 @@ export class ClientContractedSystem {
     effectiveFrom?: string;
     deactivateAt?: string;
     sessionPolicy?: string;
+    /** ALL vale para toda filial, inclusive as futuras. SELECTED usa clientBranchIds. */
+    branchMode?: string;
+    includeHeadquarters?: boolean;
+    clientBranchIds?: string[];
     notes?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -45,5 +49,8 @@ export class ClientContractedSystemCreateDto {
     effectiveFrom?: string;
     deactivateAt?: string;
     sessionPolicy?: string;
+    branchMode?: string;
+    includeHeadquarters?: boolean;
+    clientBranchIds?: string[];
     notes?: string;
 }

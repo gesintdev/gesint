@@ -1,9 +1,11 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
+import { readPermissionsFromAccessToken } from "@/auth/access-token-claims";
 import { hrAuthCookies } from "@/auth/cookies";
 import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import { isPathAccessible } from "@/shared/auth/route-permissions";
+import { ACTIVE_BRANCH_COOKIE_KEY, type Branch } from "@/shared/lib/branch";
 import { AppException } from "@/shared/exceptions/app.exception";
 import { serverApiPost } from "@/shared/lib/server-api";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
@@ -37,6 +39,8 @@ class TokenResponse {
     tenantSlug?: string;
     tenantName?: string;
     contractedSystemKeys?: string[] | null;
+    contractedSystemKeyOverrides?: Record<string, string[]> | null;
+    branches?: Branch[];
 }
 
 function tokenResponseFromCredentials(credentials: Record<string, unknown>): TokenResponse | null {
@@ -73,6 +77,34 @@ function tokenResponseFromCredentials(credentials: Record<string, unknown>): Tok
         return Array.isArray(value) ? value.map(String) : undefined;
     };
 
+    const asKeyOverrides = (value: unknown): Record<string, string[]> | null => {
+        let raw: unknown = value;
+        if (typeof value === "string") {
+            try {
+                raw = JSON.parse(value);
+            } catch {
+                return null;
+            }
+        }
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+        const entries = Object.entries(raw as Record<string, unknown>)
+            .filter(([, keys]) => Array.isArray(keys))
+            .map(([branchId, keys]) => [branchId, (keys as unknown[]).map(String)] as const);
+        return entries.length > 0 ? Object.fromEntries(entries) : null;
+    };
+
+    const asBranches = (value: unknown): Branch[] => {
+        let raw: unknown = value;
+        if (typeof value === "string") {
+            try {
+                raw = JSON.parse(value);
+            } catch {
+                return [];
+            }
+        }
+        return Array.isArray(raw) ? (raw as Branch[]).filter((item) => item && typeof item.id === "string") : [];
+    };
+
     return {
         accessToken,
         refreshToken,
@@ -87,11 +119,12 @@ function tokenResponseFromCredentials(credentials: Record<string, unknown>): Tok
         jobPositionName: asString(credentials.jobPositionName),
         departmentId: asString(credentials.departmentId),
         departmentName: asString(credentials.departmentName),
-        permissions: asStringArray(credentials.permissions) ?? [],
         platformAdmin: credentials.platformAdmin === true || credentials.platformAdmin === "true",
         tenantSlug: asString(credentials.tenantSlug),
         tenantName: asString(credentials.tenantName),
         contractedSystemKeys: asStringArray(credentials.contractedSystemKeys) ?? null,
+        contractedSystemKeyOverrides: asKeyOverrides(credentials.contractedSystemKeyOverrides),
+        branches: asBranches(credentials.branches),
     };
 }
 
@@ -133,10 +166,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 jobPositionName: { label: "Job position", type: "text" },
                 departmentId: { label: "Department id", type: "text" },
                 departmentName: { label: "Department", type: "text" },
-                permissions: { label: "Permissions", type: "text" },
                 platformAdmin: { label: "Platform admin", type: "text" },
                 tenantName: { label: "Tenant name", type: "text" },
                 contractedSystemKeys: { label: "Systems", type: "text" },
+                contractedSystemKeyOverrides: { label: "Systems by branch", type: "text" },
+                branches: { label: "Branches", type: "text" },
             },
             async authorize(credentials) {
                 if (!credentials) {
@@ -168,11 +202,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         jobPositionName: data.jobPositionName,
                         departmentId: data.departmentId,
                         departmentName: data.departmentName,
-                        permissions: data.permissions ?? [],
                         platformAdmin: data.platformAdmin ?? false,
                         tenantSlug: data.tenantSlug ?? tenantSlug,
                         tenantName: data.tenantName,
                         contractedSystemKeys: data.contractedSystemKeys ?? null,
+                        contractedSystemKeyOverrides: data.contractedSystemKeyOverrides ?? null,
+                        branches: data.branches ?? [],
                         accessToken: data.accessToken,
                         refreshToken: data.refreshToken,
                         accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
@@ -203,7 +238,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     pages: { signIn: "/login" },
     callbacks: {
-        authorized({ auth, request: { nextUrl } }) {
+        authorized({ auth, request }) {
+            const { nextUrl } = request;
             const pathname = nextUrl.pathname;
             const isLogin = pathname.startsWith("/login");
             const isPublicAuth =
@@ -221,11 +257,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 return Response.redirect(new URL("/login", nextUrl));
             }
             const granted = auth.user?.permissions ?? [];
+            // A rota vale pela filial em que o usuário está: um sistema restrito a algumas filiais
+            // não existe nas keys base, e sem isto a navegação seria recusada onde ele vale.
+            const activeBranchId = request.cookies.get(ACTIVE_BRANCH_COOKIE_KEY)?.value;
+            const branchKeys =
+                (activeBranchId && auth.contractedSystemKeyOverrides?.[activeBranchId]) ||
+                auth.contractedSystemKeys;
             if (
-                !isPathAccessible(pathname, granted, auth.contractedSystemKeys, {
+                !isPathAccessible(pathname, granted, branchKeys, {
                     tenantSlug: auth.tenantSlug,
                     platformAdmin: auth.platformAdmin,
-                    contractedSystemKeys: auth.contractedSystemKeys,
+                    contractedSystemKeys: branchKeys,
                 })
             ) {
                 return Response.redirect(new URL("/dashboard", nextUrl));
@@ -246,11 +288,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     jobPositionName: user.jobPositionName,
                     departmentId: user.departmentId,
                     departmentName: user.departmentName,
-                    permissions: user.permissions,
                     platformAdmin: user.platformAdmin,
                     tenantSlug: user.tenantSlug,
                     tenantName: user.tenantName,
                     contractedSystemKeys: user.contractedSystemKeys ?? null,
+                    contractedSystemKeyOverrides: user.contractedSystemKeyOverrides ?? null,
+                    branches: user.branches ?? [],
                     accessToken: user.accessToken,
                     refreshToken: user.refreshToken,
                     refreshTokenIssuedAt: user.refreshTokenIssuedAt,
@@ -271,6 +314,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             session.tenantName = token.tenantName as string | undefined;
             session.contractedSystemKeys =
                 (token.contractedSystemKeys as string[] | null | undefined) ?? null;
+            session.contractedSystemKeyOverrides =
+                (token.contractedSystemKeyOverrides as Record<string, string[]> | null | undefined) ?? null;
+            session.branches = (token.branches as Branch[] | undefined) ?? [];
             session.platformAdmin = token.platformAdmin as boolean | undefined;
             session.error = token.error as typeof session.error;
             if (session.user) {
@@ -283,7 +329,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 session.user.jobPositionName = token.jobPositionName as string | undefined;
                 session.user.departmentId = token.departmentId as string | undefined;
                 session.user.departmentName = token.departmentName as string | undefined;
-                session.user.permissions = (token.permissions as string[] | undefined) ?? [];
+                session.user.permissions = readPermissionsFromAccessToken(token.accessToken);
             }
 
             if (token.error) {

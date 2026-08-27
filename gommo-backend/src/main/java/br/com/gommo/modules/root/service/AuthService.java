@@ -9,7 +9,9 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -61,6 +63,7 @@ import br.com.gommo.modules.root.repository.PermissionRepository;
 import br.com.gommo.modules.root.repository.RefreshTokenBlacklistRepository;
 import br.com.gommo.modules.root.repository.RefreshTokenRepository;
 import br.com.gommo.modules.root.security.AccessTokenSupport;
+import br.com.gommo.modules.root.security.BranchAccessResolver;
 
 @Service
 public class AuthService implements IAuthService {
@@ -91,6 +94,7 @@ public class AuthService implements IAuthService {
     private final PlatformAdminUserLookup platformAdminUserLookup;
     private final TenantContractedSystemsLookup tenantContractedSystemsLookup;
     private final AdminClientLookup adminClientLookup;
+    private final BranchAccessResolver branchAccessResolver;
 
     public AuthService(
             AppUserRepository appUserRepository,
@@ -110,7 +114,8 @@ public class AuthService implements IAuthService {
             TenantResolver tenantResolver,
             PlatformAdminUserLookup platformAdminUserLookup,
             TenantContractedSystemsLookup tenantContractedSystemsLookup,
-            AdminClientLookup adminClientLookup) {
+            AdminClientLookup adminClientLookup,
+            BranchAccessResolver branchAccessResolver) {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
         this.collaboratorRepository = collaboratorRepository;
@@ -129,6 +134,7 @@ public class AuthService implements IAuthService {
         this.platformAdminUserLookup = platformAdminUserLookup;
         this.tenantContractedSystemsLookup = tenantContractedSystemsLookup;
         this.adminClientLookup = adminClientLookup;
+        this.branchAccessResolver = branchAccessResolver;
     }
 
     @Override
@@ -399,11 +405,13 @@ public class AuthService implements IAuthService {
     }
 
     private TokenResponseDto buildTokenResponse(AppUser user, String reusableRefreshToken) {
-        List<String> permissions = resolvePermissions(user);
+        BranchAccessResolver.BranchAccess branchAccess = branchAccessResolver.resolve(user);
+        List<String> permissions = branchAccess.basePermissions();
         UUID tenantId = null;
         String tenantSlug = null;
         String tenantName = null;
         List<String> contractedSystemKeys = null;
+        Map<String, List<String>> contractedSystemKeyOverrides = null;
         TenantContext tenant = null;
         if (multiTenantProperties.isEnabled()) {
             tenant = TenantContextHolder.require();
@@ -411,7 +419,10 @@ public class AuthService implements IAuthService {
                 tenantId = tenant.clientId();
                 tenantSlug = tenant.slug();
                 tenantName = tenant.name();
-                contractedSystemKeys = resolveContractedSystemKeys(tenantId);
+                TenantContractedSystemsLookup.ContractedSystemScope scope =
+                        tenantContractedSystemsLookup.findActiveKeyScope(tenantId);
+                contractedSystemKeys = scope.allBranchesKeys();
+                contractedSystemKeyOverrides = buildKeyOverrides(scope, branchAccess);
             } else if (tenant.isDevelopmentPublic()) {
                 // Localhost (schema public): não é cliente comercial — sem filtro de sistemas.
                 tenantId = tenant.clientId();
@@ -421,8 +432,14 @@ public class AuthService implements IAuthService {
             }
         }
 
-        String accessToken =
-                jwtService.generateAccessToken(user.getId(), user.getUsername(), permissions, tenantId, tenantSlug);
+        String accessToken = jwtService.generateAccessToken(
+                user.getId(),
+                user.getUsername(),
+                permissions,
+                tenantId,
+                tenantSlug,
+                branchAccess.branchPermissionOverrides(),
+                branchAccess.branchIds());
         String refreshToken = reusableRefreshToken;
         if (refreshToken == null) {
             refreshToken = jwtService.generateRefreshToken(user.getId(), tenantId, tenantSlug);
@@ -434,6 +451,7 @@ public class AuthService implements IAuthService {
         // Admin da plataforma no host: null = FE libera todos os sistemas (não []).
         if (platformAdmin && (tenant == null || tenant.isPlatformAccess())) {
             contractedSystemKeys = null;
+            contractedSystemKeyOverrides = null;
         }
         CollaboratorOrganizationSnapshot organization = resolveCollaboratorOrganization(user);
         String displayName = StringUtils.hasText(organization.collaboratorName)
@@ -451,6 +469,7 @@ public class AuthService implements IAuthService {
                 .tenantSlug(tenantSlug)
                 .tenantName(tenantName)
                 .contractedSystemKeys(contractedSystemKeys)
+                .contractedSystemKeyOverrides(contractedSystemKeyOverrides)
                 .collaboratorId(organization.collaboratorId)
                 .photoObjectId(organization.photoObjectId)
                 .jobPositionId(organization.jobPositionId)
@@ -458,8 +477,29 @@ public class AuthService implements IAuthService {
                 .departmentId(organization.departmentId)
                 .departmentName(organization.departmentName)
                 .permissions(permissions)
+                .branches(branchAccess.branches())
                 .platformAdmin(platformAdmin)
                 .build();
+    }
+
+    /**
+     * So viajam as filiais que fogem da base. Com o contrato em modo ALL, que e o caso comum, o
+     * mapa sai vazio e a sessao fica do mesmo tamanho de antes.
+     */
+    private Map<String, List<String>> buildKeyOverrides(
+            TenantContractedSystemsLookup.ContractedSystemScope scope, BranchAccessResolver.BranchAccess branchAccess) {
+        if (scope.keysByCompanyId().isEmpty()) {
+            return Map.of();
+        }
+        List<String> base = scope.allBranchesKeys();
+        Map<String, List<String>> overrides = new LinkedHashMap<>();
+        for (BranchAccessResolver.BranchSummary branch : branchAccess.branches()) {
+            List<String> keys = scope.keysFor(branch.id());
+            if (!keys.equals(base)) {
+                overrides.put(branch.id().toString(), keys);
+            }
+        }
+        return overrides;
     }
 
     private List<String> resolveContractedSystemKeys(UUID clientId) {
@@ -511,40 +551,6 @@ public class AuthService implements IAuthService {
         }
     }
 
-    private List<String> resolvePermissions(AppUser user) {
-        boolean isAdmin = user.getRoles().stream()
-                .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
-                .anyMatch(role -> role.isSystemRole() && "ADMIN".equalsIgnoreCase(role.getName()));
-        if (isAdmin) {
-            return permissionRepository.findAll().stream()
-                    .map(Permission::getAuthority)
-                    .distinct()
-                    .sorted()
-                    .toList();
-        }
-
-        List<String> permissions = new ArrayList<>(user.getRoles().stream()
-                .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
-                .map(Role::getPermissions)
-                .flatMap(java.util.Set::stream)
-                .map(Permission::getAuthority)
-                .distinct()
-                .toList());
-
-        // Serviços pessoais do header (agenda + bate-ponto + foto de perfil): disponíveis a todo usuário autenticado.
-        permissions.add("agenda:read");
-        permissions.add("agenda:write");
-        permissions.add("agenda:delete");
-        permissions.add("attendance:write");
-        permissions.add("storage:read");
-        permissions.add("storage:write");
-
-        if (user.getCollaboratorId() != null) {
-            permissions.add("notification:read");
-            permissions.add("notification:write");
-        }
-        return permissions.stream().distinct().sorted().toList();
-    }
 
     private CollaboratorOrganizationSnapshot resolveCollaboratorOrganization(AppUser user) {
         if (user.getCollaboratorId() == null) {

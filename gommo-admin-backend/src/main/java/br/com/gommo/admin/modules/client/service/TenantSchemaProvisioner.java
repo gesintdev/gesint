@@ -1,6 +1,5 @@
 package br.com.gommo.admin.modules.client.service;
 
-import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,14 +15,20 @@ public class TenantSchemaProvisioner {
 
     private static final Pattern SAFE_SCHEMA = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
 
-    private static final List<String> TENANT_TABLES = TenantSchemaTableCatalog.HR_DATA_TABLES;
-
     private final JdbcTemplate jdbcTemplate;
-    private final TenantRbacProvisioner tenantRbacProvisioner;
+    private final TenantDefaultDataProvisioner defaultDataProvisioner;
+    private final TenantSchemaStructureSynchronizer structureSynchronizer;
+    private final TenantBranchBackfiller branchBackfiller;
 
-    public TenantSchemaProvisioner(JdbcTemplate jdbcTemplate, TenantRbacProvisioner tenantRbacProvisioner) {
+    public TenantSchemaProvisioner(
+            JdbcTemplate jdbcTemplate,
+            TenantDefaultDataProvisioner defaultDataProvisioner,
+            TenantSchemaStructureSynchronizer structureSynchronizer,
+            TenantBranchBackfiller branchBackfiller) {
         this.jdbcTemplate = jdbcTemplate;
-        this.tenantRbacProvisioner = tenantRbacProvisioner;
+        this.defaultDataProvisioner = defaultDataProvisioner;
+        this.structureSynchronizer = structureSynchronizer;
+        this.branchBackfiller = branchBackfiller;
     }
 
     public void provisionDedicatedSchema(ClientEnvironmentConfig config) {
@@ -39,17 +44,14 @@ public class TenantSchemaProvisioner {
 
         jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
 
-        for (String table : TENANT_TABLES) {
-            if (!tenantTableExists(schema, table)) {
-                jdbcTemplate.execute("CREATE TABLE \"" + schema + "\".\"" + table + "\" (LIKE public.\"" + table
-                        + "\" INCLUDING ALL)");
-            }
-        }
+        // Cria as tabelas ausentes e, nas que ja existem, aplica colunas/indices novos do template public.
+        structureSynchronizer.sync(schema);
 
-        tenantRbacProvisioner.provisionRbacTables(schema);
+        defaultDataProvisioner.seedDefaults(schema);
         provisionAuthTables(schema);
         provisionDefaultPayrollEvents(schema);
         provisionDefaultExitInterviewReturnChecklistItems(schema);
+        branchBackfiller.backfill(schema);
     }
 
     private void provisionDefaultPayrollEvents(String schema) {
@@ -183,13 +185,28 @@ public class TenantSchemaProvisioner {
             jdbcTemplate.execute(
                     """
                     CREATE TABLE "%s".user_role (
-                        user_id UUID NOT NULL REFERENCES "%s".app_user(id),
-                        role_id UUID NOT NULL REFERENCES "%s".role(id),
-                        PRIMARY KEY (user_id, role_id)
+                        id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        user_id    UUID NOT NULL REFERENCES "%s".app_user(id),
+                        role_id    UUID NOT NULL REFERENCES "%s".role(id),
+                        company_id UUID
                     )
                     """
                             .formatted(schema, schema, schema));
+        } else {
+            jdbcTemplate.execute(
+                    """
+                    ALTER TABLE "%s".user_role
+                        ADD COLUMN IF NOT EXISTS company_id UUID
+                    """
+                            .formatted(schema));
         }
+        // A chave propria e a unicidade por filial ficam com TenantBranchBackfiller, que trata os
+        // schemas antigos onde a PK ainda e o par usuario/perfil.
+        jdbcTemplate.execute(
+                """
+                CREATE INDEX IF NOT EXISTS %s ON "%s".user_role (company_id)
+                """
+                        .formatted(TenantIndexNames.unique("idx", schema, "user_role_company"), schema));
         jdbcTemplate.execute(
                 """
                 CREATE INDEX IF NOT EXISTS %s ON "%s".user_role (user_id)

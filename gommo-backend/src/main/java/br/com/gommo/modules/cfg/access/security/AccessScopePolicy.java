@@ -2,6 +2,7 @@ package br.com.gommo.modules.cfg.access.security;
 
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -11,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import br.com.gommo.core.branch.BranchContextHolder;
 import br.com.gommo.core.tenant.MultiTenantProperties;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
@@ -79,9 +81,17 @@ public class AccessScopePolicy {
         return authority != null && currentAuthorities().contains(authority);
     }
 
+    /**
+     * O contrato pode valer so em algumas filiais, entao o que conta e a filial em que o usuario
+     * esta trabalhando. Sem filial ativa sobram as keys validas em qualquer uma.
+     */
     private Set<String> contractedKeys(TenantContext tenant) {
+        List<String> effective = contractedSystemsLookup
+                .findActiveKeyScope(tenant.clientId())
+                .keysFor(BranchContextHolder.getOptional().orElse(null));
+
         Set<String> keys = new HashSet<>();
-        for (String key : contractedSystemsLookup.findActiveKeysByClientId(tenant.clientId())) {
+        for (String key : effective) {
             if (key != null && !key.isBlank()) {
                 keys.add(key.trim().toUpperCase(Locale.ROOT));
             }

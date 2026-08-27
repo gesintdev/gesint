@@ -11,6 +11,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -48,6 +49,14 @@ public class ClientContractedSystemRequestDto {
     private OffsetDateTime deactivateAt;
 
     @Size(max = 32) private String sessionPolicy;
+
+    /** {@code ALL} ou {@code SELECTED}. Ausente significa {@code ALL}. */
+    @Size(max = 16) private String branchMode;
+
+    /** Usados apenas quando {@code branchMode = SELECTED}. A matriz vem separada por nao ter id de filial. */
+    private Boolean includeHeadquarters;
+
+    private List<UUID> clientBranchIds;
 
     private String notes;
 }

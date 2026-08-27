@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.root.entity.AppUser;
+import br.com.gommo.modules.root.entity.Role;
 
 /**
  * Utilitário para o usuário de sistema ADMIN (role is_system + nome ADMIN).
@@ -25,7 +26,7 @@ public final class SystemAdminUsers {
         }
         return user.getRoles().stream()
                 .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
-                .anyMatch(role -> role.isSystemRole() && ADMIN_ROLE_NAME.equalsIgnoreCase(role.getName()));
+                .anyMatch(Role::isGlobalAdmin);
     }
 
     public static Optional<UUID> currentUserId() {

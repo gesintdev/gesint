@@ -2,6 +2,7 @@ package br.com.gommo.admin.modules.platformoutbox.service;
 
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -32,7 +33,11 @@ public class PlatformOutboxPublisher {
 
     @Transactional
     public void publishContractedSystemChanged(
-            ClientContractedSystem entity, String tenantSlug, String productKey, String databaseSchema) {
+            ClientContractedSystem entity,
+            String tenantSlug,
+            String productKey,
+            String databaseSchema,
+            List<UUID> scopedBranchIds) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("clientId", entity.getClientId() != null ? entity.getClientId().toString() : null);
         payload.put("slug", tenantSlug);
@@ -48,6 +53,19 @@ public class PlatformOutboxPublisher {
                 "effectiveFrom", entity.getEffectiveFrom() != null ? entity.getEffectiveFrom().toString() : null);
         payload.put(
                 "deactivateAt", entity.getDeactivateAt() != null ? entity.getDeactivateAt().toString() : null);
+        payload.put("branchMode", entity.getBranchMode() != null ? entity.getBranchMode().name() : "ALL");
+        // Matriz chega como null na lista de escopo e vai separada por nao ter id de filial.
+        payload.put(
+                "includeHeadquarters",
+                scopedBranchIds != null && scopedBranchIds.stream().anyMatch(id -> id == null));
+        payload.put(
+                "clientBranchIds",
+                scopedBranchIds == null
+                        ? List.of()
+                        : scopedBranchIds.stream()
+                                .filter(java.util.Objects::nonNull)
+                                .map(UUID::toString)
+                                .toList());
         payload.put("occurredAt", OffsetDateTime.now().toString());
         payload.put("contractId", entity.getId() != null ? entity.getId().toString() : null);
 

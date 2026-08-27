@@ -1,5 +1,7 @@
 package br.com.gommo.modules.ctb.payroll.payslip.entity;
 
+import org.hibernate.annotations.Filter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -13,7 +15,7 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
 @Table(name = "payslip")
@@ -22,7 +24,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Payslip extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class Payslip extends BranchScopedEntity {
 
     @Column(name = "payroll_run_id", nullable = false)
     private UUID payrollRunId;

@@ -30,7 +30,7 @@ public class AppUserResponseDto {
     private String name;
     private String username;
     private String email;
-    private Map<SystemScopeEnum, List<ProfileResponseDto>> rolesBySystem;
+    private Map<UUID, Map<SystemScopeEnum, List<ProfileResponseDto>>> rolesByBranch;
     private OffsetDateTime lastLogin;
     private boolean firstAccessCompleted;
     /** Presente apenas em create/reset-access — token em texto claro para exibir uma vez. */
