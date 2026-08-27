@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.security.JwtService;
+import br.com.gommo.core.tenant.TenantBranchLinkLookup;
+import br.com.gommo.core.tenant.TenantContext;
+import br.com.gommo.core.tenant.TenantContextHolder;
 import br.com.gommo.modules.dp.organization.company.entity.Company;
 import br.com.gommo.modules.dp.organization.company.repository.CompanyRepository;
 import br.com.gommo.modules.root.entity.AppUser;
@@ -45,20 +48,23 @@ public class BranchAccessResolver {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final CompanyRepository companyRepository;
+    private final TenantBranchLinkLookup branchLinkLookup;
 
     public BranchAccessResolver(
             UserRoleAssignmentRepository assignmentRepository,
             RoleRepository roleRepository,
             PermissionRepository permissionRepository,
-            CompanyRepository companyRepository) {
+            CompanyRepository companyRepository,
+            TenantBranchLinkLookup branchLinkLookup) {
         this.assignmentRepository = assignmentRepository;
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.companyRepository = companyRepository;
+        this.branchLinkLookup = branchLinkLookup;
     }
 
     public BranchAccess resolve(AppUser user) {
-        List<Company> branches = companyRepository.findAllByStatusNotOrderBySortOrderAscLegalNameAsc(StatusEnum.DELETED);
+        List<Company> branches = provisionedBranches();
         List<UserRoleAssignment> assignments = assignmentRepository.findAllByUserId(user.getId());
 
         Set<String> personal = new LinkedHashSet<>(PERSONAL_AUTHORITIES);
@@ -108,6 +114,36 @@ public class BranchAccessResolver {
         }
 
         return new BranchAccess(accessible, permissionsByBranch, sorted(globalAuthorities));
+    }
+
+    /**
+     * Estabelecimentos do cliente, e nada alem disso.
+     *
+     * {@code company} e espelho de {@code admin.client_branch}, mas schemas antigos ainda carregam
+     * linhas soltas (seed de demonstracao, cadastro manual anterior ao modelo de filiais) que nao
+     * representam estabelecimento e nao podem aparecer no seletor.
+     *
+     * Sem vinculo nenhum no admin a filtragem e ignorada: e o caso do tenant cujo espelhamento
+     * ainda nao rodou, e esconder tudo deixaria o usuario sem filial alguma para operar.
+     */
+    private List<Company> provisionedBranches() {
+        List<Company> branches =
+                companyRepository.findAllByStatusNotOrderBySortOrderAscLegalNameAsc(StatusEnum.DELETED);
+
+        UUID clientId = TenantContextHolder.getOptional()
+                .map(TenantContext::clientId)
+                .orElse(null);
+        if (clientId == null) {
+            return branches;
+        }
+
+        Set<UUID> provisioned = branchLinkLookup.findProvisionedCompanyIds(clientId);
+        if (provisioned.isEmpty()) {
+            return branches;
+        }
+        return branches.stream()
+                .filter(branch -> provisioned.contains(branch.getId()))
+                .toList();
     }
 
     /** Perfil GLOBAL_ADMIN nao e escopado: da acesso total a todas as filiais do cliente. */
