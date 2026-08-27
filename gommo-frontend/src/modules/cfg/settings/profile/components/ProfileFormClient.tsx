@@ -29,6 +29,7 @@ import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type CheckboxState, resolveCheckboxState} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {useBranchScopedQueryKey} from "@/shared/hooks/useBranchScopedQueryKey";
 
 function findRouteById(sections: NavSection[], routeId?: string | null): AppRoute | null {
     if (!routeId) return null;
@@ -120,13 +121,21 @@ export function ProfileFormClient() {
         [selectedRoute],
     );
 
+    const detailQueryKey = useBranchScopedQueryKey(profileKeys.detail(editingId ?? ""));
+    const modulePermissionsQueryKey = useBranchScopedQueryKey([
+        "permission-catalog",
+        activeSystem,
+        selectedPermissionModules.join("|"),
+    ]);
+    const systemCatalogQueryKey = useBranchScopedQueryKey(["permission-catalog", activeSystem, "all"]);
+
     const detailQuery = useQuery({
-        queryKey: profileKeys.detail(editingId ?? ""),
+        queryKey: detailQueryKey,
         queryFn: () => profileService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
     });
     const modulePermissionsQuery = useQuery({
-        queryKey: ["permission-catalog", activeSystem, selectedPermissionModules.join("|")],
+        queryKey: modulePermissionsQueryKey,
         queryFn: async () => {
             const groups = await Promise.all(
                 selectedPermissionModules.map((module) =>
@@ -138,7 +147,7 @@ export function ProfileFormClient() {
         enabled: selectedPermissionModules.length > 0,
     });
     const systemCatalogQuery = useQuery({
-        queryKey: ["permission-catalog", activeSystem, "all"],
+        queryKey: systemCatalogQueryKey,
         queryFn: () => permissionCatalogService.getBySystem(activeSystem),
     });
 
@@ -201,6 +210,13 @@ export function ProfileFormClient() {
     }, [drafts]);
 
     const draftMode = isEditing ? "edit" : "create";
+
+    useEffect(() => {
+        if (!scopeReady || allowedSystems.length === 0) return;
+        if (!allowedSystems.includes(activeSystem)) {
+            setActiveSystem(defaultSystem);
+        }
+    }, [activeSystem, allowedSystems, defaultSystem, scopeReady]);
 
     useEffect(() => {
         restoredToastShown.current = false;

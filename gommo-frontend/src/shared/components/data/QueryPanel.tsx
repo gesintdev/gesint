@@ -4,6 +4,7 @@ import {toast} from "sonner";
 
 import {ColumnFilterControl} from "@/shared/components/data/ColumnFilterControl";
 import {useRegisterQueryRefresh} from "@/shared/components/data/QueryRefreshContext";
+import {useBranchScopedQueryKey} from "@/shared/hooks/useBranchScopedQueryKey";
 import {TableGridToolbar} from "@/shared/components/data/TableGridToolbar";
 import {TablePagination} from "@/shared/components/data/TablePagination";
 import {Button} from "@/shared/components/ui/Button";
@@ -116,7 +117,8 @@ export function QueryPanel<TRow extends object>({
                                                     fallback,
                                                     errorFallback,
                                                 }: QueryPanelProps<TRow>) {
-    const query = useQuery({queryKey, queryFn: request});
+    const scopedQueryKey = useBranchScopedQueryKey(queryKey);
+    const query = useQuery({queryKey: scopedQueryKey, queryFn: request});
     useQueryPanelRefresh(query);
 
     if (query.isLoading) {
@@ -233,10 +235,10 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         () => columns.filter((column) => visibleColumnIds.includes(column.id)),
         [columns, visibleColumnIds],
     );
+    const scopedQueryKey = useBranchScopedQueryKey(queryKey);
     const query = useQuery({
-        queryKey: [...queryKey, "page", page, size, filters, baseFilters],
+        queryKey: [...scopedQueryKey, "page", page, size, filters, baseFilters],
         queryFn: () => request(page, size, {...baseFilters, ...filters}),
-        placeholderData: (previousData) => previousData,
     });
     useQueryPanelRefresh(query);
 

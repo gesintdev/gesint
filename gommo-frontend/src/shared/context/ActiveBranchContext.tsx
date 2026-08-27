@@ -4,6 +4,7 @@ import { createContext, type ReactNode, useCallback, useContext, useEffect, useM
 
 import { useSession } from "next-auth/react";
 
+import { BranchQueryInvalidator } from "@/shared/components/providers/BranchQueryInvalidator";
 import { type Branch, persistActiveBranch, readActiveBranch, subscribeActiveBranch } from "@/shared/lib/branch";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 
@@ -84,7 +85,12 @@ export function ActiveBranchProvider({ children, initialBranchId = null }: Activ
         [branches, activeBranch, activeBranchId, selectBranch],
     );
 
-    return <ActiveBranchContext.Provider value={value}>{children}</ActiveBranchContext.Provider>;
+    return (
+        <ActiveBranchContext.Provider value={value}>
+            <BranchQueryInvalidator />
+            {children}
+        </ActiveBranchContext.Provider>
+    );
 }
 
 export function useActiveBranch(): ActiveBranchContextValue {
