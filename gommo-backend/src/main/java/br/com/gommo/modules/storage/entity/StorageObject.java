@@ -11,10 +11,11 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.Map;
 
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
 @Table(name = "storage_object")
@@ -23,7 +24,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StorageObject extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class StorageObject extends BranchScopedEntity {
 
     @Column(nullable = false, length = 63)
     private String bucket;

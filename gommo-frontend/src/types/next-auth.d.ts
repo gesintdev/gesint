@@ -3,6 +3,7 @@ import "next-auth/jwt";
 import type { DefaultSession } from "next-auth";
 
 import type { AuthTokenError } from "@/auth/refresh-token";
+import type { Branch } from "@/shared/lib/branch";
 declare module "next-auth" {
     interface User {
         accessToken?: string;
@@ -19,8 +20,12 @@ declare module "next-auth" {
         permissions?: string[];
         tenantSlug?: string;
         tenantName?: string;
-        /** Null/omitido = host plataforma (sem filtro comercial). */
+        /** Null/omitido = host plataforma (sem filtro comercial). Valem em qualquer filial. */
         contractedSystemKeys?: string[] | null;
+        /** Filiais cujo conjunto de keys foge da base. */
+        contractedSystemKeyOverrides?: Record<string, string[]> | null;
+        /** Filiais que o usuario pode operar; alimenta o seletor do header. */
+        branches?: Branch[];
         platformAdmin?: boolean;
     }
     interface Session {
@@ -29,6 +34,8 @@ declare module "next-auth" {
         tenantSlug?: string;
         tenantName?: string;
         contractedSystemKeys?: string[] | null;
+        contractedSystemKeyOverrides?: Record<string, string[]> | null;
+        branches?: Branch[];
         platformAdmin?: boolean;
         error?: AuthTokenError;
         user: DefaultSession["user"] & {
@@ -66,6 +73,8 @@ declare module "next-auth/jwt" {
         tenantSlug?: string;
         tenantName?: string;
         contractedSystemKeys?: string[] | null;
+        contractedSystemKeyOverrides?: Record<string, string[]> | null;
+        branches?: Branch[];
         platformAdmin?: boolean;
     }
 }

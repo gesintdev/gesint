@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -20,7 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationStageCommentDto;
 
 @Entity
@@ -30,7 +31,8 @@ import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplic
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class JobVacancyApplication extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class JobVacancyApplication extends BranchScopedEntity {
     @Column(name = "job_vacancy_id", nullable = false)
     private UUID jobVacancyId;
 

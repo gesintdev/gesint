@@ -205,6 +205,17 @@ Fluxo operado pela equipe Gommo no admin:
 | `company` no schema tenant | Dados de `admin.client` (nome, CNPJ, contato) |
 | Roles / permiss?es | Padr?o do plano |
 | Primeiro admin | J? criado em `client_user` |
+| `work_schedule` + `work_schedule_day` | Escala padrao (seg-sex, 44h) definida em `TenantDefaultDataProvisioner` |
+| `admission_process_kanban_column` | 7 colunas padrao do kanban de admissao, sem cor |
+| Perfis `Administrador <sistema>` | Copiados de `public.role` (`role_type = 'ADMIN'`) por `TenantRbacProvisioner` |
+
+Tipos de perfil (`role.role_type`): `GLOBAL_ADMIN` (acesso total a todos os sistemas, usado no
+primeiro acesso do cliente), `ADMIN` (acesso total dentro de um unico sistema, um por sistema,
+imutavel), `INTERNAL` (perfis tecnicos da plataforma, fora da listagem) e `CUSTOM` (criados pelo
+cliente). A listagem de perfis mostra apenas `ADMIN` e `CUSTOM`, e somente dos sistemas contratados.
+
+Os seeds sao idempotentes e tambem rodam no `TenantSchemaBootstrap` e nos endpoints de
+sincronizacao, para alcancar os tenants ja provisionados.
 
 ---
 
@@ -256,9 +267,32 @@ Detalhes de deploy: [infra/coolify/README.md](../../infra/coolify/README.md).
 | JWT com `tenantId` + valida??o `client_user` | Implementado |
 | Provisionamento schema + clone tabelas (admin) | Implementado |
 | Frontend: header tenant + logout multi-host | Implementado |
+| Sincroniza??o de estrutura public -> schemas de tenant j? provisionados | Implementado |
+| Filiais: hierarquia matriz/filial, escopo por `company_id`, permiss?es por filial | Implementado |
 | Job provisionamento (Flyway por tenant + seed company) | Pendente |
 | Wildcard DNS produ??o + same-origin API | Pendente (infra) |
-| Remover picker empresa / auto `companyId` | Pendente |
+| Remover picker empresa / auto `companyId` | Resolvido pelo seletor de filial |
+
+---
+
+## 10.1 Filiais (estabelecimentos)
+
+Um tenant pode ter v?rias filiais. Filial ? a pr?pria `company`: no Brasil filial e estabelecimento
+com CNPJ pr?prio s?o a mesma coisa, e folha, AFD do ponto, eSocial e FGTS s?o todos apurados por
+estabelecimento. A hierarquia vive em `company.parent_id` / `company.is_headquarters`, com
+exatamente uma matriz por tenant.
+
+| Camada | Como funciona |
+|--------|----------------|
+| Escopo de dados | Entidades operacionais estendem `BranchScopedEntity` e carregam `company_id`. O filtro `branchScope` do Hibernate ? ligado por request no `BranchScopeAspect`; `@PrePersist` preenche a filial ativa na escrita. |
+| Contexto | `BranchContextHolder` + header `X-Branch-Id`, espelhando o padr?o do tenant. `TenantContextTaskDecorator` propaga a filial para jobs `@Async`. |
+| Permiss?es | `user_role` tem `company_id` na chave (`UserRoleAssignment`). O claim `permissions` do JWT ? a base que vale na maioria das filiais e `branchPermissions` lista apenas as filiais que fogem dela; `branchIds` delimita o acesso. O `JwtAuthenticationFilter` monta as authorities da filial ativa, o que preserva todos os `@PreAuthorize` existentes. Repetir a lista inteira por filial estourava o cookie de sess?o. |
+| Cadastro | A matriz e o proprio cadastro do cliente (`admin.client`, Dados Basicos) e as filiais ficam em `admin.client_branch`. O `TenantBranchProvisioner` espelha as duas como `company` no schema do tenant, com as filiais penduradas na matriz por `parent_id`. Cliente sem linha em `client_branch` tem uma unica `company` e nem ve o seletor. |
+| Migracao de schema | Os schemas de tenant sao clones estruturais de `public` e o Flyway nao os alcanca. O `TenantSchemaBootstrap` roda o sincronizador no start do admin-backend, o que evita que uma coluna nova derrube todos os tenants existentes. |
+| Frontend | `ActiveBranchContext` + seletor no header; o workspace mant?m um grupo de abas por filial. |
+| SQL nativo | N?o passa pelo filtro do Hibernate. Consultas nativas consultam `BranchScopedTables` e aplicam `AND company_id = :branchId` explicitamente. |
+
+Leitura consolidada entre filiais exige `@BranchUnscoped`, que ? deliberadamente expl?cito.
 
 ---
 

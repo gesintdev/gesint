@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
+import br.com.gommo.core.branch.BranchException;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.dp.organization.company.dto.CompanyRequestDto;
 import br.com.gommo.modules.dp.organization.company.dto.CompanyResponseDto;
@@ -58,7 +59,32 @@ public class CompanyService extends BaseService<Company, CompanyRequestDto, Comp
         repository.findByCnpjAndStatusNot(request.getCnpj(), StatusEnum.DELETED).ifPresent(c -> {
             throw CompanyException.cnpjAlreadyExists();
         });
-        return super.create(request);
+
+        Company headquarters =
+                repository.findByHeadquartersTrueAndStatusNot(StatusEnum.DELETED).orElse(null);
+        Company entity = mapper.toEntity(request);
+
+        if (headquarters == null) {
+            // A primeira empresa do cliente e a matriz e ancora toda a arvore de filiais.
+            entity.setHeadquarters(true);
+            entity.setParentId(null);
+        } else {
+            entity.setHeadquarters(false);
+            entity.setParentId(resolveParentId(request.getParentId(), headquarters));
+        }
+
+        return mapper.toResponse(repository.save(entity));
+    }
+
+    /** Filial sempre pende de uma empresa existente; na duvida, da matriz. */
+    private UUID resolveParentId(UUID requestedParentId, Company headquarters) {
+        if (requestedParentId == null) {
+            return headquarters.getId();
+        }
+        return repository
+                .findByIdAndStatusNot(requestedParentId, StatusEnum.DELETED)
+                .map(Company::getId)
+                .orElseThrow(BranchException::notFound);
     }
 
     @Override
@@ -71,6 +97,19 @@ public class CompanyService extends BaseService<Company, CompanyRequestDto, Comp
                 .ifPresent(c -> {
                     throw CompanyException.cnpjAlreadyExists();
                 });
+
+        Company entity = findEntity(id);
+        if (!entity.isHeadquarters()) {
+            Company headquarters = repository
+                    .findByHeadquartersTrueAndStatusNot(StatusEnum.DELETED)
+                    .orElseThrow(BranchException::headquartersRequired);
+            UUID parentId = resolveParentId(request.getParentId(), headquarters);
+            if (parentId.equals(entity.getId())) {
+                throw BranchException.notFound();
+            }
+            entity.setParentId(parentId);
+        }
+
         return super.update(id, request);
     }
 
@@ -100,6 +139,10 @@ public class CompanyService extends BaseService<Company, CompanyRequestDto, Comp
     @Transactional
     @PreAuthorize("hasAuthority('company:delete')")
     public void delete(UUID id) {
+        Company entity = findEntity(id);
+        if (entity.isHeadquarters() && repository.existsByParentIdAndStatusNot(id, StatusEnum.DELETED)) {
+            throw BranchException.headquartersCannotBeDeleted();
+        }
         super.delete(id);
     }
 

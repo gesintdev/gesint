@@ -17,10 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 
 /**
  * Controle de status e prazo de evento do eSocial. Sem transmissao: a geracao do XML e o consumo do
@@ -37,7 +38,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EsocialEvent extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class EsocialEvent extends BranchScopedEntity {
 
     @Column(name = "admission_id")
     private UUID admissionId;

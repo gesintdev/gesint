@@ -7,7 +7,7 @@ import {toast} from "sonner";
 
 import {appUserKeys} from "@/modules/cfg/settings/appuser/appuser.query";
 import {AppUserProfileAssignmentPanel} from "@/modules/cfg/settings/appuser/components/AppUserProfileAssignmentPanel";
-import type {AppUser, AppUserCreateDto} from "@/modules/cfg/settings/appuser/dto/appuser.dto";
+import type {AppUser, AppUserCreateDto, RoleIdsByBranch} from "@/modules/cfg/settings/appuser/dto/appuser.dto";
 import {APP_USER_CLIENT_MESSAGES} from "@/modules/cfg/settings/appuser/exceptions/appuser.messages";
 import {
     suggestEmailFromCollaborator,
@@ -30,6 +30,7 @@ import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputString} from "@/shared/components/ui/input/index";
+import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {SystemAlert} from "@/shared/system-alert";
 
@@ -39,14 +40,20 @@ function emptyRoleIdsBySystem(): Partial<Record<SystemScope, string[]>> {
     >;
 }
 
-function toSavePayload(dto: AppUserCreateDto): AppUserCreateDto {
-    const roleIdsBySystem = emptyRoleIdsBySystem();
-    for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
-        roleIdsBySystem[scope] = dto.roleIdsBySystem?.[scope] ?? [];
+/** O backend espera o mapa completo filial -> sistema -> perfis, inclusive filiais sem perfil. */
+function toSavePayload(dto: AppUserCreateDto, branchIds: string[]): AppUserCreateDto {
+    const roleIdsByBranch: RoleIdsByBranch = {};
+    const allBranchIds = new Set([...branchIds, ...Object.keys(dto.roleIdsByBranch ?? {})]);
+    for (const branchId of allBranchIds) {
+        const bySystem = emptyRoleIdsBySystem();
+        for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
+            bySystem[scope] = dto.roleIdsByBranch?.[branchId]?.[scope] ?? [];
+        }
+        roleIdsByBranch[branchId] = bySystem;
     }
     return {
         ...dto,
-        roleIdsBySystem,
+        roleIdsByBranch,
     };
 }
 
@@ -54,7 +61,7 @@ const emptyForm = (): AppUserCreateDto => ({
     collaboratorId: "",
     username: "",
     email: "",
-    roleIdsBySystem: emptyRoleIdsBySystem(),
+    roleIdsByBranch: {},
 });
 
 const FORM_STEPS: FormStepNavItem[] = [
@@ -66,6 +73,7 @@ const DELETED_USER_CONFLICT_CODE = "APP_USER_DELETED_EXISTS";
 
 export function AppUserFormClient() {
     const {editingId, isEditing, goToList} = useCrudScreen();
+    const {branches} = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AppUserCreateDto>(emptyForm());
     const [error, setError] = useState<string | null>(null);
@@ -105,15 +113,20 @@ export function AppUserFormClient() {
         }
 
         if (detailQuery.data) {
-            const roleIdsBySystem = emptyRoleIdsBySystem();
-            for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
-                roleIdsBySystem[scope] = detailQuery.data.rolesBySystem?.[scope]?.map((profile) => profile.id) ?? [];
+            const rolesByBranch = detailQuery.data.rolesByBranch ?? {};
+            const roleIdsByBranch: RoleIdsByBranch = {};
+            for (const [branchId, rolesBySystem] of Object.entries(rolesByBranch)) {
+                const bySystem = emptyRoleIdsBySystem();
+                for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
+                    bySystem[scope] = rolesBySystem?.[scope]?.map((profile) => profile.id) ?? [];
+                }
+                roleIdsByBranch[branchId] = bySystem;
             }
             setForm({
                 collaboratorId: detailQuery.data.collaboratorId,
                 username: detailQuery.data.username,
                 email: detailQuery.data.email,
-                roleIdsBySystem,
+                roleIdsByBranch,
             });
             setError(null);
         }
@@ -152,8 +165,10 @@ export function AppUserFormClient() {
         [goToList, queryClient],
     );
 
+    const branchIds = useMemo(() => branches.map((branch) => branch.id), [branches]);
+
     const reactivateMutation = useMutation({
-        mutationFn: async (dto: AppUserCreateDto) => appUserService.reactivate(toSavePayload(dto)),
+        mutationFn: async (dto: AppUserCreateDto) => appUserService.reactivate(toSavePayload(dto, branchIds)),
         onSuccess: async (saved: AppUser) => {
             await handleSaveSuccess(saved, "reactivate");
         },
@@ -182,7 +197,7 @@ export function AppUserFormClient() {
 
     const saveMutation = useMutation({
         mutationFn: async (dto: AppUserCreateDto) => {
-            const payload = toSavePayload(dto);
+            const payload = toSavePayload(dto, branchIds);
             if (isEditing && editingId) return appUserService.update(editingId, payload);
             return appUserService.create(payload);
         },
@@ -307,17 +322,24 @@ export function AppUserFormClient() {
                     </Button>
                 </div>
             </FormSection>
-            <FormSection id="perfis" title="Perfis por sistema" bodyClassName="!p-0 !gap-0">
+            <FormSection
+                id="perfis"
+                title={branches.length > 1 ? "Perfis por filial e sistema" : "Perfis por sistema"}
+                bodyClassName="!p-0 !gap-0"
+            >
                 <AppUserProfileAssignmentPanel
                     profilesBySystem={profilesBySystem}
-                    selectedIdsBySystem={form.roleIdsBySystem ?? {}}
+                    selectedIdsByBranch={form.roleIdsByBranch ?? {}}
                     loadingBySystem={loadingBySystem}
-                    onChange={(scope, ids) =>
+                    onChange={(branchId, scope, ids) =>
                         setForm((prev) => ({
                             ...prev,
-                            roleIdsBySystem: {
-                                ...prev.roleIdsBySystem,
-                                [scope]: ids,
+                            roleIdsByBranch: {
+                                ...prev.roleIdsByBranch,
+                                [branchId]: {
+                                    ...prev.roleIdsByBranch?.[branchId],
+                                    [scope]: ids,
+                                },
                             },
                         }))
                     }

@@ -1,5 +1,6 @@
 package br.com.gommo.modules.root.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.cfg.access.entity.RoleTypeEnum;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.root.entity.Role;
 
@@ -30,17 +32,18 @@ public interface RoleRepository extends JpaRepository<Role, UUID> {
             """
             SELECT DISTINCT r FROM Role r
             LEFT JOIN FETCH r.permissions
-            WHERE r.systemRole = false AND r.status <> :deleted
-            ORDER BY r.createdAt DESC
+            WHERE r.roleType IN :types AND r.status <> :deleted
+            ORDER BY r.roleType ASC, r.createdAt DESC
             """)
-    List<Role> findAllCustomProfilesWithPermissions(StatusEnum deleted);
+    List<Role> findAllProfilesWithPermissions(Collection<RoleTypeEnum> types, StatusEnum deleted);
 
     @Query(
             """
             SELECT DISTINCT r FROM Role r
             LEFT JOIN FETCH r.permissions
-            WHERE r.system = :system AND r.systemRole = false AND r.status <> :deleted
-            ORDER BY r.createdAt DESC
+            WHERE r.system = :system AND r.roleType IN :types AND r.status <> :deleted
+            ORDER BY r.roleType ASC, r.createdAt DESC
             """)
-    List<Role> findAllCustomProfilesWithPermissionsBySystem(SystemScopeEnum system, StatusEnum deleted);
+    List<Role> findAllProfilesWithPermissionsBySystem(
+            SystemScopeEnum system, Collection<RoleTypeEnum> types, StatusEnum deleted);
 }

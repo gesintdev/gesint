@@ -1,9 +1,14 @@
 package br.com.gommo.admin.modules.clientcontractedsystem.mapper;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
 import br.com.gommo.admin.modules.clientcontractedsystem.dto.ClientContractedSystemRequestDto;
 import br.com.gommo.admin.modules.clientcontractedsystem.dto.ClientContractedSystemResponseDto;
+import br.com.gommo.admin.modules.clientcontractedsystem.entity.BranchModeEnum;
 import br.com.gommo.admin.modules.clientcontractedsystem.entity.ClientContractedSystem;
 import br.com.gommo.admin.modules.clientcontractedsystem.entity.ContractTypeEnum;
 import br.com.gommo.admin.modules.clientcontractedsystem.entity.OperationalStatusEnum;
@@ -35,6 +40,7 @@ public class ClientContractedSystemMapper {
                 .effectiveFrom(dto.getEffectiveFrom())
                 .deactivateAt(dto.getDeactivateAt())
                 .sessionPolicy(resolveSessionPolicy(dto.getSessionPolicy()))
+                .branchMode(resolveBranchMode(dto.getBranchMode()))
                 .notes(dto.getNotes())
                 .build();
     }
@@ -60,7 +66,17 @@ public class ClientContractedSystemMapper {
         entity.setEffectiveFrom(dto.getEffectiveFrom());
         entity.setDeactivateAt(dto.getDeactivateAt());
         entity.setSessionPolicy(resolveSessionPolicy(dto.getSessionPolicy()));
+        entity.setBranchMode(resolveBranchMode(dto.getBranchMode()));
         entity.setNotes(dto.getNotes());
+    }
+
+    public ClientContractedSystemResponseDto toResponse(
+            ClientContractedSystem entity, ProductSystem productSystem, List<UUID> scopedBranchIds) {
+        ClientContractedSystemResponseDto response = toResponse(entity, productSystem);
+        response.setIncludeHeadquarters(scopedBranchIds.stream().anyMatch(id -> id == null));
+        response.setClientBranchIds(
+                scopedBranchIds.stream().filter(Objects::nonNull).toList());
+        return response;
     }
 
     public ClientContractedSystemResponseDto toResponse(ClientContractedSystem entity, ProductSystem productSystem) {
@@ -91,6 +107,11 @@ public class ClientContractedSystemMapper {
                         entity.getSessionPolicy() != null
                                 ? entity.getSessionPolicy().name()
                                 : SessionPolicyEnum.KEEP_UNTIL_EXPIRY.name())
+                .branchMode(
+                        entity.getBranchMode() != null
+                                ? entity.getBranchMode().name()
+                                : BranchModeEnum.ALL.name())
+                .clientBranchIds(List.of())
                 .notes(entity.getNotes())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
@@ -123,5 +144,12 @@ public class ClientContractedSystemMapper {
             return SessionPolicyEnum.KEEP_UNTIL_EXPIRY;
         }
         return SessionPolicyEnum.valueOf(value);
+    }
+
+    private BranchModeEnum resolveBranchMode(String value) {
+        if (value == null || value.isBlank()) {
+            return BranchModeEnum.ALL;
+        }
+        return BranchModeEnum.valueOf(value);
     }
 }

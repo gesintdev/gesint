@@ -113,6 +113,8 @@ export function LoginForm() {
                 tenantSlug?: string;
                 tenantName?: string;
                 contractedSystemKeys?: string[] | null;
+                contractedSystemKeyOverrides?: Record<string, string[]> | null;
+                branches?: { id: string; name: string; cnpj?: string | null; headquarters: boolean }[];
             };
             const result = await signIn("credentials", {
                 username: tokens.username ?? login,
@@ -129,10 +131,11 @@ export function LoginForm() {
                 jobPositionName: tokens.jobPositionName ?? "",
                 departmentId: tokens.departmentId ?? "",
                 departmentName: tokens.departmentName ?? "",
-                permissions: JSON.stringify(tokens.permissions ?? []),
                 platformAdmin: String(tokens.platformAdmin ?? false),
                 tenantName: tokens.tenantName ?? "",
                 contractedSystemKeys: JSON.stringify(tokens.contractedSystemKeys ?? null),
+                contractedSystemKeyOverrides: JSON.stringify(tokens.contractedSystemKeyOverrides ?? null),
+                branches: JSON.stringify(tokens.branches ?? []),
                 redirect: false,
             });
             if (result?.error) {

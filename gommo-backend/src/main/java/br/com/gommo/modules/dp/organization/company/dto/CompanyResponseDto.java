@@ -15,6 +15,9 @@ public class CompanyResponseDto {
     private final UUID id;
     private final Integer code;
     private final StatusEnum status;
+    private final UUID parentId;
+    private final boolean headquarters;
+    private final int sortOrder;
     private final String legalName;
     private final String tradeName;
     private final String cnpj;

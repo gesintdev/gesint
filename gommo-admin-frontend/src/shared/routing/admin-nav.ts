@@ -13,6 +13,7 @@ export type AdminMenuDef = {
 
 export const CLIENT_SUB_TABS = [
     { key: "basics", label: "Dados Básicos" },
+    { key: "branches", label: "Filiais" },
     { key: "environment", label: "Config. do Ambiente" },
     { key: "systems", label: "Sistemas Contratados" },
     { key: "users", label: "Usuários" },

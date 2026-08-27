@@ -1,5 +1,7 @@
 package br.com.gommo.modules.rh.person.candidate.entity;
 
+import org.hibernate.annotations.Filter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -11,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
 @Table(name = "candidate")
@@ -20,7 +22,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Candidate extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class Candidate extends BranchScopedEntity {
     @Column(name = "full_name", nullable = false, length = 200)
     private String fullName;
 

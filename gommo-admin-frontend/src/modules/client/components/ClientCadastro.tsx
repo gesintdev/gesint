@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { ClientFiliais } from "@/modules/client/components/ClientFiliais";
 import { ClientSistemas } from "@/modules/client/components/ClientSistemas";
 import { ClientUsuarios } from "@/modules/client/components/ClientUsuarios";
 import type { Client, ClientCreateDto } from "@/modules/client/dto/client.dto";
@@ -360,6 +361,14 @@ export function ClientCadastro({
                         </AdminBtn>
                     </div>
                 </div>
+            ) : null}
+
+            {subTab === "branches" ? (
+                client ? <ClientFiliais clientId={client.id} /> : (
+                    <div style={{ fontSize: 13, color: "var(--ga-text-muted)" }}>
+                        Salve os dados básicos para cadastrar as filiais.
+                    </div>
+                )
             ) : null}
 
             {subTab === "environment" ? (

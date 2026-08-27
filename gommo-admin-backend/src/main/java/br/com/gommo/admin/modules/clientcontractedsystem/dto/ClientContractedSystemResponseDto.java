@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import br.com.gommo.admin.core.entity.StatusEnum;
@@ -43,6 +44,9 @@ public class ClientContractedSystemResponseDto {
     private OffsetDateTime effectiveFrom;
     private OffsetDateTime deactivateAt;
     private String sessionPolicy;
+    private String branchMode;
+    private boolean includeHeadquarters;
+    private List<UUID> clientBranchIds;
     private String notes;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;

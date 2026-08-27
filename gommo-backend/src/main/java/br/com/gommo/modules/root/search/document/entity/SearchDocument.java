@@ -1,5 +1,7 @@
 package br.com.gommo.modules.root.search.document.entity;
 
+import org.hibernate.annotations.Filter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 import br.com.gommo.modules.root.search.document.SearchDocumentType;
 
 @Entity
@@ -23,7 +25,8 @@ import br.com.gommo.modules.root.search.document.SearchDocumentType;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SearchDocument extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class SearchDocument extends BranchScopedEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "document_type", nullable = false, length = 40)

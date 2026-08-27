@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.persistence.EntityCodeIncrementer;
 import br.com.gommo.modules.cfg.access.catalog.PermissionModuleCatalog;
+import br.com.gommo.modules.cfg.access.entity.RoleTypeEnum;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.cfg.access.profile.dto.ProfileRequestDto;
 import br.com.gommo.modules.cfg.access.profile.dto.ProfileResponseDto;
@@ -29,6 +30,8 @@ import br.com.gommo.modules.root.repository.RoleRepository;
 
 @Service
 public class ProfileService implements IProfileService {
+
+    private static final Set<RoleTypeEnum> LISTABLE_TYPES = Set.of(RoleTypeEnum.ADMIN, RoleTypeEnum.CUSTOM);
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
@@ -54,14 +57,14 @@ public class ProfileService implements IProfileService {
     @PreAuthorize("hasAuthority('role:read')")
     public List<ProfileResponseDto> findAll(SystemScopeEnum system, boolean includeInactive) {
         List<Role> roles = system == null
-                ? roleRepository.findAllCustomProfilesWithPermissions(StatusEnum.DELETED)
-                : roleRepository.findAllCustomProfilesWithPermissionsBySystem(system, StatusEnum.DELETED);
-        if (!includeInactive) {
-            roles = roles.stream()
-                    .filter(role -> role.getStatus() == StatusEnum.ACTIVE)
-                    .toList();
-        }
-        return roles.stream().map(mapper::toResponse).toList();
+                ? roleRepository.findAllProfilesWithPermissions(LISTABLE_TYPES, StatusEnum.DELETED)
+                : roleRepository.findAllProfilesWithPermissionsBySystem(system, LISTABLE_TYPES, StatusEnum.DELETED);
+        return roles.stream()
+                .filter(role -> includeInactive || role.getStatus() == StatusEnum.ACTIVE)
+                // Perfis de sistemas nao contratados ficam fora da listagem ate a venda do modulo.
+                .filter(role -> accessScopePolicy.isSystemContracted(role.getSystem()))
+                .map(mapper::toResponse)
+                .toList();
     }
 
     @Override
@@ -87,6 +90,7 @@ public class ProfileService implements IProfileService {
                 .system(request.getSystem())
                 .status(StatusEnum.ACTIVE)
                 .systemRole(false)
+                .roleType(RoleTypeEnum.CUSTOM)
                 .permissions(resolvePermissions(request, Set.of()))
                 .build();
         return mapper.toResponse(roleRepository.save(role));
@@ -97,7 +101,7 @@ public class ProfileService implements IProfileService {
     @PreAuthorize("hasAuthority('role:write')")
     public ProfileResponseDto update(UUID id, ProfileRequestDto request) {
         Role role = findProfile(id);
-        if (role.isSystemRole()) {
+        if (!role.isEditableProfile()) {
             throw ProfileException.systemRoleImmutable();
         }
         validateSystemContracted(request.getSystem());
@@ -120,6 +124,9 @@ public class ProfileService implements IProfileService {
     @PreAuthorize("hasAuthority('role:write')")
     public void activate(UUID id) {
         Role role = findProfile(id);
+        if (!role.isEditableProfile()) {
+            throw ProfileException.systemRoleImmutable();
+        }
         role.setStatus(StatusEnum.ACTIVE);
         roleRepository.save(role);
     }
@@ -129,6 +136,9 @@ public class ProfileService implements IProfileService {
     @PreAuthorize("hasAuthority('role:write')")
     public void deactivate(UUID id) {
         Role role = findProfile(id);
+        if (!role.isEditableProfile()) {
+            throw ProfileException.systemRoleImmutable();
+        }
         role.setStatus(StatusEnum.INACTIVE);
         roleRepository.save(role);
     }
@@ -138,7 +148,7 @@ public class ProfileService implements IProfileService {
     @PreAuthorize("hasAuthority('role:delete')")
     public void delete(UUID id) {
         Role role = findProfile(id);
-        if (role.isSystemRole()) {
+        if (!role.isEditableProfile()) {
             throw ProfileException.systemRoleImmutable();
         }
         role.setStatus(StatusEnum.DELETED);
@@ -148,7 +158,7 @@ public class ProfileService implements IProfileService {
     private Role findProfile(UUID id) {
         return roleRepository
                 .findByIdWithPermissions(id, StatusEnum.DELETED)
-                .filter(r -> !r.isSystemRole())
+                .filter(Role::isAssignableProfile)
                 .orElseThrow(ProfileException::notFound);
     }
 

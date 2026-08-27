@@ -1,6 +1,7 @@
 package br.com.gommo.admin.modules.client.service;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ import br.com.gommo.admin.core.entity.StatusEnum;
 import br.com.gommo.admin.modules.client.dto.ClientRequestDto;
 import br.com.gommo.admin.modules.client.dto.ClientResponseDto;
 import br.com.gommo.admin.modules.client.dto.TenantDatabaseTestResultDto;
+import br.com.gommo.admin.modules.client.dto.TenantSchemaSyncResultDto;
 import br.com.gommo.admin.modules.client.entity.Client;
 import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
 import br.com.gommo.admin.modules.client.entity.TenantProvisioningStatusEnum;
@@ -22,6 +24,7 @@ import br.com.gommo.admin.modules.client.entity.TenantRoutingModeEnum;
 import br.com.gommo.admin.modules.client.exception.ClientException;
 import br.com.gommo.admin.modules.client.mapper.ClientMapper;
 import br.com.gommo.admin.modules.client.repository.ClientRepository;
+import br.com.gommo.admin.modules.clientbranch.service.TenantBranchProvisioner;
 import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 import br.com.gommo.admin.modules.clientenvironmentconfig.repository.ClientEnvironmentConfigRepository;
 
@@ -36,6 +39,10 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     private final TenantDatabaseDefaultsApplier tenantDatabaseDefaultsApplier;
     private final MobileLoginCodeGenerator mobileLoginCodeGenerator;
     private final ClientEnvironmentConfigRepository environmentConfigRepository;
+    private final TenantSchemaStructureSynchronizer structureSynchronizer;
+    private final TenantDefaultDataProvisioner defaultDataProvisioner;
+    private final TenantBranchBackfiller branchBackfiller;
+    private final TenantBranchProvisioner tenantBranchProvisioner;
 
     public ClientService(
             ClientRepository repository,
@@ -45,7 +52,11 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
             TenantUserProvisioner tenantUserProvisioner,
             TenantDatabaseDefaultsApplier tenantDatabaseDefaultsApplier,
             MobileLoginCodeGenerator mobileLoginCodeGenerator,
-            ClientEnvironmentConfigRepository environmentConfigRepository) {
+            ClientEnvironmentConfigRepository environmentConfigRepository,
+            TenantSchemaStructureSynchronizer structureSynchronizer,
+            TenantDefaultDataProvisioner defaultDataProvisioner,
+            TenantBranchBackfiller branchBackfiller,
+            TenantBranchProvisioner tenantBranchProvisioner) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -55,6 +66,10 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
         this.tenantDatabaseDefaultsApplier = tenantDatabaseDefaultsApplier;
         this.mobileLoginCodeGenerator = mobileLoginCodeGenerator;
         this.environmentConfigRepository = environmentConfigRepository;
+        this.structureSynchronizer = structureSynchronizer;
+        this.defaultDataProvisioner = defaultDataProvisioner;
+        this.branchBackfiller = branchBackfiller;
+        this.tenantBranchProvisioner = tenantBranchProvisioner;
     }
 
     @Override
@@ -185,6 +200,64 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('platform:admin')")
+    public TenantSchemaSyncResultDto syncSchema(UUID id) {
+        Client client = findEntity(id);
+        ClientEnvironmentConfig config = prepareConfigForDatabaseOps(client);
+        if (config.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA) {
+            throw ClientException.databaseConfigIncomplete(
+                    "Sincronizacao de estrutura so se aplica a tenants com schema dedicado.");
+        }
+        TenantSchemaSyncResultDto result = structureSynchronizer.sync(config.getDatabaseSchema());
+        defaultDataProvisioner.seedDefaults(config.getDatabaseSchema());
+        tenantBranchProvisioner.syncBranches(client.getId(), config);
+        branchBackfiller.backfill(config.getDatabaseSchema());
+        return result;
+    }
+
+    /**
+     * Aplica migrations estruturais em todos os tenants ja provisionados. Falha de um tenant nao
+     * interrompe os demais: o erro volta como aviso no resultado daquele schema.
+     */
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('platform:admin')")
+    public List<TenantSchemaSyncResultDto> syncAllSchemas() {
+        List<TenantSchemaSyncResultDto> results = new ArrayList<>();
+        for (Client client : repository.findAll()) {
+            if (client.getStatus() == StatusEnum.DELETED) {
+                continue;
+            }
+            ClientEnvironmentConfig config = environmentConfigRepository
+                    .findByClientIdAndStatusNot(client.getId(), StatusEnum.DELETED)
+                    .orElse(null);
+            if (config == null
+                    || config.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA
+                    || config.getProvisioningStatus() != TenantProvisioningStatusEnum.READY) {
+                continue;
+            }
+            try {
+                TenantSchemaSyncResultDto result = structureSynchronizer.sync(config.getDatabaseSchema());
+                defaultDataProvisioner.seedDefaults(config.getDatabaseSchema());
+                tenantBranchProvisioner.syncBranches(client.getId(), config);
+                branchBackfiller.backfill(config.getDatabaseSchema());
+                results.add(result);
+            } catch (Exception ex) {
+                Throwable root = NestedExceptionUtils.getMostSpecificCause(ex);
+                results.add(TenantSchemaSyncResultDto.builder()
+                        .schema(config.getDatabaseSchema())
+                        .createdTables(List.of())
+                        .addedColumns(List.of())
+                        .createdIndexes(List.of())
+                        .warnings(List.of(root.getMessage() != null ? root.getMessage() : "Falha na sincronizacao."))
+                        .build());
+            }
+        }
+        return results;
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('platform:admin')")
     public ClientResponseDto startProvisioning(UUID id) {
         Client client = findEntity(id);
         ClientEnvironmentConfig config = prepareConfigForDatabaseOps(client);
@@ -201,6 +274,10 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
             schemaProvisioner.provisionDedicatedSchema(config);
             config.setProvisioningStatus(TenantProvisioningStatusEnum.READY);
             environmentConfigRepository.save(config);
+            // As filiais vem antes dos usuarios: sem company no schema o tenant nasce sem matriz e
+            // o seletor de filial fica vazio no primeiro login.
+            tenantBranchProvisioner.syncBranches(client.getId(), config);
+            branchBackfiller.backfill(config.getDatabaseSchema());
             tenantUserProvisioner.provisionPendingUsers(client.getId(), config);
             config.setProvisioningNotes("Tenant pronto — schema provisionado em " + OffsetDateTime.now());
         } catch (Exception ex) {

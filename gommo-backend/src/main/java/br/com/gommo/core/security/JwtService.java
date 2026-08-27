@@ -9,7 +9,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.crypto.SecretKey;
@@ -21,6 +23,22 @@ public class JwtService {
 
     public static final String CLAIM_TENANT_ID = "tenantId";
     public static final String CLAIM_TENANT_SLUG = "tenantSlug";
+    /**
+     * Excecoes de permissao por filial: {@code {"<branchId>": ["payroll:read", ...]}}.
+     *
+     * Guarda apenas as filiais cujo conjunto difere do claim {@code permissions}, que funciona
+     * como base. Repetir a lista inteira em cada filial multiplicava o tamanho do token e
+     * estourava o limite do cookie de sessao para usuarios com muitas permissoes.
+     *
+     * A chave {@link #BRANCH_INDEPENDENT_KEY} guarda as permissoes que valem sem filial escolhida
+     * (agenda, ponto proprio, storage), usadas enquanto o usuario ainda nao selecionou uma.
+     */
+    public static final String CLAIM_BRANCH_PERMISSIONS = "branchPermissions";
+
+    /** Filiais a que o usuario tem acesso. Filial fora desta lista nao recebe authority alguma. */
+    public static final String CLAIM_BRANCH_IDS = "branchIds";
+
+    public static final String BRANCH_INDEPENDENT_KEY = "*";
     private static final ZoneId SESSION_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final JwtProperties properties;
@@ -43,7 +61,13 @@ public class JwtService {
     }
 
     public String generateAccessToken(
-            UUID userId, String username, List<String> permissions, UUID tenantId, String tenantSlug) {
+            UUID userId,
+            String username,
+            List<String> permissions,
+            UUID tenantId,
+            String tenantSlug,
+            Map<String, List<String>> branchPermissionOverrides,
+            List<String> branchIds) {
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(properties.accessTokenMinutes() * 60);
         var builder = Jwts.builder()
@@ -54,12 +78,23 @@ public class JwtService {
                 .claim("jti", UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry));
+        if (branchPermissionOverrides != null && !branchPermissionOverrides.isEmpty()) {
+            builder.claim(CLAIM_BRANCH_PERMISSIONS, new LinkedHashMap<>(branchPermissionOverrides));
+        }
+        if (branchIds != null && !branchIds.isEmpty()) {
+            builder.claim(CLAIM_BRANCH_IDS, branchIds);
+        }
         applyTenantClaims(builder, tenantId, tenantSlug);
         return builder.signWith(secretKey).compact();
     }
 
+    public String generateAccessToken(
+            UUID userId, String username, List<String> permissions, UUID tenantId, String tenantSlug) {
+        return generateAccessToken(userId, username, permissions, tenantId, tenantSlug, null, null);
+    }
+
     public String generateAccessToken(UUID userId, String username, List<String> permissions) {
-        return generateAccessToken(userId, username, permissions, null, null);
+        return generateAccessToken(userId, username, permissions, null, null, null, null);
     }
 
     public String generateRefreshToken(UUID userId, UUID tenantId, String tenantSlug) {

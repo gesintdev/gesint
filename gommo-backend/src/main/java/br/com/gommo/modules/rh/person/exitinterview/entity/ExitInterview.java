@@ -19,10 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewAnswerDto;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewRatingDto;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewReturnChecklistItemDto;
@@ -34,7 +35,8 @@ import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewReturnCheck
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExitInterview extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class ExitInterview extends BranchScopedEntity {
     @Column(name = "collaborator_id", nullable = false)
     private UUID collaboratorId;
 

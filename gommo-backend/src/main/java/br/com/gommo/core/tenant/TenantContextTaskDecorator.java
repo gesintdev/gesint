@@ -1,22 +1,29 @@
 package br.com.gommo.core.tenant;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.MDC;
 import org.springframework.core.task.TaskDecorator;
 
+import br.com.gommo.core.branch.BranchContextHolder;
+
 /**
- * Propagates {@link TenantContext} and MDC to async worker threads.
- * Required for schema-per-tenant isolation when using @Async.
+ * Propagates {@link TenantContext}, active branch and MDC to async worker threads.
+ * Required for schema-per-tenant isolation and branch scoping when using @Async.
  */
 public class TenantContextTaskDecorator implements TaskDecorator {
 
     @Override
     public Runnable decorate(Runnable runnable) {
         TenantContext tenant = TenantContextHolder.getOptional().orElse(null);
+        UUID branchId = BranchContextHolder.getOptional().orElse(null);
         Map<String, String> mdc = MDC.getCopyOfContextMap();
         return () -> {
             try {
+                if (branchId != null) {
+                    BranchContextHolder.set(branchId);
+                }
                 if (tenant != null) {
                     TenantContextHolder.set(tenant);
                     if (tenant.slug() != null) {
@@ -32,6 +39,7 @@ public class TenantContextTaskDecorator implements TaskDecorator {
                 runnable.run();
             } finally {
                 TenantContextHolder.clear();
+                BranchContextHolder.clear();
                 MDC.clear();
             }
         };

@@ -34,5 +34,11 @@ public class AppUserRequestDto {
     @Size(max = 200)
     private String email;
 
-    private Map<SystemScopeEnum, List<UUID>> roleIdsBySystem;
+    /**
+     * Perfis do usuario por filial e por sistema.
+     *
+     * A filial e a camada mais externa porque o mesmo usuario pode ter acessos diferentes em cada
+     * uma: admin de RH numa e apenas consulta de ponto em outra.
+     */
+    private Map<UUID, Map<SystemScopeEnum, List<UUID>>> roleIdsByBranch;
 }

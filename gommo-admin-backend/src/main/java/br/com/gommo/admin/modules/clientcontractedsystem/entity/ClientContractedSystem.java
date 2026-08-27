@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -86,6 +87,15 @@ public class ClientContractedSystem extends AuditEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "session_policy", nullable = false, length = 32)
     private SessionPolicyEnum sessionPolicy;
+
+    /**
+     * O contrato e unico por cliente; a filial define apenas onde o sistema esta habilitado. Com
+     * {@code ALL} vale para toda filial, inclusive as futuras.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "branch_mode", nullable = false, length = 16)
+    @Builder.Default
+    private BranchModeEnum branchMode = BranchModeEnum.ALL;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

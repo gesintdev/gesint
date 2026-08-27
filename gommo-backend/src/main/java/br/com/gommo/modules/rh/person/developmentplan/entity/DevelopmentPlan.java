@@ -1,5 +1,7 @@
 package br.com.gommo.modules.rh.person.developmentplan.entity;
 
+import org.hibernate.annotations.Filter;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 import lombok.Builder;
 
 @Entity
@@ -30,7 +32,8 @@ import lombok.Builder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DevelopmentPlan extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class DevelopmentPlan extends BranchScopedEntity {
 
     @Column(name = "collaborator_id", nullable = false)
     private UUID collaboratorId;

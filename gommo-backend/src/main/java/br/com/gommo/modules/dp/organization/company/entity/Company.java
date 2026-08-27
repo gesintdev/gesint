@@ -9,8 +9,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 import br.com.gommo.core.entity.AuditEntity;
 
+/**
+ * Empresa do cliente. A matriz ({@code headquarters = true}) e a raiz da arvore e as filiais
+ * apontam para ela por {@code parentId}.
+ *
+ * Esta entidade e a propria dimensao de filial usada por {@code BranchScopedEntity}, e por isso
+ * nao e escopada: quem seleciona a filial precisa enxergar a lista inteira a que tem acesso.
+ */
 @Entity
 @Table(name = "company")
 @Getter
@@ -19,6 +28,15 @@ import br.com.gommo.core.entity.AuditEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Company extends AuditEntity {
+
+    @Column(name = "parent_id")
+    private UUID parentId;
+
+    @Column(name = "is_headquarters", nullable = false)
+    private boolean headquarters;
+
+    @Column(name = "sort_order", nullable = false)
+    private int sortOrder;
 
     @Column(name = "legal_name", nullable = false, length = 255)
     private String legalName;

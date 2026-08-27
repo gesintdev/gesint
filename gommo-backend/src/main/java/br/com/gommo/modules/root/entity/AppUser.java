@@ -1,5 +1,7 @@
 package br.com.gommo.modules.root.entity;
 
+import org.hibernate.annotations.Immutable;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -54,6 +56,14 @@ public class AppUser extends AuditEntity {
     @Column(name = "last_login")
     private OffsetDateTime lastLogin;
 
+    /**
+     * Perfis do usuario em qualquer filial, somente leitura.
+     *
+     * A escrita e o escopo por filial vivem em {@link UserRoleAssignment}, porque a mesma tabela
+     * de juncao carrega {@code company_id} e um @ManyToMany simples nao consegue representar isso.
+     * Esta view continua servindo a perguntas que independem de filial, como "e administrador?".
+     */
+    @Immutable
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",

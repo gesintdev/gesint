@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.cfg.access.entity.RoleTypeEnum;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.root.dto.PermissionSummaryDto;
 
@@ -26,6 +27,8 @@ public class ProfileResponseDto {
     private String name;
     private String description;
     private SystemScopeEnum system;
+    private RoleTypeEnum roleType;
+    private boolean editable;
     private StatusEnum status;
     private List<PermissionSummaryDto> permissions;
     private OffsetDateTime createdAt;

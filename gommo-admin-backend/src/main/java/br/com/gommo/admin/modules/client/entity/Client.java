@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 import br.com.gommo.admin.core.entity.AuditEntity;
 
 @Entity
@@ -33,6 +35,10 @@ public class Client extends AuditEntity {
 
     @Column(name = "mobile_login_code", nullable = false, length = 9)
     private String mobileLoginCode;
+
+    /** Company que representa a matriz no schema do tenant. Preenchida no provisionamento. */
+    @Column(name = "tenant_company_id")
+    private UUID tenantCompanyId;
 
     @Column(length = 18)
     private String document;

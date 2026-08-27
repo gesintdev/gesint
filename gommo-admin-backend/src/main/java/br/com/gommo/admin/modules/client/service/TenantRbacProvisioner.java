@@ -44,9 +44,28 @@ public class TenantRbacProvisioner {
                         system      gommo_types.system_scope_enum NOT NULL DEFAULT 'RH',
                         status      gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
                         is_system   BOOLEAN NOT NULL DEFAULT false,
+                        role_type   gommo_types.role_type_enum NOT NULL DEFAULT 'CUSTOM',
                         created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
                         updated_at  TIMESTAMPTZ
                     )
+                    """
+                            .formatted(schema));
+        } else {
+            jdbcTemplate.execute(
+                    """
+                    ALTER TABLE "%s".role
+                        ADD COLUMN IF NOT EXISTS role_type gommo_types.role_type_enum NOT NULL DEFAULT 'CUSTOM'
+                    """
+                            .formatted(schema));
+            // Schemas anteriores ao role_type so distinguiam perfis por is_system.
+            jdbcTemplate.update(
+                    """
+                    UPDATE "%s".role
+                    SET role_type = CASE
+                        WHEN id = '00000000-0000-0000-0000-000000000001' THEN 'GLOBAL_ADMIN'::gommo_types.role_type_enum
+                        ELSE 'INTERNAL'::gommo_types.role_type_enum
+                    END
+                    WHERE is_system = true AND role_type = 'CUSTOM'
                     """
                             .formatted(schema));
         }
@@ -87,9 +106,10 @@ public class TenantRbacProvisioner {
         jdbcTemplate.update(
                 """
                 INSERT INTO "%s".role (
-                    id, code, name, description, system, status, is_system, created_at, updated_at
+                    id, code, name, description, system, status, is_system, role_type, created_at, updated_at
                 )
-                SELECT r.id, r.code, r.name, r.description, r.system, r.status, r.is_system, r.created_at, r.updated_at
+                SELECT r.id, r.code, r.name, r.description, r.system, r.status, r.is_system, r.role_type,
+                       r.created_at, r.updated_at
                 FROM public.role r
                 WHERE r.is_system = true
                 ON CONFLICT (id) DO NOTHING

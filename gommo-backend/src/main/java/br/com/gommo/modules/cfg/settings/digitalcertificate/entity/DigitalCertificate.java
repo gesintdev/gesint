@@ -14,10 +14,11 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.OffsetDateTime;
 
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import br.com.gommo.core.entity.AuditEntity;
+import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
 @Table(name = "digital_certificate")
@@ -26,7 +27,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DigitalCertificate extends AuditEntity {
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class DigitalCertificate extends BranchScopedEntity {
 
     @Column(nullable = false, length = 120)
     private String alias;
