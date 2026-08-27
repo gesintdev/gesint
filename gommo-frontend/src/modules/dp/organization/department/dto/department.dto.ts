@@ -2,6 +2,8 @@ export class Department {
     id!: string;
     code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
+    sharedAcrossBranches?: boolean;
+    companyId?: string | null;
     name!: string;
     costCenter?: string;
     description?: string;
@@ -18,6 +20,7 @@ export class Department {
 
 export class DepartmentCreateDto {
     name!: string;
+    sharedAcrossBranches?: boolean;
     costCenter?: string;
     description?: string;
     monthlyBudget?: number | string;

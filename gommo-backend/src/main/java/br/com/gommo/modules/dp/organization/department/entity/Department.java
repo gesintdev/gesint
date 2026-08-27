@@ -18,7 +18,7 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import br.com.gommo.core.branch.BranchScopedEntity;
+import br.com.gommo.core.branch.BranchCatalogEntity;
 
 @Entity
 @Table(name = "department")
@@ -27,8 +27,8 @@ import br.com.gommo.core.branch.BranchScopedEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
-public class Department extends BranchScopedEntity {
+@Filter(name = BranchCatalogEntity.FILTER_NAME, condition = BranchCatalogEntity.FILTER_CONDITION)
+public class Department extends BranchCatalogEntity {
 
     @Column(name = "parent_id")
     private UUID parentId;

@@ -13,7 +13,10 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
-import br.com.gommo.core.entity.AuditEntity;
+import org.hibernate.annotations.Filter;
+
+import br.com.gommo.core.branch.BranchCatalogEntity;
+import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNatureEnum;
 
 @Entity
 @Table(name = "job_position")
@@ -22,7 +25,8 @@ import br.com.gommo.core.entity.AuditEntity;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class JobPosition extends AuditEntity {
+@Filter(name = BranchCatalogEntity.FILTER_NAME, condition = BranchCatalogEntity.FILTER_CONDITION)
+public class JobPosition extends BranchCatalogEntity {
 
     @Column(name = "department_id")
     private UUID departmentId;

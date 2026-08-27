@@ -17,6 +17,7 @@ public class DepartmentResponseDto {
     private final UUID id;
     private final Integer code;
     private final StatusEnum status;
+    private final boolean sharedAcrossBranches;
     private final UUID companyId;
     private final UUID parentId;
     private final String name;

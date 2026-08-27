@@ -12,11 +12,13 @@ export function departmentToFormDto(entity: Department): DepartmentCreateDto {
         phoneExtension: entity.phoneExtension ?? "",
         email: entity.email ?? "",
         responsibleCollaboratorIds: entity.responsibleCollaboratorIds ?? [],
+        sharedAcrossBranches: entity.sharedAcrossBranches ?? false,
     };
 }
 
 export const emptyDepartmentForm = (): DepartmentCreateDto => ({
     name: "",
+    sharedAcrossBranches: false,
     costCenter: "",
     description: "",
     monthlyBudget: "",

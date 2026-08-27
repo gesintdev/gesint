@@ -20,8 +20,9 @@ import lombok.experimental.SuperBuilder;
  * {@code company}: no Brasil filial e estabelecimento com CNPJ proprio, e folha, ponto,
  * eSocial e FGTS sao todos apurados por estabelecimento.
  *
- * Cadastros estruturais compartilhados pelo cliente inteiro (cargos, escalas, catalogos,
- * perfis, usuarios, parametrizacoes) NAO estendem esta classe.
+ * Cadastros estruturais compartilhados opcionalmente por filial (departamento, cargo) estendem
+ * {@link BranchCatalogEntity}. Demais cadastros estruturais do tenant (escalas, perfis, usuarios)
+ * nao carregam {@code company_id}.
  *
  * O Hibernate ignora {@code @Filter} declarado em {@code @MappedSuperclass}, entao cada
  * entidade concreta precisa repetir a anotacao:

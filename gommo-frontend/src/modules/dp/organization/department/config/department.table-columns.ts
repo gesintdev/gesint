@@ -10,6 +10,16 @@ export const DEPARTMENT_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.TEXT,
     },
     {
+        id: "sharedAcrossBranches",
+        columnName: "Disponibilidade",
+        fieldValue: "sharedAcrossBranches",
+        dataType: TableDataType.BADGE,
+        badgeLabels: {
+            true: "Todas as filiais",
+            false: "Filial ativa",
+        },
+    },
+    {
         id: "costCenter",
         columnName: "Centro de custo",
         fieldValue: "costCenter",

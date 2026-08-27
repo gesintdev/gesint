@@ -2,6 +2,7 @@ package br.com.gommo.modules.dp.organization.jobposition.mapper;
 
 import org.springframework.stereotype.Component;
 
+import br.com.gommo.core.branch.BranchCatalogScopes;
 import br.com.gommo.modules.dp.organization.jobposition.dto.JobPositionRequestDto;
 import br.com.gommo.modules.dp.organization.jobposition.dto.JobPositionResponseDto;
 import br.com.gommo.modules.dp.organization.jobposition.entity.JobPosition;
@@ -32,6 +33,8 @@ public class JobPositionMapper {
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
+                .sharedAcrossBranches(BranchCatalogScopes.isSharedAcrossBranches(entity))
+                .companyId(entity.getCompanyId())
                 .departmentId(entity.getDepartmentId())
                 .title(entity.getTitle())
                 .cboCode(entity.getCboCode())

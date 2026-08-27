@@ -21,8 +21,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class DepartmentRequestDto {
 
-    private UUID companyId;
     private UUID parentId;
+
+    /** Quando true, o registro vale em todas as filiais ({@code company_id} nulo). */
+    private Boolean sharedAcrossBranches;
 
     @NotBlank @Size(max = 120) private String name;
 

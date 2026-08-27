@@ -11,6 +11,7 @@ import {DEPARTMENT_CLIENT_MESSAGES} from "@/modules/dp/organization/department/e
 import {departmentToFormDto, emptyDepartmentForm} from "@/modules/dp/organization/department/lib/department.mapper";
 import {departmentService} from "@/modules/dp/organization/department/services/department.service";
 import {CollaboratorMultiPickerField} from "@/shared/components/crud/CollaboratorMultiPickerField";
+import {BranchRecordScopeField} from "@/shared/components/crud/BranchRecordScopeField";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {Button} from "@/shared/components/ui/Button";
@@ -149,6 +150,10 @@ export function DepartmentFormClient() {
             }
         >
             <FormSection id="cadastro" title="Departamento">
+                <BranchRecordScopeField
+                    sharedAcrossBranches={form.sharedAcrossBranches ?? false}
+                    onChange={(sharedAcrossBranches) => update("sharedAcrossBranches", sharedAcrossBranches)}
+                />
                 <InputString
                     label="Nome"
                     value={form.name ?? ""}

@@ -27,7 +27,6 @@ public final class BranchScopedTables {
             "complementary_exam",
             "contract_recess_period",
             "contract_recess_policy",
-            "department",
             "development_plan",
             "digital_certificate",
             "employment_contract",

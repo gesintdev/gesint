@@ -11,6 +11,16 @@ export const JOBPOSITION_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.TEXT,
     },
     {
+        id: "sharedAcrossBranches",
+        columnName: "Disponibilidade",
+        fieldValue: "sharedAcrossBranches",
+        dataType: TableDataType.BADGE,
+        badgeLabels: {
+            true: "Todas as filiais",
+            false: "Filial ativa",
+        },
+    },
+    {
         id: "cboCode",
         columnName: "CBO",
         fieldValue: "cboCode",

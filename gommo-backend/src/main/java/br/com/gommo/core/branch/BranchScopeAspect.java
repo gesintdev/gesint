@@ -55,14 +55,23 @@ public class BranchScopeAspect {
             return;
         }
         if (BranchContextHolder.isUnscoped()) {
-            if (session.getEnabledFilter(BranchScopedEntity.FILTER_NAME) != null) {
-                session.disableFilter(BranchScopedEntity.FILTER_NAME);
-            }
+            disableFilter(session, BranchScopedEntity.FILTER_NAME);
+            disableFilter(session, BranchCatalogEntity.FILTER_NAME);
             return;
         }
         UUID branchId = BranchContextHolder.require();
-        session.enableFilter(BranchScopedEntity.FILTER_NAME)
-                .setParameter(BranchScopedEntity.FILTER_PARAM, branchId);
+        enableFilter(session, BranchScopedEntity.FILTER_NAME, branchId);
+        enableFilter(session, BranchCatalogEntity.FILTER_NAME, branchId);
+    }
+
+    private void enableFilter(Session session, String filterName, UUID branchId) {
+        session.enableFilter(filterName).setParameter(BranchScopedEntity.FILTER_PARAM, branchId);
+    }
+
+    private void disableFilter(Session session, String filterName) {
+        if (session.getEnabledFilter(filterName) != null) {
+            session.disableFilter(filterName);
+        }
     }
 
     /** Fora de transacao nao ha sessao para filtrar; nesse caso nao ha consulta a escapar. */

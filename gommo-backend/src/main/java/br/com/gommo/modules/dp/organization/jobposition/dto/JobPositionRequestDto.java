@@ -21,6 +21,9 @@ public class JobPositionRequestDto {
 
     private UUID departmentId;
 
+    /** Quando true, o registro vale em todas as filiais ({@code company_id} nulo). */
+    private Boolean sharedAcrossBranches;
+
     @NotBlank @Size(max = 120) private String title;
 
     @Size(max = 10) private String cboCode;

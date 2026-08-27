@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
+import br.com.gommo.core.branch.BranchCatalogScopes;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.util.TextSearchUtils;
 import br.com.gommo.modules.dp.organization.department.dto.DepartmentRequestDto;
@@ -88,7 +89,10 @@ public class DepartmentService extends BaseService<Department, DepartmentRequest
     @Transactional
     @PreAuthorize("hasAuthority('department:write')")
     public DepartmentResponseDto create(DepartmentRequestDto request) {
-        DepartmentResponseDto created = super.create(request);
+        Department entity = mapper.toEntity(request);
+        entity.setStatus(StatusEnum.ACTIVE);
+        BranchCatalogScopes.apply(entity, request.getSharedAcrossBranches());
+        DepartmentResponseDto created = mapper.toResponse(repository.save(entity));
         indexDepartment(findEntity(created.getId()));
         return created;
     }
@@ -97,8 +101,11 @@ public class DepartmentService extends BaseService<Department, DepartmentRequest
     @Transactional
     @PreAuthorize("hasAuthority('department:write')")
     public DepartmentResponseDto update(UUID id, DepartmentRequestDto request) {
-        DepartmentResponseDto updated = super.update(id, request);
-        indexDepartment(findEntity(id));
+        Department entity = findEntity(id);
+        mapper.updateEntity(entity, request);
+        BranchCatalogScopes.apply(entity, request.getSharedAcrossBranches());
+        DepartmentResponseDto updated = mapper.toResponse(repository.save(entity));
+        indexDepartment(entity);
         return updated;
     }
 

@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
+import br.com.gommo.core.branch.BranchCatalogScopes;
 import br.com.gommo.modules.dp.organization.department.dto.DepartmentRequestDto;
 import br.com.gommo.modules.dp.organization.department.dto.DepartmentResponseDto;
 import br.com.gommo.modules.dp.organization.department.entity.Department;
@@ -15,7 +16,6 @@ public class DepartmentMapper {
 
     public Department toEntity(DepartmentRequestDto dto) {
         return Department.builder()
-                .companyId(dto.getCompanyId())
                 .parentId(dto.getParentId())
                 .name(dto.getName())
                 .costCenter(dto.getCostCenter())
@@ -31,7 +31,6 @@ public class DepartmentMapper {
     }
 
     public void updateEntity(Department entity, DepartmentRequestDto dto) {
-        entity.setCompanyId(dto.getCompanyId());
         entity.setParentId(dto.getParentId());
         entity.setName(dto.getName());
         entity.setCostCenter(dto.getCostCenter());
@@ -50,6 +49,7 @@ public class DepartmentMapper {
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
+                .sharedAcrossBranches(BranchCatalogScopes.isSharedAcrossBranches(entity))
                 .companyId(entity.getCompanyId())
                 .parentId(entity.getParentId())
                 .name(entity.getName())

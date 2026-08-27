@@ -16,6 +16,7 @@ import {
 import {cboOccupationService} from "@/modules/dp/organization/jobposition/services/cbo-occupation.service";
 import {jobpositionService} from "@/modules/dp/organization/jobposition/services/jobposition.service";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {BranchRecordScopeField} from "@/shared/components/crud/BranchRecordScopeField";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
@@ -149,6 +150,10 @@ export function JobPositionFormClient() {
             }
         >
             <FormSection id="cadastro" title="Cargo">
+                <BranchRecordScopeField
+                    sharedAcrossBranches={form.sharedAcrossBranches ?? false}
+                    onChange={(sharedAcrossBranches) => update("sharedAcrossBranches", sharedAcrossBranches)}
+                />
                 <InputString
                     label="Título do cargo"
                     value={form.title ?? ""}
