@@ -128,6 +128,8 @@
 
 **Aceite (roteiro):** Meses 5, 6 (abono no ponto); TC-004. Dependência: Sprints 7, 1 (auditoria), 4 (calendário/feriados — ver S14, usar feriados nacionais já existentes no interim).
 
+**Detalhamento:** `docs/analise/plano-banco-de-horas-2026-08-26.md` (cadastro/parametrização, modelo de dados, apuração, compensação, fechamento e rescisão).
+
 ### Sprint 9 — 13º salário (1ª e 2ª parcela)
 
 **Objetivo:** processar 13º proporcional.
