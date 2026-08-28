@@ -100,7 +100,7 @@ export function HeaderBranchSelector() {
                 )}
             >
                 <BranchIcon />
-                <span className="min-w-0 truncate text-[10px] font-semibold leading-none text-base-content">
+                <span className="min-w-0 truncate text-[13px] font-medium leading-none text-base-content">
                     {activeBranch.name}
                 </span>
                 <ChevronDown
