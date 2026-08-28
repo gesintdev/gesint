@@ -35,11 +35,11 @@ function BranchOptionText({ branch }: { branch: Branch }) {
 
     return (
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="block truncate text-[10px] font-semibold leading-none text-base-content">
+            <span className="block truncate text-[13px] font-medium leading-none text-base-content">
                 {branch.name}
             </span>
             {cnpj ? (
-                <span className="block truncate text-[8px] leading-none text-base-content/50">
+                <span className="block truncate text-[11px] leading-none text-base-content/50">
                     CNPJ {cnpj}
                 </span>
             ) : null}
