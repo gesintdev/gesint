@@ -276,6 +276,17 @@ export function CrudScreen({
         [canWrite, crudConfig, syncWorkspace],
     );
     const goToTab = useCallback((tabId: string) => setActiveTab(tabId), []);
+    const prevBranchIdRef = useRef<string | null>(null);
+
+    // A aba do modulo (ex.: job-positions::list) permanece montada ao trocar de filial; sem isso o
+    // editingId interno sobrevive e o formulario continua apontando para registro da filial anterior.
+    useLayoutEffect(() => {
+        const previous = prevBranchIdRef.current;
+        prevBranchIdRef.current = activeBranchId;
+        if (previous != null && activeBranchId != null && previous !== activeBranchId) {
+            goToList();
+        }
+    }, [activeBranchId, goToList]);
 
     useEffect(() => {
         if (!canWrite && activeTab === CRUD_TAB_FORM) {

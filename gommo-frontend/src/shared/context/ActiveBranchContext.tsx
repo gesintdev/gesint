@@ -1,10 +1,20 @@
 "use client";
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
+import {
+    createContext,
+    type ReactNode,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useSyncExternalStore,
+} from "react";
 
 import { useSession } from "next-auth/react";
 
 import { type Branch, persistActiveBranch, readActiveBranch, subscribeActiveBranch } from "@/shared/lib/branch";
+import { writeLastWorkspaceInitLocation } from "@/shared/workspace/workspace-location";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 
 type ActiveBranchContextValue = {
@@ -62,6 +72,26 @@ export function ActiveBranchProvider({ children, initialBranchId = null }: Activ
             switchBranchGroup(activeBranchId);
         }
     }, [activeBranchId, switchBranchGroup]);
+
+    const prevBranchForUrlRef = useRef<string | null | undefined>(undefined);
+
+    // ?edit= / ?new= na URL reabrem o cadastro apos reload ou init do workspace — limpar ao trocar filial.
+    useEffect(() => {
+        if (!activeBranchId) return;
+        const previous = prevBranchForUrlRef.current;
+        prevBranchForUrlRef.current = activeBranchId;
+        if (previous === undefined || previous === activeBranchId) return;
+        if (typeof window === "undefined") return;
+
+        const params = new URLSearchParams(window.location.search);
+        if (!params.has("edit") && !params.has("new")) return;
+        params.delete("edit");
+        params.delete("new");
+        const qs = params.toString();
+        const target = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+        window.history.replaceState(window.history.state, "", target);
+        writeLastWorkspaceInitLocation(target);
+    }, [activeBranchId]);
 
     const selectBranch = useCallback(
         (branchId: string) => {

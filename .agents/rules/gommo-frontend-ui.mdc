@@ -18,3 +18,30 @@ alwaysApply: false
 - Login: 2 colunas (brand | form); dark mode toggle global
 - Performance: evitar animações pesadas; preferir CSS transitions leves
 - Selects: reusar sempre os componentes compartilhados do projeto (`InputSelect`, `InputSelectAutocomplete`, `InputAutocomplete`); evitar `<select>` nativo e novos componentes de seleção quando já existir equivalente no design system
+
+## Dados escopados por filial (multi-filial)
+
+O header `X-Branch-Id` filtra listagens e detalhes no backend. No frontend, **toda** query de dado de negócio que depende da filial ativa deve seguir este checklist:
+
+### React Query — obrigatório
+
+1. **Listagens** (`QueryPanel`, `QueryPagedTablePanel`): passar `queryKey` estável (ex.: `entityKeys.all`); o escopo de filial é aplicado dentro do `QueryPanel` via `useBranchScopedQueryKey`.
+2. **Detalhe em formulário de edição**: usar `useBranchScopedDetailQuery`, nunca `useQuery` direto com `entityKeys.detail(id)`.
+3. **Nunca** colocar o array retornado por `keys.list()` / `keys.detail()` como dependência direta de `useMemo` sem serializar — arrays novos a cada render geram chave diferente, refetch infinito e crash da página (`This page couldn't load`).
+4. **Não** invalidar todas as queries globalmente ao trocar filial — a filial já faz parte da `queryKey`.
+5. **Não** importar contextos privados (`ActiveBranchContext` direto); usar o hook público `useActiveBranch()`.
+
+### CRUD + workspace — obrigatório
+
+1. A aba de listagem do módulo (`{routeId}::list`) **permanece montada** ao trocar de filial (mesmo `tab.id`). O `CrudScreen` já chama `goToList()` em `useLayoutEffect` quando `activeBranchId` muda — **não confiar** que o componente desmonta sozinho.
+2. Ao implementar novo `*FormClient` com edição, usar `useBranchScopedDetailQuery` e tratar `isError` (registro inexistente na filial) com `goToList()` ou mensagem + botão voltar.
+3. `ActiveBranchContext` limpa `?edit=` e `?new=` da URL ao trocar filial — não reintroduzir esses params sem sincronizar com o workspace.
+4. Campos de escopo compartilhado/exclusivo: reutilizar `BranchRecordScopeField` + DTO `sharedAcrossBranches`.
+
+### Referência
+
+- `useBranchScopedQueryKey` — `gommo-frontend/src/shared/hooks/useBranchScopedQueryKey.ts`
+- `useBranchScopedDetailQuery` — `gommo-frontend/src/shared/hooks/useBranchScopedDetailQuery.ts`
+- Exemplos corretos: `JobPositionFormClient`, `DepartmentFormClient`, `ProfileFormClient`
+- Reset de edição ao trocar filial: `CrudScreen` (`useLayoutEffect` + `goToList`)
+
