@@ -1,6 +1,6 @@
 "use client";
 
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {type SubmitEvent, useEffect, useState} from "react";
 import {toast} from "sonner";
 
@@ -23,6 +23,7 @@ import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputSelect, InputSelectAutocomplete, InputString} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {useBranchScopedDetailQuery} from "@/shared/hooks/useBranchScopedDetailQuery";
 
 const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Cargo"}];
 
@@ -32,11 +33,11 @@ export function JobPositionFormClient() {
     const [form, setForm] = useState<JobPositionCreateDto>(emptyJobPositionForm);
     const [cboLabel, setCboLabel] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const detailQuery = useQuery({
-        queryKey: jobpositionKeys.detail(editingId ?? ""),
-        queryFn: () => jobpositionService.getById(editingId!),
-        enabled: isEditing && Boolean(editingId),
-    });
+    const detailQuery = useBranchScopedDetailQuery(
+        jobpositionKeys.detail(editingId ?? ""),
+        () => jobpositionService.getById(editingId!),
+        {enabled: isEditing && Boolean(editingId)},
+    );
 
     useEffect(() => {
         if (!isEditing) {

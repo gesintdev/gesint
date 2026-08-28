@@ -1,6 +1,6 @@
 "use client";
 
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import clsx from "clsx";
 import {type SubmitEvent, useEffect, useId, useState} from "react";
 import {toast} from "sonner";
@@ -20,6 +20,7 @@ import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputCurrency, InputPhone, InputString} from "@/shared/components/ui/input/index";
 import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {useBranchScopedDetailQuery} from "@/shared/hooks/useBranchScopedDetailQuery";
 
 const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Departamento"}];
 
@@ -52,11 +53,11 @@ export function DepartmentFormClient() {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DepartmentCreateDto>(emptyDepartmentForm);
     const [error, setError] = useState<string | null>(null);
-    const detailQuery = useQuery({
-        queryKey: departmentKeys.detail(editingId ?? ""),
-        queryFn: () => departmentService.getById(editingId!),
-        enabled: isEditing && Boolean(editingId),
-    });
+    const detailQuery = useBranchScopedDetailQuery(
+        departmentKeys.detail(editingId ?? ""),
+        () => departmentService.getById(editingId!),
+        {enabled: isEditing && Boolean(editingId)},
+    );
 
     useEffect(() => {
         if (!isEditing) {

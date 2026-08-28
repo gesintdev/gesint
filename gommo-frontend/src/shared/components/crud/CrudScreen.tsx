@@ -21,6 +21,7 @@ import {
     useQueryRefresh,
 } from "@/shared/components/data/QueryRefreshContext";
 import { Button } from "@/shared/components/ui/Button";
+import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
 import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
@@ -194,6 +195,7 @@ export function CrudScreen({
     const [initialExtraTabResolved, setInitialExtraTabResolved] = useState(false);
     const hadExtraTabsRef = useRef(false);
     const permissions = useSessionPermissions();
+    const { activeBranchId } = useActiveBranch();
     const crudConfig = useTabbedCrudConfigOptional();
     const workspaceTabCtx = useWorkspaceTabOptional();
     const { syncCrudUrl } = useWorkspaceNavigation();
@@ -413,7 +415,10 @@ export function CrudScreen({
                                         )}
                                         aria-hidden={activeTab !== CRUD_TAB_FORM}
                                     >
-                                        <div key={editingId ?? "new"} className="flex min-h-0 flex-1 flex-col">
+                                        <div
+                                            key={`${editingId ?? "new"}:${activeBranchId ?? "none"}`}
+                                            className="flex min-h-0 flex-1 flex-col"
+                                        >
                                             {form}
                                         </div>
                                     </div>
