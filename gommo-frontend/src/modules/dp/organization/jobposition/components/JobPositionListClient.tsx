@@ -18,10 +18,13 @@ import {
     paginateCatalogRows,
 } from "@/shared/lib/table/paginate-catalog-rows";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
+import {withCatalogAvailabilityLabel} from "@/shared/lib/branch-catalog-availability";
 import {SystemAlert} from "@/shared/system-alert";
 
 export function JobPositionListClient() {
     const {startEdit} = useCrudScreen();
+    const {branches} = useActiveBranch();
     const queryClient = useQueryClient();
     const {activateMutation, deactivateMutation, handleActivate, handleDeactivate} = useCrudStatusActions({
         service: jobpositionService,
@@ -43,12 +46,12 @@ export function JobPositionListClient() {
     };
 
     return (
-        <QueryPagedTablePanel<JobPosition>
+        <QueryPagedTablePanel<JobPosition & {availabilityLabel: string}>
             queryKey={jobpositionKeys.all}
             initialFilters={CATALOG_STATUS_INITIAL_FILTERS}
             request={async (page, size, filters) => {
                 const rows = await loadActiveAndInactiveRows((options) => jobpositionService.getAll(options));
-                return paginateCatalogRows(rows, page, size, filters);
+                return paginateCatalogRows(withCatalogAvailabilityLabel(rows, branches), page, size, filters);
             }}
             columns={JOBPOSITION_TABLE_COLUMNS}
             rowKey="id"

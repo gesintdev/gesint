@@ -16,7 +16,7 @@ export class JobPosition {
 
 export class JobPositionCreateDto {
     title!: string;
-    sharedAcrossBranches?: boolean;
+    companyId?: string | null;
     cboCode?: string;
     departmentId?: string;
     nature?: JobPositionNature;

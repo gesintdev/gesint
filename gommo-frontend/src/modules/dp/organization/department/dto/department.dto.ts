@@ -20,7 +20,7 @@ export class Department {
 
 export class DepartmentCreateDto {
     name!: string;
-    sharedAcrossBranches?: boolean;
+    companyId?: string | null;
     costCenter?: string;
     description?: string;
     monthlyBudget?: number | string;

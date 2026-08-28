@@ -18,10 +18,13 @@ import {
     paginateCatalogRows,
 } from "@/shared/lib/table/paginate-catalog-rows";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
+import {withCatalogAvailabilityLabel} from "@/shared/lib/branch-catalog-availability";
 import {SystemAlert} from "@/shared/system-alert";
 
 export function DepartmentListClient() {
     const {startEdit} = useCrudScreen();
+    const {branches} = useActiveBranch();
     const queryClient = useQueryClient();
     const {activateMutation, deactivateMutation, handleActivate, handleDeactivate} = useCrudStatusActions({
         service: departmentService,
@@ -43,12 +46,12 @@ export function DepartmentListClient() {
     };
 
     return (
-        <QueryPagedTablePanel<Department>
+        <QueryPagedTablePanel<Department & {availabilityLabel: string}>
             queryKey={departmentKeys.all}
             initialFilters={CATALOG_STATUS_INITIAL_FILTERS}
             request={async (page, size, filters) => {
                 const rows = await loadActiveAndInactiveRows((options) => departmentService.getAll(options));
-                return paginateCatalogRows(rows, page, size, filters);
+                return paginateCatalogRows(withCatalogAvailabilityLabel(rows, branches), page, size, filters);
             }}
             columns={DEPARTMENT_TABLE_COLUMNS}
             rowKey="id"

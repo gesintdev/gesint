@@ -21,8 +21,11 @@ public class JobPositionRequestDto {
 
     private UUID departmentId;
 
-    /** Quando true, o registro vale em todas as filiais ({@code company_id} nulo). */
+    /** Quando true, o registro vale em todas as filiais ({@code company_id} nulo). Legado — preferir {@link #companyId}. */
     private Boolean sharedAcrossBranches;
+
+    /** Filial do cadastro; nulo = disponivel em todas as filiais (Total). */
+    private UUID companyId;
 
     @NotBlank @Size(max = 120) private String title;
 

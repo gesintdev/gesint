@@ -6,13 +6,13 @@ export function jobpositionToFormDto(entity: JobPosition): JobPositionCreateDto 
         cboCode: entity.cboCode ?? "",
         departmentId: entity.departmentId ?? "",
         nature: entity.nature ?? undefined,
-        sharedAcrossBranches: entity.sharedAcrossBranches ?? false,
+        companyId: entity.companyId ?? null,
     };
 }
 
-export const emptyJobPositionForm = (): JobPositionCreateDto => ({
+export const emptyJobPositionForm = (defaultCompanyId?: string | null): JobPositionCreateDto => ({
     title: "",
-    sharedAcrossBranches: false,
+    companyId: defaultCompanyId ?? null,
     cboCode: "",
     departmentId: "",
     nature: undefined,

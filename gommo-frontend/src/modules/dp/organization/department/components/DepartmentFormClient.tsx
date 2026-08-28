@@ -21,6 +21,7 @@ import {InputCurrency, InputPhone, InputString} from "@/shared/components/ui/inp
 import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {useBranchScopedDetailQuery} from "@/shared/hooks/useBranchScopedDetailQuery";
+import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
 
 const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Departamento"}];
 
@@ -50,8 +51,9 @@ function DescriptionTextarea({label, value, onValueChange, wrapperClassName}: De
 
 export function DepartmentFormClient() {
     const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const {activeBranchId} = useActiveBranch();
     const queryClient = useQueryClient();
-    const [form, setForm] = useState<DepartmentCreateDto>(emptyDepartmentForm);
+    const [form, setForm] = useState<DepartmentCreateDto>(() => emptyDepartmentForm(activeBranchId));
     const [error, setError] = useState<string | null>(null);
     const detailQuery = useBranchScopedDetailQuery(
         departmentKeys.detail(editingId ?? ""),
@@ -61,7 +63,7 @@ export function DepartmentFormClient() {
 
     useEffect(() => {
         if (!isEditing) {
-            setForm(emptyDepartmentForm());
+            setForm(emptyDepartmentForm(activeBranchId));
             setError(null);
             return;
         }
@@ -70,7 +72,7 @@ export function DepartmentFormClient() {
             setForm(departmentToFormDto(detailQuery.data));
             setError(null);
         }
-    }, [isEditing, detailQuery.data]);
+    }, [isEditing, detailQuery.data, activeBranchId]);
 
     const saveMutation = useMutation({
         mutationFn: async (dto: DepartmentCreateDto) => {
@@ -81,7 +83,7 @@ export function DepartmentFormClient() {
             await queryClient.invalidateQueries({queryKey: departmentKeys.all});
             if (editingId) await queryClient.invalidateQueries({queryKey: departmentKeys.detail(editingId)});
             toast.success(isEditing ? "Departamento atualizado(a)" : "Departamento cadastrado(a)");
-            setForm(emptyDepartmentForm());
+            setForm(emptyDepartmentForm(activeBranchId));
             goToList();
         },
         onError: (err: unknown) => {
@@ -152,8 +154,8 @@ export function DepartmentFormClient() {
         >
             <FormSection id="cadastro" title="Departamento">
                 <BranchRecordScopeField
-                    sharedAcrossBranches={form.sharedAcrossBranches ?? false}
-                    onChange={(sharedAcrossBranches) => update("sharedAcrossBranches", sharedAcrossBranches)}
+                    companyId={form.companyId}
+                    onChange={(companyId) => update("companyId", companyId)}
                 />
                 <InputString
                     label="Nome"

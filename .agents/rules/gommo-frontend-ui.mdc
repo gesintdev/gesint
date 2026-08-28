@@ -36,7 +36,7 @@ O header `X-Branch-Id` filtra listagens e detalhes no backend. No frontend, **to
 1. A aba de listagem do módulo (`{routeId}::list`) **permanece montada** ao trocar de filial (mesmo `tab.id`). O `CrudScreen` já chama `goToList()` em `useLayoutEffect` quando `activeBranchId` muda — **não confiar** que o componente desmonta sozinho.
 2. Ao implementar novo `*FormClient` com edição, usar `useBranchScopedDetailQuery` e tratar `isError` (registro inexistente na filial) com `goToList()` ou mensagem + botão voltar.
 3. `ActiveBranchContext` limpa `?edit=` e `?new=` da URL ao trocar filial — não reintroduzir esses params sem sincronizar com o workspace.
-4. Campos de escopo compartilhado/exclusivo: reutilizar `BranchRecordScopeField` + DTO `sharedAcrossBranches`.
+4. Campos de escopo compartilhado/exclusivo: reutilizar `BranchRecordScopeField` + DTO `companyId` (nulo = Total).
 
 ### Referência
 

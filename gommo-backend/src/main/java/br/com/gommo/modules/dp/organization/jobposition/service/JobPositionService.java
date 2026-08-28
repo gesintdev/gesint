@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
+import br.com.gommo.core.branch.BranchCatalogScopeApplier;
 import br.com.gommo.core.branch.BranchCatalogScopes;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.util.TextSearchUtils;
@@ -33,15 +34,18 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
     private final JobPositionRepository repository;
     private final JobPositionMapper mapper;
     private final ISearchDocumentIndexer searchDocumentIndexer;
+    private final BranchCatalogScopeApplier branchCatalogScopeApplier;
 
     public JobPositionService(
             JobPositionRepository repository,
             JobPositionMapper mapper,
-            ISearchDocumentIndexer searchDocumentIndexer) {
+            ISearchDocumentIndexer searchDocumentIndexer,
+            BranchCatalogScopeApplier branchCatalogScopeApplier) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.searchDocumentIndexer = searchDocumentIndexer;
+        this.branchCatalogScopeApplier = branchCatalogScopeApplier;
     }
 
     @Override
@@ -95,7 +99,8 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
     public JobPositionResponseDto create(JobPositionRequestDto request) {
         JobPosition entity = mapper.toEntity(request);
         entity.setStatus(StatusEnum.ACTIVE);
-        BranchCatalogScopes.apply(entity, request.getSharedAcrossBranches());
+        branchCatalogScopeApplier.apply(
+                entity, BranchCatalogScopes.resolveCompanyId(request.getCompanyId(), request.getSharedAcrossBranches()));
         JobPositionResponseDto created = mapper.toResponse(repository.save(entity));
         indexJobPosition(findEntity(created.getId()));
         return created;
@@ -107,7 +112,8 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
     public JobPositionResponseDto update(UUID id, JobPositionRequestDto request) {
         JobPosition entity = findEntity(id);
         mapper.updateEntity(entity, request);
-        BranchCatalogScopes.apply(entity, request.getSharedAcrossBranches());
+        branchCatalogScopeApplier.apply(
+                entity, BranchCatalogScopes.resolveCompanyId(request.getCompanyId(), request.getSharedAcrossBranches()));
         JobPositionResponseDto updated = mapper.toResponse(repository.save(entity));
         indexJobPosition(entity);
         return updated;

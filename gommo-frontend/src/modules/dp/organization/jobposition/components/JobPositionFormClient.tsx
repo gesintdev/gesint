@@ -24,13 +24,15 @@ import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputSelect, InputSelectAutocomplete, InputString} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {useBranchScopedDetailQuery} from "@/shared/hooks/useBranchScopedDetailQuery";
+import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
 
 const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Cargo"}];
 
 export function JobPositionFormClient() {
     const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const {activeBranchId} = useActiveBranch();
     const queryClient = useQueryClient();
-    const [form, setForm] = useState<JobPositionCreateDto>(emptyJobPositionForm);
+    const [form, setForm] = useState<JobPositionCreateDto>(() => emptyJobPositionForm(activeBranchId));
     const [cboLabel, setCboLabel] = useState("");
     const [error, setError] = useState<string | null>(null);
     const detailQuery = useBranchScopedDetailQuery(
@@ -41,7 +43,7 @@ export function JobPositionFormClient() {
 
     useEffect(() => {
         if (!isEditing) {
-            setForm(emptyJobPositionForm());
+            setForm(emptyJobPositionForm(activeBranchId));
             setCboLabel("");
             setError(null);
             return;
@@ -53,7 +55,7 @@ export function JobPositionFormClient() {
             setCboLabel(nextForm.cboCode ?? "");
             setError(null);
         }
-    }, [isEditing, detailQuery.data]);
+    }, [isEditing, detailQuery.data, activeBranchId]);
 
     useEffect(() => {
         const code = form.cboCode?.trim() ?? "";
@@ -81,7 +83,7 @@ export function JobPositionFormClient() {
             await queryClient.invalidateQueries({queryKey: jobpositionKeys.all});
             if (editingId) await queryClient.invalidateQueries({queryKey: jobpositionKeys.detail(editingId)});
             toast.success(isEditing ? "Cargo atualizado(a)" : "Cargo cadastrado(a)");
-            setForm(emptyJobPositionForm());
+            setForm(emptyJobPositionForm(activeBranchId));
             goToList();
         },
         onError: (err: unknown) => {
@@ -152,8 +154,8 @@ export function JobPositionFormClient() {
         >
             <FormSection id="cadastro" title="Cargo">
                 <BranchRecordScopeField
-                    sharedAcrossBranches={form.sharedAcrossBranches ?? false}
-                    onChange={(sharedAcrossBranches) => update("sharedAcrossBranches", sharedAcrossBranches)}
+                    companyId={form.companyId}
+                    onChange={(companyId) => update("companyId", companyId)}
                 />
                 <InputString
                     label="Título do cargo"
