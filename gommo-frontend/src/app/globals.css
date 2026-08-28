@@ -241,6 +241,7 @@
     --sidebar-nav-section-h: 1.25rem;
     /* Toolbar search/collapse e tabbar do workspace compartilham padding e altura */
     --sidebar-toolbar-pad-y: 0.5rem;
+    --workspace-toolbar-pad-x: 0.375rem;
     --sidebar-toolbar-h: calc(var(--sidebar-nav-item-h) + (var(--sidebar-toolbar-pad-y) * 2));
     --gommo-tab-height: var(--sidebar-nav-item-h);
     /* Inset do ícone: centro alinha com o toggle no collapse (painel = --sidebar-collapsed) */
@@ -2887,7 +2888,7 @@ button.gommo-workspace-tab.gommo-workspace-tab--drag-overlay.gommo-workspace-tab
     box-sizing: border-box;
     height: 100%;
     min-height: 100%;
-    padding: var(--sidebar-toolbar-pad-y) 0.375rem;
+    padding: var(--sidebar-toolbar-pad-y) var(--workspace-toolbar-pad-x);
 }
 
 .gommo-workspace-tab {

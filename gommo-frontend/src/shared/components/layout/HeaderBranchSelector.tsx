@@ -1,10 +1,51 @@
 "use client";
 
+import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 import { Building2, Check, ChevronDown } from "lucide-react";
 
 import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
+import type { Branch } from "@/shared/lib/branch";
+import { formatCnpj } from "@/shared/lib/table/format-cell-value";
+
+function formatBranchCnpj(cnpj?: string | null): string | null {
+    if (!cnpj?.trim()) {
+        return null;
+    }
+    const digits = cnpj.replace(/\D/g, "");
+    if (digits.length === 14) {
+        return formatCnpj(digits);
+    }
+    return cnpj.trim();
+}
+
+function BranchIcon({ className }: { className?: string }) {
+    return (
+        <Building2
+            className={clsx("size-4 shrink-0 text-primary", className)}
+            strokeWidth={2}
+        />
+    );
+}
+
+function BranchOptionText({ branch }: { branch: Branch }) {
+    const cnpj = formatBranchCnpj(branch.cnpj);
+
+    return (
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="block truncate text-[10px] font-semibold leading-none text-base-content">
+                {branch.name}
+            </span>
+            {cnpj ? (
+                <span className="block truncate text-[8px] leading-none text-base-content/50">
+                    CNPJ {cnpj}
+                </span>
+            ) : null}
+        </span>
+    );
+}
 
 /**
  * Seletor de filial do header.
@@ -44,61 +85,82 @@ export function HeaderBranchSelector() {
     }
 
     return (
-        <div ref={containerRef} className="relative shrink-0">
+        <>
+            <div ref={containerRef} className="relative w-max max-w-72 shrink-0">
             <button
                 type="button"
                 aria-haspopup="listbox"
                 aria-expanded={open}
                 aria-label="Filial ativa"
                 onClick={() => setOpen((value) => !value)}
-                className="gommo-btn gommo-btn--ghost flex w-72 max-w-full items-center gap-1.5 text-base-content/70"
+                className={clsx(
+                    "flex h-(--gommo-control-h) min-h-(--gommo-control-h) w-full max-w-72 items-center gap-2 rounded-[var(--gommo-control-radius)] border-0 bg-transparent px-3 text-start transition-colors",
+                    "hover:bg-base-content/7",
+                    open && "bg-base-content/7",
+                )}
             >
-                <Building2 className="size-4 shrink-0" strokeWidth={2} />
-                <span className="flex-1 truncate text-start text-[13px]">{activeBranch.name}</span>
-                <ChevronDown className="size-3.5 shrink-0 opacity-60" strokeWidth={2} />
+                <BranchIcon />
+                <span className="min-w-0 truncate text-[10px] font-semibold leading-none text-base-content">
+                    {activeBranch.name}
+                </span>
+                <ChevronDown
+                    className={clsx(
+                        "size-3.5 shrink-0 text-base-content/45 transition-transform",
+                        open && "rotate-180",
+                    )}
+                    strokeWidth={2}
+                />
             </button>
 
-            {open ? (
-                <div
-                    role="listbox"
-                    className="absolute start-0 top-[calc(100%+0.375rem)] z-40 max-h-80 w-full min-w-72 overflow-y-auto rounded-box border border-base-content/10 bg-base-100 py-1 shadow-lg"
-                >
-                    {branches.map((branch) => {
-                        const selected = branch.id === activeBranch.id;
-                        return (
-                            <button
-                                key={branch.id}
-                                type="button"
-                                role="option"
-                                aria-selected={selected}
-                                onClick={() => {
-                                    selectBranch(branch.id);
-                                    setOpen(false);
-                                }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-start hover:bg-base-content/5"
-                            >
-                                <Check
-                                    className={`size-4 shrink-0 ${selected ? "opacity-100" : "opacity-0"}`}
-                                    strokeWidth={2}
-                                />
-                                <span className="min-w-0 flex-1">
-                                    <span className="block truncate text-[13px]">{branch.name}</span>
-                                    {branch.cnpj ? (
-                                        <span className="block truncate text-[11px] text-base-content/50">
-                                            {branch.cnpj}
-                                        </span>
-                                    ) : null}
-                                </span>
-                                {branch.headquarters ? (
-                                    <span className="shrink-0 rounded-badge bg-base-content/10 px-1.5 py-0.5 text-[10px] uppercase text-base-content/60">
-                                        Matriz
-                                    </span>
-                                ) : null}
-                            </button>
-                        );
-                    })}
-                </div>
-            ) : null}
-        </div>
+            <AnimatePresence>
+                {open ? (
+                    <motion.div
+                        role="listbox"
+                        aria-label="Filiais"
+                        initial={{ opacity: 0, y: -5, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -5, scale: 0.97 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        className="surface-popover absolute start-0 z-50 mt-2 flex max-h-80 w-max min-w-full max-w-72 origin-top-left flex-col overflow-hidden p-1.5"
+                    >
+                        <div className="min-h-0 overflow-auto py-1">
+                            {branches.map((branch) => {
+                                const selected = branch.id === activeBranch.id;
+                                return (
+                                    <button
+                                        key={branch.id}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={selected}
+                                        onClick={() => {
+                                            selectBranch(branch.id);
+                                            setOpen(false);
+                                        }}
+                                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-start transition-colors hover:bg-base-200/60"
+                                    >
+                                        <BranchIcon />
+                                        <BranchOptionText branch={branch} />
+                                        <Check
+                                            className={clsx(
+                                                "size-3.5 shrink-0 text-primary",
+                                                selected ? "opacity-100" : "opacity-0",
+                                            )}
+                                            strokeWidth={2}
+                                        />
+                                        {branch.headquarters ? (
+                                            <span className="shrink-0 rounded-badge bg-base-content/10 px-1.5 py-0.5 text-[10px] uppercase text-base-content/60">
+                                                Matriz
+                                            </span>
+                                        ) : null}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                ) : null}
+            </AnimatePresence>
+            </div>
+            <div className="mx-0.5 hidden h-4 w-px shrink-0 bg-base-content/10 sm:block" aria-hidden />
+        </>
     );
 }
