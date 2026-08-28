@@ -232,27 +232,28 @@ export function ClientCadastro({
         }
     };
 
-    const ensureEnvConfigReady = () => {
+    const getReadyClient = (): Client | null => {
         if (!client?.id) {
             toast.error("Salve os dados básicos antes de configurar o ambiente.");
-            return false;
+            return null;
         }
         if (!envConfigReady || envForm.clientId !== client.id) {
             toast.error("Aguarde o carregamento da configuração de ambiente deste cliente.");
-            return false;
+            return null;
         }
-        return true;
+        return client;
     };
 
     const saveConfig = async () => {
-        if (!ensureEnvConfigReady()) {
+        const readyClient = getReadyClient();
+        if (!readyClient) {
             return;
         }
         setSaving(true);
         try {
-            const saved = await clientEnvironmentConfigService.upsertByClientId(client.id, {
+            const saved = await clientEnvironmentConfigService.upsertByClientId(readyClient.id, {
                 ...envForm,
-                clientId: client.id,
+                clientId: readyClient.id,
             });
             applyEnvConfig(saved);
             toast.success("Configuração do ambiente salva.");
@@ -264,17 +265,18 @@ export function ClientCadastro({
     };
 
     const testConnection = async () => {
-        if (!ensureEnvConfigReady()) {
+        const readyClient = getReadyClient();
+        if (!readyClient) {
             return;
         }
         setSaving(true);
         try {
-            const saved = await clientEnvironmentConfigService.upsertByClientId(client.id, {
+            const saved = await clientEnvironmentConfigService.upsertByClientId(readyClient.id, {
                 ...envForm,
-                clientId: client.id,
+                clientId: readyClient.id,
             });
             applyEnvConfig(saved);
-            const result = await clientService.testDatabaseConnection(client.id);
+            const result = await clientService.testDatabaseConnection(readyClient.id);
             if (result.success) {
                 toast.success(result.message);
             } else {
@@ -288,19 +290,20 @@ export function ClientCadastro({
     };
 
     const startProvisioning = async () => {
-        if (!ensureEnvConfigReady()) {
+        const readyClient = getReadyClient();
+        if (!readyClient) {
             return;
         }
         setSaving(true);
         try {
-            const saved = await clientEnvironmentConfigService.upsertByClientId(client.id, {
+            const saved = await clientEnvironmentConfigService.upsertByClientId(readyClient.id, {
                 ...envForm,
-                clientId: client.id,
+                clientId: readyClient.id,
             });
             applyEnvConfig(saved);
-            await clientService.startProvisioning(client.id);
-            await onSaved(client);
-            const config = await clientEnvironmentConfigService.getByClientId(client.id);
+            await clientService.startProvisioning(readyClient.id);
+            await onSaved(readyClient);
+            const config = await clientEnvironmentConfigService.getByClientId(readyClient.id);
             applyEnvConfig(config);
             if (config.provisioningStatus === "READY") {
                 toast.success("Tenant provisionado com sucesso.");
