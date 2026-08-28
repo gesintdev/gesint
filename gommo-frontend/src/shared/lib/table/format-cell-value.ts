@@ -160,9 +160,13 @@ const BADGE_LABELS: Record<string, string> = {
 };
 
 function formatBadgeLabel(value: unknown, labels?: Record<string, string>): string {
-    const key = String(value).toUpperCase();
+    const raw = String(value);
     const map = labels ?? BADGE_LABELS;
-    return map[key] ?? BADGE_LABELS[key] ?? String(value);
+    if (map !== BADGE_LABELS) {
+        return map[raw] ?? map[raw.toLowerCase()] ?? map[raw.toUpperCase()] ?? raw;
+    }
+    const key = raw.toUpperCase();
+    return map[key] ?? BADGE_LABELS[key] ?? raw;
 }
 
 export function formatBadgeCellValue(value: unknown, labels?: Record<string, string>): string {
