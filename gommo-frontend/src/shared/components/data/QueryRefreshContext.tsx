@@ -37,11 +37,17 @@ export function QueryRefreshHostProvider({ children }: { children: ReactNode }) 
     const publishTop = useCallback(() => {
         const ids = [...registrationsRef.current.keys()];
         if (ids.length === 0) {
-            setRefresh(null);
+            setRefresh((current) => (current == null ? current : null));
             return;
         }
         const topId = Math.max(...ids);
-        setRefresh(registrationsRef.current.get(topId) ?? null);
+        const next = registrationsRef.current.get(topId) ?? null;
+        setRefresh((current) => {
+            if (current?.isFetching === next?.isFetching && current?.refetch === next?.refetch) {
+                return current;
+            }
+            return next;
+        });
     }, []);
 
     const api = useMemo<QueryRefreshHostApi>(

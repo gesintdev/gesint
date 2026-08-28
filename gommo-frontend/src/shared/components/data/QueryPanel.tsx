@@ -98,14 +98,16 @@ function TableSkeleton() {
 }
 
 function useQueryPanelRefresh(query: Pick<UseQueryResult, "refetch" | "isFetching">) {
+    const refetchRef = useRef(query.refetch);
+    refetchRef.current = query.refetch;
     const refreshState = useMemo(
         () => ({
             refetch: () => {
-                void query.refetch();
+                void refetchRef.current();
             },
             isFetching: query.isFetching,
         }),
-        [query.isFetching, query.refetch],
+        [query.isFetching],
     );
     useRegisterQueryRefresh(refreshState);
 }
