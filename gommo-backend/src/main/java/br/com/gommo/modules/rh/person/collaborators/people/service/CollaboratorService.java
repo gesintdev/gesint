@@ -247,6 +247,7 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
         searchDocumentIndexer.upsert(
                 SearchDocumentType.PERSON,
                 collaborator.getId(),
+                collaborator.getCompanyId(),
                 displayName,
                 CollaboratorGlobalSearchProvider.formatCpfLabel(collaborator.getCpf()),
                 searchText,

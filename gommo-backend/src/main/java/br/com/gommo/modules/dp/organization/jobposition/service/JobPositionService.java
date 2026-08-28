@@ -152,6 +152,7 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
         searchDocumentIndexer.upsert(
                 SearchDocumentType.JOB_POSITION,
                 jobPosition.getId(),
+                jobPosition.getCompanyId(),
                 jobPosition.getTitle(),
                 subtitle,
                 searchText,

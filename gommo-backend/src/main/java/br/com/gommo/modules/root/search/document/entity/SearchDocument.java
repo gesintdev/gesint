@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
-import br.com.gommo.core.branch.BranchScopedEntity;
+import br.com.gommo.core.branch.BranchCatalogEntity;
 import br.com.gommo.modules.root.search.document.SearchDocumentType;
 
 @Entity
@@ -25,8 +25,8 @@ import br.com.gommo.modules.root.search.document.SearchDocumentType;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
-public class SearchDocument extends BranchScopedEntity {
+@Filter(name = BranchCatalogEntity.FILTER_NAME, condition = BranchCatalogEntity.FILTER_CONDITION)
+public class SearchDocument extends BranchCatalogEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "document_type", nullable = false, length = 40)

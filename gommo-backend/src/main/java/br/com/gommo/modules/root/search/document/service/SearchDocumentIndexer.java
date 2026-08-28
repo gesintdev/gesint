@@ -24,17 +24,19 @@ public class SearchDocumentIndexer implements ISearchDocumentIndexer {
     public void upsert(
             SearchDocumentType type,
             UUID entityId,
+            UUID companyId,
             String title,
             String subtitle,
             String searchText,
             String href) {
         SearchDocument document = repository
-                .findByDocumentTypeAndEntityId(type, entityId)
+                .findByDocumentTypeAndEntityIdUnscoped(type.name(), entityId)
                 .orElseGet(() -> SearchDocument.builder()
                         .documentType(type)
                         .entityId(entityId)
                         .status(StatusEnum.ACTIVE)
                         .build());
+        document.setCompanyId(companyId);
         document.setStatus(StatusEnum.ACTIVE);
         document.setTitle(title);
         document.setSubtitle(subtitle);
@@ -46,7 +48,7 @@ public class SearchDocumentIndexer implements ISearchDocumentIndexer {
     @Override
     @Transactional
     public void remove(SearchDocumentType type, UUID entityId) {
-        repository.findByDocumentTypeAndEntityId(type, entityId).ifPresent(document -> {
+        repository.findByDocumentTypeAndEntityIdUnscoped(type.name(), entityId).ifPresent(document -> {
             if (document.getStatus() == StatusEnum.DELETED) {
                 return;
             }

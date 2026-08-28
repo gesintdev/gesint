@@ -72,6 +72,7 @@ public class CollaboratorProfileService {
         searchDocumentIndexer.upsert(
                 SearchDocumentType.PERSON,
                 collaborator.getId(),
+                collaborator.getCompanyId(),
                 displayName,
                 CollaboratorGlobalSearchProvider.formatCpfLabel(collaborator.getCpf()),
                 searchText,

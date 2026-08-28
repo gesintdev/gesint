@@ -20,6 +20,23 @@ public interface SearchDocumentRepository extends IBaseRepository<SearchDocument
     Optional<SearchDocument> findByDocumentTypeAndEntityId(
             SearchDocumentType documentType, UUID entityId);
 
+    /**
+     * Indice e unico por {@code (document_type, entity_id)}: busca sem filtro Hibernate de filial.
+     * Sem isso, ao mudar o escopo do cadastro (ex.: cargo de filial para todas as filiais) a linha
+     * antiga some do filtro e o indexer tenta inserir outra, violando {@code search_document_code_key}.
+     */
+    @Query(
+            value =
+                    """
+                    SELECT * FROM search_document
+                    WHERE document_type = CAST(:documentType AS VARCHAR)
+                      AND entity_id = :entityId
+                    LIMIT 1
+                    """,
+            nativeQuery = true)
+    Optional<SearchDocument> findByDocumentTypeAndEntityIdUnscoped(
+            @Param("documentType") String documentType, @Param("entityId") UUID entityId);
+
     Optional<SearchDocument> findByDocumentTypeAndEntityIdAndStatusNot(
             SearchDocumentType documentType, UUID entityId, StatusEnum status);
 

@@ -45,7 +45,6 @@ public final class BranchScopedTables {
             "payslip",
             "payslip_entry",
             "performance_review",
-            "search_document",
             "storage_object",
             "storage_object_link",
             "system_notification",

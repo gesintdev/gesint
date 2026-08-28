@@ -252,6 +252,7 @@ public class AdmissionProcessService
         searchDocumentIndexer.upsert(
                 SearchDocumentType.ADMISSION,
                 admission.getId(),
+                admission.getCompanyId(),
                 displayName,
                 AdmissionGlobalSearchProvider.subtitle(admission),
                 searchText,

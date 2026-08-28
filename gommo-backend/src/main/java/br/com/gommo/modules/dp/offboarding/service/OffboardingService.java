@@ -223,6 +223,7 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
             searchDocumentIndexer.upsert(
                 SearchDocumentType.PERSON,
                 collaborator.getId(),
+                collaborator.getCompanyId(),
                 displayName,
                 CollaboratorGlobalSearchProvider.formatCpfLabel(collaborator.getCpf()),
                 searchText,

@@ -145,6 +145,7 @@ public class DepartmentService extends BaseService<Department, DepartmentRequest
         searchDocumentIndexer.upsert(
                 SearchDocumentType.DEPARTMENT,
                 department.getId(),
+                department.getCompanyId(),
                 department.getName(),
                 department.getCostCenter(),
                 searchText,
