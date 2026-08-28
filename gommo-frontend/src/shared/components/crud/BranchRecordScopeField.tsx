@@ -1,8 +1,6 @@
 "use client";
 
-import { useContext } from "react";
-
-import { ActiveBranchContext } from "@/shared/context/ActiveBranchContext";
+import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
 import { InputSelect } from "@/shared/components/ui/input/index";
 
 const BRANCH_SCOPE_ITEMS = [
@@ -25,8 +23,7 @@ export function BranchRecordScopeField({
     onChange,
     wrapperClassName = "sm:col-span-12",
 }: BranchRecordScopeFieldProps) {
-    const branchContext = useContext(ActiveBranchContext);
-    const branches = branchContext?.branches ?? [];
+    const {branches} = useActiveBranch();
 
     if (branches.length <= 1) {
         return null;
