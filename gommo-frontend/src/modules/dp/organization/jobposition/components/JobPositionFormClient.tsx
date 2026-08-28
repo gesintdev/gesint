@@ -80,11 +80,14 @@ export function JobPositionFormClient() {
             return jobpositionService.create(dto);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: jobpositionKeys.all});
-            if (editingId) await queryClient.invalidateQueries({queryKey: jobpositionKeys.detail(editingId)});
+            const savedEditingId = editingId;
+            goToList();
             toast.success(isEditing ? "Cargo atualizado(a)" : "Cargo cadastrado(a)");
             setForm(emptyJobPositionForm(activeBranchId));
-            goToList();
+            await queryClient.invalidateQueries({queryKey: jobpositionKeys.all});
+            if (savedEditingId) {
+                queryClient.removeQueries({queryKey: jobpositionKeys.detail(savedEditingId)});
+            }
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {
@@ -112,7 +115,7 @@ export function JobPositionFormClient() {
         );
     }
 
-    if (isEditing && detailQuery.isError) {
+    if (isEditing && detailQuery.isError && !saveMutation.isPending) {
         return (
             <div className="p-5">
                 <p className="text-sm font-medium text-error">

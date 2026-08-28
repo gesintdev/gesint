@@ -80,11 +80,14 @@ export function DepartmentFormClient() {
             return departmentService.create(dto);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: departmentKeys.all});
-            if (editingId) await queryClient.invalidateQueries({queryKey: departmentKeys.detail(editingId)});
+            const savedEditingId = editingId;
+            goToList();
             toast.success(isEditing ? "Departamento atualizado(a)" : "Departamento cadastrado(a)");
             setForm(emptyDepartmentForm(activeBranchId));
-            goToList();
+            await queryClient.invalidateQueries({queryKey: departmentKeys.all});
+            if (savedEditingId) {
+                queryClient.removeQueries({queryKey: departmentKeys.detail(savedEditingId)});
+            }
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {
@@ -112,7 +115,7 @@ export function DepartmentFormClient() {
         );
     }
 
-    if (isEditing && detailQuery.isError) {
+    if (isEditing && detailQuery.isError && !saveMutation.isPending) {
         return (
             <div className="p-5">
                 <p className="text-sm font-medium text-error">
