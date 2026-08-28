@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import br.com.gommo.admin.core.entity.StatusEnum;
@@ -49,7 +48,6 @@ public class TenantBranchProvisioner {
         this.clientRepository = clientRepository;
     }
 
-    @Transactional
     public void syncBranches(UUID clientId, ClientEnvironmentConfig config) {
         if (config == null
                 || config.getDatabaseStrategy() != TenantDatabaseStrategyEnum.DEDICATED_SCHEMA
@@ -87,7 +85,6 @@ public class TenantBranchProvisioner {
     }
 
     /** Remove a company do tenant quando a filial e excluida no admin, preservando o historico. */
-    @Transactional
     public void deactivateCompany(ClientEnvironmentConfig config, UUID tenantCompanyId) {
         if (config == null || tenantCompanyId == null || !StringUtils.hasText(config.getDatabaseSchema())) {
             return;

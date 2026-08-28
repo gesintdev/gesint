@@ -1,5 +1,7 @@
 package br.com.gommo.admin.modules.client.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -9,6 +11,8 @@ import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironme
 
 @Component
 public class TenantDatabaseDefaultsApplier {
+
+    private static final Logger log = LoggerFactory.getLogger(TenantDatabaseDefaultsApplier.class);
 
     private static final String DEFAULT_SECRET_REF = "DB_PASSWORD";
     private static final int MAX_SCHEMA_LENGTH = 63;
@@ -28,9 +32,17 @@ public class TenantDatabaseDefaultsApplier {
             entity.setSubdomain(slug.trim());
         }
 
+        String expectedSchema = TenantSchemaProvisioner.defaultSchemaForSlug(slug);
         String normalizedSchema = normalizeSchema(entity.getDatabaseSchema());
         if (!StringUtils.hasText(normalizedSchema) || "public".equalsIgnoreCase(normalizedSchema)) {
-            entity.setDatabaseSchema(TenantSchemaProvisioner.defaultSchemaForSlug(slug));
+            entity.setDatabaseSchema(expectedSchema);
+        } else if (!normalizedSchema.equals(expectedSchema)) {
+            log.warn(
+                    "Schema {} diverge do slug {} (esperado {}). Corrigindo para evitar apontar o tenant errado.",
+                    normalizedSchema,
+                    slug,
+                    expectedSchema);
+            entity.setDatabaseSchema(expectedSchema);
         } else {
             entity.setDatabaseSchema(normalizedSchema);
         }

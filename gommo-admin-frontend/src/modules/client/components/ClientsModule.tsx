@@ -153,6 +153,12 @@ export function ClientsModule() {
         });
     };
 
+    const formClient =
+        view === "form" && recordId && recordId !== "new"
+            ? clients.find((client) => client.id === recordId) ??
+              (selectedClient?.id === recordId ? selectedClient : null)
+            : null;
+
     const handleSaved = async (client: Client) => {
         await loadClients();
         setSelectedClient(client);
@@ -253,17 +259,16 @@ export function ClientsModule() {
                             onChange={setPage}
                         />
                     </>
-                ) : (
+                ) : recordId === "new" ? (
                     <ClientCadastro
-                        key={recordId || "new"}
-                        client={selectedClient}
-                        isNew={recordId === "new"}
+                        key="new"
+                        client={null}
+                        isNew
                         subTab={subTab}
                         onSubTabChange={(next) => {
-                            if (!recordId) return;
-                            navigate(clientsFormPath(recordId, next), {
+                            navigate(clientsFormPath("new", next), {
                                 view: "form",
-                                recordId,
+                                recordId: "new",
                                 subTab: next,
                             });
                         }}
@@ -277,6 +282,30 @@ export function ClientsModule() {
                         }
                         defaultSlugHint={slugFromName}
                     />
+                ) : formClient ? (
+                    <ClientCadastro
+                        key={formClient.id}
+                        client={formClient}
+                        subTab={subTab}
+                        onSubTabChange={(next) => {
+                            navigate(clientsFormPath(formClient.id, next), {
+                                view: "form",
+                                recordId: formClient.id,
+                                subTab: next,
+                            });
+                        }}
+                        onSaved={handleSaved}
+                        onCancel={() =>
+                            navigate(clientsListPath(), {
+                                view: "list",
+                                recordId: "",
+                                subTab: "basics",
+                            })
+                        }
+                        defaultSlugHint={slugFromName}
+                    />
+                ) : (
+                    <div style={{ fontSize: 13, color: "var(--ga-text-muted)" }}>Carregando cliente...</div>
                 )}
             </div>
         </div>

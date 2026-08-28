@@ -24,6 +24,24 @@ import { digitsOnly } from "@/shared/lib/input/digits";
 import { isValidCnpj, maskCnpj } from "@/shared/lib/input/cnpj";
 import { CLIENT_SUB_TABS, type ClientSubTabKey } from "@/shared/routing/admin-nav";
 
+function emptyEnvForm(clientId = ""): ClientEnvironmentConfigUpsertDto {
+    return {
+        clientId,
+        routingMode: "SUBDOMAIN",
+        subdomain: "",
+        customDomain: "",
+        databaseStrategy: "DEDICATED_SCHEMA",
+        databaseHost: "localhost",
+        databasePort: 5432,
+        databaseName: "gommo",
+        databaseSchema: "",
+        databaseUser: "gommo",
+        databaseSecretRef: "DB_PASSWORD",
+        provisioningStatus: "PENDING",
+        provisioningNotes: "",
+    };
+}
+
 export function ClientCadastro({
     client,
     isNew = false,
@@ -42,21 +60,8 @@ export function ClientCadastro({
     defaultSlugHint: (name: string) => string;
 }) {
     const [form, setForm] = useState<ClientCreateDto>(emptyClientForm());
-    const [envForm, setEnvForm] = useState<ClientEnvironmentConfigUpsertDto>({
-        clientId: client?.id ?? "",
-        routingMode: "SUBDOMAIN",
-        subdomain: "",
-        customDomain: "",
-        databaseStrategy: "DEDICATED_SCHEMA",
-        databaseHost: "localhost",
-        databasePort: 5432,
-        databaseName: "gommo",
-        databaseSchema: "",
-        databaseUser: "gommo",
-        databaseSecretRef: "DB_PASSWORD",
-        provisioningStatus: "PENDING",
-        provisioningNotes: "",
-    });
+    const [envForm, setEnvForm] = useState<ClientEnvironmentConfigUpsertDto>(() => emptyEnvForm(client?.id));
+    const [envConfigReady, setEnvConfigReady] = useState(false);
     const [saving, setSaving] = useState(false);
     const [lookingUpCnpj, setLookingUpCnpj] = useState(false);
     const [cnpjNotFoundOpen, setCnpjNotFoundOpen] = useState(false);
@@ -84,20 +89,44 @@ export function ClientCadastro({
     };
 
     useEffect(() => {
-        if (client) {
-            setForm(clientToFormDto(client));
-            lastLookupRef.current = digitsOnly(client.document ?? "");
-            void clientEnvironmentConfigService
-                .getByClientId(client.id)
-                .then((config) => applyEnvConfig(config, client.id))
-                .catch(() => {
-                    /* config created on client create; ignore load race */
-                });
-        } else {
+        if (!client) {
             setForm(emptyClientForm());
             lastLookupRef.current = "";
+            return;
         }
+        setForm(clientToFormDto(client));
+        lastLookupRef.current = digitsOnly(client.document ?? "");
     }, [client]);
+
+    useEffect(() => {
+        if (!client?.id) {
+            setEnvForm(emptyEnvForm());
+            setEnvConfigReady(false);
+            return;
+        }
+
+        const clientId = client.id;
+        setEnvForm(emptyEnvForm(clientId));
+        setEnvConfigReady(false);
+
+        let cancelled = false;
+        void clientEnvironmentConfigService
+            .getByClientId(clientId)
+            .then((config) => {
+                if (cancelled) return;
+                applyEnvConfig(config, clientId);
+                setEnvConfigReady(true);
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setEnvConfigReady(true);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [client?.id]);
 
     const updateForm = <K extends keyof ClientCreateDto>(key: K, value: ClientCreateDto[K]) => {
         setForm((prev) => {
@@ -203,9 +232,20 @@ export function ClientCadastro({
         }
     };
 
-    const saveConfig = async () => {
-        if (!client) {
+    const ensureEnvConfigReady = () => {
+        if (!client?.id) {
             toast.error("Salve os dados básicos antes de configurar o ambiente.");
+            return false;
+        }
+        if (!envConfigReady || envForm.clientId !== client.id) {
+            toast.error("Aguarde o carregamento da configuração de ambiente deste cliente.");
+            return false;
+        }
+        return true;
+    };
+
+    const saveConfig = async () => {
+        if (!ensureEnvConfigReady()) {
             return;
         }
         setSaving(true);
@@ -224,7 +264,9 @@ export function ClientCadastro({
     };
 
     const testConnection = async () => {
-        if (!client) return;
+        if (!ensureEnvConfigReady()) {
+            return;
+        }
         setSaving(true);
         try {
             const saved = await clientEnvironmentConfigService.upsertByClientId(client.id, {
@@ -246,7 +288,9 @@ export function ClientCadastro({
     };
 
     const startProvisioning = async () => {
-        if (!client) return;
+        if (!ensureEnvConfigReady()) {
+            return;
+        }
         setSaving(true);
         try {
             const saved = await clientEnvironmentConfigService.upsertByClientId(client.id, {
@@ -377,6 +421,10 @@ export function ClientCadastro({
                         <div style={{ fontSize: 13, color: "var(--ga-text-muted)" }}>
                             Salve os dados básicos para configurar o ambiente.
                         </div>
+                    ) : !envConfigReady ? (
+                        <div style={{ fontSize: 13, color: "var(--ga-text-muted)" }}>
+                            Carregando configuração de ambiente...
+                        </div>
                     ) : (
                         <>
                             <AdminSection title="Roteamento">
@@ -477,14 +525,22 @@ export function ClientCadastro({
                             </AdminSection>
 
                             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                                <AdminBtn onClick={() => void saveConfig()} disabled={saving}>
+                                <AdminBtn onClick={() => void saveConfig()} disabled={saving || !envConfigReady}>
                                     Salvar Configurações
                                 </AdminBtn>
-                                <AdminBtn variant="secondary" onClick={() => void testConnection()} disabled={saving}>
+                                <AdminBtn
+                                    variant="secondary"
+                                    onClick={() => void testConnection()}
+                                    disabled={saving || !envConfigReady}
+                                >
                                     Testar Conexão
                                 </AdminBtn>
                                 <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                                    <AdminBtn variant="secondary" onClick={() => void startProvisioning()} disabled={saving}>
+                                    <AdminBtn
+                                        variant="secondary"
+                                        onClick={() => void startProvisioning()}
+                                        disabled={saving || !envConfigReady}
+                                    >
                                         Provisionar
                                     </AdminBtn>
                                     <AdminHelpTip
