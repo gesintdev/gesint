@@ -190,8 +190,8 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                 .stream()
                 .collect(Collectors.groupingBy(AdmissionStep::getAdmissionId));
 
-        Map<UUID, EsocialEvent> admissionEventByAdmission = esocialEventRepository
-                .findByAdmissionIdInAndStatusNot(admissionIds, StatusEnum.DELETED)
+        Map<UUID, EsocialEvent> admissionEventByAdmission = alignEsocialBranchScope(
+                        esocialEventRepository.findActiveByAdmissionIdInUnscoped(admissionIds), companyIdByAdmission)
                 .stream()
                 .filter(event -> event.getEventType() == EsocialEventTypeEnum.S_2200)
                 .collect(Collectors.toMap(EsocialEvent::getAdmissionId, Function.identity(), (first, second) -> first));
@@ -411,6 +411,28 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             stepRepository.saveAll(toAlign);
         }
         return steps;
+    }
+
+    private List<EsocialEvent> alignEsocialBranchScope(
+            List<EsocialEvent> events, Map<UUID, UUID> companyIdByAdmission) {
+        if (events.isEmpty()) {
+            return events;
+        }
+        List<EsocialEvent> toAlign = new ArrayList<>();
+        for (EsocialEvent event : events) {
+            if (event.getAdmissionId() == null) {
+                continue;
+            }
+            UUID expectedCompanyId = companyIdByAdmission.get(event.getAdmissionId());
+            if (expectedCompanyId != null && !expectedCompanyId.equals(event.getCompanyId())) {
+                event.setCompanyId(expectedCompanyId);
+                toAlign.add(event);
+            }
+        }
+        if (!toAlign.isEmpty()) {
+            esocialEventRepository.saveAll(toAlign);
+        }
+        return events;
     }
 
     private void collectPersistence(

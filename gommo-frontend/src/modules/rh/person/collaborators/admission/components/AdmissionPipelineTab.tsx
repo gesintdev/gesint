@@ -16,6 +16,7 @@ import { admissionPipelineService } from "@/modules/rh/person/collaborators/admi
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { ExceptionCapture } from "@/shared/exceptions";
+import { useBranchScopedQueryKey } from "@/shared/hooks/useBranchScopedQueryKey";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -23,18 +24,40 @@ export function AdmissionPipelineTab() {
     const { startCreate, startEdit } = useCrudScreen();
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(DEFAULT_PAGE_SIZE);
+    const summaryQueryKey = useBranchScopedQueryKey([...admissionprocessKeys.all, "pipeline", "summary"]);
+    const pageQueryKey = useBranchScopedQueryKey([
+        ...admissionprocessKeys.all,
+        "pipeline",
+        "page",
+        page,
+        size,
+    ]);
 
     const summaryQuery = useQuery({
-        queryKey: [...admissionprocessKeys.all, "pipeline", "summary"],
+        queryKey: summaryQueryKey,
         queryFn: () => admissionPipelineService.summary(),
     });
     const pageQuery = useQuery({
-        queryKey: [...admissionprocessKeys.all, "pipeline", "page", page, size],
+        queryKey: pageQueryKey,
         queryFn: () => admissionPipelineService.getPage(page, size),
-        placeholderData: (previous) => previous,
     });
 
     const error = summaryQuery.error ?? pageQuery.error;
+    const loading = summaryQuery.isPending || pageQuery.isPending;
+
+    if (loading) {
+        return (
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                    {Array.from({length: 5}).map((_, index) => (
+                        <div key={index} className="skeleton-shimmer h-[104px] rounded-xl" />
+                    ))}
+                </div>
+                <div className="skeleton-shimmer h-64 w-full rounded-xl" />
+            </div>
+        );
+    }
+
     if (error) {
         return (
             <p className="px-4 py-6 text-sm text-error">

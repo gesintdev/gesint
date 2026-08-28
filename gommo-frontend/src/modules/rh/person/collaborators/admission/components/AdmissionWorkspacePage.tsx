@@ -16,6 +16,7 @@ import {
 } from "@/shared/components/crud/CrudScreen";
 import { TabbedCrudPage } from "@/shared/components/layout/TabbedCrudPage";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
+import { useBranchScopedDetailQuery } from "@/shared/hooks/useBranchScopedDetailQuery";
 
 const List = lazy(() =>
     import("@/modules/rh/person/collaborators/admission/components/AdmissionProcessListClient").then((m) => ({
@@ -47,11 +48,11 @@ function AdmissionHistoryExtraTabsController() {
     const { editingId } = useCrudScreen();
     const { activeSystem } = useActiveSystem();
 
-    const admissionQuery = useQuery({
-        queryKey: admissionprocessKeys.detail(editingId ?? ""),
-        queryFn: () => admissionprocessService.getById(editingId!),
-        enabled: Boolean(editingId),
-    });
+    const admissionQuery = useBranchScopedDetailQuery(
+        admissionprocessKeys.detail(editingId ?? ""),
+        () => admissionprocessService.getById(editingId!),
+        {enabled: Boolean(editingId)},
+    );
     const collaboratorId = admissionQuery.data?.collaboratorId;
 
     const historyPresenceQuery = useQuery({
