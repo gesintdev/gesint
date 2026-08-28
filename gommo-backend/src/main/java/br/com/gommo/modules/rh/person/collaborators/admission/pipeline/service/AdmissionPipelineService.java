@@ -133,11 +133,15 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
         if (admissionId == null) {
             return;
         }
+        AdmissionProcess admission = admissionRepository.findById(admissionId).orElse(null);
+        if (admission == null) {
+            return;
+        }
+        List<AdmissionStep> steps = alignStepBranchScope(
+                stepRepository.findActiveByAdmissionIdUnscoped(admissionId),
+                Map.of(admissionId, admission.getCompanyId()));
         Set<AdmissionStepKeyEnum> existing =
-                stepRepository.findByAdmissionIdAndStatusNotOrderByDisplayOrderAsc(admissionId, StatusEnum.DELETED)
-                        .stream()
-                        .map(AdmissionStep::getStepKey)
-                        .collect(Collectors.toSet());
+                steps.stream().map(AdmissionStep::getStepKey).collect(Collectors.toSet());
         List<AdmissionStep> missing = new ArrayList<>();
         for (AdmissionStepKeyEnum key : AdmissionStepKeyEnum.values()) {
             if (existing.contains(key)) {
@@ -146,6 +150,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             missing.add(AdmissionStep.builder()
                     .status(StatusEnum.ACTIVE)
                     .admissionId(admissionId)
+                    .companyId(admission.getCompanyId())
                     .stepKey(key)
                     .stepStatus(AdmissionStepStatusEnum.PENDING)
                     .displayOrder(key.getDisplayOrder())
@@ -178,9 +183,12 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                 .stream()
                 .collect(Collectors.groupingBy(StorageObjectLink::getEntityId));
 
-        Map<UUID, List<AdmissionStep>> stepsByAdmission =
-                stepRepository.findByAdmissionIdInAndStatusNot(admissionIds, StatusEnum.DELETED).stream()
-                        .collect(Collectors.groupingBy(AdmissionStep::getAdmissionId));
+        Map<UUID, UUID> companyIdByAdmission = admissions.stream()
+                .collect(Collectors.toMap(AdmissionProcess::getId, AdmissionProcess::getCompanyId, (first, second) -> first));
+        Map<UUID, List<AdmissionStep>> stepsByAdmission = alignStepBranchScope(
+                        stepRepository.findActiveByAdmissionIdInUnscoped(admissionIds), companyIdByAdmission)
+                .stream()
+                .collect(Collectors.groupingBy(AdmissionStep::getAdmissionId));
 
         Map<UUID, EsocialEvent> admissionEventByAdmission = esocialEventRepository
                 .findByAdmissionIdInAndStatusNot(admissionIds, StatusEnum.DELETED)
@@ -217,7 +225,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                     resolveStepStatuses(admission, persisted, documents, exam, event, today);
             Map<AdmissionStepKeyEnum, LocalDate> dueDates = resolveDueDates(admission);
 
-            collectPersistence(admission.getId(), persisted, statuses, dueDates, toPersist);
+            collectPersistence(admission.getId(), admission.getCompanyId(), persisted, statuses, dueDates, toPersist);
 
             AdmissionPipelineRowDto row = buildRow(
                     admission, departmentNames, documents, exam, statuses, dueDates, persisted, today);
@@ -386,8 +394,28 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
         return previousStepDone ? AdmissionStepStatusEnum.IN_PROGRESS : AdmissionStepStatusEnum.PENDING;
     }
 
+    private List<AdmissionStep> alignStepBranchScope(
+            List<AdmissionStep> steps, Map<UUID, UUID> companyIdByAdmission) {
+        if (steps.isEmpty()) {
+            return steps;
+        }
+        List<AdmissionStep> toAlign = new ArrayList<>();
+        for (AdmissionStep step : steps) {
+            UUID expectedCompanyId = companyIdByAdmission.get(step.getAdmissionId());
+            if (expectedCompanyId != null && !expectedCompanyId.equals(step.getCompanyId())) {
+                step.setCompanyId(expectedCompanyId);
+                toAlign.add(step);
+            }
+        }
+        if (!toAlign.isEmpty()) {
+            stepRepository.saveAll(toAlign);
+        }
+        return steps;
+    }
+
     private void collectPersistence(
             UUID admissionId,
+            UUID companyId,
             Map<AdmissionStepKeyEnum, AdmissionStep> persisted,
             Map<AdmissionStepKeyEnum, AdmissionStepStatusEnum> statuses,
             Map<AdmissionStepKeyEnum, LocalDate> dueDates,
@@ -400,6 +428,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                 target.add(AdmissionStep.builder()
                         .status(StatusEnum.ACTIVE)
                         .admissionId(admissionId)
+                        .companyId(companyId)
                         .stepKey(key)
                         .stepStatus(resolved)
                         .displayOrder(key.getDisplayOrder())
