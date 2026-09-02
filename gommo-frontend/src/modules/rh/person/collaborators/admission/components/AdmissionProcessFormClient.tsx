@@ -65,7 +65,7 @@ import {digitsOnly} from "@/shared/lib/input/digits";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 export function AdmissionProcessFormClient() {
-    const {editingId, isEditing, returnToList, startEdit} = useCrudScreen();
+    const {editingId, isEditing, goToList, returnToList, startCreate, startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessCreateDto>(emptyAdmissionProcessForm);
     const [error, setError] = useState<string | null>(null);

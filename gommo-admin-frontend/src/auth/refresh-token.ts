@@ -1,9 +1,9 @@
 import type { JWT } from "next-auth/jwt";
 
 import { doRequest } from "@/shared/lib/api.client";
+import { ACCESS_TOKEN_REFRESH_BUFFER_MS } from "@/auth/token-timing";
 
-/** Renova o access token ~60s antes de expirar */
-export const ACCESS_TOKEN_REFRESH_BUFFER_MS = 60_000;
+export { ACCESS_TOKEN_REFRESH_BUFFER_MS } from "@/auth/token-timing";
 const REFRESH_FAILURE_RETRY_DELAY_MS = 15_000;
 
 type TokenResponse = {

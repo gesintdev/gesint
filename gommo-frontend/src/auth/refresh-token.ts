@@ -1,13 +1,13 @@
 import type { JWT } from "next-auth/jwt";
 
 import { canPersistSessionCookie } from "@/auth/session-write-context";
+import { ACCESS_TOKEN_REFRESH_BUFFER_MS } from "@/auth/token-timing";
 import { isSessionDeadCode } from "@/shared/auth/session-dead-codes";
 import { AppException } from "@/shared/exceptions/app.exception";
 import { serverApiPost, toErrorPayload } from "@/shared/lib/server-api";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 
-/** Renova o access token ~60s antes de expirar */
-export const ACCESS_TOKEN_REFRESH_BUFFER_MS = 60_000;
+export { ACCESS_TOKEN_REFRESH_BUFFER_MS } from "@/auth/token-timing";
 export const REFRESH_TOKEN_ROTATION_INTERVAL_MS = 15 * 60_000;
 const REFRESH_FAILURE_RETRY_DELAY_MS = 5_000;
 /** Falhas transitórias consecutivas toleradas antes de encerrar a sessão. */

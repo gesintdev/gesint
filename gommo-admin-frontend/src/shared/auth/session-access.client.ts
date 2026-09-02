@@ -1,6 +1,6 @@
 import type { Session } from "next-auth";
 
-import { ACCESS_TOKEN_REFRESH_BUFFER_MS } from "@/auth/refresh-token";
+import { ACCESS_TOKEN_REFRESH_BUFFER_MS } from "@/auth/token-timing";
 
 /** Decodifica `exp` do JWT (ms). Apenas leitura client-side — validação fica no backend. */
 export function decodeAccessTokenExpMs(accessToken: unknown): number | null {
