@@ -20,7 +20,7 @@ export function AppProviders({ children, session }: { children: ReactNode; sessi
     const [queryClient] = useState(() => createQueryClient());
 
     return (
-        <SessionProvider session={session} refetchInterval={SESSION_REFETCH_SECONDS} refetchOnWindowFocus>
+        <SessionProvider session={session} refetchInterval={SESSION_REFETCH_SECONDS} refetchOnWindowFocus={false}>
             <SessionGate>
                 <SessionRefresh />
                 <SessionExpiryGuards />

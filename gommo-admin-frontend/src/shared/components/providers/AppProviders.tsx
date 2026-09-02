@@ -31,7 +31,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     const [queryClient] = useState(() => createQueryClient());
 
     return (
-        <SessionProvider refetchInterval={SESSION_REFETCH_MS} refetchOnWindowFocus>
+        <SessionProvider refetchInterval={SESSION_REFETCH_MS} refetchOnWindowFocus={false}>
             <SessionGate>
                 <SessionRefresh />
                 <QueryClientProvider client={queryClient}>
