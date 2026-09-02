@@ -16,6 +16,7 @@ import { benefitEnrollmentService } from "@/modules/ctb/payroll/benefitenrollmen
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
@@ -26,7 +27,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Adesão" }];
 
 export function BenefitEnrollmentFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<BenefitEnrollmentCreateDto>(emptyBenefitEnrollmentForm);
     const [error, setError] = useState<string | null>(null);
@@ -57,6 +58,14 @@ export function BenefitEnrollmentFormClient() {
         const plan = await benefitplanService.getById(id);
         return plan.name;
     }, []);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: benefitEnrollmentToFormDto,
+        getEmptyForm: () => emptyBenefitEnrollmentForm(),
+    });
+
     const saveMutation = useMutation({
         mutationFn: async (dto: BenefitEnrollmentCreateDto) => {
             const payload = {
@@ -72,7 +81,7 @@ export function BenefitEnrollmentFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: benefitEnrollmentKeys.detail(editingId) });
             toast.success(isEditing ? "Vínculo atualizado" : "Vínculo cadastrado");
             setForm(emptyBenefitEnrollmentForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

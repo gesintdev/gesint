@@ -13,6 +13,7 @@ import { taxObligationKeys } from "@/modules/ctb/payroll/tax/tax.query";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -22,7 +23,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Obrigação" }];
 
 export function TaxObligationFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<TaxObligationCreateDto>(emptyTaxObligationForm);
     const [error, setError] = useState<string | null>(null);
@@ -44,6 +45,14 @@ export function TaxObligationFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: taxObligationToFormDto,
+        getEmptyForm: () => emptyTaxObligationForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: TaxObligationCreateDto) => {
@@ -61,7 +70,7 @@ export function TaxObligationFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: taxObligationKeys.detail(editingId) });
             toast.success(isEditing ? "Obrigação fiscal atualizada" : "Obrigação fiscal cadastrada");
             setForm(emptyTaxObligationForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: TAX_CLIENT_MESSAGES.TAX_SAVE_FAILED });

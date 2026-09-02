@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import br.com.gommo.core.branch.BranchContextHolder;
+import br.com.gommo.core.config.CtbSystemAvailability;
 import br.com.gommo.core.tenant.MultiTenantProperties;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
@@ -37,17 +38,24 @@ public class AccessScopePolicy {
 
     private final MultiTenantProperties multiTenantProperties;
     private final TenantContractedSystemsLookup contractedSystemsLookup;
+    private final CtbSystemAvailability ctbSystemAvailability;
 
     public AccessScopePolicy(
-            MultiTenantProperties multiTenantProperties, TenantContractedSystemsLookup contractedSystemsLookup) {
+            MultiTenantProperties multiTenantProperties,
+            TenantContractedSystemsLookup contractedSystemsLookup,
+            CtbSystemAvailability ctbSystemAvailability) {
         this.multiTenantProperties = multiTenantProperties;
         this.contractedSystemsLookup = contractedSystemsLookup;
+        this.ctbSystemAvailability = ctbSystemAvailability;
     }
 
     /** CFG nao e produto comercial; DP/RH/CTB dependem de contrato ACTIVE do cliente. */
     public boolean isSystemContracted(SystemScopeEnum system) {
         if (system == null || system == SystemScopeEnum.CFG) {
             return true;
+        }
+        if (!ctbSystemAvailability.isSystemScopeAvailable(system)) {
+            return false;
         }
         if (!multiTenantProperties.isEnabled()) {
             return true;

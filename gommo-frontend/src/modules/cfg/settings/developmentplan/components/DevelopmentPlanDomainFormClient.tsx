@@ -14,6 +14,7 @@ import {
 } from "@/modules/cfg/settings/developmentplan/services/development-plan-domain.service";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
@@ -21,7 +22,7 @@ import {InputCheckbox, InputNumber, InputSelect, InputString} from "@/shared/com
 import {ExceptionCapture} from "@/shared/exceptions";
 
 export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentPlanDomainConfig }) {
-    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const service = useMemo(() => new DevelopmentPlanDomainService(config.endpoint), [config.endpoint]);
     const queryKey = ["development-plan-domain", config.id] as const;
@@ -47,6 +48,14 @@ export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentP
         }
     }, [isEditing, detailQuery.data, config.fields]);
 
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: (detail) => toForm(detail, config.fields),
+        getEmptyForm: () => emptyForm(config.fields),
+    });
+
     const saveMutation = useMutation({
         mutationFn: async (dto: Record<string, unknown>) => {
             if (isEditing && editingId) return service.update(editingId, dto);
@@ -56,7 +65,7 @@ export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentP
             await queryClient.invalidateQueries({queryKey});
             toast.success(isEditing ? "Registro atualizado" : "Registro cadastrado");
             setForm(emptyForm(config.fields));
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível salvar o registro."});

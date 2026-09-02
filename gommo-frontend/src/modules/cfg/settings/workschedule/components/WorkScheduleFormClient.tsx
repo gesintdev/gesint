@@ -20,6 +20,7 @@ import {workScheduleService} from "@/modules/cfg/settings/workschedule/services/
 import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule.query";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
@@ -37,7 +38,7 @@ type DayTimeField = keyof Pick<
 >;
 
 export function WorkScheduleFormClient() {
-    const {editingId, isEditing, goToList} = useCrudScreen();
+    const {editingId, isEditing, goToList, returnToList} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<WorkScheduleCreateDto>(emptyWorkScheduleForm);
     const [error, setError] = useState<string | null>(null);
@@ -58,6 +59,14 @@ export function WorkScheduleFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: workScheduleToFormDto,
+        getEmptyForm: () => emptyWorkScheduleForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: WorkScheduleCreateDto) => {
@@ -83,7 +92,7 @@ export function WorkScheduleFormClient() {
             }
             toast.success(isEditing ? "Escala atualizada" : "Escala cadastrada");
             setForm(emptyWorkScheduleForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

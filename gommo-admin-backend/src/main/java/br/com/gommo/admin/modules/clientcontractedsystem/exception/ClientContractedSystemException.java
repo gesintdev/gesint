@@ -30,5 +30,12 @@ public final class ClientContractedSystemException {
                 "Informe a data de desativação ao agendar o ciclo de vida",
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException productUnavailable() {
+        return new BusinessException(
+                "PRODUCT_SYSTEM_UNAVAILABLE",
+                "Este sistema ainda não está disponível neste ambiente",
+                HttpStatus.BAD_REQUEST);
+    }
 }
 

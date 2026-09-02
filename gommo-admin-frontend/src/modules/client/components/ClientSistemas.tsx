@@ -17,6 +17,7 @@ import { AdminStatusIcon } from "@/shared/components/ui/admin/AdminBadge";
 import { AdminCurrency, AdminInput, AdminSelect } from "@/shared/components/ui/admin/AdminField";
 import { AdminFormGrid, AdminSection } from "@/shared/components/ui/admin/AdminSection";
 import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
+import { isProductSystemKeyVisible } from "@/shared/lib/system-availability";
 
 function operationalLabel(status?: string) {
     switch (status) {
@@ -252,7 +253,9 @@ export function ClientSistemas({ clientId }: { clientId: string }) {
                 clientBranchService.getByClientId(clientId),
             ]);
             setBranches(branchRows);
-            const activeCatalog = systems.filter((item) => item.status === "ACTIVE");
+            const activeCatalog = systems
+                .filter((item) => item.status === "ACTIVE")
+                .filter((item) => isProductSystemKeyVisible(item.key));
             setContracts(contractRows);
             setCatalog(activeCatalog);
 

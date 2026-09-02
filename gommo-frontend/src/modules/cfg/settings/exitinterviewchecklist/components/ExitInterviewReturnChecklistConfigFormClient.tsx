@@ -14,6 +14,7 @@ import {
 import { exitInterviewReturnChecklistConfigService } from "@/modules/cfg/settings/exitinterviewchecklist/services/exit-interview-return-checklist-config.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -23,7 +24,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Item" }];
 
 export function ExitInterviewReturnChecklistConfigFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ExitInterviewReturnChecklistConfigCreateDto>(
         emptyExitInterviewReturnChecklistConfigForm,
@@ -47,6 +48,14 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: exitInterviewReturnChecklistConfigToFormDto,
+        getEmptyForm: () => emptyExitInterviewReturnChecklistConfigForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: ExitInterviewReturnChecklistConfigCreateDto) => {
@@ -67,7 +76,7 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
             }
             toast.success(isEditing ? "Item de devolução atualizado" : "Item de devolução cadastrado");
             setForm(emptyExitInterviewReturnChecklistConfigForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

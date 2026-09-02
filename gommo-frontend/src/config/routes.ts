@@ -8,6 +8,7 @@ import { personModule } from "@/modules/rh/person/person.module";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnum, type TSystemModuleGroup } from "@/modules/root/enum/SystemEnum";
+import { isCtbSystemEnabled } from "@/shared/lib/system-availability";
 /**
  * routes.ts - ponto de entrada de navegacao do sistema.
  *
@@ -37,10 +38,14 @@ export const systemModuleGroups: TSystemModuleGroup[] = [
         /** Painel é aba fixa do workspace (não entra no menu lateral). */
         modules: [personModule, insightsModule],
     },
-    {
-        system: SystemEnum.CONTABILIDADE,
-        modules: [payrollModule],
-    },
+    ...(isCtbSystemEnabled()
+        ? [
+              {
+                  system: SystemEnum.CONTABILIDADE,
+                  modules: [payrollModule],
+              } satisfies TSystemModuleGroup,
+          ]
+        : []),
 ];
 /** Seções do menu CFG — agrupadas pelo serviço que cada configuração atende. */
 export const SETTINGS_NAV_SECTIONS = ModuleEnumHelper.toNavSections(settingsModules);

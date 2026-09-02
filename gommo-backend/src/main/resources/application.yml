@@ -76,6 +76,9 @@ gommo:
     full-name: Administrador Gommo
     email: gommo.admin@gmail.com
     password: ${GOMMO_PLATFORM_ADMIN_PASSWORD:${DEV_ADMIN_PASSWORD:}}
+  systems:
+    ctb:
+      enabled: ${GOMMO_CTB_ENABLED:false}
 
 logging:
   pattern:

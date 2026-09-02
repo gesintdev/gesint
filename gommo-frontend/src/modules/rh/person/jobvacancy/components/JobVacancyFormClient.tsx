@@ -32,6 +32,7 @@ import {
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -82,7 +83,7 @@ function TextAreaField({ label, value, onValueChange, wrapperClassName, placehol
 }
 
 export function JobVacancyFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setFormState] = useState<JobVacancyCreateDto>(emptyJobVacancyForm);
     const [error, setError] = useState<string | null>(null);
@@ -121,6 +122,14 @@ export function JobVacancyFormClient() {
         setSeededForId(detailQuery.data.id);
         setError(null);
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: jobVacancyToFormDto,
+        getEmptyForm: () => emptyJobVacancyForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: JobVacancyCreateDto) => {
@@ -133,7 +142,7 @@ export function JobVacancyFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: jobVacancyKeys.detail(editingId) });
             toast.success(isEditing ? "Vaga atualizada" : "Vaga cadastrada");
             setForm(emptyJobVacancyForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

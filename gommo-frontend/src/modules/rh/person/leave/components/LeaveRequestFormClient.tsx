@@ -14,6 +14,7 @@ import { leaverequestService } from "@/modules/rh/person/leave/services/leave-re
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -31,7 +32,7 @@ const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Afastamento" }]
 type LeaveFormField = keyof LeaveRequestCreateDto;
 
 export function LeaveRequestFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<LeaveRequestCreateDto>(emptyLeaveRequestForm);
     const [error, setError] = useState<string | null>(null);
@@ -56,6 +57,14 @@ export function LeaveRequestFormClient() {
             setFieldErrors({});
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: leaverequestToFormDto,
+        getEmptyForm: () => emptyLeaveRequestForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: LeaveRequestCreateDto) => {
@@ -67,7 +76,7 @@ export function LeaveRequestFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: leaverequestKeys.detail(editingId) });
             toast.success(isEditing ? "Registro salvo" : "Afastamento cadastrado");
             setForm(emptyLeaveRequestForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED });

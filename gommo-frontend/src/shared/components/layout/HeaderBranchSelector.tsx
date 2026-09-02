@@ -133,8 +133,9 @@ export function HeaderBranchSelector() {
                                         role="option"
                                         aria-selected={selected}
                                         onClick={() => {
-                                            selectBranch(branch.id);
-                                            setOpen(false);
+                                            void selectBranch(branch.id).then((confirmed) => {
+                                                if (confirmed) setOpen(false);
+                                            });
                                         }}
                                         className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-start transition-colors hover:bg-base-200/60"
                                     >

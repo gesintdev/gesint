@@ -9,6 +9,7 @@ import { ClientUsuarios } from "@/modules/client/components/ClientUsuarios";
 import type { Client, ClientCreateDto } from "@/modules/client/dto/client.dto";
 import { clientToFormDto, emptyClientForm, statusLabel } from "@/modules/client/lib/client.mapper";
 import { lookupCnpj } from "@/modules/client/lib/cnpj-lookup";
+import { formatTenantSchemaSyncSummary } from "@/modules/client/lib/tenant-schema-sync";
 import { clientService } from "@/modules/client/services/client.service";
 import type { ClientEnvironmentConfigUpsertDto } from "@/modules/clientenvironmentconfig/dto/clientenvironmentconfig.dto";
 import { clientEnvironmentConfigService } from "@/modules/clientenvironmentconfig/services/clientenvironmentconfig.service";
@@ -319,6 +320,40 @@ export function ClientCadastro({
         }
     };
 
+    const syncSchema = async () => {
+        const readyClient = getReadyClient();
+        if (!readyClient) {
+            return;
+        }
+        if (envForm.databaseStrategy !== "DEDICATED_SCHEMA") {
+            toast.error("Sincronização de schema só se aplica a tenants com schema dedicado.");
+            return;
+        }
+        if (envForm.provisioningStatus !== "READY") {
+            toast.error("Provisione o tenant antes de sincronizar a estrutura.");
+            return;
+        }
+        setSaving(true);
+        try {
+            const result = await clientService.syncSchema(readyClient.id);
+            const summary = formatTenantSchemaSyncSummary(result);
+            if (result.warnings?.length) {
+                toast.warning(summary);
+            } else {
+                toast.success(summary);
+            }
+        } catch (err) {
+            ExceptionCapture.handle(err, { fallbackMessage: "Falha ao sincronizar schema." });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const canSyncSchema =
+        envConfigReady &&
+        envForm.databaseStrategy === "DEDICATED_SCHEMA" &&
+        envForm.provisioningStatus === "READY";
+
     return (
         <div
             style={{
@@ -550,6 +585,16 @@ export function ClientCadastro({
                                         tooltip="Cria e prepara o schema/banco do tenant com base na configuração salva (conexão, estrutura e status READY/ERROR). Clique no ícone para a documentação completa."
                                         href="/docs/provision-environment"
                                     />
+                                </div>
+                                <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                    <AdminBtn
+                                        variant="secondary"
+                                        onClick={() => void syncSchema()}
+                                        disabled={saving || !canSyncSchema}
+                                    >
+                                        Sincronizar schema
+                                    </AdminBtn>
+                                    <AdminHelpTip tooltip="Atualiza tabelas, colunas e índices do tenant já provisionado com base no template public. Use após deploy de migrations novas." />
                                 </div>
                             </div>
                         </>

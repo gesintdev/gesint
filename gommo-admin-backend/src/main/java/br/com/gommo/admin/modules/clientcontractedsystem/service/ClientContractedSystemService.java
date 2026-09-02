@@ -28,6 +28,7 @@ import br.com.gommo.admin.modules.platformoutbox.service.PlatformOutboxPublisher
 import br.com.gommo.admin.modules.productsystem.entity.ProductSystem;
 import br.com.gommo.admin.modules.productsystem.exception.ProductSystemException;
 import br.com.gommo.admin.modules.productsystem.repository.ProductSystemRepository;
+import br.com.gommo.admin.modules.productsystem.support.CtbSystemAvailability;
 
 @Service
 public class ClientContractedSystemService
@@ -41,6 +42,7 @@ public class ClientContractedSystemService
     private final ProductSystemRepository productSystemRepository;
     private final PlatformOutboxPublisher outboxPublisher;
     private final ContractedSystemBranchScopeRepository branchScopeRepository;
+    private final CtbSystemAvailability ctbSystemAvailability;
 
     public ClientContractedSystemService(
             ClientContractedSystemRepository repository,
@@ -49,7 +51,8 @@ public class ClientContractedSystemService
             ClientEnvironmentConfigRepository environmentConfigRepository,
             ProductSystemRepository productSystemRepository,
             PlatformOutboxPublisher outboxPublisher,
-            ContractedSystemBranchScopeRepository branchScopeRepository) {
+            ContractedSystemBranchScopeRepository branchScopeRepository,
+            CtbSystemAvailability ctbSystemAvailability) {
         super(
                 repository,
                 entity -> mapper.toResponse(
@@ -68,6 +71,7 @@ public class ClientContractedSystemService
         this.productSystemRepository = productSystemRepository;
         this.outboxPublisher = outboxPublisher;
         this.branchScopeRepository = branchScopeRepository;
+        this.ctbSystemAvailability = ctbSystemAvailability;
     }
 
     @Override
@@ -86,6 +90,7 @@ public class ClientContractedSystemService
                         entity,
                         resolveProduct(entity.getProductSystemId()),
                         branchScopeRepository.findBranchIds(entity.getId())))
+                .filter(dto -> ctbSystemAvailability.isCommercialProductKey(dto.getProductSystemKey()))
                 .toList();
     }
 
@@ -195,9 +200,13 @@ public class ClientContractedSystemService
     }
 
     private ProductSystem resolveProduct(UUID productSystemId) {
-        return productSystemRepository
+        ProductSystem product = productSystemRepository
                 .findByIdAndStatusNot(productSystemId, StatusEnum.DELETED)
                 .orElseThrow(ProductSystemException::notFound);
+        if (!ctbSystemAvailability.isCommercialProductKey(product.getKey())) {
+            throw ClientContractedSystemException.productUnavailable();
+        }
+        return product;
     }
 
     private Client assertClientExists(UUID clientId) {

@@ -17,6 +17,7 @@ import { paymentPeriodKeys } from "@/modules/dp/payment/payment.query";
 import { paymentPeriodService } from "@/modules/dp/payment/services/payment-period.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -24,7 +25,7 @@ import { InputMonth, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 export function PaymentPeriodFormClient() {
-    const { editingId, isEditing, goToList, startEdit } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PaymentPeriodCreateDto>(() => emptyPaymentPeriodForm());
     const [error, setError] = useState<string | null>(null);
@@ -48,6 +49,14 @@ export function PaymentPeriodFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: paymentPeriodToFormDto,
+        getEmptyForm: () => emptyPaymentPeriodForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: PaymentPeriodCreateDto) => {

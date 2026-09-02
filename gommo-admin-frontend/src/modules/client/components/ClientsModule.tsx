@@ -2,10 +2,15 @@
 
 import { Download, Plus, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { ClientCadastro } from "@/modules/client/components/ClientCadastro";
 import type { Client } from "@/modules/client/dto/client.dto";
 import { slugFromName, statusLabel } from "@/modules/client/lib/client.mapper";
+import {
+    collectTenantSchemaSyncWarnings,
+    formatTenantSchemaSyncBatchSummary,
+} from "@/modules/client/lib/tenant-schema-sync";
 import { clientService } from "@/modules/client/services/client.service";
 import { AdminBadge } from "@/shared/components/ui/admin/AdminBadge";
 import { AdminBtn } from "@/shared/components/ui/admin/AdminBtn";
@@ -15,6 +20,7 @@ import { AdminPagination } from "@/shared/components/ui/admin/AdminPagination";
 import { AdminSearchBar } from "@/shared/components/ui/admin/AdminSearchBar";
 import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
 import { useOptimisticPath } from "@/shared/hooks/useOptimisticPath";
+import { SystemAlert } from "@/shared/system-alert";
 import {
     clientsFormPath,
     clientsListPath,
@@ -48,6 +54,7 @@ export function ClientsModule() {
     const [clients, setClients] = useState<Client[]>([]);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [loading, setLoading] = useState(true);
+    const [syncingAll, setSyncingAll] = useState(false);
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const perPage = 10;
@@ -171,6 +178,35 @@ export function ClientsModule() {
         }
     };
 
+    const syncAllSchemas = async () => {
+        const confirmed = await SystemAlert.confirm({
+            title: "Sincronizar schemas",
+            message:
+                "Aplicar a estrutura mais recente do template em todos os tenants com schema dedicado e status READY? A operação é aditiva e idempotente.",
+            confirmLabel: "Sincronizar",
+            cancelLabel: "Cancelar",
+            variant: "warning",
+        });
+        if (!confirmed) return;
+
+        setSyncingAll(true);
+        try {
+            const results = await clientService.syncAllSchemas();
+            const summary = formatTenantSchemaSyncBatchSummary(results);
+            const warnings = collectTenantSchemaSyncWarnings(results);
+            if (warnings.length > 0) {
+                toast.warning(summary);
+                console.warn("Sincronização de schemas com avisos:", warnings);
+            } else {
+                toast.success(summary);
+            }
+        } catch (err) {
+            ExceptionCapture.handle(err, { fallbackMessage: "Falha ao sincronizar schemas dos tenants." });
+        } finally {
+            setSyncingAll(false);
+        }
+    };
+
     return (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <AdminModuleToolbar
@@ -222,8 +258,18 @@ export function ClientsModule() {
                                 size="sm"
                                 icon={<RefreshCw size={12} />}
                                 onClick={() => void loadClients()}
+                                disabled={syncingAll}
                             >
                                 Atualizar
+                            </AdminBtn>
+                            <AdminBtn
+                                variant="secondary"
+                                size="sm"
+                                icon={<RefreshCw size={12} />}
+                                onClick={() => void syncAllSchemas()}
+                                disabled={loading || syncingAll}
+                            >
+                                {syncingAll ? "Sincronizando..." : "Sincronizar schemas"}
                             </AdminBtn>
                             <AdminBtn variant="secondary" size="sm" icon={<Download size={12} />}>
                                 Exportar

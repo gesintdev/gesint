@@ -11,6 +11,7 @@ import { benefitplanToFormDto, emptyBenefitPlanForm } from "@/modules/ctb/payrol
 import { benefitplanService } from "@/modules/ctb/payroll/benefit/services/benefit-plan.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -20,7 +21,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Benefício" }];
 
 export function BenefitPlanFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<BenefitPlanCreateDto>(emptyBenefitPlanForm);
     const [error, setError] = useState<string | null>(null);
@@ -42,6 +43,14 @@ export function BenefitPlanFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: benefitplanToFormDto,
+        getEmptyForm: () => emptyBenefitPlanForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: BenefitPlanCreateDto) => {
@@ -58,7 +67,7 @@ export function BenefitPlanFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: benefitplanKeys.detail(editingId) });
             toast.success(isEditing ? "Plano de benefício atualizado" : "Plano de benefício cadastrado");
             setForm(emptyBenefitPlanForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: BENEFIT_CLIENT_MESSAGES.BENEFIT_SAVE_FAILED });

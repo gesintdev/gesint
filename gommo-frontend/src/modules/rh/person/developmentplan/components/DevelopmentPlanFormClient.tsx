@@ -34,6 +34,7 @@ import { developmentPlanDomainOptionsService } from "@/modules/rh/person/develop
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -108,7 +109,7 @@ const ORIGIN_OPTIONS = {
 } as const;
 
 export function DevelopmentPlanFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DevelopmentPlanFormDto>(emptyDevelopmentPlanForm);
     const [error, setError] = useState<string | null>(null);
@@ -129,6 +130,14 @@ export function DevelopmentPlanFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: developmentPlanToFormDto,
+        getEmptyForm: () => emptyDevelopmentPlanForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: DevelopmentPlanFormDto) => {
@@ -140,7 +149,7 @@ export function DevelopmentPlanFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: developmentPlanKeys.detail(editingId) });
             toast.success(isEditing ? "PDI atualizado" : "PDI cadastrado");
             setForm(emptyDevelopmentPlanForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível salvar o PDI." });

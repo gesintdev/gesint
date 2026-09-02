@@ -21,6 +21,7 @@ import { occupationalPhysicianKeys } from "@/modules/rh/person/occupational-exam
 import { occupationalPhysicianService } from "@/modules/rh/person/occupational-exam/physician/services/occupational-physician.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -31,7 +32,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "dados", label: "Medico" }];
 
 export function OccupationalPhysicianFormClient() {
-    const { editingId, isEditing, goToList } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<OccupationalPhysicianCreateDto>(emptyOccupationalPhysicianForm);
     const [error, setError] = useState<string | null>(null);
@@ -63,6 +64,14 @@ export function OccupationalPhysicianFormClient() {
         value: clinic.id,
         label: clinic.corporateName,
     }));
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: occupationalPhysicianToFormDto,
+        getEmptyForm: () => emptyOccupationalPhysicianForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: OccupationalPhysicianCreateDto) => {
@@ -79,7 +88,7 @@ export function OccupationalPhysicianFormClient() {
             }
             toast.success(isEditing ? "Medico atualizado" : "Medico cadastrado");
             setForm(emptyOccupationalPhysicianForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

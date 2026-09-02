@@ -15,6 +15,7 @@ import { medicalClinicService } from "@/modules/rh/person/occupational-exam/clin
 import { OCCUPATIONAL_EXAM_CLIENT_MESSAGES } from "@/modules/rh/person/occupational-exam/exceptions/occupational-exam.messages";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -25,7 +26,7 @@ import { isValidCnpj } from "@/shared/lib/input/cnpj";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "dados", label: "Clinica" }];
 
 export function MedicalClinicFormClient() {
-    const { editingId, isEditing, goToList } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<MedicalClinicCreateDto>(emptyMedicalClinicForm);
     const [error, setError] = useState<string | null>(null);
@@ -47,6 +48,14 @@ export function MedicalClinicFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: medicalClinicToFormDto,
+        getEmptyForm: () => emptyMedicalClinicForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: MedicalClinicCreateDto) => {
@@ -61,7 +70,7 @@ export function MedicalClinicFormClient() {
             }
             toast.success(isEditing ? "Clinica atualizada" : "Clinica cadastrada");
             setForm(emptyMedicalClinicForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

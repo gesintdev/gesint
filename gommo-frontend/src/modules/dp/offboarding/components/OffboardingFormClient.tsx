@@ -14,6 +14,7 @@ import {storageService} from "@/modules/storage/services/storage.service";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {EntityAttachments} from "@/shared/components/storage/EntityAttachments";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
@@ -36,7 +37,7 @@ const OFFBOARDING_FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function OffboardingFormClient() {
-    const {editingId, isEditing, goToList, startEdit} = useCrudScreen();
+    const {editingId, isEditing, goToList, returnToList, startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<OffboardingCreateDto>(emptyOffboardingForm);
     const [error, setError] = useState<string | null>(null);
@@ -64,6 +65,14 @@ export function OffboardingFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data, editingId]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: offboardingToFormDto,
+        getEmptyForm: () => emptyOffboardingForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: OffboardingCreateDto) => {

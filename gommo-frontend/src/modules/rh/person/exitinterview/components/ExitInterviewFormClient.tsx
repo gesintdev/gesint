@@ -46,6 +46,7 @@ import { storageService } from "@/modules/storage/services/storage.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {
     EntityAttachments,
     flushPendingAttachments,
@@ -248,7 +249,7 @@ function validateBeforeComplete(form: ExitInterviewCreateDto): string | null {
 
 export function ExitInterviewFormClient() {
     const { data: session } = useSession();
-    const { editingId, isEditing, goToList, startCreate, startEdit } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate, startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ExitInterviewCreateDto>(emptyExitInterviewForm);
     const [error, setError] = useState<string | null>(null);
@@ -296,6 +297,14 @@ export function ExitInterviewFormClient() {
     const isFinal =
         detailQuery.data?.interviewStatus === "COMPLETED" || detailQuery.data?.interviewStatus === "CANCELED";
     const terminationItems = form.relationshipType === "PJ" ? PJ_TERMINATION_ITEMS : CLT_TERMINATION_ITEMS;
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: exitinterviewToFormDto,
+        getEmptyForm: () => emptyExitInterviewForm(),
+    });
+
     const saveMutation = useMutation({
         mutationFn: async (dto: ExitInterviewCreateDto) => {
             const payload = toPayload(dto);

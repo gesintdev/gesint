@@ -14,6 +14,7 @@ import {CollaboratorMultiPickerField} from "@/shared/components/crud/Collaborato
 import {BranchRecordScopeField} from "@/shared/components/crud/BranchRecordScopeField";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
@@ -50,7 +51,7 @@ function DescriptionTextarea({label, value, onValueChange, wrapperClassName}: De
 }
 
 export function DepartmentFormClient() {
-    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
     const {activeBranchId} = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DepartmentCreateDto>(() => emptyDepartmentForm(activeBranchId));
@@ -73,6 +74,14 @@ export function DepartmentFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data, activeBranchId]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: departmentToFormDto,
+        getEmptyForm: () => emptyDepartmentForm(activeBranchId),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: DepartmentCreateDto) => {
@@ -81,7 +90,7 @@ export function DepartmentFormClient() {
         },
         onSuccess: async () => {
             const savedEditingId = editingId;
-            goToList();
+            returnToList();
             toast.success(isEditing ? "Departamento atualizado(a)" : "Departamento cadastrado(a)");
             setForm(emptyDepartmentForm(activeBranchId));
             await queryClient.invalidateQueries({queryKey: departmentKeys.all});

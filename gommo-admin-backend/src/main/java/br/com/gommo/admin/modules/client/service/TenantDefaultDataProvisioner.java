@@ -4,15 +4,25 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Cadastros minimos que todo tenant precisa ter no primeiro acesso: escala de trabalho padrao,
- * colunas do kanban de admissao e o RBAC de dominio (permissoes + perfis Administrador por sistema).
+ * Cadastros minimos que todo tenant precisa no primeiro acesso e em toda sincronizacao de schema.
  *
- * Diferente dos seeds de payroll_event/checklist, escala e kanban nao sao copiados de public: o
- * schema template acumula ajustes do ambiente (cores escolhidas por usuario, escalas de teste) que
- * nao devem vazar para um cliente novo. Os valores ficam explicitos aqui.
+ * <p>Inclui:
+ * <ul>
+ *   <li>RBAC de dominio (permissoes, perfis de sistema e Administrador por sistema)</li>
+ *   <li>Escala de trabalho padrao</li>
+ *   <li>Colunas do kanban de admissao</li>
+ *   <li>Preferencias do sistema ({@code system_setting})</li>
+ *   <li>Itens do checklist de devolucao na entrevista de desligamento</li>
+ *   <li>Eventos padrao de folha ({@code payroll_event})</li>
+ *   <li>Catalogo inicial de PDI (niveis de proficiencia, tipos de evidencia, origens)</li>
+ * </ul>
  *
- * A operacao e idempotente e roda tanto no provisionamento quanto na sincronizacao dos tenants ja
- * existentes.
+ * <p>Escala e kanban usam valores explicitos (nao copiam {@code public}) para nao vazar ajustes
+ * locais do ambiente. Demais cadastros copiam o catalogo canonico de {@code public}, preenchido
+ * pelas migrations do gommo-backend na primeira subida do ambiente.
+ *
+ * <p>Idempotente: roda no provisionamento, no sync manual, no bootstrap de schemas no start do
+ * admin-backend e pode ser reexecutado sem duplicar registros.
  */
 @Component
 public class TenantDefaultDataProvisioner {
@@ -31,6 +41,10 @@ public class TenantDefaultDataProvisioner {
         tenantRbacProvisioner.provisionRbacTables(schema);
         seedDefaultWorkSchedule(schema);
         seedAdmissionKanbanColumns(schema);
+        seedSystemSettings(schema);
+        seedExitInterviewReturnChecklistItems(schema);
+        seedPayrollEvents(schema);
+        seedDevelopmentPlanCatalog(schema);
     }
 
     private void seedDefaultWorkSchedule(String schema) {
@@ -102,6 +116,162 @@ public class TenantDefaultDataProvisioner {
                 ) AS d(column_key, name, display_order)
                 """
                         .formatted(schema));
+    }
+
+    private void seedSystemSettings(String schema) {
+        if (!tableExists(schema, "system_setting") || !tableExists("public", "system_setting")) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".system_setting (
+                    id, code, status, setting_key, setting_value, description, created_at
+                )
+                SELECT
+                    s.id, s.code, s.status, s.setting_key, s.setting_value, s.description, now()
+                FROM public.system_setting s
+                WHERE s.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM "%s".system_setting t
+                      WHERE t.setting_key = s.setting_key
+                        AND t.status <> 'DELETED'
+                  )
+                ON CONFLICT (id) DO NOTHING
+                """
+                        .formatted(schema, schema));
+    }
+
+    private void seedExitInterviewReturnChecklistItems(String schema) {
+        if (!tableExists(schema, "exit_interview_return_checklist_item")
+                || !tableExists("public", "exit_interview_return_checklist_item")) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".exit_interview_return_checklist_item (
+                    id, status, item_key, description, display_order, code, created_at
+                )
+                SELECT p.id, p.status, p.item_key, p.description, p.display_order, p.code, now()
+                FROM public.exit_interview_return_checklist_item p
+                WHERE p.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM "%s".exit_interview_return_checklist_item t
+                      WHERE LOWER(t.item_key) = LOWER(p.item_key)
+                        AND t.status <> 'DELETED'
+                  )
+                ON CONFLICT (id) DO NOTHING
+                """
+                        .formatted(schema, schema));
+    }
+
+    private void seedPayrollEvents(String schema) {
+        if (!tableExists(schema, "payroll_event") || !tableExists("public", "payroll_event")) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".payroll_event (
+                    id, status, event_code, description, event_type,
+                    incides_inss, incides_fgts, incides_irrf, formula, code, created_at
+                )
+                SELECT
+                    p.id, p.status, p.event_code, p.description, p.event_type,
+                    p.incides_inss, p.incides_fgts, p.incides_irrf, p.formula, p.code, now()
+                FROM public.payroll_event p
+                WHERE p.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM "%s".payroll_event t
+                      WHERE t.event_code = p.event_code
+                        AND t.status <> 'DELETED'
+                  )
+                ON CONFLICT (id) DO NOTHING
+                """
+                        .formatted(schema, schema));
+    }
+
+    private void seedDevelopmentPlanCatalog(String schema) {
+        seedProficiencyLevels(schema);
+        seedEvidenceTypes(schema);
+        seedDevelopmentPlanOrigins(schema);
+    }
+
+    private void seedProficiencyLevels(String schema) {
+        if (!tableExists(schema, "proficiency_level") || !tableExists("public", "proficiency_level")) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".proficiency_level (
+                    id, code, status, name, description, level_order, weight, created_at
+                )
+                SELECT p.id, p.code, p.status, p.name, p.description, p.level_order, p.weight, now()
+                FROM public.proficiency_level p
+                WHERE p.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM "%s".proficiency_level t
+                      WHERE LOWER(t.name) = LOWER(p.name)
+                        AND t.status <> 'DELETED'
+                  )
+                ON CONFLICT (id) DO NOTHING
+                """
+                        .formatted(schema, schema));
+    }
+
+    private void seedEvidenceTypes(String schema) {
+        if (!tableExists(schema, "evidence_type") || !tableExists("public", "evidence_type")) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".evidence_type (
+                    id, code, status, name, description, requires_file, allows_link, created_at
+                )
+                SELECT
+                    e.id, e.code, e.status, e.name, e.description, e.requires_file, e.allows_link, now()
+                FROM public.evidence_type e
+                WHERE e.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM "%s".evidence_type t
+                      WHERE LOWER(t.name) = LOWER(e.name)
+                        AND t.status <> 'DELETED'
+                  )
+                ON CONFLICT (id) DO NOTHING
+                """
+                        .formatted(schema, schema));
+    }
+
+    private void seedDevelopmentPlanOrigins(String schema) {
+        if (!tableExists(schema, "development_plan_origin") || !tableExists("public", "development_plan_origin")) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".development_plan_origin (
+                    id, code, status, name, description, created_at
+                )
+                SELECT o.id, o.code, o.status, o.name, o.description, now()
+                FROM public.development_plan_origin o
+                WHERE o.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM "%s".development_plan_origin t
+                      WHERE LOWER(t.name) = LOWER(o.name)
+                        AND t.status <> 'DELETED'
+                  )
+                ON CONFLICT (id) DO NOTHING
+                """
+                        .formatted(schema, schema));
     }
 
     private boolean hasRows(String schema, String table) {

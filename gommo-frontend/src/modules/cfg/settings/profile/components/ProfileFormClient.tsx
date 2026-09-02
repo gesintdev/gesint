@@ -25,6 +25,8 @@ import {profileService} from "@/modules/cfg/settings/profile/services/profile.se
 import type {AppRoute, NavSection} from "@/modules/root/enum/ModuleEnum";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useCrudFormDirty} from "@/shared/components/crud/useCrudFormDirty";
+import {useFormDirtyByComparison} from "@/shared/components/crud/useFormDirtyByComparison";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type CheckboxState, resolveCheckboxState} from "@/shared/components/ui/input/index";
@@ -72,8 +74,28 @@ function draftHasContent(draft: ProfileDraftItem): boolean {
     return Boolean(draft.name.trim()) || draft.permissionIds.length > 0 || Boolean(draft.description.trim());
 }
 
+type ProfileDirtySnapshot = {
+    drafts: Array<{
+        system: SystemScope;
+        name: string;
+        description: string;
+        permissionIds: string[];
+    }>;
+};
+
+function toProfileDirtySnapshot(drafts: ProfileDraftItem[]): ProfileDirtySnapshot {
+    return {
+        drafts: drafts.map(({system, name, description, permissionIds}) => ({
+            system,
+            name,
+            description,
+            permissionIds: [...permissionIds].sort(),
+        })),
+    };
+}
+
 export function ProfileFormClient() {
-    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const {data: session} = useSession();
     const tenantSlug = session?.tenantSlug?.trim() || "default";
@@ -88,6 +110,7 @@ export function ProfileFormClient() {
     const [error, setError] = useState<string | null>(null);
     const [hydratedDetailId, setHydratedDetailId] = useState<string | null>(null);
     const [draftBootstrapped, setDraftBootstrapped] = useState(false);
+    const [profileBaseline, setProfileBaseline] = useState<ProfileDirtySnapshot | null>(null);
     const restoredToastShown = useRef(false);
 
     /** Menus do sistema limitados ao que o usuario logado pode acessar. */
@@ -211,6 +234,12 @@ export function ProfileFormClient() {
 
     const draftMode = isEditing ? "edit" : "create";
 
+    const profileDirtySnapshot = useMemo(
+        () => (draftBootstrapped ? toProfileDirtySnapshot(drafts) : null),
+        [draftBootstrapped, drafts],
+    );
+    useCrudFormDirty(useFormDirtyByComparison(profileDirtySnapshot, profileBaseline));
+
     useEffect(() => {
         if (!scopeReady || allowedSystems.length === 0) return;
         if (!allowedSystems.includes(activeSystem)) {
@@ -221,6 +250,7 @@ export function ProfileFormClient() {
     useEffect(() => {
         restoredToastShown.current = false;
         setDraftBootstrapped(false);
+        setProfileBaseline(null);
         setHydratedDetailId(null);
         setError(null);
 
@@ -231,8 +261,10 @@ export function ProfileFormClient() {
         const stored = readProfileFormDraft(tenantSlug, username, "create");
         // Rascunhos de sistemas nao contratados / sem acesso do usuario sao descartados.
         const storedDrafts = stored?.drafts.filter((draft) => allowedSystems.includes(draft.system)) ?? [];
+        let nextDrafts: ProfileDraftItem[];
         if (storedDrafts.length > 0) {
-            setDrafts(storedDrafts);
+            nextDrafts = storedDrafts;
+            setDrafts(nextDrafts);
             setActiveSystem(
                 allowedSystems.includes(stored!.activeSystem) ? stored!.activeSystem : defaultSystem,
             );
@@ -251,10 +283,12 @@ export function ProfileFormClient() {
                 defaultSystem,
                 findFirstPermissionRoute(permissionSectionsFor(defaultSystem))?.id ?? null,
             );
-            setDrafts([first]);
+            nextDrafts = [first];
+            setDrafts(nextDrafts);
             setActiveSystem(defaultSystem);
             setActiveClientId(first.clientId);
         }
+        setProfileBaseline(toProfileDirtySnapshot(nextDrafts));
         setDraftBootstrapped(true);
     }, [
         allowedSystems,
@@ -271,8 +305,10 @@ export function ProfileFormClient() {
         if (!isEditing || !detailQuery.data || hydratedDetailId === detailQuery.data.id) return;
 
         const stored = readProfileFormDraft(tenantSlug, username, "edit", detailQuery.data.id);
+        let nextDrafts: ProfileDraftItem[];
         if (stored && stored.drafts.length === 1 && stored.drafts[0]?.system === detailQuery.data.system) {
-            setDrafts(stored.drafts);
+            nextDrafts = stored.drafts;
+            setDrafts(nextDrafts);
             setActiveSystem(stored.activeSystem);
             setActiveClientId(stored.drafts[0].clientId);
             if (!restoredToastShown.current) {
@@ -290,10 +326,12 @@ export function ProfileFormClient() {
                 description: detailQuery.data.description ?? "",
                 permissionIds: detailQuery.data.permissions?.map((permission) => permission.id) ?? [],
             };
-            setDrafts([draft]);
+            nextDrafts = [draft];
+            setDrafts(nextDrafts);
             setActiveSystem(system);
             setActiveClientId(draft.clientId);
         }
+        setProfileBaseline(toProfileDirtySnapshot(nextDrafts));
         setHydratedDetailId(detailQuery.data.id);
         setDraftBootstrapped(true);
         setError(null);
@@ -364,7 +402,7 @@ export function ProfileFormClient() {
                       ? "Perfis cadastrados"
                       : "Perfil cadastrado",
             );
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível salvar o perfil."});
@@ -484,9 +522,11 @@ export function ProfileFormClient() {
             defaultSystem,
             findFirstPermissionRoute(permissionSectionsFor(defaultSystem))?.id ?? null,
         );
-        setDrafts([first]);
+        const nextDrafts = [first];
+        setDrafts(nextDrafts);
         setActiveSystem(defaultSystem);
         setActiveClientId(first.clientId);
+        setProfileBaseline(toProfileDirtySnapshot(nextDrafts));
         setError(null);
         setHydratedDetailId(null);
         setDraftBootstrapped(true);

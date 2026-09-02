@@ -33,6 +33,8 @@ import type { VacationPeriodContext } from "@/modules/rh/person/vacation/types/v
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useCrudFormDirty } from "@/shared/components/crud/useCrudFormDirty";
+import { useFormDirtyByComparison } from "@/shared/components/crud/useFormDirtyByComparison";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -65,7 +67,7 @@ function formSteps(mode: VacationFormMode): FormStepNavItem[] {
 
 export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormClientProps) {
     const isRh = mode === "rh";
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<VacationFormState>(() => ({
         ...emptyVacationForm(),
@@ -127,6 +129,10 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
             setFieldErrors({});
         }
     }, [detailQuery.data, isEditing, isRh]);
+
+    const vacationBaseline = isEditing && detailQuery.data ? leaveToVacationForm(detailQuery.data) : emptyVacationForm();
+    const isVacationDirty = useFormDirtyByComparison(form, vacationBaseline);
+    useCrudFormDirty(!isRh && isVacationDirty);
 
     useEffect(() => {
         const collaboratorId = form.collaboratorId?.trim();
@@ -246,7 +252,7 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
                       : "Férias cadastradas",
             );
             setForm({ ...emptyVacationForm(), approved: !isRh });
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED });

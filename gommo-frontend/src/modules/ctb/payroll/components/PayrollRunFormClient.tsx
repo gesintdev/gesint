@@ -16,6 +16,7 @@ import { payrollrunKeys } from "@/modules/ctb/payroll/payroll.query";
 import { payrollrunService } from "@/modules/ctb/payroll/services/payroll-run.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -25,7 +26,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Competência" }];
 
 export function PayrollRunFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayrollRunCreateDto>(() => emptyPayrollRunForm());
     const [error, setError] = useState<string | null>(null);
@@ -48,6 +49,14 @@ export function PayrollRunFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: payrollrunToFormDto,
+        getEmptyForm: () => emptyPayrollRunForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: PayrollRunCreateDto) => {
@@ -63,7 +72,7 @@ export function PayrollRunFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: payrollrunKeys.detail(editingId) });
             toast.success(isEditing ? "Competência atualizada" : "Competência cadastrada");
             setForm(emptyPayrollRunForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: PAYROLL_CLIENT_MESSAGES.PAYROLL_SAVE_FAILED });

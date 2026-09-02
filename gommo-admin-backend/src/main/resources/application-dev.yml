@@ -17,3 +17,6 @@ gommo-admin:
       secret: ${JWT_SECRET}
   cors:
     allowed-origins: http://localhost:3001
+  systems:
+    ctb:
+      enabled: ${GOMMO_CTB_ENABLED:true}

@@ -28,6 +28,7 @@ import { useHasPermission } from "@/shared/auth/permissions";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {
     EntityAttachments,
     flushPendingAttachments,
@@ -47,7 +48,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function OccupationalExamFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const canViewClinical = useHasPermission("occupationalexam:clinical");
     const [form, setForm] = useState<OccupationalExamCreateDto>(emptyOccupationalExamForm);
@@ -100,6 +101,14 @@ export function OccupationalExamFormClient() {
         value: physician.id,
         label: `${physician.fullName} (CRM ${physician.crm}/${physician.crmState})`,
     }));
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: occupationalExamToFormDto,
+        getEmptyForm: () => emptyOccupationalExamForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: OccupationalExamCreateDto) => {
@@ -136,7 +145,7 @@ export function OccupationalExamFormClient() {
             });
             toast.success(isEditing ? "Exame atualizado" : "Exame cadastrado");
             setForm(emptyOccupationalExamForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

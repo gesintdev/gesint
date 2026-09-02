@@ -26,6 +26,8 @@ import {showAccessTokenReveal} from "@/shared/access-token-reveal";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useFormDirtyByComparison} from "@/shared/components/crud/useFormDirtyByComparison";
+import {useCrudFormDirty} from "@/shared/components/crud/useCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
@@ -72,7 +74,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 const DELETED_USER_CONFLICT_CODE = "APP_USER_DELETED_EXISTS";
 
 export function AppUserFormClient() {
-    const {editingId, isEditing, goToList} = useCrudScreen();
+    const {editingId, isEditing, goToList, returnToList} = useCrudScreen();
     const {branches} = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AppUserCreateDto>(emptyForm());
@@ -132,6 +134,26 @@ export function AppUserFormClient() {
         }
     }, [isEditing, detailQuery.data]);
 
+    const appUserBaseline = useMemo((): AppUserCreateDto => {
+        if (!isEditing || !detailQuery.data) return emptyForm();
+        const rolesByBranch = detailQuery.data.rolesByBranch ?? {};
+        const roleIdsByBranch: RoleIdsByBranch = {};
+        for (const [branchId, rolesBySystem] of Object.entries(rolesByBranch)) {
+            const bySystem = emptyRoleIdsBySystem();
+            for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
+                bySystem[scope] = rolesBySystem?.[scope]?.map((profile) => profile.id) ?? [];
+            }
+            roleIdsByBranch[branchId] = bySystem;
+        }
+        return {
+            collaboratorId: detailQuery.data.collaboratorId,
+            username: detailQuery.data.username,
+            email: detailQuery.data.email,
+            roleIdsByBranch,
+        };
+    }, [detailQuery.data, isEditing]);
+    useCrudFormDirty(useFormDirtyByComparison(form, appUserBaseline));
+
     const handleCollaboratorChange = useCallback(async (collaboratorId: string) => {
         if (!collaboratorId) {
             setForm((prev) => ({...prev, collaboratorId: ""}));
@@ -160,9 +182,9 @@ export function AppUserFormClient() {
             } else {
                 toast.success(mode === "update" ? "Usuário atualizado" : "Usuário cadastrado");
             }
-            goToList();
+            returnToList();
         },
-        [goToList, queryClient],
+        [queryClient, returnToList],
     );
 
     const branchIds = useMemo(() => branches.map((branch) => branch.id), [branches]);

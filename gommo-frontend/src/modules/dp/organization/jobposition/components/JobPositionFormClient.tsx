@@ -18,6 +18,7 @@ import {jobpositionService} from "@/modules/dp/organization/jobposition/services
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {BranchRecordScopeField} from "@/shared/components/crud/BranchRecordScopeField";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
@@ -29,7 +30,7 @@ import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
 const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Cargo"}];
 
 export function JobPositionFormClient() {
-    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
     const {activeBranchId} = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<JobPositionCreateDto>(() => emptyJobPositionForm(activeBranchId));
@@ -73,6 +74,14 @@ export function JobPositionFormClient() {
             cancelled = true;
         };
     }, [form.cboCode]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: jobpositionToFormDto,
+        getEmptyForm: () => emptyJobPositionForm(activeBranchId),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: JobPositionCreateDto) => {
@@ -81,7 +90,7 @@ export function JobPositionFormClient() {
         },
         onSuccess: async () => {
             const savedEditingId = editingId;
-            goToList();
+            returnToList();
             toast.success(isEditing ? "Cargo atualizado(a)" : "Cargo cadastrado(a)");
             setForm(emptyJobPositionForm(activeBranchId));
             await queryClient.invalidateQueries({queryKey: jobpositionKeys.all});

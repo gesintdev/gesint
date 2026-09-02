@@ -18,6 +18,7 @@ import { OCCUPATIONAL_EXAM_TYPE_ITEMS } from "@/modules/rh/person/occupational-e
 import { esocialTable27ProcedureService } from "@/modules/rh/person/occupational-exam/procedure/services/esocial-table27-procedure.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -30,7 +31,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function ExamRequirementFormClient() {
-    const { editingId, isEditing, goToList } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ExamRequirementCreateDto>(emptyExamRequirementForm);
     const [error, setError] = useState<string | null>(null);
@@ -60,6 +61,14 @@ export function ExamRequirementFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: examRequirementToFormDto,
+        getEmptyForm: () => emptyExamRequirementForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: ExamRequirementCreateDto) => {
@@ -78,7 +87,7 @@ export function ExamRequirementFormClient() {
                     : "Requisito cadastrado na matriz",
             );
             setForm(emptyExamRequirementForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

@@ -31,11 +31,10 @@ import {
 import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 import {CRUD_TAB_FORM, useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useCrudFormDirty} from "@/shared/components/crud/useCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {SystemAlert} from "@/shared/system-alert";
-import {registerTabDirtyGuard} from "@/shared/workspace/dirty-tab-guard";
-import {useWorkspaceTabOptional} from "@/shared/workspace/WorkspaceTabContext";
 
 const PAGE_SIZE = 20;
 
@@ -84,8 +83,7 @@ async function confirmOutsideScheduleLaunch(
 }
 
 export function AttendanceRecordFormClient() {
-    const {activeTab, goToList} = useCrudScreen();
-    const workspaceTab = useWorkspaceTabOptional();
+    const {activeTab, goToList, returnToList} = useCrudScreen();
     const queryClient = useQueryClient();
     const [focus, setFocus] = useState<AttendanceCollaboratorFocus | null>(() =>
         peekAttendanceCollaboratorFocus(),
@@ -118,11 +116,7 @@ export function AttendanceRecordFormClient() {
         return () => window.removeEventListener(ATTENDANCE_COLLABORATOR_FOCUS_EVENT, onFocus);
     }, [activeTab]);
 
-    useEffect(() => {
-        const tabId = workspaceTab?.tab.id;
-        if (!tabId) return;
-        return registerTabDirtyGuard(tabId, () => dirty || draftRows.length > 0);
-    }, [dirty, draftRows.length, workspaceTab?.tab.id]);
+    useCrudFormDirty(dirty || draftRows.length > 0);
 
     const historyQuery = useInfiniteQuery({
         queryKey: [...attendancerecordKeys.all, "collaborator-history", focus?.collaboratorId],
@@ -418,7 +412,7 @@ export function AttendanceRecordFormClient() {
                             setFocus(null);
                             setDraftRows([]);
                             setFocusCell(null);
-                            goToList();
+                            returnToList();
                         }}
                     >
                         Trocar colaborador

@@ -1,4 +1,5 @@
 import { SystemEnum } from "@/modules/root/enum/SystemEnum";
+import { isCommercialSystemEnabled } from "@/shared/lib/system-availability";
 
 /** Keys do catalogo Admin → SystemEnum do rail Client. */
 const PRODUCT_KEY_TO_SYSTEM: Record<string, SystemEnum> = {
@@ -35,7 +36,7 @@ export function resolveContractedSystems(keys: readonly string[] | null | undefi
     const allowed = new Set<SystemEnum>();
     for (const key of keys) {
         const system = PRODUCT_KEY_TO_SYSTEM[key.trim().toUpperCase()];
-        if (system) {
+        if (system && isCommercialSystemEnabled(system)) {
             allowed.add(system);
         }
     }
@@ -51,6 +52,9 @@ export function isSystemContracted(
     }
     if (contractedSystems == null) {
         return true;
+    }
+    if (!isCommercialSystemEnabled(system)) {
+        return false;
     }
     return contractedSystems.has(system);
 }

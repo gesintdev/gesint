@@ -134,6 +134,35 @@ public class TenantRbacProvisioner {
                 ON CONFLICT DO NOTHING
                 """
                         .formatted(schema, schema));
+
+        syncAdminProfilePermissions(schema);
+    }
+
+    private void syncAdminProfilePermissions(String schema) {
+        if (!adminProfileSyncFunctionExists()) {
+            return;
+        }
+        jdbcTemplate.execute("SET search_path TO \"" + schema + "\", public");
+        try {
+            jdbcTemplate.execute("SELECT public.gommo_sync_admin_profile_permissions()");
+        } finally {
+            jdbcTemplate.execute("RESET search_path");
+        }
+    }
+
+    private boolean adminProfileSyncFunctionExists() {
+        Boolean exists = jdbcTemplate.queryForObject(
+                """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM pg_proc p
+                    JOIN pg_namespace n ON n.oid = p.pronamespace
+                    WHERE n.nspname = 'public'
+                      AND p.proname = 'gommo_sync_admin_profile_permissions'
+                )
+                """,
+                Boolean.class);
+        return Boolean.TRUE.equals(exists);
     }
 
     private void ensureUniqueIndex(String schema, String table, String column, String prefix, String suffix) {

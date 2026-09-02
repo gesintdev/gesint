@@ -20,8 +20,10 @@ import {
     QueryRefreshHostProvider,
     useQueryRefresh,
 } from "@/shared/components/data/QueryRefreshContext";
+import { CrudFormDirtyProvider } from "@/shared/components/crud/CrudFormDirtyContext";
 import { Button } from "@/shared/components/ui/Button";
 import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
+import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
 import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
@@ -58,11 +60,14 @@ type CrudScreenContextValue = {
     activeTab: string;
     editingId: string | null;
     isEditing: boolean;
-    goToList: () => void;
+    /** Volta à listagem com confirmação se houver alterações não salvas (cancelar, etc.). */
+    goToList: () => void | Promise<void>;
+    /** Volta à listagem após salvar — sem confirmação de descarte. */
+    returnToList: () => void;
     goToForm: () => void;
-    goToTab: (tabId: string) => void;
-    startCreate: () => void;
-    startEdit: (id: string, record?: object) => void;
+    goToTab: (tabId: string) => void | Promise<void>;
+    startCreate: () => void | Promise<void>;
+    startEdit: (id: string, record?: object) => void | Promise<void>;
 };
 
 const CrudScreenContext = createContext<CrudScreenContextValue | null>(null);
@@ -135,7 +140,7 @@ function CrudListToolbarActions({
     showListToFormButton: boolean;
     listToFormLabel: string;
     listPrimaryAction?: ReactNode;
-    onStartCreate: () => void;
+    onStartCreate: () => void | Promise<void>;
 }) {
     const queryRefresh = useQueryRefresh();
 
@@ -160,7 +165,7 @@ function CrudListToolbarActions({
                 <Button
                     size="sm"
                     leftIcon={<Plus className="size-3.5" strokeWidth={2.5} />}
-                    onClick={onStartCreate}
+                    onClick={() => void onStartCreate()}
                 >
                     {listToFormLabel}
                 </Button>
@@ -247,21 +252,35 @@ export function CrudScreen({
         items.push(...visibleExtraTabs.filter((t) => t.placement !== "leading").map(toItem));
         return items;
     }, [activeTab, canWrite, editOnly, formTabLabel, formTabLabelEdit, isEditing, listTabLabel, visibleExtraTabs]);
-    const goToList = useCallback(() => {
+    const confirmDiscardFormChanges = useCallback(async (): Promise<boolean> => {
+        const tabId = workspaceTabCtx?.tab.id;
+        if (!tabId) return true;
+        return confirmDiscardUnsavedChanges(tabId);
+    }, [workspaceTabCtx?.tab.id]);
+    const resetToList = useCallback(() => {
         setEditingId(null);
         setActiveTab(CRUD_TAB_LIST);
         syncWorkspace({});
     }, [syncWorkspace]);
+    const returnToList = useCallback(() => {
+        resetToList();
+    }, [resetToList]);
+    const goToList = useCallback(async () => {
+        if (!(await confirmDiscardFormChanges())) return;
+        resetToList();
+    }, [confirmDiscardFormChanges, resetToList]);
     const goToForm = useCallback(() => setActiveTab(CRUD_TAB_FORM), []);
-    const startCreate = useCallback(() => {
+    const startCreate = useCallback(async () => {
         if (editOnly || !canWrite) return;
+        if (formSessionActive && !(await confirmDiscardFormChanges())) return;
         setEditingId(null);
         setActiveTab(CRUD_TAB_FORM);
         syncWorkspace({ isNew: true });
-    }, [canWrite, editOnly, syncWorkspace]);
+    }, [canWrite, confirmDiscardFormChanges, editOnly, formSessionActive, syncWorkspace]);
     const startEdit = useCallback(
-        (id: string, record?: object) => {
+        async (id: string, record?: object) => {
             if (!canWrite) return;
+            if (editingId !== id && !(await confirmDiscardFormChanges())) return;
             const titleSuffix =
                 crudConfig?.fieldTabName && record
                     ? String((record as Record<string, unknown>)[crudConfig.fieldTabName] ?? "")
@@ -273,9 +292,15 @@ export function CrudScreen({
                 titleSuffix: titleSuffix || undefined,
             });
         },
-        [canWrite, crudConfig, syncWorkspace],
+        [canWrite, confirmDiscardFormChanges, crudConfig, editingId, syncWorkspace],
     );
-    const goToTab = useCallback((tabId: string) => setActiveTab(tabId), []);
+    const goToTab = useCallback(
+        async (tabId: string) => {
+            if (tabId !== activeTab && formSessionActive && !(await confirmDiscardFormChanges())) return;
+            setActiveTab(tabId);
+        },
+        [activeTab, confirmDiscardFormChanges, formSessionActive],
+    );
     const prevBranchIdRef = useRef<string | null>(null);
 
     // A aba do modulo (ex.: job-positions::list) permanece montada ao trocar de filial; sem isso o
@@ -284,9 +309,9 @@ export function CrudScreen({
         const previous = prevBranchIdRef.current;
         prevBranchIdRef.current = activeBranchId;
         if (previous != null && activeBranchId != null && previous !== activeBranchId) {
-            goToList();
+            resetToList();
         }
-    }, [activeBranchId, goToList]);
+    }, [activeBranchId, resetToList]);
 
     useEffect(() => {
         if (!canWrite && activeTab === CRUD_TAB_FORM) {
@@ -325,14 +350,25 @@ export function CrudScreen({
     }, [activeTab, canWrite, isEditing, visibleExtraTabs]);
 
     const ctx = useMemo(
-        () => ({ activeTab, editingId, isEditing, goToList, goToForm, startCreate, startEdit, goToTab }),
-        [activeTab, editingId, goToForm, goToList, goToTab, isEditing, startCreate, startEdit],
+        () => ({
+            activeTab,
+            editingId,
+            isEditing,
+            goToList,
+            returnToList,
+            goToForm,
+            startCreate,
+            startEdit,
+            goToTab,
+        }),
+        [activeTab, editingId, goToForm, goToList, goToTab, isEditing, returnToList, startCreate, startEdit],
     );
     const extraTabPanel = visibleExtraTabs.find((t) => t.id === activeTab)?.content ?? null;
 
     return (
         <CrudScreenContext.Provider value={ctx}>
             <CrudExtraTabsSetterContext.Provider value={setOverrideExtraTabs}>
+                <CrudFormDirtyProvider>
                 <QueryRefreshHostProvider>
                     {extraTabsController}
                     <div className="flex min-h-0 flex-1 flex-col">
@@ -352,15 +388,21 @@ export function CrudScreen({
                                         onClick={() => {
                                             if (disabled) return;
                                             if (tab.id === CRUD_TAB_LIST) {
-                                                setActiveTab(CRUD_TAB_LIST);
-                                            } else if (tab.id === CRUD_TAB_FORM) {
+                                                void goToList();
+                                                return;
+                                            }
+                                            if (tab.id === CRUD_TAB_FORM) {
                                                 if (!canWrite) return;
                                                 if (editOnly && !editingId) return;
-                                                setActiveTab(CRUD_TAB_FORM);
-                                                if (workspaceEnabled && !editingId && !editOnly) {
-                                                    syncWorkspace({ isNew: true });
-                                                }
-                                            } else setActiveTab(tab.id);
+                                                void (async () => {
+                                                    await goToTab(CRUD_TAB_FORM);
+                                                    if (workspaceEnabled && !editingId && !editOnly) {
+                                                        syncWorkspace({ isNew: true });
+                                                    }
+                                                })();
+                                                return;
+                                            }
+                                            void goToTab(tab.id);
                                         }}
                                         className={clsx(
                                             "gommo-crud-tab",
@@ -438,6 +480,7 @@ export function CrudScreen({
                         </div>
                     </div>
                 </QueryRefreshHostProvider>
+                </CrudFormDirtyProvider>
             </CrudExtraTabsSetterContext.Provider>
         </CrudScreenContext.Provider>
     );

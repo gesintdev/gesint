@@ -16,6 +16,7 @@ import br.com.gommo.admin.modules.productsystem.entity.ProductSystem;
 import br.com.gommo.admin.modules.productsystem.exception.ProductSystemException;
 import br.com.gommo.admin.modules.productsystem.mapper.ProductSystemMapper;
 import br.com.gommo.admin.modules.productsystem.repository.ProductSystemRepository;
+import br.com.gommo.admin.modules.productsystem.support.CtbSystemAvailability;
 
 @Service
 public class ProductSystemService
@@ -24,11 +25,16 @@ public class ProductSystemService
 
     private final ProductSystemRepository repository;
     private final ProductSystemMapper mapper;
+    private final CtbSystemAvailability ctbSystemAvailability;
 
-    public ProductSystemService(ProductSystemRepository repository, ProductSystemMapper mapper) {
+    public ProductSystemService(
+            ProductSystemRepository repository,
+            ProductSystemMapper mapper,
+            CtbSystemAvailability ctbSystemAvailability) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
+        this.ctbSystemAvailability = ctbSystemAvailability;
     }
 
     @Override
@@ -36,6 +42,7 @@ public class ProductSystemService
     @PreAuthorize("hasAuthority('platform:admin')")
     public List<ProductSystemResponseDto> findAll() {
         return repository.findAllByStatusNotOrderBySortOrderAscNameAsc(StatusEnum.DELETED).stream()
+                .filter(product -> ctbSystemAvailability.isCommercialProductKey(product.getKey()))
                 .map(mapper::toResponse)
                 .toList();
     }
@@ -79,7 +86,12 @@ public class ProductSystemService
 
     @Override
     protected ProductSystem findEntity(UUID id) {
-        return repository.findByIdAndStatusNot(id, StatusEnum.DELETED).orElseThrow(ProductSystemException::notFound);
+        ProductSystem product =
+                repository.findByIdAndStatusNot(id, StatusEnum.DELETED).orElseThrow(ProductSystemException::notFound);
+        if (!ctbSystemAvailability.isCommercialProductKey(product.getKey())) {
+            throw ProductSystemException.notFound();
+        }
+        return product;
     }
 
     @Override

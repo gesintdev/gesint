@@ -23,6 +23,7 @@ import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query"
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -32,7 +33,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "dados", label: "Dados" }];
 
 export function JobVacancyApplicationFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<JobVacancyApplicationCreateDto>(emptyJobVacancyApplicationForm);
     const [error, setError] = useState<string | null>(null);
@@ -81,6 +82,14 @@ export function JobVacancyApplicationFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: jobVacancyApplicationToFormDto,
+        getEmptyForm: () => emptyJobVacancyApplicationForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: JobVacancyApplicationCreateDto) => {
@@ -98,7 +107,7 @@ export function JobVacancyApplicationFormClient() {
             }
             toast.success(isEditing ? "Candidatura atualizada" : "Candidatura cadastrada");
             setForm(emptyJobVacancyApplicationForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

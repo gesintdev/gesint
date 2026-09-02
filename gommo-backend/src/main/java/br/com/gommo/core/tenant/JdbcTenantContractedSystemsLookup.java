@@ -14,6 +14,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import br.com.gommo.core.config.CtbSystemAvailability;
+
 @Repository
 public class JdbcTenantContractedSystemsLookup implements TenantContractedSystemsLookup {
 
@@ -65,9 +67,12 @@ public class JdbcTenantContractedSystemsLookup implements TenantContractedSystem
             """;
 
     private final JdbcTemplate jdbcTemplate;
+    private final CtbSystemAvailability ctbSystemAvailability;
 
-    public JdbcTenantContractedSystemsLookup(JdbcTemplate jdbcTemplate) {
+    public JdbcTenantContractedSystemsLookup(
+            JdbcTemplate jdbcTemplate, CtbSystemAvailability ctbSystemAvailability) {
         this.jdbcTemplate = jdbcTemplate;
+        this.ctbSystemAvailability = ctbSystemAvailability;
     }
 
     @Override
@@ -76,7 +81,9 @@ public class JdbcTenantContractedSystemsLookup implements TenantContractedSystem
             return Collections.emptyList();
         }
         try {
-            return jdbcTemplate.query(SELECT_EFFECTIVE_KEYS, (rs, rowNum) -> rs.getString("key"), clientId);
+            return jdbcTemplate.query(SELECT_EFFECTIVE_KEYS, (rs, rowNum) -> rs.getString("key"), clientId).stream()
+                    .filter(ctbSystemAvailability::isCommercialProductKey)
+                    .toList();
         } catch (DataAccessException ex) {
             log.warn("admin contracted systems lookup failed for client {}: {}", clientId, ex.getMessage());
             return Collections.emptyList();
@@ -95,6 +102,9 @@ public class JdbcTenantContractedSystemsLookup implements TenantContractedSystem
                     SELECT_EFFECTIVE_KEY_SCOPE,
                     rs -> {
                         String key = rs.getString("key");
+                        if (!ctbSystemAvailability.isCommercialProductKey(key)) {
+                            return;
+                        }
                         if (!"SELECTED".equals(rs.getString("branch_mode"))) {
                             allBranches.add(key);
                             return;

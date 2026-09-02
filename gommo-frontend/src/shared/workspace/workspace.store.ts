@@ -125,17 +125,37 @@ function resolveActiveTabId(activeRaw: string | null, moduleTabs: WorkspaceTab[]
     return DASHBOARD_TAB_ID;
 }
 
+function isRenderableIcon(icon: WorkspaceTab["icon"]): icon is NonNullable<WorkspaceTab["icon"]> {
+    return typeof icon === "function";
+}
+
+/** Icones de componente nao sobrevivem ao JSON; remove lixo reidratado do sessionStorage. */
+function stripTabIcon(tab: WorkspaceTab): WorkspaceTab {
+    const { icon, ...rest } = tab;
+    void icon;
+    return rest;
+}
+
+function sanitizeTabIcon(tab: WorkspaceTab): WorkspaceTab {
+    if (!tab.icon || isRenderableIcon(tab.icon)) {
+        return tab;
+    }
+    const { icon, ...rest } = tab;
+    void icon;
+    return rest;
+}
+
 function normalizeTabs(tabs: WorkspaceTab[]): WorkspaceTab[] {
     return partitionPinnedTabs(
         tabs.map((tab) => {
             const { routeId, entityKey } = parseWorkspaceTabId(tab.id);
-            return {
+            return sanitizeTabIcon({
                 ...tab,
                 id: buildWorkspaceTabId(routeId, entityKey),
                 routeId,
                 entityKey,
                 pinned: Boolean(tab.pinned),
-            };
+            });
         }),
     );
 }
@@ -174,7 +194,16 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                 }
                 const tabs = stripDashboardTabs(normalizeTabs(get().tabs));
                 const activeId = resolveActiveTabId(get().activeTabId, tabs);
-                set({ _hasHydrated: true, tabs, activeTabId: activeId });
+                const branchGroups = Object.fromEntries(
+                    Object.entries(get().branchGroups).map(([branchId, group]) => [
+                        branchId,
+                        {
+                            tabs: stripDashboardTabs(normalizeTabs(group.tabs)),
+                            activeTabId: group.activeTabId,
+                        },
+                    ]),
+                );
+                set({ _hasHydrated: true, tabs, activeTabId: activeId, branchGroups });
             },
             openModuleTab: (input) => {
                 if (input.routeId === DASHBOARD_ROUTE_ID) {
@@ -300,13 +329,18 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             name: "gommo-workspace-tabs",
             storage: createJSONStorage(() => sessionStorage),
             partialize: (state) => ({
-                tabs: stripDashboardTabs(state.tabs).map(({ icon, ...rest }) => {
-                    void icon;
-                    return rest;
-                }),
+                tabs: stripDashboardTabs(state.tabs).map(stripTabIcon),
                 activeTabId: state.activeTabId,
                 activeBranchId: state.activeBranchId,
-                branchGroups: state.branchGroups,
+                branchGroups: Object.fromEntries(
+                    Object.entries(state.branchGroups).map(([branchId, group]) => [
+                        branchId,
+                        {
+                            tabs: stripDashboardTabs(group.tabs).map(stripTabIcon),
+                            activeTabId: group.activeTabId,
+                        },
+                    ]),
+                ),
             }),
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);

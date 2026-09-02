@@ -1,6 +1,7 @@
 import {Calculator, type LucideIcon, Users, Wallet} from "lucide-react";
 
 import type {AppRoute, TModule} from "@/modules/root/enum/ModuleEnum";
+import { isCommercialSystemEnabled } from "@/shared/lib/system-availability";
 
 export enum SystemEnum {
     DP = "dp",
@@ -66,9 +67,9 @@ export class SystemEnumHelper {
 
     /** Ordem alfabética pela sigla — primeiro é o padrão na inicialização. */
     static getSortedSystems(): SystemEnum[] {
-        return (Object.values(SystemEnum) as SystemEnum[]).sort((a, b) =>
-            registry[a].acronym.localeCompare(registry[b].acronym, "pt-BR"),
-        );
+        return (Object.values(SystemEnum) as SystemEnum[])
+            .filter((system) => isCommercialSystemEnabled(system))
+            .sort((a, b) => registry[a].acronym.localeCompare(registry[b].acronym, "pt-BR"));
     }
 
     static getDefaultSystem(): SystemEnum {

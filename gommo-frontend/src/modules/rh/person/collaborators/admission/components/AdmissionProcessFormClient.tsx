@@ -40,6 +40,7 @@ import {admissionprocessService} from "@/modules/rh/person/collaborators/admissi
 import {storageService} from "@/modules/storage/services/storage.service";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {
     EntityAttachments,
     flushPendingAttachments,
@@ -64,7 +65,7 @@ import {digitsOnly} from "@/shared/lib/input/digits";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 export function AdmissionProcessFormClient() {
-    const {editingId, isEditing, goToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessCreateDto>(emptyAdmissionProcessForm);
     const [error, setError] = useState<string | null>(null);
@@ -190,6 +191,14 @@ export function AdmissionProcessFormClient() {
         clearPendingPhoto();
         update("photoObjectId", "");
     }, [clearPendingPhoto]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: admissionprocessToFormDto,
+        getEmptyForm: () => emptyAdmissionProcessForm(),
+    });
+
     const saveMutation = useMutation({
         mutationFn: async (dto: AdmissionProcessCreateDto) => {
             let payload = admissionFormToPayload(dto);
@@ -233,7 +242,7 @@ export function AdmissionProcessFormClient() {
             await queryClient.invalidateQueries({queryKey: ["storage-links", "admission_process", savedId]});
             toast.success(isEditing ? "Admissão atualizada" : "Admissão registrada");
             setForm(emptyAdmissionProcessForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

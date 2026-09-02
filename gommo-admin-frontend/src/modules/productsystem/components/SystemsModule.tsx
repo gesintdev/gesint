@@ -15,6 +15,7 @@ import { AdminPagination } from "@/shared/components/ui/admin/AdminPagination";
 import { AdminSearchBar } from "@/shared/components/ui/admin/AdminSearchBar";
 import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
 import { useOptimisticPath } from "@/shared/hooks/useOptimisticPath";
+import { isProductSystemKeyVisible } from "@/shared/lib/system-availability";
 import { systemsFormPath, systemsListPath } from "@/shared/routing/admin-nav";
 import { DataType } from "@/shared/types/data-type";
 
@@ -48,7 +49,7 @@ export function SystemsModule() {
         setLoading(true);
         try {
             const data = await productSystemService.getAll();
-            setSystems(data);
+            setSystems(data.filter((item) => isProductSystemKeyVisible(item.key)));
         } catch (err) {
             ExceptionCapture.handle(err, { fallbackMessage: "Falha ao carregar sistemas." });
         } finally {

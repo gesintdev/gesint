@@ -49,62 +49,7 @@ public class TenantSchemaProvisioner {
 
         defaultDataProvisioner.seedDefaults(schema);
         provisionAuthTables(schema);
-        provisionDefaultPayrollEvents(schema);
-        provisionDefaultExitInterviewReturnChecklistItems(schema);
         branchBackfiller.backfill(schema);
-    }
-
-    private void provisionDefaultPayrollEvents(String schema) {
-        if (!tenantTableExists(schema, "payroll_event")) {
-            return;
-        }
-
-        Integer existing = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM \"" + schema + "\".payroll_event WHERE status != 'DELETED'", Integer.class);
-        if (existing != null && existing > 0) {
-            return;
-        }
-
-        jdbcTemplate.execute(
-                """
-                INSERT INTO "%s".payroll_event (
-                    id, status, event_code, description, event_type,
-                    incides_inss, incides_fgts, incides_irrf, formula, code, created_at
-                )
-                SELECT
-                    p.id, p.status, p.event_code, p.description, p.event_type,
-                    p.incides_inss, p.incides_fgts, p.incides_irrf, p.formula, p.code, now()
-                FROM public.payroll_event p
-                WHERE p.status <> 'DELETED'
-                ON CONFLICT (id) DO NOTHING
-                """
-                        .formatted(schema));
-    }
-
-    private void provisionDefaultExitInterviewReturnChecklistItems(String schema) {
-        if (!tenantTableExists(schema, "exit_interview_return_checklist_item")) {
-            return;
-        }
-
-        Integer existing = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM \"" + schema
-                        + "\".exit_interview_return_checklist_item WHERE status != 'DELETED'",
-                Integer.class);
-        if (existing != null && existing > 0) {
-            return;
-        }
-
-        jdbcTemplate.execute(
-                """
-                INSERT INTO "%s".exit_interview_return_checklist_item (
-                    id, status, item_key, description, display_order, code, created_at
-                )
-                SELECT p.id, p.status, p.item_key, p.description, p.display_order, p.code, now()
-                FROM public.exit_interview_return_checklist_item p
-                WHERE p.status <> 'DELETED'
-                ON CONFLICT (id) DO NOTHING
-                """
-                        .formatted(schema));
     }
 
     private void provisionAuthTables(String schema) {

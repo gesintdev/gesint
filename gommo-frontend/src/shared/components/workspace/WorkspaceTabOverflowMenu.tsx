@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
 import { WorkspaceTabSystemBadge } from "@/shared/components/workspace/WorkspaceTabSystemBadge";
+import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
 import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
@@ -108,9 +109,15 @@ export function WorkspaceTabOverflowMenu({ moduleTabs, activeTabId, onSelect }: 
                             role="menuitem"
                             className="w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium text-error hover:bg-error/10"
                             onClick={() => {
-                                if (hasPinned) closeUnpinnedTabs();
-                                else closeAllTabs();
-                                setOpen(false);
+                                void (async () => {
+                                    const tabIds = hasPinned
+                                        ? moduleTabs.filter((tab) => !tab.pinned).map((tab) => tab.id)
+                                        : moduleTabs.map((tab) => tab.id);
+                                    if (!(await confirmDiscardUnsavedChanges(tabIds))) return;
+                                    if (hasPinned) closeUnpinnedTabs();
+                                    else closeAllTabs();
+                                    setOpen(false);
+                                })();
                             }}
                         >
                             {hasPinned ? "Fechar não fixadas" : "Fechar todas as abas"}

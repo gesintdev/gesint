@@ -16,6 +16,7 @@ import { payrollrunService } from "@/modules/ctb/payroll/services/payroll-run.se
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
@@ -26,7 +27,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contracheque" }];
 
 export function PayslipFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayslipCreateDto>(() => emptyPayslipForm());
     const [error, setError] = useState<string | null>(null);
@@ -56,6 +57,14 @@ export function PayslipFormClient() {
         }
     }, [isEditing, detailQuery.data]);
 
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: payslipToFormDto,
+        getEmptyForm: () => emptyPayslipForm(),
+    });
+
     const searchPayrollRuns = useCallback(
         (query: string, page: number) => payrollrunService.searchForAutocomplete(query, page),
         [],
@@ -80,7 +89,7 @@ export function PayslipFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: payslipKeys.detail(editingId) });
             toast.success(isEditing ? "Holerite atualizado" : "Holerite cadastrado");
             setForm(emptyPayslipForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: PAYSLIP_CLIENT_MESSAGES.PAYSLIP_SAVE_FAILED });

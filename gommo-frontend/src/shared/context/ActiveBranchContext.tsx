@@ -14,6 +14,7 @@ import {
 import { useSession } from "next-auth/react";
 
 import { type Branch, persistActiveBranch, readActiveBranch, subscribeActiveBranch } from "@/shared/lib/branch";
+import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
 import { writeLastWorkspaceInitLocation } from "@/shared/workspace/workspace-location";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 
@@ -21,7 +22,7 @@ type ActiveBranchContextValue = {
     branches: Branch[];
     activeBranch: Branch | null;
     activeBranchId: string | null;
-    selectBranch: (branchId: string) => void;
+    selectBranch: (branchId: string) => Promise<boolean>;
     /** Cliente sem filial cadastrada ainda: o app opera sem escopo ate a matriz existir. */
     hasBranches: boolean;
 };
@@ -94,13 +95,21 @@ export function ActiveBranchProvider({ children, initialBranchId = null }: Activ
     }, [activeBranchId]);
 
     const selectBranch = useCallback(
-        (branchId: string) => {
+        async (branchId: string) => {
             if (!branches.some((branch) => branch.id === branchId)) {
-                return;
+                return false;
+            }
+            if (branchId === activeBranchId) {
+                return true;
+            }
+            const tabIds = useWorkspaceStore.getState().tabs.map((tab) => tab.id);
+            if (!(await confirmDiscardUnsavedChanges(tabIds))) {
+                return false;
             }
             persistActiveBranch(branchId);
+            return true;
         },
-        [branches],
+        [activeBranchId, branches],
     );
 
     const value = useMemo(

@@ -14,6 +14,7 @@ import {
 import { admissionProcessKanbanColumnService } from "@/modules/cfg/settings/admissionprocesskanban/services/admission-process-kanban-column.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -23,7 +24,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Coluna" }];
 
 export function AdmissionProcessKanbanColumnFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessKanbanColumnCreateDto>(
         emptyAdmissionProcessKanbanColumnForm,
@@ -47,6 +48,14 @@ export function AdmissionProcessKanbanColumnFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: admissionProcessKanbanColumnToFormDto,
+        getEmptyForm: () => emptyAdmissionProcessKanbanColumnForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: AdmissionProcessKanbanColumnCreateDto) => {
@@ -69,7 +78,7 @@ export function AdmissionProcessKanbanColumnFormClient() {
             }
             toast.success(isEditing ? "Coluna atualizada" : "Coluna cadastrada");
             setForm(emptyAdmissionProcessKanbanColumnForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

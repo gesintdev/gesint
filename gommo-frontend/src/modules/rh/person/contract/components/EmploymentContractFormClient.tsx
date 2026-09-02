@@ -16,6 +16,7 @@ import { CONTRACT_TYPE_ITEMS } from "@/modules/rh/person/collaborators/admission
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -25,7 +26,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contrato" }];
 
 export function EmploymentContractFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<EmploymentContractCreateDto>(emptyEmploymentContractForm);
     const [error, setError] = useState<string | null>(null);
@@ -47,6 +48,14 @@ export function EmploymentContractFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: employmentcontractToFormDto,
+        getEmptyForm: () => emptyEmploymentContractForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: EmploymentContractCreateDto) => {
@@ -63,7 +72,7 @@ export function EmploymentContractFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: employmentcontractKeys.detail(editingId) });
             toast.success(isEditing ? "Contrato atualizado" : "Contrato cadastrado");
             setForm(emptyEmploymentContractForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: CONTRACT_CLIENT_MESSAGES.CONTRACT_SAVE_FAILED });

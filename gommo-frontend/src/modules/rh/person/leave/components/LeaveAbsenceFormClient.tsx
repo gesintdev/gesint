@@ -15,6 +15,7 @@ import { storageService } from "@/modules/storage/services/storage.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {
     EntityAttachments,
     flushPendingAttachments,
@@ -61,7 +62,7 @@ function inclusiveDays(startDate?: string, endDate?: string) {
 }
 
 export function LeaveAbsenceFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<LeaveRequestCreateDto & { notes?: string }>(emptyLeaveRequestForm);
     const [error, setError] = useState<string | null>(null);
@@ -98,6 +99,14 @@ export function LeaveAbsenceFormClient() {
             clearPendingAttachments();
         }
     }, [isEditing, detailQuery.data, clearPendingAttachments]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: leaverequestToFormDto,
+        getEmptyForm: () => emptyLeaveRequestForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: LeaveRequestCreateDto) => {
@@ -130,7 +139,7 @@ export function LeaveAbsenceFormClient() {
             });
             toast.success(isEditing ? "Afastamento salvo" : "Afastamento cadastrado");
             setForm(emptyLeaveAbsenceForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED });

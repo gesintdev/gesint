@@ -16,6 +16,7 @@ import {
 import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { EntityAttachments } from "@/shared/components/storage/EntityAttachments";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
@@ -30,7 +31,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function CandidateFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CandidateCreateDto>(emptyCandidateForm);
     const [error, setError] = useState<string | null>(null);
@@ -51,6 +52,14 @@ export function CandidateFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: candidateToFormDto,
+        getEmptyForm: () => emptyCandidateForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: CandidateCreateDto) => {
@@ -63,7 +72,7 @@ export function CandidateFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: candidateKeys.detail(editingId) });
             toast.success(isEditing ? "Candidato atualizado" : "Candidato cadastrado");
             setForm(emptyCandidateForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

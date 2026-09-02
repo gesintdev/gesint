@@ -18,6 +18,7 @@ import {
 import { digitalCertificateService } from "@/modules/cfg/settings/digital-certificate/services/digital-certificate.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -38,7 +39,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function DigitalCertificateFormClient() {
-    const { editingId, isEditing, goToList } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DigitalCertificateCreateDto>(emptyDigitalCertificateForm);
     const [fileName, setFileName] = useState<string>("");
@@ -63,6 +64,14 @@ export function DigitalCertificateFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: digitalCertificateToFormDto,
+        getEmptyForm: () => emptyDigitalCertificateForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: DigitalCertificateCreateDto) => {
@@ -88,7 +97,7 @@ export function DigitalCertificateFormClient() {
             }
             toast.success(isEditing ? "Certificado atualizado" : "Certificado cadastrado");
             setForm(emptyDigitalCertificateForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

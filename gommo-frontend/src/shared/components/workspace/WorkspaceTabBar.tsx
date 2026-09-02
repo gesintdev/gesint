@@ -33,6 +33,7 @@ import {
 import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
 import { WorkspaceTabOverflowMenu } from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
 import { WorkspaceTabSystemBadge } from "@/shared/components/workspace/WorkspaceTabSystemBadge";
+import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
@@ -295,6 +296,15 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
 
     const pinnedCount = moduleTabs.filter((tab) => tab.pinned).length;
 
+    const handleCloseBulkTabs = useCallback(async () => {
+        const tabIds =
+            pinnedCount > 0
+                ? moduleTabs.filter((tab) => !tab.pinned).map((tab) => tab.id)
+                : moduleTabs.map((tab) => tab.id);
+        if (!(await confirmDiscardUnsavedChanges(tabIds))) return;
+        closeUnpinnedTabs();
+    }, [closeUnpinnedTabs, moduleTabs, pinnedCount]);
+
     return (
         <div className="workspace-tabbar flex shrink-0 items-stretch">
             <div className="gommo-workspace-tabs workspace-tabbar-tabs min-w-0 flex-1">
@@ -374,7 +384,9 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                 onDuplicate={handleDuplicate}
                 onTogglePin={(tab) => togglePinTab(tab.id)}
                 onCloseTab={(tab) => onClose(tab.id)}
-                onCloseAll={closeUnpinnedTabs}
+                onCloseAll={() => {
+                    void handleCloseBulkTabs();
+                }}
                 closeAllLabel={pinnedCount > 0 ? "Fechar não fixadas" : "Fechar todas"}
             />
         </div>

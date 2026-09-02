@@ -15,6 +15,7 @@ import {
 import { collaboratorService } from "@/modules/rh/person/collaborators/people/services/collaborator.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -43,7 +44,7 @@ const COLLABORATOR_FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function CollaboratorFormClient() {
-    const { editingId, isEditing, goToList } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CollaboratorCreateDto>(emptyCollaboratorForm);
     const [error, setError] = useState<string | null>(null);
@@ -68,6 +69,14 @@ export function CollaboratorFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data, editingId]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: collaboratorToFormDto,
+        getEmptyForm: () => emptyCollaboratorForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: CollaboratorCreateDto) => {
@@ -78,7 +87,7 @@ export function CollaboratorFormClient() {
             await queryClient.invalidateQueries({ queryKey: collaboratorKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: collaboratorKeys.detail(editingId) });
             toast.success("Dados pessoais atualizados");
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

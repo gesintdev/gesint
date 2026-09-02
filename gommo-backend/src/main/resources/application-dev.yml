@@ -22,3 +22,6 @@ gommo:
     ocr:
       # Vazio = auto-detecta ./data/tessdata e ../data/tessdata (IDE na raiz vs mvn em gommo-backend)
       tessdata-path: ${TESSDATA_PREFIX:}
+  systems:
+    ctb:
+      enabled: ${GOMMO_CTB_ENABLED:true}

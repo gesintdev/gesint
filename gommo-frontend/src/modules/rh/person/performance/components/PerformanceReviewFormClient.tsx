@@ -16,6 +16,7 @@ import { performanceReviewService } from "@/modules/rh/person/performance/servic
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -25,7 +26,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Avaliação" }];
 
 export function PerformanceReviewFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PerformanceReviewCreateDto>(emptyPerformanceReviewForm);
     const [error, setError] = useState<string | null>(null);
@@ -47,6 +48,14 @@ export function PerformanceReviewFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: performanceReviewToFormDto,
+        getEmptyForm: () => emptyPerformanceReviewForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: PerformanceReviewCreateDto) => {
@@ -58,7 +67,7 @@ export function PerformanceReviewFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: performanceReviewKeys.detail(editingId) });
             toast.success(isEditing ? "Avaliação atualizada" : "Avaliação cadastrada");
             setForm(emptyPerformanceReviewForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

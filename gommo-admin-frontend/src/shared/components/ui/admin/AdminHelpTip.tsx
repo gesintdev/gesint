@@ -9,9 +9,16 @@ export function AdminHelpTip({
     href,
 }: {
     tooltip: string;
-    href: string;
+    href?: string;
 }) {
     const [open, setOpen] = useState(false);
+
+    const iconStyle = {
+        display: "inline-flex",
+        color: "var(--ga-text-muted)",
+        padding: 2,
+        borderRadius: "var(--ga-radius-sm)",
+    } as const;
 
     return (
         <span
@@ -19,22 +26,23 @@ export function AdminHelpTip({
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
         >
-            <Link
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={tooltip}
-                aria-label={tooltip}
-                style={{
-                    display: "inline-flex",
-                    color: "var(--ga-text-muted)",
-                    padding: 2,
-                    borderRadius: "var(--ga-radius-sm)",
-                }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <CircleHelp size={14} />
-            </Link>
+            {href ? (
+                <Link
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={tooltip}
+                    aria-label={tooltip}
+                    style={iconStyle}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <CircleHelp size={14} />
+                </Link>
+            ) : (
+                <span title={tooltip} aria-label={tooltip} style={iconStyle}>
+                    <CircleHelp size={14} />
+                </span>
+            )}
             {open ? (
                 <span
                     role="tooltip"

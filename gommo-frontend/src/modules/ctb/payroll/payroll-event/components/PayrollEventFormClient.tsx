@@ -16,6 +16,7 @@ import { payrollEventKeys } from "@/modules/ctb/payroll/payroll-event/payroll-ev
 import { payrollEventService } from "@/modules/ctb/payroll/payroll-event/services/payroll-event.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
@@ -60,7 +61,7 @@ function FormulaTextarea({ label, hint, value, onValueChange, wrapperClassName }
 }
 
 export function PayrollEventFormClient() {
-    const { editingId, isEditing, goToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayrollEventCreateDto>(emptyPayrollEventForm);
     const [error, setError] = useState<string | null>(null);
@@ -81,6 +82,14 @@ export function PayrollEventFormClient() {
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: payrollEventToFormDto,
+        getEmptyForm: () => emptyPayrollEventForm(),
+    });
+
 
     const saveMutation = useMutation({
         mutationFn: async (dto: PayrollEventCreateDto) => {
@@ -92,7 +101,7 @@ export function PayrollEventFormClient() {
             if (editingId) await queryClient.invalidateQueries({ queryKey: payrollEventKeys.detail(editingId) });
             toast.success(isEditing ? "Evento de folha atualizado" : "Evento de folha cadastrado");
             setForm(emptyPayrollEventForm());
-            goToList();
+            returnToList();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

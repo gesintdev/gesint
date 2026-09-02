@@ -6,6 +6,16 @@ type TabCloseHandler = () => void;
 const dirtyCheckers = new Map<string, DirtyChecker>();
 const closeHandlers = new Map<string, Set<TabCloseHandler>>();
 
+function normalizeTabIds(tabIds?: string | readonly string[]): string[] {
+    if (tabIds == null) return [...dirtyCheckers.keys()];
+    if (typeof tabIds === "string") return [tabIds];
+    return [...tabIds];
+}
+
+function listDirtyTabIds(tabIds?: string | readonly string[]): string[] {
+    return normalizeTabIds(tabIds).filter((tabId) => isTabDirty(tabId));
+}
+
 /** Registra se a aba do workspace tem edições pendentes. Retorna disposer. */
 export function registerTabDirtyGuard(tabId: string, isDirty: DirtyChecker): () => void {
     dirtyCheckers.set(tabId, isDirty);
@@ -51,14 +61,23 @@ export function isTabDirty(tabId: string): boolean {
     return Boolean(dirtyCheckers.get(tabId)?.());
 }
 
-/** Confirma fechamento quando há alterações não salvas. */
-export async function confirmCloseDirtyTab(tabId: string): Promise<boolean> {
-    if (!isTabDirty(tabId)) return true;
+export function hasDirtyTabs(tabIds?: string | readonly string[]): boolean {
+    return listDirtyTabIds(tabIds).length > 0;
+}
+
+/** Confirma descarte de alterações não salvas (fechar aba, trocar filial, cancelar, etc.). */
+export async function confirmDiscardUnsavedChanges(tabIds?: string | readonly string[]): Promise<boolean> {
+    if (!hasDirtyTabs(tabIds)) return true;
     return SystemAlert.confirm({
         title: "Alterações não salvas",
-        message: "Há edições em andamento que serão perdidas. Deseja sair mesmo assim?",
-        confirmLabel: "Sair sem salvar",
-        cancelLabel: "Continuar editando",
+        message: "Os dados não salvos serão perdidos. Deseja continuar?",
+        confirmLabel: "Continuar",
+        cancelLabel: "Cancelar",
         variant: "warning",
     });
+}
+
+/** Confirma fechamento quando há alterações não salvas. */
+export async function confirmCloseDirtyTab(tabId: string): Promise<boolean> {
+    return confirmDiscardUnsavedChanges(tabId);
 }
