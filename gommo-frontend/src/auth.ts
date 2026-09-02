@@ -310,6 +310,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         async session({ session, token }) {
             session.accessToken = token.accessToken as string | undefined;
             session.refreshToken = token.refreshToken as string | undefined;
+            session.accessTokenExpires = token.accessTokenExpires as number | undefined;
             session.tenantSlug = token.tenantSlug as string | undefined;
             session.tenantName = token.tenantName as string | undefined;
             session.contractedSystemKeys =

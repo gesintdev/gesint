@@ -70,7 +70,7 @@ export function AdminHeader() {
                             justifyContent: "center",
                         }}
                     >
-                        <span style={{ color: "#fff", fontSize: 12, fontWeight: 700 }}>{initials || "AD"}</span>
+                        <span style={{ color: "var(--ga-on-primary)", fontSize: 12, fontWeight: 700 }}>{initials || "AD"}</span>
                     </div>
                     <div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ga-text)", lineHeight: 1.2 }}>

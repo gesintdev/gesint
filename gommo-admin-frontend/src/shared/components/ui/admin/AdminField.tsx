@@ -19,7 +19,7 @@ function FieldLabel({ label, required }: FieldLabelProps) {
     return (
         <label className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[var(--ga-text-muted)]">
             {label}
-            {required ? <span className="ml-0.5 text-[#ef4444]">*</span> : null}
+            {required ? <span className="ml-0.5 text-error">*</span> : null}
         </label>
     );
 }

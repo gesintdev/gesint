@@ -31,6 +31,7 @@ declare module "next-auth" {
     interface Session {
         accessToken?: string;
         refreshToken?: string;
+        accessTokenExpires?: number;
         tenantSlug?: string;
         tenantName?: string;
         contractedSystemKeys?: string[] | null;

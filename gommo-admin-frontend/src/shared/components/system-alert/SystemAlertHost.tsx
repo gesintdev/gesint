@@ -13,23 +13,23 @@ const VARIANT_META: Record<
 > = {
     warning: {
         icon: AlertTriangle,
-        bannerBg: "#fffbeb",
-        iconColor: "#d97706",
+        bannerBg: "var(--ga-alert-warning-bg)",
+        iconColor: "var(--ga-alert-warning-icon)",
     },
     success: {
         icon: CheckCircle2,
-        bannerBg: "#ecfdf5",
-        iconColor: "#059669",
+        bannerBg: "var(--ga-alert-success-bg)",
+        iconColor: "var(--ga-alert-success-icon)",
     },
     info: {
         icon: Info,
-        bannerBg: "#eff6ff",
-        iconColor: "#2563eb",
+        bannerBg: "var(--ga-alert-info-bg)",
+        iconColor: "var(--ga-alert-info-icon)",
     },
     error: {
         icon: AlertCircle,
-        bannerBg: "#fef2f2",
-        iconColor: "#dc2626",
+        bannerBg: "var(--ga-alert-error-bg)",
+        iconColor: "var(--ga-alert-error-icon)",
     },
 };
 

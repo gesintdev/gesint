@@ -29,6 +29,29 @@
     --ga-sidebar-width: 220px;
     --ga-header-h: 52px;
     --ga-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.05);
+    --ga-page: var(--ga-bg);
+    --ga-on-primary: #ffffff;
+
+    --ga-badge-active-bg: #dcfce7;
+    --ga-badge-active-fg: #166534;
+    --ga-badge-inactive-bg: #fee2e2;
+    --ga-badge-inactive-fg: #991b1b;
+    --ga-badge-paused-bg: #fef3c7;
+    --ga-badge-paused-fg: #92400e;
+    --ga-badge-cancelled-bg: #f1f5f9;
+    --ga-badge-cancelled-fg: #475569;
+
+    --ga-alert-warning-bg: #fffbeb;
+    --ga-alert-warning-icon: #d97706;
+    --ga-alert-success-bg: #ecfdf5;
+    --ga-alert-success-icon: #059669;
+    --ga-alert-info-bg: #eff6ff;
+    --ga-alert-info-icon: #2563eb;
+    --ga-alert-error-bg: #fef2f2;
+    --ga-alert-error-icon: #dc2626;
+    --ga-alert-error-fg: #b91c1c;
+
+    color-scheme: light;
 }
 
 .dark {
@@ -41,10 +64,38 @@
     --ga-text-muted: #8b949e;
     --ga-text-subtle: #6e7681;
     --ga-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --ga-primary-50: rgba(0, 123, 255, 0.15);
+    --ga-page: var(--ga-bg);
+
+    --ga-badge-active-bg: rgba(22, 163, 74, 0.18);
+    --ga-badge-active-fg: #4ade80;
+    --ga-badge-inactive-bg: rgba(220, 38, 38, 0.18);
+    --ga-badge-inactive-fg: #f87171;
+    --ga-badge-paused-bg: rgba(217, 119, 6, 0.18);
+    --ga-badge-paused-fg: #fbbf24;
+    --ga-badge-cancelled-bg: rgba(148, 163, 184, 0.16);
+    --ga-badge-cancelled-fg: #cbd5e1;
+
+    --ga-alert-warning-bg: rgba(217, 119, 6, 0.14);
+    --ga-alert-warning-icon: #fbbf24;
+    --ga-alert-success-bg: rgba(5, 150, 105, 0.14);
+    --ga-alert-success-icon: #34d399;
+    --ga-alert-info-bg: rgba(37, 99, 235, 0.14);
+    --ga-alert-info-icon: #60a5fa;
+    --ga-alert-error-bg: rgba(220, 38, 38, 0.14);
+    --ga-alert-error-icon: #f87171;
+    --ga-alert-error-fg: #fca5a5;
+
+    color-scheme: dark;
 }
 
 @theme inline {
     --font-sans: var(--font-inter), system-ui, sans-serif;
+    --color-base-100: var(--ga-surface);
+    --color-base-200: var(--ga-surface-2);
+    --color-base-content: var(--ga-text);
+    --color-primary: var(--ga-primary);
+    --color-error: #dc2626;
 }
 
 * {
@@ -479,5 +530,216 @@ input:-webkit-autofill:focus {
 
 .gommo-password-toggle:hover {
     color: var(--ga-text);
+}
+
+/* Callouts e banners semânticos */
+.ga-callout-error {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ga-alert-error-fg);
+    background: var(--ga-alert-error-bg);
+    border: 1px solid color-mix(in srgb, var(--ga-alert-error-icon) 28%, transparent);
+    border-radius: var(--ga-radius-sm);
+    padding: 8px 10px;
+}
+
+/* Componentes compartilhados (inputs/selects) — tokens alinhados ao admin */
+.surface-popover {
+    border-radius: var(--ga-radius-sm);
+    border: 1px solid var(--ga-border);
+    background: var(--ga-surface);
+    box-shadow: var(--ga-shadow);
+}
+
+.gommo-listbox-option {
+    display: flex;
+    width: 100%;
+    cursor: pointer;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.4375rem 0.625rem;
+    text-align: left;
+    font-size: 0.8125rem;
+    line-height: 1.25;
+    color: var(--ga-text-muted);
+    transition:
+        background 0.13s ease,
+        color 0.13s ease;
+}
+
+.gommo-listbox-option:hover,
+.gommo-listbox-option--active {
+    background: var(--ga-primary-50);
+    color: var(--ga-text);
+}
+
+.gommo-listbox-option--selected {
+    color: var(--ga-primary);
+}
+
+.gommo-date-picker-panel,
+.gommo-datetime-picker-panel {
+    border-radius: var(--ga-radius-sm);
+    border: 1px solid var(--ga-border);
+    box-shadow: var(--ga-shadow);
+}
+
+.gommo-date-picker-panel .react-day-picker,
+.gommo-datetime-picker-panel .react-day-picker {
+    --rdp-accent-color: var(--ga-primary);
+    --rdp-accent-background-color: var(--ga-primary-50);
+    color: var(--ga-text);
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+}
+
+/* Auth pages — tema via .dark no html (script no head), sem flash no hydration */
+.ga-auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e6f4ff 0%, #f0f4f8 60%, #edf2fb 100%);
+}
+
+.dark .ga-auth-page {
+    background: linear-gradient(135deg, #0a1b2e 0%, #0d1117 60%, #0f1923 100%);
+}
+
+.ga-auth-theme-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 8px;
+    border: 1px solid var(--ga-border);
+    border-radius: var(--ga-radius-sm);
+    background: var(--ga-surface);
+    color: var(--ga-text-muted);
+    cursor: pointer;
+}
+
+.ga-auth-theme-toggle__sun {
+    display: none;
+}
+
+.dark .ga-auth-theme-toggle__sun {
+    display: block;
+}
+
+.ga-auth-theme-toggle__moon {
+    display: block;
+}
+
+.dark .ga-auth-theme-toggle__moon {
+    display: none;
+}
+
+.ga-auth-card {
+    width: 360px;
+    overflow: hidden;
+    border: 1px solid var(--ga-border);
+    border-radius: var(--ga-radius);
+    background: var(--ga-surface);
+    box-shadow: var(--ga-shadow);
+}
+
+.ga-auth-card__header {
+    padding: 20px 28px 18px;
+    border-bottom: 1px solid var(--ga-border);
+    background: var(--ga-primary-50);
+}
+
+.dark .ga-auth-card__header {
+    background: rgba(0, 123, 255, 0.06);
+}
+
+.ga-auth-card__brand-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ga-auth-card__brand-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ga-text);
+}
+
+.ga-auth-card__brand-subtitle {
+    font-size: 11px;
+    color: var(--ga-text-muted);
+}
+
+.ga-auth-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px 28px 28px;
+}
+
+.ga-auth-card__heading {
+    margin-bottom: 2px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ga-text);
+}
+
+.ga-auth-card__subheading {
+    font-size: 12px;
+    color: var(--ga-text-muted);
+}
+
+.ga-auth-submit {
+    margin-top: 4px;
+    padding: 9px 0;
+    border: none;
+    border-radius: var(--ga-radius-sm);
+    background: var(--ga-primary);
+    color: var(--ga-on-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ga-auth-submit:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.ga-auth-links {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.ga-auth-links--center {
+    justify-content: center;
+    gap: 12px;
+}
+
+.ga-auth-links a {
+    color: var(--ga-primary);
+}
+
+.ga-auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.ga-auth-muted {
+    font-size: 12px;
+    color: var(--ga-text-muted);
+}
+
+.ga-auth-error-inline {
+    font-size: 12px;
+    color: #dc2626;
 }
 

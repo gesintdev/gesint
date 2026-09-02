@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 
 import { AccessTokenRevealHost } from "@/shared/access-token-reveal";
 import { SessionExpiryGuards } from "@/shared/components/providers/SessionExpiryGuards";
+import { SessionGate } from "@/shared/components/providers/SessionGate";
 import { SessionRefresh } from "@/shared/components/providers/SessionRefresh";
 import { ThemeProvider } from "@/shared/components/providers/ThemeProvider";
 import { SystemAlertHost } from "@/shared/components/system-alert/SystemAlertHost";
@@ -19,17 +20,19 @@ export function AppProviders({ children, session }: { children: ReactNode; sessi
     const [queryClient] = useState(() => createQueryClient());
 
     return (
-        <SessionProvider session={session} refetchInterval={SESSION_REFETCH_SECONDS} refetchOnWindowFocus={false}>
-            <SessionRefresh />
-            <SessionExpiryGuards />
-            <QueryClientProvider client={queryClient}>
-                <ThemeProvider>
-                    {children}
-                    <Toaster richColors position="top-center" closeButton />
-                    <SystemAlertHost />
-                    <AccessTokenRevealHost />
-                </ThemeProvider>
-            </QueryClientProvider>
+        <SessionProvider session={session} refetchInterval={SESSION_REFETCH_SECONDS} refetchOnWindowFocus>
+            <SessionGate>
+                <SessionRefresh />
+                <SessionExpiryGuards />
+                <QueryClientProvider client={queryClient}>
+                    <ThemeProvider>
+                        {children}
+                        <Toaster richColors position="top-center" closeButton />
+                        <SystemAlertHost />
+                        <AccessTokenRevealHost />
+                    </ThemeProvider>
+                </QueryClientProvider>
+            </SessionGate>
         </SessionProvider>
     );
 }

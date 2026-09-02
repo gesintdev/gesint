@@ -209,6 +209,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         async session({ session, token }) {
             session.accessToken = token.accessToken as string | undefined;
             session.refreshToken = token.refreshToken as string | undefined;
+            session.accessTokenExpires = token.accessTokenExpires as number | undefined;
             session.error = token.error as typeof session.error;
             if (session.user) {
                 session.user.name = (token.name as string | undefined) ?? session.user.name;

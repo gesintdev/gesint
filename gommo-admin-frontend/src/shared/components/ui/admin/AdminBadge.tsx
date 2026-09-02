@@ -3,10 +3,10 @@
 import { AlertCircle, CheckCircle, PauseCircle, XCircle } from "lucide-react";
 
 const STATUS_STYLES: Record<string, { bg: string; color: string }> = {
-    Ativo: { bg: "#dcfce7", color: "#166534" },
-    Inativo: { bg: "#fee2e2", color: "#991b1b" },
-    Pausado: { bg: "#fef3c7", color: "#92400e" },
-    Cancelado: { bg: "#f1f5f9", color: "#475569" },
+    Ativo: { bg: "var(--ga-badge-active-bg)", color: "var(--ga-badge-active-fg)" },
+    Inativo: { bg: "var(--ga-badge-inactive-bg)", color: "var(--ga-badge-inactive-fg)" },
+    Pausado: { bg: "var(--ga-badge-paused-bg)", color: "var(--ga-badge-paused-fg)" },
+    Cancelado: { bg: "var(--ga-badge-cancelled-bg)", color: "var(--ga-badge-cancelled-fg)" },
 };
 
 export function AdminBadge({ status }: { status: string }) {
@@ -31,8 +31,8 @@ export function AdminBadge({ status }: { status: string }) {
 }
 
 export function AdminStatusIcon({ status }: { status: string }) {
-    if (status === "Ativo") return <CheckCircle size={15} color="#16a34a" />;
-    if (status === "Inativo") return <XCircle size={15} color="#dc2626" />;
-    if (status === "Pausado") return <PauseCircle size={15} color="#d97706" />;
-    return <AlertCircle size={15} color="#64748b" />;
+    if (status === "Ativo") return <CheckCircle size={15} color="var(--ga-badge-active-fg)" />;
+    if (status === "Inativo") return <XCircle size={15} color="var(--ga-badge-inactive-fg)" />;
+    if (status === "Pausado") return <PauseCircle size={15} color="var(--ga-badge-paused-fg)" />;
+    return <AlertCircle size={15} color="var(--ga-badge-cancelled-fg)" />;
 }

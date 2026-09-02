@@ -12,6 +12,7 @@ import {HeaderAiAssistant} from "@/shared/components/layout/HeaderAiAssistant";
 import {HeaderBranchSelector} from "@/shared/components/layout/HeaderBranchSelector";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
+import {useSessionReady} from "@/shared/components/providers/SessionGate";
 import {AiAssistantPanel} from "@/shared/components/assistant/AiAssistantPanel";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
 import {GlobalSearchPalette} from "@/shared/components/search/GlobalSearchPalette";
@@ -37,6 +38,7 @@ export function SystemShell({
     const [agendaModalOpen, setAgendaModalOpen] = useState(false);
     const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
     const {data: session} = useSession();
+    const sessionReady = useSessionReady();
     const closeMobileNav = useCallback(() => setMobileNav(false), []);
     const toggleMobileNav = useCallback(() => setMobileNav((open) => !open), []);
     const closeClockModal = useCallback(() => setClockModalOpen(false), []);
@@ -61,6 +63,14 @@ export function SystemShell({
         document.documentElement.classList.add("gommo-workspace-active");
         return () => document.documentElement.classList.remove("gommo-workspace-active");
     }, []);
+
+    if (!sessionReady) {
+        return (
+            <div className="flex h-dvh items-center justify-center text-sm text-base-content/50">
+                Carregando...
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-dvh flex-col overflow-hidden">

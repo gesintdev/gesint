@@ -6,9 +6,11 @@ import { type ReactNode, useEffect } from "react";
 
 import { AdminHeader } from "@/shared/components/layout/AdminHeader";
 import { AdminSidebar } from "@/shared/components/layout/AdminSidebar";
+import { useSessionReady } from "@/shared/components/providers/SessionGate";
 
 export function AdminShell({ children }: { children: ReactNode }) {
     const { status } = useSession();
+    const sessionReady = useSessionReady();
     const router = useRouter();
 
     useEffect(() => {
@@ -17,7 +19,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         }
     }, [status, router]);
 
-    if (status !== "authenticated") {
+    if (status !== "authenticated" || !sessionReady) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-[var(--ga-bg)] text-[var(--ga-text-muted)]">
                 Carregando...

@@ -18,6 +18,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
+import br.com.gommo.core.branch.BranchContextHolder;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.dp.offboarding.repository.OffboardingRepository;
 import br.com.gommo.modules.dp.organization.department.entity.Department;
@@ -152,7 +153,7 @@ public class AdmissionProcessService
     @PreAuthorize("hasAuthority('admission:write')")
     public AdmissionProcessResponseDto create(AdmissionProcessRequestDto request) {
         normalizeRequest(request);
-        assertCpfAvailable(request.getCpf(), null);
+        assertCpfAvailable(request.getCpf(), null, null);
         AdmissionProcess entity = mapper.toEntity(request);
         applyAddressReferences(entity, request);
         entity.setStatus(StatusEnum.ACTIVE);
@@ -175,8 +176,8 @@ public class AdmissionProcessService
     @PreAuthorize("hasAuthority('admission:write')")
     public AdmissionProcessResponseDto update(UUID id, AdmissionProcessRequestDto request) {
         normalizeRequest(request);
-        assertCpfAvailable(request.getCpf(), id);
         AdmissionProcess entity = findEntity(id);
+        assertCpfAvailable(request.getCpf(), id, entity.getCollaboratorId());
         mapper.updateEntity(entity, request);
         applyAddressReferences(entity, request);
         applyDefaults(entity);
@@ -317,26 +318,38 @@ public class AdmissionProcessService
         request.setProviderTradeName(null);
     }
 
-    private void assertCpfAvailable(String cpf, UUID excludeAdmissionId) {
-        UUID linkedCollaboratorId = excludeAdmissionId == null
-                ? null
-                : repository
+    /**
+     * CPF e unico em todo o tenant (indice {@code idx_collaborator_cpf}), nao por filial.
+     * A checagem roda fora do escopo de filial para alinhar com essa restricao.
+     */
+    private void assertCpfAvailable(String cpf, UUID excludeAdmissionId, UUID linkedCollaboratorId) {
+        if (!StringUtils.hasText(cpf)) {
+            return;
+        }
+        BranchContextHolder.runUnscoped(() -> {
+            UUID collaboratorToIgnore = linkedCollaboratorId;
+            if (collaboratorToIgnore == null && excludeAdmissionId != null) {
+                collaboratorToIgnore = repository
                         .findByIdAndStatusNot(excludeAdmissionId, StatusEnum.DELETED)
                         .map(AdmissionProcess::getCollaboratorId)
                         .orElse(null);
-
-        collaboratorRepository.findByCpfAndStatusNot(cpf, StatusEnum.DELETED).ifPresent(c -> {
-            if (linkedCollaboratorId != null && linkedCollaboratorId.equals(c.getId())) {
-                return;
             }
-            throw AdmissionProcessException.cpfAlreadyExists();
-        });
 
-        var admissionWithCpf = excludeAdmissionId == null
-                ? repository.findByCpfAndStatusNot(cpf, StatusEnum.DELETED)
-                : repository.findByCpfAndStatusNotAndIdNot(cpf, StatusEnum.DELETED, excludeAdmissionId);
-        admissionWithCpf.ifPresent(a -> {
-            throw AdmissionProcessException.cpfAlreadyExists();
+            UUID ignoredCollaboratorId = collaboratorToIgnore;
+            collaboratorRepository.findByCpfAndStatusNot(cpf, StatusEnum.DELETED).ifPresent(c -> {
+                if (ignoredCollaboratorId != null && ignoredCollaboratorId.equals(c.getId())) {
+                    return;
+                }
+                throw AdmissionProcessException.cpfAlreadyExists();
+            });
+
+            var admissionWithCpf = excludeAdmissionId == null
+                    ? repository.findByCpfAndStatusNot(cpf, StatusEnum.DELETED)
+                    : repository.findByCpfAndStatusNotAndIdNot(cpf, StatusEnum.DELETED, excludeAdmissionId);
+            admissionWithCpf.ifPresent(a -> {
+                throw AdmissionProcessException.cpfAlreadyExists();
+            });
+            return null;
         });
     }
 

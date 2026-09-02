@@ -66,11 +66,11 @@ export function AccessTokenRevealHost() {
                         display: "flex",
                         gap: 12,
                         padding: "16px 16px 12px",
-                        background: "#eff6ff",
+                        background: "var(--ga-alert-info-bg)",
                         position: "relative",
                     }}
                 >
-                    <span style={{ color: "#2563eb", flexShrink: 0, marginTop: 2 }}>
+                    <span style={{ color: "var(--ga-alert-info-icon)", flexShrink: 0, marginTop: 2 }}>
                         <KeyRound size={20} strokeWidth={2} />
                     </span>
                     <div style={{ minWidth: 0, flex: 1, paddingRight: 28 }}>
@@ -115,7 +115,7 @@ export function AccessTokenRevealHost() {
                             padding: "10px 12px",
                             borderRadius: "var(--ga-radius-sm)",
                             border: "1px solid var(--ga-border)",
-                            background: "var(--ga-page, #f8fafc)",
+                            background: "var(--ga-surface-2)",
                             color: "var(--ga-text)",
                         }}
                     >

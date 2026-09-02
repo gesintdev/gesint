@@ -3311,15 +3311,16 @@ html:has(.login-page) body {
     transition: opacity 0.6s ease;
 }
 
-.login-page__visual-img--light {
+[data-theme="gommo"] .login-page__visual-img--light,
+:root:not([data-theme="dark"]) .login-page__visual-img--light {
     opacity: 1;
 }
 
-.login-page__visual-img--visible {
+[data-theme="dark"] .login-page__visual-img--dark {
     opacity: 1;
 }
 
-.login-page__visual-img--light:not(.login-page__visual-img--visible) {
+[data-theme="dark"] .login-page__visual-img--light {
     opacity: 0;
 }
 

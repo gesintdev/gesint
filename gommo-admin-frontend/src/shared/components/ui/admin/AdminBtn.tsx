@@ -8,7 +8,7 @@ type BtnSize = "sm" | "xs";
 const VARIANT_STYLES: Record<BtnVariant, CSSProperties> = {
     primary: {
         background: "var(--ga-primary)",
-        color: "#fff",
+        color: "var(--ga-on-primary)",
         border: "1px solid var(--ga-primary-dark)",
     },
     secondary: {
@@ -18,7 +18,7 @@ const VARIANT_STYLES: Record<BtnVariant, CSSProperties> = {
     },
     danger: {
         background: "#dc2626",
-        color: "#fff",
+        color: "var(--ga-on-primary)",
         border: "1px solid #b91c1c",
     },
     ghost: {

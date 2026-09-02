@@ -17,6 +17,7 @@ import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
 import { ExceptionCapture } from "@/shared/exceptions";
+import { useBranchScopedQueryKey } from "@/shared/hooks/useBranchScopedQueryKey";
 import { SystemAlert } from "@/shared/system-alert";
 
 type AdmissionProfileFilter = "ACTIVE" | "IN_VACATION" | "ON_LEAVE" | "DISMISSED" | "ALL";
@@ -59,6 +60,7 @@ export function AdmissionProcessListClient() {
     const queryClient = useQueryClient();
     const [selected, setSelected] = useState<AdmissionProcess | null>(null);
     const [profileFilter, setProfileFilter] = useState<AdmissionProfileFilter>("ACTIVE");
+    const listQueryKey = useBranchScopedQueryKey([...admissionprocessKeys.all, profileFilter]);
     const baseFilters = useMemo(() => {
         const next: Record<string, string[]> = {};
         if (profileFilter === "ACTIVE") next.profileStatus = ["ACTIVE"];
@@ -108,7 +110,7 @@ export function AdmissionProcessListClient() {
                     ))}
                 </div>
                 <QueryPagedTablePanel<AdmissionListingRow>
-                    queryKey={[...admissionprocessKeys.all, profileFilter]}
+                    queryKey={listQueryKey}
                     baseFilters={baseFilters}
                     paginationMode="load-more"
                     request={async (page, size, filters) => {

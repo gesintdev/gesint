@@ -65,7 +65,7 @@ import {digitsOnly} from "@/shared/lib/input/digits";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 export function AdmissionProcessFormClient() {
-    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, returnToList, startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessCreateDto>(emptyAdmissionProcessForm);
     const [error, setError] = useState<string | null>(null);
@@ -208,30 +208,42 @@ export function AdmissionProcessFormClient() {
                 payload = {...payload, photoObjectId: object.id};
             }
             let savedId = editingId ?? null;
+            let createdInThisRequest = false;
             if (isEditing && editingId) {
                 await admissionprocessService.update(editingId, payload);
                 savedId = editingId;
             } else {
                 const created = await admissionprocessService.create(payload);
                 savedId = created.id;
+                createdInThisRequest = true;
             }
 
             if (!savedId) {
                 throw new Error("Não foi possível identificar o registro salvo.");
             }
-            await flushPendingAttachments({
-                entityType: "admission_process",
-                entityId: savedId,
-                linkRole: "DOCUMENT",
-                items: pendingDocumentAttachments,
-            });
-            await flushPendingAttachments({
-                entityType: "admission_process",
-                entityId: savedId,
-                linkRole: "CONTRACT",
-                items: pendingContractAttachments,
-            });
-            await admissionprocessService.update(savedId, payload);
+            try {
+                await flushPendingAttachments({
+                    entityType: "admission_process",
+                    entityId: savedId,
+                    linkRole: "DOCUMENT",
+                    items: pendingDocumentAttachments,
+                });
+                await flushPendingAttachments({
+                    entityType: "admission_process",
+                    entityId: savedId,
+                    linkRole: "CONTRACT",
+                    items: pendingContractAttachments,
+                });
+                await admissionprocessService.update(savedId, payload);
+            } catch (err: unknown) {
+                if (createdInThisRequest) {
+                    const partialError = new Error("ADMISSION_PARTIAL_SAVE");
+                    (partialError as Error & {cause?: unknown; partialAdmissionId?: string}).cause = err;
+                    (partialError as Error & {partialAdmissionId?: string}).partialAdmissionId = savedId;
+                    throw partialError;
+                }
+                throw err;
+            }
             return savedId;
         },
         onSuccess: async (savedId) => {
@@ -244,11 +256,28 @@ export function AdmissionProcessFormClient() {
             setForm(emptyAdmissionProcessForm());
             returnToList();
         },
-        onError: (err: unknown) => {
-            const ex = ExceptionCapture.handle(err, {
+        onError: async (err: unknown) => {
+            const partialAdmissionId =
+                err instanceof Error &&
+                "partialAdmissionId" in err &&
+                typeof err.partialAdmissionId === "string"
+                    ? err.partialAdmissionId
+                    : null;
+            const rootError =
+                err instanceof Error && "cause" in err && err.cause != null ? err.cause : err;
+            const ex = ExceptionCapture.handle(rootError, {
                 fallbackMessage: ADMISSION_CLIENT_MESSAGES.ADMISSION_SAVE_FAILED,
             });
             setError(ex.displayMessage);
+            await queryClient.invalidateQueries({queryKey: admissionprocessKeys.all});
+            if (partialAdmissionId) {
+                void startEdit(partialAdmissionId);
+                toast.info(ADMISSION_CLIENT_MESSAGES.ADMISSION_PARTIAL_SAVE_HINT);
+                return;
+            }
+            if (!isEditing && ex.code === "ADMISSION_CPF_ALREADY_EXISTS") {
+                toast.info(ADMISSION_CLIENT_MESSAGES.ADMISSION_CPF_EXISTS_HINT);
+            }
         },
     });
     const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {

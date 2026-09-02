@@ -12,4 +12,8 @@ export const ADMISSION_CLIENT_MESSAGES = {
     ADDRESS_LOOKUP_FAILED: "Não foi possível buscar o endereço pelo CEP",
     ADMISSION_LOAD_FAILED: "Não foi possível carregar admissão",
     ADMISSION_SAVE_FAILED: "Não foi possível salvar admissão",
+    ADMISSION_PARTIAL_SAVE_HINT:
+        "O cadastro foi iniciado, mas não foi concluído. Continue a edição para finalizar os anexos.",
+    ADMISSION_CPF_EXISTS_HINT:
+        "Este CPF já consta no sistema. Atualize a listagem ou abra o cadastro existente em vez de criar outro.",
 } as const;

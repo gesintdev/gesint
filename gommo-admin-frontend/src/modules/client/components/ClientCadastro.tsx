@@ -539,26 +539,26 @@ export function ClientCadastro({
                                     />
                                 </AdminFormGrid>
                                 {envForm.provisioningNotes ? (
-                                    <div
-                                        style={{
-                                            marginTop: 10,
-                                            padding: "8px 10px",
-                                            borderRadius: "var(--ga-radius-sm)",
-                                            border: "1px solid var(--ga-border)",
-                                            background:
-                                                envForm.provisioningStatus === "ERROR"
-                                                    ? "#fef2f2"
-                                                    : "var(--ga-surface-2)",
-                                            color:
-                                                envForm.provisioningStatus === "ERROR"
-                                                    ? "#b91c1c"
-                                                    : "var(--ga-text-muted)",
-                                            fontSize: 12,
-                                            lineHeight: 1.45,
-                                        }}
-                                    >
-                                        {envForm.provisioningNotes}
-                                    </div>
+                                    envForm.provisioningStatus === "ERROR" ? (
+                                        <div className="ga-callout-error" style={{ marginTop: 10 }}>
+                                            {envForm.provisioningNotes}
+                                        </div>
+                                    ) : (
+                                        <div
+                                            style={{
+                                                marginTop: 10,
+                                                padding: "8px 10px",
+                                                borderRadius: "var(--ga-radius-sm)",
+                                                border: "1px solid var(--ga-border)",
+                                                background: "var(--ga-surface-2)",
+                                                color: "var(--ga-text-muted)",
+                                                fontSize: 12,
+                                                lineHeight: 1.45,
+                                            }}
+                                        >
+                                            {envForm.provisioningNotes}
+                                        </div>
+                                    )
                                 ) : null}
                             </AdminSection>
 

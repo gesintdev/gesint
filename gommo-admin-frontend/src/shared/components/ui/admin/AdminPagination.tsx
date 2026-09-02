@@ -43,7 +43,7 @@ export function AdminPagination({
                             borderRadius: "var(--ga-radius-sm)",
                             border: p === page ? "1px solid var(--ga-primary)" : "1px solid var(--ga-border)",
                             background: p === page ? "var(--ga-primary)" : "var(--ga-surface)",
-                            color: p === page ? "#fff" : "var(--ga-text)",
+                            color: p === page ? "var(--ga-on-primary)" : "var(--ga-text)",
                             fontSize: 12,
                             cursor: "pointer",
                             padding: "0 4px",
