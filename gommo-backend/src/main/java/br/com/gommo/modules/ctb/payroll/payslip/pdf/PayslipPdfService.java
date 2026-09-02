@@ -90,7 +90,7 @@ public class PayslipPdfService implements IPayslipPdfService {
 
         document.add(spacedParagraph(" ", BODY_FONT));
         document.add(spacedParagraph(
-                "Documento gerado eletronicamente pelo Gommo ERP. Validade sujeita a conferencia da folha processada.",
+                "Documento gerado eletronicamente pelo Gesint ERP. Validade sujeita a conferencia da folha processada.",
                 SMALL_FONT));
 
         document.close();

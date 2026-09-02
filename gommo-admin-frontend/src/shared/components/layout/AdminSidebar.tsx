@@ -48,7 +48,7 @@ export function AdminSidebar() {
                             letterSpacing: "-0.01em",
                         }}
                     >
-                        Gommo
+                        Gesint
                     </div>
                     <div style={{ fontSize: 10, color: "var(--ga-text-muted)", marginTop: -1 }}>Admin</div>
                 </div>

@@ -90,7 +90,7 @@ const dpRoutes: AppRoute[] = [
         tabShortLabel: "Cert.",
         fieldTabName: "alias",
         listToolbar:
-            "Certificado A1 do empregador deste tenant (para eSocial). Nao e o certificado do Gommo.",
+            "Certificado A1 do empregador deste tenant (para eSocial). Nao e o certificado do Gesint.",
         list: lazyNamed(
             () =>
                 import(

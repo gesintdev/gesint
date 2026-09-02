@@ -79,7 +79,7 @@ export const companyService = new CompanyService();
 export const COMPANY_PICKER_ADVANCED: EntityPickerAdvancedSearch<Company> = {
     title: "Buscar empresa",
     filters: [
-        {id: "legalName", label: "Razão social", placeholder: "Ex.: Gommo Ltda"},
+        {id: "legalName", label: "Razão social", placeholder: "Ex.: Gesint Ltda"},
         {id: "cnpj", label: "CNPJ", placeholder: "Somente números"},
         {id: "city", label: "Cidade", placeholder: "Ex.: São Paulo"},
     ],

@@ -44,7 +44,7 @@ public class PlatformAdminBootstrap implements ApplicationRunner {
             PasswordEncoder passwordEncoder,
             JdbcTemplate jdbcTemplate,
             @Value("${gommo-admin.platform-admin.username:admGommo}") String username,
-            @Value("${gommo-admin.platform-admin.full-name:Administrador Gommo}") String fullName,
+            @Value("${gommo-admin.platform-admin.full-name:Administrador Gesint}") String fullName,
             @Value("${gommo-admin.platform-admin.email:gommo.admin@gmail.com}") String email,
             @Value("${gommo-admin.platform-admin.password:}") String password) {
         this.adminUserRepository = adminUserRepository;

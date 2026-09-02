@@ -83,7 +83,7 @@ function AuthCard({
                                     letterSpacing: "-0.01em",
                                 }}
                             >
-                                Gommo Admin
+                                Gesint Admin
                             </div>
                             <div style={{ fontSize: 11, color: "var(--ga-text-muted)" }}>
                                 Sistema Administrativo
@@ -188,7 +188,7 @@ function PasswordSetupFormInner() {
 
     return (
         <AuthCard
-            title={welcome ? "Bem-vindo ao Gommo Admin" : "Definir senha"}
+            title={welcome ? "Bem-vindo ao Gesint Admin" : "Definir senha"}
             subtitle={
                 welcome
                     ? "Informe o token recebido e escolha sua senha para concluir o primeiro acesso."

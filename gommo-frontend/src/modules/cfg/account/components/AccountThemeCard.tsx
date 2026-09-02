@@ -22,7 +22,7 @@ const THEME_OPTIONS: Array<{
     {
         value: "light",
         label: "Claro",
-        description: "Tema claro padrão do Gommo",
+        description: "Tema claro padrão do Gesint",
         icon: Sun,
     },
     {

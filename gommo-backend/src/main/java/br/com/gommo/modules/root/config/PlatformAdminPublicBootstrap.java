@@ -46,7 +46,7 @@ public class PlatformAdminPublicBootstrap implements ApplicationRunner {
             UserRoleAssignmentRepository assignmentRepository,
             PasswordEncoder passwordEncoder,
             @Value("${gommo.platform-admin.username:admGommo}") String username,
-            @Value("${gommo.platform-admin.full-name:Administrador Gommo}") String fullName,
+            @Value("${gommo.platform-admin.full-name:Administrador Gesint}") String fullName,
             @Value("${gommo.platform-admin.email:gommo.admin@gmail.com}") String email,
             @Value("${gommo.platform-admin.password:}") String password) {
         this.appUserRepository = appUserRepository;

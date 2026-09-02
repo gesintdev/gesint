@@ -19,12 +19,12 @@ export function CareersShell({ children }: CareersShellProps) {
             </div>
             <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-10 sm:px-6">
                 <div className="mb-8 flex items-center gap-3">
-                    <SystemLogo size="2rem" title="Gommo" />
+                    <SystemLogo size="2rem" title="Gesint" />
                     <span className="text-sm font-medium text-base-content/55">Carreiras</span>
                 </div>
                 <div className="flex-1">{children}</div>
                 <p className="mt-10 text-center text-xs text-base-content/40">
-                    © {year} Gommo. Todos os direitos reservados.
+                    © {year} Gesint. Todos os direitos reservados.
                 </p>
             </main>
         </div>

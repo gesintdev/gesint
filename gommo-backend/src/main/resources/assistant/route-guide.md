@@ -1,4 +1,4 @@
-# Mapa de navegação do Gommo (Client)
+# Mapa de navegação do Gesint (Client)
 
 O sistema tem um rail à esquerda para escolher o domínio ativo:
 

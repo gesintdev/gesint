@@ -124,7 +124,7 @@ export const SAMPLE_CLIENTS: SampleClient[] = [
 export const SAMPLE_SISTEMAS: SampleSistema[] = [
     {
         id: 1,
-        nome: "Gommo ERP",
+        nome: "Gesint ERP",
         modulo: "Gestão Empresarial",
         status: "Ativo",
         dataStatus: "2023-03-15",
@@ -140,7 +140,7 @@ export const SAMPLE_SISTEMAS: SampleSistema[] = [
     },
     {
         id: 2,
-        nome: "Gommo PDV",
+        nome: "Gesint PDV",
         modulo: "Ponto de Venda",
         status: "Pausado",
         dataStatus: "2024-08-01",
@@ -157,7 +157,7 @@ export const SAMPLE_SISTEMAS: SampleSistema[] = [
     },
     {
         id: 3,
-        nome: "Gommo BI",
+        nome: "Gesint BI",
         modulo: "Business Intelligence",
         status: "Inativo",
         dataStatus: "2024-01-10",

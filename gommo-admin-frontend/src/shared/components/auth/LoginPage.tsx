@@ -133,7 +133,7 @@ export function LoginPage() {
                                     letterSpacing: "-0.01em",
                                 }}
                             >
-                                Gommo Admin
+                                Gesint Admin
                             </div>
                             <div style={{ fontSize: 11, color: "var(--ga-text-muted)" }}>
                                 Sistema Administrativo

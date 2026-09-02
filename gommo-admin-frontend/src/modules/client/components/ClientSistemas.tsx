@@ -684,7 +684,7 @@ export function ClientSistemas({ clientId }: { clientId: string }) {
                                     />
                                 </AdminFormGrid>
                                 <p style={{ marginTop: 8, fontSize: 12, color: "var(--ga-text-muted)" }}>
-                                    Em Agendar, o sistema continua visível no Gommo até a data. Deslogar agora revoga
+                                    Em Agendar, o sistema continua visível no Gesint até a data. Deslogar agora revoga
                                     imediatamente as sessões do tenant (refresh) ao salvar — o usuário cai no próximo
                                     request autenticado.
                                 </p>

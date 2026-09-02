@@ -58,7 +58,7 @@ export class ModuleEnumHelper implements IModuleHelper {
         },
         [ModuleEnum.PLATFORM]: {
             id: "platform",
-            name: "Operação Gommo",
+            name: "Operação Gesint",
             order: 3,
         },
     };

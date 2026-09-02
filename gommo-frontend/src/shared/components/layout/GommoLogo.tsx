@@ -44,7 +44,7 @@ export function GommoLogo({
                 iconClassName,
                 className,
             )}
-            aria-label={displayName ? `Gommo — ${displayName}` : "Gommo"}
+            aria-label={displayName ? `Gesint — ${displayName}` : "Gesint"}
             role="img"
         >
             <span className="gommo-logo__icon-slot">

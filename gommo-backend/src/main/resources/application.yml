@@ -73,7 +73,7 @@ gommo:
   # Bootstrap fino do sudo em public.app_user (PlatformAdminPublicBootstrap).
   platform-admin:
     username: admGommo
-    full-name: Administrador Gommo
+    full-name: Administrador Gesint
     email: gommo.admin@gmail.com
     password: ${GOMMO_PLATFORM_ADMIN_PASSWORD:${DEV_ADMIN_PASSWORD:}}
   systems:

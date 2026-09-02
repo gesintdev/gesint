@@ -513,8 +513,8 @@ public class AttendanceRecordService
     @Transactional
     @PreAuthorize("hasAuthority('attendance:write')")
     public AttendanceSettingsResponseDto updateSettings(AttendanceSettingsRequestDto request) {
-        upsertSetting(REQUIRE_PHOTO_KEY, request.isRequirePhoto(), "Exige selfie no registro de ponto pelo Gommo Tick");
-        upsertSetting(REQUIRE_LOCATION_KEY, request.isRequireLocation(), "Exige localizacao no registro de ponto pelo Gommo Tick");
+        upsertSetting(REQUIRE_PHOTO_KEY, request.isRequirePhoto(), "Exige selfie no registro de ponto pelo Gesint Tick");
+        upsertSetting(REQUIRE_LOCATION_KEY, request.isRequireLocation(), "Exige localizacao no registro de ponto pelo Gesint Tick");
         return getSettingsInternal();
     }
 

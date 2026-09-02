@@ -14,7 +14,7 @@ export function DocsSidebar() {
             <div className="docs-sidebar__brand">
                 <GommoLogo markSize={26} />
                 <div>
-                    <div className="docs-sidebar__brand-title">Gommo</div>
+                    <div className="docs-sidebar__brand-title">Gesint</div>
                     <div className="docs-sidebar__brand-sub">Docs</div>
                 </div>
             </div>

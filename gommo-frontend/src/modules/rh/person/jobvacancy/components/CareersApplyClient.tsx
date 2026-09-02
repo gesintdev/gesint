@@ -643,7 +643,7 @@ export function CareersApplyClient({slug}: { slug: string }) {
             <header
                 className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-base-content/10 bg-base-100 px-6 sm:px-8">
                 <div className="flex items-center gap-2.5">
-                    <SystemLogo size="1.75rem" title="Gommo"/>
+                    <SystemLogo size="1.75rem" title="Gesint"/>
                     <span className="text-sm font-bold text-base-content">Carreiras</span>
                 </div>
                 <div className="flex items-center gap-3">

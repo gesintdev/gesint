@@ -124,7 +124,7 @@ function PasswordSetupForm() {
         >
             <div className="mb-4 text-left">
                 <h1 className="text-lg font-semibold text-base-content">
-                    {welcome ? "Bem-vindo ao Gommo" : "Definir senha"}
+                    {welcome ? "Bem-vindo ao Gesint" : "Definir senha"}
                 </h1>
                 <p className="mt-1 text-sm text-base-content/60">
                     {welcome

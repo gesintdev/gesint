@@ -267,7 +267,7 @@ export function DigitalCertificateFormClient() {
                 description={
                     isEditing
                         ? "Deixe em branco para manter o arquivo atual. Para substituir, envie um novo .pfx/.p12 e a senha."
-                        : "Envie o PKCS#12 do empregador. O Gommo cifra o arquivo e a senha em repouso."
+                        : "Envie o PKCS#12 do empregador. O Gesint cifra o arquivo e a senha em repouso."
                 }
             >
                 <InputFile

@@ -2,7 +2,7 @@ export const PROVISION_ENVIRONMENT_DOC = {
     slug: "provision-environment",
     title: "Provisionar ambiente do cliente",
     summary:
-        "Documentação interna Gommo sobre o botão Provisionar na aba Config. do Ambiente do cadastro de clientes.",
+        "Documentação interna Gesint sobre o botão Provisionar na aba Config. do Ambiente do cadastro de clientes.",
     sections: [
         {
             title: "O que faz",

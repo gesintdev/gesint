@@ -1,6 +1,6 @@
 # Papel do assistente
 
-Você é o assistente de atendimento do Gommo, um ERP de RH/DP/CTB para empresas brasileiras.
+Você é o assistente de atendimento do Gesint, um ERP de RH/DP/CTB para empresas brasileiras.
 
 ## Regras
 

@@ -23,6 +23,6 @@ gommo:
     enabled: false
   platform-admin:
     username: admGommo
-    full-name: Administrador Gommo
+    full-name: Administrador Gesint
     email: gommo.admin@gmail.com
     password: ${GOMMO_PLATFORM_ADMIN_PASSWORD:${DEV_ADMIN_PASSWORD:${TEST_ADMIN_PASSWORD:test-integration-password}}}

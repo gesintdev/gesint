@@ -61,7 +61,7 @@ gommo-admin:
   # Bootstrap do sudo da plataforma (PlatformAdminBootstrap). Sem senha, nao cria usuario.
   platform-admin:
     username: admGommo
-    full-name: Administrador Gommo
+    full-name: Administrador Gesint
     email: gommo.admin@gmail.com
     password: ${GOMMO_PLATFORM_ADMIN_PASSWORD:${DEV_ADMIN_PASSWORD:}}
   systems:

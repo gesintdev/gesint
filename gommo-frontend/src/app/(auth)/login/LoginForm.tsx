@@ -142,7 +142,7 @@ export function LoginForm() {
                 toast.error("Usuário ou senha inválidos");
                 return;
             }
-            toast.success("Bem-vindo ao Gommo");
+            toast.success("Bem-vindo ao Gesint");
             applyDocumentTheme(resolveThemePreference());
             router.push("/dashboard");
             router.refresh();

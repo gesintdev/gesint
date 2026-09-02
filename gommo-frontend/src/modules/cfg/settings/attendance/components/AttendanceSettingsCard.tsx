@@ -54,7 +54,7 @@ export function AttendanceSettingsCard() {
         <Card
             animate={false}
             title="Ponto"
-            subtitle="Validações exigidas no Gommo Tick para registro de ponto"
+            subtitle="Validações exigidas no Gesint Tick para registro de ponto"
         >
             <form onSubmit={handleSubmit} className="grid gap-4">
                 <label className="flex items-start gap-3 rounded-xl border border-base-300 p-4">
@@ -83,7 +83,7 @@ export function AttendanceSettingsCard() {
                     <span>
                         <span className="block text-sm font-semibold text-base-content">Exigir localização</span>
                         <span className="mt-1 block text-sm text-base-content/55">
-                            O Gommo Tick deve capturar latitude e longitude do dispositivo.
+                            O Gesint Tick deve capturar latitude e longitude do dispositivo.
                         </span>
                     </span>
                 </label>

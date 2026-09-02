@@ -9,7 +9,7 @@ export default function DocsIndexPage() {
             <article className="docs-article">
                 <h1 className="docs-title">Visão geral</h1>
                 <p className="docs-lead">
-                    Documentação operacional do Admin Gommo. Use o menu lateral para navegar pelos
+                    Documentação operacional do Admin Gesint. Use o menu lateral para navegar pelos
                     guias. O acesso exige sessão autenticada.
                 </p>
 

@@ -28,7 +28,7 @@ const WELCOME: ChatMessage = {
     id: "welcome",
     role: "assistant",
     content:
-        "Olá! Sou o assistente do Gommo. Posso ajudar com dúvidas do sistema e, em breve, com análise de currículos. Como posso ajudar?",
+        "Olá! Sou o assistente do Gesint. Posso ajudar com dúvidas do sistema e, em breve, com análise de currículos. Como posso ajudar?",
 };
 
 function createConversation(): Conversation {
