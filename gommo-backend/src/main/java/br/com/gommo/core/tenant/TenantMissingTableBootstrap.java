@@ -27,9 +27,13 @@ public class TenantMissingTableBootstrap implements ApplicationRunner {
         if (!enabled) {
             return;
         }
-        int repairedSchemas = repair.repairAllTenants();
-        if (repairedSchemas > 0) {
-            log.info("Reparo de tabelas ausentes: {} schema(s) de tenant atualizado(s).", repairedSchemas);
+        try {
+            int repairedSchemas = repair.repairAllTenants();
+            if (repairedSchemas > 0) {
+                log.info("Reparo de tabelas ausentes: {} schema(s) de tenant atualizado(s).", repairedSchemas);
+            }
+        } catch (RuntimeException ex) {
+            log.error("Reparo de tabelas ausentes falhou; a aplicacao segue no ar.", ex);
         }
     }
 }

@@ -47,8 +47,12 @@ public class TenantMissingTableRepair {
         Set<String> schemas = resolveTenantSchemas();
         int repairedSchemas = 0;
         for (String schema : schemas) {
-            if (repairSchema(schema) > 0) {
-                repairedSchemas++;
+            try {
+                if (repairSchema(schema) > 0) {
+                    repairedSchemas++;
+                }
+            } catch (RuntimeException ex) {
+                log.error("Falha ao reparar schema {}: {}", schema, ex.getMessage());
             }
         }
         return repairedSchemas;
