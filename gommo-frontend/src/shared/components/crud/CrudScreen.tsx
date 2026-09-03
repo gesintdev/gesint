@@ -45,7 +45,12 @@ export type CrudExtraTab = {
     visibleWhenEditing?: boolean;
     /** Aba visível, mas não clicável (ex.: processo sem candidato selecionado). */
     disabled?: boolean;
-    /** Posição na régua de abas. Por padrão a aba entra depois de Listagem/Cadastro. */
+    /**
+     * Posição na régua de abas.
+     * - leading: antes da Listagem
+     * - afterList: entre Listagem e Cadastro
+     * - trailing (padrão): depois de Listagem/Cadastro
+     */
     placement?: CrudExtraTabPlacement;
     /**
      * Abre esta aba no lugar da Listagem ao entrar no módulo. Só vale na entrada pela listagem:
@@ -54,7 +59,7 @@ export type CrudExtraTab = {
     initial?: boolean;
 };
 
-export type CrudExtraTabPlacement = "leading" | "trailing";
+export type CrudExtraTabPlacement = "leading" | "afterList" | "trailing";
 
 type CrudScreenContextValue = {
     activeTab: string;
@@ -241,6 +246,7 @@ export function CrudScreen({
         const items: { id: string; label: string; badge?: number; disabled?: boolean }[] = [
             ...visibleExtraTabs.filter((t) => t.placement === "leading").map(toItem),
             { id: CRUD_TAB_LIST, label: listTabLabel },
+            ...visibleExtraTabs.filter((t) => t.placement === "afterList").map(toItem),
         ];
         const showFormTab = canWrite && (!editOnly || isEditing || activeTab === CRUD_TAB_FORM);
         if (showFormTab) {
@@ -249,7 +255,11 @@ export function CrudScreen({
                 label: isEditing ? formTabLabelEdit : formTabLabel,
             });
         }
-        items.push(...visibleExtraTabs.filter((t) => t.placement !== "leading").map(toItem));
+        items.push(
+            ...visibleExtraTabs
+                .filter((t) => t.placement !== "leading" && t.placement !== "afterList")
+                .map(toItem),
+        );
         return items;
     }, [activeTab, canWrite, editOnly, formTabLabel, formTabLabelEdit, isEditing, listTabLabel, visibleExtraTabs]);
     const confirmDiscardFormChanges = useCallback(async (): Promise<boolean> => {

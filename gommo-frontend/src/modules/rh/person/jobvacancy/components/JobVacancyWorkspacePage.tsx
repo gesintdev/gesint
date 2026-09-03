@@ -35,6 +35,7 @@ export function JobVacancyWorkspacePage() {
                 id: JOB_VACANCY_OVERVIEW_TAB_ID,
                 label: title ? `Vaga - ${title}` : "Vaga",
                 permission: "jobvacancy:read",
+                placement: "afterList",
                 content: overviewPanel,
             },
         ];

@@ -66,12 +66,12 @@ export function JobVacancyListClient() {
         startEdit(row.id, row);
     };
 
+    /** Duplo clique abre a aba Vaga (detalhe), não o Cadastro. */
     const openDetailTab = (row: JobVacancy) => {
         openDetail({
             jobVacancyId: row.id,
             jobVacancyTitle: row.jobTitle,
         });
-        startEdit(row.id, row);
     };
 
     const deleteMutation = useMutation({
