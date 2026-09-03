@@ -86,7 +86,6 @@ public class StorageService implements IStorageService {
                 Files.copy(din, targetFile, StandardCopyOption.REPLACE_EXISTING);
             }
             String sha256Hex = HexFormat.of().formatHex(digest.digest());
-            // etag VARCHAR(64): hash hex cabe exatamente; aspas estourariam o limite
             String etag = sha256Hex;
 
             StorageObject entity = StorageObject.builder()
@@ -106,12 +105,22 @@ public class StorageService implements IStorageService {
             return mapper.toObjectResponse(objectRepository.save(entity));
         } catch (IOException | NoSuchAlgorithmException e) {
             log.error(
-                    "Falha ao gravar upload em {} (file={}, size={}): {}",
+                    "Falha ao gravar arquivo em {} (name={}, size={}, contentType={}): {}",
                     properties.localBasePath(),
                     file.getOriginalFilename(),
                     file.getSize(),
-                    e.toString());
+                    file.getContentType(),
+                    e.toString(),
+                    e);
             throw StorageException.uploadFailed();
+        } catch (RuntimeException e) {
+            log.error(
+                    "Falha ao persistir metadados do upload (name={}, size={}): {}",
+                    file.getOriginalFilename(),
+                    file.getSize(),
+                    e.toString(),
+                    e);
+            throw e;
         }
     }
 

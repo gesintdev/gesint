@@ -85,6 +85,9 @@ export async function flushPendingAttachments(params: {
     items: PendingAttachment[];
 }): Promise<void> {
     for (const item of params.items) {
+        if (!item.file || item.file.size <= 0) {
+            throw new Error("Arquivo vazio ou inválido: " + (item.displayName || "sem nome"));
+        }
         const object = await storageService.upload(item.file);
         await storageService.linkObject({
             objectId: object.id,

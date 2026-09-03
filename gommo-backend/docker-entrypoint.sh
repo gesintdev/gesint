@@ -3,6 +3,11 @@ set -e
 
 STORAGE_PATH="${STORAGE_LOCAL_PATH:-/data/storage}"
 mkdir -p "$STORAGE_PATH"
-chown -R gommo:gommo "$STORAGE_PATH"
 
-exec su-exec gommo:gommo java -XX:+UseContainerSupport -jar /app/app.jar "$@"
+if [ "$(id -u)" = "0" ]; then
+    chown -R gommo:gommo "$STORAGE_PATH"
+    exec su-exec gommo:gommo java -XX:+UseContainerSupport -jar /app/app.jar "$@"
+fi
+
+echo "WARN: entrypoint nao esta como root; permissoes de ${STORAGE_PATH} nao foram ajustadas" >&2
+exec java -XX:+UseContainerSupport -jar /app/app.jar "$@"
