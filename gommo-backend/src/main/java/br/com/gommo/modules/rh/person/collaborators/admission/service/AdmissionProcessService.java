@@ -384,14 +384,7 @@ public class AdmissionProcessService
                     .filter(l -> "CONTRACT".equalsIgnoreCase(l.getLinkRole()))
                     .count();
         }
-        AdmissionStatusEnum status = AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount)
-                .status();
-        // Salvar edita o cadastro; conclusao exige ASO admissional APTA — nao bloqueia o save.
-        if (status == AdmissionStatusEnum.COMPLETED
-                && !occupationalExamTriggerService.hasAdmissionalFit(entity.getCollaboratorId())) {
-            status = AdmissionStatusEnum.IN_PROGRESS;
-        }
-        entity.setAdmissionStatus(status);
+        entity.setAdmissionStatus(resolveComputedStatus(entity, documentCount, contractDocumentCount));
     }
 
     private AdmissionProgress evaluateProgress(AdmissionProcess entity, UUID admissionId) {
@@ -402,7 +395,22 @@ public class AdmissionProcessService
             documentCount = counts.documentCount();
             contractDocumentCount = counts.contractDocumentCount();
         }
-        return AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount);
+        AdmissionProgress progress = AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount);
+        AdmissionStatusEnum status = resolveComputedStatus(entity, documentCount, contractDocumentCount);
+        return new AdmissionProgress(
+                status, progress.completedStepCount(), progress.requiredStepCount(), progress.completedStepIds());
+    }
+
+    private AdmissionStatusEnum resolveComputedStatus(
+            AdmissionProcess entity, long documentCount, long contractDocumentCount) {
+        AdmissionStatusEnum status = AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount)
+                .status();
+        // Salvar edita o cadastro; conclusao exige ASO admissional APTA — nao bloqueia o save.
+        if (status == AdmissionStatusEnum.COMPLETED
+                && !occupationalExamTriggerService.hasAdmissionalFit(entity.getCollaboratorId())) {
+            return AdmissionStatusEnum.IN_PROGRESS;
+        }
+        return status;
     }
 
     private List<AdmissionProcessResponseDto> mapToResponses(List<AdmissionProcess> entities) {
@@ -423,9 +431,11 @@ public class AdmissionProcessService
                     AdmissionAttachmentCounts counts = AdmissionAttachmentCounts.fromLinks(links, entity.getId());
                     AdmissionProgress progress = AdmissionProgressEvaluator.evaluate(
                             entity, counts.documentCount(), counts.contractDocumentCount());
+                    AdmissionStatusEnum status = resolveComputedStatus(
+                            entity, counts.documentCount(), counts.contractDocumentCount());
                     return mapper.toResponse(
                             entity,
-                            progress.status(),
+                            status,
                             progress.completedStepCount(),
                             progress.requiredStepCount(),
                             progress.completedStepIds(),
