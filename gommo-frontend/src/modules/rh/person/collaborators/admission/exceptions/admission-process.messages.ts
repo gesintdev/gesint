@@ -7,6 +7,8 @@ export const ADMISSION_MESSAGES = {
     ADMISSION_NOT_FOUND: "Admissão não encontrado(a)",
     ADMISSION_CPF_ALREADY_EXISTS: "Já existe admissão ou colaborador com este CPF",
     ADMISSION_PJ_PROVIDER_REQUIRED: "Para contrato PJ informe CNPJ e razão social da prestadora",
+    ADMISSION_ADMISSIONAL_EXAM_REQUIRED:
+        "Para concluir a admissão, registre o exame admissional (ASO) com resultado APTA.",
 } as const;
 export const ADMISSION_CLIENT_MESSAGES = {
     ADDRESS_LOOKUP_FAILED: "Não foi possível buscar o endereço pelo CEP",

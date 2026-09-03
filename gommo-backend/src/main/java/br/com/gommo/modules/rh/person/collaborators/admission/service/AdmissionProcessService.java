@@ -384,8 +384,14 @@ public class AdmissionProcessService
                     .filter(l -> "CONTRACT".equalsIgnoreCase(l.getLinkRole()))
                     .count();
         }
-        entity.setAdmissionStatus(AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount)
-                .status());
+        AdmissionStatusEnum status = AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount)
+                .status();
+        // Salvar edita o cadastro; conclusao exige ASO admissional APTA — nao bloqueia o save.
+        if (status == AdmissionStatusEnum.COMPLETED
+                && !occupationalExamTriggerService.hasAdmissionalFit(entity.getCollaboratorId())) {
+            status = AdmissionStatusEnum.IN_PROGRESS;
+        }
+        entity.setAdmissionStatus(status);
     }
 
     private AdmissionProgress evaluateProgress(AdmissionProcess entity, UUID admissionId) {

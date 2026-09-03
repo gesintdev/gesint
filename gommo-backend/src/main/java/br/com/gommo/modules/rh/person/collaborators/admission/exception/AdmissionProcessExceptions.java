@@ -13,5 +13,5 @@ public final class AdmissionProcessExceptions {
     public static final String PJ_RECESS_INVALID_MSG = "Preencha corretamente a politica de recesso contratual PJ";
     public static final String ADMISSIONAL_EXAM_REQUIRED_CODE = "ADMISSION_ADMISSIONAL_EXAM_REQUIRED";
     public static final String ADMISSIONAL_EXAM_REQUIRED_MSG =
-            "Conclusao da admissao bloqueada: e necessario exame admissional (ASO) com resultado APTA (FIT).";
+            "Para concluir a admissão, registre o exame admissional (ASO) com resultado APTA.";
 }
