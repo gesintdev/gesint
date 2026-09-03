@@ -296,5 +296,6 @@ Na KVM 2, se o compose OOM no build: use swap + prefira o caminho de apps separa
 | Flyway error | Volume PG antigo vs senha nova; schemas `public` e `admin` |
 | Client backend sobe com stage errado | Docker Build Target = `prod` |
 | Push no Client rebuilda Admin | Configurar watch paths |
+| `STORAGE_UPLOAD_FAILED` no upload | Volume persistente em `/data/storage` no `gommo-backend`; env `STORAGE_LOCAL_PATH=/data/storage`; após deploy ver log `Storage local pronto` (ou erro de permissão no startup) |
 | `JWT_SECRET` rejeitado | Mínimo 32 caracteres |
 | Mudei senha do Postgres e backend não conecta | Volume guarda senha antiga — alinhar senha ou recriar DB (apaga dados) |

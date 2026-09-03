@@ -13,6 +13,8 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,8 @@ import br.com.gommo.modules.storage.repository.StorageObjectRepository;
 
 @Service
 public class StorageService implements IStorageService {
+
+    private static final Logger log = LoggerFactory.getLogger(StorageService.class);
 
     private final StorageObjectRepository objectRepository;
     private final StorageObjectLinkRepository linkRepository;
@@ -59,6 +63,9 @@ public class StorageService implements IStorageService {
     @Transactional
     public StorageObjectResponseDto uploadInternal(MultipartFile file) {
         if (file == null || file.isEmpty()) {
+            log.warn("Upload rejeitado: arquivo ausente ou vazio (name={}, size={})", 
+                    file != null ? file.getOriginalFilename() : null,
+                    file != null ? file.getSize() : null);
             throw StorageException.uploadFailed();
         }
         if (file.getSize() > properties.maxFileSizeBytes()) {
@@ -98,6 +105,12 @@ public class StorageService implements IStorageService {
             entity.setStatus(StatusEnum.ACTIVE);
             return mapper.toObjectResponse(objectRepository.save(entity));
         } catch (IOException | NoSuchAlgorithmException e) {
+            log.error(
+                    "Falha ao gravar upload em {} (file={}, size={}): {}",
+                    properties.localBasePath(),
+                    file.getOriginalFilename(),
+                    file.getSize(),
+                    e.toString());
             throw StorageException.uploadFailed();
         }
     }

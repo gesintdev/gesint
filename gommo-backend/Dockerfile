@@ -27,17 +27,17 @@ WORKDIR /app
 
 RUN apk add --no-cache \
     curl \
+    su-exec \
     tesseract-ocr \
     tesseract-ocr-data-por \
     fontconfig \
     ttf-dejavu \
     && addgroup -S gommo && adduser -S gommo -G gommo \
-    && mkdir -p /data/storage && chown -R gommo:gommo /data/storage
+    && mkdir -p /data/storage
 
 COPY --from=build /app/target/*.jar /app/app.jar
-RUN chown gommo:gommo /app/app.jar
-
-USER gommo
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh && chown gommo:gommo /app/app.jar
 
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV SERVER_PORT=8081
@@ -46,4 +46,4 @@ EXPOSE 8081
 HEALTHCHECK --interval=15s --timeout=5s --start-period=300s --retries=10 \
   CMD curl -fsS "http://127.0.0.1:${SERVER_PORT}/actuator/health" || exit 1
 
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-jar", "/app/app.jar"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
