@@ -19,6 +19,10 @@ export class ExceptionCapture {
         }
 
         if (error instanceof Error) {
+            const message = error.message?.trim();
+            if (message) {
+                return AppException.unknown(message);
+            }
             return AppException.unknown(fallbackMessage);
         }
         return AppException.unknown(fallbackMessage);

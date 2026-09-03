@@ -111,7 +111,9 @@ public class AdmissionProcessMapper {
         entity.setBaseSalary(dto.getBaseSalary());
         entity.setWorkloadSchedule(dto.getWorkloadSchedule());
         entity.setWorkScheduleId(dto.getWorkScheduleId());
-        entity.setEmergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()));
+        if (dto.getEmergencyContacts() != null) {
+            entity.setEmergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()));
+        }
         entity.setContractStartDate(dto.getContractStartDate());
         entity.setContractEndDate(dto.getContractEndDate());
         entity.setProviderCnpj(dto.getProviderCnpj());

@@ -5,6 +5,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.branch.BranchContextHolder;
+import br.com.gommo.core.branch.BranchScopedEntity;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.address.service.AddressReferenceResolver;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
@@ -88,6 +90,7 @@ public class CollaboratorProfileService {
 
         Collaborator collaborator = collaboratorMapper.toEntity(toCollaboratorDto(request));
         collaborator.setStatus(StatusEnum.ACTIVE);
+        applyBranchScope(collaborator, request.getCompanyId());
         return collaboratorRepository.save(collaborator).getId();
     }
 
@@ -119,6 +122,7 @@ public class CollaboratorProfileService {
         collaborator.setNationality(dto.getNationality());
         collaborator.setPisPasep(dto.getPisPasep());
         collaborator.setPhotoObjectId(dto.getPhotoObjectId());
+        applyBranchScope(collaborator, request.getCompanyId());
         collaboratorRepository.save(collaborator);
         return collaboratorId;
     }
@@ -140,6 +144,7 @@ public class CollaboratorProfileService {
         var reference = addressReferenceResolver.resolve(request.getStateId(), request.getCityId());
         address.setCity(reference.city());
         address.setState(reference.state());
+        applyBranchScope(address, request.getCompanyId());
         addressRepository.save(address);
     }
 
@@ -154,7 +159,18 @@ public class CollaboratorProfileService {
 
         contact.setEmail(request.getEmail());
         contact.setPhone(request.getPhone());
+        applyBranchScope(contact, request.getCompanyId());
         contactRepository.save(contact);
+    }
+
+    private static void applyBranchScope(BranchScopedEntity entity, UUID admissionCompanyId) {
+        if (admissionCompanyId != null) {
+            entity.setCompanyId(admissionCompanyId);
+            return;
+        }
+        if (entity.getCompanyId() == null) {
+            BranchContextHolder.getOptional().ifPresent(entity::setCompanyId);
+        }
     }
 
     private CollaboratorRequestDto toCollaboratorDto(AdmissionProcessRequestDto request) {

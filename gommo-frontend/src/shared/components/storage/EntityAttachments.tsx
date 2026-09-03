@@ -268,6 +268,10 @@ export function EntityAttachments({
         }
     };
     const handleFileSelected = (file: File) => {
+        if (file.size <= 0) {
+            toast.error("Arquivo vazio ou inválido. Selecione um arquivo com conteúdo.");
+            return;
+        }
         if (isStorageFileTooLarge(file.size)) {
             toast.error(`Arquivo excede o tamanho máximo de ${formatStorageMaxFileSize()}.`);
             return;

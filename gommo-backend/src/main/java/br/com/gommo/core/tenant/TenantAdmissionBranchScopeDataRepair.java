@@ -81,7 +81,63 @@ public class TenantAdmissionBranchScopeDataRepair {
         repaired += backfillAdmissionHeadquarters(schema);
         repaired += propagateCompanyId(schema, "admission_step");
         repaired += propagateCompanyId(schema, "esocial_event");
+        repaired += backfillCollaboratorScopeFromAdmission(schema);
         return repaired > 0 ? 1 : 0;
+    }
+
+    /** Colaborador/endereco/contato criados na admissao antes do escopo por filial ficarem sem company_id. */
+    private int backfillCollaboratorScopeFromAdmission(String schema) {
+        if (!tableExists(schema, "collaborator") || !tableExists(schema, "admission_process")) {
+            return 0;
+        }
+        int repaired = 0;
+        try {
+            repaired += jdbcTemplate.update(
+                    """
+                    UPDATE %s.collaborator c
+                       SET company_id = ap.company_id
+                      FROM %s.admission_process ap
+                     WHERE ap.collaborator_id = c.id
+                       AND ap.company_id IS NOT NULL
+                       AND (c.company_id IS NULL OR c.company_id <> ap.company_id)
+                    """
+                            .formatted(quoted(schema), quoted(schema)));
+        } catch (DataAccessException ex) {
+            log.error("Falha ao propagar company_id para {}.collaborator: {}", schema, ex.getMessage());
+        }
+        if (tableExists(schema, "collaborator_address")) {
+            try {
+                repaired += jdbcTemplate.update(
+                        """
+                        UPDATE %s.collaborator_address ca
+                           SET company_id = c.company_id
+                          FROM %s.collaborator c
+                         WHERE ca.collaborator_id = c.id
+                           AND c.company_id IS NOT NULL
+                           AND (ca.company_id IS NULL OR ca.company_id <> c.company_id)
+                        """
+                                .formatted(quoted(schema), quoted(schema)));
+            } catch (DataAccessException ex) {
+                log.error("Falha ao propagar company_id para {}.collaborator_address: {}", schema, ex.getMessage());
+            }
+        }
+        if (tableExists(schema, "collaborator_contact")) {
+            try {
+                repaired += jdbcTemplate.update(
+                        """
+                        UPDATE %s.collaborator_contact cc
+                           SET company_id = c.company_id
+                          FROM %s.collaborator c
+                         WHERE cc.collaborator_id = c.id
+                           AND c.company_id IS NOT NULL
+                           AND (cc.company_id IS NULL OR cc.company_id <> c.company_id)
+                        """
+                                .formatted(quoted(schema), quoted(schema)));
+            } catch (DataAccessException ex) {
+                log.error("Falha ao propagar company_id para {}.collaborator_contact: {}", schema, ex.getMessage());
+            }
+        }
+        return repaired;
     }
 
     private int ensureColumn(String schema, String table, String column, String type) {
