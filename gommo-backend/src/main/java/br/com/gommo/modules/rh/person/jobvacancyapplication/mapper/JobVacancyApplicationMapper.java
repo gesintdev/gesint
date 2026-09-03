@@ -66,7 +66,7 @@ public class JobVacancyApplicationMapper {
                 .aiScore(entity.getAiScore())
                 .aiStatus(entity.getAiStatus())
                 .aiAnalyzedAt(entity.getAiAnalyzedAt())
-                .aiAnalysis(entity.getAiAnalysis() == null ? Map.of() : Map.copyOf(entity.getAiAnalysis()))
+                .aiAnalysis(copyAiAnalysis(entity.getAiAnalysis()))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -87,6 +87,20 @@ public class JobVacancyApplicationMapper {
                             .updatedAt(value.getUpdatedAt())
                             .updatedBy(value.getUpdatedBy())
                             .build());
+        });
+        return copy;
+    }
+
+    private Map<String, Object> copyAiAnalysis(Map<String, Object> source) {
+        if (source == null || source.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, Object> copy = new LinkedHashMap<>();
+        source.forEach((key, value) -> {
+            if (key == null || key.isBlank()) {
+                return;
+            }
+            copy.put(key, value);
         });
         return copy;
     }
