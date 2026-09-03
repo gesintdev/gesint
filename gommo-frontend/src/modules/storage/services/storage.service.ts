@@ -12,6 +12,14 @@ class StorageService {
             body: formData,
         });
     }
+    uploadAndLink(file: File, request: Omit<StorageLinkRequest, "objectId">): Promise<StorageObjectLink> {
+        return this.upload(file).then((object) =>
+            this.linkObject({
+                ...request,
+                objectId: object.id,
+            }),
+        );
+    }
     listLinks(entityType: string, entityId: string): Promise<StorageObjectLink[]> {
         const params = new URLSearchParams({ entityType, entityId });
         return apiFetch<StorageObjectLink[]>(`/api/v1/storage/links?${params}`);

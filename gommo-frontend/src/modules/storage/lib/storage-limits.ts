@@ -8,3 +8,13 @@ export function formatStorageMaxFileSize(): string {
 export function isStorageFileTooLarge(bytes: number): boolean {
     return bytes > STORAGE_MAX_FILE_BYTES;
 }
+
+export function invalidUploadFileMessage(file: File | null | undefined): string | null {
+    if (!file || file.size <= 0) {
+        return "Arquivo vazio ou inválido. Selecione um arquivo com conteúdo.";
+    }
+    if (isStorageFileTooLarge(file.size)) {
+        return `Arquivo excede o tamanho máximo de ${formatStorageMaxFileSize()}.`;
+    }
+    return null;
+}

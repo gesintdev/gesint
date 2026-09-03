@@ -16,12 +16,36 @@ public interface IStorageService {
     /** Upload sem checagem de authority — uso interno (ex.: candidatura pública). */
     StorageObjectResponseDto uploadInternal(MultipartFile file);
 
+    StorageObjectResponseDto uploadInternal(MultipartFile file, UUID companyId);
+
     StorageObjectLinkResponseDto linkToEntity(
             String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType);
 
     /** Link sem checagem de authority — uso interno (ex.: candidatura pública). */
     StorageObjectLinkResponseDto linkToEntityInternal(
             String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType);
+
+    StorageObjectLinkResponseDto linkToEntityInternal(
+            String entityType,
+            UUID entityId,
+            UUID objectId,
+            String linkRole,
+            String displayName,
+            String documentType,
+            UUID companyId);
+
+    /**
+     * Upload + substitui o anexo daquele papel na entidade. Um unico caminho para
+     * candidatura publica e demais fluxos internos que nao passam pelo endpoint autenticado.
+     */
+    StorageObjectLinkResponseDto replaceLinkedFileInternal(
+            String entityType,
+            UUID entityId,
+            MultipartFile file,
+            String linkRole,
+            String displayName,
+            String documentType,
+            UUID companyId);
 
     void softDeleteLinksByEntityAndRole(String entityType, UUID entityId, String linkRole);
 

@@ -30,7 +30,6 @@ import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApp
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationStatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.repository.JobVacancyApplicationRepository;
 import br.com.gommo.modules.rh.person.recruiting.ai.ApplicationAiAnalysisService;
-import br.com.gommo.modules.storage.dto.StorageObjectResponseDto;
 import br.com.gommo.modules.storage.service.IStorageService;
 
 @Service
@@ -128,6 +127,7 @@ public class PublicCareersService {
         if (candidate.getStatus() == null) {
             candidate.setStatus(StatusEnum.ACTIVE);
         }
+        applyCompanyScope(candidate, vacancy.getCompanyId());
         candidate = candidateRepository.save(candidate);
 
         boolean alreadyApplied = applicationRepository
@@ -138,7 +138,7 @@ public class PublicCareersService {
         }
 
         experienceService.replaceAll(candidate.getId(), request.getExperiences());
-        storeResumeIfPresent(candidate.getId(), resume);
+        storeResumeIfPresent(candidate.getId(), resume, vacancy.getCompanyId());
 
         String firstColumnKey = kanbanColumnRepository
                 .findAllByStatusNotOrderByDisplayOrderAscNameAsc(StatusEnum.DELETED)
@@ -160,6 +160,7 @@ public class PublicCareersService {
                 .referralSource(trimToNull(request.getReferralSource()))
                 .salaryExpectation(request.getSalaryExpectation())
                 .aiStatus(ApplicationAiStatusEnum.PENDING)
+                .companyId(vacancy.getCompanyId())
                 .build();
         application = applicationRepository.save(application);
         enqueueAnalysisAfterCommit(application.getId());
@@ -199,19 +200,24 @@ public class PublicCareersService {
         return false;
     }
 
-    private void storeResumeIfPresent(UUID candidateId, MultipartFile resume) {
+    private void storeResumeIfPresent(UUID candidateId, MultipartFile resume, UUID companyId) {
         if (resume == null || resume.isEmpty()) {
             return;
         }
-        StorageObjectResponseDto uploaded = storageService.uploadInternal(resume);
-        storageService.softDeleteLinksByEntityAndRole(CANDIDATE_ENTITY_TYPE, candidateId, CURRICULUM_LINK_ROLE);
-        storageService.linkToEntityInternal(
+        storageService.replaceLinkedFileInternal(
                 CANDIDATE_ENTITY_TYPE,
                 candidateId,
-                uploaded.getId(),
+                resume,
                 CURRICULUM_LINK_ROLE,
                 resume.getOriginalFilename(),
-                "CURRICULUM");
+                "CURRICULUM",
+                companyId);
+    }
+
+    private static void applyCompanyScope(Candidate candidate, UUID vacancyCompanyId) {
+        if (vacancyCompanyId != null && candidate.getCompanyId() == null) {
+            candidate.setCompanyId(vacancyCompanyId);
+        }
     }
 
     private JobVacancy findPublishedVacancy(String rawSlug) {

@@ -27,6 +27,7 @@ import {
     JOB_VACANCY_WORK_MODALITY_LABELS,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.options";
 import {publicCareersService} from "@/modules/rh/person/jobvacancy/services/public-careers.service";
+import {formatStorageMaxFileSize, invalidUploadFileMessage} from "@/modules/storage/lib/storage-limits";
 import {SystemLogo} from "@/shared/components/brand/SystemLogo";
 import {ThemeToggle} from "@/shared/components/layout/ThemeToggle";
 import {Button} from "@/shared/components/ui/Button";
@@ -257,16 +258,30 @@ function ExperienceCard({
 function ResumeUpload({file, onChange}: { file: File | null; onChange: (file: File | null) => void }) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [dragging, setDragging] = useState(false);
+    const [fileError, setFileError] = useState<string | null>(null);
+
+    const acceptFile = (next: File | undefined) => {
+        if (!next) {
+            return;
+        }
+        const invalid = invalidUploadFileMessage(next);
+        if (invalid) {
+            setFileError(invalid);
+            onChange(null);
+            return;
+        }
+        setFileError(null);
+        onChange(next);
+    };
 
     const handleDrop = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setDragging(false);
-        const dropped = event.dataTransfer.files[0];
-        if (dropped) onChange(dropped);
+        acceptFile(event.dataTransfer.files[0]);
     };
 
     const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files?.[0]) onChange(event.target.files[0]);
+        acceptFile(event.target.files?.[0]);
     };
 
     const formatSize = (bytes: number) => {
@@ -328,7 +343,8 @@ function ResumeUpload({file, onChange}: { file: File | null; onChange: (file: Fi
             <div className="mb-1.5 text-[15px] font-semibold text-base-content">
                 Arraste seu currículo ou clique para selecionar
             </div>
-            <div className="text-[13px] text-base-content/45">PDF, DOC ou DOCX · máx. 10 MB</div>
+            <div className="text-[13px] text-base-content/45">PDF, DOC ou DOCX · máx. {formatStorageMaxFileSize()}</div>
+            {fileError ? <p className="mt-3 text-sm text-error">{fileError}</p> : null}
         </div>
     );
 }
@@ -575,6 +591,11 @@ export function CareersApplyClient({slug}: { slug: string }) {
 
         if (!resumeFile && experiences.length === 0) {
             setError("Envie um currículo ou informe ao menos uma experiência profissional.");
+            return;
+        }
+        const resumeError = invalidUploadFileMessage(resumeFile);
+        if (resumeFile && resumeError) {
+            setError(resumeError);
             return;
         }
 

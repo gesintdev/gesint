@@ -33,6 +33,7 @@ DECLARE
         'performance_review',
         'job_vacancy',
         'candidate',
+        'candidate_experience',
         'job_vacancy_application',
         'payroll_run',
         'payroll_event',

@@ -5,7 +5,7 @@ import {toast} from "sonner";
 
 import {documentTypeLabel} from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
 import type {StorageObjectLink} from "@/modules/storage/dto/storage.dto";
-import {formatStorageMaxFileSize, isStorageFileTooLarge} from "@/modules/storage/lib/storage-limits";
+import {invalidUploadFileMessage} from "@/modules/storage/lib/storage-limits";
 import {storageService} from "@/modules/storage/services/storage.service";
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";
 import {StoragePdfPreviewModal} from "@/shared/components/storage/StoragePdfPreviewModal";
@@ -88,9 +88,7 @@ export async function flushPendingAttachments(params: {
         if (!item.file || item.file.size <= 0) {
             throw new Error("Arquivo vazio ou inválido: " + (item.displayName || "sem nome"));
         }
-        const object = await storageService.upload(item.file);
-        await storageService.linkObject({
-            objectId: object.id,
+        await storageService.uploadAndLink(item.file, {
             entityType: params.entityType,
             entityId: params.entityId,
             linkRole: params.linkRole,
@@ -249,9 +247,7 @@ export function EntityAttachments({
         }
         setUploading(true);
         try {
-            const object = await storageService.upload(file);
-            await storageService.linkObject({
-                objectId: object.id,
+            await storageService.uploadAndLink(file, {
                 entityType,
                 entityId,
                 linkRole,
@@ -268,12 +264,9 @@ export function EntityAttachments({
         }
     };
     const handleFileSelected = (file: File) => {
-        if (file.size <= 0) {
-            toast.error("Arquivo vazio ou inválido. Selecione um arquivo com conteúdo.");
-            return;
-        }
-        if (isStorageFileTooLarge(file.size)) {
-            toast.error(`Arquivo excede o tamanho máximo de ${formatStorageMaxFileSize()}.`);
+        const invalid = invalidUploadFileMessage(file);
+        if (invalid) {
+            toast.error(invalid);
             return;
         }
 

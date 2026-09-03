@@ -62,6 +62,12 @@ public class StorageService implements IStorageService {
     @Override
     @Transactional
     public StorageObjectResponseDto uploadInternal(MultipartFile file) {
+        return uploadInternal(file, null);
+    }
+
+    @Override
+    @Transactional
+    public StorageObjectResponseDto uploadInternal(MultipartFile file, UUID companyId) {
         if (file == null || file.isEmpty()) {
             log.warn("Upload rejeitado: arquivo ausente ou vazio (name={}, size={})", 
                     file != null ? file.getOriginalFilename() : null,
@@ -100,6 +106,7 @@ public class StorageService implements IStorageService {
                     .localFilePath(targetFile.toString())
                     .sha256Hex(sha256Hex)
                     .metadata(new HashMap<>())
+                    .companyId(companyId)
                     .build();
             entity.setStatus(StatusEnum.ACTIVE);
             return mapper.toObjectResponse(objectRepository.save(entity));
@@ -129,13 +136,26 @@ public class StorageService implements IStorageService {
     @PreAuthorize("hasAuthority('storage:write')")
     public StorageObjectLinkResponseDto linkToEntity(
             String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType) {
-        return linkToEntityInternal(entityType, entityId, objectId, linkRole, displayName, documentType);
+        return linkToEntityInternal(entityType, entityId, objectId, linkRole, displayName, documentType, null);
     }
 
     @Override
     @Transactional
     public StorageObjectLinkResponseDto linkToEntityInternal(
             String entityType, UUID entityId, UUID objectId, String linkRole, String displayName, String documentType) {
+        return linkToEntityInternal(entityType, entityId, objectId, linkRole, displayName, documentType, null);
+    }
+
+    @Override
+    @Transactional
+    public StorageObjectLinkResponseDto linkToEntityInternal(
+            String entityType,
+            UUID entityId,
+            UUID objectId,
+            String linkRole,
+            String displayName,
+            String documentType,
+            UUID companyId) {
         StorageObject object = findActiveObject(objectId);
         StorageObjectLink link = StorageObjectLink.builder()
                 .storageObjectId(object.getId())
@@ -144,10 +164,27 @@ public class StorageService implements IStorageService {
                 .linkRole(linkRole != null ? linkRole : "DOCUMENT")
                 .displayName(displayName)
                 .documentType(documentType)
+                .companyId(companyId != null ? companyId : object.getCompanyId())
                 .build();
         link.setStatus(StatusEnum.ACTIVE);
         link = linkRepository.save(link);
         return mapper.toLinkResponse(link, object);
+    }
+
+    @Override
+    @Transactional
+    public StorageObjectLinkResponseDto replaceLinkedFileInternal(
+            String entityType,
+            UUID entityId,
+            MultipartFile file,
+            String linkRole,
+            String displayName,
+            String documentType,
+            UUID companyId) {
+        StorageObjectResponseDto uploaded = uploadInternal(file, companyId);
+        softDeleteLinksByEntityAndRole(entityType, entityId, linkRole);
+        return linkToEntityInternal(
+                entityType, entityId, uploaded.getId(), linkRole, displayName, documentType, companyId);
     }
 
     @Override
