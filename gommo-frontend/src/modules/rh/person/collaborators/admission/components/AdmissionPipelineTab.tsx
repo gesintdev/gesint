@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -11,6 +11,7 @@ import {
     AdmissionPipelineDeadlines,
 } from "@/modules/rh/person/collaborators/admission/components/AdmissionPipelineSidePanels";
 import { AdmissionPipelineTrack } from "@/modules/rh/person/collaborators/admission/components/AdmissionPipelineTrack";
+import type { AdmissionPipelineRow } from "@/modules/rh/person/collaborators/admission/dto/admission-pipeline.dto";
 import { ADMISSION_CLIENT_MESSAGES } from "@/modules/rh/person/collaborators/admission/exceptions/admission-process.messages";
 import { admissionPipelineService } from "@/modules/rh/person/collaborators/admission/services/admission-pipeline.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -22,6 +23,7 @@ const DEFAULT_PAGE_SIZE = 10;
 
 export function AdmissionPipelineTab() {
     const { startCreate, startEdit } = useCrudScreen();
+    const queryClient = useQueryClient();
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(DEFAULT_PAGE_SIZE);
     const summaryQueryKey = useBranchScopedQueryKey([...admissionprocessKeys.all, "pipeline", "summary"]);
@@ -44,6 +46,15 @@ export function AdmissionPipelineTab() {
 
     const error = summaryQuery.error ?? pageQuery.error;
     const loading = summaryQuery.isPending || pageQuery.isPending;
+
+    const handleApprove = async (row: AdmissionPipelineRow) => {
+        await admissionPipelineService.approve(row.admissionId);
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: summaryQueryKey }),
+            queryClient.invalidateQueries({ queryKey: pageQueryKey }),
+            queryClient.invalidateQueries({ queryKey: admissionprocessKeys.all }),
+        ]);
+    };
 
     if (loading) {
         return (
@@ -107,6 +118,7 @@ export function AdmissionPipelineTab() {
                             setPage(0);
                         }}
                         onOpen={(row) => startEdit(row.admissionId, { fullName: row.fullName })}
+                        onApprove={handleApprove}
                     />
                     <div className="flex flex-col gap-3">
                         <AdmissionPipelineDeadlines deadlines={summary?.deadlines ?? []} />

@@ -22,15 +22,8 @@ type TokenResponse = {
     username?: string;
     collaboratorId?: string;
     photoObjectId?: string;
-    jobPositionId?: string;
-    jobPositionName?: string;
-    departmentId?: string;
-    departmentName?: string;
-    permissions?: string[];
     tenantSlug?: string;
     tenantName?: string;
-    contractedSystemKeys?: string[] | null;
-    contractedSystemKeyOverrides?: Record<string, string[]> | null;
     platformAdmin?: boolean;
 };
 
@@ -105,20 +98,8 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
             username,
             collaboratorId: data.collaboratorId,
             photoObjectId: data.photoObjectId,
-            jobPositionId: data.jobPositionId,
-            jobPositionName: data.jobPositionName,
-            departmentId: data.departmentId,
-            departmentName: data.departmentName,
             tenantSlug: data.tenantSlug ?? (token.tenantSlug as string | undefined),
             tenantName: data.tenantName ?? (token.tenantName as string | undefined),
-            contractedSystemKeys:
-                data.contractedSystemKeys !== undefined
-                    ? data.contractedSystemKeys
-                    : ((token.contractedSystemKeys as string[] | null | undefined) ?? null),
-            contractedSystemKeyOverrides:
-                data.contractedSystemKeyOverrides !== undefined
-                    ? data.contractedSystemKeyOverrides
-                    : ((token.contractedSystemKeyOverrides as Record<string, string[]> | null | undefined) ?? null),
             platformAdmin:
                 data.platformAdmin !== undefined
                     ? data.platformAdmin
@@ -133,16 +114,11 @@ async function refreshAccessTokenOnce(token: JWT, refreshToken: string): Promise
                 ? String((error as { code?: unknown }).code)
                 : "UNKNOWN";
         const failureCount = (token.refreshFailureCount ?? 0) + 1;
-        // Sem o motivo no log, uma falha de rede/TLS server→API era indistinguível de refresh
-        // revogado — as duas apareciam como "UNKNOWN".
         const reason = error instanceof Error ? error.message : String(error);
         console.warn(`[auth] falha ao renovar access token (${code}), tentativa ${failureCount}: ${reason}`);
-        // Revogação / refresh inválido: encerra a sessão mesmo com access ainda válido.
         if (isSessionDeadCode(code)) {
             return { ...token, error: "RefreshAccessTokenError" };
         }
-        // Falha transitória (5xx, timeout, backend reiniciando): mantém a sessão e tenta de novo.
-        // Encerrar aqui só porque o access token venceu derruba o usuário por um soluço da API.
         if (failureCount >= MAX_TRANSIENT_REFRESH_FAILURES) {
             return { ...token, error: "RefreshAccessTokenError" };
         }

@@ -15,7 +15,11 @@ import { useSession } from "next-auth/react";
 import { getNavSectionsForSystem, SETTINGS_NAV_SECTIONS } from "@/config/routes";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnum, SystemEnumHelper, type TSystemInfos } from "@/modules/root/enum/SystemEnum";
-import { useSessionPermissions } from "@/shared/auth/permissions";
+import {
+    permissionsForSystem,
+    useSessionPermissions,
+    useSessionSystemPermissions,
+} from "@/shared/auth/permissions";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import { useContractedSystemKeys } from "@/shared/hooks/useContractedSystemKeys";
 import { SETTINGS_MODE_COOKIE_KEY } from "@/shared/lib/active-system-preferences";
@@ -132,6 +136,7 @@ export function ActiveSystemProvider({
 }: ActiveSystemProviderProps) {
     const { data: session } = useSession();
     const permissions = useSessionPermissions();
+    const systemPermissions = useSessionSystemPermissions();
     const { keys: contractedKeys, ready: contractedReady } = useContractedSystemKeys();
     const permissionsReady = contractedReady;
     // Sessão (JWT), não as keys já resolvidas do hook — senão o admin
@@ -139,7 +144,7 @@ export function ActiveSystemProvider({
     const noCommercialFilter = isPlatformAdminWithoutTenant({
         platformAdmin: session?.platformAdmin,
         tenantSlug: session?.tenantSlug,
-        contractedSystemKeys: session?.contractedSystemKeys,
+        contractedSystemKeys: contractedKeys,
     });
     // Só admin da plataforma no host/dev ignora filtro de permissões do menu/rail.
     const unrestrictedPlatformAdmin = Boolean(session?.platformAdmin && noCommercialFilter);
@@ -180,10 +185,18 @@ export function ActiveSystemProvider({
                     return false;
                 }
                 const sections = getNavSectionsForSystem(systemId);
-                return filterSectionsByPermissions(sections, permissions).length > 0;
+                const scoped = permissionsForSystem(permissions, systemPermissions, systemId);
+                return filterSectionsByPermissions(sections, scoped).length > 0;
             })
             .map((id) => SystemEnumHelper.getById(id));
-    }, [contractedSystems, noCommercialFilter, permissions, permissionsReady, unrestrictedPlatformAdmin]);
+    }, [
+        contractedSystems,
+        noCommercialFilter,
+        permissions,
+        systemPermissions,
+        permissionsReady,
+        unrestrictedPlatformAdmin,
+    ]);
     const resolvedActiveSystem = useMemo(() => {
         if (isSettingsMode || systems.length === 0) {
             return activeSystem;
@@ -199,7 +212,8 @@ export function ActiveSystemProvider({
             if (unrestrictedPlatformAdmin) {
                 return SETTINGS_NAV_SECTIONS;
             }
-            return filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, permissions);
+            const cfgScoped = permissionsForSystem(permissions, systemPermissions, "CFG");
+            return filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, cfgScoped);
         }
         if (systems.length === 0) {
             return [];
@@ -208,11 +222,13 @@ export function ActiveSystemProvider({
         if (unrestrictedPlatformAdmin) {
             return sections;
         }
-        return filterSectionsByPermissions(sections, permissions);
+        const scoped = permissionsForSystem(permissions, systemPermissions, resolvedActiveSystem);
+        return filterSectionsByPermissions(sections, scoped);
     }, [
         resolvedActiveSystem,
         isSettingsMode,
         permissions,
+        systemPermissions,
         permissionsReady,
         unrestrictedPlatformAdmin,
         systems.length,
@@ -232,10 +248,11 @@ export function ActiveSystemProvider({
         if (!permissionsReady || !isSettingsMode || unrestrictedPlatformAdmin) {
             return;
         }
-        if (filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, permissions).length === 0) {
+        const cfgScoped = permissionsForSystem(permissions, systemPermissions, "CFG");
+        if (filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, cfgScoped).length === 0) {
             persistSettingsMode(false);
         }
-    }, [isSettingsMode, permissions, permissionsReady, unrestrictedPlatformAdmin]);
+    }, [isSettingsMode, permissions, systemPermissions, permissionsReady, unrestrictedPlatformAdmin]);
     const value = useMemo(
         () => ({
             activeSystem: resolvedActiveSystem,

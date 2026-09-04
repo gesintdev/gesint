@@ -36,7 +36,7 @@ export function useProfileScopeAccess(): ProfileScopeAccess {
             isPlatformAdminWithoutTenant({
                 platformAdmin: session?.platformAdmin,
                 tenantSlug: session?.tenantSlug,
-                contractedSystemKeys: session?.contractedSystemKeys,
+                contractedSystemKeys: contractedKeys,
             }),
     );
 

@@ -403,6 +403,10 @@ public class AdmissionProcessService
 
     private AdmissionStatusEnum resolveComputedStatus(
             AdmissionProcess entity, long documentCount, long contractDocumentCount) {
+        // Aprovacao manual na esteira fixa COMPLETED mesmo com docs/ASO incompletos.
+        if (entity.getManuallyApprovedAt() != null) {
+            return AdmissionStatusEnum.COMPLETED;
+        }
         AdmissionStatusEnum status = AdmissionProgressEvaluator.evaluate(entity, documentCount, contractDocumentCount)
                 .status();
         // Salvar edita o cadastro; conclusao exige ASO admissional APTA — nao bloqueia o save.

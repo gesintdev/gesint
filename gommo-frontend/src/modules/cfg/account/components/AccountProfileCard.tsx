@@ -3,6 +3,7 @@
 import {Briefcase, Building2, Mail, UserRound} from "lucide-react";
 import {useSession} from "next-auth/react";
 
+import {useOptionalAppBootstrap} from "@/shared/components/providers/AppBootstrapProvider";
 import {Card} from "@/shared/components/ui/Card";
 import {ProfileAvatar} from "@/shared/components/ui/ProfileAvatar";
 
@@ -28,13 +29,14 @@ function InfoChip({
 
 export function AccountProfileCard() {
     const {data: session} = useSession();
+    const bootstrap = useOptionalAppBootstrap()?.bootstrap;
     const user = session?.user;
-    const name = user?.name?.trim() || user?.username || "Usuário";
-    const username = user?.username?.trim() || "—";
-    const email = user?.email?.trim() || null;
-    const photoObjectId = user?.photoObjectId;
-    const departmentName = user?.departmentName;
-    const jobPositionName = user?.jobPositionName;
+    const name = bootstrap?.name?.trim() || user?.name?.trim() || user?.username || "Usuário";
+    const username = bootstrap?.username?.trim() || user?.username?.trim() || "—";
+    const email = bootstrap?.email?.trim() || user?.email?.trim() || null;
+    const photoObjectId = bootstrap?.photoObjectId || user?.photoObjectId;
+    const departmentName = bootstrap?.departmentName;
+    const jobPositionName = bootstrap?.jobPositionName;
 
     return (
         <Card animate={false} title="Sua conta" subtitle="Dados do usuário autenticado">

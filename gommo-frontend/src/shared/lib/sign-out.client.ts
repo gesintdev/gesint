@@ -30,6 +30,8 @@ export async function signOutToTenantLogin(): Promise<void> {
     showLoggingOutOverlay();
     await flushLoggingOutOverlay();
     try {
+        // Limpa cache do bootstrap antes do redirect (queryClient global nao esta acessivel aqui).
+        // O AppBootstrapProvider remove queries ao ficar unauthenticated.
         await signOut({ redirect: false });
     } finally {
         const remainingMs = Math.max(0, minOverlayMs - (Date.now() - startedAt));

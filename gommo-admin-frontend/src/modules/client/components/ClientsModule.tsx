@@ -6,7 +6,12 @@ import { toast } from "sonner";
 
 import { ClientCadastro } from "@/modules/client/components/ClientCadastro";
 import type { Client } from "@/modules/client/dto/client.dto";
-import { slugFromName, statusLabel } from "@/modules/client/lib/client.mapper";
+import {
+    clientPhonesLabel,
+    clientPrimaryEmail,
+    slugFromName,
+    statusLabel,
+} from "@/modules/client/lib/client.mapper";
 import {
     collectTenantSchemaSyncWarnings,
     formatTenantSchemaSyncBatchSummary,
@@ -64,6 +69,10 @@ export function ClientsModule() {
         try {
             const data = await clientService.getAll();
             setClients(data);
+            setSelectedClient((prev) => {
+                if (!prev?.id) return prev;
+                return data.find((client) => client.id === prev.id) ?? prev;
+            });
         } catch (err) {
             ExceptionCapture.handle(err, { fallbackMessage: "Falha ao carregar clientes." });
         } finally {
@@ -118,13 +127,18 @@ export function ClientsModule() {
             client.name.toLowerCase().includes(q) ||
             (client.document ?? "").includes(search) ||
             (client.legalName ?? "").toLowerCase().includes(q) ||
-            (client.contactEmail ?? "").toLowerCase().includes(q) ||
+            clientPrimaryEmail(client).toLowerCase().includes(q) ||
             client.slug.toLowerCase().includes(q)
         );
     });
-    const paged = filtered.slice((page - 1) * perPage, page * perPage);
+    const paged = filtered.slice((page - 1) * perPage, page * perPage).map((client) => ({
+        ...client,
+        contactEmail: clientPrimaryEmail(client),
+        contactPhone: clientPhonesLabel(client),
+    }));
 
     const openForm = (client: Client) => {
+        setSelectedClient(client);
         navigate(clientsFormPath(client.id, "basics"), {
             view: "form",
             recordId: client.id,
@@ -162,13 +176,14 @@ export function ClientsModule() {
 
     const formClient =
         view === "form" && recordId && recordId !== "new"
-            ? clients.find((client) => client.id === recordId) ??
-              (selectedClient?.id === recordId ? selectedClient : null)
+            ? (selectedClient?.id === recordId ? selectedClient : null) ??
+              clients.find((client) => client.id === recordId) ??
+              null
             : null;
 
     const handleSaved = async (client: Client) => {
-        await loadClients();
         setSelectedClient(client);
+        await loadClients();
         if (recordId === "new" || recordId !== client.id) {
             navigate(clientsFormPath(client.id, subTab), {
                 view: "form",

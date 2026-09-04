@@ -40,7 +40,14 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**")
+                .authorizeHttpRequests(auth -> auth.requestMatchers(
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/refresh",
+                                "/api/v1/auth/session-check",
+                                "/api/v1/auth/tenant",
+                                "/api/v1/auth/password-setup",
+                                "/api/v1/auth/password-setup/**",
+                                "/api/v1/auth/forgot-password")
                         .permitAll()
                         .requestMatchers("/api/v1/public/**")
                         .permitAll()

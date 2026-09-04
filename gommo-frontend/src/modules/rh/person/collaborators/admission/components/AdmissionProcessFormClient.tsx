@@ -125,6 +125,8 @@ export function AdmissionProcessFormClient() {
         setPendingPhotoBlob(null);
     }, []);
     const lookedUpZipRef = useRef("");
+    /** Mantém anexos pendentes ao continuar edição após save parcial (create ok, upload falhou). */
+    const keepPendingAfterPartialRef = useRef(false);
     const update = <K extends keyof AdmissionProcessCreateDto>(field: K, value: AdmissionProcessCreateDto[K]) => {
         setForm((prev) => ({...prev, [field]: value}));
     };
@@ -166,7 +168,9 @@ export function AdmissionProcessFormClient() {
             setStateLabel("");
             setCityLabel("");
             clearPendingPhoto();
-            clearPendingAttachments();
+            if (!keepPendingAfterPartialRef.current) {
+                clearPendingAttachments();
+            }
             return;
         }
 
@@ -176,7 +180,11 @@ export function AdmissionProcessFormClient() {
             setStateLabel(detailQuery.data.stateCode ?? "");
             setCityLabel(detailQuery.data.cityName ?? "");
             clearPendingPhoto();
-            clearPendingAttachments();
+            if (keepPendingAfterPartialRef.current) {
+                keepPendingAfterPartialRef.current = false;
+            } else {
+                clearPendingAttachments();
+            }
         }
     }, [isEditing, detailQuery.data, clearPendingAttachments, clearPendingPhoto, editingId]);
 
@@ -271,7 +279,8 @@ export function AdmissionProcessFormClient() {
             setError(ex.displayMessage);
             await queryClient.invalidateQueries({queryKey: admissionprocessKeys.all});
             if (partialAdmissionId) {
-                void startEdit(partialAdmissionId);
+                keepPendingAfterPartialRef.current = true;
+                void startEdit(partialAdmissionId, undefined, {skipDirtyCheck: true});
                 toast.info(ADMISSION_CLIENT_MESSAGES.ADMISSION_PARTIAL_SAVE_HINT);
                 return;
             }

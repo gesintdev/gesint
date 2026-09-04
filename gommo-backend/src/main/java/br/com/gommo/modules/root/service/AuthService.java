@@ -50,6 +50,7 @@ import br.com.gommo.modules.root.dto.PasswordSetupRequestDto;
 import br.com.gommo.modules.root.dto.PasswordSetupValidateRequestDto;
 import br.com.gommo.modules.root.dto.PasswordSetupValidateResponseDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
+import br.com.gommo.modules.root.dto.SessionBootstrapDto;
 import br.com.gommo.modules.root.dto.TenantInfoResponseDto;
 import br.com.gommo.modules.root.dto.TokenResponseDto;
 import br.com.gommo.modules.root.entity.AppUser;
@@ -64,6 +65,7 @@ import br.com.gommo.modules.root.repository.RefreshTokenBlacklistRepository;
 import br.com.gommo.modules.root.repository.RefreshTokenRepository;
 import br.com.gommo.modules.root.security.AccessTokenSupport;
 import br.com.gommo.modules.root.security.BranchAccessResolver;
+import br.com.gommo.modules.root.security.SystemAdminUsers;
 
 @Service
 public class AuthService implements IAuthService {
@@ -410,8 +412,6 @@ public class AuthService implements IAuthService {
         UUID tenantId = null;
         String tenantSlug = null;
         String tenantName = null;
-        List<String> contractedSystemKeys = null;
-        Map<String, List<String>> contractedSystemKeyOverrides = null;
         TenantContext tenant = null;
         if (multiTenantProperties.isEnabled()) {
             tenant = TenantContextHolder.require();
@@ -419,16 +419,10 @@ public class AuthService implements IAuthService {
                 tenantId = tenant.clientId();
                 tenantSlug = tenant.slug();
                 tenantName = tenant.name();
-                TenantContractedSystemsLookup.ContractedSystemScope scope =
-                        tenantContractedSystemsLookup.findActiveKeyScope(tenantId);
-                contractedSystemKeys = scope.allBranchesKeys();
-                contractedSystemKeyOverrides = buildKeyOverrides(scope, branchAccess);
             } else if (tenant.isDevelopmentPublic()) {
-                // Localhost (schema public): não é cliente comercial — sem filtro de sistemas.
                 tenantId = tenant.clientId();
                 tenantSlug = tenant.slug();
                 tenantName = tenant.name();
-                contractedSystemKeys = null;
             }
         }
 
@@ -448,11 +442,6 @@ public class AuthService implements IAuthService {
 
         boolean platformAdmin =
                 multiTenantProperties.isEnabled() && platformAdminUserLookup.isPlatformAdmin(user.getUsername());
-        // Admin da plataforma no host: null = FE libera todos os sistemas (não []).
-        if (platformAdmin && (tenant == null || tenant.isPlatformAccess())) {
-            contractedSystemKeys = null;
-            contractedSystemKeyOverrides = null;
-        }
         CollaboratorOrganizationSnapshot organization = resolveCollaboratorOrganization(user);
         String displayName = StringUtils.hasText(organization.collaboratorName)
                 ? organization.collaboratorName
@@ -468,8 +457,66 @@ public class AuthService implements IAuthService {
                 .email(user.getEmail())
                 .tenantSlug(tenantSlug)
                 .tenantName(tenantName)
-                .contractedSystemKeys(contractedSystemKeys)
-                .contractedSystemKeyOverrides(contractedSystemKeyOverrides)
+                .collaboratorId(organization.collaboratorId)
+                .photoObjectId(organization.photoObjectId)
+                .platformAdmin(platformAdmin)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SessionBootstrapDto currentSession() {
+        UUID userId = SystemAdminUsers.currentUserId().orElseThrow(AuthException::invalidAccessToken);
+        AppUser user = appUserRepository
+                .findById(userId)
+                .filter(candidate -> candidate.getStatus() != StatusEnum.DELETED)
+                .orElseThrow(AuthException::userNotFound);
+        return buildSessionBootstrap(user);
+    }
+
+    private SessionBootstrapDto buildSessionBootstrap(AppUser user) {
+        BranchAccessResolver.BranchAccess branchAccess = branchAccessResolver.resolve(user);
+        List<String> permissions = branchAccess.basePermissions();
+        String tenantSlug = null;
+        String tenantName = null;
+        List<String> contractedSystemKeys = null;
+        Map<String, List<String>> contractedSystemKeyOverrides = null;
+        TenantContext tenant = null;
+        if (multiTenantProperties.isEnabled()) {
+            tenant = TenantContextHolder.getOptional().orElse(null);
+            if (tenant != null && !tenant.isPlatformAccess() && !tenant.isDevelopmentPublic()) {
+                tenantSlug = tenant.slug();
+                tenantName = tenant.name();
+                TenantContractedSystemsLookup.ContractedSystemScope scope =
+                        tenantContractedSystemsLookup.findActiveKeyScope(tenant.clientId());
+                contractedSystemKeys = scope.allBranchesKeys();
+                contractedSystemKeyOverrides = buildKeyOverrides(scope, branchAccess);
+            } else if (tenant != null && tenant.isDevelopmentPublic()) {
+                tenantSlug = tenant.slug();
+                tenantName = tenant.name();
+                contractedSystemKeys = null;
+            }
+        }
+
+        boolean platformAdmin =
+                multiTenantProperties.isEnabled() && platformAdminUserLookup.isPlatformAdmin(user.getUsername());
+        if (platformAdmin && (tenant == null || tenant.isPlatformAccess())) {
+            contractedSystemKeys = null;
+            contractedSystemKeyOverrides = null;
+        }
+
+        CollaboratorOrganizationSnapshot organization = resolveCollaboratorOrganization(user);
+        String displayName = StringUtils.hasText(organization.collaboratorName)
+                ? organization.collaboratorName
+                : user.getUsername();
+
+        return SessionBootstrapDto.builder()
+                .name(displayName)
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .tenantSlug(tenantSlug)
+                .tenantName(tenantName)
+                .platformAdmin(platformAdmin)
                 .collaboratorId(organization.collaboratorId)
                 .photoObjectId(organization.photoObjectId)
                 .jobPositionId(organization.jobPositionId)
@@ -477,8 +524,10 @@ public class AuthService implements IAuthService {
                 .departmentId(organization.departmentId)
                 .departmentName(organization.departmentName)
                 .permissions(permissions)
+                .systemPermissions(branchAccess.permissionsBySystem())
                 .branches(branchAccess.branches())
-                .platformAdmin(platformAdmin)
+                .contractedSystemKeys(contractedSystemKeys)
+                .contractedSystemKeyOverrides(contractedSystemKeyOverrides)
                 .build();
     }
 

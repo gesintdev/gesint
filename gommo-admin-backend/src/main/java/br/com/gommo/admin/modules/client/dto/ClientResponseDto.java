@@ -7,9 +7,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import br.com.gommo.admin.core.entity.StatusEnum;
+import br.com.gommo.admin.modules.clientcontact.dto.ClientContactDto;
 
 @Getter
 @Setter
@@ -26,9 +29,14 @@ public class ClientResponseDto {
     private String slug;
     private String mobileLoginCode;
     private String document;
-    private String address;
-    private String contactEmail;
-    private String contactPhone;
+    private String street;
+    private String number;
+    private String complement;
+    private String district;
+    private String city;
+    private String stateCode;
+    private String zipCode;
+    @Builder.Default private List<ClientContactDto> contacts = new ArrayList<>();
     private String notes;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;

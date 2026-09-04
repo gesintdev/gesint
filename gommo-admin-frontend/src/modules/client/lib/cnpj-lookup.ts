@@ -1,12 +1,19 @@
 import { digitsOnly } from "@/shared/lib/input/digits";
+import { maskSinglePhone } from "@/shared/lib/input/phone";
 
 export type CnpjLookupResult = {
     document: string;
     name: string;
     legalName: string;
-    address: string;
+    street: string;
+    number: string;
+    complement: string;
+    district: string;
+    city: string;
+    stateCode: string;
+    zipCode: string;
     contactEmail: string;
-    contactPhone: string;
+    phones: string[];
 };
 
 type BrasilApiCnpjResponse = {
@@ -27,38 +34,7 @@ type BrasilApiCnpjResponse = {
 };
 
 function formatPhone(raw?: string): string {
-    const digits = digitsOnly(raw ?? "");
-    if (!digits) return "";
-    if (digits.length === 10) {
-        return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-    }
-    if (digits.length === 11) {
-        return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-    }
-    return digits;
-}
-
-function formatAddress(data: BrasilApiCnpjResponse): string {
-    const streetType = data.descricao_tipo_de_logradouro?.trim() ?? "";
-    const street = data.logradouro?.trim() ?? "";
-    const number = data.numero?.trim() ?? "";
-    const complement = data.complemento?.trim() ?? "";
-    const district = data.bairro?.trim() ?? "";
-    const city = data.municipio?.trim() ?? "";
-    const uf = data.uf?.trim() ?? "";
-    const cep = digitsOnly(data.cep ?? "");
-    const cepFmt = cep.length === 8 ? `${cep.slice(0, 5)}-${cep.slice(5)}` : cep;
-
-    const line1 = [streetType, street].filter(Boolean).join(" ");
-    const parts = [
-        [line1, number].filter(Boolean).join(", "),
-        complement,
-        district,
-        [city, uf].filter(Boolean).join(" - "),
-        cepFmt ? `CEP ${cepFmt}` : "",
-    ].filter(Boolean);
-
-    return parts.join(", ");
+    return maskSinglePhone(raw ?? "");
 }
 
 export async function lookupCnpj(cnpj: string): Promise<CnpjLookupResult | null> {
@@ -79,13 +55,22 @@ export async function lookupCnpj(cnpj: string): Promise<CnpjLookupResult | null>
     const phones = [formatPhone(data.ddd_telefone_1), formatPhone(data.ddd_telefone_2 ?? undefined)].filter(
         Boolean,
     );
+    const streetType = data.descricao_tipo_de_logradouro?.trim() ?? "";
+    const streetName = data.logradouro?.trim() ?? "";
+    const street = [streetType, streetName].filter(Boolean).join(" ").trim();
 
     return {
         document: digits,
         name: (data.nome_fantasia || data.razao_social || "").trim(),
         legalName: (data.razao_social || "").trim(),
-        address: formatAddress(data),
+        street,
+        number: (data.numero || "").trim(),
+        complement: (data.complemento || "").trim(),
+        district: (data.bairro || "").trim(),
+        city: (data.municipio || "").trim(),
+        stateCode: (data.uf || "").trim().toUpperCase(),
+        zipCode: digitsOnly(data.cep ?? ""),
         contactEmail: (data.email || "").trim(),
-        contactPhone: phones.join(" / "),
+        phones,
     };
 }

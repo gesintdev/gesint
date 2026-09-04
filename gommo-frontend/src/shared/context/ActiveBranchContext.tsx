@@ -11,8 +11,7 @@ import {
     useSyncExternalStore,
 } from "react";
 
-import { useSession } from "next-auth/react";
-
+import { useOptionalAppBootstrap } from "@/shared/components/providers/AppBootstrapProvider";
 import { type Branch, persistActiveBranch, readActiveBranch, subscribeActiveBranch } from "@/shared/lib/branch";
 import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
 import { writeLastWorkspaceInitLocation } from "@/shared/workspace/workspace-location";
@@ -36,10 +35,10 @@ type ActiveBranchProviderProps = {
 };
 
 export function ActiveBranchProvider({ children, initialBranchId = null }: ActiveBranchProviderProps) {
-    const { data: session } = useSession();
+    const bootstrap = useOptionalAppBootstrap();
     const switchBranchGroup = useWorkspaceStore((state) => state.switchBranchGroup);
 
-    const branches = useMemo(() => session?.branches ?? [], [session?.branches]);
+    const branches = useMemo(() => bootstrap?.branches ?? [], [bootstrap?.branches]);
 
     const storedBranchId = useSyncExternalStore(
         subscribeActiveBranch,

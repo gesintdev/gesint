@@ -32,6 +32,9 @@ public class AdmissionPipelineRowDto {
 
     private AdmissionPipelineSignalEnum signal;
 
+    /** True quando a admissao foi aprovada manualmente na esteira. */
+    private boolean manuallyApproved;
+
     /** Positivo quando a data de inicio ja passou. Alimenta "iniciou ha N dias". */
     private Integer daysSinceExpectedStart;
 

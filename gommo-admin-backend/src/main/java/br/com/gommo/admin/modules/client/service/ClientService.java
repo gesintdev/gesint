@@ -3,9 +3,15 @@ package br.com.gommo.admin.modules.client.service;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.core.NestedExceptionUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +31,9 @@ import br.com.gommo.admin.modules.client.exception.ClientException;
 import br.com.gommo.admin.modules.client.mapper.ClientMapper;
 import br.com.gommo.admin.modules.client.repository.ClientRepository;
 import br.com.gommo.admin.modules.clientbranch.service.TenantBranchProvisioner;
+import br.com.gommo.admin.modules.clientcontact.dto.ClientContactDto;
+import br.com.gommo.admin.modules.clientcontact.entity.ClientContact;
+import br.com.gommo.admin.modules.clientcontact.repository.ClientContactRepository;
 import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 import br.com.gommo.admin.modules.clientenvironmentconfig.repository.ClientEnvironmentConfigRepository;
 
@@ -33,6 +42,7 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
 
     private final ClientRepository repository;
     private final ClientMapper mapper;
+    private final ClientContactRepository contactRepository;
     private final TenantDatabaseConnectionTester connectionTester;
     private final TenantSchemaProvisioner schemaProvisioner;
     private final TenantUserProvisioner tenantUserProvisioner;
@@ -47,6 +57,7 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     public ClientService(
             ClientRepository repository,
             ClientMapper mapper,
+            ClientContactRepository contactRepository,
             TenantDatabaseConnectionTester connectionTester,
             TenantSchemaProvisioner schemaProvisioner,
             TenantUserProvisioner tenantUserProvisioner,
@@ -60,6 +71,7 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
+        this.contactRepository = contactRepository;
         this.connectionTester = connectionTester;
         this.schemaProvisioner = schemaProvisioner;
         this.tenantUserProvisioner = tenantUserProvisioner;
@@ -76,21 +88,39 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('platform:admin')")
     public List<ClientResponseDto> findAll() {
-        return super.findAll();
+        return findAll(StatusEnum.ACTIVE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('platform:admin')")
+    public List<ClientResponseDto> findAll(StatusEnum status) {
+        StatusEnum resolved = status == StatusEnum.INACTIVE ? StatusEnum.INACTIVE : StatusEnum.ACTIVE;
+        List<Client> clients = repository.findAllByStatusOrderByCreatedAtDesc(resolved);
+        return toResponses(clients);
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('platform:admin')")
     public ClientResponseDto findById(UUID id) {
-        return super.findById(id);
+        return toResponse(findEntity(id));
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('platform:admin')")
     public PageableResponseDto<ClientResponseDto> findPage(int page, int size) {
-        return super.findPage(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Client> result = repository.findAllByStatus(StatusEnum.ACTIVE, pageable);
+        List<ClientResponseDto> content = toResponses(result.getContent());
+        return PageableResponseDto.<ClientResponseDto>builder()
+                .content(content)
+                .page(page)
+                .size(size)
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .build();
     }
 
     @Override
@@ -104,10 +134,9 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
         entity.setMobileLoginCode(generateUniqueMobileLoginCode());
         entity.setStatus(StatusEnum.ACTIVE);
         Client saved = repository.save(entity);
-
+        replaceContacts(saved.getId(), request.getContacts());
         createDefaultEnvironmentConfig(saved);
-
-        return mapper.toResponse(saved);
+        return toResponse(saved);
     }
 
     @Override
@@ -120,7 +149,11 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
                 .ifPresent(c -> {
                     throw ClientException.slugAlreadyExists();
                 });
-        return super.update(id, request);
+        Client entity = findEntity(id);
+        mapper.updateEntity(entity, request);
+        Client saved = repository.save(entity);
+        replaceContacts(saved.getId(), request.getContacts());
+        return toResponse(saved);
     }
 
     @Override
@@ -138,6 +171,60 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
     @Override
     protected void updateEntity(Client entity, ClientRequestDto request) {
         mapper.updateEntity(entity, request);
+    }
+
+    private ClientResponseDto toResponse(Client entity) {
+        List<ClientContact> contacts = contactRepository.findAllByClientIdAndStatusNotOrderBySortOrderAscCreatedAtAsc(
+                entity.getId(), StatusEnum.DELETED);
+        return mapper.toResponse(entity, contacts);
+    }
+
+    private List<ClientResponseDto> toResponses(List<Client> clients) {
+        if (clients.isEmpty()) {
+            return List.of();
+        }
+        List<UUID> ids = clients.stream().map(Client::getId).toList();
+        Map<UUID, List<ClientContact>> byClient = contactRepository
+                .findAllByClientIdInAndStatusNotOrderBySortOrderAscCreatedAtAsc(ids, StatusEnum.DELETED)
+                .stream()
+                .collect(Collectors.groupingBy(ClientContact::getClientId));
+        return clients.stream()
+                .map(client -> mapper.toResponse(client, byClient.getOrDefault(client.getId(), List.of())))
+                .toList();
+    }
+
+    private void replaceContacts(UUID clientId, List<ClientContactDto> contacts) {
+        List<ClientContact> existing =
+                contactRepository.findAllByClientIdAndStatusNotOrderBySortOrderAscCreatedAtAsc(
+                        clientId, StatusEnum.DELETED);
+        for (ClientContact contact : existing) {
+            contact.setStatus(StatusEnum.DELETED);
+        }
+        if (!existing.isEmpty()) {
+            contactRepository.saveAll(existing);
+        }
+
+        if (contacts == null || contacts.isEmpty()) {
+            return;
+        }
+
+        List<ClientContact> created = new ArrayList<>();
+        int sortOrder = 0;
+        for (ClientContactDto dto : contacts) {
+            if (dto == null || dto.getType() == null || dto.getValue() == null || dto.getValue().isBlank()) {
+                continue;
+            }
+            created.add(ClientContact.builder()
+                    .clientId(clientId)
+                    .type(dto.getType())
+                    .value(dto.getValue().trim())
+                    .sortOrder(sortOrder++)
+                    .status(StatusEnum.ACTIVE)
+                    .build());
+        }
+        if (!created.isEmpty()) {
+            contactRepository.saveAll(created);
+        }
     }
 
     private void createDefaultEnvironmentConfig(Client client) {
@@ -287,6 +374,6 @@ public class ClientService extends BaseService<Client, ClientRequestDto, ClientR
         }
 
         environmentConfigRepository.save(config);
-        return mapper.toResponse(client);
+        return toResponse(client);
     }
 }

@@ -1,6 +1,7 @@
 import { APP_ROUTES, flattenRoutes, systemModuleGroups } from "@/config/routes";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
+import { permissionsForSystem } from "@/shared/auth/permissions";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import {
     isPlatformAdminWithoutTenant,
@@ -22,6 +23,9 @@ export function isPathAccessible(
         tenantSlug?: string | null;
         platformAdmin?: boolean | null;
         contractedSystemKeys?: readonly string[] | null;
+        systemPermissions?: Record<string, string[]> | null;
+        /** Middleware pos-sessao enxuta: filtro comercial fica no bootstrap (client). */
+        skipCommercialFilter?: boolean;
     },
 ): boolean {
     const route = findRouteByPathname(pathname);
@@ -38,27 +42,35 @@ export function isPathAccessible(
         return true;
     }
 
-    if (!canAccessRoute(route, granted)) {
+    const systems = SystemEnumHelper.findSystemsForHref(pathname, systemModuleGroups);
+    const systemPermissions = options?.systemPermissions;
+
+    if (systemPermissions && systems.length > 0) {
+        const allowedByScope = systems.some((system) => {
+            const scoped = permissionsForSystem(granted, systemPermissions, system);
+            return canAccessRoute(route, scoped);
+        });
+        if (!allowedByScope) {
+            return false;
+        }
+    } else if (!canAccessRoute(route, granted)) {
         return false;
     }
 
-    // Localhost / schema public: permissões ok; não aplica filtro comercial de sistemas.
-    if (noCommercialFilter) {
+    if (options?.skipCommercialFilter || noCommercialFilter) {
         return true;
     }
 
-    const hasTenant = Boolean(options?.tenantSlug?.trim());
-    // Tenant com JWT antigo (sem keys): libera so paths neutros ate hidratar no cliente.
-    if (hasTenant && contractedSystemKeys == null) {
-        const systems = SystemEnumHelper.findSystemsForHref(pathname, systemModuleGroups);
-        return systems.length === 0;
+    const effectiveKeys = options?.contractedSystemKeys ?? contractedSystemKeys;
+    // Sem keys (bootstrap ainda nao carregou / cookie enxuto): nao bloqueia no middleware.
+    if (effectiveKeys == null) {
+        return true;
     }
 
-    const contracted = resolveContractedSystems(contractedSystemKeys);
+    const contracted = resolveContractedSystems(effectiveKeys);
     if (contracted == null) {
         return true;
     }
-    const systems = SystemEnumHelper.findSystemsForHref(pathname, systemModuleGroups);
     if (systems.length === 0) {
         return true;
     }

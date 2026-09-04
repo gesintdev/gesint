@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { systemModuleGroups } from "@/config/routes";
 import { SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
+import { useSessionPermissions } from "@/shared/auth/permissions";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import { isSessionDeadError } from "@/shared/auth/session-dead-codes";
 import { useContractedSystemKeys } from "@/shared/hooks/useContractedSystemKeys";
@@ -25,6 +26,7 @@ const SESSION_CHECK_INTERVAL_MS = 15_000;
 export function SessionRefresh() {
     const { data: session, status } = useSession();
     const { keys: contractedKeys, ready: contractedReady } = useContractedSystemKeys();
+    const permissions = useSessionPermissions();
     const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
     const retainTabsByRouteIds = useWorkspaceStore((s) => s.retainTabsByRouteIds);
     const previousUserRef = useRef<string | null>(null);
@@ -131,10 +133,9 @@ export function SessionRefresh() {
         const noCommercialFilter = isPlatformAdminWithoutTenant({
             platformAdmin: session?.platformAdmin,
             tenantSlug: session?.tenantSlug,
-            contractedSystemKeys: session?.contractedSystemKeys,
+            contractedSystemKeys: contractedKeys,
         });
         const unrestrictedPlatformAdmin = Boolean(session?.platformAdmin && noCommercialFilter);
-        const permissions = session?.user?.permissions ?? [];
         const allowedRouteIds = new Set(
             useWorkspaceStore
                 .getState()
@@ -162,10 +163,10 @@ export function SessionRefresh() {
         contractedKeys,
         contractedReady,
         contractedSystems,
+        permissions,
         retainTabsByRouteIds,
         session?.platformAdmin,
         session?.tenantSlug,
-        session?.user?.permissions,
     ]);
 
     return null;

@@ -17,6 +17,7 @@ import br.com.gommo.modules.root.dto.PasswordSetupRequestDto;
 import br.com.gommo.modules.root.dto.PasswordSetupValidateRequestDto;
 import br.com.gommo.modules.root.dto.PasswordSetupValidateResponseDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
+import br.com.gommo.modules.root.dto.SessionBootstrapDto;
 import br.com.gommo.modules.root.dto.TenantInfoResponseDto;
 import br.com.gommo.modules.root.dto.TokenResponseDto;
 import br.com.gommo.modules.root.service.IAuthService;
@@ -45,6 +46,11 @@ public class AuthController {
     public ResponseEntity<Void> sessionCheck(@Valid @RequestBody RefreshTokenRequestDto request) {
         authService.assertRefreshSessionActive(request);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<SessionBootstrapDto> me() {
+        return ResponseEntity.ok(authService.currentSession());
     }
 
     @GetMapping("/tenant")

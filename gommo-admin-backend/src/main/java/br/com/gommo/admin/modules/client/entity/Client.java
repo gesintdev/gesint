@@ -43,14 +43,26 @@ public class Client extends AuditEntity {
     @Column(length = 18)
     private String document;
 
-    @Column(columnDefinition = "TEXT")
-    private String address;
+    @Column(length = 200)
+    private String street;
 
-    @Column(name = "contact_email", length = 200)
-    private String contactEmail;
+    @Column(length = 20)
+    private String number;
 
-    @Column(name = "contact_phone", length = 120)
-    private String contactPhone;
+    @Column(length = 100)
+    private String complement;
+
+    @Column(length = 100)
+    private String district;
+
+    @Column(length = 100)
+    private String city;
+
+    @Column(name = "state_code", length = 2)
+    private String stateCode;
+
+    @Column(name = "zip_code", length = 10)
+    private String zipCode;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

@@ -52,6 +52,14 @@ public final class AdmissionPipelineRules {
         return expectedStartDate == null ? null : expectedStartDate.minusDays(1);
     }
 
+    /**
+     * A transmissao S-2200 ainda nao existe no produto. Enquanto nao houver evento gerado pela
+     * integracao, a esteira nao cobra prazo nem bloqueia a admissão por atraso de eSocial.
+     */
+    public static boolean isEsocialS2200Enforced(boolean hasEsocialEvent) {
+        return hasEsocialEvent;
+    }
+
     public static LocalDate registrationDueDate(LocalDate expectedStartDate) {
         return expectedStartDate == null
                 ? null

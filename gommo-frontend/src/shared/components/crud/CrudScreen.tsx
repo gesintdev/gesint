@@ -72,7 +72,15 @@ type CrudScreenContextValue = {
     goToForm: () => void;
     goToTab: (tabId: string) => void | Promise<void>;
     startCreate: () => void | Promise<void>;
-    startEdit: (id: string, record?: object) => void | Promise<void>;
+    /**
+     * Abre o formulário em edição.
+     * `skipDirtyCheck` evita o modal de descarte (ex.: save parcial que continua na mesma sessão).
+     */
+    startEdit: (
+        id: string,
+        record?: object,
+        options?: { skipDirtyCheck?: boolean },
+    ) => void | Promise<void>;
 };
 
 const CrudScreenContext = createContext<CrudScreenContextValue | null>(null);
@@ -288,9 +296,15 @@ export function CrudScreen({
         syncWorkspace({ isNew: true });
     }, [canWrite, confirmDiscardFormChanges, editOnly, formSessionActive, syncWorkspace]);
     const startEdit = useCallback(
-        async (id: string, record?: object) => {
+        async (id: string, record?: object, options?: { skipDirtyCheck?: boolean }) => {
             if (!canWrite) return;
-            if (editingId !== id && !(await confirmDiscardFormChanges())) return;
+            if (
+                !options?.skipDirtyCheck &&
+                editingId !== id &&
+                !(await confirmDiscardFormChanges())
+            ) {
+                return;
+            }
             const titleSuffix =
                 crudConfig?.fieldTabName && record
                     ? String((record as Record<string, unknown>)[crudConfig.fieldTabName] ?? "")

@@ -16,6 +16,7 @@ import {
 import {
     OCCUPATIONAL_EXAM_ATTACHMENT_TYPES,
     OCCUPATIONAL_EXAM_ENTITY_TYPE,
+    OCCUPATIONAL_EXAM_LINK_ROLE,
     OCCUPATIONAL_EXAM_LIFECYCLE_ITEMS,
     OCCUPATIONAL_EXAM_RESULT_ITEMS,
     OCCUPATIONAL_EXAM_TYPE_ITEMS,
@@ -131,7 +132,7 @@ export function OccupationalExamFormClient() {
             await flushPendingAttachments({
                 entityType: OCCUPATIONAL_EXAM_ENTITY_TYPE,
                 entityId: savedId,
-                linkRole: "ASO",
+                linkRole: OCCUPATIONAL_EXAM_LINK_ROLE,
                 items: pendingAttachments,
             });
             return savedId;
@@ -146,8 +147,7 @@ export function OccupationalExamFormClient() {
             toast.success(isEditing ? "Exame atualizado" : "Exame cadastrado");
             setForm(emptyOccupationalExamForm());
             returnToList();
-        },
-        onError: (err: unknown) => {
+        },        onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {
                 fallbackMessage: OCCUPATIONAL_EXAM_CLIENT_MESSAGES.SAVE_FAILED,
             });
@@ -333,6 +333,7 @@ export function OccupationalExamFormClient() {
                 <EntityAttachments
                     entityType={OCCUPATIONAL_EXAM_ENTITY_TYPE}
                     entityId={editingId}
+                    linkRole={OCCUPATIONAL_EXAM_LINK_ROLE}
                     documentTypeItems={OCCUPATIONAL_EXAM_ATTACHMENT_TYPES}
                     deferUpload
                     pendingAttachments={pendingAttachments}

@@ -7,6 +7,7 @@ import { type ReactNode, useState } from "react";
 import { Toaster } from "sonner";
 
 import { AccessTokenRevealHost } from "@/shared/access-token-reveal";
+import { AppBootstrapProvider } from "@/shared/components/providers/AppBootstrapProvider";
 import { SessionExpiryGuards } from "@/shared/components/providers/SessionExpiryGuards";
 import { SessionGate } from "@/shared/components/providers/SessionGate";
 import { SessionRefresh } from "@/shared/components/providers/SessionRefresh";
@@ -22,15 +23,17 @@ export function AppProviders({ children, session }: { children: ReactNode; sessi
     return (
         <SessionProvider session={session} refetchInterval={SESSION_REFETCH_SECONDS} refetchOnWindowFocus={false}>
             <SessionGate>
-                <SessionRefresh />
-                <SessionExpiryGuards />
                 <QueryClientProvider client={queryClient}>
-                    <ThemeProvider>
-                        {children}
-                        <Toaster richColors position="top-center" closeButton />
-                        <SystemAlertHost />
-                        <AccessTokenRevealHost />
-                    </ThemeProvider>
+                    <AppBootstrapProvider>
+                        <SessionRefresh />
+                        <SessionExpiryGuards />
+                        <ThemeProvider>
+                            {children}
+                            <Toaster richColors position="top-center" closeButton />
+                            <SystemAlertHost />
+                            <AccessTokenRevealHost />
+                        </ThemeProvider>
+                    </AppBootstrapProvider>
                 </QueryClientProvider>
             </SessionGate>
         </SessionProvider>

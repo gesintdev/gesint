@@ -1,6 +1,8 @@
 "use client";
 
 import clsx from "clsx";
+import { type KeyboardEvent, type MouseEvent } from "react";
+import { toast } from "sonner";
 
 import type {
     AdmissionPipelineRow,
@@ -8,6 +10,7 @@ import type {
 } from "@/modules/rh/person/collaborators/admission/dto/admission-pipeline.dto";
 import {
     type PipelineTone,
+    approveConfirmMessage,
     rowMessage,
     rowSubtitle,
     signalLabel,
@@ -18,6 +21,8 @@ import {
 import { TablePagination } from "@/shared/components/data/TablePagination";
 import { Card } from "@/shared/components/ui/Card";
 import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
+import { ExceptionCapture } from "@/shared/exceptions";
+import { SystemAlert } from "@/shared/system-alert/system-alert";
 
 const BAR_CLASS: Record<PipelineTone, string> = {
     neutral: "bg-base-content/12",
@@ -54,8 +59,40 @@ function StepSegment({ step }: { step: AdmissionPipelineStep }) {
     );
 }
 
-function PipelineRow({ row, onOpen }: { row: AdmissionPipelineRow; onOpen: (row: AdmissionPipelineRow) => void }) {
+function PipelineRow({
+    row,
+    onOpen,
+    onApprove,
+}: {
+    row: AdmissionPipelineRow;
+    onOpen: (row: AdmissionPipelineRow) => void;
+    onApprove: (row: AdmissionPipelineRow) => Promise<void>;
+}) {
     const tone = signalTone(row.signal);
+    const canApprove = !row.manuallyApproved && row.signal !== "APROVADA";
+
+    const handleApproveClick = async (event: MouseEvent | KeyboardEvent) => {
+        event.stopPropagation();
+        event.preventDefault();
+        if (!canApprove) return;
+
+        const confirmed = await SystemAlert.confirm({
+            title: "Aprovar admissão",
+            message: approveConfirmMessage(row),
+            variant: "warning",
+            confirmLabel: "Aprovar mesmo assim",
+            cancelLabel: "Cancelar",
+        });
+        if (!confirmed) return;
+
+        try {
+            await onApprove(row);
+            toast.success("Admissão aprovada");
+        } catch (error) {
+            toast.error(ExceptionCapture.displayMessage(error, "Não foi possível aprovar a admissão"));
+        }
+    };
+
     return (
         <div
             role="button"
@@ -94,14 +131,24 @@ function PipelineRow({ row, onOpen }: { row: AdmissionPipelineRow; onOpen: (row:
             </div>
 
             <div className="lg:text-right">
-                <span
+                <button
+                    type="button"
+                    disabled={!canApprove}
+                    title={canApprove ? "Aprovar admissão manualmente" : undefined}
+                    onClick={handleApproveClick}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            void handleApproveClick(event);
+                        }
+                    }}
                     className={clsx(
-                        "inline-block rounded-md px-2 py-1 text-[10px] font-bold tracking-wide uppercase",
+                        "inline-block rounded-md px-2 py-1 text-[10px] font-bold tracking-wide uppercase transition-opacity",
                         PILL_CLASS[tone],
+                        canApprove ? "cursor-pointer hover:opacity-80" : "cursor-default",
                     )}
                 >
                     {signalLabel(row.signal)}
-                </span>
+                </button>
                 <p className="mt-1.5 text-[11px] leading-snug text-base-content/60">{rowMessage(row)}</p>
             </div>
         </div>
@@ -127,6 +174,7 @@ type AdmissionPipelineTrackProps = {
     onPageChange: (page: number) => void;
     onPageSizeChange: (size: number) => void;
     onOpen: (row: AdmissionPipelineRow) => void;
+    onApprove: (row: AdmissionPipelineRow) => Promise<void>;
 };
 
 export function AdmissionPipelineTrack({
@@ -139,6 +187,7 @@ export function AdmissionPipelineTrack({
     onPageChange,
     onPageSizeChange,
     onOpen,
+    onApprove,
 }: AdmissionPipelineTrackProps) {
     return (
         <Card
@@ -152,7 +201,9 @@ export function AdmissionPipelineTrack({
                     Nenhuma admissão em andamento.
                 </p>
             ) : (
-                rows.map((row) => <PipelineRow key={row.admissionId} row={row} onOpen={onOpen} />)
+                rows.map((row) => (
+                    <PipelineRow key={row.admissionId} row={row} onOpen={onOpen} onApprove={onApprove} />
+                ))
             )}
 
             <div className="flex flex-wrap gap-4 border-t border-(--gommo-border-subtle) px-4 py-3 text-[10.5px] text-base-content/45">

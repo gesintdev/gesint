@@ -2,6 +2,7 @@ package br.com.gommo.modules.root.security;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,6 +19,7 @@ import br.com.gommo.core.security.JwtService;
 import br.com.gommo.core.tenant.TenantBranchLinkLookup;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
+import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.dp.organization.company.entity.Company;
 import br.com.gommo.modules.dp.organization.company.repository.CompanyRepository;
 import br.com.gommo.modules.root.entity.AppUser;
@@ -31,9 +33,13 @@ import br.com.gommo.modules.root.repository.UserRoleAssignmentRepository;
 /**
  * Resolve o que o usuario pode fazer em cada filial.
  *
- * O mesmo usuario pode ser admin de RH numa filial e ter apenas consulta de ponto em outra, entao
+ * <p>O mesmo usuario pode ser admin de RH numa filial e ter apenas consulta de ponto em outra, entao
  * a resposta e um mapa filial -> permissoes, e nao uma lista unica. Vinculos com filial nula
  * valem em todas as filiais (admin de plataforma e vinculos anteriores ao backfill).
+ *
+ * <p>Tambem expoe permissoes agrupadas por {@link SystemScopeEnum} do perfil (Role.system), para o
+ * rail do frontend so mostrar DP/RH/CTB quando o usuario tem grant naquele sistema — rotas
+ * compartilhadas (ex.: Admissao) nao acendem o outro dominio so porque a authority e flat.
  */
 @Component
 public class BranchAccessResolver {
@@ -79,6 +85,7 @@ public class BranchAccessResolver {
         Map<UUID, Role> rolesById = loadRoles(assignments);
         Set<String> globalAuthorities = new LinkedHashSet<>(personal);
         Map<UUID, Set<String>> authoritiesByBranch = new LinkedHashMap<>();
+        Map<SystemScopeEnum, Set<String>> authoritiesBySystem = new EnumMap<>(SystemScopeEnum.class);
 
         for (UserRoleAssignment assignment : assignments) {
             Role role = rolesById.get(assignment.getRoleId());
@@ -86,6 +93,7 @@ public class BranchAccessResolver {
                 continue;
             }
             Set<String> authorities = authoritiesOf(role);
+            accumulateSystemAuthorities(authoritiesBySystem, role.getSystem(), authorities);
             if (assignment.getCompanyId() == null) {
                 globalAuthorities.addAll(authorities);
                 continue;
@@ -113,7 +121,8 @@ public class BranchAccessResolver {
             accessible.add(toSummary(branch));
         }
 
-        return new BranchAccess(accessible, permissionsByBranch, sorted(globalAuthorities));
+        return new BranchAccess(
+                accessible, permissionsByBranch, sorted(globalAuthorities), toSystemPermissionMap(authoritiesBySystem));
     }
 
     /**
@@ -165,7 +174,13 @@ public class BranchAccessResolver {
             permissionsByBranch.put(branch.getId(), authorities);
             accessible.add(toSummary(branch));
         }
-        return new BranchAccess(accessible, permissionsByBranch, authorities);
+
+        Map<SystemScopeEnum, Set<String>> bySystem = new EnumMap<>(SystemScopeEnum.class);
+        // Wildcard compacto: evita inflar o token/sessao com o catalogo inteiro × N sistemas.
+        for (SystemScopeEnum scope : SystemScopeEnum.values()) {
+            bySystem.put(scope, new LinkedHashSet<>(List.of("*")));
+        }
+        return new BranchAccess(accessible, permissionsByBranch, authorities, toSystemPermissionMap(bySystem));
     }
 
     private Map<UUID, Role> loadRoles(List<UserRoleAssignment> assignments) {
@@ -175,7 +190,7 @@ public class BranchAccessResolver {
         if (roleIds.isEmpty()) {
             return rolesById;
         }
-        roleRepository.findAllById(roleIds).forEach(role -> rolesById.put(role.getId(), role));
+        roleRepository.findAllByIdWithPermissions(roleIds).forEach(role -> rolesById.put(role.getId(), role));
         return rolesById;
     }
 
@@ -185,6 +200,26 @@ public class BranchAccessResolver {
             role.getPermissions().forEach(permission -> authorities.add(permission.getAuthority()));
         }
         return authorities;
+    }
+
+    private static void accumulateSystemAuthorities(
+            Map<SystemScopeEnum, Set<String>> bySystem, SystemScopeEnum system, Set<String> authorities) {
+        if (system == null || authorities.isEmpty()) {
+            return;
+        }
+        bySystem.computeIfAbsent(system, key -> new LinkedHashSet<>()).addAll(authorities);
+    }
+
+    private Map<String, List<String>> toSystemPermissionMap(Map<SystemScopeEnum, Set<String>> bySystem) {
+        Map<String, List<String>> result = new LinkedHashMap<>();
+        for (SystemScopeEnum scope : SystemScopeEnum.values()) {
+            Set<String> authorities = bySystem.get(scope);
+            if (authorities == null || authorities.isEmpty()) {
+                continue;
+            }
+            result.put(scope.name(), sorted(authorities));
+        }
+        return result;
     }
 
     private BranchSummary toSummary(Company branch) {
@@ -204,11 +239,14 @@ public class BranchAccessResolver {
      * @param branchIndependentPermissions permissoes que nao dependem de filial. Sustentam o
      *     tenant recem-provisionado, que ainda nao tem matriz cadastrada e por isso nao tem
      *     nenhuma filial para escopar.
+     * @param permissionsBySystem authorities concedidas por perfil de cada sistema (chave =
+     *     {@link SystemScopeEnum#name()}). Nao inclui authorities pessoais do header.
      */
     public record BranchAccess(
             List<BranchSummary> branches,
             Map<UUID, List<String>> permissionsByBranch,
-            List<String> branchIndependentPermissions) {
+            List<String> branchIndependentPermissions,
+            Map<String, List<String>> permissionsBySystem) {
 
         /**
          * Conjunto que vale na maior parte das filiais e serve de base do token.

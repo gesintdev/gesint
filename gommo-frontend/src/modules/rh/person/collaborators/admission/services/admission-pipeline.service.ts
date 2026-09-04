@@ -16,6 +16,10 @@ class AdmissionPipelineService {
         const params = new URLSearchParams({ page: String(page), size: String(size) });
         return apiFetch<PageableResponseDto<AdmissionPipelineRow>>(`${BASE_PATH}/page?${params.toString()}`);
     }
+
+    approve(admissionId: string): Promise<void> {
+        return apiFetch<void>(`${BASE_PATH}/${admissionId}/approve`, { method: "POST" });
+    }
 }
 
 export const admissionPipelineService = new AdmissionPipelineService();

@@ -23,6 +23,14 @@ public interface RoleRepository extends JpaRepository<Role, UUID> {
     @Query("SELECT r FROM Role r LEFT JOIN FETCH r.permissions WHERE r.id = :id AND r.status <> :deleted")
     Optional<Role> findByIdWithPermissions(UUID id, StatusEnum deleted);
 
+    @Query(
+            """
+            SELECT DISTINCT r FROM Role r
+            LEFT JOIN FETCH r.permissions
+            WHERE r.id IN :ids
+            """)
+    List<Role> findAllByIdWithPermissions(@org.springframework.data.repository.query.Param("ids") Collection<UUID> ids);
+
     List<Role> findAllBySystemRoleFalseAndStatusNotOrderByCreatedAtDesc(StatusEnum status);
 
     List<Role> findAllBySystemAndSystemRoleFalseAndStatusNotOrderByCreatedAtDesc(

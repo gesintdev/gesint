@@ -5,6 +5,10 @@ import org.springframework.stereotype.Component;
 import br.com.gommo.admin.modules.client.dto.ClientRequestDto;
 import br.com.gommo.admin.modules.client.dto.ClientResponseDto;
 import br.com.gommo.admin.modules.client.entity.Client;
+import br.com.gommo.admin.modules.clientcontact.dto.ClientContactDto;
+import br.com.gommo.admin.modules.clientcontact.entity.ClientContact;
+
+import java.util.List;
 
 @Component
 public class ClientMapper {
@@ -15,9 +19,13 @@ public class ClientMapper {
                 .legalName(dto.getLegalName())
                 .slug(dto.getSlug())
                 .document(normalizeDocument(dto.getDocument()))
-                .address(dto.getAddress())
-                .contactEmail(dto.getContactEmail())
-                .contactPhone(dto.getContactPhone())
+                .street(trimToNull(dto.getStreet()))
+                .number(trimToNull(dto.getNumber()))
+                .complement(trimToNull(dto.getComplement()))
+                .district(trimToNull(dto.getDistrict()))
+                .city(trimToNull(dto.getCity()))
+                .stateCode(normalizeStateCode(dto.getStateCode()))
+                .zipCode(normalizeZipCode(dto.getZipCode()))
                 .notes(dto.getNotes())
                 .build();
     }
@@ -27,13 +35,21 @@ public class ClientMapper {
         entity.setLegalName(dto.getLegalName());
         entity.setSlug(dto.getSlug());
         entity.setDocument(normalizeDocument(dto.getDocument()));
-        entity.setAddress(dto.getAddress());
-        entity.setContactEmail(dto.getContactEmail());
-        entity.setContactPhone(dto.getContactPhone());
+        entity.setStreet(trimToNull(dto.getStreet()));
+        entity.setNumber(trimToNull(dto.getNumber()));
+        entity.setComplement(trimToNull(dto.getComplement()));
+        entity.setDistrict(trimToNull(dto.getDistrict()));
+        entity.setCity(trimToNull(dto.getCity()));
+        entity.setStateCode(normalizeStateCode(dto.getStateCode()));
+        entity.setZipCode(normalizeZipCode(dto.getZipCode()));
         entity.setNotes(dto.getNotes());
     }
 
     public ClientResponseDto toResponse(Client entity) {
+        return toResponse(entity, List.of());
+    }
+
+    public ClientResponseDto toResponse(Client entity, List<ClientContact> contacts) {
         return ClientResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
@@ -43,12 +59,24 @@ public class ClientMapper {
                 .slug(entity.getSlug())
                 .mobileLoginCode(entity.getMobileLoginCode())
                 .document(entity.getDocument())
-                .address(entity.getAddress())
-                .contactEmail(entity.getContactEmail())
-                .contactPhone(entity.getContactPhone())
+                .street(entity.getStreet())
+                .number(entity.getNumber())
+                .complement(entity.getComplement())
+                .district(entity.getDistrict())
+                .city(entity.getCity())
+                .stateCode(entity.getStateCode())
+                .zipCode(entity.getZipCode())
+                .contacts(contacts.stream().map(this::toContactDto).toList())
                 .notes(entity.getNotes())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .build();
+    }
+
+    public ClientContactDto toContactDto(ClientContact contact) {
+        return ClientContactDto.builder()
+                .type(contact.getType())
+                .value(contact.getValue())
                 .build();
     }
 
@@ -58,5 +86,26 @@ public class ClientMapper {
         }
         String digits = document.replaceAll("\\D", "");
         return digits.isBlank() ? null : digits;
+    }
+
+    private String normalizeZipCode(String zipCode) {
+        if (zipCode == null || zipCode.isBlank()) {
+            return null;
+        }
+        String digits = zipCode.replaceAll("\\D", "");
+        return digits.isBlank() ? null : digits;
+    }
+
+    private String normalizeStateCode(String stateCode) {
+        String trimmed = trimToNull(stateCode);
+        return trimmed == null ? null : trimmed.toUpperCase();
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

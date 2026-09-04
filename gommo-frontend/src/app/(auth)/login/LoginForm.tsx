@@ -93,6 +93,7 @@ export function LoginForm() {
                 } else {
                     toast.error("Usuário ou senha inválidos");
                 }
+                setLoading(false);
                 return;
             }
             const tokens = (await loginResponse.json()) as {
@@ -104,17 +105,9 @@ export function LoginForm() {
                 email?: string;
                 collaboratorId?: string;
                 photoObjectId?: string;
-                jobPositionId?: string;
-                jobPositionName?: string;
-                departmentId?: string;
-                departmentName?: string;
-                permissions?: string[];
                 platformAdmin?: boolean;
                 tenantSlug?: string;
                 tenantName?: string;
-                contractedSystemKeys?: string[] | null;
-                contractedSystemKeyOverrides?: Record<string, string[]> | null;
-                branches?: { id: string; name: string; cnpj?: string | null; headquarters: boolean }[];
             };
             const result = await signIn("credentials", {
                 username: tokens.username ?? login,
@@ -127,28 +120,21 @@ export function LoginForm() {
                 email: tokens.email ?? "",
                 collaboratorId: tokens.collaboratorId ?? "",
                 photoObjectId: tokens.photoObjectId ?? "",
-                jobPositionId: tokens.jobPositionId ?? "",
-                jobPositionName: tokens.jobPositionName ?? "",
-                departmentId: tokens.departmentId ?? "",
-                departmentName: tokens.departmentName ?? "",
                 platformAdmin: String(tokens.platformAdmin ?? false),
                 tenantName: tokens.tenantName ?? "",
-                contractedSystemKeys: JSON.stringify(tokens.contractedSystemKeys ?? null),
-                contractedSystemKeyOverrides: JSON.stringify(tokens.contractedSystemKeyOverrides ?? null),
-                branches: JSON.stringify(tokens.branches ?? []),
                 redirect: false,
             });
             if (result?.error) {
                 toast.error("Usuário ou senha inválidos");
+                setLoading(false);
                 return;
             }
             toast.success("Bem-vindo ao Gesint");
             applyDocumentTheme(resolveThemePreference());
-            router.push("/dashboard");
-            router.refresh();
+            // Mantém loading no botão; AppBootstrap cobre até sair de /login.
+            router.replace("/dashboard");
         } catch {
             toast.error("Usuário ou senha inválidos");
-        } finally {
             setLoading(false);
         }
     }

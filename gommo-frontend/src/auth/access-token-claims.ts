@@ -18,6 +18,31 @@ export function readPermissionsFromAccessToken(accessToken: unknown): string[] {
     return Array.isArray(permissions) ? permissions.map(String) : [];
 }
 
+/**
+ * Mapa sistema do perfil -> authorities (`DP` / `RH` / `CONTABILIDADE` / `CFG`).
+ * Ausente em tokens antigos: o consumidor deve cair no flat `permissions`.
+ */
+export function readSystemPermissionsFromAccessToken(
+    accessToken: unknown,
+): Record<string, string[]> | null {
+    const payload = decodePayload(accessToken);
+    if (!payload) {
+        return null;
+    }
+    const raw = payload.systemPermissions;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+        return null;
+    }
+    const result: Record<string, string[]> = {};
+    for (const [system, value] of Object.entries(raw as Record<string, unknown>)) {
+        if (!Array.isArray(value)) {
+            continue;
+        }
+        result[system] = value.map(String);
+    }
+    return Object.keys(result).length > 0 ? result : null;
+}
+
 function decodePayload(accessToken: unknown): Record<string, unknown> | null {
     if (typeof accessToken !== "string") {
         return null;

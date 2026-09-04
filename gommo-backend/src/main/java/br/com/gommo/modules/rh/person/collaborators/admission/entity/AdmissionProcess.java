@@ -16,6 +16,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -59,6 +60,13 @@ public class AdmissionProcess extends BranchScopedEntity {
 
     @Column(name = "completed_at")
     private LocalDate completedAt;
+
+    /** Aprovacao manual na esteira, mesmo com etapas ainda pendentes. */
+    @Column(name = "manually_approved_at")
+    private OffsetDateTime manuallyApprovedAt;
+
+    @Column(name = "manually_approved_by")
+    private UUID manuallyApprovedBy;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

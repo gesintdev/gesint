@@ -12,4 +12,10 @@ public interface IAdmissionPipelineService {
 
     /** Cria as seis etapas de uma admissao recem-criada, se ainda nao existirem. */
     void ensureSteps(java.util.UUID admissionId);
+
+    /**
+     * Aprova manualmente a admissao na esteira (COMPLETED), sem fechar etapas pendentes.
+     * Idempotente se ja aprovada.
+     */
+    void approve(java.util.UUID admissionId);
 }

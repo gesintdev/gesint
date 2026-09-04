@@ -8,6 +8,8 @@ function maskSinglePhone(value: string): string {
     return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
 }
 
+export { maskSinglePhone };
+
 /** Máscara de telefone BR; aceita múltiplos números separados por `/`. */
 export function maskPhone(value: string): string {
     const trimmed = value.trim();

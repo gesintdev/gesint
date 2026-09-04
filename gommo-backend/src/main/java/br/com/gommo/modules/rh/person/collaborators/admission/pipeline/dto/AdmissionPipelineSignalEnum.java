@@ -6,5 +6,7 @@ public enum AdmissionPipelineSignalEnum {
     BLOQUEIO,
     AGUARDANDO_PESSOA,
     EM_DIA,
-    PRONTO
+    PRONTO,
+    /** Aprovada manualmente na esteira, ainda podendo ter etapas pendentes. */
+    APROVADA
 }

@@ -6,10 +6,17 @@ import { toast } from "sonner";
 import { ClientFiliais } from "@/modules/client/components/ClientFiliais";
 import { ClientSistemas } from "@/modules/client/components/ClientSistemas";
 import { ClientUsuarios } from "@/modules/client/components/ClientUsuarios";
-import type { Client, ClientCreateDto } from "@/modules/client/dto/client.dto";
-import { clientToFormDto, emptyClientForm, statusLabel } from "@/modules/client/lib/client.mapper";
+import type { Client, ClientFormDto } from "@/modules/client/dto/client.dto";
+import { BRAZIL_UF_OPTIONS } from "@/modules/client/lib/brazil-states";
+import {
+    clientToFormDto,
+    emptyClientForm,
+    formToCreateDto,
+    statusLabel,
+} from "@/modules/client/lib/client.mapper";
 import { lookupCnpj } from "@/modules/client/lib/cnpj-lookup";
 import { formatTenantSchemaSyncSummary } from "@/modules/client/lib/tenant-schema-sync";
+import { addressService } from "@/modules/client/services/address.service";
 import { clientService } from "@/modules/client/services/client.service";
 import type { ClientEnvironmentConfigUpsertDto } from "@/modules/clientenvironmentconfig/dto/clientenvironmentconfig.dto";
 import { clientEnvironmentConfigService } from "@/modules/clientenvironmentconfig/services/clientenvironmentconfig.service";
@@ -18,11 +25,17 @@ import { AdminBtn } from "@/shared/components/ui/admin/AdminBtn";
 import { AdminInput, AdminSelect } from "@/shared/components/ui/admin/AdminField";
 import { AdminHelpTip } from "@/shared/components/ui/admin/AdminHelpTip";
 import { AdminModal } from "@/shared/components/ui/admin/AdminModal";
+import {
+    AdminMultiValue,
+    type AdminMultiValueHandle,
+} from "@/shared/components/ui/admin/AdminMultiValue";
 import { AdminFormGrid, AdminSection } from "@/shared/components/ui/admin/AdminSection";
 import { AdminSubTabBar } from "@/shared/components/ui/admin/AdminTabBar";
 import { ExceptionCapture } from "@/shared/exceptions/exception-capture";
 import { digitsOnly } from "@/shared/lib/input/digits";
 import { isValidCnpj, maskCnpj } from "@/shared/lib/input/cnpj";
+import { maskCep } from "@/shared/lib/input/cep";
+import { maskSinglePhone } from "@/shared/lib/input/phone";
 import { CLIENT_SUB_TABS, type ClientSubTabKey } from "@/shared/routing/admin-nav";
 
 function emptyEnvForm(clientId = ""): ClientEnvironmentConfigUpsertDto {
@@ -60,13 +73,16 @@ export function ClientCadastro({
     onCancel: () => void;
     defaultSlugHint: (name: string) => string;
 }) {
-    const [form, setForm] = useState<ClientCreateDto>(emptyClientForm());
+    const [form, setForm] = useState<ClientFormDto>(emptyClientForm());
     const [envForm, setEnvForm] = useState<ClientEnvironmentConfigUpsertDto>(() => emptyEnvForm(client?.id));
     const [envConfigReady, setEnvConfigReady] = useState(false);
     const [saving, setSaving] = useState(false);
     const [lookingUpCnpj, setLookingUpCnpj] = useState(false);
+    const [lookingUpCep, setLookingUpCep] = useState(false);
     const [cnpjNotFoundOpen, setCnpjNotFoundOpen] = useState(false);
     const lastLookupRef = useRef("");
+    const lastCepLookupRef = useRef("");
+    const phonesFieldRef = useRef<AdminMultiValueHandle>(null);
 
     const applyEnvConfig = (
         config: Awaited<ReturnType<typeof clientEnvironmentConfigService.getByClientId>>,
@@ -93,10 +109,13 @@ export function ClientCadastro({
         if (!client) {
             setForm(emptyClientForm());
             lastLookupRef.current = "";
+            lastCepLookupRef.current = "";
             return;
         }
-        setForm(clientToFormDto(client));
+        const next = clientToFormDto(client);
+        setForm(next);
         lastLookupRef.current = digitsOnly(client.document ?? "");
+        lastCepLookupRef.current = digitsOnly(next.zipCode ?? "");
     }, [client]);
 
     useEffect(() => {
@@ -129,7 +148,7 @@ export function ClientCadastro({
         };
     }, [client?.id]);
 
-    const updateForm = <K extends keyof ClientCreateDto>(key: K, value: ClientCreateDto[K]) => {
+    const updateForm = <K extends keyof ClientFormDto>(key: K, value: ClientFormDto[K]) => {
         setForm((prev) => {
             const next = { ...prev, [key]: value };
             if (key === "name" && isNew && (!prev.slug || prev.slug === defaultSlugHint(prev.name))) {
@@ -141,21 +160,64 @@ export function ClientCadastro({
 
     const applyCnpjResult = (result: Awaited<ReturnType<typeof lookupCnpj>>) => {
         if (!result) return;
+        if (result.zipCode) {
+            lastCepLookupRef.current = digitsOnly(result.zipCode);
+        }
         setForm((prev) => {
-            const next: ClientCreateDto = {
+            const next: ClientFormDto = {
                 ...prev,
                 document: result.document,
                 name: result.name || prev.name,
                 legalName: result.legalName || prev.legalName,
-                address: result.address || prev.address,
+                street: result.street || prev.street,
+                number: result.number || prev.number,
+                complement: result.complement || prev.complement,
+                district: result.district || prev.district,
+                city: result.city || prev.city,
+                stateCode: result.stateCode || prev.stateCode,
+                zipCode: result.zipCode || prev.zipCode,
                 contactEmail: result.contactEmail || prev.contactEmail,
-                contactPhone: result.contactPhone || prev.contactPhone,
+                phones: result.phones.length ? result.phones.join("; ") : prev.phones,
             };
             if (isNew && (!prev.slug || prev.slug === defaultSlugHint(prev.name))) {
                 next.slug = defaultSlugHint(next.name);
             }
             return next;
         });
+    };
+
+    const handleCepLookup = async (digits: string) => {
+        if (digits.length !== 8 || digits === lastCepLookupRef.current) return;
+        lastCepLookupRef.current = digits;
+        setLookingUpCep(true);
+        try {
+            const address = await addressService.findByPostalCode(digits);
+            setForm((prev) => ({
+                ...prev,
+                zipCode: address.zipCode || prev.zipCode,
+                street: address.street || prev.street,
+                complement: address.complement || prev.complement,
+                district: address.district || prev.district,
+                city: address.city || prev.city,
+                stateCode: address.stateCode || prev.stateCode,
+            }));
+            toast.success("Endereço preenchido pelo CEP.");
+        } catch (err) {
+            ExceptionCapture.handle(err, { fallbackMessage: "Falha ao consultar CEP." });
+            lastCepLookupRef.current = "";
+        } finally {
+            setLookingUpCep(false);
+        }
+    };
+
+    const onZipCodeChange = (value: string) => {
+        const digits = digitsOnly(value).slice(0, 8);
+        updateForm("zipCode", digits);
+        if (digits.length < 8) {
+            lastCepLookupRef.current = "";
+            return;
+        }
+        void handleCepLookup(digits);
     };
 
     const handleCnpjLookup = async (digits: string) => {
@@ -202,17 +264,8 @@ export function ClientCadastro({
     const saveDados = async () => {
         setSaving(true);
         try {
-            const name = form.name.trim();
-            const payload: ClientCreateDto = {
-                name,
-                legalName: form.legalName?.trim() || undefined,
-                slug: (form.slug.trim() || defaultSlugHint(name)).trim(),
-                document: form.document?.trim() || undefined,
-                address: form.address?.trim() || undefined,
-                contactEmail: form.contactEmail?.trim() || undefined,
-                contactPhone: form.contactPhone?.trim() || undefined,
-                notes: form.notes?.trim() || undefined,
-            };
+            const phones = phonesFieldRef.current?.flush() ?? form.phones ?? "";
+            const payload = formToCreateDto({ ...form, phones }, defaultSlugHint);
             if (!payload.name) {
                 toast.error("Informe o Nome Fantasia.");
                 return;
@@ -412,13 +465,6 @@ export function ClientCadastro({
                                 onChange={(v) => updateForm("legalName", v)}
                             />
                             <div style={{ gridColumn: "span 3" }}>
-                                <AdminInput
-                                    label="Endereço"
-                                    value={form.address ?? ""}
-                                    onChange={(v) => updateForm("address", v)}
-                                />
-                            </div>
-                            <div style={{ gridColumn: "span 3" }}>
                                 <AdminFormGrid cols={2}>
                                     <AdminInput
                                         label="Email"
@@ -426,19 +472,76 @@ export function ClientCadastro({
                                         onChange={(v) => updateForm("contactEmail", v)}
                                         type="email"
                                     />
-                                    <AdminInput
+                                    <AdminMultiValue
+                                        ref={phonesFieldRef}
                                         label="Telefones"
-                                        value={form.contactPhone ?? ""}
-                                        onChange={(v) => updateForm("contactPhone", v)}
-                                        placeholder="(11) 99999-9999 / (11) 3333-3333"
+                                        value={form.phones ?? ""}
+                                        onChange={(v) => updateForm("phones", v)}
+                                        placeholder="Digite e pressione Tab"
+                                        maskValue={maskSinglePhone}
                                     />
                                 </AdminFormGrid>
                             </div>
                         </AdminFormGrid>
                     </AdminSection>
 
+                    <AdminSection title="Endereço">
+                        <AdminFormGrid cols={3}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                <AdminInput
+                                    label="CEP"
+                                    value={maskCep(form.zipCode ?? "")}
+                                    onChange={onZipCodeChange}
+                                    placeholder="00000-000"
+                                    disabled={lookingUpCep}
+                                />
+                                <div style={{ fontSize: 11, color: "var(--ga-text-muted)", lineHeight: 1.35 }}>
+                                    {lookingUpCep ? "Consultando CEP..." : "Busca automática ao completar 8 dígitos."}
+                                </div>
+                            </div>
+                            <AdminSelect
+                                label="UF"
+                                value={form.stateCode ?? ""}
+                                onChange={(v) => updateForm("stateCode", v)}
+                                options={BRAZIL_UF_OPTIONS}
+                            />
+                            <AdminInput
+                                label="Cidade"
+                                value={form.city ?? ""}
+                                onChange={(v) => updateForm("city", v)}
+                            />
+                            <div style={{ gridColumn: "span 2" }}>
+                                <AdminInput
+                                    label="Logradouro"
+                                    value={form.street ?? ""}
+                                    onChange={(v) => updateForm("street", v)}
+                                />
+                            </div>
+                            <AdminInput
+                                label="Número"
+                                value={form.number ?? ""}
+                                onChange={(v) => updateForm("number", v)}
+                            />
+                            <AdminInput
+                                label="Bairro"
+                                value={form.district ?? ""}
+                                onChange={(v) => updateForm("district", v)}
+                            />
+                            <div style={{ gridColumn: "span 2" }}>
+                                <AdminInput
+                                    label="Complemento"
+                                    value={form.complement ?? ""}
+                                    onChange={(v) => updateForm("complement", v)}
+                                />
+                            </div>
+                        </AdminFormGrid>
+                    </AdminSection>
+
                     <div style={{ display: "flex", gap: 8 }}>
-                        <AdminBtn onClick={() => void saveDados()} disabled={saving || lookingUpCnpj}>
+                        <AdminBtn
+                            onClick={() => void saveDados()}
+                            disabled={saving || lookingUpCnpj || lookingUpCep}
+                        >
                             {saving ? "Salvando..." : "Salvar Alterações"}
                         </AdminBtn>
                     </div>

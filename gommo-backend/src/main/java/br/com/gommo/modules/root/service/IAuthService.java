@@ -9,6 +9,7 @@ import br.com.gommo.modules.root.dto.PasswordSetupRequestDto;
 import br.com.gommo.modules.root.dto.PasswordSetupValidateRequestDto;
 import br.com.gommo.modules.root.dto.PasswordSetupValidateResponseDto;
 import br.com.gommo.modules.root.dto.RefreshTokenRequestDto;
+import br.com.gommo.modules.root.dto.SessionBootstrapDto;
 import br.com.gommo.modules.root.dto.TenantInfoResponseDto;
 import br.com.gommo.modules.root.dto.TokenResponseDto;
 
@@ -20,6 +21,9 @@ public interface IAuthService {
 
     /** Valida se o refresh ainda está ativo, sem rotacionar tokens. */
     void assertRefreshSessionActive(RefreshTokenRequestDto request);
+
+    /** Perfis, permissoes, filiais e sistemas contratados — fora do cookie de sessao. */
+    SessionBootstrapDto currentSession();
 
     Optional<TenantInfoResponseDto> currentTenant();
 

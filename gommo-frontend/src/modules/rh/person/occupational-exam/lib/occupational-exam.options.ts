@@ -41,3 +41,5 @@ export const OCCUPATIONAL_EXAM_ATTACHMENT_TYPES: SelectItem[] = [
 ];
 
 export const OCCUPATIONAL_EXAM_ENTITY_TYPE = "OCCUPATIONAL_EXAM";
+/** Papel do vínculo no storage (tipo ASO/laudo fica em documentType). */
+export const OCCUPATIONAL_EXAM_LINK_ROLE = "DOCUMENT";

@@ -23,6 +23,7 @@ const SIGNAL_LABELS: Record<AdmissionPipelineSignal, string> = {
     AGUARDANDO_PESSOA: "Aguardando pessoa",
     EM_DIA: "Em dia",
     PRONTO: "Pronto",
+    APROVADA: "Aprovada",
 };
 
 const SIGNAL_TONES: Record<AdmissionPipelineSignal, PipelineTone> = {
@@ -31,6 +32,7 @@ const SIGNAL_TONES: Record<AdmissionPipelineSignal, PipelineTone> = {
     AGUARDANDO_PESSOA: "warning",
     EM_DIA: "info",
     PRONTO: "success",
+    APROVADA: "success",
 };
 
 export function signalLabel(signal: AdmissionPipelineSignal): string {
@@ -49,6 +51,30 @@ const STEP_LABELS: Record<AdmissionStepKey, string> = {
     ESOCIAL: "S-2200",
     INTEGRACAO: "Integração",
 };
+
+/** Etapas ainda abertas na esteira (para mensagem de aprovação manual). Omite S-2200 sem prazo. */
+export function pendingStepLabels(row: AdmissionPipelineRow): string[] {
+    return row.steps
+        .filter((step) => step.stepStatus !== "DONE" && step.stepStatus !== "SKIPPED")
+        .filter((step) => !(step.stepKey === "ESOCIAL" && !step.dueDate && step.stepStatus === "PENDING"))
+        .map((step) => STEP_LABELS[step.stepKey]);
+}
+
+/** Junta nomes em português: "A, B e C". */
+export function joinPtList(items: string[]): string {
+    if (items.length === 0) return "";
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} e ${items[1]}`;
+    return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
+}
+
+export function approveConfirmMessage(row: AdmissionPipelineRow): string {
+    const pending = pendingStepLabels(row);
+    if (pending.length === 0) {
+        return "ATENÇÃO: aprovar esta admissão?";
+    }
+    return `ATENÇÃO: Admissão com ${joinPtList(pending)} pendentes, aprovar mesmo assim?`;
+}
 
 /**
  * O rotulo do exame carrega o estado porque e a etapa que trava a esteira. Só IN_PROGRESS
@@ -83,7 +109,7 @@ const DEADLINE_TITLES: Record<AdmissionPipelineDeadlineKind, string> = {
 const DEADLINE_LEGAL_BASIS: Record<AdmissionPipelineDeadlineKind, string> = {
     ASO_ADMISSIONAL: "NR-7 · antes do início das atividades",
     REGISTRO_CARTEIRA: "CLT art. 29 · 5 dias úteis da admissão",
-    ESOCIAL_S2200: "até o dia anterior ao início",
+    ESOCIAL_S2200: "aguarda integração eSocial",
 };
 
 export function deadlineTitle(kind: AdmissionPipelineDeadlineKind): string {
@@ -132,6 +158,14 @@ export function rowMessage(row: AdmissionPipelineRow): string {
 
     if (row.signal === "PRONTO") {
         return "Esteira concluída. Pronto para o primeiro dia.";
+    }
+
+    if (row.signal === "APROVADA") {
+        const pending = pendingStepLabels(row);
+        if (pending.length === 0) {
+            return "Aprovada. Sem pendências na esteira.";
+        }
+        return `Aprovada com ${joinPtList(pending)} pendentes.`;
     }
 
     if (row.nextDueDate && row.nextDueKind) {

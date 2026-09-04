@@ -18,6 +18,9 @@ import br.com.gommo.admin.modules.client.repository.ClientRepository;
 import br.com.gommo.admin.modules.client.service.TenantSchemaProvisioner;
 import br.com.gommo.admin.modules.clientbranch.entity.ClientBranch;
 import br.com.gommo.admin.modules.clientbranch.repository.ClientBranchRepository;
+import br.com.gommo.admin.modules.clientcontact.entity.ClientContact;
+import br.com.gommo.admin.modules.clientcontact.entity.ClientContactType;
+import br.com.gommo.admin.modules.clientcontact.repository.ClientContactRepository;
 import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 
 /**
@@ -40,12 +43,17 @@ public class TenantBranchProvisioner {
     private final JdbcTemplate jdbcTemplate;
     private final ClientBranchRepository branchRepository;
     private final ClientRepository clientRepository;
+    private final ClientContactRepository contactRepository;
 
     public TenantBranchProvisioner(
-            JdbcTemplate jdbcTemplate, ClientBranchRepository branchRepository, ClientRepository clientRepository) {
+            JdbcTemplate jdbcTemplate,
+            ClientBranchRepository branchRepository,
+            ClientRepository clientRepository,
+            ClientContactRepository contactRepository) {
         this.jdbcTemplate = jdbcTemplate;
         this.branchRepository = branchRepository;
         this.clientRepository = clientRepository;
+        this.contactRepository = contactRepository;
     }
 
     public void syncBranches(UUID clientId, ClientEnvironmentConfig config) {
@@ -98,8 +106,11 @@ public class TenantBranchProvisioner {
                 tenantCompanyId);
     }
 
-    /** A matriz espelha os Dados Basicos do cliente; o endereco de la e texto livre e nao e quebrado. */
+    /** A matriz espelha os Dados Basicos do cliente (endereco estruturado + contatos tipados). */
     private UUID upsertHeadquarters(String schema, Client client, String cnpj) {
+        List<ClientContact> contacts =
+                contactRepository.findAllByClientIdAndStatusNotOrderBySortOrderAscCreatedAtAsc(
+                        client.getId(), StatusEnum.DELETED);
         CompanyData data = new CompanyData(
                 null,
                 true,
@@ -113,15 +124,15 @@ public class TenantBranchProvisioner {
                 cnpj,
                 null,
                 null,
-                limit(client.getContactEmail(), 200),
-                firstPhone(client.getContactPhone()),
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
+                limit(firstContactValue(contacts, ClientContactType.EMAIL), 200),
+                limit(firstContactValue(contacts, ClientContactType.PHONE), 20),
+                limit(client.getStreet(), 200),
+                limit(client.getNumber(), 20),
+                limit(client.getComplement(), 100),
+                limit(client.getDistrict(), 100),
+                limit(client.getCity(), 100),
+                limit(client.getStateCode(), 2),
+                limit(client.getZipCode(), 10));
         UUID companyId = upsertCompany(schema, data, null);
 
         // Guarda o elo da matriz: e por ele que o escopo de filial dos sistemas contratados
@@ -195,17 +206,14 @@ public class TenantBranchProvisioner {
         return value == null ? "" : value.replaceAll("\\D", "");
     }
 
-    /**
-     * O contato do cliente e texto livre e costuma trazer varios numeros ("(87) 1111 / (87) 2222"),
-     * enquanto {@code company.phone} guarda um so. Truncar geraria um numero partido pela metade,
-     * entao fica o primeiro.
-     */
-    private String firstPhone(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        String first = value.split("[/;,]", 2)[0].trim();
-        return limit(first.isBlank() ? value.trim() : first, 20);
+    private String firstContactValue(List<ClientContact> contacts, ClientContactType type) {
+        return contacts.stream()
+                .filter(contact -> contact.getType() == type)
+                .map(ClientContact::getValue)
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .findFirst()
+                .orElse(null);
     }
 
     private String limit(String value, int max) {

@@ -13,7 +13,8 @@ export type AdmissionPipelineSignal =
     | "BLOQUEIO"
     | "AGUARDANDO_PESSOA"
     | "EM_DIA"
-    | "PRONTO";
+    | "PRONTO"
+    | "APROVADA";
 
 export type AdmissionPipelineDeadlineKind = "ASO_ADMISSIONAL" | "REGISTRO_CARTEIRA" | "ESOCIAL_S2200";
 
@@ -38,6 +39,7 @@ export class AdmissionPipelineRow {
     expectedStartDate?: string;
     steps!: AdmissionPipelineStep[];
     signal!: AdmissionPipelineSignal;
+    manuallyApproved!: boolean;
     daysSinceExpectedStart?: number;
     examScheduledDate?: string;
     nextDueDate?: string;

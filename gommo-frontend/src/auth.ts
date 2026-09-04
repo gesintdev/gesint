@@ -5,7 +5,6 @@ import { readPermissionsFromAccessToken } from "@/auth/access-token-claims";
 import { hrAuthCookies } from "@/auth/cookies";
 import { isAccessTokenExpired, refreshAccessToken } from "@/auth/refresh-token";
 import { isPathAccessible } from "@/shared/auth/route-permissions";
-import { ACTIVE_BRANCH_COOKIE_KEY, type Branch } from "@/shared/lib/branch";
 import { AppException } from "@/shared/exceptions/app.exception";
 import { serverApiPost } from "@/shared/lib/server-api";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
@@ -20,6 +19,7 @@ class LoginRejectedError extends CredentialsSignin {
 const SESSION_MAX_AGE_SECONDS = 24 * 60 * 60;
 const SESSION_UPDATE_AGE_SECONDS = 60 * 60;
 
+/** Login/refresh enxuto: identidade + tokens. Resto vem de GET /auth/me. */
 class TokenResponse {
     accessToken!: string;
     refreshToken!: string;
@@ -30,17 +30,9 @@ class TokenResponse {
     email?: string;
     collaboratorId?: string;
     photoObjectId?: string;
-    jobPositionId?: string;
-    jobPositionName?: string;
-    departmentId?: string;
-    departmentName?: string;
-    permissions?: string[];
     platformAdmin?: boolean;
     tenantSlug?: string;
     tenantName?: string;
-    contractedSystemKeys?: string[] | null;
-    contractedSystemKeyOverrides?: Record<string, string[]> | null;
-    branches?: Branch[];
 }
 
 function tokenResponseFromCredentials(credentials: Record<string, unknown>): TokenResponse | null {
@@ -64,46 +56,6 @@ function tokenResponseFromCredentials(credentials: Record<string, unknown>): Tok
     }
 
     const asString = (value: unknown) => (typeof value === "string" ? value : undefined);
-    const asStringArray = (value: unknown): string[] | null | undefined => {
-        if (value == null) return value as null | undefined;
-        if (typeof value === "string") {
-            try {
-                const parsed = JSON.parse(value) as unknown;
-                return Array.isArray(parsed) ? parsed.map(String) : undefined;
-            } catch {
-                return undefined;
-            }
-        }
-        return Array.isArray(value) ? value.map(String) : undefined;
-    };
-
-    const asKeyOverrides = (value: unknown): Record<string, string[]> | null => {
-        let raw: unknown = value;
-        if (typeof value === "string") {
-            try {
-                raw = JSON.parse(value);
-            } catch {
-                return null;
-            }
-        }
-        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-        const entries = Object.entries(raw as Record<string, unknown>)
-            .filter(([, keys]) => Array.isArray(keys))
-            .map(([branchId, keys]) => [branchId, (keys as unknown[]).map(String)] as const);
-        return entries.length > 0 ? Object.fromEntries(entries) : null;
-    };
-
-    const asBranches = (value: unknown): Branch[] => {
-        let raw: unknown = value;
-        if (typeof value === "string") {
-            try {
-                raw = JSON.parse(value);
-            } catch {
-                return [];
-            }
-        }
-        return Array.isArray(raw) ? (raw as Branch[]).filter((item) => item && typeof item.id === "string") : [];
-    };
 
     return {
         accessToken,
@@ -115,16 +67,9 @@ function tokenResponseFromCredentials(credentials: Record<string, unknown>): Tok
         email: asString(credentials.email),
         collaboratorId: asString(credentials.collaboratorId),
         photoObjectId: asString(credentials.photoObjectId),
-        jobPositionId: asString(credentials.jobPositionId),
-        jobPositionName: asString(credentials.jobPositionName),
-        departmentId: asString(credentials.departmentId),
-        departmentName: asString(credentials.departmentName),
         platformAdmin: credentials.platformAdmin === true || credentials.platformAdmin === "true",
         tenantSlug: asString(credentials.tenantSlug),
         tenantName: asString(credentials.tenantName),
-        contractedSystemKeys: asStringArray(credentials.contractedSystemKeys) ?? null,
-        contractedSystemKeyOverrides: asKeyOverrides(credentials.contractedSystemKeyOverrides),
-        branches: asBranches(credentials.branches),
     };
 }
 
@@ -162,15 +107,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 email: { label: "Email", type: "text" },
                 collaboratorId: { label: "Collaborator", type: "text" },
                 photoObjectId: { label: "Photo", type: "text" },
-                jobPositionId: { label: "Job position id", type: "text" },
-                jobPositionName: { label: "Job position", type: "text" },
-                departmentId: { label: "Department id", type: "text" },
-                departmentName: { label: "Department", type: "text" },
                 platformAdmin: { label: "Platform admin", type: "text" },
                 tenantName: { label: "Tenant name", type: "text" },
-                contractedSystemKeys: { label: "Systems", type: "text" },
-                contractedSystemKeyOverrides: { label: "Systems by branch", type: "text" },
-                branches: { label: "Branches", type: "text" },
             },
             async authorize(credentials) {
                 if (!credentials) {
@@ -179,7 +117,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 const tenantSlug = (credentials.tenantSlug as string | undefined)?.trim() || undefined;
                 const usernameHint = (credentials.username as string | undefined)?.trim() || "";
                 try {
-                    // Preferência: tokens já obtidos no browser via /api/auth/client-login.
                     const fromClient = tokenResponseFromCredentials(credentials as Record<string, unknown>);
                     const data =
                         fromClient ??
@@ -198,16 +135,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         username,
                         collaboratorId: data.collaboratorId,
                         photoObjectId: data.photoObjectId,
-                        jobPositionId: data.jobPositionId,
-                        jobPositionName: data.jobPositionName,
-                        departmentId: data.departmentId,
-                        departmentName: data.departmentName,
                         platformAdmin: data.platformAdmin ?? false,
                         tenantSlug: data.tenantSlug ?? tenantSlug,
                         tenantName: data.tenantName,
-                        contractedSystemKeys: data.contractedSystemKeys ?? null,
-                        contractedSystemKeyOverrides: data.contractedSystemKeyOverrides ?? null,
-                        branches: data.branches ?? [],
                         accessToken: data.accessToken,
                         refreshToken: data.refreshToken,
                         accessTokenExpires: Date.now() + data.expiresInSeconds * 1000,
@@ -256,18 +186,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             if (!auth) {
                 return Response.redirect(new URL("/login", nextUrl));
             }
-            const granted = auth.user?.permissions ?? [];
-            // A rota vale pela filial em que o usuário está: um sistema restrito a algumas filiais
-            // não existe nas keys base, e sem isto a navegação seria recusada onde ele vale.
-            const activeBranchId = request.cookies.get(ACTIVE_BRANCH_COOKIE_KEY)?.value;
-            const branchKeys =
-                (activeBranchId && auth.contractedSystemKeyOverrides?.[activeBranchId]) ||
-                auth.contractedSystemKeys;
+            // Permissions flat do access token; sistemas contratados / rail ficam no bootstrap (client).
+            const granted = readPermissionsFromAccessToken(auth.accessToken);
             if (
-                !isPathAccessible(pathname, granted, branchKeys, {
+                !isPathAccessible(pathname, granted, null, {
                     tenantSlug: auth.tenantSlug,
                     platformAdmin: auth.platformAdmin,
-                    contractedSystemKeys: branchKeys,
+                    contractedSystemKeys: null,
+                    skipCommercialFilter: true,
                 })
             ) {
                 return Response.redirect(new URL("/dashboard", nextUrl));
@@ -284,16 +210,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     username: user.username,
                     collaboratorId: user.collaboratorId,
                     photoObjectId: user.photoObjectId,
-                    jobPositionId: user.jobPositionId,
-                    jobPositionName: user.jobPositionName,
-                    departmentId: user.departmentId,
-                    departmentName: user.departmentName,
                     platformAdmin: user.platformAdmin,
                     tenantSlug: user.tenantSlug,
                     tenantName: user.tenantName,
-                    contractedSystemKeys: user.contractedSystemKeys ?? null,
-                    contractedSystemKeyOverrides: user.contractedSystemKeyOverrides ?? null,
-                    branches: user.branches ?? [],
                     accessToken: user.accessToken,
                     refreshToken: user.refreshToken,
                     refreshTokenIssuedAt: user.refreshTokenIssuedAt,
@@ -313,11 +232,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             session.accessTokenExpires = token.accessTokenExpires as number | undefined;
             session.tenantSlug = token.tenantSlug as string | undefined;
             session.tenantName = token.tenantName as string | undefined;
-            session.contractedSystemKeys =
-                (token.contractedSystemKeys as string[] | null | undefined) ?? null;
-            session.contractedSystemKeyOverrides =
-                (token.contractedSystemKeyOverrides as Record<string, string[]> | null | undefined) ?? null;
-            session.branches = (token.branches as Branch[] | undefined) ?? [];
             session.platformAdmin = token.platformAdmin as boolean | undefined;
             session.error = token.error as typeof session.error;
             if (session.user) {
@@ -326,10 +240,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 session.user.username = token.username as string | undefined;
                 session.user.collaboratorId = token.collaboratorId as string | undefined;
                 session.user.photoObjectId = token.photoObjectId as string | undefined;
-                session.user.jobPositionId = token.jobPositionId as string | undefined;
-                session.user.jobPositionName = token.jobPositionName as string | undefined;
-                session.user.departmentId = token.departmentId as string | undefined;
-                session.user.departmentName = token.departmentName as string | undefined;
                 session.user.permissions = readPermissionsFromAccessToken(token.accessToken);
             }
 
