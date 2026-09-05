@@ -4,10 +4,9 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { type ReactNode, useState } from "react";
-import { Toaster } from "sonner";
-
 import { AccessTokenRevealHost } from "@/shared/access-token-reveal";
 import { AppBootstrapProvider } from "@/shared/components/providers/AppBootstrapProvider";
+import { AppToaster } from "@/shared/components/providers/AppToaster";
 import { SessionExpiryGuards } from "@/shared/components/providers/SessionExpiryGuards";
 import { SessionGate } from "@/shared/components/providers/SessionGate";
 import { SessionRefresh } from "@/shared/components/providers/SessionRefresh";
@@ -29,7 +28,7 @@ export function AppProviders({ children, session }: { children: ReactNode; sessi
                         <SessionExpiryGuards />
                         <ThemeProvider>
                             {children}
-                            <Toaster richColors position="top-center" closeButton />
+                            <AppToaster />
                             <SystemAlertHost />
                             <AccessTokenRevealHost />
                         </ThemeProvider>

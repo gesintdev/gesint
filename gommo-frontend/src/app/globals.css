@@ -4670,3 +4670,30 @@ html:has(.logging-out-screen) body {
     font-size: 0.625rem;
     color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
 }
+
+/* Camada de toast acima de modais nativos (`showModal` / top layer). */
+.gommo-toast-top-layer {
+    position: fixed;
+    inset: 0;
+    width: 100dvw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border: none;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+    color: inherit;
+    pointer-events: none;
+}
+
+.gommo-toast-top-layer::backdrop {
+    background: transparent;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.gommo-toast-top-layer [data-sonner-toast] {
+    pointer-events: auto;
+}
