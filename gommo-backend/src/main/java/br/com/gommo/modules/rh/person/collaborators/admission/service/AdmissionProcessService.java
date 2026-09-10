@@ -108,10 +108,12 @@ public class AdmissionProcessService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     @PreAuthorize("hasAuthority('admission:read')")
     public AdmissionProcessResponseDto findById(UUID id) {
-        return toEnrichedResponse(findEntity(id));
+        AdmissionProcess entity = findEntity(id);
+        ensureCollaboratorLinked(entity);
+        return toEnrichedResponse(entity);
     }
 
     @Override
@@ -333,6 +335,13 @@ public class AdmissionProcessService
                         .findByIdAndStatusNot(excludeAdmissionId, StatusEnum.DELETED)
                         .map(AdmissionProcess::getCollaboratorId)
                         .orElse(null);
+                // Update sem vínculo: permite o colaborador já existente com o mesmo CPF (será religado no sync).
+                if (collaboratorToIgnore == null) {
+                    collaboratorToIgnore = collaboratorRepository
+                            .findByCpfAndStatusNot(cpf, StatusEnum.DELETED)
+                            .map(Collaborator::getId)
+                            .orElse(null);
+                }
             }
 
             UUID ignoredCollaboratorId = collaboratorToIgnore;
@@ -351,6 +360,26 @@ public class AdmissionProcessService
             });
             return null;
         });
+    }
+
+    /**
+     * Garante vínculo admissão → colaborador. Dados legados podem ter {@code collaboratorId} nulo
+     * mesmo com cadastro completo; exames ocupacionais dependem desse id.
+     */
+    private void ensureCollaboratorLinked(AdmissionProcess entity) {
+        if (entity.getCollaboratorId() != null) {
+            return;
+        }
+        if (!StringUtils.hasText(entity.getCpf())
+                || !StringUtils.hasText(entity.getFullName())
+                || entity.getBirthDate() == null) {
+            return;
+        }
+        UUID collaboratorId = collaboratorProfileService.syncFromAdmission(mapper.toRequest(entity), null);
+        entity.setCollaboratorId(collaboratorId);
+        repository.save(entity);
+        occupationalExamTriggerService.ensureAdmissionalPredicted(collaboratorId, entity.getJobPositionId());
+        indexAdmission(entity);
     }
 
     private void applyDefaults(AdmissionProcess entity) {

@@ -76,6 +76,63 @@ public class AdmissionProcessMapper {
                 .build();
     }
 
+    /** Reconstrói o request a partir da entidade (ex.: heal de vínculo com colaborador). */
+    public AdmissionProcessRequestDto toRequest(AdmissionProcess entity) {
+        return AdmissionProcessRequestDto.builder()
+                .admissionStatus(entity.getAdmissionStatus())
+                .startedAt(entity.getStartedAt())
+                .notes(entity.getNotes())
+                .photoObjectId(entity.getPhotoObjectId())
+                .fullName(entity.getFullName())
+                .socialName(entity.getSocialName())
+                .cpf(entity.getCpf())
+                .rg(entity.getRg())
+                .rgIssuer(entity.getRgIssuer())
+                .rgStateCode(entity.getRgStateCode())
+                .birthDate(entity.getBirthDate())
+                .gender(entity.getGender())
+                .maritalStatus(entity.getMaritalStatus())
+                .motherName(entity.getMotherName())
+                .fatherName(entity.getFatherName())
+                .nationality(entity.getNationality())
+                .pisPasep(entity.getPisPasep())
+                .email(entity.getEmail())
+                .phone(entity.getPhone())
+                .zipCode(entity.getZipCode())
+                .street(entity.getStreet())
+                .number(entity.getNumber())
+                .complement(entity.getComplement())
+                .district(entity.getDistrict())
+                .cityId(entity.getCity() != null ? entity.getCity().getId() : null)
+                .stateId(entity.getState() != null ? entity.getState().getId() : null)
+                .expectedStartDate(entity.getExpectedStartDate())
+                .companyId(entity.getCompanyId())
+                .departmentId(entity.getDepartmentId())
+                .jobPositionId(entity.getJobPositionId())
+                .contractType(entity.getContractType())
+                .baseSalary(entity.getBaseSalary())
+                .workloadSchedule(entity.getWorkloadSchedule())
+                .workScheduleId(entity.getWorkScheduleId())
+                .emergencyContacts(copyEmergencyContacts(entity.getEmergencyContacts()))
+                .contractStartDate(entity.getContractStartDate())
+                .contractEndDate(entity.getContractEndDate())
+                .providerCnpj(entity.getProviderCnpj())
+                .providerLegalName(entity.getProviderLegalName())
+                .providerTradeName(entity.getProviderTradeName())
+                .recessEnabled(entity.isRecessEnabled())
+                .recessTotalDaysPerCycle(entity.getRecessTotalDaysPerCycle())
+                .recessCycleMonths(entity.getRecessCycleMonths())
+                .recessEligibilityAfterMonths(entity.getRecessEligibilityAfterMonths())
+                .recessFinancialMode(entity.getRecessFinancialMode())
+                .recessPaidPercentage(entity.getRecessPaidPercentage())
+                .recessAllowSplit(entity.isRecessAllowSplit())
+                .recessMaxSplitPeriods(entity.getRecessMaxSplitPeriods())
+                .recessMinimumSplitDays(entity.getRecessMinimumSplitDays())
+                .recessAdvanceNoticeDays(entity.getRecessAdvanceNoticeDays())
+                .recessNotes(entity.getRecessNotes())
+                .build();
+    }
+
     public void updateEntity(AdmissionProcess entity, AdmissionProcessRequestDto dto) {
         entity.setStartedAt(dto.getStartedAt());
         entity.setNotes(dto.getNotes());

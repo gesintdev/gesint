@@ -18,7 +18,6 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { DataTable } from "@/shared/components/ui/DataTable";
 import { ExceptionCapture } from "@/shared/exceptions";
-import { useBranchScopedDetailQuery } from "@/shared/hooks/useBranchScopedDetailQuery";
 
 const ADMISSION_EXAM_COLUMNS = OCCUPATIONAL_EXAM_TABLE_COLUMNS.filter(
     (column) => column.id !== "collaboratorName",
@@ -31,7 +30,7 @@ function EmptyAdmissionState() {
                 <Stethoscope className="mx-auto size-8 text-primary/70" strokeWidth={1.9} />
                 <h3 className="mt-3 text-sm font-semibold text-base-content">Selecione uma admissão</h3>
                 <p className="mt-1 text-sm text-base-content/55">
-                    Abra uma admissão vinculada a colaborador para gerenciar os exames ocupacionais.
+                    Abra uma admissão para gerenciar os exames ocupacionais.
                 </p>
             </div>
         </div>
@@ -44,11 +43,14 @@ export function AdmissionOccupationalExamTab() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingExamId, setEditingExamId] = useState<string | null>(null);
 
-    const admissionQuery = useBranchScopedDetailQuery(
-        admissionprocessKeys.detail(editingId ?? ""),
-        () => admissionprocessService.getById(editingId!),
-        { enabled: Boolean(editingId) },
-    );
+    // Mesma query key do FormClient / Férias / Afastamento — compartilha cache.
+    // refetchOnMount: GET do backend religa colaborador se collaboratorId estiver nulo.
+    const admissionQuery = useQuery({
+        queryKey: admissionprocessKeys.detail(editingId ?? ""),
+        queryFn: () => admissionprocessService.getById(editingId!),
+        enabled: Boolean(editingId),
+        refetchOnMount: "always",
+    });
 
     const collaboratorId = admissionQuery.data?.collaboratorId;
     const jobPositionId = admissionQuery.data?.jobPositionId ?? "";
@@ -103,9 +105,10 @@ export function AdmissionOccupationalExamTab() {
             <div className="flex min-h-70 items-center justify-center p-6">
                 <div className="max-w-md rounded-xl border border-(--gommo-border-subtle) bg-base-100 px-5 py-6 text-center">
                     <Stethoscope className="mx-auto size-8 text-primary/70" strokeWidth={1.9} />
-                    <h3 className="mt-3 text-sm font-semibold text-base-content">Colaborador não vinculado</h3>
+                    <h3 className="mt-3 text-sm font-semibold text-base-content">Dados incompletos</h3>
                     <p className="mt-1 text-sm text-base-content/55">
-                        Conclua o vínculo da admissão com um colaborador para cadastrar exames.
+                        Salve o cadastro com nome, CPF e data de nascimento na aba Editar para liberar os
+                        exames.
                     </p>
                 </div>
             </div>
@@ -120,7 +123,7 @@ export function AdmissionOccupationalExamTab() {
                         Exames ocupacionais
                     </h3>
                     <p className="mt-0.5 text-[11px] text-base-content/45">
-                        Exames do colaborador desta admissão. Duplo clique para editar.
+                        Exames desta admissão. Duplo clique para editar.
                     </p>
                 </div>
                 {canWrite ? (

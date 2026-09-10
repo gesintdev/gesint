@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import br.com.gommo.core.branch.BranchContextHolder;
 import br.com.gommo.core.branch.BranchScopedEntity;
@@ -55,9 +56,18 @@ public class CollaboratorProfileService {
      */
     @Transactional
     public UUID syncFromAdmission(AdmissionProcessRequestDto request, UUID existingCollaboratorId) {
-        UUID collaboratorId = existingCollaboratorId != null
-                ? updateCollaborator(existingCollaboratorId, request)
-                : createCollaborator(request);
+        UUID collaboratorId;
+        if (existingCollaboratorId != null) {
+            collaboratorId = updateCollaborator(existingCollaboratorId, request);
+        } else if (StringUtils.hasText(request.getCpf())) {
+            // Admissões legadas/sem vínculo: reaproveita colaborador existente pelo CPF em vez de falhar.
+            collaboratorId = collaboratorRepository
+                    .findByCpfAndStatusNot(request.getCpf(), StatusEnum.DELETED)
+                    .map(existing -> updateCollaborator(existing.getId(), request))
+                    .orElseGet(() -> createCollaborator(request));
+        } else {
+            collaboratorId = createCollaborator(request);
+        }
         upsertPrimaryAddress(collaboratorId, request);
         upsertPrimaryContact(collaboratorId, request);
         collaboratorRepository.findById(collaboratorId).ifPresent(this::indexCollaborator);
