@@ -9,18 +9,22 @@ import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 class PermissionModuleCatalogTest {
 
     /**
-     * O menu "Exames" vive no RH e suas rotas exigem occupationalexam:read. Sem o modulo nesta
-     * lista, PermissionCatalogService.findByModule devolve vazio e a tela de cadastro de perfis
-     * mostra "Nenhuma permissao", impedindo conceder acesso ao menu.
+     * Exames ocupacionais vivem no rail DP (clinicas/medicos em Organizacao; matriz no Cargo;
+     * aba Exames na Admissao). Sem o modulo em DP, o cadastro de perfis nao concede as authorities.
      */
     @Test
-    void rhDeveExporOModuloDeExamesOcupacionais() {
-        assertThat(PermissionModuleCatalog.modulesFor(SystemScopeEnum.RH)).contains("occupationalexam");
+    void dpDeveExporOModuloDeExamesOcupacionais() {
+        assertThat(PermissionModuleCatalog.modulesFor(SystemScopeEnum.DP)).contains("occupationalexam");
     }
 
     @Test
-    void moduloDeExamesResolveParaRh() {
-        assertThat(PermissionModuleCatalog.systemForModule("occupationalexam")).isEqualTo(SystemScopeEnum.RH);
+    void moduloDeExamesResolveParaDp() {
+        assertThat(PermissionModuleCatalog.systemForModule("occupationalexam")).isEqualTo(SystemScopeEnum.DP);
+    }
+
+    @Test
+    void rhNaoExpoeMaisOModuloDeExamesOcupacionais() {
+        assertThat(PermissionModuleCatalog.modulesFor(SystemScopeEnum.RH)).doesNotContain("occupationalexam");
     }
 
     /** Todo modulo exposto por um sistema precisa ser alcancavel por allModules(). */

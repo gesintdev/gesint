@@ -31,6 +31,7 @@ public final class TenantSchemaTableCatalog {
             "leave_request",
             "medical_clinic",
             "occupational_physician",
+            "occupational_physician_clinic",
             "esocial_table27_procedure",
             "exam_requirement",
             "occupational_exam",

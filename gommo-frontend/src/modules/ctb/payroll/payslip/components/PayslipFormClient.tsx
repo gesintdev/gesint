@@ -142,9 +142,9 @@ export function PayslipFormClient() {
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
                     </Button>
-                    {isEditing && !readOnly ? (
+                    {!readOnly ? (
                         <Button type="button" variant="outline" onClick={startCreate}>
-                            Novo
+                            Novo cadastro
                         </Button>
                     ) : null}
                     {!readOnly ? (

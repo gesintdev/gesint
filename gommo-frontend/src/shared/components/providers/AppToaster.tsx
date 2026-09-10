@@ -6,13 +6,13 @@ import { createPortal } from "react-dom";
 import { Toaster } from "sonner";
 
 /**
- * Toasts acima de `<dialog showModal()>`: o Sonner precisa estar na top layer.
- * Popover no nó do Sonner é frágil; um `<dialog>` dedicado (só enquanto há toast)
- * entra na top layer por cima do modal aberto.
+ * Toasts acima de `<dialog showModal()>`: precisam estar na top layer.
+ * `showModal()` no host do toast deixava a página inert (bloqueava cliques).
+ * Popover API (`popover=manual`) sobe na top layer sem bloquear a UI abaixo.
  */
 export function AppToaster() {
     const { resolvedTheme } = useTheme();
-    const dialogRef = useRef<HTMLDialogElement>(null);
+    const hostRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -23,8 +23,8 @@ export function AppToaster() {
         if (!mounted) {
             return;
         }
-        const dialog = dialogRef.current;
-        if (!dialog) {
+        const host = hostRef.current;
+        if (!host || typeof host.showPopover !== "function") {
             return;
         }
 
@@ -33,34 +33,40 @@ export function AppToaster() {
             if (syncing) {
                 return;
             }
-            const hasToast = Boolean(dialog.querySelector("[data-sonner-toast]"));
+            const hasToast = Boolean(host.querySelector("[data-sonner-toast]"));
             syncing = true;
             try {
                 if (hasToast) {
-                    // close + showModal reempilha acima de qualquer modal já aberto
-                    if (dialog.open) {
-                        dialog.close();
+                    // hide + show reempilha acima de dialogs que abriram depois
+                    if (host.matches(":popover-open")) {
+                        host.hidePopover();
                     }
-                    dialog.showModal();
-                } else if (dialog.open) {
-                    dialog.close();
+                    host.showPopover();
+                } else if (host.matches(":popover-open")) {
+                    host.hidePopover();
                 }
             } catch {
-                // ignore
+                // Navegadores sem Popover API / estado inválido — mantém z-index padrão.
             } finally {
                 syncing = false;
             }
         };
 
         const observer = new MutationObserver(syncLayer);
-        observer.observe(dialog, { childList: true, subtree: true });
+        observer.observe(host, { childList: true, subtree: true });
+        // Dialog de negócio abrindo/fechando: reempilha o toast se ainda visível.
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["open"],
+            subtree: true,
+        });
         syncLayer();
 
         return () => {
             observer.disconnect();
-            if (dialog.open) {
+            if (host.matches(":popover-open")) {
                 try {
-                    dialog.close();
+                    host.hidePopover();
                 } catch {
                     // ignore
                 }
@@ -73,14 +79,11 @@ export function AppToaster() {
     }
 
     return createPortal(
-        <dialog
-            ref={dialogRef}
+        <div
+            ref={hostRef}
+            popover="manual"
             className="gommo-toast-top-layer"
             aria-label="Notificações"
-            onCancel={(event) => {
-                // Esc deve ir para o modal de negócio, não fechar a camada de toast.
-                event.preventDefault();
-            }}
         >
             <Toaster
                 richColors
@@ -88,7 +91,7 @@ export function AppToaster() {
                 closeButton
                 theme={resolvedTheme === "dark" ? "dark" : "light"}
             />
-        </dialog>,
+        </div>,
         document.body,
     );
 }

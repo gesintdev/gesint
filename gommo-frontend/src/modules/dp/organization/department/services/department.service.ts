@@ -69,4 +69,5 @@ export const DEPARTMENT_PICKER_ADVANCED: EntityPickerAdvancedSearch<Department> 
     toSelectItem: toDepartmentSelectItem,
     pageSize: MODAL_PAGE_SIZE,
     emptyMessage: "Nenhum departamento encontrado.",
+    createHref: "/organization/departments?new=1",
 };

@@ -16,7 +16,7 @@ import br.com.gommo.modules.rh.person.contract.entity.EmploymentContract;
 import br.com.gommo.modules.rh.person.contract.exception.EmploymentContractException;
 import br.com.gommo.modules.rh.person.contract.mapper.EmploymentContractMapper;
 import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
-import br.com.gommo.modules.rh.person.occupationalexam.exam.service.OccupationalExamTriggerService;
+import br.com.gommo.modules.dp.occupationalexam.exam.service.OccupationalExamTriggerService;
 
 @Service
 public class EmploymentContractService

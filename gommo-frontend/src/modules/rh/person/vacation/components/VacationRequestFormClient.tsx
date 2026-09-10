@@ -348,9 +348,9 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
                     </Button>
-                    {!isRh && isEditing ? (
+                    {!isRh ? (
                         <Button type="button" variant="outline" onClick={startCreate}>
-                            Novo
+                            Novo cadastro
                         </Button>
                     ) : null}
                     <Button type="submit" loading={saveMutation.isPending}>

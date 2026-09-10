@@ -37,7 +37,7 @@ const OFFBOARDING_FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function OffboardingFormClient() {
-    const {editingId, isEditing, goToList, returnToList, startEdit} = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate, returnToList, startEdit} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<OffboardingCreateDto>(emptyOffboardingForm);
     const [error, setError] = useState<string | null>(null);
@@ -145,6 +145,9 @@ export function OffboardingFormClient() {
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
+                    </Button>
+                    <Button type="button" variant="outline" onClick={startCreate}>
+                        Novo cadastro
                     </Button>
                     <Button type="submit" loading={saveMutation.isPending}>
                         {isEditing ? "Salvar" : "Cadastrar"}

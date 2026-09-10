@@ -1,4 +1,6 @@
-/** Conteudo renderizado pelo WorkspaceShell (registry). */
+import { redirect } from "next/navigation";
+
+/** Exames ocupacionais operacionais ficam na aba Exames da Admissão. */
 export default function OccupationalExamPage() {
-    return null;
+    redirect("/collaborator/admission");
 }

@@ -209,6 +209,7 @@ export function CrudScreen({
 }: CrudScreenProps) {
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [editingId, setEditingId] = useState<string | null>(initialEditingId);
+    const [formEpoch, setFormEpoch] = useState(0);
     const [overrideExtraTabs, setOverrideExtraTabs] = useState<CrudExtraTab[] | null>(null);
     const [initialExtraTabResolved, setInitialExtraTabResolved] = useState(false);
     const hadExtraTabsRef = useRef(false);
@@ -292,6 +293,7 @@ export function CrudScreen({
         if (editOnly || !canWrite) return;
         if (formSessionActive && !(await confirmDiscardFormChanges())) return;
         setEditingId(null);
+        setFormEpoch((n) => n + 1);
         setActiveTab(CRUD_TAB_FORM);
         syncWorkspace({ isNew: true });
     }, [canWrite, confirmDiscardFormChanges, editOnly, formSessionActive, syncWorkspace]);
@@ -318,13 +320,14 @@ export function CrudScreen({
         },
         [canWrite, confirmDiscardFormChanges, crudConfig, editingId, syncWorkspace],
     );
-    const goToTab = useCallback(
-        async (tabId: string) => {
-            if (tabId !== activeTab && formSessionActive && !(await confirmDiscardFormChanges())) return;
-            setActiveTab(tabId);
-        },
-        [activeTab, confirmDiscardFormChanges, formSessionActive],
-    );
+    /**
+     * Troca de aba interna nao descarta o formulario (ele permanece montado).
+     * Confirmacao de dirty fica para Cancelar/goToList, Novo cadastro, troca de registro,
+     * fechar aba do workspace e troca de filial.
+     */
+    const goToTab = useCallback(async (tabId: string) => {
+        setActiveTab(tabId);
+    }, []);
     const prevBranchIdRef = useRef<string | null>(null);
 
     // A aba do modulo (ex.: job-positions::list) permanece montada ao trocar de filial; sem isso o
@@ -412,7 +415,8 @@ export function CrudScreen({
                                         onClick={() => {
                                             if (disabled) return;
                                             if (tab.id === CRUD_TAB_LIST) {
-                                                void goToList();
+                                                // Só troca a aba; nao limpa editingId (Cancelar/Salvar usam goToList/returnToList).
+                                                void goToTab(CRUD_TAB_LIST);
                                                 return;
                                             }
                                             if (tab.id === CRUD_TAB_FORM) {
@@ -493,7 +497,7 @@ export function CrudScreen({
                                         aria-hidden={activeTab !== CRUD_TAB_FORM}
                                     >
                                         <div
-                                            key={`${editingId ?? "new"}:${activeBranchId ?? "none"}`}
+                                            key={`${editingId ?? "new"}:${formEpoch}:${activeBranchId ?? "none"}`}
                                             className="flex min-h-0 flex-1 flex-col"
                                         >
                                             {form}

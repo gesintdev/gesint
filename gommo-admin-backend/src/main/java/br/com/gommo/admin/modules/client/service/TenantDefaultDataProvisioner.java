@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
  *   <li>Itens do checklist de devolucao na entrevista de desligamento</li>
  *   <li>Eventos padrao de folha ({@code payroll_event})</li>
  *   <li>Catalogo inicial de PDI (niveis de proficiencia, tipos de evidencia, origens)</li>
+ *   <li>Catalogo eSocial Tabela 27 (exames complementares)</li>
  * </ul>
  *
  * <p>Escala e kanban usam valores explicitos (nao copiam {@code public}) para nao vazar ajustes
@@ -45,6 +46,7 @@ public class TenantDefaultDataProvisioner {
         seedExitInterviewReturnChecklistItems(schema);
         seedPayrollEvents(schema);
         seedDevelopmentPlanCatalog(schema);
+        seedEsocialTable27Procedures(schema);
     }
 
     private void seedDefaultWorkSchedule(String schema) {
@@ -199,6 +201,31 @@ public class TenantDefaultDataProvisioner {
         seedProficiencyLevels(schema);
         seedEvidenceTypes(schema);
         seedDevelopmentPlanOrigins(schema);
+    }
+
+    private void seedEsocialTable27Procedures(String schema) {
+        if (!tableExists(schema, "esocial_table27_procedure")
+                || !tableExists("public", "esocial_table27_procedure")) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".esocial_table27_procedure (
+                    id, code, status, procedure_code, description, active, created_at
+                )
+                SELECT p.id, p.code, p.status, p.procedure_code, p.description, p.active, now()
+                FROM public.esocial_table27_procedure p
+                WHERE p.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM "%s".esocial_table27_procedure t
+                      WHERE t.id = p.id
+                         OR (t.procedure_code = p.procedure_code AND t.status <> 'DELETED')
+                  )
+                ON CONFLICT (id) DO NOTHING
+                """
+                        .formatted(schema, schema));
     }
 
     private void seedProficiencyLevels(String schema) {

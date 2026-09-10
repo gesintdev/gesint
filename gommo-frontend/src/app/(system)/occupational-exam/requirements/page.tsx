@@ -1,4 +1,6 @@
-/** Conteudo renderizado pelo WorkspaceShell (registry). */
+import { redirect } from "next/navigation";
+
+/** Matriz de exames agora vive como aba do cadastro de Cargo. */
 export default function ExamRequirementPage() {
-    return null;
+    redirect("/organization/job-positions");
 }

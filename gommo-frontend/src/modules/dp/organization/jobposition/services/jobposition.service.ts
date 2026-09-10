@@ -75,4 +75,5 @@ export const JOB_POSITION_PICKER_ADVANCED: EntityPickerAdvancedSearch<JobPositio
     toSelectItem: toJobPositionSelectItem,
     pageSize: MODAL_PAGE_SIZE,
     emptyMessage: "Nenhum cargo encontrado.",
+    createHref: "/organization/job-positions?new=1",
 };

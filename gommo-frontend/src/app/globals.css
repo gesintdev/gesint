@@ -3176,7 +3176,7 @@ button:disabled,
 }
 
 .system-alert-modal::backdrop {
-    background: rgb(15 23 42 / 0.55);
+    background: rgb(15 23 42 / 0.45);
     transition:
         display 0.2s allow-discrete,
         overlay 0.2s allow-discrete,
@@ -3192,13 +3192,25 @@ button:disabled,
     }
 }
 
+[data-theme="dark"] .system-alert-modal::backdrop {
+    background: rgb(0 0 0 / 0.72);
+}
+
+[data-theme="dark"] .gommo-modal-panel {
+    border-color: color-mix(in srgb, var(--gommo-primary-light) 24%, var(--gommo-border));
+    box-shadow:
+        0 0 0 1px rgb(255 255 255 / 0.08),
+        0 24px 48px -12px rgb(0 0 0 / 0.75);
+}
+
 .system-alert-modal[open] .gommo-modal-panel {
     animation: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Overlay dos modais DaisyUI (picker, busca detalhada, diálogos)
-   Usa só ::backdrop como véu visual; .modal-backdrop fica transparente
-   (só captura clique) para evitar overlay duplo e piscada na abertura. */
+/* Overlay dos modais DaisyUI (picker, busca detalhada, diálogos).
+   DaisyUI 5 desliga ::backdrop e pinta o véu em .modal[open].
+   Light: véu leve (bom contraste com modal branco).
+   Dark: véu mais cerrado + borda/sombra no .modal-box para destacar o painel. */
 .modal {
     transition:
         display 0.2s allow-discrete,
@@ -3206,20 +3218,17 @@ button:disabled,
 }
 
 .modal::backdrop {
-    background: rgb(15 23 42 / 0.55);
-    transition:
-        display 0.2s allow-discrete,
-        overlay 0.2s allow-discrete,
-        opacity 0.2s ease;
-    opacity: 0;
+    display: none;
 }
 
-.modal[open]::backdrop {
-    opacity: 1;
+.modal[open],
+.modal.modal-open {
+    background-color: rgb(15 23 42 / 0.45);
+}
 
-    @starting-style {
-        opacity: 0;
-    }
+[data-theme="dark"] .modal[open],
+[data-theme="dark"] .modal.modal-open {
+    background-color: rgb(0 0 0 / 0.72);
 }
 
 .modal .modal-backdrop,
@@ -3228,8 +3237,20 @@ button:disabled,
     opacity: 1;
 }
 
-.modal[open] .modal-box {
+.modal[open] .modal-box,
+.modal.modal-open .modal-box {
+    border: 1px solid var(--gommo-border);
+    background: var(--color-base-100);
+    box-shadow: var(--gommo-shadow-lg);
     animation: scale-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+[data-theme="dark"] .modal[open] .modal-box,
+[data-theme="dark"] .modal.modal-open .modal-box {
+    border-color: color-mix(in srgb, var(--gommo-primary-light) 24%, var(--gommo-border));
+    box-shadow:
+        0 0 0 1px rgb(255 255 255 / 0.08),
+        0 24px 48px -12px rgb(0 0 0 / 0.75);
 }
 
 /* ──────────────────────────────────────────────
@@ -4671,7 +4692,7 @@ html:has(.logging-out-screen) body {
     color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
 }
 
-/* Camada de toast acima de modais nativos (`showModal` / top layer). */
+/* Camada de toast acima de modais nativos (Popover API / top layer). */
 .gommo-toast-top-layer {
     position: fixed;
     inset: 0;
@@ -4685,13 +4706,16 @@ html:has(.logging-out-screen) body {
     overflow: visible;
     background: transparent;
     color: inherit;
+    /* Host full-screen só para empilhar; não captura clique. */
     pointer-events: none;
 }
 
-.gommo-toast-top-layer::backdrop {
-    background: transparent;
+.gommo-toast-top-layer:popover-open {
+    display: block;
+}
+
+.gommo-toast-top-layer [data-sonner-toaster] {
     pointer-events: none;
-    opacity: 0;
 }
 
 .gommo-toast-top-layer [data-sonner-toast] {

@@ -182,11 +182,9 @@ export function JobVacancyApplicationFormClient() {
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
                     </Button>
-                    {isEditing && (
-                        <Button type="button" variant="outline" onClick={startCreate}>
-                            Novo
-                        </Button>
-                    )}
+                    <Button type="button" variant="outline" onClick={startCreate}>
+                        Novo cadastro
+                    </Button>
                     <Button type="submit" loading={saveMutation.isPending}>
                         {isEditing ? "Salvar" : "Cadastrar"}
                     </Button>

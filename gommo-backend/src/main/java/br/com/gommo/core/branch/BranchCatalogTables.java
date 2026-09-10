@@ -9,7 +9,7 @@ import java.util.Set;
  */
 public final class BranchCatalogTables {
 
-    public static final Set<String> NAMES = Set.of("department", "job_position", "search_document");
+    public static final Set<String> NAMES = Set.of("department", "job_position", "exam_requirement", "search_document");
 
     private BranchCatalogTables() {}
 

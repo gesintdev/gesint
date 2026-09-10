@@ -23,4 +23,8 @@ export type EntityPickerAdvancedSearch<T extends object> = {
     pageSize?: number;
     emptyMessage?: string;
     selectHint?: string;
+    /** Path da tela de cadastro (ex.: /organization/departments?new=1). Abre em nova aba. */
+    createHref?: string;
+    /** Label do botão de cadastro. Default: "Cadastrar". */
+    createLabel?: string;
 };

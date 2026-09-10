@@ -28,7 +28,7 @@ O sistema ativo vem do rail esquerdo e não da URL.
 
 | Sistema | Papel | Módulos atuais no frontend |
 |---|---|---|
-| DP | Departamento Pessoal | Organização, Pagamentos |
+| DP | Departamento Pessoal | Organização (incl. Clínicas/Médicos e Matriz no Cargo), Pagamentos, Ponto, Férias, Afastamento, Desligamento; Exames na Admissão |
 | RH | Recursos Humanos | Dashboard, Pessoas/RH, Insights |
 | CTB | Contabilidade | Folha de Pagamento |
 | CFG | Configurações | Perfis, usuários e configurações |
@@ -44,6 +44,7 @@ Exemplo:
 ```text
 dp/organization/department
 dp/payment/...
+dp/occupational-exam/...
 rh/person/leave
 ctb/payroll/payroll-run
 ctb/payroll/payslip
@@ -51,7 +52,7 @@ ctb/payroll/payslip
 
 Os agrupamentos funcionais atuais são:
 
-- DP: `dp/organization` e `dp/payment`
+- DP: `dp/organization`, `dp/payment`, `dp/occupational-exam`, `dp/attendance`, `dp/offboarding`
 - RH: `rh/dashboard`, `rh/person` e `rh/insights`
 - CTB: `ctb/payroll`
 - CFG: `cfg/access` no backend e `cfg/settings` no frontend

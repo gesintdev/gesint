@@ -28,6 +28,11 @@ const Form = lazy(() =>
         default: m.AdmissionProcessFormClient,
     })),
 );
+const OccupationalExams = lazy(() =>
+    import("@/modules/rh/person/collaborators/admission/components/AdmissionOccupationalExamTab").then((m) => ({
+        default: m.AdmissionOccupationalExamTab,
+    })),
+);
 const VacationHistory = lazy(() =>
     import("@/modules/rh/person/collaborators/admission/components/AdmissionVacationHistoryTab").then((m) => ({
         default: m.AdmissionVacationHistoryTab,
@@ -51,7 +56,7 @@ function AdmissionHistoryExtraTabsController() {
     const admissionQuery = useBranchScopedDetailQuery(
         admissionprocessKeys.detail(editingId ?? ""),
         () => admissionprocessService.getById(editingId!),
-        {enabled: Boolean(editingId)},
+        { enabled: Boolean(editingId) },
     );
     const collaboratorId = admissionQuery.data?.collaboratorId;
 
@@ -88,6 +93,18 @@ function AdmissionHistoryExtraTabsController() {
         }
 
         if (!editingId || !collaboratorId) return tabs;
+
+        tabs.push({
+            id: "occupational-exams",
+            label: "Exames",
+            permission: "occupationalexam:read",
+            content: (
+                <Suspense fallback={null}>
+                    <OccupationalExams />
+                </Suspense>
+            ),
+        });
+
         const presence = historyPresenceQuery.data;
         if (!presence) return tabs;
 

@@ -37,6 +37,7 @@ public class PermissionCatalogService implements IPermissionCatalogService {
             Map.entry("collaborator", "Colaboradores"),
             Map.entry("admission", "Admissões"),
             Map.entry("offboarding", "Desligamentos"),
+            Map.entry("occupationalexam", "Exames ocupacionais"),
             Map.entry("exitinterview", "Entrevistas de desligamento"),
             Map.entry("contract", "Contratos"),
             Map.entry("attendance", "Ponto"),

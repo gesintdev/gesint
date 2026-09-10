@@ -113,4 +113,5 @@ export const COLLABORATOR_PICKER_ADVANCED: EntityPickerAdvancedSearch<Collaborat
     toSelectItem: toCollaboratorSelectItem,
     pageSize: MODAL_PAGE_SIZE,
     emptyMessage: "Nenhum colaborador encontrado.",
+    createHref: "/collaborator/admission?new=1",
 };

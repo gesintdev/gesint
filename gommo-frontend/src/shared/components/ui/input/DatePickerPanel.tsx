@@ -5,6 +5,7 @@ import { DayPicker } from "react-day-picker";
 import { ptBR } from "react-day-picker/locale";
 import { createPortal } from "react-dom";
 
+import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import { dateToIso, parseIsoToDate } from "@/shared/lib/input/date";
 
 type DatePickerPanelProps = {
@@ -19,6 +20,7 @@ export const DatePickerPanel = forwardRef<HTMLDivElement, DatePickerPanelProps>(
     { value, min, max, onPick, anchorRef },
     ref,
 ) {
+    const portalRoot = usePopoverPortalRoot();
     const [position, setPosition] = useState({ top: 0, left: 0 });
     const updatePosition = useCallback(() => {
         const anchor = anchorRef.current;
@@ -41,7 +43,7 @@ export const DatePickerPanel = forwardRef<HTMLDivElement, DatePickerPanelProps>(
             window.removeEventListener("scroll", updatePosition, true);
         };
     }, [updatePosition]);
-    if (typeof document === "undefined") return null;
+    if (!portalRoot) return null;
     const selected = parseIsoToDate(value);
     const fromDate = parseIsoToDate(min ?? "");
     const toDate = parseIsoToDate(max ?? "");
@@ -71,6 +73,6 @@ export const DatePickerPanel = forwardRef<HTMLDivElement, DatePickerPanelProps>(
                 defaultMonth={selected ?? new Date()}
             />
         </div>,
-        document.body,
+        portalRoot,
     );
 });

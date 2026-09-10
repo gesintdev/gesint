@@ -1,4 +1,4 @@
-import {ChevronLeft, ChevronRight, Loader2, Search, X} from "lucide-react";
+import {ChevronLeft, ChevronRight, Loader2, Plus, Search, X} from "lucide-react";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 
@@ -163,7 +163,21 @@ export function EntitySearchModal<T extends object>({
                             />
                         ))}
                     </div>
-                    <div className="mt-3 flex justify-end">
+                    <div className="mt-3 flex justify-end gap-2">
+                        {/* Temporariamente oculto — createHref permanece nas configs dos pickers. */}
+                        {false && config.createHref ? (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                leftIcon={<Plus className="size-3.5"/>}
+                                onClick={() => {
+                                    window.open(config.createHref, "_blank", "noopener,noreferrer");
+                                }}
+                            >
+                                {config.createLabel ?? "Cadastrar"}
+                            </Button>
+                        ) : null}
                         <Button
                             type="button"
                             size="sm"

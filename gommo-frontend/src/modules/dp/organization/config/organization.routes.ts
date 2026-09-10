@@ -5,6 +5,10 @@ import {
     UserMinus,
 } from "lucide-react";
 
+import {
+    medicalClinicCrudRoute,
+    occupationalPhysicianCrudRoute,
+} from "@/modules/dp/occupational-exam/config/occupational-exam.routes";
 import { collaboratorSharedRouteGroup } from "@/modules/rh/person/collaborators/config/collaborator.shared-routes";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
@@ -50,7 +54,24 @@ export const organizationRoutes: AppRoute[] = [
                     () => import("@/modules/dp/organization/jobposition/components/JobPositionFormClient"),
                     "JobPositionFormClient",
                 ),
+                extraTabs: [
+                    {
+                        id: "exam-matrix",
+                        label: "Matriz de Exames",
+                        permission: "occupationalexam:read",
+                        visibleWhenEditing: true,
+                        content: lazyNamed(
+                            () =>
+                                import(
+                                    "@/modules/dp/organization/jobposition/components/JobPositionExamRequirementTab"
+                                ),
+                            "JobPositionExamRequirementTab",
+                        ),
+                    },
+                ],
             }),
+            medicalClinicCrudRoute,
+            occupationalPhysicianCrudRoute,
         ],
     }),
     collaboratorSharedRouteGroup,

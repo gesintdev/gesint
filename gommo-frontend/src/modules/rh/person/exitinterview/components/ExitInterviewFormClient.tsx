@@ -640,11 +640,9 @@ export function ExitInterviewFormClient() {
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Voltar
                     </Button>
-                    {isEditing ? (
-                        <Button type="button" variant="outline" onClick={startCreate}>
-                            Novo
-                        </Button>
-                    ) : null}
+                    <Button type="button" variant="outline" onClick={startCreate}>
+                        Novo cadastro
+                    </Button>
                     {isEditing && !isFinal ? (
                         <Button
                             type="button"

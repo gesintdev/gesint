@@ -76,9 +76,9 @@ Levantamento feito em `gommo-backend/src/main/java/br/com/gommo/modules` e
   de V79 tenha feito isso ainda — e a extensao natural do padrao existente.
 - Caminho de modulo (frontend e backend devem espelhar o menu lateral, regra
   do `gommo.mdc`): o modulo fica em **RH > Pessoas**, ao lado de Ferias/Afastamento.
-  Pacote backend: `br.com.gommo.modules.rh.person.occupationalexam`. Pasta
-  frontend: `src/modules/rh/person/occupational-exam`. Novo item de menu
-  "Exames Ocupacionais" em `person.routes.ts`, permissao raiz `occupationalexam:read`.
+  Pacote backend: `br.com.gommo.modules.dp.occupationalexam`. Pasta
+  frontend: `src/modules/dp/occupational-exam`. Novo item de menu
+  "Exames Ocupacionais" em `organization.routes.ts (rail DP)`, permissao raiz `occupationalexam:read`.
 - Multi-tenant: toda tabela nova precisa (1) migration no `gommo-backend`, (2)
   entrada em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin-backend, (3)
   espelhamento em `scripts/dev/seed-tenant-empresa-a.sql`. Isso esta fora do
@@ -87,7 +87,7 @@ Levantamento feito em `gommo-backend/src/main/java/br/com/gommo/modules` e
 
 ### 3.1 Entidades novas (Fase 1)
 
-Pacote `br.com.gommo.modules.rh.person.occupationalexam`, uma subpasta por
+Pacote `br.com.gommo.modules.dp.occupationalexam`, uma subpasta por
 entidade (`clinic/`, `physician/`, `examrequirement/`, `exam/`,
 `complementaryexam/`), cada uma com `controller/dto/entity/exception/mapper/repository/service`,
 igual ao `leave`.
@@ -262,8 +262,8 @@ Depois de ler, responda com um resumo curto (nao gere codigo ainda):
 1. proximo numero de migration a usar;
 2. se ha algo pre-existente sobre exames ocupacionais que deva ser reaproveitado
    em vez de recriado;
-3. confirmar se o pacote br.com.gommo.modules.rh.person.occupationalexam e o
-   caminho src/modules/rh/person/occupational-exam estao livres.
+3. confirmar se o pacote br.com.gommo.modules.dp.occupationalexam e o
+   caminho src/modules/dp/occupational-exam estao livres.
 ```
 
 ### Prompt 1 — Migration Fase 1 (schema completo do modulo)
@@ -360,7 +360,7 @@ Depois de criar a migration:
 
 ```text
 Crie as entidades e a camada de dados para o modulo de Exames Ocupacionais em
-gommo-backend/src/main/java/br/com/gommo/modules/rh/person/occupationalexam,
+gommo-backend/src/main/java/br/com/gommo/modules/dp/occupationalexam,
 com uma subpasta por entidade (clinic/, physician/, examrequirement/, exam/,
 complementaryexam/), cada uma com controller/dto/entity/exception/mapper/repository/service,
 exatamente como o modulo rh/person/leave.
@@ -571,7 +571,7 @@ exigido na mudanca de funcao), no mesmo estilo de LeaveAbsenceRulesTest.
 
 ```text
 Crie as telas do modulo de Exames Ocupacionais em
-gommo-frontend/src/modules/rh/person/occupational-exam, seguindo a estrutura
+gommo-frontend/src/modules/dp/occupational-exam, seguindo a estrutura
 e as convencoes do modulo rh/person/leave (LeaveRequestRhListClient,
 LeaveVacationRequestFormClient, LeaveVacationWorkspacePage) e as regras
 obrigatorias de frontend do .agents/rules/gommo.mdc: services extends
@@ -600,8 +600,8 @@ Na tela de OccupationalExam:
   severidade (ex.: VENCIDO_INADIMPLENTE em destaque de alerta).
 
 Registre o novo modulo em
-gommo-frontend/src/modules/rh/person/config/person.routes.ts, agrupado com os
-demais itens de RH > Pessoas, permission inicial "occupationalexam:read",
+gommo-frontend/src/modules/rh/person/config/organization.routes.ts (rail DP), agrupado com os
+demais itens de DP, permission inicial "occupationalexam:read",
 icone do lucide-react coerente com saude ocupacional (ex.: Stethoscope ou
 HeartPulse - verifique quais icones ja estao disponiveis no projeto antes de
 adicionar import novo).
@@ -711,7 +711,7 @@ Branch: `feature/exames-ocupacionais`
 ### Prompt 0 — Leitura
 - [x] Proximo migration: **V80** (V79 era o ultimo).
 - [x] Nada pre-existente de exame ocupacional / ASO / PCMSO / eSocial no codigo.
-- [x] Pacotes `rh.person.occupationalexam` e `rh/person/occupational-exam` livres.
+- [x] Pacotes `dp.occupationalexam` e `dp/occupational-exam` livres.
 
 ### Fase 1
 - [x] Migration `V80__occupational_exam_module.sql` (enums, 6 tabelas, seed Tabela 27
@@ -725,7 +725,7 @@ Branch: `feature/exames-ocupacionais`
 - [x] Anexos via `EntityAttachments` (`entityType=OCCUPATIONAL_EXAM`, tipos ASO /
   COMPLEMENTARY_EXAM_REPORT).
 - [x] Frontend: listagem/formulario de OccupationalExam + grupo de rotas em
-  `person.routes.ts` (icone Stethoscope).
+  `organization.routes.ts (rail DP)` (icone Stethoscope).
 - [x] Telas auxiliares FE: Clinica medica, Medico ocupacional e Matriz de exames
   (list/form + `routeGroup` sob Exames ocupacionais).
 

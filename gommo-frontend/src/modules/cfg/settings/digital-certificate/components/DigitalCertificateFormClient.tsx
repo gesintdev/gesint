@@ -39,7 +39,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function DigitalCertificateFormClient() {
-    const { editingId, isEditing, goToList, returnToList } = useCrudScreen();
+    const { editingId, isEditing, goToList, startCreate, returnToList } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DigitalCertificateCreateDto>(emptyDigitalCertificateForm);
     const [fileName, setFileName] = useState<string>("");
@@ -188,6 +188,9 @@ export function DigitalCertificateFormClient() {
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
+                    </Button>
+                    <Button type="button" variant="outline" onClick={startCreate}>
+                        Novo cadastro
                     </Button>
                     <Button type="submit" loading={saveMutation.isPending}>
                         {isEditing ? "Salvar" : "Cadastrar"}

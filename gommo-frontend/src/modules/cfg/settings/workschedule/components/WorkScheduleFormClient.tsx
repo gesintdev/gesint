@@ -38,7 +38,7 @@ type DayTimeField = keyof Pick<
 >;
 
 export function WorkScheduleFormClient() {
-    const {editingId, isEditing, goToList, returnToList} = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate, returnToList} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<WorkScheduleCreateDto>(emptyWorkScheduleForm);
     const [error, setError] = useState<string | null>(null);
@@ -156,6 +156,9 @@ export function WorkScheduleFormClient() {
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
+                    </Button>
+                    <Button type="button" variant="outline" onClick={startCreate}>
+                        Novo cadastro
                     </Button>
                     <Button type="submit" loading={saveMutation.isPending}>
                         {isEditing ? "Salvar" : "Cadastrar"}

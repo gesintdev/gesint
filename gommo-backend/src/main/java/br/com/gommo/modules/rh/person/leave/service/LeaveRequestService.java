@@ -57,7 +57,7 @@ import br.com.gommo.modules.rh.person.leave.exception.LeaveRequestException;
 import br.com.gommo.modules.rh.person.leave.exception.LeaveRequestExceptions;
 import br.com.gommo.modules.rh.person.leave.mapper.LeaveRequestMapper;
 import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
-import br.com.gommo.modules.rh.person.occupationalexam.exam.service.OccupationalExamTriggerService;
+import br.com.gommo.modules.dp.occupationalexam.exam.service.OccupationalExamTriggerService;
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 

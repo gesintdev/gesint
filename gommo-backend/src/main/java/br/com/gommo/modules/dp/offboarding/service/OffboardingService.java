@@ -23,7 +23,7 @@ import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.exception.CollaboratorException;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
-import br.com.gommo.modules.rh.person.occupationalexam.exam.service.OccupationalExamTriggerService;
+import br.com.gommo.modules.dp.occupationalexam.exam.service.OccupationalExamTriggerService;
 import br.com.gommo.modules.root.search.document.SearchDocumentType;
 import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
 import br.com.gommo.modules.root.search.service.provider.CollaboratorGlobalSearchProvider;

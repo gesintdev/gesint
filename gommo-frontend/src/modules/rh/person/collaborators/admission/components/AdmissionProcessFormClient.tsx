@@ -350,11 +350,9 @@ export function AdmissionProcessFormClient() {
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
                     </Button>
-                    {isEditing && (
-                        <Button type="button" variant="outline" onClick={startCreate}>
-                            Nova admissão
-                        </Button>
-                    )}
+                    <Button type="button" variant="outline" onClick={startCreate}>
+                        Nova admissão
+                    </Button>
                     <Button type="submit" loading={saveMutation.isPending}>
                         {isEditing ? "Salvar" : "Cadastrar admissão"}
                     </Button>

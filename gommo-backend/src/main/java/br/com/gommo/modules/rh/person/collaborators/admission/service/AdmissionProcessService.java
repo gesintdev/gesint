@@ -43,7 +43,7 @@ import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveTypeEnum;
 import br.com.gommo.modules.rh.person.leave.repository.LeaveRequestRepository;
-import br.com.gommo.modules.rh.person.occupationalexam.exam.service.OccupationalExamTriggerService;
+import br.com.gommo.modules.dp.occupationalexam.exam.service.OccupationalExamTriggerService;
 import br.com.gommo.modules.root.search.document.SearchDocumentType;
 import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
 import br.com.gommo.modules.root.search.service.provider.AdmissionGlobalSearchProvider;

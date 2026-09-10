@@ -45,11 +45,11 @@ import br.com.gommo.modules.rh.person.collaborators.admission.pipeline.entity.Es
 import br.com.gommo.modules.rh.person.collaborators.admission.pipeline.repository.AdmissionStepRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.pipeline.repository.EsocialEventRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
-import br.com.gommo.modules.rh.person.occupationalexam.exam.entity.OccupationalExam;
-import br.com.gommo.modules.rh.person.occupationalexam.exam.entity.OccupationalExamLifecycleStatusEnum;
-import br.com.gommo.modules.rh.person.occupationalexam.exam.entity.OccupationalExamResultEnum;
-import br.com.gommo.modules.rh.person.occupationalexam.exam.entity.OccupationalExamTypeEnum;
-import br.com.gommo.modules.rh.person.occupationalexam.exam.repository.OccupationalExamRepository;
+import br.com.gommo.modules.dp.occupationalexam.exam.entity.OccupationalExam;
+import br.com.gommo.modules.dp.occupationalexam.exam.entity.OccupationalExamLifecycleStatusEnum;
+import br.com.gommo.modules.dp.occupationalexam.exam.entity.OccupationalExamResultEnum;
+import br.com.gommo.modules.dp.occupationalexam.exam.entity.OccupationalExamTypeEnum;
+import br.com.gommo.modules.dp.occupationalexam.exam.repository.OccupationalExamRepository;
 import br.com.gommo.modules.root.security.SystemAdminUsers;
 import br.com.gommo.modules.storage.entity.StorageObjectLink;
 import br.com.gommo.modules.storage.repository.StorageObjectLinkRepository;
