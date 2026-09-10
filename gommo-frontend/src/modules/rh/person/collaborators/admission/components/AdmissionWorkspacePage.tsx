@@ -92,18 +92,23 @@ function AdmissionHistoryExtraTabsController() {
             });
         }
 
-        if (!editingId || !collaboratorId) return tabs;
+        // Exames: aba de workspace (ao lado de Editar), nao passo do formulario.
+        // Aparece assim que ha admissão em edição; o conteudo trata colaborador ausente.
+        if (editingId) {
+            tabs.push({
+                id: "occupational-exams",
+                label: "Exames",
+                permission: "occupationalexam:read",
+                visibleWhenEditing: true,
+                content: (
+                    <Suspense fallback={null}>
+                        <OccupationalExams />
+                    </Suspense>
+                ),
+            });
+        }
 
-        tabs.push({
-            id: "occupational-exams",
-            label: "Exames",
-            permission: "occupationalexam:read",
-            content: (
-                <Suspense fallback={null}>
-                    <OccupationalExams />
-                </Suspense>
-            ),
-        });
+        if (!editingId || !collaboratorId) return tabs;
 
         const presence = historyPresenceQuery.data;
         if (!presence) return tabs;

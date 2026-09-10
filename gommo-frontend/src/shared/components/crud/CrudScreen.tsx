@@ -14,7 +14,11 @@ import {
     useState,
 } from "react";
 
-import { useSessionPermissions } from "@/shared/auth/permissions";
+import {
+    permissionsForSystem,
+    useSessionPermissions,
+    useSessionSystemPermissions,
+} from "@/shared/auth/permissions";
 import { canAccessExtraTab, canWriteRoute, type RoutePublicAccess } from "@/shared/auth/route-access";
 import {
     QueryRefreshHostProvider,
@@ -23,6 +27,7 @@ import {
 import { CrudFormDirtyProvider } from "@/shared/components/crud/CrudFormDirtyContext";
 import { Button } from "@/shared/components/ui/Button";
 import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
+import { useOptionalActiveSystem } from "@/shared/context/ActiveSystemContext";
 import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
 import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
@@ -213,7 +218,18 @@ export function CrudScreen({
     const [overrideExtraTabs, setOverrideExtraTabs] = useState<CrudExtraTab[] | null>(null);
     const [initialExtraTabResolved, setInitialExtraTabResolved] = useState(false);
     const hadExtraTabsRef = useRef(false);
-    const permissions = useSessionPermissions();
+    const flatPermissions = useSessionPermissions();
+    const systemPermissions = useSessionSystemPermissions();
+    const activeSystem = useOptionalActiveSystem()?.activeSystem;
+    /** Flat + rail ativo: abas extras de modulo (ex.: occupationalexam) vivem no escopo do sistema. */
+    const permissions = useMemo(() => {
+        if (!activeSystem || !systemPermissions) return flatPermissions;
+        const scoped = permissionsForSystem(flatPermissions, systemPermissions, activeSystem);
+        if (flatPermissions.includes("*") || scoped.includes("*")) {
+            return flatPermissions.includes("*") ? flatPermissions : scoped;
+        }
+        return Array.from(new Set([...flatPermissions, ...scoped]));
+    }, [activeSystem, flatPermissions, systemPermissions]);
     const { activeBranchId } = useActiveBranch();
     const crudConfig = useTabbedCrudConfigOptional();
     const workspaceTabCtx = useWorkspaceTabOptional();

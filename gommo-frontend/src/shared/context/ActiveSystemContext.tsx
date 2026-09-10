@@ -269,8 +269,12 @@ export function ActiveSystemProvider({
     return <ActiveSystemContext.Provider value={value}>{children}</ActiveSystemContext.Provider>;
 }
 
+export function useOptionalActiveSystem(): ActiveSystemContextValue | null {
+    return useContext(ActiveSystemContext);
+}
+
 export function useActiveSystem(): ActiveSystemContextValue {
-    const ctx = useContext(ActiveSystemContext);
+    const ctx = useOptionalActiveSystem();
     if (!ctx) {
         throw new Error("useActiveSystem deve ser usado dentro de ActiveSystemProvider");
     }
