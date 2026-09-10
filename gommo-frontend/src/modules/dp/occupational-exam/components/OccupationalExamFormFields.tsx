@@ -158,7 +158,7 @@ export function OccupationalExamFormFields({
             >
                 <EntityAttachments
                     entityType={OCCUPATIONAL_EXAM_ENTITY_TYPE}
-                    entityId={examId ?? undefined}
+                    entityId={examId ?? null}
                     linkRole={OCCUPATIONAL_EXAM_LINK_ROLE}
                     documentTypeItems={OCCUPATIONAL_EXAM_ATTACHMENT_TYPES}
                     deferUpload
