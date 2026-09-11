@@ -19,6 +19,7 @@ import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNature
 import br.com.gommo.modules.dp.organization.jobposition.repository.JobPositionRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
+import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorAccessCodeResponseDto;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorResponseDto;
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
@@ -44,6 +45,7 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
     private final JobPositionRepository jobPositionRepository;
     private final AppUserRepository appUserRepository;
     private final ISearchDocumentIndexer searchDocumentIndexer;
+    private final CollaboratorAccessCodeGenerator accessCodeGenerator;
 
     public CollaboratorService(
             CollaboratorRepository CollaboratorRepository,
@@ -53,7 +55,8 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
             OffboardingRepository offboardingRepository,
             JobPositionRepository jobPositionRepository,
             AppUserRepository appUserRepository,
-            ISearchDocumentIndexer searchDocumentIndexer) {
+            ISearchDocumentIndexer searchDocumentIndexer,
+            CollaboratorAccessCodeGenerator accessCodeGenerator) {
         super(CollaboratorRepository, CollaboratorMapper::toResponse, CollaboratorMapper::toEntity);
         this.CollaboratorRepository = CollaboratorRepository;
         this.CollaboratorMapper = CollaboratorMapper;
@@ -63,6 +66,7 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
         this.jobPositionRepository = jobPositionRepository;
         this.appUserRepository = appUserRepository;
         this.searchDocumentIndexer = searchDocumentIndexer;
+        this.accessCodeGenerator = accessCodeGenerator;
     }
 
     @Override
@@ -204,6 +208,31 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
         CollaboratorResponseDto updated = super.update(id, request);
         indexCollaborator(findEntity(id));
         return updated;
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('collaborator:write')")
+    public CollaboratorAccessCodeResponseDto resendAccessCode(UUID id) {
+        Collaborator collaborator = findEntity(id);
+        if (collaborator.getAccessCode() == null || collaborator.getAccessCode().isBlank()) {
+            collaborator.setAccessCode(allocateAccessCode());
+            CollaboratorRepository.save(collaborator);
+        }
+        // Futuro: enviar por e-mail. Por enquanto o frontend exibe o codigo (simulacao).
+        return CollaboratorAccessCodeResponseDto.builder()
+                .accessCode(collaborator.getAccessCode())
+                .build();
+    }
+
+    String allocateAccessCode() {
+        for (int attempt = 0; attempt < 40; attempt++) {
+            String code = accessCodeGenerator.generate();
+            if (!CollaboratorRepository.existsByAccessCodeAndStatusNot(code, StatusEnum.DELETED)) {
+                return code;
+            }
+        }
+        throw CollaboratorException.accessCodeGenerationFailed();
     }
 
     

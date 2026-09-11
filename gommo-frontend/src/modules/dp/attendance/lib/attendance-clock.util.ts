@@ -18,7 +18,7 @@ export function formatLiveClock(date = new Date()) {
 export function formatLiveDate(date = new Date()) {
     const formatted = date.toLocaleDateString("pt-BR", {
         weekday: "long",
-        day: "2-digit",
+        day: "numeric",
         month: "long",
     });
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);

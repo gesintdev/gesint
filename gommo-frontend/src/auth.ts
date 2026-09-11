@@ -179,7 +179,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
 
             const isPublicCareers = pathname.startsWith("/careers");
-            if (isPublicCareers) {
+            const isPublicPonto = pathname.startsWith("/ponto");
+            if (isPublicCareers || isPublicPonto) {
                 return true;
             }
 

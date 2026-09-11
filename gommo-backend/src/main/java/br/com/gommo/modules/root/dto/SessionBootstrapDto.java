@@ -24,6 +24,8 @@ public class SessionBootstrapDto {
     private final boolean platformAdmin;
 
     private final UUID collaboratorId;
+    /** Código de acesso do colaborador vinculado (ponto público / app). */
+    private final String accessCode;
     private final UUID photoObjectId;
     private final UUID jobPositionId;
     private final String jobPositionName;

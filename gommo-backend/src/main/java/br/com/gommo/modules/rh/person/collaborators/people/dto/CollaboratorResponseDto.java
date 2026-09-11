@@ -34,6 +34,7 @@ public class CollaboratorResponseDto {
     private final String email;
     private final String phone;
     private final UUID photoObjectId;
+    private final String accessCode;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

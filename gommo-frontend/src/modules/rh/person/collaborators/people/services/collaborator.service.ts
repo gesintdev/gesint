@@ -32,6 +32,12 @@ class CollaboratorService extends BaseService<Collaborator, CollaboratorCreateDt
     getAdmittedManagers(): Promise<Collaborator[]> {
         return apiFetch<Collaborator[]>(`${this.basePath}/admitted-managers`);
     }
+    /** Reenvia (ou garante) o codigo de acesso; sem e-mail, o frontend exibe o valor. */
+    resendAccessCode(id: string): Promise<{ accessCode: string }> {
+        return apiFetch<{ accessCode: string }>(`${this.basePath}/${id}/access-code/resend`, {
+            method: "POST",
+        });
+    }
     /** Busca paginada para autocomplete (máx. 6 por página). */
     async searchForAutocomplete(query: string, page = 0): Promise<SelectSearchResult> {
         const result = await this.searchAdmitted({ page, size: AUTOCOMPLETE_PAGE_SIZE, fullName: query, cpf: query });

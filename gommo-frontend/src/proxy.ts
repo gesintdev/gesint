@@ -58,5 +58,5 @@ function isSessionCookieWrite(cookie: string): boolean {
 }
 
 export const config = {
-    matcher: ["/((?!api|login|definir-senha|esqueci-senha|careers|_next/static|_next/image|favicon.ico|brand/).*)"],
+    matcher: ["/((?!api|login|definir-senha|esqueci-senha|careers|ponto|_next/static|_next/image|favicon.ico|brand/).*)"],
 };

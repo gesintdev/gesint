@@ -323,15 +323,28 @@ public class AttendanceRecordService
     @Transactional
     @PreAuthorize("isAuthenticated()")
     public AttendanceRecordResponseDto clock(AttendanceClockRequestDto request) {
+        return clockForCollaborator(resolveCurrentCollaboratorId(), request, true);
+    }
+
+    /**
+     * Registro de ponto para um colaborador resolvido (autenticado ou via codigo publico).
+     *
+     * @param enforceCaptureSettings quando false, foto/geo das settings do tenant nao sao
+     *     obrigatorios aqui (landing publica exige foto no PublicPontoService; geo continua opcional).
+     */
+    @Transactional
+    public AttendanceRecordResponseDto clockForCollaborator(
+            UUID collaboratorId, AttendanceClockRequestDto request, boolean enforceCaptureSettings) {
         AttendanceSettingsResponseDto settings = getSettingsInternal();
-        if (settings.isRequirePhoto() && (request.getPhoto() == null || request.getPhoto().getObjectId() == null)) {
-            throw AttendanceRecordException.invalidSubmission();
-        }
-        if (settings.isRequireLocation() && (request.getLatitude() == null || request.getLongitude() == null)) {
-            throw AttendanceRecordException.invalidSubmission();
+        if (enforceCaptureSettings) {
+            if (settings.isRequirePhoto() && (request.getPhoto() == null || request.getPhoto().getObjectId() == null)) {
+                throw AttendanceRecordException.invalidSubmission();
+            }
+            if (settings.isRequireLocation() && (request.getLatitude() == null || request.getLongitude() == null)) {
+                throw AttendanceRecordException.invalidSubmission();
+            }
         }
 
-        UUID collaboratorId = resolveCurrentCollaboratorId();
         LocalDate workDate = request.getCapturedAt().atZoneSameInstant(BUSINESS_ZONE).toLocalDate();
         LocalTime time = request.getCapturedAt().atZoneSameInstant(BUSINESS_ZONE).toLocalTime().withNano(0);
         AdmissionProcess admission = latestCompletedAdmission(collaboratorId);
@@ -342,6 +355,11 @@ public class AttendanceRecordService
         AttendanceRecord entity = repository
             .findByCollaboratorIdAndWorkDateAndStatusNot(collaboratorId, workDate, StatusEnum.DELETED)
             .orElseGet(() -> newWorkdayRecord(collaboratorId, workDate, expectedHours, outsideWorkSchedule));
+
+        if (entity.getCompanyId() == null) {
+            final AttendanceRecord record = entity;
+            collaboratorRepository.findById(collaboratorId).ifPresent(c -> record.setCompanyId(c.getCompanyId()));
+        }
 
         applyNextPunch(entity, time);
         entity.setExpectedHours(expectedHours);
@@ -1260,7 +1278,8 @@ public class AttendanceRecordService
         if (attachment == null || attachment.getObjectId() == null) {
             return;
         }
-        storageService.linkToEntity(
+        // Internal: autenticado (clock) e publico (landing /ponto) compartilham o mesmo vinculo CLOCK_PHOTO.
+        storageService.linkToEntityInternal(
             STORAGE_ENTITY_TYPE,
             entity.getId(),
             attachment.getObjectId(),

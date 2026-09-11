@@ -33,6 +33,7 @@ public class CollaboratorProfileService {
     private final CollaboratorContactRepository contactRepository;
     private final AddressReferenceResolver addressReferenceResolver;
     private final ISearchDocumentIndexer searchDocumentIndexer;
+    private final CollaboratorAccessCodeGenerator accessCodeGenerator;
 
     public CollaboratorProfileService(
             CollaboratorRepository collaboratorRepository,
@@ -40,13 +41,15 @@ public class CollaboratorProfileService {
             CollaboratorAddressRepository addressRepository,
             CollaboratorContactRepository contactRepository,
             AddressReferenceResolver addressReferenceResolver,
-            ISearchDocumentIndexer searchDocumentIndexer) {
+            ISearchDocumentIndexer searchDocumentIndexer,
+            CollaboratorAccessCodeGenerator accessCodeGenerator) {
         this.collaboratorRepository = collaboratorRepository;
         this.collaboratorMapper = collaboratorMapper;
         this.addressRepository = addressRepository;
         this.contactRepository = contactRepository;
         this.addressReferenceResolver = addressReferenceResolver;
         this.searchDocumentIndexer = searchDocumentIndexer;
+        this.accessCodeGenerator = accessCodeGenerator;
     }
 
     /**
@@ -100,6 +103,7 @@ public class CollaboratorProfileService {
 
         Collaborator collaborator = collaboratorMapper.toEntity(toCollaboratorDto(request));
         collaborator.setStatus(StatusEnum.ACTIVE);
+        collaborator.setAccessCode(allocateAccessCode());
         applyBranchScope(collaborator, request.getCompanyId());
         return collaboratorRepository.save(collaborator).getId();
     }
@@ -132,9 +136,22 @@ public class CollaboratorProfileService {
         collaborator.setNationality(dto.getNationality());
         collaborator.setPisPasep(dto.getPisPasep());
         collaborator.setPhotoObjectId(dto.getPhotoObjectId());
+        if (collaborator.getAccessCode() == null || collaborator.getAccessCode().isBlank()) {
+            collaborator.setAccessCode(allocateAccessCode());
+        }
         applyBranchScope(collaborator, request.getCompanyId());
         collaboratorRepository.save(collaborator);
         return collaboratorId;
+    }
+
+    private String allocateAccessCode() {
+        for (int attempt = 0; attempt < 40; attempt++) {
+            String code = accessCodeGenerator.generate();
+            if (!collaboratorRepository.existsByAccessCodeAndStatusNot(code, StatusEnum.DELETED)) {
+                return code;
+            }
+        }
+        throw CollaboratorException.accessCodeGenerationFailed();
     }
 
     private void upsertPrimaryAddress(UUID collaboratorId, AdmissionProcessRequestDto request) {

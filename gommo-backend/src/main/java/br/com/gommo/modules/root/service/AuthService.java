@@ -518,6 +518,7 @@ public class AuthService implements IAuthService {
                 .tenantName(tenantName)
                 .platformAdmin(platformAdmin)
                 .collaboratorId(organization.collaboratorId)
+                .accessCode(organization.accessCode)
                 .photoObjectId(organization.photoObjectId)
                 .jobPositionId(organization.jobPositionId)
                 .jobPositionName(organization.jobPositionName)
@@ -614,6 +615,9 @@ public class AuthService implements IAuthService {
                             snapshot.collaboratorId = collaborator.getId();
                             snapshot.collaboratorName = collaborator.getFullName();
                             snapshot.photoObjectId = collaborator.getPhotoObjectId();
+                            snapshot.accessCode = StringUtils.hasText(collaborator.getAccessCode())
+                                    ? collaborator.getAccessCode().trim()
+                                    : null;
                         },
                         () -> snapshot.collaboratorId = null);
         if (snapshot.collaboratorId == null) {
@@ -698,6 +702,7 @@ public class AuthService implements IAuthService {
     private static final class CollaboratorOrganizationSnapshot {
         private UUID collaboratorId;
         private String collaboratorName;
+        private String accessCode;
         private UUID photoObjectId;
         private UUID jobPositionId;
         private String jobPositionName;

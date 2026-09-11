@@ -1,6 +1,7 @@
 package br.com.gommo.modules.rh.person.collaborators.people.service;
 
 import br.com.gommo.core.base.service.IBaseService;
+import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorAccessCodeResponseDto;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorResponseDto;
 
@@ -9,4 +10,6 @@ public interface ICollaboratorService extends IBaseService<CollaboratorRequestDt
     java.util.List<CollaboratorResponseDto> findAdmitted();
 
     java.util.List<CollaboratorResponseDto> findAdmittedManagers();
+
+    CollaboratorAccessCodeResponseDto resendAccessCode(java.util.UUID id);
 }

@@ -47,6 +47,10 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/v1/internal/")) {
             return true;
         }
+        // Landing publica de ponto: tenant vem do codigo do empregador no body.
+        if (path.startsWith("/api/v1/public/ponto")) {
+            return true;
+        }
         return false;
     }
 

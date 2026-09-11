@@ -75,4 +75,8 @@ public class Collaborator extends BranchScopedEntity {
 
     @Column(name = "photo_object_id")
     private UUID photoObjectId;
+
+    /** Codigo unico para app mobile e registro de ponto web (enviado por e-mail futuramente). */
+    @Column(name = "access_code", length = 9)
+    private String accessCode;
 }

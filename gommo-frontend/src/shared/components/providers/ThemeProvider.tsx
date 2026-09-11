@@ -14,7 +14,7 @@ const GOMMO_THEME_PROPS = {
 
 /**
  * React 19 / Next 16: next-themes injeta script no tree — não executa no client.
- * Init do tema via ThemeInitScript no `<head>`; aqui neutralizamos o script interno.
+ * Init do tema via ThemeInitScript (useServerInsertedHTML no head); aqui neutralizamos o script interno.
  */
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     return (

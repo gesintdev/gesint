@@ -1,13 +1,17 @@
 package br.com.gommo.modules.rh.person.collaborators.people.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gommo.core.base.controller.BaseController;
+import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorAccessCodeResponseDto;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.people.dto.CollaboratorResponseDto;
 import br.com.gommo.modules.rh.person.collaborators.people.service.ICollaboratorService;
@@ -33,5 +37,11 @@ public class CollaboratorController extends BaseController<CollaboratorRequestDt
     @GetMapping("/admitted-managers")
     public ResponseEntity<List<CollaboratorResponseDto>> findAdmittedManagers() {
         return ResponseEntity.ok(collaboratorService.findAdmittedManagers());
+    }
+
+    /** Reenvia (ou garante) o codigo de acesso do colaborador. Sem e-mail: retorna o codigo. */
+    @PostMapping("/{id}/access-code/resend")
+    public ResponseEntity<CollaboratorAccessCodeResponseDto> resendAccessCode(@PathVariable UUID id) {
+        return ResponseEntity.ok(collaboratorService.resendAccessCode(id));
     }
 }

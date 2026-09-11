@@ -424,7 +424,7 @@ export function ClientCadastro({
                 {!isNew && client ? <AdminBadge status={statusLabel(client.status)} /> : null}
                 {!isNew && client?.mobileLoginCode ? (
                     <span style={{ fontSize: 11, color: "var(--ga-text-muted)" }}>
-                        Código mobile: {client.mobileLoginCode}
+                        Código do empregador: {client.mobileLoginCode}
                     </span>
                 ) : null}
             </div>

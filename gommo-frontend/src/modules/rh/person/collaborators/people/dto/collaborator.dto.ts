@@ -17,6 +17,7 @@ export class Collaborator {
     pisPasep?: string;
     email?: string;
     phone?: string;
+    accessCode?: string;
     createdAt?: string;
     updatedAt?: string;
 }

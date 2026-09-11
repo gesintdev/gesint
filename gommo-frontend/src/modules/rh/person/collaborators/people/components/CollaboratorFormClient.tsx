@@ -96,6 +96,22 @@ export function CollaboratorFormClient() {
             setError(ex.displayMessage);
         },
     });
+    const resendAccessCodeMutation = useMutation({
+        mutationFn: async () => {
+            if (!editingId) throw new Error("Edição requer colaborador selecionado");
+            return collaboratorService.resendAccessCode(editingId);
+        },
+        onSuccess: async (result) => {
+            if (editingId) await queryClient.invalidateQueries({ queryKey: collaboratorKeys.detail(editingId) });
+            window.alert(`Código de acesso do colaborador: ${result.accessCode}`);
+        },
+        onError: (err: unknown) => {
+            const ex = ExceptionCapture.handle(err, {
+                fallbackMessage: "Não foi possível obter o código de acesso.",
+            });
+            toast.error(ex.displayMessage);
+        },
+    });
     const update = <K extends keyof CollaboratorCreateDto>(field: K, value: CollaboratorCreateDto[K]) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
@@ -176,6 +192,14 @@ export function CollaboratorFormClient() {
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        loading={resendAccessCodeMutation.isPending}
+                        onClick={() => resendAccessCodeMutation.mutate()}
+                    >
+                        Reenviar código
                     </Button>
                     <Button type="submit" loading={saveMutation.isPending}>
                         Salvar

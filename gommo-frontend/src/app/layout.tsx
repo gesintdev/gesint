@@ -39,10 +39,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
     return (
         <html lang="pt-BR" suppressHydrationWarning>
-            <head>
-                <ThemeInitScript />
-            </head>
             <body className={`${inter.variable} ${jakarta.variable} ${outfit.variable} surface-page min-h-full antialiased`}>
+                <ThemeInitScript />
                 <AppProviders session={session}>{children}</AppProviders>
             </body>
         </html>

@@ -6,6 +6,7 @@ export class SessionBootstrapProfile {
     tenantName?: string;
     platformAdmin!: boolean;
     collaboratorId?: string;
+    accessCode?: string | null;
     photoObjectId?: string;
     jobPositionId?: string;
     jobPositionName?: string;
@@ -21,6 +22,7 @@ export class SessionBootstrap {
     tenantName?: string;
     platformAdmin!: boolean;
     collaboratorId?: string;
+    accessCode?: string | null;
     photoObjectId?: string;
     jobPositionId?: string;
     jobPositionName?: string;

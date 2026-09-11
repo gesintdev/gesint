@@ -72,6 +72,7 @@ public class CollaboratorMapper {
                 .email(email)
                 .phone(phone)
                 .photoObjectId(entity.getPhotoObjectId())
+                .accessCode(entity.getAccessCode())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

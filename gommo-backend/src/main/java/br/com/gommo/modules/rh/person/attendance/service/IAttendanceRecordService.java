@@ -31,6 +31,9 @@ public interface IAttendanceRecordService
 
     AttendanceRecordResponseDto clock(AttendanceClockRequestDto request);
 
+    AttendanceRecordResponseDto clockForCollaborator(
+            UUID collaboratorId, AttendanceClockRequestDto request, boolean enforceCaptureSettings);
+
     AttendanceMobileContextResponseDto mobileContext();
 
     List<AttendanceRecordResponseDto> mobileRecords(LocalDate from, LocalDate to);

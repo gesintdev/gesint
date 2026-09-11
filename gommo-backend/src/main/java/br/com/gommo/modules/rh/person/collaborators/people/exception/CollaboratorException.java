@@ -26,4 +26,11 @@ public final class CollaboratorException {
                 CollaboratorExceptions.DIRECT_CREATE_NOT_ALLOWED_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException accessCodeGenerationFailed() {
+        return new BusinessException(
+                CollaboratorExceptions.ACCESS_CODE_GENERATION_FAILED_CODE,
+                CollaboratorExceptions.ACCESS_CODE_GENERATION_FAILED_MSG,
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

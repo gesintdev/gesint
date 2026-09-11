@@ -17,6 +17,10 @@ public interface CollaboratorRepository extends IBaseRepository<Collaborator> {
 
     Optional<Collaborator> findByCpfAndStatusNot(String cpf, StatusEnum status);
 
+    Optional<Collaborator> findByAccessCodeAndStatusNot(String accessCode, StatusEnum status);
+
+    boolean existsByAccessCodeAndStatusNot(String accessCode, StatusEnum status);
+
     List<Collaborator> findByStatusNotOrderByFullNameAsc(StatusEnum status);
 
     List<Collaborator> findByStatusOrderByFullNameAsc(StatusEnum status);

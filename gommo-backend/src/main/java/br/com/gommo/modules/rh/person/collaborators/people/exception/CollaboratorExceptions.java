@@ -16,4 +16,8 @@ public final class CollaboratorExceptions {
     public static final String DIRECT_CREATE_NOT_ALLOWED_CODE = "COLLABORATOR_DIRECT_CREATE_NOT_ALLOWED";
     public static final String DIRECT_CREATE_NOT_ALLOWED_MSG =
             "Colaborador s\u00f3 pode ser criado ao concluir uma admiss\u00e3o";
+
+    public static final String ACCESS_CODE_GENERATION_FAILED_CODE = "COLLABORATOR_ACCESS_CODE_GENERATION_FAILED";
+    public static final String ACCESS_CODE_GENERATION_FAILED_MSG =
+            "N\u00e3o foi poss\u00edvel gerar o c\u00f3digo de acesso do colaborador";
 }
