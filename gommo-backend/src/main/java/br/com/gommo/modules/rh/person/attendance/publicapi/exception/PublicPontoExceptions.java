@@ -4,14 +4,8 @@ public final class PublicPontoExceptions {
 
     private PublicPontoExceptions() {}
 
-    public static final String EMPLOYER_NOT_FOUND_CODE = "PUBLIC_PONTO_EMPLOYER_NOT_FOUND";
-    public static final String EMPLOYER_NOT_FOUND_MSG = "C\u00f3digo do empregador inv\u00e1lido";
-
     public static final String COLLABORATOR_NOT_FOUND_CODE = "PUBLIC_PONTO_COLLABORATOR_NOT_FOUND";
     public static final String COLLABORATOR_NOT_FOUND_MSG = "C\u00f3digo do colaborador inv\u00e1lido";
-
-    public static final String EMPLOYER_REQUIRED_CODE = "PUBLIC_PONTO_EMPLOYER_REQUIRED";
-    public static final String EMPLOYER_REQUIRED_MSG = "Informe o c\u00f3digo do empregador";
 
     public static final String COLLABORATOR_REQUIRED_CODE = "PUBLIC_PONTO_COLLABORATOR_REQUIRED";
     public static final String COLLABORATOR_REQUIRED_MSG = "Informe o c\u00f3digo do colaborador";

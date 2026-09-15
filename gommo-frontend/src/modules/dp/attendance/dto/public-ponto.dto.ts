@@ -1,5 +1,4 @@
 export class PublicPontoClockPayload {
-    employerCode!: string;
     collaboratorCode!: string;
     clientRequestId?: string;
 }

@@ -4,7 +4,7 @@ import { PontoLandingClient } from "@/modules/dp/attendance/components/PontoLand
 
 export const metadata: Metadata = {
     title: "Registro de Ponto | Gesint",
-    description: "Registre seu ponto com o código do empregador e o código de acesso do colaborador.",
+    description: "Registre seu ponto com o código de acesso do colaborador no endereço da sua empresa.",
 };
 
 export default function PontoPage() {

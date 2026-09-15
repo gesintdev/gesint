@@ -17,10 +17,6 @@ public class PublicPontoClockRequestDto {
 
     @NotBlank
     @Size(max = 32)
-    private String employerCode;
-
-    @NotBlank
-    @Size(max = 32)
     private String collaboratorCode;
 
     @Size(max = 80)

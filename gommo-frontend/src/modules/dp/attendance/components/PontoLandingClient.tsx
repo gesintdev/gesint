@@ -14,6 +14,7 @@ import {SystemLogo} from "@/shared/components/brand/SystemLogo";
 import {Button} from "@/shared/components/ui/Button";
 import {FormInput} from "@/shared/components/ui/FormInput";
 import {AppException, ExceptionCapture} from "@/shared/exceptions";
+import {resolveTenantSlugFromHostname} from "@/shared/lib/tenant";
 
 const FEATURES = [
     {icon: Check, label: "Simples"},
@@ -22,6 +23,7 @@ const FEATURES = [
 ] as const;
 
 type CameraStatus = "idle" | "requesting" | "ready" | "denied" | "unavailable";
+type TenantGate = "checking" | "ready" | "missing";
 
 function isPermissionDeniedError(error: unknown): boolean {
     if (!error || typeof error !== "object") return false;
@@ -84,7 +86,7 @@ export function PontoLandingClient() {
     const streamRef = useRef<MediaStream | null>(null);
     const cameraRequestIdRef = useRef(0);
     const [now, setNow] = useState<Date | null>(null);
-    const [employerCode, setEmployerCode] = useState("");
+    const [tenantGate, setTenantGate] = useState<TenantGate>("checking");
     const [collaboratorCode, setCollaboratorCode] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -96,7 +98,17 @@ export function PontoLandingClient() {
         return () => window.clearInterval(timer);
     }, []);
 
+    // Host sem slug (apex / localhost bare) nao e ambiente de ponto — evita mismatch de hidratacao.
     useEffect(() => {
+        const slug = resolveTenantSlugFromHostname();
+        setTenantGate(slug ? "ready" : "missing");
+    }, []);
+
+    useEffect(() => {
+        if (tenantGate !== "ready") {
+            return;
+        }
+
         const requestId = ++cameraRequestIdRef.current;
         setCameraStatus("requesting");
 
@@ -151,12 +163,16 @@ export function PontoLandingClient() {
             stopMediaStream(streamRef.current, videoRef.current);
             streamRef.current = null;
         };
-    }, []);
+    }, [tenantGate]);
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setError(null);
 
+        if (tenantGate !== "ready") {
+            setError("Acesse o ponto pelo endereço da sua empresa.");
+            return;
+        }
         if (cameraStatus === "denied") {
             setError("Permissão da câmera necessária. Autorize o acesso no navegador e recarregue a página.");
             return;
@@ -175,7 +191,6 @@ export function PontoLandingClient() {
             const photo = await capturePhotoFromVideo(videoRef.current);
             const result = await publicPontoService.clock(
                 {
-                    employerCode: employerCode.trim(),
                     collaboratorCode: collaboratorCode.trim(),
                     clientRequestId: createClientRequestId(),
                 },
@@ -203,7 +218,7 @@ export function PontoLandingClient() {
                     ? "Não foi possível acessar a câmera neste dispositivo."
                     : null;
 
-    const canRegister = cameraStatus === "ready" && !loading;
+    const canRegister = tenantGate === "ready" && cameraStatus === "ready" && !loading;
 
     return (
         <div className="ponto-landing">
@@ -245,67 +260,77 @@ export function PontoLandingClient() {
                 </section>
 
                 <section className="ponto-landing__card" aria-label="Formulário de registro de ponto">
-                    <div className="ponto-landing__live">
-                        <p className="ponto-landing__live-time">
-                            {now ? formatLiveClock(now) : "--:--:--"}
-                        </p>
-                        <p className="ponto-landing__live-date">
-                            {now ? formatLiveDate(now) : "\u00a0"}
-                        </p>
-                        <p className="ponto-landing__live-hint">Seu horário atual</p>
-                    </div>
-
-                    <div className="ponto-landing__camera" aria-label="Pré-visualização da câmera">
-                        <video
-                            ref={videoRef}
-                            className="ponto-landing__camera-video"
-                            playsInline
-                            muted
-                            autoPlay
-                        />
-                        {cameraStatus !== "ready" && cameraOverlayMessage ? (
-                            <div className="ponto-landing__camera-overlay">
-                                {cameraStatus === "requesting" ? (
-                                    <Loader2 className="size-8 animate-spin text-base-content/35" strokeWidth={1.75}/>
-                                ) : (
-                                    <CameraOff className="size-8 text-base-content/35" strokeWidth={1.75}/>
-                                )}
-                                <p>{cameraOverlayMessage}</p>
+                    {tenantGate === "checking" ? (
+                        <div className="flex flex-col items-center gap-3 py-10 text-center">
+                            <Loader2 className="size-8 animate-spin text-base-content/35" strokeWidth={1.75}/>
+                            <p className="text-sm text-base-content/60">Validando ambiente...</p>
+                        </div>
+                    ) : tenantGate === "missing" ? (
+                        <div className="flex flex-col gap-3 py-6 text-left">
+                            <h2 className="text-lg font-semibold text-base-content">
+                                Endereço inválido para o ponto
+                            </h2>
+                            <p className="text-sm text-base-content/60">
+                                Acesse o ponto pelo endereço da sua empresa
+                                (ex.: empresa.gesint.com.br/ponto).
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="ponto-landing__live">
+                                <p className="ponto-landing__live-time">
+                                    {now ? formatLiveClock(now) : "--:--:--"}
+                                </p>
+                                <p className="ponto-landing__live-date">
+                                    {now ? formatLiveDate(now) : "\u00a0"}
+                                </p>
+                                <p className="ponto-landing__live-hint">Seu horário atual</p>
                             </div>
-                        ) : null}
-                    </div>
 
-                    <form className="ponto-landing__form" onSubmit={handleSubmit}>
-                        <FormInput
-                            label="Código do Empregador"
-                            value={employerCode}
-                            onChange={(e) => setEmployerCode(e.target.value)}
-                            placeholder="Ex.: 123456789"
-                            required
-                            autoComplete="organization"
-                            inputMode="numeric"
-                        />
-                        <FormInput
-                            label="Código do Colaborador"
-                            value={collaboratorCode}
-                            onChange={(e) => setCollaboratorCode(e.target.value)}
-                            placeholder="Código de acesso"
-                            required
-                            autoComplete="off"
-                            inputMode="numeric"
-                        />
-                        {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
-                        <Button type="submit" className="w-full" size="lg" loading={loading} disabled={!canRegister}>
-                            Registrar Ponto
-                        </Button>
-                    </form>
+                            <div className="ponto-landing__camera" aria-label="Pré-visualização da câmera">
+                                <video
+                                    ref={videoRef}
+                                    className="ponto-landing__camera-video"
+                                    playsInline
+                                    muted
+                                    autoPlay
+                                />
+                                {cameraStatus !== "ready" && cameraOverlayMessage ? (
+                                    <div className="ponto-landing__camera-overlay">
+                                        {cameraStatus === "requesting" ? (
+                                            <Loader2 className="size-8 animate-spin text-base-content/35" strokeWidth={1.75}/>
+                                        ) : (
+                                            <CameraOff className="size-8 text-base-content/35" strokeWidth={1.75}/>
+                                        )}
+                                        <p>{cameraOverlayMessage}</p>
+                                    </div>
+                                ) : null}
+                            </div>
 
-                    <div className="ponto-landing__info">
-                        <Info className="mt-0.5 size-4 shrink-0 text-info" strokeWidth={2.25}/>
-                        <p>
-                            É necessário autorizar o acesso à câmera para registrar o ponto com foto.
-                        </p>
-                    </div>
+                            <form className="ponto-landing__form" onSubmit={handleSubmit}>
+                                <FormInput
+                                    label="Código do Colaborador"
+                                    value={collaboratorCode}
+                                    onChange={(e) => setCollaboratorCode(e.target.value)}
+                                    placeholder="Código de acesso"
+                                    required
+                                    autoComplete="off"
+                                    inputMode="numeric"
+                                />
+                                {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
+                                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={!canRegister}>
+                                    Registrar Ponto
+                                </Button>
+                            </form>
+
+                            <div className="ponto-landing__info">
+                                <Info className="mt-0.5 size-4 shrink-0 text-info" strokeWidth={2.25}/>
+                                <p>
+                                    É necessário autorizar o acesso à câmera para registrar o ponto com foto.
+                                </p>
+                            </div>
+                        </>
+                    )}
                 </section>
             </main>
 

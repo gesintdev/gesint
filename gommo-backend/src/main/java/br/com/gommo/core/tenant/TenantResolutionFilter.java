@@ -47,10 +47,8 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/v1/internal/")) {
             return true;
         }
-        // Landing publica de ponto: tenant vem do codigo do empregador no body.
-        if (path.startsWith("/api/v1/public/ponto")) {
-            return true;
-        }
+        // Public ponto web: tenant vem do Host / X-Tenant-Slug (igual ao restante da API).
+        // Mobile ainda usa mobileLoginCode (employer code) em outro fluxo; nao remover o campo.
         return false;
     }
 

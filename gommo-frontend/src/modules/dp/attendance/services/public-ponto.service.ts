@@ -4,6 +4,10 @@ import type {
 } from "@/modules/dp/attendance/dto/public-ponto.dto";
 import { apiFetch } from "@/shared/lib/api.client";
 
+/**
+ * Landing publica web de ponto.
+ * Tenant vem do Host / X-Tenant-Slug (apiFetch); mobile ainda usa codigo do empregador.
+ */
 class PublicPontoService {
     clock(payload: PublicPontoClockPayload, photo: File): Promise<PublicPontoClockResult> {
         const formData = new FormData();
