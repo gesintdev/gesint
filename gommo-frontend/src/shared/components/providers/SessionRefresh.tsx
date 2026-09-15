@@ -1,12 +1,14 @@
 "use client";
 
 import { getSession, useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 import { systemModuleGroups } from "@/config/routes";
 import { SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 import { useSessionPermissions } from "@/shared/auth/permissions";
+import { isPublicAppPath } from "@/shared/auth/public-app-path";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import { isSessionDeadError } from "@/shared/auth/session-dead-codes";
 import { useContractedSystemKeys } from "@/shared/hooks/useContractedSystemKeys";
@@ -25,6 +27,8 @@ const SESSION_CHECK_INTERVAL_MS = 15_000;
 /** Mantém o token em memória sincronizado e reage a falha de refresh / FORCE_LOGOUT */
 export function SessionRefresh() {
     const { data: session, status } = useSession();
+    const pathname = usePathname();
+    const onPublicPath = isPublicAppPath(pathname);
     const { keys: contractedKeys, ready: contractedReady } = useContractedSystemKeys();
     const permissions = useSessionPermissions();
     const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
@@ -38,15 +42,21 @@ export function SessionRefresh() {
     const contractedSystems = useMemo(() => resolveContractedSystems(contractedKeys), [contractedKeys]);
     // Dep estável: NÃO usar session.refreshToken — cada rotação reiniciava o effect e
     // getSession() (broadcast) cascateava /api/auth/session em loop.
-    const hasRefreshSession = status === "authenticated" && Boolean(session?.refreshToken);
+    const hasRefreshSession = !onPublicPath && status === "authenticated" && Boolean(session?.refreshToken);
 
     useEffect(() => {
+        if (onPublicPath) {
+            return;
+        }
         if (session?.accessToken) {
             setAuthToken(session.accessToken);
         }
-    }, [session?.accessToken]);
+    }, [onPublicPath, session?.accessToken]);
 
     useEffect(() => {
+        if (onPublicPath) {
+            return;
+        }
         if (session?.error === "RefreshAccessTokenError" || session?.error === "RefreshTokenMissing") {
             if (signingOutRef.current) {
                 return;
@@ -56,7 +66,7 @@ export function SessionRefresh() {
             toast.error("Sessão expirada. Faça login novamente.");
             void signOutToTenantLogin();
         }
-    }, [session?.error]);
+    }, [onPublicPath, session?.error]);
 
     useEffect(() => {
         if (!hasRefreshSession) {
@@ -127,7 +137,7 @@ export function SessionRefresh() {
     }, [closeAllTabs, userKey]);
 
     useEffect(() => {
-        if (!contractedReady) {
+        if (onPublicPath || !contractedReady) {
             return;
         }
         const noCommercialFilter = isPlatformAdminWithoutTenant({
@@ -163,6 +173,7 @@ export function SessionRefresh() {
         contractedKeys,
         contractedReady,
         contractedSystems,
+        onPublicPath,
         permissions,
         retainTabsByRouteIds,
         session?.platformAdmin,

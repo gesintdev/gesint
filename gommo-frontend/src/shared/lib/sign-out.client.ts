@@ -2,6 +2,7 @@
 
 import { signOut } from "next-auth/react";
 
+import { isPublicAppPath } from "@/shared/auth/public-app-path";
 import { flushLoggingOutOverlay, showLoggingOutOverlay } from "@/shared/lib/logging-out-overlay";
 import { resolveLoginCallbackUrl } from "@/shared/lib/tenant";
 
@@ -22,6 +23,11 @@ function delay(ms: number): Promise<void> {
 
 export async function signOutToTenantLogin(): Promise<void> {
     if (typeof window === "undefined") {
+        return;
+    }
+    // /careers e /ponto: limpa cookie se necessário, mas nunca redireciona para /login.
+    if (isPublicAppPath(window.location.pathname)) {
+        await signOut({ redirect: false });
         return;
     }
     const loginUrl = resolveLoginCallbackUrl();

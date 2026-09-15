@@ -13,6 +13,7 @@ import {
 
 import type { SessionBootstrap } from "@/modules/root/auth/dto/session-bootstrap.dto";
 import { authKeys, authSessionService } from "@/modules/root/auth/services/auth-session.service";
+import { isPublicAppPath } from "@/shared/auth/public-app-path";
 import { useSessionReady } from "@/shared/components/providers/SessionGate";
 import type { Branch } from "@/shared/lib/branch";
 
@@ -47,8 +48,9 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const queryClient = useQueryClient();
+    const onPublicPath = isPublicAppPath(pathname);
     const sessionAuthenticated = status === "authenticated";
-    const authenticated = sessionAuthenticated && sessionReady;
+    const authenticated = !onPublicPath && sessionAuthenticated && sessionReady;
     const onLogin = isLoginPath(pathname);
 
     const query = useQuery({
@@ -74,7 +76,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
     }, [authenticated, onLogin, router]);
 
     const bootstrapSettled = query.isSuccess || query.isError;
-    const envReady = !sessionAuthenticated || (sessionReady && bootstrapSettled);
+    const envReady = onPublicPath || !sessionAuthenticated || (sessionReady && bootstrapSettled);
     const holdForLoginExit = authenticated && onLogin;
 
     const value = useMemo<AppBootstrapContextValue>(() => {
@@ -89,6 +91,10 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
             contractedSystemKeyOverrides: bootstrap?.contractedSystemKeyOverrides ?? null,
         };
     }, [envReady, holdForLoginExit, query.data]);
+
+    if (onPublicPath) {
+        return <AppBootstrapContext.Provider value={value}>{children}</AppBootstrapContext.Provider>;
+    }
 
     if (sessionAuthenticated && !sessionReady) {
         return <BootstrapLoading />;

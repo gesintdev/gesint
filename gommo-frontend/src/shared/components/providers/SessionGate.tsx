@@ -1,9 +1,11 @@
 "use client";
 
 import { getSession, useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { isPublicAppPath } from "@/shared/auth/public-app-path";
 import {
     isSessionLocallyExpired,
     isSessionTerminal,
@@ -22,10 +24,15 @@ export function useSessionReady(): boolean {
 /**
  * Valida a sessão uma vez antes de montar telas autenticadas e renova em
  * background (timer / retorno à aba) sem bloquear a UI.
+ *
+ * Em rotas públicas (/careers, /ponto) não valida nem redireciona — cookie
+ * expirado não deve empurrar o usuário para /login.
  */
 export function SessionGate({ children }: { children: ReactNode }) {
     const { data: session, status } = useSession();
-    const [ready, setReady] = useState(() => status !== "authenticated");
+    const pathname = usePathname();
+    const onPublicPath = isPublicAppPath(pathname);
+    const [ready, setReady] = useState(() => status !== "authenticated" || onPublicPath);
     const signingOutRef = useRef(false);
     const validatedRef = useRef(false);
     const refreshTimerRef = useRef<number | undefined>(undefined);
@@ -38,7 +45,7 @@ export function SessionGate({ children }: { children: ReactNode }) {
     }, []);
 
     const signOutExpired = useCallback(() => {
-        if (signingOutRef.current) {
+        if (signingOutRef.current || isPublicAppPath(window.location.pathname)) {
             return;
         }
         signingOutRef.current = true;
@@ -53,7 +60,7 @@ export function SessionGate({ children }: { children: ReactNode }) {
     const syncSessionSilentlyRef = useRef<() => Promise<void>>(async () => {});
 
     syncSessionSilentlyRef.current = async () => {
-        if (signingOutRef.current || !validatedRef.current) {
+        if (signingOutRef.current || !validatedRef.current || isPublicAppPath(window.location.pathname)) {
             return;
         }
         const latest = await getSession({ broadcast: false });
@@ -83,6 +90,14 @@ export function SessionGate({ children }: { children: ReactNode }) {
 
     // Gate inicial — roda só até a primeira validação bem-sucedida.
     useEffect(() => {
+        if (onPublicPath) {
+            validatedRef.current = false;
+            signingOutRef.current = false;
+            clearRefreshTimer();
+            setReady(true);
+            return;
+        }
+
         if (status !== "authenticated") {
             validatedRef.current = false;
             signingOutRef.current = false;
@@ -123,11 +138,11 @@ export function SessionGate({ children }: { children: ReactNode }) {
         return () => {
             cancelled = true;
         };
-    }, [clearRefreshTimer, session, signOutExpired, status]);
+    }, [clearRefreshTimer, onPublicPath, session, signOutExpired, status]);
 
     // Erros de refresh vindos do SessionProvider (refetchInterval).
     useEffect(() => {
-        if (status !== "authenticated" || !validatedRef.current) {
+        if (onPublicPath || status !== "authenticated" || !validatedRef.current) {
             return;
         }
         if (isSessionTerminal(session)) {
@@ -137,11 +152,11 @@ export function SessionGate({ children }: { children: ReactNode }) {
         if (session?.accessToken) {
             setAuthToken(session.accessToken);
         }
-    }, [session?.accessToken, session?.error, signOutExpired, status]);
+    }, [onPublicPath, session?.accessToken, session?.error, signOutExpired, status]);
 
     // Retorno à aba: renova em background sem esconder o shell.
     useEffect(() => {
-        if (status !== "authenticated") {
+        if (onPublicPath || status !== "authenticated") {
             return;
         }
         const onVisible = () => {
@@ -152,7 +167,7 @@ export function SessionGate({ children }: { children: ReactNode }) {
         };
         document.addEventListener("visibilitychange", onVisible);
         return () => document.removeEventListener("visibilitychange", onVisible);
-    }, [status]);
+    }, [onPublicPath, status]);
 
     useEffect(() => clearRefreshTimer, [clearRefreshTimer]);
 

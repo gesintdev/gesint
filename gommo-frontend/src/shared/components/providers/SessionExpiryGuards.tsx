@@ -1,9 +1,11 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
+import { isPublicAppPath } from "@/shared/auth/public-app-path";
 import { setAuthToken } from "@/shared/lib/api.client";
 import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
 
@@ -19,17 +21,19 @@ function millisecondsUntilNextMidnight(): number {
 
 export function SessionExpiryGuards() {
     const { status } = useSession();
+    const pathname = usePathname();
+    const onPublicPath = isPublicAppPath(pathname);
     const signingOutRef = useRef(false);
 
     useEffect(() => {
-        if (status !== "authenticated") {
+        if (onPublicPath || status !== "authenticated") {
             return;
         }
 
         let inactivityTimer: number | undefined;
 
         const expireByInactivity = () => {
-            if (signingOutRef.current) return;
+            if (signingOutRef.current || isPublicAppPath(window.location.pathname)) return;
             signingOutRef.current = true;
             setAuthToken(null);
             toast.error("Sessão expirada por inatividade. Faça login novamente.");
@@ -56,15 +60,15 @@ export function SessionExpiryGuards() {
                 window.removeEventListener(event, resetInactivityTimer);
             }
         };
-    }, [status]);
+    }, [onPublicPath, status]);
 
     useEffect(() => {
-        if (status !== "authenticated") {
+        if (onPublicPath || status !== "authenticated") {
             return;
         }
 
         const timeout = window.setTimeout(() => {
-            if (signingOutRef.current) return;
+            if (signingOutRef.current || isPublicAppPath(window.location.pathname)) return;
             signingOutRef.current = true;
             setAuthToken(null);
             toast.error("Sessão encerrada. Faça login novamente.");
@@ -72,7 +76,7 @@ export function SessionExpiryGuards() {
         }, millisecondsUntilNextMidnight());
 
         return () => window.clearTimeout(timeout);
-    }, [status]);
+    }, [onPublicPath, status]);
 
     useEffect(() => {
         if (status !== "authenticated") {
