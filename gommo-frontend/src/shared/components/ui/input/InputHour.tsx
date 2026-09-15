@@ -2,13 +2,25 @@
 
 import clsx from "clsx";
 import { Clock } from "lucide-react";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import {
+    type ChangeEvent,
+    useCallback,
+    useEffect,
+    useId,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
 
 import { HourPickerPanel } from "@/shared/components/ui/input/HourPickerPanel";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { useClickOutside } from "@/shared/components/ui/input/use-listbox-keyboard";
-import { maskTimeInput, parseTimeInputToValue, timeToDisplay } from "@/shared/lib/input/time";
+import {
+    maskTimeInputWithCaret,
+    parseTimeInputToValue,
+    timeToDisplay,
+} from "@/shared/lib/input/time";
 
 export type InputHourProps = InputFieldChromeProps & {
     /** Valor canônico HH:mm */
@@ -33,6 +45,8 @@ export function InputHour({
     const autoId = useId();
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const rootRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const pendingCaretRef = useRef<number | null>(null);
     const panelRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState(false);
     const [localError, setLocalError] = useState<string | undefined>();
@@ -48,6 +62,16 @@ export function InputHour({
 
     const display = isEditing ? editText : timeToDisplay(value);
 
+    useLayoutEffect(() => {
+        if (!isEditing) return;
+        const caret = pendingCaretRef.current;
+        if (caret == null) return;
+        const el = inputRef.current;
+        if (!el) return;
+        el.setSelectionRange(caret, caret);
+        pendingCaretRef.current = null;
+    });
+
     const commitDisplay = useCallback(
         (raw: string) => {
             const parsed = parseTimeInputToValue(raw);
@@ -60,6 +84,15 @@ export function InputHour({
         },
         [onValueChange],
     );
+
+    const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+        const {value: next, caret} = maskTimeInputWithCaret(
+            event.target.value,
+            event.target.selectionStart,
+        );
+        pendingCaretRef.current = caret;
+        setEditText(next);
+    }, []);
 
     return (
         <InputFieldChrome
@@ -80,6 +113,7 @@ export function InputHour({
                     )}
                 >
                     <input
+                        ref={inputRef}
                         id={id}
                         type="text"
                         inputMode="numeric"
@@ -94,7 +128,7 @@ export function InputHour({
                             setIsEditing(true);
                             setEditText(timeToDisplay(value));
                         }}
-                        onChange={(e) => setEditText(maskTimeInput(e.target.value))}
+                        onChange={handleChange}
                         onBlur={(e) => {
                             commitDisplay(e.target.value);
                             setIsEditing(false);

@@ -1,20 +1,52 @@
 import { digitsOnly } from "@/shared/lib/input/digits";
 
 /**
- * Máscara visual HH:mm.
- * 1–2 dígitos: hora em digitação.
- * 3 dígitos (`830`): hora simples → `08:30`.
- * 4 dígitos (`0830` / `1230`): `08:30` / `12:30`.
+ * Máscara visual progressiva HH:mm (enquanto digita).
+ * 1–2 dígitos: hora em digitação (`9`, `12`).
+ * 3 dígitos (`123`): `12:3` — sem zero à esquerda prematuro (`01:23`).
+ * 4 dígitos (`1231` / `0830`): `12:31` / `08:30`.
+ * Completar 3 dígitos como `H:MM` (`830` → `08:30`) fica em `parseTimeInputToValue` (blur/commit).
  */
 export function maskTimeInput(value: string): string {
     const d = digitsOnly(value).slice(0, 4);
     if (d.length === 0) return "";
     if (d.length <= 2) return d;
-    if (d.length === 3) {
-        // Primeiro dígito ≠ 0 → hora 0X (ex.: 830 → 08:30)
-        return `0${d[0]}:${d.slice(1)}`;
-    }
     return `${d.slice(0, 2)}:${d.slice(2)}`;
+}
+
+/** Quantidade de dígitos à esquerda do cursor (ignora `:` e outros). */
+export function digitsBeforeCursor(value: string, cursor: number): number {
+    return digitsOnly(value.slice(0, Math.max(0, cursor))).length;
+}
+
+/** Posição do caret no valor mascarado após N dígitos. */
+export function cursorForDigitCount(masked: string, digitCount: number): number {
+    if (digitCount <= 0) return 0;
+    let seen = 0;
+    for (let i = 0; i < masked.length; i++) {
+        const ch = masked[i]!;
+        if (ch >= "0" && ch <= "9") {
+            seen += 1;
+            if (seen >= digitCount) return i + 1;
+        }
+    }
+    return masked.length;
+}
+
+/**
+ * Aplica `maskTimeInput` preservando o caret por contagem de dígitos
+ * (evita o jump para o fim em inputs controlados).
+ */
+export function maskTimeInputWithCaret(
+    raw: string,
+    selectionStart: number | null,
+): {value: string; caret: number} {
+    const cursor = selectionStart ?? raw.length;
+    const value = maskTimeInput(raw);
+    return {
+        value,
+        caret: cursorForDigitCount(value, digitsBeforeCursor(raw, cursor)),
+    };
 }
 
 /** Converte valor canônico HH:mm para exibição HH:mm. */
