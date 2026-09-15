@@ -4724,8 +4724,31 @@ html:has(.logging-out-screen) body {
 
 /* ──────────────────────────────────────────────
    Landing pública — Registro de Ponto (/ponto)
+   Sempre light: tokens locais + data-theme forçado (ThemeInitScript / ThemeProvider).
+   Evita bleed quando html ainda está em dark (título branco / card escuro no fundo claro).
 ────────────────────────────────────────────── */
 .ponto-landing {
+    /* Tokens light explícitos — não herdam [data-theme="dark"] do documento. */
+    --system-logo-color: #007bff;
+    --login-brand-ink: #000029;
+    --gommo-page: #f3f7f8;
+    --gommo-surface: #ffffff;
+    --gommo-surface-muted: #eaf0f2;
+    --gommo-content: #0a1b2e;
+    --gommo-border: #c5d0d6;
+    --gommo-border-subtle: #d5dde1;
+    --gommo-border-strong: #a8b5be;
+    --gommo-shadow-xs: 0 1px 2px color-mix(in srgb, #0a1b2e 4%, transparent);
+    --gommo-shadow-sm:
+        0 1px 3px color-mix(in srgb, #0a1b2e 5%, transparent), 0 1px 2px color-mix(in srgb, #0a1b2e 3%, transparent);
+    --gommo-shadow-md:
+        0 2px 8px color-mix(in srgb, #0a1b2e 6%, transparent), 0 1px 3px color-mix(in srgb, #0a1b2e 4%, transparent);
+    --color-page: var(--gommo-page);
+    --color-base-100: var(--gommo-surface);
+    --color-base-200: var(--gommo-surface-muted);
+    --color-base-content: var(--gommo-content);
+    color-scheme: light;
+
     position: relative;
     min-height: 100dvh;
     display: flex;
@@ -4737,6 +4760,17 @@ html:has(.logging-out-screen) body {
         radial-gradient(ellipse 60% 40% at -5% 105%, color-mix(in srgb, var(--gommo-primary) 7%, transparent), transparent),
         var(--gommo-page);
     color: var(--gommo-content);
+}
+
+html:has(.ponto-landing) {
+    color-scheme: light;
+}
+
+html:has(.ponto-landing),
+html:has(.ponto-landing) body {
+    /* Literais: não depender de tokens que ainda possam estar no dark antes do init. */
+    background: #f3f7f8;
+    color: #0a1b2e;
 }
 
 .ponto-landing__glow {

@@ -6,5 +6,13 @@ export function isPublicAppPath(pathname: string | null | undefined): boolean {
     if (!pathname) {
         return false;
     }
-    return pathname.startsWith("/careers") || pathname.startsWith("/ponto");
+    return pathname.startsWith("/careers") || isPublicPontoPath(pathname);
+}
+
+/** Landing pública de ponto — sempre light (`data-theme="gommo"`), independente da preferência. */
+export function isPublicPontoPath(pathname: string | null | undefined): boolean {
+    if (!pathname) {
+        return false;
+    }
+    return pathname === "/ponto" || pathname.startsWith("/ponto/");
 }
