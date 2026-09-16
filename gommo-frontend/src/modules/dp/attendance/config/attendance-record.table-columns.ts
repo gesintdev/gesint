@@ -1,39 +1,15 @@
 import {ENTITY_CODE_TABLE_COLUMN} from "@/shared/config/entity-code.table-column";
 import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types";
 
-export const ATTENDANCE_TABLE_COLUMNS: TableColumnConfig[] = [
+/**
+ * Colunas ocultas da listagem de presença — manter para reativação futura.
+ * Não remover DTOs/campos de backend; só o mapeamento da grid.
+ */
+export const ATTENDANCE_TABLE_COLUMNS_HIDDEN: TableColumnConfig[] = [
     {
         ...ENTITY_CODE_TABLE_COLUMN,
         className: "tabular-nums w-14",
         headerClassName: "w-14",
-    },
-    {
-        id: "collaboratorName",
-        columnName: "Colaborador",
-        fieldValue: "collaboratorName",
-        dataType: TableDataType.AVATAR_PROFILE,
-        avatarImageField: "photoObjectId",
-        avatarTagsField: "presenceTags",
-        avatarTagLabels: {
-            PRESENT: "Presente",
-            ABSENT: "Ausente",
-            OUTSIDE_SCHEDULE: "Fora da escala",
-            IN_VACATION: "Em Férias",
-            ON_LEAVE: "Afastado",
-        },
-        avatarTagClassNames: {
-            PRESENT: "border-primary/25 bg-primary/12 text-primary dark:border-primary/35 dark:bg-primary/18",
-            ABSENT: "border-warning/25 bg-warning/12 text-warning dark:border-warning/35 dark:bg-warning/18",
-            OUTSIDE_SCHEDULE: "border-info/25 bg-info/12 text-info dark:border-info/35 dark:bg-info/18",
-            IN_VACATION: "border-success/25 bg-success/12 text-success dark:border-success/35 dark:bg-success/18",
-            ON_LEAVE: "border-warning/25 bg-warning/12 text-warning dark:border-warning/35 dark:bg-warning/18",
-        },
-    },
-    {
-        id: "workScheduleName",
-        columnName: "Escala",
-        fieldValue: "workScheduleName",
-        dataType: TableDataType.TEXT,
     },
     {
         id: "workDate",
@@ -68,20 +44,61 @@ export const ATTENDANCE_TABLE_COLUMNS: TableColumnConfig[] = [
             MOBILE: "App",
         },
     },
+];
+
+export const ATTENDANCE_TABLE_COLUMNS: TableColumnConfig[] = [
+    // Código — ver ATTENDANCE_TABLE_COLUMNS_HIDDEN
+    // Data — ver ATTENDANCE_TABLE_COLUMNS_HIDDEN
+    // Ocorrência — ver ATTENDANCE_TABLE_COLUMNS_HIDDEN
+    // Origem — ver ATTENDANCE_TABLE_COLUMNS_HIDDEN
+    // Horários — removido da listagem (totais do período substituem)
     {
-        id: "schedule",
-        columnName: "Horários",
-        fieldValue: "schedule",
+        id: "collaboratorName",
+        columnName: "Colaborador",
+        fieldValue: "collaboratorName",
+        dataType: TableDataType.AVATAR_PROFILE,
+        avatarImageField: "photoObjectId",
+        avatarTagsField: "presenceTags",
+        avatarTagLabels: {
+            IN_VACATION: "Em Férias",
+            ON_LEAVE: "Afastado",
+            PENDING_ADJUSTMENT: "Solicitação de Ajuste",
+        },
+        avatarTagClassNames: {
+            IN_VACATION: "border-success/25 bg-success/12 text-success dark:border-success/35 dark:bg-success/18",
+            ON_LEAVE: "border-warning/25 bg-warning/12 text-warning dark:border-warning/35 dark:bg-warning/18",
+            PENDING_ADJUSTMENT:
+                "border-warning/25 bg-warning/12 text-warning dark:border-warning/35 dark:bg-warning/18",
+        },
+    },
+    {
+        id: "workScheduleName",
+        columnName: "Escala",
+        fieldValue: "workScheduleName",
         dataType: TableDataType.TEXT,
-        notFilterable: true,
-        className: "tabular-nums whitespace-nowrap",
     },
     {
         id: "workedHours",
         columnName: "Horas trabalhadas",
         fieldValue: "workedHours",
         dataType: TableDataType.DECIMAL,
-        align: "right",
+        align: "left",
+        notFilterable: true,
+    },
+    {
+        id: "creditHours",
+        columnName: "Hora extra (crédito)",
+        fieldValue: "creditHours",
+        dataType: TableDataType.DECIMAL,
+        align: "left",
+        notFilterable: true,
+    },
+    {
+        id: "debitHours",
+        columnName: "Débito",
+        fieldValue: "debitHours",
+        dataType: TableDataType.DECIMAL,
+        align: "left",
         notFilterable: true,
     },
 ];

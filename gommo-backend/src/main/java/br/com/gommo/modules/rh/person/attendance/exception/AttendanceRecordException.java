@@ -34,4 +34,11 @@ public final class AttendanceRecordException {
                 AttendanceRecordExceptions.COMPENSATION_REQUIRED_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException duplicateWorkDate() {
+        return new BusinessException(
+                AttendanceRecordExceptions.DUPLICATE_WORK_DATE_CODE,
+                AttendanceRecordExceptions.DUPLICATE_WORK_DATE_MSG,
+                HttpStatus.CONFLICT);
+    }
 }

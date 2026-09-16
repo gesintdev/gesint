@@ -8,6 +8,7 @@ import {toast} from "sonner";
 import {notificationKeys} from "@/modules/cfg/settings/notification/notification.query";
 import {attendancerecordKeys} from "@/modules/dp/attendance/attendance.query";
 import {AttendanceEditableGrid, isAttendanceDraftId,} from "@/modules/dp/attendance/components/AttendanceEditableGrid";
+import {AttendancePeriodDateFilters} from "@/modules/dp/attendance/components/AttendancePeriodDateFilters";
 import {AttendanceRequestDetailModal} from "@/modules/dp/attendance/components/AttendanceRequestDetailModal";
 import {AttendanceRequestRejectDialog} from "@/modules/dp/attendance/components/AttendanceRequestRejectDialog";
 import type {
@@ -23,7 +24,13 @@ import {
     type AttendanceCollaboratorFocus,
     clearAttendanceCollaboratorFocus,
     peekAttendanceCollaboratorFocus,
+    writeAttendanceCollaboratorFocus,
 } from "@/modules/dp/attendance/lib/attendance-collaborator-focus";
+import {peekAttendanceListPeriod} from "@/modules/dp/attendance/lib/attendance-period-focus";
+import {
+    currentMonthBounds,
+    normalizePeriod,
+} from "@/modules/dp/attendance/lib/attendance-period.util";
 import {
     attendancerecordToFormDto,
     emptyAttendanceRecordForm,
@@ -58,6 +65,18 @@ function createDraftRow(collaboratorId: string, workDate = ""): AttendanceRecord
     };
 }
 
+function hasDuplicateWorkDate(
+    rows: AttendanceRecord[],
+    rowId: string,
+    workDate: string,
+): boolean {
+    const dayKey = workDate.slice(0, 10);
+    if (!dayKey) return false;
+    return rows.some(
+        (item) => item.id !== rowId && item.workDate?.slice(0, 10) === dayKey,
+    );
+}
+
 async function confirmOutsideScheduleLaunch(
     collaboratorId: string,
     workDate: string,
@@ -82,12 +101,23 @@ async function confirmOutsideScheduleLaunch(
     }
 }
 
+const EMPTY_REQUESTS_BY_DATE = new Map<string, AttendanceRequest[]>();
+
 export function AttendanceRecordFormClient() {
-    const {activeTab, goToList, returnToList} = useCrudScreen();
+    const {activeTab} = useCrudScreen();
     const queryClient = useQueryClient();
     const [focus, setFocus] = useState<AttendanceCollaboratorFocus | null>(() =>
         peekAttendanceCollaboratorFocus(),
     );
+    const [dateFrom, setDateFrom] = useState(() => {
+        const stored = peekAttendanceListPeriod();
+        return stored?.from ?? currentMonthBounds().from;
+    });
+    const [dateTo, setDateTo] = useState(() => {
+        const stored = peekAttendanceListPeriod();
+        return stored?.to ?? currentMonthBounds().to;
+    });
+    const period = useMemo(() => normalizePeriod(dateFrom, dateTo), [dateFrom, dateTo]);
     const [dirty, setDirty] = useState(false);
     const [draftRows, setDraftRows] = useState<AttendanceRecord[]>([]);
     const [focusCell, setFocusCell] = useState<{
@@ -98,19 +128,30 @@ export function AttendanceRecordFormClient() {
     const [deletingRowId, setDeletingRowId] = useState<string | null>(null);
     const [selectedRequest, setSelectedRequest] = useState<AttendanceRequest | null>(null);
     const [rejectTarget, setRejectTarget] = useState<AttendanceRequest | null>(null);
+    const hasCollaborator = Boolean(focus?.collaboratorId);
 
     useEffect(() => {
         if (activeTab !== CRUD_TAB_FORM) return;
+        const storedPeriod = peekAttendanceListPeriod();
+        if (storedPeriod) {
+            setDateFrom(storedPeriod.from);
+            setDateTo(storedPeriod.to);
+        }
         const apply = (next: AttendanceCollaboratorFocus | null) => {
-            if (!next?.collaboratorId) return;
+            if (!next?.collaboratorId) {
+                setFocus(null);
+                setDraftRows([]);
+                setFocusCell(null);
+                return;
+            }
             setFocus(next);
             setDraftRows([]);
             setFocusCell(null);
         };
         apply(peekAttendanceCollaboratorFocus());
         const onFocus = (event: Event) => {
-            const detail = (event as CustomEvent<AttendanceCollaboratorFocus>).detail;
-            apply(detail ?? peekAttendanceCollaboratorFocus());
+            const detail = (event as CustomEvent<AttendanceCollaboratorFocus | null>).detail;
+            apply(detail === undefined ? peekAttendanceCollaboratorFocus() : detail);
         };
         window.addEventListener(ATTENDANCE_COLLABORATOR_FOCUS_EVENT, onFocus);
         return () => window.removeEventListener(ATTENDANCE_COLLABORATOR_FOCUS_EVENT, onFocus);
@@ -118,12 +159,55 @@ export function AttendanceRecordFormClient() {
 
     useCrudFormDirty(dirty || draftRows.length > 0);
 
+    const selectCollaborator = (collaboratorId: string) => {
+        if (!collaboratorId) {
+            clearAttendanceCollaboratorFocus();
+            setFocus(null);
+            setDraftRows([]);
+            setFocusCell(null);
+            return;
+        }
+        const next: AttendanceCollaboratorFocus = {collaboratorId};
+        writeAttendanceCollaboratorFocus(next);
+        setFocus(next);
+        setDraftRows([]);
+        setFocusCell(null);
+        void (async () => {
+            try {
+                const {collaboratorService} = await import(
+                    "@/modules/rh/person/collaborators/people/services/collaborator.service"
+                );
+                const collaborator = await collaboratorService.getById(collaboratorId);
+                const withName: AttendanceCollaboratorFocus = {
+                    collaboratorId,
+                    collaboratorName: collaborator.fullName,
+                };
+                writeAttendanceCollaboratorFocus(withName);
+                setFocus(withName);
+            } catch {
+                // Mantém o id mesmo se o nome não carregar.
+            }
+        })();
+    };
+
     const historyQuery = useInfiniteQuery({
-        queryKey: [...attendancerecordKeys.all, "collaborator-history", focus?.collaboratorId],
+        queryKey: [
+            ...attendancerecordKeys.all,
+            "collaborator-history",
+            focus?.collaboratorId,
+            period.from,
+            period.to,
+        ],
         enabled: Boolean(focus?.collaboratorId),
         initialPageParam: 0,
         queryFn: ({pageParam}) =>
-            attendancerecordService.listCollaboratorHistory(focus!.collaboratorId, pageParam, PAGE_SIZE),
+            attendancerecordService.listCollaboratorHistory(
+                focus!.collaboratorId,
+                pageParam,
+                PAGE_SIZE,
+                period.from,
+                period.to,
+            ),
         getNextPageParam: (lastPage) => {
             if (lastPage.page + 1 >= lastPage.totalPages) return undefined;
             return lastPage.page + 1;
@@ -137,6 +221,13 @@ export function AttendanceRecordFormClient() {
             const rows = await attendancerecordService.listRequests();
             return rows.filter((row) => row.collaboratorId === focus?.collaboratorId);
         },
+    });
+
+    const scheduleQuery = useQuery({
+        queryKey: [...attendancerecordKeys.all, "collaborator-schedule", focus?.collaboratorId],
+        enabled: Boolean(focus?.collaboratorId),
+        queryFn: () => attendancerecordService.collaboratorSchedule(focus!.collaboratorId),
+        staleTime: 60_000,
     });
 
     const persistedRows = useMemo(
@@ -153,19 +244,29 @@ export function AttendanceRecordFormClient() {
 
     const requestsByDate = useMemo(() => {
         const map = new Map<string, AttendanceRequest[]>();
+        const from = period.from;
+        const to = period.to;
         for (const request of requestsQuery.data ?? []) {
             const key = request.workDate?.slice(0, 10) ?? "";
             if (!key) continue;
+            if (from && key < from) continue;
+            if (to && key > to) continue;
             const list = map.get(key) ?? [];
             list.push(request);
             map.set(key, list);
         }
         return map;
-    }, [requestsQuery.data]);
+    }, [requestsQuery.data, period.from, period.to]);
 
     const invalidateHistory = async () => {
         await queryClient.invalidateQueries({
-            queryKey: [...attendancerecordKeys.all, "collaborator-history", focus?.collaboratorId],
+            queryKey: [
+                ...attendancerecordKeys.all,
+                "collaborator-history",
+                focus?.collaboratorId,
+                period.from,
+                period.to,
+            ],
         });
         await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
     };
@@ -261,8 +362,13 @@ export function AttendanceRecordFormClient() {
     };
 
     const handleCommitRow = async (row: AttendanceRecord, patch: Partial<AttendanceRecordCreateDto>) => {
+        const nextWorkDate = (patch.workDate ?? row.workDate)?.slice(0, 10) ?? "";
+        if (nextWorkDate && hasDuplicateWorkDate(rows, row.id, nextWorkDate)) {
+            toast.error(ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_DUPLICATE_WORK_DATE);
+            throw new Error(ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_DUPLICATE_WORK_DATE);
+        }
+
         if (isAttendanceDraftId(row.id)) {
-            const nextWorkDate = patch.workDate ?? row.workDate;
             const merged: AttendanceRecord = {
                 ...row,
                 ...patch,
@@ -273,7 +379,7 @@ export function AttendanceRecordFormClient() {
                 return;
             }
             if (!focus?.collaboratorId) return;
-            const confirmed = await confirmOutsideScheduleLaunch(focus.collaboratorId, nextWorkDate.slice(0, 10));
+            const confirmed = await confirmOutsideScheduleLaunch(focus.collaboratorId, nextWorkDate);
             if (!confirmed) {
                 // Mantém o rascunho editavel para o usuario ajustar a data ou cancelar.
                 setDraftRows((current) => current.map((item) => (item.id === row.id ? merged : item)));
@@ -323,104 +429,49 @@ export function AttendanceRecordFormClient() {
         },
     });
 
-    if (!focus?.collaboratorId) {
-        return (
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-6">
-                <div
-                    className="w-full max-w-md rounded-xl border border-(--gommo-border-subtle) bg-base-100 px-5 py-6">
-                    <h3 className="text-sm font-semibold text-base-content">Selecione um colaborador</h3>
-                    <p className="mt-1 text-sm text-base-content/55">
-                        Escolha na listagem ou busque abaixo para editar o histórico de pontos.
-                    </p>
-                    <div className="mt-4">
-                        <CollaboratorPickerField
-                            value=""
-                            onValueChange={(collaboratorId) => {
-                                if (!collaboratorId) return;
-                                const next = {
-                                    collaboratorId,
-                                    collaboratorName: undefined as string | undefined,
-                                };
-                                setFocus(next);
-                                window.sessionStorage.setItem(
-                                    "gommo-attendance-collaborator-focus",
-                                    JSON.stringify(next),
-                                );
-                                void (async () => {
-                                    try {
-                                        const {collaboratorService} = await import(
-                                            "@/modules/rh/person/collaborators/people/services/collaborator.service"
-                                            );
-                                        const collaborator = await collaboratorService.getById(collaboratorId);
-                                        setFocus({
-                                            collaboratorId,
-                                            collaboratorName: collaborator.fullName,
-                                        });
-                                        window.sessionStorage.setItem(
-                                            "gommo-attendance-collaborator-focus",
-                                            JSON.stringify({
-                                                collaboratorId,
-                                                collaboratorName: collaborator.fullName,
-                                            }),
-                                        );
-                                    } catch {
-                                        // Mantém o id mesmo se o nome não carregar.
-                                    }
-                                })();
-                            }}
-                        />
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <Button type="button" variant="ghost" size="sm" onClick={goToList}>
-                            Voltar à listagem
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="flex min-h-0 flex-1 flex-col">
-            <header
-                className="flex flex-wrap items-center justify-between gap-3 border-b border-(--gommo-border-subtle) px-4 py-3">
-                <div className="min-w-0">
-                    <h3 className="truncate text-sm font-semibold text-base-content">
-                        {focus.collaboratorName ?? "Colaborador"}
-                    </h3>
-                    <p className="text-xs text-base-content/50">
-                        Duplo clique para editar. Tab navega na linha sem salvar; Enter, Esc ou mudar de linha
-                        grava no servidor.
-                    </p>
+            <header className="flex flex-wrap items-center justify-between gap-2 border-b border-(--gommo-border-subtle) px-4 py-1.5">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                    <div className="w-full min-w-[14rem] max-w-sm sm:w-72">
+                        <CollaboratorPickerField
+                            label=""
+                            hint=""
+                            value={focus?.collaboratorId ?? ""}
+                            onValueChange={selectCollaborator}
+                        />
+                    </div>
+                    <AttendancePeriodDateFilters
+                        dateFrom={dateFrom}
+                        dateTo={dateTo}
+                        onDateFromChange={setDateFrom}
+                        onDateToChange={setDateTo}
+                    />
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        type="button"
-                        size="sm"
-                        leftIcon={<Plus className="size-3.5" strokeWidth={2.5}/>}
-                        loading={createTodayMutation.isPending}
-                        onClick={launchManualRow}
-                    >
-                        Lançar ponto
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                            clearAttendanceCollaboratorFocus();
-                            setFocus(null);
-                            setDraftRows([]);
-                            setFocusCell(null);
-                            returnToList();
-                        }}
-                    >
-                        Trocar colaborador
-                    </Button>
-                </div>
+                <Button
+                    type="button"
+                    size="sm"
+                    leftIcon={<Plus className="size-3.5" strokeWidth={2.5} />}
+                    loading={createTodayMutation.isPending}
+                    disabled={!hasCollaborator}
+                    onClick={launchManualRow}
+                >
+                    Lançar ponto
+                </Button>
             </header>
 
-            {historyQuery.isLoading ? (
+            {!hasCollaborator ? (
+                <AttendanceEditableGrid
+                    rows={[]}
+                    requestsByDate={EMPTY_REQUESTS_BY_DATE}
+                    emptyMessage="Selecione um colaborador"
+                    onCommitRow={async () => undefined}
+                    onDeleteRow={() => undefined}
+                    onApproveRequest={() => undefined}
+                    onRejectRequest={() => undefined}
+                    onDetailRequest={() => undefined}
+                />
+            ) : historyQuery.isLoading ? (
                 <div className="grid gap-2 p-4">
                     {Array.from({length: 8}).map((_, index) => (
                         <div
@@ -444,6 +495,7 @@ export function AttendanceRecordFormClient() {
                     <AttendanceEditableGrid
                         rows={rows}
                         requestsByDate={requestsByDate}
+                        collaboratorSchedule={scheduleQuery.data}
                         savingRowId={savingRowId}
                         deletingRowId={deletingRowId}
                         focusCell={focusCell}

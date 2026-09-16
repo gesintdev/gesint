@@ -123,13 +123,28 @@ public class AttendanceRecordService
             throw AttendanceRecordException.invalidSubmission();
         }
 
-        // Apenas colaboradores com admissão concluída (exclui vínculos sintéticos, ex.: ADMIN).
-        List<UUID> admittedIds = admissionProcessRepository.findCollaboratorIdsFromCompletedAdmissions(
-            AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED);
-        if (admittedIds.isEmpty()) {
+        // Listagem = colaboradores com ponto e/ou solicitação no período (não o roster admitido inteiro).
+        Set<UUID> matchingIds = new HashSet<>();
+        matchingIds.addAll(repository.findDistinctCollaboratorIdsByWorkDateBetween(
+            periodStart, periodEnd, StatusEnum.DELETED));
+        matchingIds.addAll(requestRepository.findDistinctCollaboratorIdsByWorkDateBetween(
+            periodStart, periodEnd, StatusEnum.DELETED));
+        if (matchingIds.isEmpty()) {
             return List.of();
         }
-        List<Collaborator> collaborators = collaboratorRepository.findAllById(admittedIds).stream()
+
+        // Mantém apenas admitidos ativos (exclui vínculos sintéticos, ex.: ADMIN).
+        Set<UUID> admittedIds = new HashSet<>(
+            admissionProcessRepository.findCollaboratorIdsFromCompletedAdmissions(
+                AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED));
+        List<UUID> collaboratorIds = matchingIds.stream()
+            .filter(admittedIds::contains)
+            .toList();
+        if (collaboratorIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Collaborator> collaborators = collaboratorRepository.findAllById(collaboratorIds).stream()
             .filter(collaborator -> collaborator.getStatus() == StatusEnum.ACTIVE)
             .sorted(Comparator.comparing(Collaborator::getFullName, String.CASE_INSENSITIVE_ORDER))
             .toList();
@@ -137,32 +152,26 @@ public class AttendanceRecordService
             return List.of();
         }
 
-        List<UUID> collaboratorIds = collaborators.stream().map(Collaborator::getId).toList();
-        Map<String, AttendanceRecord> recordsByKey = repository
+        List<UUID> activeIds = collaborators.stream().map(Collaborator::getId).toList();
+        Map<UUID, List<AttendanceRecord>> recordsByCollaborator = repository
             .findByWorkDateBetweenAndStatusNot(periodStart, periodEnd, StatusEnum.DELETED)
             .stream()
-            .collect(Collectors.toMap(
-                record -> presenceKey(record.getCollaboratorId(), record.getWorkDate()),
-                Function.identity(),
-                (left, right) -> left.getCreatedAt() != null
-                        && right.getCreatedAt() != null
-                        && left.getCreatedAt().isAfter(right.getCreatedAt())
-                    ? left
-                    : right));
+            .filter(record -> record.getCollaboratorId() != null)
+            .collect(Collectors.groupingBy(AttendanceRecord::getCollaboratorId));
 
         Map<UUID, List<LeaveRequest>> vacationsByCollaborator = leaveRequestRepository
             .findApprovedByCollaboratorInAndTypeOverlapping(
-                collaboratorIds, LeaveTypeEnum.VACATION, periodStart, periodEnd, StatusEnum.DELETED)
+                activeIds, LeaveTypeEnum.VACATION, periodStart, periodEnd, StatusEnum.DELETED)
             .stream()
             .collect(Collectors.groupingBy(LeaveRequest::getCollaboratorId));
 
         Map<UUID, List<LeaveRequest>> absencesByCollaborator = leaveRequestRepository
             .findApprovedAbsencesByCollaboratorInOverlapping(
-                collaboratorIds, LeaveTypeEnum.VACATION, periodStart, periodEnd, StatusEnum.DELETED)
+                activeIds, LeaveTypeEnum.VACATION, periodStart, periodEnd, StatusEnum.DELETED)
             .stream()
             .collect(Collectors.groupingBy(LeaveRequest::getCollaboratorId));
 
-        Map<UUID, AdmissionProcess> admissionsByCollaborator = latestCompletedAdmissionsByCollaborator(collaboratorIds);
+        Map<UUID, AdmissionProcess> admissionsByCollaborator = latestCompletedAdmissionsByCollaborator(activeIds);
         Map<UUID, WorkSchedule> schedulesById = loadWorkSchedulesById(
             admissionsByCollaborator.values().stream()
                 .map(AdmissionProcess::getWorkScheduleId)
@@ -170,38 +179,46 @@ public class AttendanceRecordService
                 .distinct()
                 .toList());
 
-        List<AttendancePresenceResponseDto> rows = new ArrayList<>();
-        for (LocalDate day = periodStart; !day.isAfter(periodEnd); day = day.plusDays(1)) {
-            for (Collaborator collaborator : collaborators) {
-                AttendanceRecord record = recordsByKey.get(presenceKey(collaborator.getId(), day));
-                boolean inVacation = coversDate(vacationsByCollaborator.get(collaborator.getId()), day)
-                    || isVacationOccurrence(record);
-                boolean onLeaveActive = coversDate(absencesByCollaborator.get(collaborator.getId()), day)
-                    || isJustifiedLeaveOccurrence(record);
-                boolean present = record != null && record.getClockIn() != null;
-                AdmissionProcess admission = admissionsByCollaborator.get(collaborator.getId());
-                WorkSchedule schedule = admission != null && admission.getWorkScheduleId() != null
-                    ? schedulesById.get(admission.getWorkScheduleId())
-                    : null;
-                boolean outsideWorkSchedule = isOutsideWorkSchedule(schedule, day);
-                rows.add(toPresenceResponse(
-                    collaborator,
-                    day,
-                    record,
-                    present,
-                    inVacation,
-                    onLeaveActive,
-                    outsideWorkSchedule,
-                    schedule,
-                    admission));
-            }
+        // Tag "Solicitação de Ajuste" = pendente; inclusão na lista usa qualquer request no período.
+        Set<UUID> collaboratorsWithPendingAdjustment = requestRepository
+            .findByRequestStatusAndPeriod(REQUEST_PENDING, periodStart, periodEnd, StatusEnum.DELETED)
+            .stream()
+            .map(AttendanceRequest::getCollaboratorId)
+            .collect(Collectors.toSet());
+
+        // Um resumo por colaborador no período (não uma linha por dia).
+        List<AttendancePresenceResponseDto> rows = new ArrayList<>(collaborators.size());
+        for (Collaborator collaborator : collaborators) {
+            List<AttendanceRecord> records =
+                recordsByCollaborator.getOrDefault(collaborator.getId(), List.of());
+            boolean inVacation = !vacationsByCollaborator
+                    .getOrDefault(collaborator.getId(), List.of())
+                    .isEmpty()
+                || records.stream().anyMatch(AttendanceRecordService::isVacationOccurrence);
+            boolean onLeaveActive = !absencesByCollaborator
+                    .getOrDefault(collaborator.getId(), List.of())
+                    .isEmpty()
+                || records.stream().anyMatch(AttendanceRecordService::isJustifiedLeaveOccurrence);
+            AdmissionProcess admission = admissionsByCollaborator.get(collaborator.getId());
+            WorkSchedule schedule = admission != null && admission.getWorkScheduleId() != null
+                ? schedulesById.get(admission.getWorkScheduleId())
+                : null;
+            boolean pendingAdjustmentRequest =
+                collaboratorsWithPendingAdjustment.contains(collaborator.getId());
+            rows.add(toPresenceRosterResponse(
+                collaborator,
+                periodEnd,
+                inVacation,
+                onLeaveActive,
+                pendingAdjustmentRequest,
+                schedule,
+                admission,
+                records));
         }
 
-        rows.sort(Comparator
-            .comparing(AttendancePresenceResponseDto::getWorkDate, Comparator.reverseOrder())
-            .thenComparing(
-                row -> row.getCollaboratorName() != null ? row.getCollaboratorName() : "",
-                String.CASE_INSENSITIVE_ORDER));
+        rows.sort(Comparator.comparing(
+            row -> row.getCollaboratorName() != null ? row.getCollaboratorName() : "",
+            String.CASE_INSENSITIVE_ORDER));
         return rows;
     }
 
@@ -226,6 +243,41 @@ public class AttendanceRecordService
                 ? schedule.getId()
                 : (admission != null ? admission.getWorkScheduleId() : null))
             .workScheduleName(schedule != null ? schedule.getName() : null)
+            .expectedHours(expectedHoursFromAdmission(admission, workDate, schedule))
+            .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('attendance:read')")
+    public AttendanceCollaboratorScheduleResponseDto collaboratorSchedule(UUID collaboratorId) {
+        if (collaboratorId == null) {
+            throw AttendanceRecordException.invalidSubmission();
+        }
+        AdmissionProcess admission = latestCompletedAdmission(collaboratorId);
+        WorkSchedule schedule = resolveWorkSchedule(admission);
+        BigDecimal fallbackDailyHours = expectedHoursFromWorkloadText(admission);
+        List<AttendanceCollaboratorScheduleResponseDto.DayHours> days = new ArrayList<>();
+        if (schedule != null) {
+            for (WeekDayEnum weekDay : WeekDayEnum.values()) {
+                LocalDate sample = LocalDate.now(BUSINESS_ZONE)
+                    .with(java.time.temporal.TemporalAdjusters.nextOrSame(
+                        java.time.DayOfWeek.valueOf(weekDay.name())));
+                days.add(AttendanceCollaboratorScheduleResponseDto.DayHours.builder()
+                    .dayOfWeek(weekDay)
+                    .expectedHours(hoursForScheduleDay(schedule, sample))
+                    .build());
+            }
+        }
+        return AttendanceCollaboratorScheduleResponseDto.builder()
+            .collaboratorId(collaboratorId)
+            .workScheduleId(schedule != null
+                ? schedule.getId()
+                : (admission != null ? admission.getWorkScheduleId() : null))
+            .workScheduleName(schedule != null ? schedule.getName() : null)
+            .workloadSchedule(admission != null ? admission.getWorkloadSchedule() : null)
+            .fallbackDailyHours(fallbackDailyHours)
+            .days(days)
             .build();
     }
 
@@ -240,9 +292,29 @@ public class AttendanceRecordService
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('attendance:read')")
     public PageableResponseDto<AttendanceRecordResponseDto> collaboratorHistory(
-            UUID collaboratorId, int page, int size) {
+            UUID collaboratorId, LocalDate from, LocalDate to, int page, int size) {
         int safeSize = Math.max(1, size);
         int safePage = Math.max(0, page);
+
+        if (from != null && to != null) {
+            LocalDate periodStart = from.isAfter(to) ? to : from;
+            LocalDate periodEnd = from.isAfter(to) ? from : to;
+            List<AttendanceRecord> all = repository.findWorkdayByCollaboratorAndPeriod(
+                    collaboratorId, periodStart, periodEnd, StatusEnum.DELETED);
+            int total = all.size();
+            int fromIdx = Math.min(safePage * safeSize, total);
+            int toIdx = Math.min(fromIdx + safeSize, total);
+            List<AttendanceRecordResponseDto> content = mapToResponses(all.subList(fromIdx, toIdx));
+            int totalPages = total == 0 ? 0 : (int) Math.ceil((double) total / safeSize);
+            return PageableResponseDto.<AttendanceRecordResponseDto>builder()
+                    .content(content)
+                    .page(safePage)
+                    .size(safeSize)
+                    .totalElements((long) total)
+                    .totalPages(totalPages)
+                    .build();
+        }
+
         var pageable = org.springframework.data.domain.PageRequest.of(safePage, safeSize);
         var result = repository.findByCollaboratorIdAndStatusNotOrderByWorkDateDesc(
                 collaboratorId, StatusEnum.DELETED, pageable);
@@ -265,19 +337,16 @@ public class AttendanceRecordService
         if (content.isEmpty()) {
             return pageResult;
         }
-        Map<UUID, String> collaboratorNames = collaboratorNamesById(content.stream()
-            .map(AttendanceRecordResponseDto::getCollaboratorId)
-            .distinct()
-            .toList());
         Map<UUID, AttendanceRecord> entitiesById = repository
             .findAllById(content.stream().map(AttendanceRecordResponseDto::getId).toList())
             .stream()
             .filter(entity -> entity.getStatus() != StatusEnum.DELETED)
             .collect(Collectors.toMap(AttendanceRecord::getId, Function.identity()));
-        List<AttendanceRecordResponseDto> enriched = content.stream()
-            .map(dto -> mapper.toResponse(
-                entitiesById.get(dto.getId()), collaboratorNames.get(dto.getCollaboratorId())))
+        List<AttendanceRecord> entities = content.stream()
+            .map(dto -> entitiesById.get(dto.getId()))
+            .filter(entity -> entity != null)
             .toList();
+        List<AttendanceRecordResponseDto> enriched = mapToResponses(entities);
         return PageableResponseDto.<AttendanceRecordResponseDto>builder()
             .content(enriched)
             .page(pageResult.getPage())
@@ -292,6 +361,7 @@ public class AttendanceRecordService
     @Transactional
     @PreAuthorize("hasAuthority('attendance:write')")
     public AttendanceRecordResponseDto create(AttendanceRecordRequestDto request) {
+        ensureUniqueWorkDate(request.getCollaboratorId(), request.getWorkDate(), null);
         AttendanceRecord entity = mapper.toEntity(request);
         entity.setStatus(StatusEnum.ACTIVE);
         applyDerivedHours(entity);
@@ -303,6 +373,7 @@ public class AttendanceRecordService
     @PreAuthorize("hasAuthority('attendance:write')")
     public AttendanceRecordResponseDto update(UUID id, AttendanceRecordRequestDto request) {
         AttendanceRecord entity = findEntity(id);
+        ensureUniqueWorkDate(request.getCollaboratorId(), request.getWorkDate(), id);
         updateEntity(entity, request);
         applyDerivedHours(entity);
         return toEnrichedResponse(repository.save(entity));
@@ -758,16 +829,39 @@ public class AttendanceRecordService
     }
 
     private List<AttendanceRecordResponseDto> mapToResponses(List<AttendanceRecord> entities) {
-        Map<UUID, String> collaboratorNames = collaboratorNamesById(entities.stream()
+        List<UUID> collaboratorIds = entities.stream()
             .map(AttendanceRecord::getCollaboratorId)
             .filter(id -> id != null)
             .distinct()
-            .toList());
+            .toList();
+        Map<UUID, String> collaboratorNames = collaboratorNamesById(collaboratorIds);
+        Map<UUID, AdmissionProcess> admissionsByCollaborator =
+            latestCompletedAdmissionsByCollaborator(collaboratorIds);
+        Map<UUID, WorkSchedule> schedulesById = loadWorkSchedulesById(
+            admissionsByCollaborator.values().stream()
+                .map(AdmissionProcess::getWorkScheduleId)
+                .filter(id -> id != null)
+                .distinct()
+                .toList());
         return entities.stream()
-            .map(entity -> mapper.toResponse(entity, collaboratorNames.get(entity.getCollaboratorId())).toBuilder()
-                .expectedHours(resolveExpectedHours(entity))
-                .workedHours(calculateWorkedHours(entity))
-                .build())
+            .map(entity -> {
+                AdmissionProcess admission = entity.getCollaboratorId() != null
+                    ? admissionsByCollaborator.get(entity.getCollaboratorId())
+                    : null;
+                WorkSchedule schedule = admission != null && admission.getWorkScheduleId() != null
+                    ? schedulesById.get(admission.getWorkScheduleId())
+                    : null;
+                LocalDate workDate = entity.getWorkDate() != null
+                    ? entity.getWorkDate()
+                    : LocalDate.now(BUSINESS_ZONE);
+                BigDecimal expected = entity.getCollaboratorId() == null
+                    ? (entity.getExpectedHours() != null ? entity.getExpectedHours() : BigDecimal.valueOf(8))
+                    : expectedHoursFromAdmission(admission, workDate, schedule);
+                return mapper.toResponse(entity, collaboratorNames.get(entity.getCollaboratorId())).toBuilder()
+                    .expectedHours(expected)
+                    .workedHours(calculateWorkedHours(entity))
+                    .build();
+            })
             .toList();
     }
 
@@ -791,66 +885,62 @@ public class AttendanceRecordService
             .build();
     }
 
-    private AttendancePresenceResponseDto toPresenceResponse(
+    /**
+     * Linha de listagem (roster): um colaborador no período, com totais de horas.
+     */
+    private AttendancePresenceResponseDto toPresenceRosterResponse(
         Collaborator collaborator,
-        LocalDate workDate,
-        AttendanceRecord record,
-        boolean present,
+        LocalDate periodEnd,
         boolean inVacation,
         boolean onLeaveActive,
-        boolean outsideWorkSchedule,
+        boolean pendingAdjustmentRequest,
         WorkSchedule schedule,
-        AdmissionProcess admission) {
+        AdmissionProcess admission,
+        List<AttendanceRecord> records) {
         UUID workScheduleId = schedule != null
             ? schedule.getId()
             : (admission != null ? admission.getWorkScheduleId() : null);
         String workScheduleName = schedule != null ? schedule.getName() : null;
-        if (record != null) {
-            return AttendancePresenceResponseDto.builder()
-                .id(record.getId().toString())
-                .hasRecord(true)
-                .code(record.getCode())
-                .status(record.getStatus())
-                .collaboratorId(collaborator.getId())
-                .collaboratorName(collaborator.getFullName())
-                .photoObjectId(collaborator.getPhotoObjectId())
-                .workDate(workDate)
-                .clockIn(record.getClockIn())
-                .clockOut(record.getClockOut())
-                .breakStart(record.getBreakStart())
-                .breakEnd(record.getBreakEnd())
-                .breakMinutes(record.getBreakMinutes())
-                .occurrenceType(record.getOccurrenceType())
-                .occurrenceOrigin(record.getOccurrenceOrigin())
-                .referenceId(record.getReferenceId())
-                .expectedHours(resolveExpectedHours(record))
-                .workedHours(calculateWorkedHours(record))
-                .impactsHourBank(record.getImpactsHourBank())
-                .impactsPayroll(record.getImpactsPayroll())
-                .notes(record.getNotes())
-                .present(present)
-                .inVacation(inVacation)
-                .onLeaveActive(onLeaveActive)
-                .outsideWorkSchedule(outsideWorkSchedule)
-                .workScheduleId(workScheduleId)
-                .workScheduleName(workScheduleName)
-                .createdAt(record.getCreatedAt())
-                .updatedAt(record.getUpdatedAt())
-                .build();
+
+        BigDecimal workedTotal = BigDecimal.ZERO;
+        BigDecimal expectedTotal = BigDecimal.ZERO;
+        BigDecimal debitTotal = BigDecimal.ZERO;
+        BigDecimal creditTotal = BigDecimal.ZERO;
+        for (AttendanceRecord record : records) {
+            LocalDate workDate = record.getWorkDate() != null ? record.getWorkDate() : periodEnd;
+            BigDecimal expected = expectedHoursFromAdmission(admission, workDate, schedule);
+            if (expected == null) {
+                expected = BigDecimal.ZERO;
+            }
+            BigDecimal worked = calculateWorkedHours(record);
+            if (worked == null) {
+                worked = BigDecimal.ZERO;
+            }
+            expectedTotal = expectedTotal.add(expected);
+            workedTotal = workedTotal.add(worked);
+            BigDecimal diff = expected.subtract(worked);
+            if (diff.compareTo(BigDecimal.ZERO) > 0) {
+                debitTotal = debitTotal.add(diff);
+            } else if (diff.compareTo(BigDecimal.ZERO) < 0) {
+                creditTotal = creditTotal.add(diff.negate());
+            }
         }
+
         return AttendancePresenceResponseDto.builder()
-            .id("absent:" + collaborator.getId() + ":" + workDate)
-            .hasRecord(false)
+            .id("absent:" + collaborator.getId())
+            .hasRecord(!records.isEmpty())
             .status(StatusEnum.ACTIVE)
             .collaboratorId(collaborator.getId())
             .collaboratorName(collaborator.getFullName())
             .photoObjectId(collaborator.getPhotoObjectId())
-            .workDate(workDate)
-            .expectedHours(expectedHoursFromAdmission(admission, workDate, schedule))
-            .present(false)
+            .workDate(periodEnd)
+            .expectedHours(expectedTotal)
+            .workedHours(workedTotal)
+            .debitHours(debitTotal)
+            .creditHours(creditTotal)
             .inVacation(inVacation)
             .onLeaveActive(onLeaveActive)
-            .outsideWorkSchedule(outsideWorkSchedule)
+            .pendingAdjustmentRequest(pendingAdjustmentRequest)
             .workScheduleId(workScheduleId)
             .workScheduleName(workScheduleName)
             .build();
@@ -911,21 +1001,6 @@ public class AttendanceRecordService
         return expectedHoursFromAdmission(admission, workDate);
     }
 
-    private static String presenceKey(UUID collaboratorId, LocalDate workDate) {
-        return collaboratorId + "|" + workDate;
-    }
-
-    private static boolean coversDate(List<LeaveRequest> leaves, LocalDate day) {
-        if (leaves == null || leaves.isEmpty() || day == null) {
-            return false;
-        }
-        return leaves.stream()
-            .anyMatch(leave -> leave.getStartDate() != null
-                && leave.getEndDate() != null
-                && !leave.getStartDate().isAfter(day)
-                && !leave.getEndDate().isBefore(day));
-    }
-
     private static boolean isVacationOccurrence(AttendanceRecord record) {
         return record != null && record.getOccurrenceType() == AttendanceOccurrenceTypeEnum.VACATION;
     }
@@ -958,6 +1033,18 @@ public class AttendanceRecordService
             return null;
         }
         return collaboratorNamesById(List.of(collaboratorId)).get(collaboratorId);
+    }
+
+    private void ensureUniqueWorkDate(UUID collaboratorId, LocalDate workDate, UUID excludeId) {
+        if (collaboratorId == null || workDate == null) {
+            return;
+        }
+        repository
+            .findByCollaboratorIdAndWorkDateAndStatusNot(collaboratorId, workDate, StatusEnum.DELETED)
+            .filter(existing -> excludeId == null || !existing.getId().equals(excludeId))
+            .ifPresent(existing -> {
+                throw AttendanceRecordException.duplicateWorkDate();
+            });
     }
 
     private AttendanceRecord newWorkdayRecord(
@@ -1001,7 +1088,18 @@ public class AttendanceRecordService
         if (entity.getClockIn() == null) {
             return BigDecimal.ZERO;
         }
-        LocalTime end = entity.getClockOut() != null ? entity.getClockOut() : LocalTime.now(BUSINESS_ZONE);
+        LocalDate workDate = entity.getWorkDate();
+        LocalDate today = LocalDate.now(BUSINESS_ZONE);
+        LocalTime end;
+        if (entity.getClockOut() != null) {
+            end = entity.getClockOut();
+        } else if (workDate != null && workDate.equals(today)) {
+            // Dia aberto de hoje: conta até o horário atual.
+            end = LocalTime.now(BUSINESS_ZONE);
+        } else {
+            // Histórico incompleto sem saída: não inventa horas com o relógio de agora.
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        }
         int grossMinutes = minutesBetween(entity.getClockIn(), end);
         int breakMinutes = entity.getBreakMinutes() != null ? entity.getBreakMinutes() : 0;
         if (entity.getBreakStart() != null && entity.getBreakEnd() != null) {

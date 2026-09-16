@@ -1,26 +1,53 @@
 "use client";
 
 import clsx from "clsx";
-import {Check, ChevronDown, ChevronRight, CircleAlert, Eye, Trash2, X} from "lucide-react";
+import {
+    CalendarDays,
+    Check,
+    ChevronDown,
+    ChevronRight,
+    Clock,
+    Eye,
+    List,
+    Pencil,
+    Trash2,
+    X,
+} from "lucide-react";
 import {
     Fragment,
     type KeyboardEvent,
     type MouseEvent,
     useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
 } from "react";
 
 import {AttendanceSheetTimeInput} from "@/modules/dp/attendance/components/AttendanceSheetTimeInput";
 import type {
+    AttendanceCollaboratorSchedule,
     AttendanceRecord,
     AttendanceRecordCreateDto,
     AttendanceRequest,
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
+import {
+    calculateWorkedHoursFromPunches,
+    creditHoursValue,
+    debitHoursValue,
+    expectedHoursFromCollaboratorSchedule,
+    formatAttendanceHours,
+    mergeAttendancePunches,
+} from "@/modules/dp/attendance/lib/attendance-hours.util";
 import {attendancerecordToFormDto} from "@/modules/dp/attendance/lib/attendance-record.mapper";
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";
-import {isoToDateBr, maskDateBr, parseDateBrToIso, parseIsoToDate} from "@/shared/lib/input/date";
+import {InputDate} from "@/shared/components/ui/input/InputDate";
+import {
+    isoToDateBr,
+    maskDateBr,
+    parseDateBrToIso,
+    parseIsoToDate,
+} from "@/shared/lib/input/date";
 import {parseTimeInputToValue, timeToDisplay} from "@/shared/lib/input/time";
 
 export type AttendanceEditableField = "workDate" | "clockIn" | "breakStart" | "breakEnd" | "clockOut";
@@ -72,6 +99,8 @@ type RowDraft = {
 type AttendanceEditableGridProps = {
     rows: AttendanceRecord[];
     requestsByDate: Map<string, AttendanceRequest[]>;
+    /** Escala da admissão do colaborador (jornada por dia da semana). */
+    collaboratorSchedule?: AttendanceCollaboratorSchedule | null;
     savingRowId?: string | null;
     deletingRowId?: string | null;
     focusCell?: ActiveCell | null;
@@ -81,6 +110,8 @@ type AttendanceEditableGridProps = {
     onRejectRequest: (request: AttendanceRequest) => void;
     onDetailRequest: (request: AttendanceRequest) => void;
     onDirtyChange?: (dirty: boolean) => void;
+    /** Mensagem exibida quando a grade nao tem linhas. */
+    emptyMessage?: string;
 };
 
 function rowFieldCanonical(row: AttendanceRecord, field: AttendanceEditableField): string {
@@ -104,30 +135,38 @@ function displayForField(field: AttendanceEditableField, canonical: string): str
 }
 
 function formatHours(value?: number | null): string {
-    if (value == null || Number.isNaN(value)) return "—";
-    return value.toFixed(2);
+    return formatAttendanceHours(value);
 }
 
-function debitHours(row: AttendanceRecord): string {
-    if (row.expectedHours == null) return "—";
-    const expected = row.expectedHours;
-    const worked = row.workedHours ?? 0;
-    return formatHours(Math.max(0, expected - worked));
-}
-
-function creditHours(row: AttendanceRecord): string {
-    if (row.expectedHours == null) return "—";
-    const expected = row.expectedHours;
-    const worked = row.workedHours ?? 0;
-    return formatHours(Math.max(0, worked - expected));
+function resolveExpectedHours(
+    row: AttendanceRecord,
+    workDate: string,
+    collaboratorSchedule?: AttendanceCollaboratorSchedule | null,
+): number | null | undefined {
+    const fromSchedule = expectedHoursFromCollaboratorSchedule(collaboratorSchedule, workDate);
+    if (fromSchedule != null) return fromSchedule;
+    return row.expectedHours;
 }
 
 function normalizeTime(value?: string | null): string {
     return value ? value.slice(0, 5) : "";
 }
 
-function isDateEditable(row: AttendanceRecord) {
-    return isAttendanceDraftId(row.id) || !row.workDate;
+function numericHoursDelta(
+    expected?: number | null,
+    worked?: number | null,
+    mode: "debit" | "credit" = "debit",
+): number {
+    if (expected == null || Number.isNaN(expected)) return 0;
+    const safeWorked = worked == null || Number.isNaN(worked) ? 0 : worked;
+    return mode === "debit"
+        ? Math.max(0, expected - safeWorked)
+        : Math.max(0, safeWorked - expected);
+}
+
+function isDateEditable(_row: AttendanceRecord) {
+    // Data editável em rascunho e ponto já lançado; validação/bloqueio fica para depois.
+    return true;
 }
 
 function editableFieldsFor(row: AttendanceRecord): AttendanceEditableField[] {
@@ -150,6 +189,7 @@ function requestTypeLabel(type: string): string {
 export function AttendanceEditableGrid({
                                            rows,
                                            requestsByDate,
+                                           collaboratorSchedule,
                                            savingRowId,
                                            deletingRowId,
                                            focusCell,
@@ -159,11 +199,14 @@ export function AttendanceEditableGrid({
                                            onRejectRequest,
                                            onDetailRequest,
                                            onDirtyChange,
+                                           emptyMessage = "Nenhum ponto encontrado para este colaborador.",
                                        }: AttendanceEditableGridProps) {
     const [activeCell, setActiveCell] = useState<ActiveCell | null>(null);
     const [draftValue, setDraftValue] = useState("");
     const [draftBaseline, setDraftBaseline] = useState("");
     const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+    const [openPickerToken, setOpenPickerToken] = useState<number | null>(null);
+    const [openDatePickerToken, setOpenDatePickerToken] = useState<number | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const committingRef = useRef(false);
     const rowDraftRef = useRef<RowDraft | null>(null);
@@ -189,10 +232,9 @@ export function AttendanceEditableGrid({
     }, [isDirty, onDirtyChange]);
 
     useEffect(() => {
-        if (activeCell) {
-            inputRef.current?.focus();
-            inputRef.current?.select();
-        }
+        if (!activeCell || activeCell.field === "workDate") return;
+        inputRef.current?.focus();
+        inputRef.current?.select();
     }, [activeCell]);
 
     const clearEditing = useCallback(() => {
@@ -238,6 +280,21 @@ export function AttendanceEditableGrid({
     const applyCurrentCellToDraft = useCallback(
         (draftOverride?: string): RowDraft | null => {
             if (!activeCell) return rowDraftRef.current;
+
+            // InputDate já grava ISO em rowDraft no Tab/Enter (flush antes do keydown).
+            if (activeCell.field === "workDate" && draftOverride === undefined) {
+                const existing =
+                    rowDraftRef.current?.rowId === activeCell.rowId
+                        ? rowDraftRef.current
+                        : null;
+                if (existing?.values.workDate !== undefined) {
+                    const display = displayForField("workDate", existing.values.workDate);
+                    setDraftValue(display);
+                    setDraftBaseline(display);
+                    return existing;
+                }
+            }
+
             const raw = draftOverride ?? draftValue;
             const parsed = parseCellInput(activeCell.field, raw);
             if (parsed == null) {
@@ -294,6 +351,8 @@ export function AttendanceEditableGrid({
                 const form = attendancerecordToFormDto(row);
                 await onCommitRow(row, {...form, ...patch});
                 clearEditing();
+            } catch {
+                // Mantém a célula ativa (ex.: data duplicada / erro de save).
             } finally {
                 committingRef.current = false;
             }
@@ -414,6 +473,8 @@ export function AttendanceEditableGrid({
         if (target?.closest("[data-attendance-editable-cell='true']")) return;
         if (target?.closest("[data-attendance-sheet-time-input='true']")) return;
         if (target?.closest(".gommo-hour-picker-panel")) return;
+        if (target?.closest(".gommo-time-picker-modal")) return;
+        if (target?.closest(".gommo-date-picker-panel")) return;
         const draft = applyCurrentCellToDraft();
         if (draft) void persistRowDraft(draft);
         else cancelActive();
@@ -425,19 +486,42 @@ export function AttendanceEditableGrid({
         REJECTED: "Reprovada",
     };
 
+    const periodTotals = useMemo(() => {
+        let worked = 0;
+        let debit = 0;
+        let credit = 0;
+        for (const row of rows) {
+            const draftForRow = rowDraft?.rowId === row.id ? rowDraft.values : undefined;
+            const punches = mergeAttendancePunches(row, draftForRow);
+            const dayKey = punches.workDate?.slice(0, 10) ?? "";
+            const workedLive = calculateWorkedHoursFromPunches(punches);
+            const workedDisplay = Number.isNaN(workedLive) ? (row.workedHours ?? 0) : workedLive;
+            const expectedDisplay = resolveExpectedHours(row, dayKey, collaboratorSchedule);
+            if (typeof workedDisplay === "number" && !Number.isNaN(workedDisplay)) {
+                worked += workedDisplay;
+            }
+            debit += numericHoursDelta(expectedDisplay, workedDisplay, "debit");
+            credit += numericHoursDelta(expectedDisplay, workedDisplay, "credit");
+        }
+        return {worked, debit, credit};
+    }, [collaboratorSchedule, rowDraft, rows]);
+
+    const recordCountLabel =
+        rows.length === 1 ? "1 registro encontrado" : `${rows.length} registros encontrados`;
+
     return (
         <div className="attendance-sheet-wrap" onMouseDown={onGridMouseDown}>
             <table className="attendance-sheet gommo-table">
                 <colgroup>
-                    <col style={{width: "9.5rem"}}/>
-                    <col style={{width: "7.25rem"}}/>
-                    <col style={{width: "7.25rem"}}/>
-                    <col style={{width: "7.25rem"}}/>
-                    <col style={{width: "8rem"}}/>
+                    <col style={{width: "11.5rem"}}/>
+                    <col style={{width: "7.75rem"}}/>
+                    <col style={{width: "7.75rem"}}/>
+                    <col style={{width: "7.75rem"}}/>
+                    <col style={{width: "8.25rem"}}/>
                     <col style={{width: "8rem"}}/>
                     <col style={{width: "5.5rem"}}/>
                     <col style={{width: "5.5rem"}}/>
-                    <col style={{width: "6.75rem"}}/>
+                    <col style={{width: "7.5rem"}}/>
                 </colgroup>
                 <thead>
                 <tr>
@@ -472,7 +556,9 @@ export function AttendanceEditableGrid({
                 </thead>
                 <tbody>
                 {rows.map((row) => {
-                    const dayKey = row.workDate?.slice(0, 10) ?? "";
+                    const draftForRow = rowDraft?.rowId === row.id ? rowDraft.values : undefined;
+                    const punches = mergeAttendancePunches(row, draftForRow);
+                    const dayKey = punches.workDate?.slice(0, 10) ?? "";
                     const dayRequests = dayKey ? (requestsByDate.get(dayKey) ?? []) : [];
                     const hasAdjustment = dayRequests.length > 0;
                     const hasPendingAdjustment = dayRequests.some(
@@ -482,20 +568,31 @@ export function AttendanceEditableGrid({
                     const saving = savingRowId === row.id;
                     const dateEditable = isDateEditable(row);
                     const dateActive = activeCell?.rowId === row.id && activeCell.field === "workDate";
+                    const workedLive = calculateWorkedHoursFromPunches(punches);
+                    const workedDisplay = Number.isNaN(workedLive)
+                        ? row.workedHours
+                        : workedLive;
+                    const expectedDisplay = resolveExpectedHours(row, dayKey, collaboratorSchedule);
+                    const debitDisplay = debitHoursValue(expectedDisplay, workedDisplay);
+                    const creditDisplay = creditHoursValue(expectedDisplay, workedDisplay);
+                    const creditPositive =
+                        numericHoursDelta(expectedDisplay, workedDisplay, "credit") > 0;
+                    const edited = isAttendanceEdited(row);
+                    const draftRow = isAttendanceDraftId(row.id);
 
                     return (
                         <Fragment key={row.id}>
                             <tr
                                 className={clsx(
                                     hasPendingAdjustment && "attendance-sheet__row--adjustment",
-                                    isAttendanceDraftId(row.id) && "attendance-sheet__row--draft",
+                                    draftRow && "attendance-sheet__row--draft",
                                     saving && "attendance-sheet__row--saving",
                                 )}
                             >
                                 <td
                                     data-attendance-editable-cell={dateEditable ? "true" : undefined}
                                     className={clsx(
-                                        "attendance-sheet__cell",
+                                        "attendance-sheet__cell attendance-sheet__cell--date",
                                         dateEditable && "attendance-sheet__cell--editable",
                                         dateActive && "attendance-sheet__cell--active",
                                     )}
@@ -513,47 +610,130 @@ export function AttendanceEditableGrid({
                                     }}
                                 >
                                     {dateActive ? (
-                                        <input
-                                            ref={inputRef}
-                                            className="attendance-sheet__input"
-                                            value={draftValue}
+                                        <InputDate
+                                            value={
+                                                rowDraft?.rowId === row.id &&
+                                                rowDraft.values.workDate !== undefined
+                                                    ? rowDraft.values.workDate
+                                                    : dayKey
+                                            }
+                                            autoFocus
+                                            openPickerToken={openDatePickerToken}
                                             aria-label={FIELD_LABEL.workDate}
-                                            onChange={(event) => setDraftValue(maskDateBr(event.target.value))}
+                                            wrapperClassName="w-full"
+                                            className="attendance-sheet__input-date"
+                                            onValueChange={(iso) => {
+                                                const base =
+                                                    rowDraftRef.current?.rowId === row.id
+                                                        ? rowDraftRef.current
+                                                        : {rowId: row.id, values: {}};
+                                                syncRowDraft({
+                                                    rowId: base.rowId,
+                                                    values: {...base.values, workDate: iso},
+                                                });
+                                                const display = isoToDateBr(iso) || "";
+                                                setDraftValue(display);
+                                                setDraftBaseline(display);
+                                            }}
+                                            onPick={(iso) => {
+                                                const base =
+                                                    rowDraftRef.current?.rowId === row.id
+                                                        ? rowDraftRef.current
+                                                        : {rowId: row.id, values: {}};
+                                                const draft: RowDraft = {
+                                                    rowId: base.rowId,
+                                                    values: {...base.values, workDate: iso},
+                                                };
+                                                syncRowDraft(draft);
+                                                void persistRowDraft(draft);
+                                            }}
                                             onKeyDown={(event) => void onCellKeyDown(event, row)}
                                         />
                                     ) : (
                                         <div className="attendance-sheet__meta">
+                                            {dateEditable ? (
+                                                <button
+                                                    type="button"
+                                                    className="attendance-sheet__date-icon-btn"
+                                                    aria-label="Abrir calendário"
+                                                    tabIndex={-1}
+                                                    onMouseDown={(event) => {
+                                                        event.preventDefault();
+                                                        event.stopPropagation();
+                                                    }}
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        void navigateToCell({
+                                                            rowId: row.id,
+                                                            field: "workDate",
+                                                        }).then(() => {
+                                                            setOpenDatePickerToken(
+                                                                (token) => (token ?? 0) + 1,
+                                                            );
+                                                        });
+                                                    }}
+                                                >
+                                                    <CalendarDays
+                                                        className="attendance-sheet__date-icon size-3.5"
+                                                        strokeWidth={2}
+                                                        aria-hidden
+                                                    />
+                                                </button>
+                                            ) : (
+                                                <CalendarDays
+                                                    className="attendance-sheet__date-icon size-3.5"
+                                                    strokeWidth={2}
+                                                    aria-hidden
+                                                />
+                                            )}
+                                            <span
+                                                className={clsx(
+                                                    "attendance-sheet__date-label",
+                                                    !(
+                                                        (rowDraft?.rowId === row.id &&
+                                                            rowDraft.values.workDate) ||
+                                                        dayKey
+                                                    ) && "attendance-sheet__value--muted",
+                                                )}
+                                            >
+                                                {formatWorkDateLabel(
+                                                    rowDraft?.rowId === row.id &&
+                                                    rowDraft.values.workDate !== undefined
+                                                        ? rowDraft.values.workDate
+                                                        : dayKey,
+                                                )}
+                                            </span>
+                                            {hasPendingAdjustment || edited || draftRow ? (
                                                 <span
                                                     className={clsx(
-                                                        !(
-                                                            (rowDraft?.rowId === row.id &&
-                                                                rowDraft.values.workDate) ||
-                                                            dayKey
-                                                        ) && "attendance-sheet__value--muted",
+                                                        "attendance-sheet__status-dot",
+                                                        hasPendingAdjustment &&
+                                                            "attendance-sheet__status-dot--warn",
+                                                        !hasPendingAdjustment &&
+                                                            edited &&
+                                                            "attendance-sheet__status-dot--info",
+                                                        draftRow &&
+                                                            !hasPendingAdjustment &&
+                                                            !edited &&
+                                                            "attendance-sheet__status-dot--primary",
                                                     )}
-                                                >
-                                                    {formatWorkDateLabel(
-                                                        rowDraft?.rowId === row.id &&
-                                                        rowDraft.values.workDate !== undefined
-                                                            ? rowDraft.values.workDate
-                                                            : dayKey,
-                                                    )}
-                                                </span>
-                                            {isAttendanceEdited(row) ? (
-                                                <span
-                                                    className="attendance-sheet__edited"
-                                                    title="Ponto editado"
-                                                    aria-label="Ponto editado"
-                                                >
-                                                        <CircleAlert className="size-3.5"/>
-                                                    </span>
+                                                    title={
+                                                        hasPendingAdjustment
+                                                            ? "Ajuste pendente"
+                                                            : edited
+                                                              ? "Ponto editado"
+                                                              : "Novo ponto"
+                                                    }
+                                                    aria-label={
+                                                        hasPendingAdjustment
+                                                            ? "Ajuste pendente"
+                                                            : edited
+                                                              ? "Ponto editado"
+                                                              : "Novo ponto"
+                                                    }
+                                                />
                                             ) : null}
-                                            {hasPendingAdjustment ? (
-                                                <span className="attendance-sheet__chip attendance-sheet__chip--warn">
-                                                        Ajuste
-                                                    </span>
-                                            ) : null}
-                                            {isAttendanceDraftId(row.id) ? (
+                                            {draftRow ? (
                                                 <span className="attendance-sheet__chip">Novo</span>
                                             ) : null}
                                         </div>
@@ -571,7 +751,8 @@ export function AttendanceEditableGrid({
                                             key={field}
                                             data-attendance-editable-cell="true"
                                             className={clsx(
-                                                "attendance-sheet__cell attendance-sheet__cell--editable",
+                                                "attendance-sheet__cell attendance-sheet__cell--time",
+                                                "attendance-sheet__cell--editable",
                                                 isActive && "attendance-sheet__cell--active",
                                             )}
                                             onDoubleClick={() => {
@@ -592,6 +773,7 @@ export function AttendanceEditableGrid({
                                                     ref={inputRef}
                                                     value={draftValue}
                                                     ariaLabel={FIELD_LABEL[field]}
+                                                    openPickerToken={openPickerToken}
                                                     onValueChange={setDraftValue}
                                                     onKeyDown={(event) => void onCellKeyDown(event, row)}
                                                     onPick={(canonical) => {
@@ -600,36 +782,64 @@ export function AttendanceEditableGrid({
                                                     }}
                                                 />
                                             ) : (
-                                                <span
+                                                <div
                                                     className={clsx(
-                                                        "attendance-sheet__value",
-                                                        !display && "attendance-sheet__value--muted",
+                                                        "attendance-sheet__time-field rounded-[var(--gommo-control-radius)]",
+                                                        !display && "attendance-sheet__time-field--empty",
                                                     )}
                                                 >
+                                                    <span
+                                                        className={clsx(
+                                                            "attendance-sheet__value",
+                                                            !display && "attendance-sheet__value--muted",
+                                                        )}
+                                                    >
                                                         {display ? timeToDisplay(display) : "—"}
                                                     </span>
+                                                    <button
+                                                        type="button"
+                                                        className="attendance-sheet__time-clock"
+                                                        aria-label={`Abrir seletor de ${FIELD_LABEL[field]}`}
+                                                        tabIndex={-1}
+                                                        onMouseDown={(event) => {
+                                                            event.preventDefault();
+                                                            event.stopPropagation();
+                                                        }}
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            void navigateToCell({rowId: row.id, field}).then(() => {
+                                                                setOpenPickerToken((token) => (token ?? 0) + 1);
+                                                            });
+                                                        }}
+                                                    >
+                                                        <Clock className="size-3.5" strokeWidth={2}/>
+                                                    </button>
+                                                </div>
                                             )}
                                         </td>
                                     );
                                 })}
-                                <td className="attendance-sheet__cell">
-                                        <span className="attendance-sheet__value attendance-sheet__value--right">
-                                            {formatHours(row.workedHours)}
-                                        </span>
+                                <td className="attendance-sheet__cell attendance-sheet__cell--metric">
+                                    <span className="attendance-sheet__value">
+                                        {formatHours(workedDisplay)}
+                                    </span>
                                 </td>
-                                <td className="attendance-sheet__cell">
-                                        <span
-                                            className="attendance-sheet__value attendance-sheet__value--right text-error/80">
-                                            {debitHours(row)}
-                                        </span>
+                                <td className="attendance-sheet__cell attendance-sheet__cell--metric">
+                                    <span className="attendance-sheet__value">
+                                        {debitDisplay}
+                                    </span>
                                 </td>
-                                <td className="attendance-sheet__cell">
-                                        <span
-                                            className="attendance-sheet__value attendance-sheet__value--right text-success/80">
-                                            {creditHours(row)}
-                                        </span>
+                                <td className="attendance-sheet__cell attendance-sheet__cell--metric">
+                                    <span
+                                        className={clsx(
+                                            "attendance-sheet__value",
+                                            creditPositive && "attendance-sheet__value--credit",
+                                        )}
+                                    >
+                                        {creditDisplay}
+                                    </span>
                                 </td>
-                                <td className="attendance-sheet__cell">
+                                <td className="attendance-sheet__cell attendance-sheet__cell--actions">
                                     <div className="gommo-table-actions">
                                         {hasAdjustment ? (
                                             <TableActionButton
@@ -657,6 +867,16 @@ export function AttendanceEditableGrid({
                                                 }}
                                             />
                                         ) : null}
+                                        <TableActionButton
+                                            actionVariant="edit"
+                                            aria-label="Editar ponto"
+                                            title="Editar ponto"
+                                            leftIcon={<Pencil className="size-3.5"/>}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                void navigateToCell({rowId: row.id, field: "clockIn"});
+                                            }}
+                                        />
                                         <TableActionButton
                                             actionVariant="delete"
                                             aria-label="Excluir ponto"
@@ -798,10 +1018,42 @@ export function AttendanceEditableGrid({
                 </tbody>
             </table>
             {rows.length === 0 ? (
-                <p className="attendance-sheet__empty">
-                    Nenhum ponto encontrado para este colaborador.
-                </p>
-            ) : null}
+                <p className="attendance-sheet__empty">{emptyMessage}</p>
+            ) : (
+                <footer className="attendance-sheet__footer">
+                    <div className="attendance-sheet__footer-count">
+                        <List className="size-3.5" strokeWidth={2} aria-hidden/>
+                        <span>{recordCountLabel}</span>
+                    </div>
+                    <div className="attendance-sheet__footer-summary" aria-label="Totais do período">
+                        <div className="attendance-sheet__footer-metric">
+                            <span className="attendance-sheet__footer-label">Total Horas</span>
+                            <span className="attendance-sheet__footer-value">
+                                {formatAttendanceHours(periodTotals.worked)}
+                            </span>
+                        </div>
+                        <div className="attendance-sheet__footer-divider" aria-hidden/>
+                        <div className="attendance-sheet__footer-metric">
+                            <span className="attendance-sheet__footer-label">Débito</span>
+                            <span className="attendance-sheet__footer-value">
+                                {formatAttendanceHours(periodTotals.debit)}
+                            </span>
+                        </div>
+                        <div className="attendance-sheet__footer-divider" aria-hidden/>
+                        <div className="attendance-sheet__footer-metric">
+                            <span className="attendance-sheet__footer-label">Crédito</span>
+                            <span
+                                className={clsx(
+                                    "attendance-sheet__footer-value",
+                                    periodTotals.credit > 0 && "attendance-sheet__value--credit",
+                                )}
+                            >
+                                {formatAttendanceHours(periodTotals.credit)}
+                            </span>
+                        </div>
+                    </div>
+                </footer>
+            )}
         </div>
     );
 }

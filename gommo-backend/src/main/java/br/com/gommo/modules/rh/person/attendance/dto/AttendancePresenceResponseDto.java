@@ -33,14 +33,17 @@ public class AttendancePresenceResponseDto {
     private final UUID referenceId;
     private final BigDecimal expectedHours;
     private final BigDecimal workedHours;
+    /** Soma dos débitos diários (esperado − trabalhado) no período. */
+    private final BigDecimal debitHours;
+    /** Soma dos créditos diários / hora extra (trabalhado − esperado) no período. */
+    private final BigDecimal creditHours;
     private final Boolean impactsHourBank;
     private final Boolean impactsPayroll;
     private final String notes;
-    private final boolean present;
     private final boolean inVacation;
     private final boolean onLeaveActive;
-    /** True when the work date is not a scheduled work day for the collaborator. */
-    private final boolean outsideWorkSchedule;
+    /** True when the collaborator has at least one pending adjustment request in the queried period. */
+    private final boolean pendingAdjustmentRequest;
     private final UUID workScheduleId;
     private final String workScheduleName;
     private final OffsetDateTime createdAt;

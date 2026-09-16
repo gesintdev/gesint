@@ -13,4 +13,7 @@ public final class AttendanceRecordExceptions {
     public static final String COMPENSATION_REQUIRED_CODE = "ATTENDANCE_COMPENSATION_REQUIRED";
     public static final String COMPENSATION_REQUIRED_MSG =
             "Selecione se o ponto fora da escala ser\u00e1 banco de horas ou hora extra";
+    public static final String DUPLICATE_WORK_DATE_CODE = "ATTENDANCE_DUPLICATE_WORK_DATE";
+    public static final String DUPLICATE_WORK_DATE_MSG =
+            "J\u00e1 existe ponto para este colaborador nesta data";
 }

@@ -1,4 +1,10 @@
-import { digitsOnly } from "@/shared/lib/input/digits";
+import {
+    cursorForDigitCount,
+    digitsBeforeCursor,
+    digitsOnly,
+} from "@/shared/lib/input/digits";
+
+export {cursorForDigitCount, digitsBeforeCursor} from "@/shared/lib/input/digits";
 
 /**
  * Máscara visual progressiva HH:mm (enquanto digita).
@@ -12,25 +18,6 @@ export function maskTimeInput(value: string): string {
     if (d.length === 0) return "";
     if (d.length <= 2) return d;
     return `${d.slice(0, 2)}:${d.slice(2)}`;
-}
-
-/** Quantidade de dígitos à esquerda do cursor (ignora `:` e outros). */
-export function digitsBeforeCursor(value: string, cursor: number): number {
-    return digitsOnly(value.slice(0, Math.max(0, cursor))).length;
-}
-
-/** Posição do caret no valor mascarado após N dígitos. */
-export function cursorForDigitCount(masked: string, digitCount: number): number {
-    if (digitCount <= 0) return 0;
-    let seen = 0;
-    for (let i = 0; i < masked.length; i++) {
-        const ch = masked[i]!;
-        if (ch >= "0" && ch <= "9") {
-            seen += 1;
-            if (seen >= digitCount) return i + 1;
-        }
-    }
-    return masked.length;
 }
 
 /**

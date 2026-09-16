@@ -25,4 +25,5 @@ export function peekAttendanceCollaboratorFocus(): AttendanceCollaboratorFocus |
 
 export function clearAttendanceCollaboratorFocus() {
     window.sessionStorage.removeItem(ATTENDANCE_COLLABORATOR_FOCUS_KEY);
+    window.dispatchEvent(new CustomEvent(ATTENDANCE_COLLABORATOR_FOCUS_EVENT, {detail: null}));
 }

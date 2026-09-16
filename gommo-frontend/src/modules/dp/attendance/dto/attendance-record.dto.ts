@@ -71,13 +71,16 @@ export class AttendancePresenceRow {
     referenceId?: string;
     expectedHours?: number;
     workedHours?: number;
+    /** Soma dos débitos diários no período. */
+    debitHours?: number;
+    /** Soma dos créditos / hora extra no período. */
+    creditHours?: number;
     impactsHourBank?: boolean;
     impactsPayroll?: boolean;
     notes?: string;
-    present!: boolean;
     inVacation!: boolean;
     onLeaveActive!: boolean;
-    outsideWorkSchedule!: boolean;
+    pendingAdjustmentRequest?: boolean;
     workScheduleId?: string;
     workScheduleName?: string;
     createdAt?: string;
@@ -149,6 +152,31 @@ export type AttendanceScheduleDay = {
     outsideWorkSchedule: boolean;
     workScheduleId?: string;
     workScheduleName?: string;
+    /** Jornada esperada do dia (escala da admissão; 0 em folga). */
+    expectedHours?: number;
+};
+
+export type AttendanceScheduleWeekDay =
+    | "MONDAY"
+    | "TUESDAY"
+    | "WEDNESDAY"
+    | "THURSDAY"
+    | "FRIDAY"
+    | "SATURDAY"
+    | "SUNDAY";
+
+export type AttendanceCollaboratorScheduleDay = {
+    dayOfWeek: AttendanceScheduleWeekDay;
+    expectedHours: number;
+};
+
+export type AttendanceCollaboratorSchedule = {
+    collaboratorId: string;
+    workScheduleId?: string;
+    workScheduleName?: string;
+    workloadSchedule?: string;
+    fallbackDailyHours?: number;
+    days: AttendanceCollaboratorScheduleDay[];
 };
 
 export type AttendanceMobileContext = {

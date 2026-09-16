@@ -90,6 +90,9 @@ type CrudScreenContextValue = {
 
 const CrudScreenContext = createContext<CrudScreenContextValue | null>(null);
 const CrudExtraTabsSetterContext = createContext<((tabs: CrudExtraTab[] | null) => void) | null>(null);
+const CrudListToolbarSetterContext = createContext<((content: ReactNode | null) => void) | null>(
+    null,
+);
 
 export function useCrudScreen(): CrudScreenContextValue {
     const ctx = useContext(CrudScreenContext);
@@ -119,6 +122,20 @@ export function useCrudExtraTabs(tabs: CrudExtraTab[] | null) {
     useLayoutEffect(() => {
         return () => setExtraTabs(null);
     }, [setExtraTabs]);
+}
+
+/** Publica conteúdo à esquerda da toolbar da listagem (ex.: filtros de período). */
+export function useCrudListToolbar(content: ReactNode | null) {
+    const setListToolbarContent = useContext(CrudListToolbarSetterContext);
+    if (!setListToolbarContent) {
+        throw new Error("useCrudListToolbar deve ser usado dentro de CrudScreen");
+    }
+    useLayoutEffect(() => {
+        setListToolbarContent(content);
+    }, [setListToolbarContent, content]);
+    useLayoutEffect(() => {
+        return () => setListToolbarContent(null);
+    }, [setListToolbarContent]);
 }
 
 export type CrudScreenProps = {
@@ -216,6 +233,7 @@ export function CrudScreen({
     const [editingId, setEditingId] = useState<string | null>(initialEditingId);
     const [formEpoch, setFormEpoch] = useState(0);
     const [overrideExtraTabs, setOverrideExtraTabs] = useState<CrudExtraTab[] | null>(null);
+    const [listToolbarContent, setListToolbarContent] = useState<ReactNode | null>(null);
     const [initialExtraTabResolved, setInitialExtraTabResolved] = useState(false);
     const hadExtraTabsRef = useRef(false);
     const flatPermissions = useSessionPermissions();
@@ -411,6 +429,7 @@ export function CrudScreen({
     return (
         <CrudScreenContext.Provider value={ctx}>
             <CrudExtraTabsSetterContext.Provider value={setOverrideExtraTabs}>
+            <CrudListToolbarSetterContext.Provider value={setListToolbarContent}>
                 <CrudFormDirtyProvider>
                 <QueryRefreshHostProvider>
                     {extraTabsController}
@@ -470,8 +489,13 @@ export function CrudScreen({
                         >
                             {activeTab === CRUD_TAB_LIST && (
                                 <div className="crud-list-toolbar flex flex-wrap items-center justify-between gap-2 border-b px-4 py-1.5">
-                                    <div className="text-[13px] text-base-content/50">
-                                        {listToolbar ?? "Consulte os registros ou inicie um novo cadastro."}
+                                    <div className="min-w-0 flex-1">
+                                        {listToolbarContent ?? (
+                                            <div className="text-[13px] text-base-content/50">
+                                                {listToolbar ??
+                                                    "Consulte os registros ou inicie um novo cadastro."}
+                                            </div>
+                                        )}
                                     </div>
                                     <CrudListToolbarActions
                                         canWrite={canWrite}
@@ -525,6 +549,7 @@ export function CrudScreen({
                     </div>
                 </QueryRefreshHostProvider>
                 </CrudFormDirtyProvider>
+            </CrudListToolbarSetterContext.Provider>
             </CrudExtraTabsSetterContext.Provider>
         </CrudScreenContext.Provider>
     );

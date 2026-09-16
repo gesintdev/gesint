@@ -1,5 +1,6 @@
 package br.com.gommo.modules.rh.person.attendance.dto;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import lombok.Builder;
@@ -12,4 +13,6 @@ public class AttendanceScheduleDayResponseDto {
     private final boolean outsideWorkSchedule;
     private final UUID workScheduleId;
     private final String workScheduleName;
+    /** Jornada esperada do dia a partir da escala da admissão (0 em folga). */
+    private final BigDecimal expectedHours;
 }

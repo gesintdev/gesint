@@ -1,6 +1,11 @@
 import { useCallback, useState } from "react";
 
-import { isoToDateBr, maskDateBr, parseDateBrToIso } from "@/shared/lib/input/date";
+import {
+    isoToDateBr,
+    maskDateBr,
+    maskDateBrWithCaret,
+    parseDateBrToIso,
+} from "@/shared/lib/input/date";
 
 type UseDateFieldOptions = {
     value: string;
@@ -68,6 +73,11 @@ export function useDateField({ value, onValueChange, min, max }: UseDateFieldOpt
         },
         [commitDisplay],
     );
+    const onChangeEdit = useCallback((raw: string, selectionStart: number | null) => {
+        const {value: next, caret} = maskDateBrWithCaret(raw, selectionStart);
+        setEditText(next);
+        return caret;
+    }, []);
     return {
         open,
         setOpen,
@@ -76,6 +86,6 @@ export function useDateField({ value, onValueChange, min, max }: UseDateFieldOpt
         startEditing,
         handleBlur,
         handlePick,
-        onChangeEdit: (raw: string) => setEditText(maskDateBr(raw)),
+        onChangeEdit,
     };
 }

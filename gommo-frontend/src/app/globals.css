@@ -4241,38 +4241,51 @@ html:has(.logging-out-screen) body {
     flex: 1;
     overflow: auto;
     isolation: isolate;
-    margin: 0.75rem;
-    border-radius: var(--gommo-tab-radius);
+    /* Mesmo recuo externo do QueryPagedTablePanel (`p-1.5`) */
+    margin: 0.375rem;
+    border: 1px solid var(--gommo-border-subtle);
+    border-radius: var(--radius-gommo-card);
+    background: var(--color-base-100);
+    box-shadow: var(--gommo-shadow-sm);
 }
 
 .attendance-sheet {
     width: 100%;
-    min-width: 920px;
+    min-width: 960px;
     table-layout: fixed;
-    border-collapse: collapse;
-    background: var(--color-base-100);
+    border-collapse: separate;
+    border-spacing: 0;
+    background: transparent;
+    /* Mesmo corpo do `.gommo-table` / DataTable (não text-sm Tailwind) */
     font-size: 0.78125rem;
     line-height: 1.25;
 }
 
 .attendance-sheet th,
 .attendance-sheet td {
-    border: 1px solid var(--gommo-border-subtle);
+    border: 0;
+    border-bottom: 1px solid var(--gommo-border-subtle);
     vertical-align: middle;
-    padding: var(--gommo-table-cell-py) var(--gommo-table-cell-px);
+    padding: 0.75rem 0.75rem;
     height: auto;
-    min-height: calc(var(--gommo-table-action-button-size, 2rem) + (2 * var(--gommo-table-cell-py)));
+    min-height: calc(var(--gommo-table-action-button-size, 2rem) + 1.5rem);
+}
+
+.attendance-sheet tbody tr:last-child > td {
+    border-bottom: 0;
 }
 
 .attendance-sheet thead th {
     position: sticky;
     top: 0;
     z-index: 2;
+    /* Mesmo fundo do `.gommo-table th` / DataTable */
     background: color-mix(in srgb, var(--color-base-content) 2.5%, var(--color-base-100));
     vertical-align: middle;
     white-space: nowrap;
     padding-block: var(--gommo-table-header-py);
     text-align: left;
+    border-bottom: 1px solid var(--gommo-border-subtle);
 }
 
 [data-theme="dark"] .attendance-sheet thead th {
@@ -4280,15 +4293,15 @@ html:has(.logging-out-screen) body {
 }
 
 .attendance-sheet tbody tr:hover:not(.attendance-sheet__expand) td {
-    background: color-mix(in srgb, var(--gommo-primary) 6%, var(--color-base-100));
+    background: color-mix(in srgb, var(--gommo-primary) 4%, var(--color-base-100));
 }
 
 .attendance-sheet tbody tr.attendance-sheet__row--draft:hover:not(.attendance-sheet__expand) td {
-    background: color-mix(in srgb, var(--gommo-primary) 10%, var(--color-base-100));
+    background: color-mix(in srgb, var(--gommo-primary) 8%, var(--color-base-100));
 }
 
 .attendance-sheet tbody tr.attendance-sheet__row--adjustment:hover:not(.attendance-sheet__expand) td {
-    background: color-mix(in srgb, var(--color-warning) 16%, var(--color-base-100));
+    background: color-mix(in srgb, var(--color-warning) 12%, var(--color-base-100));
 }
 
 .attendance-sheet__cell {
@@ -4300,14 +4313,27 @@ html:has(.logging-out-screen) body {
 }
 
 .attendance-sheet__cell--active {
-    outline: 2px solid var(--gommo-border-focus);
-    outline-offset: -2px;
     z-index: 1;
-    background: color-mix(in srgb, var(--gommo-primary) 8%, var(--color-base-100));
+    background: transparent;
 }
 
-.attendance-sheet tbody tr:hover td.attendance-sheet__cell--active {
-    background: color-mix(in srgb, var(--gommo-primary) 12%, var(--color-base-100));
+.attendance-sheet__cell--active.attendance-sheet__cell--date {
+    outline: 2px solid var(--gommo-border-focus);
+    outline-offset: -2px;
+    background: color-mix(in srgb, var(--gommo-primary) 6%, var(--color-base-100));
+}
+
+.attendance-sheet tbody tr:hover td.attendance-sheet__cell--active.attendance-sheet__cell--date {
+    background: color-mix(in srgb, var(--gommo-primary) 10%, var(--color-base-100));
+}
+
+.attendance-sheet__cell--time.attendance-sheet__cell--active {
+    outline: none;
+    background: transparent;
+}
+
+.attendance-sheet tbody tr:hover td.attendance-sheet__cell--time.attendance-sheet__cell--active {
+    background: transparent;
 }
 
 .attendance-sheet__value,
@@ -4345,25 +4371,31 @@ html:has(.logging-out-screen) body {
     text-align: right;
 }
 
+.attendance-sheet__value--credit {
+    color: var(--gommo-success);
+    font-variation-settings: "wght" 600;
+}
+
 .attendance-sheet__input:focus {
     outline: none;
     box-shadow: none;
 }
 
-.attendance-sheet__time-input {
-    display: flex;
-    align-items: center;
-    gap: 0.125rem;
-    width: 100%;
-    min-height: 1.5rem;
+.attendance-sheet__input--date {
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--gommo-border-focus);
+    border-radius: var(--gommo-control-radius, var(--gommo-tab-radius, 5px));
+    background: var(--color-base-100);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gommo-primary) 14%, transparent);
 }
 
-.attendance-sheet__time-input .attendance-sheet__input {
-    flex: 1 1 auto;
-    min-width: 0;
+.attendance-sheet__cell--date .attendance-sheet__input-date {
+    min-height: var(--gommo-control-h);
+    height: var(--gommo-control-h);
 }
 
-.attendance-sheet__time-clock {
+.attendance-sheet__date-icon-btn {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -4371,23 +4403,157 @@ html:has(.logging-out-screen) body {
     margin: 0;
     padding: 0;
     border: 0;
-    border-radius: 0.25rem;
+    border-radius: var(--gommo-control-radius, var(--gommo-tab-radius, 5px));
     background: transparent;
-    color: color-mix(in srgb, var(--color-base-content) 40%, transparent);
-    cursor: pointer;
     line-height: 0;
+    cursor: pointer;
+    color: inherit;
+}
+
+.attendance-sheet__date-icon-btn:hover .attendance-sheet__date-icon {
+    color: var(--gommo-primary);
+}
+
+/* Chrome de hora — mesmo raio dos inputs padrão (gommo-field / InputHour); nunca 9999px/full */
+.attendance-sheet .attendance-sheet__time-field,
+.attendance-sheet .attendance-sheet__time-input {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+    min-height: 2rem;
+    padding: 0.2rem 0.45rem 0.2rem 0.7rem;
+    border: 1px solid var(--gommo-border);
+    border-radius: var(--gommo-control-radius, var(--gommo-tab-radius, 5px));
+    background: var(--color-base-100);
+    box-shadow: var(--gommo-shadow-xs);
+    overflow: hidden;
+    transition:
+        border-color 0.12s ease,
+        box-shadow 0.12s ease;
+}
+
+.attendance-sheet__time-field--empty {
+    background: color-mix(in srgb, var(--color-base-200) 45%, var(--color-base-100));
+}
+
+.attendance-sheet__time-field .attendance-sheet__value,
+.attendance-sheet__time-input .attendance-sheet__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 1.35rem;
+    line-height: 1.35rem;
+    text-align: left;
+    border-radius: 0;
+}
+
+.attendance-sheet__time-clock,
+.attendance-sheet__time-clock-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--gommo-control-radius, var(--gommo-tab-radius, 5px));
+    background: transparent;
+    color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
+    line-height: 0;
+}
+
+.attendance-sheet__time-clock {
+    cursor: pointer;
 }
 
 .attendance-sheet__time-clock:hover {
     color: var(--gommo-primary);
 }
 
+.attendance-sheet__cell--active .attendance-sheet__time-input {
+    border-color: var(--gommo-border-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gommo-primary) 14%, transparent);
+}
+
+/* Modal seletor de horário (Histórico de ponto) — 24h */
+.gommo-time-picker.modal-box {
+    border-radius: var(--radius-gommo-modal);
+    overflow: hidden;
+}
+
+.gommo-time-picker__segment {
+    min-width: 4.25rem;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--color-base-200) 80%, var(--color-base-100));
+    color: var(--color-base-content);
+    font-size: 1.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transition:
+        background-color 0.12s ease,
+        color 0.12s ease;
+}
+
+.gommo-time-picker__segment--active {
+    background: var(--gommo-primary);
+    color: var(--color-primary-content);
+}
+
+.gommo-time-picker__dial {
+    width: 224px;
+    height: 224px;
+}
+
+.gommo-time-picker__face {
+    background: color-mix(in srgb, var(--color-base-200) 70%, var(--color-base-100));
+    box-shadow: inset 0 0 0 1px var(--gommo-border-subtle);
+}
+
+.gommo-time-picker__tick {
+    position: absolute;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--color-base-content);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition:
+        background-color 0.12s ease,
+        color 0.12s ease;
+}
+
+.gommo-time-picker__tick:hover:not(.gommo-time-picker__tick--active) {
+    background: color-mix(in srgb, var(--gommo-primary) 10%, transparent);
+}
+
+.gommo-time-picker__tick--active {
+    z-index: 2;
+    background: var(--gommo-primary);
+    color: var(--color-primary-content);
+    box-shadow: var(--gommo-shadow-sm);
+}
+
 .attendance-sheet__row--draft {
-    background: color-mix(in srgb, var(--gommo-primary) 5%, var(--color-base-100));
+    background: color-mix(in srgb, var(--gommo-primary) 4%, var(--color-base-100));
 }
 
 .attendance-sheet__row--adjustment {
-    background: color-mix(in srgb, var(--color-warning) 10%, var(--color-base-100));
+    background: color-mix(in srgb, var(--color-warning) 8%, var(--color-base-100));
 }
 
 .attendance-sheet__row--saving {
@@ -4397,10 +4563,47 @@ html:has(.logging-out-screen) body {
 .attendance-sheet__meta {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.4rem;
     max-width: 100%;
     min-height: 1.5rem;
     overflow: hidden;
+}
+
+.attendance-sheet__date-icon {
+    flex: 0 0 auto;
+    color: color-mix(in srgb, var(--color-base-content) 45%, transparent);
+}
+
+.attendance-sheet__date-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-variation-settings: "wght" 520;
+}
+
+.attendance-sheet__status-dot {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 9999px;
+    background: var(--gommo-info);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--gommo-info) 18%, transparent);
+}
+
+.attendance-sheet__status-dot--warn {
+    background: var(--gommo-warning);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--gommo-warning) 18%, transparent);
+}
+
+.attendance-sheet__status-dot--info {
+    background: var(--gommo-info);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--gommo-info) 18%, transparent);
+}
+
+.attendance-sheet__status-dot--primary {
+    background: var(--gommo-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--gommo-primary) 16%, transparent);
 }
 
 .attendance-sheet__chip {
@@ -4440,6 +4643,86 @@ html:has(.logging-out-screen) body {
     font-size: 0.875rem;
 }
 
+.attendance-sheet__footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.25rem;
+    padding: 0.85rem 1rem;
+    border-top: 1px solid var(--gommo-border);
+    background: color-mix(in srgb, var(--color-base-content) 1.5%, var(--color-base-100));
+}
+
+.attendance-sheet__footer-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
+    font-size: 0.75rem;
+}
+
+.attendance-sheet__footer-summary {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0;
+}
+
+.attendance-sheet__footer-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 4.5rem;
+    padding: 0 0.9rem;
+}
+
+.attendance-sheet__footer-metric:first-child {
+    padding-left: 0;
+}
+
+.attendance-sheet__footer-metric:last-child {
+    padding-right: 0;
+}
+
+.attendance-sheet__footer-divider {
+    width: 1px;
+    align-self: stretch;
+    background: var(--gommo-border-subtle);
+}
+
+.attendance-sheet__footer-label {
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
+    font-variation-settings: "wght" 550;
+}
+
+.attendance-sheet__footer-value {
+    font-size: 0.875rem;
+    line-height: 1.2;
+    color: var(--color-base-content);
+    font-variation-settings: "wght" 650;
+}
+
+.attendance-sheet .gommo-table-actions .gommo-btn.gommo-table-action--edit {
+    border-color: color-mix(in srgb, var(--gommo-primary) 28%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-primary) 10%, var(--color-base-100));
+}
+
+.attendance-sheet .gommo-table-actions .gommo-btn.gommo-table-action--delete {
+    border-color: color-mix(in srgb, var(--gommo-error) 28%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-error) 9%, var(--color-base-100));
+}
+
+.attendance-sheet .gommo-table-actions .gommo-btn.gommo-table-action--open {
+    border-color: color-mix(in srgb, var(--gommo-info) 28%, var(--gommo-border-subtle));
+    background: color-mix(in srgb, var(--gommo-info) 9%, var(--color-base-100));
+}
+
 .attendance-sheet__expand {
     background: color-mix(in srgb, var(--color-base-200) 55%, var(--color-base-100));
 }
@@ -4451,7 +4734,7 @@ html:has(.logging-out-screen) body {
 }
 
 .attendance-sheet__expand[data-open="true"] td {
-    border-bottom-width: 1px;
+    border-bottom: 1px solid var(--gommo-border-subtle);
 }
 
 .attendance-sheet__expand-viewport {
@@ -4507,8 +4790,8 @@ html:has(.logging-out-screen) body {
     flex-wrap: wrap;
     align-items: center;
     gap: 0;
-    font-size: 0.8125rem;
-    line-height: 1.35;
+    font-size: 0.78125rem;
+    line-height: 1.25;
     color: color-mix(in srgb, var(--color-base-content) 72%, transparent);
 }
 
@@ -4543,8 +4826,8 @@ html:has(.logging-out-screen) body {
 .attendance-sheet__expand-notes {
     margin: 0;
     max-width: 100%;
-    font-size: 0.8125rem;
-    line-height: 1.4;
+    font-size: 0.78125rem;
+    line-height: 1.25;
     color: color-mix(in srgb, var(--color-base-content) 70%, transparent);
     white-space: pre-wrap;
     overflow-wrap: anywhere;

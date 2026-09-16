@@ -3,8 +3,6 @@ import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
 
 export type AttendancePresenceListingRow = AttendancePresenceRow & {
     presenceTags: string[];
-    /** Entrada / Saída / Retorno / Fim expediente */
-    schedule: string;
 };
 
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
@@ -66,8 +64,11 @@ function fieldValue(row: AttendancePresenceListingRow, field: string): string {
     if (field === "workedHours") {
         return row.workedHours == null ? "" : String(row.workedHours);
     }
-    if (field === "schedule") {
-        return row.schedule || formatAttendanceSchedule(row);
+    if (field === "debitHours") {
+        return row.debitHours == null ? "" : String(row.debitHours);
+    }
+    if (field === "creditHours") {
+        return row.creditHours == null ? "" : String(row.creditHours);
     }
     const record = row as unknown as Record<string, unknown>;
     const raw = record[field];
@@ -130,10 +131,7 @@ export function paginatePresenceRows(
     const to = Math.min(from + safeSize, filtered.length);
     const totalPages = filtered.length === 0 ? 0 : Math.ceil(filtered.length / safeSize);
     return {
-        content: filtered.slice(from, to).map((row) => ({
-            ...row,
-            schedule: row.schedule || formatAttendanceSchedule(row),
-        })),
+        content: filtered.slice(from, to),
         page: safePage,
         size: safeSize,
         totalElements: filtered.length,

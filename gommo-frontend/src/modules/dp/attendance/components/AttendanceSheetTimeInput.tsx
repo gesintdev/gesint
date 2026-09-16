@@ -8,14 +8,14 @@ import {
     type KeyboardEvent,
     type MutableRefObject,
     useCallback,
+    useEffect,
     useId,
     useLayoutEffect,
     useRef,
     useState,
 } from "react";
 
-import {HourPickerPanel} from "@/shared/components/ui/input/HourPickerPanel";
-import {useClickOutside} from "@/shared/components/ui/input/use-listbox-keyboard";
+import {AttendanceTimePickerModal} from "@/modules/dp/attendance/components/AttendanceTimePickerModal";
 import {
     maskTimeInputWithCaret,
     parseTimeInputToValue,
@@ -29,6 +29,8 @@ type AttendanceSheetTimeInputProps = {
     onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
     /** Seleção completa via painel (valor canônico HH:mm). */
     onPick?: (canonical: string) => void;
+    /** Abre o modal de horário ao montar / quando o token muda (ícone do campo inativo). */
+    openPickerToken?: number | null;
 };
 
 function assignInputRef(
@@ -43,25 +45,15 @@ function assignInputRef(
 
 export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceSheetTimeInputProps>(
     function AttendanceSheetTimeInput(
-        {value, ariaLabel, onValueChange, onKeyDown, onPick},
+        {value, ariaLabel, onValueChange, onKeyDown, onPick, openPickerToken},
         ref,
     ) {
         const autoId = useId();
         const rootRef = useRef<HTMLDivElement>(null);
         const inputRef = useRef<HTMLInputElement | null>(null);
         const pendingCaretRef = useRef<number | null>(null);
-        /** Âncora visual = célula (borda azul), não o conteúdo com padding. */
-        const cellAnchorRef = useRef<HTMLElement | null>(null);
-        const panelRef = useRef<HTMLDivElement>(null);
+        const lastOpenTokenRef = useRef<number | undefined>(undefined);
         const [open, setOpen] = useState(false);
-
-        const syncCellAnchor = useCallback(() => {
-            cellAnchorRef.current = rootRef.current?.closest("td") ?? rootRef.current;
-        }, []);
-
-        useLayoutEffect(() => {
-            if (open) syncCellAnchor();
-        }, [open, syncCellAnchor]);
 
         useLayoutEffect(() => {
             const caret = pendingCaretRef.current;
@@ -72,7 +64,12 @@ export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceS
             pendingCaretRef.current = null;
         });
 
-        useClickOutside([rootRef, panelRef], () => setOpen(false), open);
+        useEffect(() => {
+            if (openPickerToken == null) return;
+            if (lastOpenTokenRef.current === openPickerToken) return;
+            lastOpenTokenRef.current = openPickerToken;
+            setOpen(true);
+        }, [openPickerToken]);
 
         const canonicalForPanel = parseTimeInputToValue(value) || "";
 
@@ -101,7 +98,7 @@ export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceS
         return (
             <div
                 ref={rootRef}
-                className="attendance-sheet__time-input"
+                className="attendance-sheet__time-input rounded-[var(--gommo-control-radius)]"
                 data-attendance-sheet-time-input="true"
             >
                 <input
@@ -129,21 +126,17 @@ export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceS
                     }}
                     onClick={(event) => {
                         event.stopPropagation();
-                        syncCellAnchor();
-                        setOpen((current) => !current);
+                        setOpen(true);
                     }}
                 >
                     <Clock className="size-3.5"/>
                 </button>
-                {open ? (
-                    <HourPickerPanel
-                        ref={panelRef}
-                        anchorRef={cellAnchorRef}
-                        align="start"
-                        value={canonicalForPanel}
-                        onPick={handlePick}
-                    />
-                ) : null}
+                <AttendanceTimePickerModal
+                    open={open}
+                    value={canonicalForPanel}
+                    onApply={handlePick}
+                    onClose={() => setOpen(false)}
+                />
             </div>
         );
     },

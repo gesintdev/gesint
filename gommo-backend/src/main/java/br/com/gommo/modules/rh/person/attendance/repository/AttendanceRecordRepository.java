@@ -67,4 +67,16 @@ public interface AttendanceRecordRepository extends IBaseRepository<AttendanceRe
             @Param("periodStart") LocalDate periodStart,
             @Param("periodEnd") LocalDate periodEnd,
             @Param("deletedStatus") StatusEnum deletedStatus);
+
+    @Query(
+            """
+            SELECT DISTINCT a.collaboratorId FROM AttendanceRecord a
+            WHERE a.status <> :deletedStatus
+              AND a.collaboratorId IS NOT NULL
+              AND a.workDate BETWEEN :periodStart AND :periodEnd
+            """)
+    List<UUID> findDistinctCollaboratorIdsByWorkDateBetween(
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("deletedStatus") StatusEnum deletedStatus);
 }

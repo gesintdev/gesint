@@ -1,6 +1,7 @@
 import type {
     AttendanceClockPayload,
     AttendanceCompensationType,
+    AttendanceCollaboratorSchedule,
     AttendanceMobileContext,
     AttendancePresenceRow,
     AttendanceRecord,
@@ -36,8 +37,22 @@ class AttendanceRecordService extends BaseService<
         );
     }
 
-    listCollaboratorHistory(collaboratorId: string, page = 0, size = 20) {
+    collaboratorSchedule(collaboratorId: string) {
+        return apiFetch<AttendanceCollaboratorSchedule>(
+            `${this.basePath}/collaborators/${collaboratorId}/schedule`,
+        );
+    }
+
+    listCollaboratorHistory(
+        collaboratorId: string,
+        page = 0,
+        size = 20,
+        from?: string,
+        to?: string,
+    ) {
         const params = new URLSearchParams({page: String(page), size: String(size)});
+        if (from) params.set("from", from);
+        if (to) params.set("to", to);
         return apiFetch<PageableResponseDto<AttendanceRecord>>(
             `${this.basePath}/collaborators/${collaboratorId}/history?${params.toString()}`,
         );

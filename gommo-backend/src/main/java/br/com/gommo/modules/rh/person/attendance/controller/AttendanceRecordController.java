@@ -3,6 +3,7 @@ package br.com.gommo.modules.rh.person.attendance.controller;
 import br.com.gommo.core.base.controller.BaseController;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceClockRequestDto;
+import br.com.gommo.modules.rh.person.attendance.dto.AttendanceCollaboratorScheduleResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceMobileContextResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendancePresenceResponseDto;
 import br.com.gommo.modules.rh.person.attendance.dto.AttendanceRecordRequestDto;
@@ -43,9 +44,11 @@ public class AttendanceRecordController extends BaseController<AttendanceRecordR
     @GetMapping("/collaborators/{collaboratorId}/history")
     public PageableResponseDto<AttendanceRecordResponseDto> collaboratorHistory(
         @PathVariable UUID collaboratorId,
+        @RequestParam(required = false) LocalDate from,
+        @RequestParam(required = false) LocalDate to,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size) {
-        return attendanceRecordService.collaboratorHistory(collaboratorId, page, size);
+        return attendanceRecordService.collaboratorHistory(collaboratorId, from, to, page, size);
     }
 
     @GetMapping("/collaborators/{collaboratorId}/schedule-day")
@@ -53,6 +56,12 @@ public class AttendanceRecordController extends BaseController<AttendanceRecordR
         @PathVariable UUID collaboratorId,
         @RequestParam LocalDate date) {
         return attendanceRecordService.scheduleDay(collaboratorId, date);
+    }
+
+    @GetMapping("/collaborators/{collaboratorId}/schedule")
+    public AttendanceCollaboratorScheduleResponseDto collaboratorSchedule(
+        @PathVariable UUID collaboratorId) {
+        return attendanceRecordService.collaboratorSchedule(collaboratorId);
     }
 
     @GetMapping("/mobile/context")

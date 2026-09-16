@@ -1,10 +1,34 @@
-import { digitsOnly } from "@/shared/lib/input/digits";
-/** Máscara visual DD/MM/AAAA */
+import {
+    cursorForDigitCount,
+    digitsBeforeCursor,
+    digitsOnly,
+} from "@/shared/lib/input/digits";
+
+/**
+ * Máscara visual progressiva DD/MM/AAAA (enquanto digita).
+ * 1–2 dígitos: dia; 3–4: dia/mês; 5–8: dia/mês/ano.
+ */
 export function maskDateBr(value: string): string {
     const d = digitsOnly(value).slice(0, 8);
     if (d.length <= 2) return d;
     if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
     return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+}
+
+/**
+ * Aplica `maskDateBr` preservando o caret por contagem de dígitos
+ * (evita o jump para o fim em inputs controlados).
+ */
+export function maskDateBrWithCaret(
+    raw: string,
+    selectionStart: number | null,
+): {value: string; caret: number} {
+    const cursor = selectionStart ?? raw.length;
+    const value = maskDateBr(raw);
+    return {
+        value,
+        caret: cursorForDigitCount(value, digitsBeforeCursor(raw, cursor)),
+    };
 }
 
 export function isoToDateBr(iso: string): string {
