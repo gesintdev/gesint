@@ -171,7 +171,8 @@ Os dois backends e o Postgres precisam estar no **mesmo servidor** Coolify (mesm
 
 ### 5.1 Lab LAN (`*.gommo.local`)
 
-Arquivo pronto: [`env/lab-gommo.local.env`](env/lab-gommo.local.env).
+Template: [`env/lab-gommo.local.env.example`](env/lab-gommo.local.env.example).
+Copie para `env/lab-gommo.local.env` (gitignored) e preencha senhas/UUIDs reais — nunca versionar o arquivo preenchido.
 
 Checklist mínimo para o Admin logar do Windows:
 
@@ -179,7 +180,7 @@ Checklist mínimo para o Admin logar do Windows:
 2. `NODE_TLS_REJECT_UNAUTHORIZED=0` no admin-frontend (cert self-signed; Auth.js chama a API no server)
 3. Ports Exposes do admin-frontend = `3001`
 4. Login: `https://admin.gommo.local` → `admGommo` / `GOMMO_PLATFORM_ADMIN_PASSWORD`
-5. IntelliJ: em `gommo-db` marque **Make it publicly available**, porta `5432`, host `LAB_LAN_HOST`
+5. IntelliJ: em `gommo-db` marque **Make it publicly available**, porta `5432`, host = IP LAN do Coolify (`LAB_LAN_HOST`)
 
 ### 6. Variáveis de ambiente
 

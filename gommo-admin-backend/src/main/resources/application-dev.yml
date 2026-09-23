@@ -13,7 +13,7 @@ gommo-admin:
     fallback-password: ${TENANT_DB_FALLBACK_PASSWORD:${DB_PASSWORD:${POSTGRES_PASSWORD:}}}
   security:
     jwt:
-      # Sobrescreva com JWT_SECRET no .env da raiz (mínimo 32 caracteres)
+      # Obrigatório via JWT_SECRET no .env da raiz (mínimo 32 caracteres) — sem default
       secret: ${JWT_SECRET}
   cors:
     allowed-origins: http://localhost:3001

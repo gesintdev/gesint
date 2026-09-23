@@ -4,6 +4,7 @@ set HOSTS=%SystemRoot%\System32\drivers\etc\hosts
 findstr /C:"teste.gommo.local" "%HOSTS%" >nul
 if errorlevel 1 (
   echo.>> "%HOSTS%"
+  REM Substitua LAB_LAN_HOST pelo IP do host Coolify na sua LAN
   echo LAB_LAN_HOST   teste.gommo.local>> "%HOSTS%"
   echo ADDED teste.gommo.local
 ) else (
