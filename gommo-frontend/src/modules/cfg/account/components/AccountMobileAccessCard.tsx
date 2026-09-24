@@ -79,14 +79,14 @@ export function AccountMobileAccessCard() {
 
     return (
         <Card animate={false}>
-            <div className="flex flex-col gap-5">
+            <div className="grid gap-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6">
                 <AccessCodeRow
                     label="Código do empregador"
                     code={employerCode}
                     emptyMessage="Código do empregador não disponível para este ambiente."
                     loading={tenantQuery.isLoading}
                 />
-                <div className="border-t border-base-content/10" />
+                <div className="border-t border-base-content/10 sm:h-full sm:min-h-14 sm:border-t-0 sm:border-l" />
                 <AccessCodeRow
                     label="Código do colaborador"
                     code={collaboratorCode}
