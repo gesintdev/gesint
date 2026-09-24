@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { useDocumentTypeItems } from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
 import type { LeaveRequestCreateDto } from "@/modules/rh/person/leave/dto/leave-request.dto";
 import { LEAVE_CLIENT_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
 import { leaverequestKeys } from "@/modules/rh/person/leave/leave.query";
@@ -70,6 +71,7 @@ export function LeaveAbsenceFormClient() {
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<LeaveFormField, string>>>({});
     const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+    const { items: documentTypeItems } = useDocumentTypeItems("LEAVE");
     const emptyDefaults = useMemo(() => emptyLeaveAbsenceForm(), []);
     const detailQuery = useQuery({
         queryKey: leaverequestKeys.detail(editingId ?? ""),
@@ -426,6 +428,8 @@ export function LeaveAbsenceFormClient() {
                 <EntityAttachments
                     entityType={LEAVE_ABSENCE_ENTITY_TYPE}
                     entityId={editingId}
+                    documentTypeItems={documentTypeItems}
+                    sensitivePermission="leave:sensitive"
                     deferUpload
                     pendingAttachments={pendingAttachments}
                     onPendingAttachmentsChange={setPendingAttachments}

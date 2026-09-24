@@ -8,6 +8,7 @@ import {DepartmentPickerField} from "@/modules/dp/organization/department/compon
 import {JobPositionPickerField} from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
 import {workScheduleService} from "@/modules/cfg/settings/workschedule/services/work-schedule.service";
 import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule.query";
+import {useDocumentTypeItems} from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
 import {admissionprocessKeys} from "@/modules/rh/person/collaborators/admission/admission.query";
 import {
     AdmissionEmergencyContactsField
@@ -18,10 +19,8 @@ import {
 } from "@/modules/rh/person/collaborators/admission/exceptions/admission-process.messages";
 import {isAdmissionPj} from "@/modules/rh/person/collaborators/admission/lib/admission-contract.util";
 import {
-    ADMISSION_DOCUMENT_TYPE_ITEMS,
     ADMISSION_FORM_STEPS,
     CONTRACT_TYPE_ITEMS,
-    contractDocumentTypeItems,
     GENDER_ITEMS,
     MARITAL_ITEMS,
     RECESS_FINANCIAL_ITEMS,
@@ -308,7 +307,10 @@ export function AdmissionProcessFormClient() {
     );
     const activeStepIds = useMemo(() => admissionFormSteps.map((step) => step.id), [admissionFormSteps]);
     const filledStepIds = computeFilledAdmissionSteps(form, stepContext, activeStepIds);
-    const contractDocTypeItems = useMemo(() => contractDocumentTypeItems(form.contractType), [form.contractType]);
+    const {items: admissionDocumentTypeItems} = useDocumentTypeItems("ADMISSION_DOCUMENT");
+    const {items: contractDocTypeItems} = useDocumentTypeItems(
+        isPj ? "ADMISSION_CONTRACT_PJ" : "ADMISSION_CONTRACT",
+    );
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -648,7 +650,9 @@ export function AdmissionProcessFormClient() {
                     entityType="admission_process"
                     entityId={editingId}
                     linkRole="DOCUMENT"
-                    documentTypeItems={ADMISSION_DOCUMENT_TYPE_ITEMS}
+                    documentTypeItems={admissionDocumentTypeItems}
+                    sensitivePermission="admission:sensitive"
+                    financialPermission="admission:financial"
                     deferUpload
                     pendingAttachments={pendingDocumentAttachments}
                     onPendingAttachmentsChange={setPendingDocumentAttachments}
@@ -739,6 +743,8 @@ export function AdmissionProcessFormClient() {
                     entityId={editingId}
                     linkRole="CONTRACT"
                     documentTypeItems={contractDocTypeItems}
+                    sensitivePermission="admission:sensitive"
+                    financialPermission="admission:financial"
                     emptyMessage="Nenhum documento de contrato anexado."
                     deferUpload
                     pendingAttachments={pendingContractAttachments}

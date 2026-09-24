@@ -81,7 +81,7 @@ export function ProfilePermissionAssignmentPanel({
     readOnly = false,
 }: ProfilePermissionAssignmentPanelProps) {
     return (
-        <div className="grid h-full min-h-0 w-full grid-cols-1 overflow-hidden sm:col-span-12 lg:grid-cols-[minmax(16rem,19rem)_minmax(0,1fr)_minmax(15rem,19rem)]">
+        <div className="grid h-full min-h-0 w-full grid-cols-1 overflow-hidden sm:col-span-12 lg:grid-cols-[minmax(16rem,19rem)_minmax(0,1fr)_minmax(18rem,24rem)]">
             <div className="flex min-h-0 min-w-0 flex-col border-b border-base-content/8 bg-base-200/25 lg:border-r lg:border-b-0">
                 <div className="shrink-0 px-4 pt-3 pb-2">
                     <h3 className="text-xs font-semibold tracking-wide text-base-content/70 uppercase">

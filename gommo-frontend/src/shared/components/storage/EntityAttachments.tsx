@@ -1,12 +1,17 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {Check, Download, Eye, Pencil, Trash2, Upload, X} from "lucide-react";
+import {Check, Download, Eye, Lock, Pencil, Trash2, Upload, X} from "lucide-react";
 import {useMemo, useRef, useState, type ReactNode} from "react";
 import {toast} from "sonner";
 
-import {documentTypeLabel} from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
+import {
+    documentTypeClassLabel,
+    documentTypeLabel,
+    type DocumentTypeSelectItem,
+} from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
 import type {StorageObjectLink} from "@/modules/storage/dto/storage.dto";
 import {invalidUploadFileMessage} from "@/modules/storage/lib/storage-limits";
 import {storageService} from "@/modules/storage/services/storage.service";
+import {hasPermission, useSessionPermissions} from "@/shared/auth/permissions";
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";
 import {StoragePdfPreviewModal} from "@/shared/components/storage/StoragePdfPreviewModal";
 import {Button} from "@/shared/components/ui/Button";
@@ -28,7 +33,10 @@ export type PendingAttachment = {
 type AttachmentTableRow = {
     id: string;
     displayName: string;
+    documentType?: string;
     documentTypeLabel?: string;
+    documentClassLabel?: string;
+    dataClass?: string;
     sizeLabel: string;
     statusLabel?: string;
     pending: boolean;
@@ -41,15 +49,44 @@ type EntityAttachmentsProps = {
     entityType: string;
     entityId: string | null;
     linkRole?: string;
-    documentTypeItems?: SelectItem[];
+    documentTypeItems?: DocumentTypeSelectItem[] | SelectItem[];
     emptyMessage?: string;
     /** Mantém arquivos locais até o formulário pai persistir a entidade. */
     deferUpload?: boolean;
     pendingAttachments?: PendingAttachment[];
     onPendingAttachmentsChange?: (attachments: PendingAttachment[]) => void;
+    /** Authority para anexos SENSIVEL (ex.: leave:sensitive). Sem ela, download/preview bloqueados. */
+    sensitivePermission?: string;
+    /** Authority para anexos FINANCEIRO (ex.: admission:financial). */
+    financialPermission?: string;
     /** Ações extras na coluna de ações de cada arquivo da grid. */
     rowActionsExtra?: ReactNode;
 };
+
+function resolveDataClass(
+    documentType: string | undefined,
+    items: DocumentTypeSelectItem[] | undefined,
+): string | undefined {
+    if (!documentType || !items?.length) return undefined;
+    return items.find((item) => item.value === documentType)?.dataClass;
+}
+
+function isDownloadRestricted(
+    dataClass: string | undefined,
+    granted: readonly string[],
+    sensitivePermission?: string,
+    financialPermission?: string,
+): boolean {
+    if (dataClass === "SENSIVEL") {
+        if (!sensitivePermission?.trim()) return true;
+        return !hasPermission(granted, sensitivePermission);
+    }
+    if (dataClass === "FINANCEIRO") {
+        if (!financialPermission?.trim()) return true;
+        return !hasPermission(granted, financialPermission);
+    }
+    return false;
+}
 
 function formatFileSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
@@ -107,10 +144,13 @@ export function EntityAttachments({
                                       deferUpload = false,
                                       pendingAttachments = [],
                                       onPendingAttachmentsChange,
+                                      sensitivePermission,
+                                      financialPermission,
                                       rowActionsExtra,
                                   }: EntityAttachmentsProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const queryClient = useQueryClient();
+    const permissions = useSessionPermissions();
     const [uploading, setUploading] = useState(false);
     const [documentType, setDocumentType] = useState("");
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -290,6 +330,12 @@ export function EntityAttachments({
                     fieldValue: "documentTypeLabel",
                     dataType: TableDataType.TEXT,
                 },
+                {
+                    id: "documentClass",
+                    columnName: "Classe",
+                    fieldValue: "documentClassLabel",
+                    dataType: TableDataType.BADGE,
+                },
             ]
             : []),
         {id: "displayName", columnName: "Arquivo", fieldValue: "displayName", dataType: TableDataType.TEXT},
@@ -298,6 +344,7 @@ export function EntityAttachments({
             ? [{id: "status", columnName: "Situação", fieldValue: "statusLabel", dataType: TableDataType.TEXT}]
             : []),
     ];
+    const typedDocumentTypeItems = documentTypeItems as DocumentTypeSelectItem[] | undefined;
     const rows = useMemo(() => {
         const activeLinks = deferUpload ? (serverLinksQuery.data ?? []) : (linksQuery.data ?? []);
         const serverRows: AttachmentTableRow[] = sortRowsByCreatedAtDesc(
@@ -306,7 +353,10 @@ export function EntityAttachments({
                 .map((link) => ({
                     id: link.id,
                     displayName: link.displayName ?? link.storageObject?.objectKey ?? "Arquivo",
-                    documentTypeLabel: documentTypeLabel(link.documentType, documentTypeItems),
+                    documentType: link.documentType,
+                    documentTypeLabel: documentTypeLabel(link.documentType, typedDocumentTypeItems),
+                    documentClassLabel: documentTypeClassLabel(link.documentType, typedDocumentTypeItems),
+                    dataClass: resolveDataClass(link.documentType, typedDocumentTypeItems),
                     sizeLabel:
                         link.storageObject?.contentLength != null
                             ? formatFileSize(link.storageObject.contentLength)
@@ -320,14 +370,17 @@ export function EntityAttachments({
         const pendingRows: AttachmentTableRow[] = pendingAttachments.map((item) => ({
             id: item.id,
             displayName: item.displayName,
-            documentTypeLabel: documentTypeLabel(item.documentType, documentTypeItems),
+            documentType: item.documentType,
+            documentTypeLabel: documentTypeLabel(item.documentType, typedDocumentTypeItems),
+            documentClassLabel: documentTypeClassLabel(item.documentType, typedDocumentTypeItems),
+            dataClass: resolveDataClass(item.documentType, typedDocumentTypeItems),
             sizeLabel: formatFileSize(item.file.size),
             pending: true,
             pendingItem: item,
             statusLabel: "Pendente",
         }));
         return [...pendingRows, ...serverRows];
-    }, [deferUpload, documentTypeItems, linkRole, linksQuery.data, pendingAttachments, serverLinksQuery.data]);
+    }, [deferUpload, typedDocumentTypeItems, linkRole, linksQuery.data, pendingAttachments, serverLinksQuery.data]);
 
     if (!deferUpload && !entityId) {
         return <p className="text-sm text-base-content/50">Salve o registro para anexar documentos.</p>;
@@ -416,22 +469,45 @@ export function EntityAttachments({
                                             onClick={() => startEditDocumentType(row)}
                                         />
                                     ) : null}
-                                    {isPdfAttachment(row) ? (
-                                        <TableActionButton
-                                            actionVariant="open"
-                                            aria-label="Visualizar PDF"
-                                            title="Visualizar PDF"
-                                            leftIcon={<Eye className="size-3.5"/>}
-                                            onClick={() => handlePreviewPdf(row)}
-                                        />
-                                    ) : null}
-                                    <TableActionButton
-                                        actionVariant="download"
-                                        aria-label="Download"
-                                        leftIcon={<Download className="size-3.5"/>}
-                                        loading={downloadingId === row.id}
-                                        onClick={() => void handleDownload(row)}
-                                    />
+                                    {(() => {
+                                        const restricted = isDownloadRestricted(
+                                            row.dataClass,
+                                            permissions,
+                                            sensitivePermission,
+                                            financialPermission,
+                                        );
+                                        if (restricted) {
+                                            return (
+                                                <TableActionButton
+                                                    actionVariant="download"
+                                                    aria-label="Sem permissão"
+                                                    title="Sem permissão"
+                                                    disabled
+                                                    leftIcon={<Lock className="size-3.5"/>}
+                                                />
+                                            );
+                                        }
+                                        return (
+                                            <>
+                                                {isPdfAttachment(row) ? (
+                                                    <TableActionButton
+                                                        actionVariant="open"
+                                                        aria-label="Visualizar PDF"
+                                                        title="Visualizar PDF"
+                                                        leftIcon={<Eye className="size-3.5"/>}
+                                                        onClick={() => handlePreviewPdf(row)}
+                                                    />
+                                                ) : null}
+                                                <TableActionButton
+                                                    actionVariant="download"
+                                                    aria-label="Download"
+                                                    leftIcon={<Download className="size-3.5"/>}
+                                                    loading={downloadingId === row.id}
+                                                    onClick={() => void handleDownload(row)}
+                                                />
+                                            </>
+                                        );
+                                    })()}
                                     <TableActionButton
                                         actionVariant="delete"
                                         aria-label="Excluir"

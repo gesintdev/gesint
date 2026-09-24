@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.storage.access.StorageAttachmentAccessGuard;
 import br.com.gommo.modules.storage.config.StorageProperties;
 import br.com.gommo.modules.storage.dto.StorageObjectLinkResponseDto;
 import br.com.gommo.modules.storage.dto.StorageObjectResponseDto;
@@ -40,16 +41,19 @@ public class StorageService implements IStorageService {
     private final StorageObjectLinkRepository linkRepository;
     private final StorageMapper mapper;
     private final StorageProperties properties;
+    private final StorageAttachmentAccessGuard attachmentAccessGuard;
 
     public StorageService(
             StorageObjectRepository objectRepository,
             StorageObjectLinkRepository linkRepository,
             StorageMapper mapper,
-            StorageProperties properties) {
+            StorageProperties properties,
+            StorageAttachmentAccessGuard attachmentAccessGuard) {
         this.objectRepository = objectRepository;
         this.linkRepository = linkRepository;
         this.mapper = mapper;
         this.properties = properties;
+        this.attachmentAccessGuard = attachmentAccessGuard;
     }
 
     @Override
@@ -207,6 +211,7 @@ public class StorageService implements IStorageService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('storage:read')")
     public List<StorageObjectLinkResponseDto> listByEntity(String entityType, UUID entityId) {
+        attachmentAccessGuard.assertCanList(entityType);
         return listByEntityInternal(entityType, entityId);
     }
 
@@ -244,6 +249,7 @@ public class StorageService implements IStorageService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('storage:read')")
     public InputStream download(UUID objectId) {
+        attachmentAccessGuard.assertCanDownload(objectId);
         return downloadInternal(objectId);
     }
 
@@ -266,6 +272,7 @@ public class StorageService implements IStorageService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('storage:read')")
     public StorageObjectResponseDto findObject(UUID objectId) {
+        attachmentAccessGuard.assertCanDownload(objectId);
         return mapper.toObjectResponse(findActiveObject(objectId));
     }
 

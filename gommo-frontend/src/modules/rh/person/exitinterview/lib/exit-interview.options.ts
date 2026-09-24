@@ -87,13 +87,6 @@ export const RETURN_STATUS_ITEMS: SelectItem[] = [
 export const RETURN_STATUS_LABELS: Record<ReturnItemStatus, string> = Object.fromEntries(
     RETURN_STATUS_ITEMS.map((item) => [item.value, item.label]),
 ) as Record<ReturnItemStatus, string>;
-export const EXIT_INTERVIEW_DOCUMENT_TYPE_ITEMS: SelectItem[] = [
-    {value: "TERMINATION_TERM", label: "Termo de desligamento"},
-    {value: "SIGNED_INTERVIEW", label: "Entrevista assinada"},
-    {value: "PJ_CONTRACT_TERMINATION", label: "Distrato/encerramento PJ"},
-    {value: "RETURN_PROOF", label: "Comprovante de devolucao"},
-    {value: "OTHER", label: "Outro documento"},
-];
 export const DEFAULT_RATINGS: ExitInterviewRatingDto[] = [
     {key: "work_environment", label: "Ambiente de trabalho", score: 1},
     {key: "communication", label: "Comunicacao", score: 1},

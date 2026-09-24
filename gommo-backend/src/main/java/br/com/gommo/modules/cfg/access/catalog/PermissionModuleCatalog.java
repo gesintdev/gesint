@@ -20,6 +20,7 @@ public final class PermissionModuleCatalog {
                         "user",
                         "workschedule",
                         "digitalcertificate",
+                        "documenttype",
                         "admission",
                         "exitinterview",
                         "developmentplanconfig",

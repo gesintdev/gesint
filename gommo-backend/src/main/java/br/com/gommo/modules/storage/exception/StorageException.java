@@ -37,4 +37,16 @@ public final class StorageException {
         return new BusinessException(
                 StorageExceptions.LINK_NOT_FOUND_CODE, StorageExceptions.LINK_NOT_FOUND_MSG, HttpStatus.NOT_FOUND);
     }
+
+    public static BusinessException accessDenied() {
+        return new BusinessException(
+                StorageExceptions.ACCESS_DENIED_CODE, StorageExceptions.ACCESS_DENIED_MSG, HttpStatus.FORBIDDEN);
+    }
+
+    public static BusinessException branchRequired() {
+        return new BusinessException(
+                StorageExceptions.BRANCH_REQUIRED_CODE,
+                StorageExceptions.BRANCH_REQUIRED_MSG,
+                HttpStatus.FORBIDDEN);
+    }
 }

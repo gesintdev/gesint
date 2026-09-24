@@ -105,8 +105,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('leave:read')")
     public List<LeaveRequestResponseDto> findAll() {
-        List<LeaveRequest> entities = repository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED);
-        return mapResponses(entities);
+        return findAll(StatusEnum.ACTIVE);
     }
 
     @Override
@@ -286,7 +285,8 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('leave:read')")
     public List<LeaveRequestResponseDto> findAll(StatusEnum status) {
-        return super.findAll(status);
+        StatusEnum resolved = resolveListStatus(status);
+        return mapResponses(repository.findAllByStatusOrderByCreatedAtDesc(resolved));
     }
 
     @Override

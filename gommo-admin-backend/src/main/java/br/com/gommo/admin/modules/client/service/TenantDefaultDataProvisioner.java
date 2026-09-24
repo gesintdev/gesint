@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
  *   <li>Eventos padrao de folha ({@code payroll_event})</li>
  *   <li>Catalogo inicial de PDI (niveis de proficiencia, tipos de evidencia, origens)</li>
  *   <li>Catalogo eSocial Tabela 27 (exames complementares)</li>
+ *   <li>Catalogo de tipos de documento para anexos (SEG-01 / RN-02)</li>
  * </ul>
  *
  * <p>Escala e kanban usam valores explicitos (nao copiam {@code public}) para nao vazar ajustes
@@ -47,6 +48,7 @@ public class TenantDefaultDataProvisioner {
         seedPayrollEvents(schema);
         seedDevelopmentPlanCatalog(schema);
         seedEsocialTable27Procedures(schema);
+        seedDocumentTypes(schema);
     }
 
     private void seedDefaultWorkSchedule(String schema) {
@@ -270,6 +272,33 @@ public class TenantDefaultDataProvisioner {
                       SELECT 1
                       FROM "%s".evidence_type t
                       WHERE LOWER(t.name) = LOWER(e.name)
+                        AND t.status <> 'DELETED'
+                  )
+                ON CONFLICT (id) DO NOTHING
+                """
+                        .formatted(schema, schema));
+    }
+
+    private void seedDocumentTypes(String schema) {
+        if (!tableExists(schema, "document_type") || !tableExists("public", "document_type")) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".document_type (
+                    id, code, status, type_code, name, description, data_class,
+                    contexts, system_managed, sort_order, created_at
+                )
+                SELECT
+                    p.id, p.code, p.status, p.type_code, p.name, p.description, p.data_class,
+                    p.contexts, p.system_managed, p.sort_order, now()
+                FROM public.document_type p
+                WHERE p.status <> 'DELETED'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM "%s".document_type t
+                      WHERE LOWER(t.type_code) = LOWER(p.type_code)
                         AND t.status <> 'DELETED'
                   )
                 ON CONFLICT (id) DO NOTHING

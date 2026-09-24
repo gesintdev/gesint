@@ -9,6 +9,7 @@ const MODULES_BY_SYSTEM: Record<string, ReadonlySet<string>> = {
         "user",
         "workschedule",
         "digitalcertificate",
+        "documenttype",
         "admission",
         "exitinterview",
         "developmentplanconfig",

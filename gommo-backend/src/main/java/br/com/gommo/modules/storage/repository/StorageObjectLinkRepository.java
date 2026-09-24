@@ -17,4 +17,6 @@ public interface StorageObjectLinkRepository extends IBaseRepository<StorageObje
 
     List<StorageObjectLink> findAllByEntityTypeAndEntityIdInAndStatusNot(
             String entityType, List<UUID> entityIds, StatusEnum status);
+
+    List<StorageObjectLink> findAllByStorageObjectIdAndStatusNot(UUID storageObjectId, StatusEnum status);
 }

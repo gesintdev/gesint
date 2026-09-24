@@ -43,7 +43,7 @@ function EmptyJobPositionState() {
 
 export function JobPositionExamRequirementTab() {
     const { editingId } = useCrudScreen();
-    const canWrite = useHasPermission("occupationalexam:write");
+    const canWrite = useHasPermission("jobposition:exammatrix");
     const [modalOpen, setModalOpen] = useState(false);
     const [editingRequirementId, setEditingRequirementId] = useState<string | null>(null);
 

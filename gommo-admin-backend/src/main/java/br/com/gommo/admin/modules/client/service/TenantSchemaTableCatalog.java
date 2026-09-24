@@ -38,6 +38,7 @@ public final class TenantSchemaTableCatalog {
             "complementary_exam",
             "esocial_health_event",
             "digital_certificate",
+            "document_type",
             "acting_profile",
             "user_acting_profile",
             "system_setting",

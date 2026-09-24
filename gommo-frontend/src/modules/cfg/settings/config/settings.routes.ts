@@ -3,6 +3,7 @@ import {
     CalendarClock,
     ClipboardList,
     Columns3,
+    FileText,
     GraduationCap,
     KanbanSquare,
     KeyRound,
@@ -142,6 +143,31 @@ const dpRoutes: AppRoute[] = [
         ),
         formTabLabel: "Certificado digital",
         listToFormLabel: "Novo certificado",
+        showListToFormButton: true,
+    }),
+    tabbedCrudRoute({
+        id: "settings-document-types",
+        href: "/settings/document-types",
+        label: "Tipos de documento",
+        icon: FileText,
+        permission: "documenttype:read",
+        routeId: "settings-document-types",
+        tabShortLabel: "Tipo doc.",
+        fieldTabName: "name",
+        listToolbar:
+            "Tipos usados em anexos. A classe (comum, pessoal, sensível ou financeiro) define a proteção do arquivo (SEG-01).",
+        list: lazyNamed(
+            () =>
+                import("@/modules/cfg/settings/documenttype/components/DocumentTypeListClient"),
+            "DocumentTypeListClient",
+        ),
+        form: lazyNamed(
+            () =>
+                import("@/modules/cfg/settings/documenttype/components/DocumentTypeFormClient"),
+            "DocumentTypeFormClient",
+        ),
+        formTabLabel: "Tipo de documento",
+        listToFormLabel: "Novo tipo",
         showListToFormButton: true,
     }),
 ];

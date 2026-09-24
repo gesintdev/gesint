@@ -35,28 +35,28 @@ public class EsocialTable27ProcedureService
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('occupationalexam:read')")
+    @PreAuthorize("hasAuthority('occupationalexam:read') or hasAuthority('jobposition:exammatrix')")
     public List<EsocialTable27ProcedureResponseDto> findAll() {
         return super.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('occupationalexam:read')")
+    @PreAuthorize("hasAuthority('occupationalexam:read') or hasAuthority('jobposition:exammatrix')")
     public List<EsocialTable27ProcedureResponseDto> findAll(StatusEnum status) {
         return super.findAll(status);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('occupationalexam:read')")
+    @PreAuthorize("hasAuthority('occupationalexam:read') or hasAuthority('jobposition:exammatrix')")
     public EsocialTable27ProcedureResponseDto findById(UUID id) {
         return super.findById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('occupationalexam:read')")
+    @PreAuthorize("hasAuthority('occupationalexam:read') or hasAuthority('jobposition:exammatrix')")
     public PageableResponseDto<EsocialTable27ProcedureResponseDto> findPage(int page, int size) {
         return super.findPage(page, size);
     }

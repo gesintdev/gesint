@@ -685,7 +685,7 @@ export function ClientCadastro({
                                         Provisionar
                                     </AdminBtn>
                                     <AdminHelpTip
-                                        tooltip="Cria e prepara o schema/banco do tenant com base na configuração salva (conexão, estrutura e status READY/ERROR). Clique no ícone para a documentação completa."
+                                        tooltip="Usa exatamente o Schema gravado em Config. do Ambiente. So sugere tenant_{slug} se o campo estiver vazio. Clique no icone para a documentacao."
                                         href="/docs/provision-environment"
                                     />
                                 </div>

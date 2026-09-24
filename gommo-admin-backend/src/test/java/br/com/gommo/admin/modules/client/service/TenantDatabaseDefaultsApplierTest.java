@@ -35,10 +35,23 @@ class TenantDatabaseDefaultsApplierTest {
     }
 
     @Test
-    void applyCorrectsSchemaThatDoesNotMatchSlug() {
+    void applyKeepsConfiguredSchemaFromEnvironmentTable() {
         ClientEnvironmentConfig config = ClientEnvironmentConfig.builder()
                 .databaseStrategy(TenantDatabaseStrategyEnum.DEDICATED_SCHEMA)
-                .databaseSchema("tenant_elaine")
+                .databaseSchema("posto_sjb")
+                .subdomain("posto-sjb")
+                .build();
+
+        applier.apply(config, "posto-sao-joao-batista-ii");
+
+        assertEquals("posto_sjb", config.getDatabaseSchema());
+    }
+
+    @Test
+    void applyFillsDefaultSchemaOnlyWhenBlank() {
+        ClientEnvironmentConfig config = ClientEnvironmentConfig.builder()
+                .databaseStrategy(TenantDatabaseStrategyEnum.DEDICATED_SCHEMA)
+                .databaseSchema(null)
                 .build();
 
         applier.apply(config, "teste");

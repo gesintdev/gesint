@@ -1,7 +1,5 @@
 package br.com.gommo.admin.modules.client.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -9,10 +7,13 @@ import org.springframework.util.StringUtils;
 import br.com.gommo.admin.modules.client.entity.TenantDatabaseStrategyEnum;
 import br.com.gommo.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 
+/**
+ * Preenche apenas defaults de conexao ausentes. O nome do schema vem de
+ * {@code client_environment_config.database_schema}: se ja estiver gravado, e preservado.
+ * So preenche schema quando o campo estiver vazio (cadastro novo).
+ */
 @Component
 public class TenantDatabaseDefaultsApplier {
-
-    private static final Logger log = LoggerFactory.getLogger(TenantDatabaseDefaultsApplier.class);
 
     private static final String DEFAULT_SECRET_REF = "DB_PASSWORD";
     private static final int MAX_SCHEMA_LENGTH = 63;
@@ -32,19 +33,13 @@ public class TenantDatabaseDefaultsApplier {
             entity.setSubdomain(slug.trim());
         }
 
-        String expectedSchema = TenantSchemaProvisioner.defaultSchemaForSlug(slug);
         String normalizedSchema = normalizeSchema(entity.getDatabaseSchema());
-        if (!StringUtils.hasText(normalizedSchema) || "public".equalsIgnoreCase(normalizedSchema)) {
-            entity.setDatabaseSchema(expectedSchema);
-        } else if (!normalizedSchema.equals(expectedSchema)) {
-            log.warn(
-                    "Schema {} diverge do slug {} (esperado {}). Corrigindo para evitar apontar o tenant errado.",
-                    normalizedSchema,
-                    slug,
-                    expectedSchema);
-            entity.setDatabaseSchema(expectedSchema);
-        } else {
+        if (StringUtils.hasText(normalizedSchema) && !"public".equalsIgnoreCase(normalizedSchema)) {
+            // Fonte da verdade: o que esta (ou foi digitado) no cadastro do ambiente.
             entity.setDatabaseSchema(normalizedSchema);
+        } else if (!StringUtils.hasText(normalizedSchema) || "public".equalsIgnoreCase(normalizedSchema)) {
+            // Cadastro novo / campo vazio: default explicito tenant_{slug}.
+            entity.setDatabaseSchema(TenantSchemaProvisioner.defaultSchemaForSlug(slug));
         }
 
         if (!StringUtils.hasText(entity.getDatabaseHost())) {
@@ -66,7 +61,6 @@ public class TenantDatabaseDefaultsApplier {
 
     /**
      * Preserva o valor digitado pelo usuario, apenas sanitizando para identificador PostgreSQL.
-     * Antes, schemas "inseguros" (ex.: com hifen) eram descartados e trocados por tenant_{slug}.
      */
     static String normalizeSchema(String schema) {
         if (!StringUtils.hasText(schema)) {

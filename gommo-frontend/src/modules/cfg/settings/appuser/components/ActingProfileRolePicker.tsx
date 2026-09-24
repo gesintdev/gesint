@@ -1,16 +1,16 @@
 "use client";
 
 import clsx from "clsx";
-import {Eye, Pencil, Search} from "lucide-react";
-import {useMemo, useState} from "react";
+import { Eye, Pencil, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
-import {ActingProfileDetailModal} from "@/modules/cfg/settings/appuser/components/ActingProfileDetailModal";
-import type {ActingProfile, SystemScope} from "@/modules/cfg/settings/actingprofile/dto/acting-profile.dto";
-import {DATA_SCOPE_OPTIONS} from "@/modules/cfg/settings/actingprofile/services/acting-profile.service";
-import {TableActionButton} from "@/shared/components/crud/TableActionButton";
-import {InputCheckbox} from "@/shared/components/ui/input/index";
-import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
-import {findRouteById} from "@/shared/workspace/workspace-routes";
+import type { ActingProfile, SystemScope } from "@/modules/cfg/settings/actingprofile/dto/acting-profile.dto";
+import { DATA_SCOPE_OPTIONS } from "@/modules/cfg/settings/actingprofile/services/acting-profile.service";
+import { ActingProfileDetailModal } from "@/modules/cfg/settings/appuser/components/ActingProfileDetailModal";
+import { TableActionButton } from "@/shared/components/crud/TableActionButton";
+import { InputCheckbox } from "@/shared/components/ui/input/index";
+import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
+import { findRouteById } from "@/shared/workspace/workspace-routes";
 
 const PROFILE_ROW_CLASS = "flex min-h-[2.25rem] items-center gap-2 rounded px-2 py-1.5 text-sm";
 const SETTINGS_ACTING_PROFILES_ROUTE_ID = "settings-profiles-atuacoes";
@@ -47,7 +47,7 @@ export function ActingProfileRolePicker({
 }: ActingProfileRolePickerProps) {
     const [search, setSearch] = useState("");
     const [detailProfile, setDetailProfile] = useState<ActingProfile | null>(null);
-    const {openRouteRecord} = useWorkspaceNavigation();
+    const { openRouteRecord } = useWorkspaceNavigation();
     const selectedSet = new Set(selectedIds);
     const filteredProfiles = useMemo(() => filterActingProfilesBySearch(profiles, search), [profiles, search]);
 
@@ -75,8 +75,7 @@ export function ActingProfileRolePicker({
         );
     }
 
-    const emptyMessage =
-        profiles.length === 0 ? "Nenhum perfil de atuação cadastrado." : "Nenhum perfil encontrado.";
+    const emptyMessage = profiles.length === 0 ? "Nenhum perfil de atuação cadastrado." : "Nenhum perfil encontrado.";
 
     return (
         <>

@@ -58,7 +58,7 @@ export const organizationRoutes: AppRoute[] = [
                     {
                         id: "exam-matrix",
                         label: "Matriz de Exames",
-                        permission: "occupationalexam:read",
+                        permission: "jobposition:exammatrix",
                         visibleWhenEditing: true,
                         content: lazyNamed(
                             () =>

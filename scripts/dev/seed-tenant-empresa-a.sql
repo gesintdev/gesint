@@ -51,6 +51,7 @@ DECLARE
         'complementary_exam',
         'esocial_health_event',
         'digital_certificate',
+        'document_type',
         'acting_profile',
         'system_setting',
         'system_notification',

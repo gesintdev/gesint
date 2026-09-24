@@ -88,6 +88,8 @@ Acesse pelo ícone CFG no rail. Exemplos:
 - Usuários → `/settings/users`
 - Preferências → `/settings/preferences`
 - Escalas → `/settings/work-schedules`
+- Certificados digitais → `/settings/digital-certificates`
+- Tipos de documento → `/settings/document-types`
 - Colunas do Kanban (processo de admissão) → `/settings/admission-process-kanban`
 - Checklist de devoluções → `/settings/exit-interview-return-checklist`
 

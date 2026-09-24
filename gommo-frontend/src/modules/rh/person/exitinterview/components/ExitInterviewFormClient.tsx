@@ -32,7 +32,6 @@ import {
 } from "@/modules/rh/person/exitinterview/lib/exit-interview.mapper";
 import {
     CLT_TERMINATION_ITEMS,
-    EXIT_INTERVIEW_DOCUMENT_TYPE_ITEMS,
     EXIT_INTERVIEW_STATUS_ITEMS,
     EXIT_REASON_ITEMS,
     PJ_TERMINATION_ITEMS,
@@ -41,6 +40,7 @@ import {
     RETURN_STATUS_ITEMS,
     YES_NO_RECOMMEND_ITEMS,
 } from "@/modules/rh/person/exitinterview/lib/exit-interview.options";
+import { useDocumentTypeItems } from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
 import { exitinterviewService } from "@/modules/rh/person/exitinterview/services/exit-interview.service";
 import { storageService } from "@/modules/storage/services/storage.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
@@ -255,6 +255,7 @@ export function ExitInterviewFormClient() {
     const [error, setError] = useState<string | null>(null);
     const [cancelReason, setCancelReason] = useState("");
     const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+    const { items: documentTypeItems } = useDocumentTypeItems("EXIT_INTERVIEW");
     const emptyDefaults = useMemo(() => emptyExitInterviewForm(), []);
     const detailQuery = useQuery({
         queryKey: exitinterviewKeys.detail(editingId ?? ""),
@@ -984,7 +985,7 @@ export function ExitInterviewFormClient() {
                 <EntityAttachments
                     entityType={EXIT_INTERVIEW_ENTITY_TYPE}
                     entityId={editingId}
-                    documentTypeItems={EXIT_INTERVIEW_DOCUMENT_TYPE_ITEMS}
+                    documentTypeItems={documentTypeItems}
                     deferUpload
                     pendingAttachments={pendingAttachments}
                     onPendingAttachmentsChange={setPendingAttachments}

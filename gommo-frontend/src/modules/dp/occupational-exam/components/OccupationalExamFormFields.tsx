@@ -2,9 +2,9 @@
 
 import type { ReactNode } from "react";
 
+import { useDocumentTypeItems } from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
 import type { OccupationalExamCreateDto } from "@/modules/dp/occupational-exam/dto/occupational-exam.dto";
 import {
-    OCCUPATIONAL_EXAM_ATTACHMENT_TYPES,
     OCCUPATIONAL_EXAM_ENTITY_TYPE,
     OCCUPATIONAL_EXAM_LINK_ROLE,
     OCCUPATIONAL_EXAM_LIFECYCLE_ITEMS,
@@ -48,6 +48,8 @@ export function OccupationalExamFormFields({
     collaboratorField,
     jobPositionField,
 }: OccupationalExamFormFieldsProps) {
+    const { items: documentTypeItems } = useDocumentTypeItems("OCCUPATIONAL_EXAM");
+
     return (
         <>
             <FormSection id="cadastro" title="Exame ocupacional" description="Obrigacao e convocacao.">
@@ -152,7 +154,8 @@ export function OccupationalExamFormFields({
                     entityType={OCCUPATIONAL_EXAM_ENTITY_TYPE}
                     entityId={examId ?? null}
                     linkRole={OCCUPATIONAL_EXAM_LINK_ROLE}
-                    documentTypeItems={OCCUPATIONAL_EXAM_ATTACHMENT_TYPES}
+                    documentTypeItems={documentTypeItems}
+                    sensitivePermission="occupationalexam:clinical"
                     deferUpload
                     pendingAttachments={pendingAttachments}
                     onPendingAttachmentsChange={onPendingAttachmentsChange}

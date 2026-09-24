@@ -18,4 +18,10 @@ public final class StorageExceptions {
 
     public static final String LINK_NOT_FOUND_CODE = "STORAGE_LINK_NOT_FOUND";
     public static final String LINK_NOT_FOUND_MSG = "Vínculo do arquivo não encontrado";
+
+    public static final String ACCESS_DENIED_CODE = "STORAGE_ACCESS_DENIED";
+    public static final String ACCESS_DENIED_MSG = "Sem permissão para baixar este anexo";
+
+    public static final String BRANCH_REQUIRED_CODE = "STORAGE_BRANCH_REQUIRED";
+    public static final String BRANCH_REQUIRED_MSG = "Selecione uma filial para acessar anexos";
 }

@@ -42,35 +42,35 @@ public class ExamRequirementService
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('occupationalexam:read')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public List<ExamRequirementResponseDto> findAll() {
         return super.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('occupationalexam:read')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public List<ExamRequirementResponseDto> findAll(StatusEnum status) {
         return super.findAll(status);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('occupationalexam:read')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public ExamRequirementResponseDto findById(UUID id) {
         return super.findById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('occupationalexam:read')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public PageableResponseDto<ExamRequirementResponseDto> findPage(int page, int size) {
         return super.findPage(page, size);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('occupationalexam:read')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public List<ExamRequirementResponseDto> findByJobPositionId(UUID jobPositionId) {
         return repository.findByJobPositionIdAndStatusNotOrderByValidFromDesc(jobPositionId, StatusEnum.DELETED).stream()
                 .map(mapper::toResponse)
@@ -79,7 +79,7 @@ public class ExamRequirementService
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('occupationalexam:write')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public ExamRequirementResponseDto create(ExamRequirementRequestDto request) {
         ExamRequirement entity = mapper.toEntity(request);
         entity.setStatus(StatusEnum.ACTIVE);
@@ -97,7 +97,7 @@ public class ExamRequirementService
      */
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('occupationalexam:write')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public ExamRequirementResponseDto update(UUID id, ExamRequirementRequestDto request) {
         ExamRequirement current = findEntity(id);
         LocalDate closeDate = request.getValidFrom() != null
@@ -119,21 +119,21 @@ public class ExamRequirementService
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('occupationalexam:write')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public void activate(UUID id) {
         super.activate(id);
     }
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('occupationalexam:write')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public void deactivate(UUID id) {
         super.deactivate(id);
     }
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('occupationalexam:delete')")
+    @PreAuthorize("hasAuthority('jobposition:exammatrix')")
     public void delete(UUID id) {
         super.delete(id);
     }
