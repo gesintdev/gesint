@@ -12,6 +12,13 @@ export type InputFieldChromeProps = {
     /** Quando false, o rótulo não dispara o controle (ex.: select com botão). */
     labelFor?: boolean;
     placeholder?: string;
+    /**
+     * Campo de dado sensível / financeiro / clínico (RN-02 · SEG-02).
+     * Sem a authority em {@link sensitivePermission}, exibe a superfície Restrito.
+     */
+    sensitive?: boolean;
+    /** Authority exigida quando sensitive=true (ex.: leave:sensitive). Sem ela, fail-closed. */
+    sensitivePermission?: string;
 };
 
 export type InputBaseProps = InputFieldChromeProps & {

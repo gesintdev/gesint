@@ -10,19 +10,24 @@ import { useSession } from "next-auth/react";
 /**
  * Keys comerciais efetivas do tenant (via AppBootstrap /auth/me).
  * - Host plataforma / localhost (dev-public): null — todos os sistemas.
+ * - `branchId` opcional: usa o override daquela filial (coluna Filiais); sem argumento,
+ *   usa a filial ativa do header.
  */
-export function useContractedSystemKeys(): {
+export function useContractedSystemKeys(branchId?: string | null): {
     keys: string[] | null;
     ready: boolean;
 } {
     const { data: session, status } = useSession();
     const bootstrap = useOptionalAppBootstrap();
     const activeBranchId = useSyncExternalStore(subscribeActiveBranch, readActiveBranch, () => null);
+    const effectiveBranchId = branchId !== undefined ? branchId : activeBranchId;
 
     const overrides = bootstrap?.contractedSystemKeyOverrides ?? null;
     const baseKeys = bootstrap?.contractedSystemKeys ?? null;
     const scopedKeys =
-        activeBranchId && overrides?.[activeBranchId] ? overrides[activeBranchId] : baseKeys;
+        effectiveBranchId && overrides?.[effectiveBranchId]
+            ? overrides[effectiveBranchId]
+            : baseKeys;
 
     const noCommercialFilter = isPlatformAdminWithoutTenant({
         platformAdmin: session?.platformAdmin ?? bootstrap?.bootstrap?.platformAdmin,

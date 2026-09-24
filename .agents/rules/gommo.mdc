@@ -123,16 +123,20 @@ Regras:
 
 ## Multi-tenant
 
-MVP usa schema dedicado por cliente (`tenant_*`), não coluna `tenant_id`.
+MVP usa schema dedicado por cliente (ex.: `tenant_*` ou slug livre como `posto_sjb`), não coluna `tenant_id`.
 
 Ao criar tabela/entidade de negócio:
 
 1. Criar migration Flyway em `gommo-backend`.
 2. Incluir a tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin backend.
 3. Espelhar em `scripts/dev/seed-tenant-empresa-a.sql` (`tenant_tables`).
-4. Sincronizar tenants existentes em dev quando necessário.
+4. Sincronizar tenants existentes em dev quando necessário — **avisar o usuário explicitamente** (reinício do backend, sync Admin, SQL manual ou re-login).
 5. Nunca filtrar tenant manualmente no service; usar `TenantSchemaDataSource` + JWT/header (`X-Tenant-Slug`).
 6. Trabalho `@Async` deve usar `TenantContextTaskDecorator` no executor.
+
+Sync de migration para schemas de cliente: iterar **todos** os schemas com `permission`/`app_user` (exceto `public`, `admin`, `gommo_types`, `pg_*`), não só `tenant_%`.
+
+**Aviso obrigatório:** sempre que a entrega exigir reprovisionar, sync de schema de tenant, restart com Flyway, ou novo login para pegar authorities, dizer isso de forma clara ao usuário — não assumir que ele descubra sozinho.
 
 Frontend envia headers de tenant via `api.client.ts` / `tenant.ts`; não criar lógica extra por tela.
 

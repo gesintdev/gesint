@@ -14,6 +14,9 @@ import {
     suggestUsernameFromCollaborator,
 } from "@/modules/cfg/settings/appuser/lib/collaborator-credentials";
 import {appUserService} from "@/modules/cfg/settings/appuser/services/appuser.service";
+import {actingProfileKeys} from "@/modules/cfg/settings/actingprofile/actingprofile.query";
+import type {ActingProfile} from "@/modules/cfg/settings/actingprofile/dto/acting-profile.dto";
+import {actingProfileService} from "@/modules/cfg/settings/actingprofile/services/acting-profile.service";
 import {
     ASSIGNABLE_SYSTEM_SCOPES,
     type SystemScope,
@@ -45,17 +48,26 @@ function emptyRoleIdsBySystem(): Partial<Record<SystemScope, string[]>> {
 /** O backend espera o mapa completo filial -> sistema -> perfis, inclusive filiais sem perfil. */
 function toSavePayload(dto: AppUserCreateDto, branchIds: string[]): AppUserCreateDto {
     const roleIdsByBranch: RoleIdsByBranch = {};
-    const allBranchIds = new Set([...branchIds, ...Object.keys(dto.roleIdsByBranch ?? {})]);
+    const actingProfileIdsByBranch: RoleIdsByBranch = {};
+    const allBranchIds = new Set([
+        ...branchIds,
+        ...Object.keys(dto.roleIdsByBranch ?? {}),
+        ...Object.keys(dto.actingProfileIdsByBranch ?? {}),
+    ]);
     for (const branchId of allBranchIds) {
         const bySystem = emptyRoleIdsBySystem();
+        const actingBySystem = emptyRoleIdsBySystem();
         for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
             bySystem[scope] = dto.roleIdsByBranch?.[branchId]?.[scope] ?? [];
+            actingBySystem[scope] = dto.actingProfileIdsByBranch?.[branchId]?.[scope] ?? [];
         }
         roleIdsByBranch[branchId] = bySystem;
+        actingProfileIdsByBranch[branchId] = actingBySystem;
     }
     return {
         ...dto,
         roleIdsByBranch,
+        actingProfileIdsByBranch,
     };
 }
 
@@ -64,7 +76,22 @@ const emptyForm = (): AppUserCreateDto => ({
     username: "",
     email: "",
     roleIdsByBranch: {},
+    actingProfileIdsByBranch: {},
 });
+
+function roleIdsFromProfilesByBranch(
+    rolesByBranch: AppUser["rolesByBranch"] | AppUser["actingProfilesByBranch"],
+): RoleIdsByBranch {
+    const roleIdsByBranch: RoleIdsByBranch = {};
+    for (const [branchId, rolesBySystem] of Object.entries(rolesByBranch ?? {})) {
+        const bySystem = emptyRoleIdsBySystem();
+        for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
+            bySystem[scope] = rolesBySystem?.[scope]?.map((profile) => profile.id) ?? [];
+        }
+        roleIdsByBranch[branchId] = bySystem;
+    }
+    return roleIdsByBranch;
+}
 
 const FORM_STEPS: FormStepNavItem[] = [
     {id: "dados", label: "Dados"},
@@ -90,6 +117,12 @@ export function AppUserFormClient() {
             queryFn: () => profileService.getAll(scope),
         })),
     });
+    const actingProfileQueries = useQueries({
+        queries: ASSIGNABLE_SYSTEM_SCOPES.map((scope) => ({
+            queryKey: actingProfileKeys.list(scope),
+            queryFn: () => actingProfileService.getAll(scope),
+        })),
+    });
 
     const profilesBySystem = useMemo(() => {
         const map = {} as Partial<Record<SystemScope, Profile[]>>;
@@ -99,6 +132,16 @@ export function AppUserFormClient() {
         return map;
     }, [profileQueries]);
 
+    const actingProfilesBySystem = useMemo(() => {
+        const map = {} as Partial<Record<SystemScope, ActingProfile[]>>;
+        ASSIGNABLE_SYSTEM_SCOPES.forEach((scope, index) => {
+            map[scope] = (actingProfileQueries[index]?.data ?? []).filter(
+                (row) => row.status === "ACTIVE" || row.status == null,
+            );
+        });
+        return map;
+    }, [actingProfileQueries]);
+
     const loadingBySystem = useMemo(() => {
         const map = {} as Partial<Record<SystemScope, boolean>>;
         ASSIGNABLE_SYSTEM_SCOPES.forEach((scope, index) => {
@@ -106,6 +149,14 @@ export function AppUserFormClient() {
         });
         return map;
     }, [profileQueries]);
+
+    const actingLoadingBySystem = useMemo(() => {
+        const map = {} as Partial<Record<SystemScope, boolean>>;
+        ASSIGNABLE_SYSTEM_SCOPES.forEach((scope, index) => {
+            map[scope] = actingProfileQueries[index]?.isLoading ?? false;
+        });
+        return map;
+    }, [actingProfileQueries]);
 
     useEffect(() => {
         if (!isEditing) {
@@ -115,20 +166,14 @@ export function AppUserFormClient() {
         }
 
         if (detailQuery.data) {
-            const rolesByBranch = detailQuery.data.rolesByBranch ?? {};
-            const roleIdsByBranch: RoleIdsByBranch = {};
-            for (const [branchId, rolesBySystem] of Object.entries(rolesByBranch)) {
-                const bySystem = emptyRoleIdsBySystem();
-                for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
-                    bySystem[scope] = rolesBySystem?.[scope]?.map((profile) => profile.id) ?? [];
-                }
-                roleIdsByBranch[branchId] = bySystem;
-            }
             setForm({
                 collaboratorId: detailQuery.data.collaboratorId,
                 username: detailQuery.data.username,
                 email: detailQuery.data.email,
-                roleIdsByBranch,
+                roleIdsByBranch: roleIdsFromProfilesByBranch(detailQuery.data.rolesByBranch),
+                actingProfileIdsByBranch: roleIdsFromProfilesByBranch(
+                    detailQuery.data.actingProfilesByBranch,
+                ),
             });
             setError(null);
         }
@@ -136,20 +181,14 @@ export function AppUserFormClient() {
 
     const appUserBaseline = useMemo((): AppUserCreateDto => {
         if (!isEditing || !detailQuery.data) return emptyForm();
-        const rolesByBranch = detailQuery.data.rolesByBranch ?? {};
-        const roleIdsByBranch: RoleIdsByBranch = {};
-        for (const [branchId, rolesBySystem] of Object.entries(rolesByBranch)) {
-            const bySystem = emptyRoleIdsBySystem();
-            for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
-                bySystem[scope] = rolesBySystem?.[scope]?.map((profile) => profile.id) ?? [];
-            }
-            roleIdsByBranch[branchId] = bySystem;
-        }
         return {
             collaboratorId: detailQuery.data.collaboratorId,
             username: detailQuery.data.username,
             email: detailQuery.data.email,
-            roleIdsByBranch,
+            roleIdsByBranch: roleIdsFromProfilesByBranch(detailQuery.data.rolesByBranch),
+            actingProfileIdsByBranch: roleIdsFromProfilesByBranch(
+                detailQuery.data.actingProfilesByBranch,
+            ),
         };
     }, [detailQuery.data, isEditing]);
     useCrudFormDirty(useFormDirtyByComparison(form, appUserBaseline));
@@ -351,8 +390,11 @@ export function AppUserFormClient() {
             >
                 <AppUserProfileAssignmentPanel
                     profilesBySystem={profilesBySystem}
+                    actingProfilesBySystem={actingProfilesBySystem}
                     selectedIdsByBranch={form.roleIdsByBranch ?? {}}
+                    selectedActingIdsByBranch={form.actingProfileIdsByBranch ?? {}}
                     loadingBySystem={loadingBySystem}
+                    actingLoadingBySystem={actingLoadingBySystem}
                     onChange={(branchId, scope, ids) =>
                         setForm((prev) => ({
                             ...prev,
@@ -360,6 +402,18 @@ export function AppUserFormClient() {
                                 ...prev.roleIdsByBranch,
                                 [branchId]: {
                                     ...prev.roleIdsByBranch?.[branchId],
+                                    [scope]: ids,
+                                },
+                            },
+                        }))
+                    }
+                    onActingChange={(branchId, scope, ids) =>
+                        setForm((prev) => ({
+                            ...prev,
+                            actingProfileIdsByBranch: {
+                                ...prev.actingProfileIdsByBranch,
+                                [branchId]: {
+                                    ...prev.actingProfileIdsByBranch?.[branchId],
                                     [scope]: ids,
                                 },
                             },

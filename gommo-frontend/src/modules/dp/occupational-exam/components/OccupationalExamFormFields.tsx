@@ -16,7 +16,7 @@ import {
     type PendingAttachment,
 } from "@/shared/components/storage/EntityAttachments";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { InputDate, InputInfo, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 
 type OccupationalExamFormFieldsProps = {
@@ -27,7 +27,6 @@ type OccupationalExamFormFieldsProps = {
     ) => void;
     clinicItems: SelectItem[];
     physicianItems: SelectItem[];
-    canViewClinical: boolean;
     examId?: string | null;
     pendingAttachments: PendingAttachment[];
     onPendingAttachmentsChange: (items: PendingAttachment[]) => void;
@@ -42,7 +41,6 @@ export function OccupationalExamFormFields({
     onChange,
     clinicItems,
     physicianItems,
-    canViewClinical,
     examId,
     pendingAttachments,
     onPendingAttachmentsChange,
@@ -126,28 +124,22 @@ export function OccupationalExamFormFields({
                     onValueChange={(v) => onChange("asoIssueDate", v || undefined)}
                     wrapperClassName="sm:col-span-6"
                 />
-                {canViewClinical ? (
-                    <>
-                        <InputString
-                            label="CID"
-                            value={form.cid ?? ""}
-                            onValueChange={(v) => onChange("cid", v || undefined)}
-                            wrapperClassName="sm:col-span-4"
-                        />
-                        <InputString
-                            label="Observacoes clinicas"
-                            value={form.clinicalObservations ?? ""}
-                            onValueChange={(v) => onChange("clinicalObservations", v || undefined)}
-                            wrapperClassName="sm:col-span-8"
-                        />
-                    </>
-                ) : (
-                    <InputInfo
-                        label="Dados clinicos"
-                        value="Visiveis apenas para perfil com permissao occupationalexam:clinical"
-                        wrapperClassName="sm:col-span-12"
-                    />
-                )}
+                <InputString
+                    label="CID"
+                    value={form.cid ?? ""}
+                    onValueChange={(v) => onChange("cid", v || undefined)}
+                    wrapperClassName="sm:col-span-4"
+                    sensitive
+                    sensitivePermission="occupationalexam:clinical"
+                />
+                <InputString
+                    label="Observacoes clinicas"
+                    value={form.clinicalObservations ?? ""}
+                    onValueChange={(v) => onChange("clinicalObservations", v || undefined)}
+                    wrapperClassName="sm:col-span-8"
+                    sensitive
+                    sensitivePermission="occupationalexam:clinical"
+                />
             </FormSection>
 
             <FormSection

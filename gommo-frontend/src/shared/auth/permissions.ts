@@ -5,6 +5,7 @@ import { systemScopeFromEnum } from "@/modules/cfg/settings/lib/access-menu-cata
 import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
 import { useOptionalAppBootstrap } from "@/shared/components/providers/AppBootstrapProvider";
 import { readPermissionsFromAccessToken } from "@/auth/access-token-claims";
+import { moduleCoveredBySystemAdmin } from "@/shared/auth/permission-module-catalog";
 
 export function deriveWritePermission(readPermission?: string): string | undefined {
     if (!readPermission) return undefined;
@@ -16,11 +17,21 @@ export function deriveDeletePermission(readPermission?: string): string | undefi
     return readPermission.endsWith(":read") ? `${readPermission.slice(0, -":read".length)}:delete` : undefined;
 }
 
+export function deriveExportPermission(readPermission?: string): string | undefined {
+    if (!readPermission) return undefined;
+    const module = readPermission.includes(":")
+        ? readPermission.slice(0, readPermission.indexOf(":"))
+        : readPermission;
+    return module ? `${module}:export` : undefined;
+}
+
 export function hasPermission(granted: readonly string[] | null | undefined, permission?: string): boolean {
     if (!permission) return true;
     if (!granted?.length) return false;
     if (granted.includes("*")) return true;
-    return granted.includes(permission);
+    if (granted.includes(permission)) return true;
+    // Perfil ADMIN do sistema (ADM:DP etc.): acesso total aos modulos daquele sistema.
+    return moduleCoveredBySystemAdmin(granted, permission);
 }
 
 export function useSessionPermissions(): readonly string[] {

@@ -23,6 +23,10 @@ type TableGridToolbarProps = {
     onClearFilters: () => void;
     canClearFilters: boolean;
     exportDisabled?: boolean;
+    /** Quando false, oculta o botão Excel. */
+    exportVisible?: boolean;
+    /** Title do botão Excel (ex.: sem permissão). */
+    exportTitle?: string;
     className?: string;
 };
 
@@ -34,6 +38,8 @@ export function TableGridToolbar({
                                      onClearFilters,
                                      canClearFilters,
                                      exportDisabled = false,
+                                     exportVisible = true,
+                                     exportTitle = "Exportar Excel",
                                      className,
                                  }: TableGridToolbarProps) {
     const [columnsOpen, setColumnsOpen] = useState(false);
@@ -154,15 +160,17 @@ export function TableGridToolbar({
                     : null}
             </div>
 
-            <TableActionButton
-                type="button"
-                actionVariant="download"
-                aria-label="Exportar para Excel"
-                title="Exportar Excel"
-                disabled={exportDisabled}
-                leftIcon={<FileSpreadsheet className="size-3.5"/>}
-                onClick={onExportExcel}
-            />
+            {exportVisible ? (
+                <TableActionButton
+                    type="button"
+                    actionVariant="download"
+                    aria-label="Exportar para Excel"
+                    title={exportTitle}
+                    disabled={exportDisabled}
+                    leftIcon={<FileSpreadsheet className="size-3.5"/>}
+                    onClick={onExportExcel}
+                />
+            ) : null}
 
             <TableActionButton
                 type="button"

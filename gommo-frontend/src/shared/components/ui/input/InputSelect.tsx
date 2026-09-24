@@ -34,6 +34,8 @@ export function InputSelect({
     disabled,
     id: idProp,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     className,
 }: InputSelectProps) {
     const autoId = useId();
@@ -99,6 +101,8 @@ export function InputSelect({
             id={id}
             labelFor={false}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div ref={rootRef} className="relative">
                 <button

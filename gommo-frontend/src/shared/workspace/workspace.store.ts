@@ -11,7 +11,7 @@ import {
     stripDashboardTabs,
 } from "@/shared/workspace/workspace-dashboard";
 import { notifyTabClosed } from "@/shared/workspace/dirty-tab-guard";
-import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
+import { defaultShortLabel, findRouteById } from "@/shared/workspace/workspace-routes";
 import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
 
 /** Abas de uma filial que nao esta ativa no momento. */
@@ -149,12 +149,18 @@ function normalizeTabs(tabs: WorkspaceTab[]): WorkspaceTab[] {
     return partitionPinnedTabs(
         tabs.map((tab) => {
             const { routeId, entityKey } = parseWorkspaceTabId(tab.id);
+            const route = findRouteById(routeId);
             return sanitizeTabIcon({
                 ...tab,
                 id: buildWorkspaceTabId(routeId, entityKey),
                 routeId,
                 entityKey,
                 pinned: Boolean(tab.pinned),
+                href: route?.href ?? tab.href,
+                routeLabel: route?.label ?? tab.routeLabel,
+                shortLabel:
+                    route?.tabShortLabel ??
+                    (route?.label ? defaultShortLabel(route.label) : tab.shortLabel),
             });
         }),
     );

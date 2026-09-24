@@ -633,11 +633,56 @@ body {
     box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--color-error) 18%, transparent) !important;
 }
 
+/* Dado sensível restrito (RN-02 · SEG-02) — listras + cadeado */
+.gommo-field.gommo-field--restricted {
+    gap: 0.4rem;
+    cursor: default;
+    border-color: var(--gommo-border);
+    background: repeating-linear-gradient(
+        135deg,
+        var(--color-base-200),
+        var(--color-base-200) 6px,
+        var(--color-base-100) 6px,
+        var(--color-base-100) 12px
+    );
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    box-shadow: none;
+}
+
+.gommo-field.gommo-field--restricted:hover,
+.gommo-field.gommo-field--restricted:focus-within {
+    border-color: var(--gommo-border);
+    box-shadow: none;
+}
+
+.gommo-field__restricted-label {
+    font-size: var(--gommo-control-font-size);
+    font-variation-settings: "wght" 550;
+    letter-spacing: 0.01em;
+    color: inherit;
+    user-select: none;
+}
+
 /* Disabled / readonly */
 .gommo-field--disabled,
 .gommo-field[data-disabled] {
     opacity: 0.55;
     cursor: not-allowed;
+    pointer-events: none;
+}
+
+/**
+ * Superfície disabled (fieldset / bloco / lista): sem hover nem clique nos filhos.
+ * Preferir no container, nao em cada item — scroll pode ficar no ancestral.
+ */
+.gommo-disabled-surface {
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.gommo-disabled-surface * {
+    cursor: not-allowed !important;
 }
 
 /* Inner native input — estica no flex (altura/largura úteis para autofill) */

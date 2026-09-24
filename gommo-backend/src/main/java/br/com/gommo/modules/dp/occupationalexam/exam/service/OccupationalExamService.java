@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.core.security.AuthorityWildcards;
 import br.com.gommo.modules.dp.occupationalexam.complementaryexam.dto.ComplementaryExamRequestDto;
 import br.com.gommo.modules.dp.occupationalexam.complementaryexam.dto.ComplementaryExamResponseDto;
 import br.com.gommo.modules.dp.occupationalexam.complementaryexam.entity.ComplementaryExam;
@@ -503,9 +503,7 @@ public class OccupationalExamService
         if (authentication == null) {
             return false;
         }
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch("occupationalexam:clinical"::equals);
+        return AuthorityWildcards.allows(authentication.getAuthorities(), "occupationalexam:clinical");
     }
 
     private static String normalizeCid(String value) {

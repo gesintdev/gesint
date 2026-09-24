@@ -25,6 +25,8 @@ export function InputFile({
     disabled,
     id: idProp,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     fileName,
     accept,
     onFileChange,
@@ -57,6 +59,8 @@ export function InputFile({
             disabled={disabled}
             id={id}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <input
                 ref={inputRef}

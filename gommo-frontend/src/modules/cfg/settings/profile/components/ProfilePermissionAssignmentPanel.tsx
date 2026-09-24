@@ -46,6 +46,8 @@ type ProfilePermissionAssignmentPanelProps = {
     selectedPermissionIds: Set<string>;
     onTogglePermission: (permissionId: string, checked: boolean) => void;
     permissionsLoading?: boolean;
+    /** Perfil ADMIN do sistema: visualizacao com tudo marcado e desabilitado. */
+    readOnly?: boolean;
 };
 
 export function ProfilePermissionAssignmentPanel({
@@ -76,9 +78,10 @@ export function ProfilePermissionAssignmentPanel({
     selectedPermissionIds,
     onTogglePermission,
     permissionsLoading,
+    readOnly = false,
 }: ProfilePermissionAssignmentPanelProps) {
     return (
-        <div className="grid h-full min-h-0 w-full grid-cols-1 overflow-hidden sm:col-span-12 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)_minmax(14rem,18rem)]">
+        <div className="grid h-full min-h-0 w-full grid-cols-1 overflow-hidden sm:col-span-12 lg:grid-cols-[minmax(16rem,19rem)_minmax(0,1fr)_minmax(15rem,19rem)]">
             <div className="flex min-h-0 min-w-0 flex-col border-b border-base-content/8 bg-base-200/25 lg:border-r lg:border-b-0">
                 <div className="shrink-0 px-4 pt-3 pb-2">
                     <h3 className="text-xs font-semibold tracking-wide text-base-content/70 uppercase">
@@ -243,12 +246,14 @@ export function ProfilePermissionAssignmentPanel({
                                 value={name}
                                 onValueChange={onNameChange}
                                 required
+                                disabled={readOnly}
                                 wrapperClassName="min-w-0"
                             />
                             <InputString
                                 label="Descrição"
                                 value={description}
                                 onValueChange={onDescriptionChange}
+                                disabled={readOnly}
                                 wrapperClassName="min-w-0"
                             />
                         </div>
@@ -278,24 +283,29 @@ export function ProfilePermissionAssignmentPanel({
                         <>
                             <div className="flex shrink-0 items-center justify-between gap-2 border-b border-base-content/8 px-3 py-2">
                                 <p className="text-[11px] text-base-content/45">
-                                    Marque o menu para liberar todas as permissões
+                                    {readOnly
+                                        ? "Perfil administrativo: acesso total ao sistema (somente visualização)"
+                                        : "Marque o menu para liberar todas as permissões"}
                                 </p>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={onSelectAllMenus}
-                                >
-                                    {allMenusAccessState === "checked" ? "Remover todos" : "Adicionar todos"}
-                                </Button>
+                                {!readOnly ? (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={onSelectAllMenus}
+                                    >
+                                        {allMenusAccessState === "checked" ? "Remover todos" : "Adicionar todos"}
+                                    </Button>
+                                ) : null}
                             </div>
                             <NavRouteTree
                                 sections={navSections}
                                 selectedRouteId={selectedRoute?.id ?? null}
                                 markedRouteIds={markedRouteIds}
                                 showAccessCheckbox
+                                accessCheckboxesReadOnly={readOnly}
                                 routeAccessStateById={routeAccessStateById}
-                                onRouteAccessToggle={onRouteAccessToggle}
+                                onRouteAccessToggle={readOnly ? undefined : onRouteAccessToggle}
                                 onRouteSelect={onRouteSelect}
                                 embedded
                             />
@@ -311,7 +321,7 @@ export function ProfilePermissionAssignmentPanel({
             <div className="flex min-h-0 min-w-0 flex-col">
                 <div className="shrink-0 px-4 pt-3 pb-2">
                     <h3 className="truncate text-xs font-semibold tracking-wide text-base-content/70 uppercase">
-                        Permissões
+                        Ações
                     </h3>
                     <p className="mt-0.5 text-[11px] text-base-content/45">
                         Marque as ações liberadas neste menu
@@ -325,6 +335,7 @@ export function ProfilePermissionAssignmentPanel({
                             selectedIds={selectedPermissionIds}
                             onToggle={onTogglePermission}
                             loading={permissionsLoading}
+                            readOnly={readOnly}
                         />
                     ) : (
                         <p className="px-4 pt-2 text-xs text-base-content/40">

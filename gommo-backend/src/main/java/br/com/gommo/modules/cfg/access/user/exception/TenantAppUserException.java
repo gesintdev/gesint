@@ -43,6 +43,13 @@ public final class TenantAppUserException {
                 "APP_USER_INVALID_ROLE", "Perfil incompatível com o sistema selecionado.", HttpStatus.BAD_REQUEST);
     }
 
+    public static BusinessException invalidActingProfileForSystem() {
+        return new BusinessException(
+                "APP_USER_INVALID_ACTING_PROFILE",
+                "Perfil de atuação incompatível com o sistema selecionado.",
+                HttpStatus.BAD_REQUEST);
+    }
+
     public static BusinessException systemAdminImmutable() {
         return new BusinessException(
                 "APP_USER_SYSTEM_ADMIN_IMMUTABLE",

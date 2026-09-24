@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.cfg.access.actingprofile.dto.ActingProfileResponseDto;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.cfg.access.profile.dto.ProfileResponseDto;
 
@@ -31,6 +32,7 @@ public class AppUserResponseDto {
     private String username;
     private String email;
     private Map<UUID, Map<SystemScopeEnum, List<ProfileResponseDto>>> rolesByBranch;
+    private Map<UUID, Map<SystemScopeEnum, List<ActingProfileResponseDto>>> actingProfilesByBranch;
     private OffsetDateTime lastLogin;
     private boolean firstAccessCompleted;
     /** Presente apenas em create/reset-access — token em texto claro para exibir uma vez. */

@@ -40,6 +40,8 @@ export function InputHour({
     readOnly,
     id: idProp,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     className,
 }: InputHourProps) {
     const autoId = useId();
@@ -103,6 +105,8 @@ export function InputHour({
             disabled={disabled}
             id={id}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div ref={rootRef} className="relative">
                 <div

@@ -71,6 +71,8 @@ export function InputSelectAutocomplete({
     disabled,
     id: idProp,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     className,
 }: InputSelectAutocompleteProps) {
     const autoId = useId();
@@ -211,6 +213,8 @@ export function InputSelectAutocomplete({
             disabled={disabled}
             id={id}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div ref={rootRef} className="relative">
                 <div

@@ -31,6 +31,8 @@ export function InputMonth({
     readOnly,
     id: idProp,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     className,
 }: InputMonthProps) {
     const autoId = useId();
@@ -50,6 +52,8 @@ export function InputMonth({
             disabled={disabled}
             id={id}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div ref={rootRef} className="relative">
                 <div

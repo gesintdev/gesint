@@ -15,18 +15,18 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.core.security.AuthorityWildcards;
 import br.com.gommo.core.security.JwtService;
 import br.com.gommo.core.tenant.TenantBranchLinkLookup;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
+import br.com.gommo.modules.cfg.access.entity.RoleTypeEnum;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.dp.organization.company.entity.Company;
 import br.com.gommo.modules.dp.organization.company.repository.CompanyRepository;
 import br.com.gommo.modules.root.entity.AppUser;
-import br.com.gommo.modules.root.entity.Permission;
 import br.com.gommo.modules.root.entity.Role;
 import br.com.gommo.modules.root.entity.UserRoleAssignment;
-import br.com.gommo.modules.root.repository.PermissionRepository;
 import br.com.gommo.modules.root.repository.RoleRepository;
 import br.com.gommo.modules.root.repository.UserRoleAssignmentRepository;
 
@@ -52,19 +52,16 @@ public class BranchAccessResolver {
 
     private final UserRoleAssignmentRepository assignmentRepository;
     private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository;
     private final CompanyRepository companyRepository;
     private final TenantBranchLinkLookup branchLinkLookup;
 
     public BranchAccessResolver(
             UserRoleAssignmentRepository assignmentRepository,
             RoleRepository roleRepository,
-            PermissionRepository permissionRepository,
             CompanyRepository companyRepository,
             TenantBranchLinkLookup branchLinkLookup) {
         this.assignmentRepository = assignmentRepository;
         this.roleRepository = roleRepository;
-        this.permissionRepository = permissionRepository;
         this.companyRepository = companyRepository;
         this.branchLinkLookup = branchLinkLookup;
     }
@@ -79,7 +76,7 @@ public class BranchAccessResolver {
         }
 
         if (isAdmin(user)) {
-            return adminAccess(branches, personal);
+            return adminAccess(branches);
         }
 
         Map<UUID, Role> rolesById = loadRoles(assignments);
@@ -163,10 +160,10 @@ public class BranchAccessResolver {
                         .anyMatch(Role::isGlobalAdmin);
     }
 
-    private BranchAccess adminAccess(List<Company> branches, Set<String> personal) {
-        Set<String> all = new LinkedHashSet<>(personal);
-        permissionRepository.findAll().stream().map(Permission::getAuthority).forEach(all::add);
-        List<String> authorities = sorted(all);
+    private BranchAccess adminAccess(List<Company> branches) {
+        // Wildcard compacto no flat e por sistema: GLOBAL_ADMIN nao depende do catalogo
+        // materializado no JWT (permissoes novas nao exigem re-login / nao estouram cookie).
+        List<String> authorities = List.of(AuthorityWildcards.UNRESTRICTED);
 
         Map<UUID, List<String>> permissionsByBranch = new LinkedHashMap<>();
         List<BranchSummary> accessible = new ArrayList<>();
@@ -176,9 +173,8 @@ public class BranchAccessResolver {
         }
 
         Map<SystemScopeEnum, Set<String>> bySystem = new EnumMap<>(SystemScopeEnum.class);
-        // Wildcard compacto: evita inflar o token/sessao com o catalogo inteiro × N sistemas.
         for (SystemScopeEnum scope : SystemScopeEnum.values()) {
-            bySystem.put(scope, new LinkedHashSet<>(List.of("*")));
+            bySystem.put(scope, new LinkedHashSet<>(authorities));
         }
         return new BranchAccess(accessible, permissionsByBranch, authorities, toSystemPermissionMap(bySystem));
     }
@@ -195,6 +191,11 @@ public class BranchAccessResolver {
     }
 
     private Set<String> authoritiesOf(Role role) {
+        // ADMIN do sistema: marcador compacto (ADM:DP). Expansao no JwtAuthenticationFilter /
+        // FE via wildcard — nao depende de role_permission sincronizado.
+        if (role.getRoleType() == RoleTypeEnum.ADMIN && role.getSystem() != null) {
+            return Set.of(AuthorityWildcards.systemAdminMarker(role.getSystem()));
+        }
         Set<String> authorities = new LinkedHashSet<>();
         if (role.getPermissions() != null) {
             role.getPermissions().forEach(permission -> authorities.add(permission.getAuthority()));

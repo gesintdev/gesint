@@ -16,6 +16,8 @@ export function InputBase({
     readOnly,
     wrapperClassName,
     id: idProp,
+    sensitive,
+    sensitivePermission,
     displayValue,
     onDisplayChange,
     placeholder,
@@ -48,6 +50,8 @@ export function InputBase({
             disabled={disabled}
             id={id}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div
                 className={clsx(

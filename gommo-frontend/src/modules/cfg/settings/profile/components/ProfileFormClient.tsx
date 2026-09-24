@@ -6,7 +6,6 @@ import {type SubmitEvent, useCallback, useEffect, useMemo, useRef, useState} fro
 import {toast} from "sonner";
 
 import {
-    collectMarkedRouteIds,
     collectPermissionLeafRoutes,
     collectPermissionLeafRoutesFromSections,
     findFirstPermissionRoute,
@@ -15,6 +14,8 @@ import {
     resolvePermissionModulesForRouteTree,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import {ProfilePermissionAssignmentPanel} from "@/modules/cfg/settings/profile/components/ProfilePermissionAssignmentPanel";
+import {isSensitivePermissionAuthority} from "@/modules/cfg/settings/profile/components/ProfilePermissionPanel";
+import {SensitivePermissionJustificationDialog} from "@/modules/cfg/settings/profile/components/SensitivePermissionJustificationDialog";
 import type {ProfileCreateDto, SystemScope} from "@/modules/cfg/settings/profile/dto/profile.dto";
 import {useProfileScopeAccess} from "@/modules/cfg/settings/profile/hooks/useProfileScopeAccess";
 import {clearProfileFormDraft, createEmptyProfileDraft, type ProfileDraftItem, readProfileFormDraft, writeProfileFormDraft} from "@/modules/cfg/settings/profile/lib/profile-form-draft";
@@ -23,6 +24,7 @@ import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
 import {permissionCatalogService} from "@/modules/cfg/settings/profile/services/permission-catalog.service";
 import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
 import type {AppRoute, NavSection} from "@/modules/root/enum/ModuleEnum";
+import {hasPermission} from "@/shared/auth/permissions";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {useCrudFormDirty} from "@/shared/components/crud/useCrudFormDirty";
@@ -94,6 +96,9 @@ function toProfileDirtySnapshot(drafts: ProfileDraftItem[]): ProfileDirtySnapsho
     };
 }
 
+/** Sobreviave a remount (Strict Mode) — evita toast duplicado do mesmo rascunho. */
+const shownProfileDraftRestoreToasts = new Set<string>();
+
 export function ProfileFormClient() {
     const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
@@ -111,12 +116,15 @@ export function ProfileFormClient() {
     const [hydratedDetailId, setHydratedDetailId] = useState<string | null>(null);
     const [draftBootstrapped, setDraftBootstrapped] = useState(false);
     const [profileBaseline, setProfileBaseline] = useState<ProfileDirtySnapshot | null>(null);
-    const restoredToastShown = useRef(false);
+    const [pendingSensitivePermissionId, setPendingSensitivePermissionId] = useState<string | null>(null);
 
-    /** Menus do sistema limitados ao que o usuario logado pode acessar. */
+    /** Quem gerencia perfis (role:write) ve a arvore completa; senao só o que pode acessar. */
     const permissionSectionsFor = useCallback(
-        (scope: SystemScope) =>
-            filterNavSectionsByPermission(getPermissionNavSections(scope), granted, unrestricted),
+        (scope: SystemScope) => {
+            const sections = getPermissionNavSections(scope);
+            const canManageProfiles = unrestricted || hasPermission(granted, "role:write");
+            return filterNavSectionsByPermission(sections, granted, canManageProfiles);
+        },
         [granted, unrestricted],
     );
 
@@ -133,11 +141,8 @@ export function ProfileFormClient() {
         [activeSystem, drafts],
     );
     const selectedRoute = useMemo(() => {
-        if (!activeDraft) return null;
-        return (
-            findRouteById(navSections, activeDraft.selectedRouteId) ??
-            findFirstPermissionRoute(navSections)
-        );
+        if (!activeDraft?.selectedRouteId) return null;
+        return findRouteById(navSections, activeDraft.selectedRouteId);
     }, [activeDraft, navSections]);
     const selectedPermissionModules = useMemo(
         () => (selectedRoute ? resolvePermissionModules(selectedRoute) : []),
@@ -174,20 +179,20 @@ export function ProfileFormClient() {
         queryFn: () => permissionCatalogService.getBySystem(activeSystem),
     });
 
-    const selectedPermissionIds = useMemo(
-        () => new Set(activeDraft?.permissionIds ?? []),
-        [activeDraft?.permissionIds],
+    const isSystemAdminProfile = isEditing && detailQuery.data?.roleType === "ADMIN";
+
+    const allCatalogPermissionIds = useMemo(
+        () => collectCatalogPermissionIds(systemCatalogQuery.data),
+        [systemCatalogQuery.data],
     );
-    const markedRouteIds = useMemo(() => {
-        const groups = systemCatalogQuery.data ?? [];
-        const markedModules = new Set<string>();
-        for (const group of groups) {
-            if (group.permissions.some((permission) => selectedPermissionIds.has(permission.id))) {
-                markedModules.add(group.module);
-            }
+
+    const selectedPermissionIds = useMemo(() => {
+        // ADMIN: acesso total dinamico — UI mostra o catalogo inteiro marcado.
+        if (isSystemAdminProfile) {
+            return new Set(allCatalogPermissionIds);
         }
-        return collectMarkedRouteIds(navSections, markedModules);
-    }, [navSections, selectedPermissionIds, systemCatalogQuery.data]);
+        return new Set(activeDraft?.permissionIds ?? []);
+    }, [activeDraft?.permissionIds, allCatalogPermissionIds, isSystemAdminProfile]);
 
     const routeAccessStateById = useMemo(() => {
         const map = new Map<string, CheckboxState>();
@@ -211,10 +216,6 @@ export function ProfileFormClient() {
         return map;
     }, [navSections, selectedPermissionIds, systemCatalogQuery.data]);
 
-    const allCatalogPermissionIds = useMemo(
-        () => collectCatalogPermissionIds(systemCatalogQuery.data),
-        [systemCatalogQuery.data],
-    );
     const allMenusAccessState = useMemo(() => {
         const selectedCount = allCatalogPermissionIds.filter((id) => selectedPermissionIds.has(id)).length;
         return resolveCheckboxState(selectedCount, allCatalogPermissionIds.length);
@@ -248,7 +249,6 @@ export function ProfileFormClient() {
     }, [activeSystem, allowedSystems, defaultSystem, scopeReady]);
 
     useEffect(() => {
-        restoredToastShown.current = false;
         setDraftBootstrapped(false);
         setProfileBaseline(null);
         setHydratedDetailId(null);
@@ -274,8 +274,9 @@ export function ProfileFormClient() {
                     ? stored.activeClientId
                     : storedDrafts[0]?.clientId ?? null,
             );
-            if (!restoredToastShown.current) {
-                restoredToastShown.current = true;
+            const toastKey = `create:${tenantSlug}:${username}`;
+            if (!shownProfileDraftRestoreToasts.has(toastKey)) {
+                shownProfileDraftRestoreToasts.add(toastKey);
                 toast.message("Rascunho de perfis restaurado");
             }
         } else {
@@ -311,8 +312,9 @@ export function ProfileFormClient() {
             setDrafts(nextDrafts);
             setActiveSystem(stored.activeSystem);
             setActiveClientId(stored.drafts[0].clientId);
-            if (!restoredToastShown.current) {
-                restoredToastShown.current = true;
+            const toastKey = `edit:${tenantSlug}:${username}:${detailQuery.data.id}`;
+            if (!shownProfileDraftRestoreToasts.has(toastKey)) {
+                shownProfileDraftRestoreToasts.add(toastKey);
                 toast.message("Rascunho restaurado");
             }
         } else {
@@ -367,20 +369,6 @@ export function ProfileFormClient() {
         username,
     ]);
 
-    useEffect(() => {
-        if (!activeDraft) return;
-        if (activeDraft.selectedRouteId) return;
-        const first = findFirstPermissionRoute(navSections);
-        if (!first) return;
-        setDrafts((prev) =>
-            prev.map((draft) =>
-                draft.clientId === activeDraft.clientId
-                    ? {...draft, selectedRouteId: first.id}
-                    : draft,
-            ),
-        );
-    }, [activeDraft, navSections]);
-
     const saveMutation = useMutation({
         mutationFn: async (items: ProfileCreateDto[]) => {
             if (isEditing && editingId) {
@@ -394,6 +382,11 @@ export function ProfileFormClient() {
         },
         onSuccess: async () => {
             clearProfileFormDraft(tenantSlug, username, draftMode, editingId);
+            shownProfileDraftRestoreToasts.delete(
+                isEditing
+                    ? `edit:${tenantSlug}:${username}:${editingId}`
+                    : `create:${tenantSlug}:${username}`,
+            );
             await queryClient.invalidateQueries({queryKey: profileKeys.all});
             toast.success(
                 isEditing
@@ -410,12 +403,40 @@ export function ProfileFormClient() {
         },
     });
 
-    const updateActiveDraft = (patch: Partial<ProfileDraftItem>) => {
-        if (!activeClientId) return;
-        setDrafts((prev) =>
-            prev.map((draft) => (draft.clientId === activeClientId ? {...draft, ...patch} : draft)),
-        );
+    const updateActiveDraft = useCallback(
+        (patch: Partial<ProfileDraftItem>) => {
+            if (!activeClientId) return;
+            setDrafts((prev) =>
+                prev.map((draft) => (draft.clientId === activeClientId ? {...draft, ...patch} : draft)),
+            );
+        },
+        [activeClientId],
+    );
+
+    const routeAccessCtxRef = useRef({
+        activeClientId,
+        permissionIds: activeDraft?.permissionIds ?? ([] as string[]),
+        routeAccessStateById,
+        catalog: systemCatalogQuery.data,
+    });
+    routeAccessCtxRef.current = {
+        activeClientId,
+        permissionIds: activeDraft?.permissionIds ?? [],
+        routeAccessStateById,
+        catalog: systemCatalogQuery.data,
     };
+
+    const handleRouteSelect = useCallback((route: AppRoute) => {
+        const clientId = routeAccessCtxRef.current.activeClientId;
+        if (!clientId) return;
+        setDrafts((prev) =>
+            prev.map((draft) => {
+                if (draft.clientId !== clientId) return draft;
+                const nextId = draft.selectedRouteId === route.id ? null : route.id;
+                return {...draft, selectedRouteId: nextId};
+            }),
+        );
+    }, []);
 
     const handleSystemChange = (nextSystem: SystemScope) => {
         if (isEditing) return;
@@ -467,7 +488,7 @@ export function ProfileFormClient() {
         });
     };
 
-    const togglePermission = (permissionId: string, checked: boolean) => {
+    const applyPermissionToggle = (permissionId: string, checked: boolean) => {
         if (!activeDraft) return;
         const current = new Set(activeDraft.permissionIds);
         if (checked) current.add(permissionId);
@@ -475,29 +496,58 @@ export function ProfileFormClient() {
         updateActiveDraft({permissionIds: Array.from(current)});
     };
 
-    const handleRouteAccessToggle = (route: AppRoute) => {
+    const togglePermission = (permissionId: string, checked: boolean) => {
         if (!activeDraft) return;
-        const catalogIds = permissionIdsForModules(
-            resolvePermissionModulesForRouteTree(route),
-            systemCatalogQuery.data,
-        );
-        if (catalogIds.length === 0) {
-            updateActiveDraft({selectedRouteId: route.id});
+        const permission = modulePermissions.find((item) => item.id === permissionId);
+        if (checked && permission && isSensitivePermissionAuthority(permission.authority)) {
+            setPendingSensitivePermissionId(permissionId);
             return;
         }
-        const accessState = routeAccessStateById.get(route.id) ?? "unchecked";
-        const current = new Set(activeDraft.permissionIds);
-        if (accessState === "checked") {
-            for (const id of catalogIds) current.delete(id);
-        } else {
+        applyPermissionToggle(permissionId, checked);
+    };
+
+    const handleSensitiveJustificationConfirm = (_justification: string) => {
+        if (!pendingSensitivePermissionId) return;
+        applyPermissionToggle(pendingSensitivePermissionId, true);
+        setPendingSensitivePermissionId(null);
+    };
+
+    const handleRouteAccessToggle = useCallback((route: AppRoute) => {
+        const ctx = routeAccessCtxRef.current;
+        if (!ctx.activeClientId) return;
+        const modules = resolvePermissionModulesForRouteTree(route);
+        const catalogIds = permissionIdsForModules(modules, ctx.catalog);
+        if (catalogIds.length === 0) {
+            setDrafts((prev) =>
+                prev.map((draft) =>
+                    draft.clientId === ctx.activeClientId
+                        ? {...draft, selectedRouteId: route.id}
+                        : draft,
+                ),
+            );
+            return;
+        }
+        const accessState = ctx.routeAccessStateById.get(route.id) ?? "unchecked";
+        const current = new Set(ctx.permissionIds);
+        // unchecked → marca tudo; checked/indeterminate → limpa (1 clique desmarca).
+        if (accessState === "unchecked") {
             for (const id of catalogIds) current.add(id);
+        } else {
+            for (const id of catalogIds) current.delete(id);
         }
         const leaf = collectPermissionLeafRoutes([route])[0];
-        updateActiveDraft({
-            permissionIds: Array.from(current),
-            selectedRouteId: leaf?.id ?? route.id,
-        });
-    };
+        setDrafts((prev) =>
+            prev.map((draft) =>
+                draft.clientId === ctx.activeClientId
+                    ? {
+                          ...draft,
+                          permissionIds: Array.from(current),
+                          selectedRouteId: leaf?.id ?? route.id,
+                      }
+                    : draft,
+            ),
+        );
+    }, []);
 
     const handleSelectAllMenus = () => {
         if (!activeDraft) return;
@@ -530,7 +580,7 @@ export function ProfileFormClient() {
         setError(null);
         setHydratedDetailId(null);
         setDraftBootstrapped(true);
-        restoredToastShown.current = false;
+        shownProfileDraftRestoreToasts.delete(`create:${tenantSlug}:${username}`);
     };
 
     const handleNewCadastro = () => {
@@ -585,10 +635,16 @@ export function ProfileFormClient() {
     }
 
     return (
+        <>
         <CrudFormShell
             onSubmit={handleSubmit}
             bodyClassName="!flex !min-h-0 !flex-1 !flex-col !overflow-hidden !p-0"
             footer={
+                isSystemAdminProfile ? (
+                    <Button type="button" variant="ghost" onClick={handleCancel}>
+                        Voltar
+                    </Button>
+                ) : (
                 <>
                     <Button type="button" variant="ghost" onClick={handleCancel}>
                         Cancelar
@@ -604,6 +660,7 @@ export function ProfileFormClient() {
                               : "Salvar perfil"}
                     </Button>
                 </>
+                )
             }
         >
             <FormSection
@@ -630,19 +687,26 @@ export function ProfileFormClient() {
                     onDescriptionChange={(value) => updateActiveDraft({description: value})}
                     navSections={navSections}
                     selectedRoute={selectedRoute}
-                    markedRouteIds={markedRouteIds}
+                    markedRouteIds={undefined}
                     routeAccessStateById={routeAccessStateById}
                     onRouteAccessToggle={handleRouteAccessToggle}
                     onSelectAllMenus={handleSelectAllMenus}
                     allMenusAccessState={allMenusAccessState}
-                    onRouteSelect={(route) => updateActiveDraft({selectedRouteId: route.id})}
+                    onRouteSelect={handleRouteSelect}
                     permissions={modulePermissions}
                     selectedPermissionIds={selectedPermissionIds}
                     onTogglePermission={togglePermission}
                     permissionsLoading={modulePermissionsQuery.isLoading}
+                    readOnly={isSystemAdminProfile}
                 />
             </FormSection>
             {error ? <p className="shrink-0 px-5 py-3 text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
+            <SensitivePermissionJustificationDialog
+                open={pendingSensitivePermissionId != null}
+                onClose={() => setPendingSensitivePermissionId(null)}
+                onConfirm={handleSensitiveJustificationConfirm}
+            />
+        </>
     );
 }

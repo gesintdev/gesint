@@ -11,7 +11,7 @@ import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation"
 import {findRouteById} from "@/shared/workspace/workspace-routes";
 
 const PROFILE_ROW_CLASS = "flex min-h-[2.25rem] items-center gap-2 rounded px-2 py-1.5 text-sm";
-const SETTINGS_PROFILES_ROUTE_ID = "settings-profiles";
+const SETTINGS_PROFILES_ROUTE_ID = "settings-profiles-menus";
 
 type ProfileRolePickerProps = {
     label?: string;

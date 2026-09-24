@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import br.com.gommo.core.branch.BranchContextHolder;
 import br.com.gommo.core.config.CtbSystemAvailability;
+import br.com.gommo.core.security.AuthorityWildcards;
 import br.com.gommo.core.tenant.MultiTenantProperties;
 import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
@@ -86,7 +87,19 @@ public class AccessScopePolicy {
     }
 
     public boolean hasAuthority(String authority) {
-        return authority != null && currentAuthorities().contains(authority);
+        if (authority == null) {
+            return false;
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+        return AuthorityWildcards.allows(authentication.getAuthorities(), authority);
+    }
+
+    /** True quando o usuario e GLOBAL_ADMIN (authority {@code *} no token). */
+    public boolean isUnrestricted() {
+        return AuthorityWildcards.grantsAllStrings(currentAuthorities());
     }
 
     /**

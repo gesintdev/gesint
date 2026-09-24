@@ -277,7 +277,6 @@ export function OccupationalExamFormModal({
                                         onChange={update}
                                         clinicItems={clinicItems}
                                         physicianItems={physicianItems}
-                                        canViewClinical={canViewClinical}
                                         examId={examId}
                                         pendingAttachments={pendingAttachments}
                                         onPendingAttachmentsChange={setPendingAttachments}

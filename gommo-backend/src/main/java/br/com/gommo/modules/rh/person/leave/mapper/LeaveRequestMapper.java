@@ -95,15 +95,27 @@ public class LeaveRequestMapper {
     }
 
     public LeaveRequestResponseDto toResponse(LeaveRequest entity) {
-        return toResponse(entity, null, null, null);
+        return toResponse(entity, null, null, null, true);
     }
 
     public LeaveRequestResponseDto toResponse(LeaveRequest entity, String collaboratorName) {
-        return toResponse(entity, collaboratorName, null, null);
+        return toResponse(entity, collaboratorName, null, null, true);
     }
 
     public LeaveRequestResponseDto toResponse(
             LeaveRequest entity, String collaboratorName, String reviewedByName, String createdByName) {
+        return toResponse(entity, collaboratorName, reviewedByName, createdByName, true);
+    }
+
+    /**
+     * @param includeSensitive quando false, omite CID e flags derivadas de CID (LGPD / leave:sensitive).
+     */
+    public LeaveRequestResponseDto toResponse(
+            LeaveRequest entity,
+            String collaboratorName,
+            String reviewedByName,
+            String createdByName,
+            boolean includeSensitive) {
         LocalDate concessiveStart = null;
         LocalDate concessiveEnd = null;
         if (entity.getAcquisitionPeriodEnd() != null) {
@@ -122,7 +134,7 @@ public class LeaveRequestMapper {
                 .endDate(entity.getEndDate())
                 .absenceStatus(entity.getAbsenceStatus())
                 .durationDays(entity.getDurationDays())
-                .cid(entity.getCid())
+                .cid(includeSensitive ? entity.getCid() : null)
                 .physicianName(entity.getPhysicianName())
                 .physicianCrm(entity.getPhysicianCrm())
                 .certificateSource(entity.getCertificateSource())
@@ -131,7 +143,8 @@ public class LeaveRequestMapper {
                 .returnDate(entity.getReturnDate())
                 .workAccidentStability(entity.getWorkAccidentStability())
                 .relatedCertificateDays(entity.getRelatedCertificateDays())
-                .hasRelatedCidPeriods(entity.getRelatedCertificateDays() != null
+                .hasRelatedCidPeriods(includeSensitive
+                        && entity.getRelatedCertificateDays() != null
                         && entity.getRelatedCertificateDays() > defaultDuration(entity))
                 .approved(entity.getApproved())
                 .notes(entity.getNotes())

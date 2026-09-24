@@ -1,8 +1,13 @@
 "use client";
 
 import clsx from "clsx";
+import type { ReactNode } from "react";
 
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
+import {
+    RestrictedFieldSurface,
+    useIsSensitiveFieldRestricted,
+} from "@/shared/components/ui/input/RestrictedFieldSurface";
 
 export function InputFieldChrome({
     label,
@@ -11,9 +16,12 @@ export function InputFieldChrome({
     id,
     labelFor = true,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     children,
-}: InputFieldChromeProps & { children: React.ReactNode }) {
+}: InputFieldChromeProps & { children: ReactNode }) {
     const labelId = id ? `${id}-label` : undefined;
+    const restricted = useIsSensitiveFieldRestricted(sensitive, sensitivePermission);
 
     return (
         <div className={wrapperClassName}>
@@ -36,8 +44,10 @@ export function InputFieldChrome({
                     {required && <span className="ms-0.5 text-error">*</span>}
                 </span>
             )}
-            {children}
-            {error && <p className="mt-1.5 text-[11px] font-medium text-error">{error}</p>}
+            {restricted ? <RestrictedFieldSurface id={id} /> : children}
+            {!restricted && error ? (
+                <p className="mt-1.5 text-[11px] font-medium text-error">{error}</p>
+            ) : null}
         </div>
     );
 }

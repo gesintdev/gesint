@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.core.security.AuthorityWildcards;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
 import br.com.gommo.modules.rh.person.attendance.entity.AttendanceRecord;
 import br.com.gommo.modules.rh.person.attendance.repository.AttendanceRecordRepository;
@@ -153,6 +154,7 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     public LeaveRequestResponseDto create(LeaveRequestRequestDto request) {
         prepareRecessRequest(request);
         prepareAbsenceRequest(request, null);
+        stripSensitiveWriteIfUnauthorized(request);
         validateRequest(request, null);
         LeaveRequest entity = mapper.toEntity(request);
         applyVacationDefaultsOnCreate(entity, request);
@@ -258,6 +260,10 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
     public LeaveRequestResponseDto update(UUID id, LeaveRequestRequestDto request) {
         LeaveRequest entity = findEntity(id);
         prepareAbsenceRequest(request, id);
+        if (!hasSensitiveAuthority()) {
+            // Preserva CID ja persistido; nao aceita sobrescrita sem leave:sensitive.
+            request.setCid(entity.getCid());
+        }
         validateRequest(request, id);
         mapper.updateEntity(entity, request);
         LeaveRequest saved = repository.save(entity);
@@ -374,17 +380,37 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
             }
         }
         Map<UUID, String> userNames = userNamesById(userIds);
+        boolean includeSensitive = hasSensitiveAuthority();
         return entities.stream()
                 .map(entity -> mapper.toResponse(
                         entity,
                         collaboratorNames.get(entity.getCollaboratorId()),
                         userNames.get(entity.getReviewedBy()),
-                        userNames.get(entity.getCreatedBy())))
+                        userNames.get(entity.getCreatedBy()),
+                        includeSensitive))
                 .toList();
     }
 
     private LeaveRequestResponseDto mapResponse(LeaveRequest entity) {
         return mapResponses(List.of(entity)).getFirst();
+    }
+
+    /**
+     * LGPD: sem {@code leave:sensitive}, create nao persiste CID.
+     */
+    private void stripSensitiveWriteIfUnauthorized(LeaveRequestRequestDto request) {
+        if (hasSensitiveAuthority()) {
+            return;
+        }
+        request.setCid(null);
+    }
+
+    private static boolean hasSensitiveAuthority() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        return AuthorityWildcards.allows(authentication.getAuthorities(), "leave:sensitive");
     }
 
     private Map<UUID, String> userNamesById(Set<UUID> userIds) {

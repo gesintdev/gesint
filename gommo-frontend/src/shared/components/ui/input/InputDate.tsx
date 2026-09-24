@@ -46,6 +46,8 @@ export function InputDate({
     readOnly,
     id: idProp,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     className,
     autoFocus,
     openPickerToken,
@@ -109,6 +111,8 @@ export function InputDate({
             disabled={disabled}
             id={id}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div ref={rootRef} className="relative">
                 <div

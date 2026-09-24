@@ -101,6 +101,11 @@ public class Role implements CodedEntity {
         return roleType == RoleTypeEnum.GLOBAL_ADMIN;
     }
 
+    /** Administrador de um unico sistema (acesso total dinamico, sem lista materializada). */
+    public boolean isSystemAdmin() {
+        return roleType == RoleTypeEnum.ADMIN;
+    }
+
     @PrePersist
     void onCreate() {
         if (id == null) {

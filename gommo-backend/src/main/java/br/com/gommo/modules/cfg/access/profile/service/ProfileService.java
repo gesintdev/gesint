@@ -188,7 +188,6 @@ public class ProfileService implements IProfileService {
         }
         Set<UUID> requestedIds = new HashSet<>(request.getPermissionIds());
         Set<String> allowedModules = PermissionModuleCatalog.modulesFor(request.getSystem());
-        Set<String> grantedAuthorities = accessScopePolicy.currentAuthorities();
         List<Permission> permissions = permissionRepository.findAllById(requestedIds);
         if (permissions.size() != requestedIds.size()) {
             throw ProfileException.invalidPermissions();
@@ -199,7 +198,7 @@ public class ProfileService implements IProfileService {
                 throw ProfileException.invalidPermissions();
             }
             if (!keptPermissionIds.contains(permission.getId())
-                    && !grantedAuthorities.contains(permission.getAuthority())) {
+                    && !accessScopePolicy.hasAuthority(permission.getAuthority())) {
                 throw ProfileException.permissionNotGranted();
             }
             resolved.add(permission);

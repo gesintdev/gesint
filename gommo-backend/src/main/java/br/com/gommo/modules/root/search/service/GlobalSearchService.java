@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.security.AuthorityWildcards;
 import br.com.gommo.modules.root.search.dto.GlobalSearchGroupDto;
 import br.com.gommo.modules.root.search.dto.GlobalSearchItemDto;
 import br.com.gommo.modules.root.search.dto.GlobalSearchResponseDto;
@@ -58,11 +58,6 @@ public class GlobalSearchService implements IGlobalSearchService {
         if (authentication == null || authority == null || authority.isBlank()) {
             return false;
         }
-        for (GrantedAuthority granted : authentication.getAuthorities()) {
-            if (authority.equals(granted.getAuthority())) {
-                return true;
-            }
-        }
-        return false;
+        return AuthorityWildcards.allows(authentication.getAuthorities(), authority);
     }
 }

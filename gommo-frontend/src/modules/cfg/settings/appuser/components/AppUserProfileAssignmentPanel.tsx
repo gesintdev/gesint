@@ -4,8 +4,10 @@ import clsx from "clsx";
 import {Building2} from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 
+import {ActingProfileRolePicker} from "@/modules/cfg/settings/appuser/components/ActingProfileRolePicker";
 import {ProfileRolePicker} from "@/modules/cfg/settings/appuser/components/ProfileRolePicker";
 import type {RoleIdsByBranch} from "@/modules/cfg/settings/appuser/dto/appuser.dto";
+import type {ActingProfile} from "@/modules/cfg/settings/actingprofile/dto/acting-profile.dto";
 import {
     ASSIGNABLE_SYSTEM_SCOPES,
     type SystemScope,
@@ -54,27 +56,30 @@ function CountIndicator({count, active}: {count: number; active: boolean}) {
 
 type AppUserProfileAssignmentPanelProps = {
     profilesBySystem: Partial<Record<SystemScope, Profile[]>>;
+    actingProfilesBySystem: Partial<Record<SystemScope, ActingProfile[]>>;
     selectedIdsByBranch: RoleIdsByBranch;
+    selectedActingIdsByBranch: RoleIdsByBranch;
     loadingBySystem: Partial<Record<SystemScope, boolean>>;
+    actingLoadingBySystem: Partial<Record<SystemScope, boolean>>;
     onChange: (branchId: string, scope: SystemScope, ids: string[]) => void;
+    onActingChange: (branchId: string, scope: SystemScope, ids: string[]) => void;
 };
 
 export function AppUserProfileAssignmentPanel({
     profilesBySystem,
+    actingProfilesBySystem,
     selectedIdsByBranch,
+    selectedActingIdsByBranch,
     loadingBySystem,
+    actingLoadingBySystem,
     onChange,
+    onActingChange,
 }: AppUserProfileAssignmentPanelProps) {
     const {branches, activeBranchId} = useActiveBranch();
-    // Sistemas nao contratados pelo cliente nao podem receber perfis e ficam fora da coluna.
     const {scopes: availableSystems} = useProfileScopeAccess();
     const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
     const [selectedSystem, setSelectedSystem] = useState<SystemScope>(ASSIGNABLE_SYSTEM_SCOPES[0] ?? "DP");
 
-    /**
-     * As filiais chegam pela sessao e podem carregar depois da primeira renderizacao. Com uma filial
-     * unica nao existe escolha a fazer, entao ela e selecionada sozinha e a coluna nem aparece.
-     */
     useEffect(() => {
         if (branches.length === 0) {
             setSelectedBranchId(null);
@@ -100,37 +105,45 @@ export function AppUserProfileAssignmentPanel({
         () => (selectedBranchId ? (selectedIdsByBranch[selectedBranchId] ?? {}) : {}),
         [selectedBranchId, selectedIdsByBranch],
     );
+    const selectedActingIdsBySystem = useMemo(
+        () => (selectedBranchId ? (selectedActingIdsByBranch[selectedBranchId] ?? {}) : {}),
+        [selectedBranchId, selectedActingIdsByBranch],
+    );
 
     const selectedCountBySystem = useMemo(() => {
         const counts = {} as Record<SystemScope, number>;
         for (const scope of availableSystems) {
-            counts[scope] = selectedIdsBySystem[scope]?.length ?? 0;
+            counts[scope] =
+                (selectedIdsBySystem[scope]?.length ?? 0) + (selectedActingIdsBySystem[scope]?.length ?? 0);
         }
         return counts;
-    }, [availableSystems, selectedIdsBySystem]);
+    }, [availableSystems, selectedActingIdsBySystem, selectedIdsBySystem]);
 
     const selectedCountByBranch = useMemo(() => {
         const counts: Record<string, number> = {};
         for (const branch of branches) {
             const bySystem = selectedIdsByBranch[branch.id] ?? {};
+            const actingBySystem = selectedActingIdsByBranch[branch.id] ?? {};
             counts[branch.id] = availableSystems.reduce(
-                (total, scope) => total + (bySystem[scope]?.length ?? 0),
+                (total, scope) =>
+                    total + (bySystem[scope]?.length ?? 0) + (actingBySystem[scope]?.length ?? 0),
                 0,
             );
         }
         return counts;
-    }, [availableSystems, branches, selectedIdsByBranch]);
+    }, [availableSystems, branches, selectedActingIdsByBranch, selectedIdsByBranch]);
 
     const showBranchColumn = branches.length > 1;
     const selectedBranch = branches.find((branch) => branch.id === selectedBranchId) ?? null;
+    const pickerKey = `${selectedBranchId ?? "none"}:${selectedSystem}`;
 
     return (
         <div
             className={clsx(
                 "grid min-h-[28rem] w-full grid-cols-1 overflow-hidden sm:col-span-12",
                 showBranchColumn
-                    ? "lg:grid-cols-[minmax(17rem,22rem)_minmax(13rem,16rem)_minmax(0,1fr)]"
-                    : "lg:grid-cols-[minmax(17rem,22rem)_minmax(0,1fr)]",
+                    ? "lg:grid-cols-[minmax(15rem,18rem)_minmax(12rem,14rem)_minmax(0,1fr)_minmax(0,1fr)]"
+                    : "lg:grid-cols-[minmax(15rem,18rem)_minmax(0,1fr)_minmax(0,1fr)]",
             )}
         >
             {showBranchColumn ? (
@@ -203,9 +216,7 @@ export function AppUserProfileAssignmentPanel({
                         Sistemas
                     </h3>
                     <p className="mt-0.5 text-[11px] text-base-content/45">
-                        {showBranchColumn && selectedBranch
-                            ? `Perfis desta filial: ${selectedBranch.name}`
-                            : "Selecione um sistema para vincular perfis"}
+                        Vincular perfis
                     </p>
                 </div>
                 <ul className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-3 pb-3">
@@ -242,14 +253,10 @@ export function AppUserProfileAssignmentPanel({
                                                 active ? "text-primary" : "text-base-content",
                                             )}
                                         >
-                                            {infos.name}
+                                            {systemScopeShortLabel(scope)}
                                         </span>
-                                        <span className="mt-0.5 flex items-center gap-2 text-[11px] text-base-content/50">
-                                            <span className="font-medium tracking-wide uppercase">
-                                                {systemScopeShortLabel(scope)}
-                                            </span>
-                                            <span className="text-base-content/25">·</span>
-                                            <span>{profileCountLabel(selectedCount)}</span>
+                                        <span className="mt-0.5 block text-[11px] text-base-content/50">
+                                            {profileCountLabel(selectedCount)}
                                         </span>
                                     </span>
                                     <CountIndicator count={selectedCount} active={active}/>
@@ -259,21 +266,22 @@ export function AppUserProfileAssignmentPanel({
                     })}
                 </ul>
             </div>
-            <div className="flex min-h-0 min-w-0 flex-col">
+
+            <div className="flex min-h-0 min-w-0 flex-col border-b border-base-content/8 lg:border-r lg:border-b-0">
                 <div className="shrink-0 px-4 pt-3 pb-2">
                     <h3 className="truncate text-xs font-semibold tracking-wide text-base-content/70 uppercase">
-                        Perfis — {systemScopeLabel(selectedSystem)}
+                        Menus e Ações — {systemScopeLabel(selectedSystem)}
                         {showBranchColumn && selectedBranch ? ` · ${selectedBranch.name}` : ""}
                     </h3>
                     <p className="mt-0.5 text-[11px] text-base-content/45">
                         {selectedBranch
-                            ? "Marque os perfis que este usuário poderá usar neste sistema, nesta filial"
+                            ? "Marque os perfis de menus e ações neste sistema, nesta filial"
                             : "Cadastre uma filial para vincular perfis a este usuário"}
                     </p>
                 </div>
                 <div className="flex min-h-0 flex-1 flex-col px-3 pb-3">
                     <ProfileRolePicker
-                        key={`${selectedBranchId ?? "none"}:${selectedSystem}`}
+                        key={`menus:${pickerKey}`}
                         system={selectedSystem}
                         profiles={selectedBranchId ? (profilesBySystem[selectedSystem] ?? []) : []}
                         selectedIds={selectedIdsBySystem[selectedSystem] ?? []}
@@ -283,6 +291,35 @@ export function AppUserProfileAssignmentPanel({
                         }}
                         loading={loadingBySystem[selectedSystem]}
                         fillHeight
+                    />
+                </div>
+            </div>
+
+            <div className="flex min-h-0 min-w-0 flex-col">
+                <div className="shrink-0 px-4 pt-3 pb-2">
+                    <h3 className="truncate text-xs font-semibold tracking-wide text-base-content/70 uppercase">
+                        Atuações — {systemScopeLabel(selectedSystem)}
+                        {showBranchColumn && selectedBranch ? ` · ${selectedBranch.name}` : ""}
+                    </h3>
+                    <p className="mt-0.5 text-[11px] text-base-content/45">
+                        {selectedBranch
+                            ? "Marque os perfis de atuação neste sistema, nesta filial"
+                            : "Cadastre uma filial para vincular atuações a este usuário"}
+                    </p>
+                </div>
+                <div className="flex min-h-0 flex-1 flex-col px-3 pb-3">
+                    <ActingProfileRolePicker
+                        key={`acting:${pickerKey}`}
+                        system={selectedSystem}
+                        profiles={selectedBranchId ? (actingProfilesBySystem[selectedSystem] ?? []) : []}
+                        selectedIds={selectedActingIdsBySystem[selectedSystem] ?? []}
+                        onChange={(ids) => {
+                            if (!selectedBranchId) return;
+                            onActingChange(selectedBranchId, selectedSystem, ids);
+                        }}
+                        loading={actingLoadingBySystem[selectedSystem]}
+                        fillHeight
+                        branchName={selectedBranch?.name}
                     />
                 </div>
             </div>

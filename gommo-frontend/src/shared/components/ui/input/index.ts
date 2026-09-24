@@ -1,4 +1,9 @@
 export type { InputBaseProps, InputFieldChromeProps } from "./input-field.types";
+export {
+    isSensitiveFieldRestricted,
+    RestrictedFieldSurface,
+    useIsSensitiveFieldRestricted,
+} from "./RestrictedFieldSurface";
 export type { InputAutocompleteProps } from "./InputAutocomplete";
 export { InputAutocomplete } from "./InputAutocomplete";
 export { InputBase } from "./InputBase";

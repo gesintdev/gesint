@@ -1,4 +1,7 @@
+"use client";
+
 import {type QueryKey, useQuery, type UseQueryResult} from "@tanstack/react-query";
+import {usePathname} from "next/navigation";
 import {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import {toast} from "sonner";
 
@@ -14,6 +17,8 @@ import {ExceptionCapture} from "@/shared/exceptions";
 import {exportTableToExcel} from "@/shared/lib/table/export-table-excel";
 import {sortRowsByCreatedAtDesc} from "@/shared/lib/table/sort-rows-by-created-at";
 import {isColumnFilterable, type TableColumnConfig} from "@/shared/types/table.types";
+import {deriveExportPermission, hasPermission, useSessionPermissions} from "@/shared/auth/permissions";
+import {findRouteByPathname} from "@/shared/auth/route-permissions";
 
 const EMPTY_FILTERS: Record<string, string[]> = {};
 
@@ -80,6 +85,11 @@ export type QueryPagedTablePanelProps<TRow extends object> = QueryTablePanelTabl
     initialFilters?: Record<string, string[]>;
     /** Nome base do arquivo Excel (sem extensão). */
     exportFileName?: string;
+    /**
+     * Authority exigida para exportar (`modulo:export`).
+     * Se omitida, deriva da rota ativa (`route.permission` → `modulo:export`).
+     */
+    exportPermission?: string;
     paginationMode?: "pages" | "load-more";
     pageSize?: number;
     pageSizeOptions?: number[];
@@ -217,6 +227,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         baseFilters = EMPTY_FILTERS,
         initialFilters = EMPTY_FILTERS,
         exportFileName = "exportacao",
+        exportPermission: exportPermissionProp,
         paginationMode = "pages",
         pageSize = 20,
         pageSizeOptions,
@@ -225,6 +236,17 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         rowActivateOn = "doubleclick",
         ...tableProps
     } = props;
+    const pathname = usePathname();
+    const permissions = useSessionPermissions();
+    const resolvedExportPermission = useMemo(() => {
+        if (exportPermissionProp) return exportPermissionProp;
+        const route = findRouteByPathname(pathname);
+        return deriveExportPermission(route?.permission);
+    }, [exportPermissionProp, pathname]);
+    const canExport =
+        resolvedExportPermission == null
+            ? true
+            : hasPermission(permissions, resolvedExportPermission);
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(pageSize);
     const [filters, setFilters] = useState<Record<string, string[]>>(() => ({...initialFilters}));
@@ -304,7 +326,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     };
 
     const handleExportExcel = async () => {
-        if (exporting || visibleColumns.length === 0) return;
+        if (!canExport || exporting || visibleColumns.length === 0) return;
         setExporting(true);
         try {
             const mergedFilters = {...baseFilters, ...filters};
@@ -331,7 +353,8 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
             onExportExcel={() => void handleExportExcel()}
             onClearFilters={clearFilters}
             canClearFilters={canClearFilters}
-            exportDisabled={exporting || visibleColumns.length === 0}
+            exportDisabled={!canExport || exporting || visibleColumns.length === 0}
+            exportTitle={canExport ? "Exportar Excel" : "Sem permissão para exportar"}
         />
     );
 

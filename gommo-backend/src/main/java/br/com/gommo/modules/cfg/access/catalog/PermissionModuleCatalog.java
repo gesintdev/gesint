@@ -16,8 +16,10 @@ public final class PermissionModuleCatalog {
                 SystemScopeEnum.CFG,
                 Set.of(
                         "role",
+                        "actingprofile",
                         "user",
                         "workschedule",
+                        "digitalcertificate",
                         "admission",
                         "exitinterview",
                         "developmentplanconfig",

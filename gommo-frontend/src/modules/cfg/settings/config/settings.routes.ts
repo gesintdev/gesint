@@ -1,10 +1,12 @@
 import {
+    Briefcase,
     CalendarClock,
     ClipboardList,
     Columns3,
     GraduationCap,
     KanbanSquare,
     KeyRound,
+    Menu,
     Settings2,
     Shield,
     StickyNote,
@@ -15,23 +17,56 @@ import type {AppRoute} from "@/modules/root/enum/ModuleEnum";
 import {customWorkspaceRoute, lazyNamed, routeGroup, tabbedCrudRoute} from "@/shared/routing";
 
 const accessRoutes: AppRoute[] = [
-    tabbedCrudRoute({
+    routeGroup({
         id: "settings-profiles",
-        href: "/settings/profiles",
         label: "Perfis",
         icon: Shield,
         permission: "role:read",
-        routeId: "settings-profiles",
-        tabShortLabel: "Perfil",
-        fieldTabName: "name",
-        list: lazyNamed(
-            () => import("@/modules/cfg/settings/profile/components/ProfileListClient"),
-            "ProfileListClient",
-        ),
-        form: lazyNamed(
-            () => import("@/modules/cfg/settings/profile/components/ProfileFormClient"),
-            "ProfileFormClient",
-        ),
+        children: [
+            tabbedCrudRoute({
+                id: "settings-profiles-menus",
+                href: "/settings/profiles",
+                label: "Menus e Ações",
+                icon: Menu,
+                permission: "role:read",
+                routeId: "settings-profiles-menus",
+                tabShortLabel: "Menus e Ações",
+                fieldTabName: "name",
+                list: lazyNamed(
+                    () => import("@/modules/cfg/settings/profile/components/ProfileListClient"),
+                    "ProfileListClient",
+                ),
+                form: lazyNamed(
+                    () => import("@/modules/cfg/settings/profile/components/ProfileFormClient"),
+                    "ProfileFormClient",
+                ),
+            }),
+            tabbedCrudRoute({
+                id: "settings-profiles-atuacoes",
+                href: "/settings/atuacoes",
+                label: "Atuações",
+                icon: Briefcase,
+                permission: "actingprofile:read",
+                routeId: "settings-profiles-atuacoes",
+                tabShortLabel: "Atuações",
+                fieldTabName: "name",
+                listContained: true,
+                list: lazyNamed(
+                    () =>
+                        import(
+                            "@/modules/cfg/settings/actingprofile/components/ActingProfileListClient"
+                        ),
+                    "ActingProfileListClient",
+                ),
+                form: lazyNamed(
+                    () =>
+                        import(
+                            "@/modules/cfg/settings/actingprofile/components/ActingProfileFormClient"
+                        ),
+                    "ActingProfileFormClient",
+                ),
+            }),
+        ],
     }),
     tabbedCrudRoute({
         id: "settings-users",

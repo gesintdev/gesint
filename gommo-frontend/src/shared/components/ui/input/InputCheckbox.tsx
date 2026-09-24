@@ -55,9 +55,11 @@ export function InputCheckbox({
     const labelText = typeof label === "string" ? label : undefined;
 
     useEffect(() => {
-        if (inputRef.current) {
-            inputRef.current.indeterminate = resolvedState === "indeterminate";
-        }
+        const el = inputRef.current;
+        if (!el) return;
+        el.indeterminate = resolvedState === "indeterminate";
+        // Garante sync visual em browsers/DaisyUI com controlled checkbox.
+        el.checked = resolvedState === "checked";
     }, [resolvedState]);
 
     const toggle = () => {
@@ -99,11 +101,14 @@ export function InputCheckbox({
                 aria-checked={resolvedState === "indeterminate" ? "mixed" : resolvedState === "checked"}
                 onChange={(event) => {
                     if (!interactive) return;
+                    // Mantem controlled: reverte o flip nativo ate o pai aplicar o estado.
+                    event.target.checked = resolvedState === "checked";
+                    event.target.indeterminate = resolvedState === "indeterminate";
                     if (onChange) {
                         onChange();
                         return;
                     }
-                    onCheckedChange?.(event.target.checked);
+                    onCheckedChange?.(resolvedState !== "checked");
                 }}
             />
             {hasLabel ? (

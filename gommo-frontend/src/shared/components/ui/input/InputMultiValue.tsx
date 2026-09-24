@@ -41,6 +41,8 @@ export function InputMultiValue({
     disabled,
     readOnly,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     id: idProp,
     value,
     onValueChange,
@@ -124,6 +126,8 @@ export function InputMultiValue({
             id={id}
             labelFor={false}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div
                 role="group"

@@ -19,6 +19,15 @@ alwaysApply: false
 - Performance: evitar animações pesadas; preferir CSS transitions leves
 - Selects: reusar sempre os componentes compartilhados do projeto (`InputSelect`, `InputSelectAutocomplete`, `InputAutocomplete`); evitar `<select>` nativo e novos componentes de seleção quando já existir equivalente no design system
 
+## Disabled — sem hover nos filhos
+
+Quando um bloco/pai estiver desabilitado (`disabled` / `aria-disabled`):
+
+1. Aplicar `gommo-disabled-surface` (ou `pointer-events-none`) no **container**, não só no input.
+2. **Não** deixar `hover:` ativo nos filhos — hover em item disabled é feio e confunde.
+3. Scroll, se necessário, fica no ancestral fora da superfície disabled.
+4. Campos nativos: `.gommo-field--disabled` / `[data-disabled]` já usam `pointer-events: none`.
+
 ## Dados escopados por filial (multi-filial)
 
 O header `X-Branch-Id` filtra listagens e detalhes no backend. No frontend, **toda** query de dado de negócio que depende da filial ativa deve seguir este checklist:

@@ -162,6 +162,11 @@ export type CrudScreenProps = {
     initialEditingId?: string | null;
     /** Sincroniza título da aba do módulo e URL ao alternar listagem/cadastro. */
     workspaceEnabled?: boolean;
+    /**
+     * Listagem em painel (colunas com scroll próprio): contem o overflow no card
+     * em vez de scroll da página inteira.
+     */
+    listContained?: boolean;
 };
 
 function CrudListToolbarActions({
@@ -228,6 +233,7 @@ export function CrudScreen({
     defaultTab = CRUD_TAB_LIST,
     initialEditingId = null,
     workspaceEnabled = false,
+    listContained = false,
 }: CrudScreenProps) {
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [editingId, setEditingId] = useState<string | null>(initialEditingId);
@@ -238,16 +244,21 @@ export function CrudScreen({
     const hadExtraTabsRef = useRef(false);
     const flatPermissions = useSessionPermissions();
     const systemPermissions = useSessionSystemPermissions();
-    const activeSystem = useOptionalActiveSystem()?.activeSystem;
-    /** Flat + rail ativo: abas extras de modulo (ex.: occupationalexam) vivem no escopo do sistema. */
+    const activeSystemCtx = useOptionalActiveSystem();
+    const activeSystem = activeSystemCtx?.activeSystem;
+    const isSettingsMode = Boolean(activeSystemCtx?.isSettingsMode);
+    /** Flat + escopo do rail (ou CFG em modo Configuracoes). Wildcard {@code *} = GLOBAL_ADMIN. */
     const permissions = useMemo(() => {
-        if (!activeSystem || !systemPermissions) return flatPermissions;
-        const scoped = permissionsForSystem(flatPermissions, systemPermissions, activeSystem);
-        if (flatPermissions.includes("*") || scoped.includes("*")) {
-            return flatPermissions.includes("*") ? flatPermissions : scoped;
-        }
+        if (!systemPermissions) return flatPermissions;
+        if (flatPermissions.includes("*")) return flatPermissions;
+
+        const scopeKey = isSettingsMode ? ("CFG" as const) : activeSystem;
+        if (!scopeKey) return flatPermissions;
+
+        const scoped = permissionsForSystem(flatPermissions, systemPermissions, scopeKey);
+        if (scoped.includes("*")) return scoped;
         return Array.from(new Set([...flatPermissions, ...scoped]));
-    }, [activeSystem, flatPermissions, systemPermissions]);
+    }, [activeSystem, flatPermissions, isSettingsMode, systemPermissions]);
     const { activeBranchId } = useActiveBranch();
     const crudConfig = useTabbedCrudConfigOptional();
     const workspaceTabCtx = useWorkspaceTabOptional();
@@ -509,7 +520,7 @@ export function CrudScreen({
                             <div
                                 className={clsx(
                                     "min-h-0 flex-1",
-                                    activeTab === CRUD_TAB_LIST
+                                    activeTab === CRUD_TAB_LIST && !listContained
                                         ? "overflow-y-auto"
                                         : "flex flex-col overflow-hidden",
                                 )}
@@ -518,6 +529,7 @@ export function CrudScreen({
                                     className={clsx(
                                         "min-h-0 flex-1 flex-col",
                                         activeTab === CRUD_TAB_LIST ? "flex" : "hidden",
+                                        listContained && "overflow-hidden",
                                     )}
                                     aria-hidden={activeTab !== CRUD_TAB_LIST}
                                 >

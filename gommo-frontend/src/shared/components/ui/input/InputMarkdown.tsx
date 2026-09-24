@@ -88,6 +88,8 @@ export function InputMarkdown({
     disabled,
     readOnly,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     id: idProp,
     value,
     onValueChange,
@@ -211,6 +213,8 @@ export function InputMarkdown({
                 id={idProp}
                 labelFor={false}
                 wrapperClassName={wrapperClassName}
+                sensitive={sensitive}
+                sensitivePermission={sensitivePermission}
             >
                 <div
                     className="skeleton-shimmer rounded-[var(--gommo-control-radius)] border border-[var(--gommo-border)]"
@@ -286,6 +290,8 @@ export function InputMarkdown({
             id={idProp}
             labelFor={false}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div
                 className={clsx(

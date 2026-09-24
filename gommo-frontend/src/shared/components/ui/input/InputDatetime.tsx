@@ -31,6 +31,8 @@ export function InputDatetime({
     readOnly,
     id: idProp,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     className,
 }: InputDatetimeProps) {
     const autoId = useId();
@@ -52,6 +54,8 @@ export function InputDatetime({
             disabled={disabled}
             id={id}
             wrapperClassName={clsx(wrapperClassName, "min-w-0")}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div ref={rootRef} className="relative w-full min-w-0">
                 <button

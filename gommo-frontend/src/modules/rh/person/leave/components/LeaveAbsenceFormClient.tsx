@@ -12,6 +12,7 @@ import { ABSENCE_TYPE_ITEMS, LEAVE_ABSENCE_STATUS_ITEMS } from "@/modules/rh/per
 import { leaveAbsenceFormSchema } from "@/modules/rh/person/leave/schemas/leave-absence.schema";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { storageService } from "@/modules/storage/services/storage.service";
+import { useHasPermission } from "@/shared/auth/permissions";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -64,6 +65,7 @@ function inclusiveDays(startDate?: string, endDate?: string) {
 export function LeaveAbsenceFormClient() {
     const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
+    const canViewSensitive = useHasPermission("leave:sensitive");
     const [form, setForm] = useState<LeaveRequestCreateDto & { notes?: string }>(emptyLeaveRequestForm);
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<LeaveFormField, string>>>({});
@@ -175,11 +177,14 @@ export function LeaveAbsenceFormClient() {
         e.preventDefault();
         setError(null);
         const durationDays = inclusiveDays(form.startDate, form.endDate);
-        const payload = {
+        const payload: LeaveRequestCreateDto & { notes?: string } = {
             ...form,
             durationDays,
             requiresInss: Boolean(form.requiresInss || (durationDays && durationDays > 15)),
         };
+        if (!canViewSensitive) {
+            delete payload.cid;
+        }
         const parsed = leaveAbsenceFormSchema.safeParse(payload);
         if (!parsed.success) {
             setFieldErrors(mapZodFieldErrors<LeaveFormField>(parsed.error));
@@ -335,6 +340,8 @@ export function LeaveAbsenceFormClient() {
                     onValueChange={(v) => update("cid", v)}
                     wrapperClassName="sm:col-span-2"
                     error={fieldErrors.cid}
+                    sensitive
+                    sensitivePermission="leave:sensitive"
                 />
                 <InputString
                     label="Medico"

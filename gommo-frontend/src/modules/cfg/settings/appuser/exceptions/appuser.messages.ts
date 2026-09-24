@@ -7,6 +7,8 @@ export const APP_USER_MESSAGES = {
     APP_USER_DUPLICATE_EMAIL: "E-mail já cadastrado.",
     APP_USER_DELETED_EXISTS: "Já existe um usuário excluído com estes dados. Você pode reativá-lo.",
     APP_USER_COLLABORATOR_LINKED: "Este colaborador já possui usuário no sistema.",
+    APP_USER_INVALID_ROLE: "Perfil incompatível com o sistema selecionado.",
+    APP_USER_INVALID_ACTING_PROFILE: "Perfil de atuação incompatível com o sistema selecionado.",
 } as const;
 
 export const APP_USER_CLIENT_MESSAGES = {

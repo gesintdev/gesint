@@ -17,10 +17,14 @@ export type ProfileScopeAccess = {
     ready: boolean;
 };
 
-export function useProfileScopeAccess(): ProfileScopeAccess {
+/**
+ * @param branchId Filial cujo contrato comercial filtra DP/RH/CTB. Sem argumento = filial ativa
+ * do header. Em painéis com coluna Filiais, passar a filial selecionada.
+ */
+export function useProfileScopeAccess(branchId?: string | null): ProfileScopeAccess {
     const { data: session } = useSession();
     const sessionPermissions = useSessionPermissions();
-    const { keys, ready } = useContractedSystemKeys();
+    const { keys, ready } = useContractedSystemKeys(branchId);
 
     // Chaves estaveis: session/keys podem recriar arrays a cada render.
     const grantedKey = sessionPermissions.join("|");

@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.security.AuthorityWildcards;
 import br.com.gommo.modules.cfg.access.catalog.PermissionModuleCatalog;
 import br.com.gommo.modules.cfg.access.catalog.dto.PermissionModuleGroupDto;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
@@ -45,8 +46,10 @@ public class PermissionCatalogService implements IPermissionCatalogService {
             Map.entry("performance", "Desempenho"),
             Map.entry("storage", "Arquivos"),
             Map.entry("role", "Perfis de acesso"),
+            Map.entry("actingprofile", "Atuações"),
             Map.entry("user", "Usuários"),
             Map.entry("workschedule", "Escalas"),
+            Map.entry("digitalcertificate", "Certificados digitais"),
             Map.entry("developmentplanconfig", "Configurações de PDI"),
             Map.entry("agenda", "Agenda"));
 
@@ -82,12 +85,16 @@ public class PermissionCatalogService implements IPermissionCatalogService {
         return groupPermissions(permissionRepository.findAllByModuleInOrderByAuthorityAsc(List.of(module)));
     }
 
-    /** Somente permissoes que o usuario logado possui podem ser oferecidas no cadastro de perfis. */
+    /** Quem gerencia perfis (role:write) pode oferecer o catalogo do sistema; demais so o que possuem. */
     private List<PermissionModuleGroupDto> groupPermissions(List<Permission> permissions) {
         Set<String> grantedAuthorities = accessScopePolicy.currentAuthorities();
+        boolean unrestricted = AuthorityWildcards.grantsAllStrings(grantedAuthorities);
+        boolean canAssignCatalog =
+                unrestricted || accessScopePolicy.hasAuthority("role:write");
         Map<String, List<PermissionSummaryDto>> grouped = new LinkedHashMap<>();
         permissions.stream()
-                .filter(permission -> grantedAuthorities.contains(permission.getAuthority()))
+                .filter(permission ->
+                        canAssignCatalog || grantedAuthorities.contains(permission.getAuthority()))
                 .sorted(Comparator.comparing(Permission::getModule).thenComparing(Permission::getAuthority))
                 .forEach(permission -> grouped.computeIfAbsent(permission.getModule(), key -> new ArrayList<>())
                         .add(toSummary(permission)));

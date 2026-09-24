@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gesint — Telas das Regras de Negócio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@350;450;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#007bff;--primary-2:#0062cc;--accent:#e6f4ff;--neutral:#1e3a4f;
+  --b100:#ffffff;--b200:#f4f7fa;--b300:#dbe6ef;--line:#e3e9ef;--txt:#1e2a35;--muted:#6b7a88;
+  --ok:#16a34a;--warn:#d97706;--err:#dc2626;--info:#007bff;
+  --novo:#16a34a;--muda:#d97706;--remove:#dc2626;--mantem:#8a97a3;
+  --r:5px;--page:#eef2f6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --primary:#2da8f7;--primary-2:#1c8fdc;--accent:#12324a;--neutral:#cfe3f2;
+    --b100:#141a22;--b200:#0f141b;--b300:#233040;--line:#26313d;--txt:#e8eef4;--muted:#93a3b2;--page:#0b0f14;
+  }
+}
+:root[data-theme="dark"]{
+  --primary:#2da8f7;--primary-2:#1c8fdc;--accent:#12324a;--neutral:#cfe3f2;
+  --b100:#141a22;--b200:#0f141b;--b300:#233040;--line:#26313d;--txt:#e8eef4;--muted:#93a3b2;--page:#0b0f14;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--txt);font-family:Inter,system-ui,sans-serif;font-size:14px;font-weight:350;line-height:1.5}
+h1,h2,h3{font-family:Outfit,Inter,sans-serif;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 80px}
+.cover{background:linear-gradient(135deg,var(--neutral),var(--primary-2));color:#fff;border-radius:10px;padding:28px 28px 22px;margin-bottom:22px}
+.cover h1{font-size:28px;font-weight:700}
+.cover p{margin:6px 0 0;opacity:.9;max-width:820px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;letter-spacing:.02em;padding:2px 7px;border-radius:999px;color:#fff;white-space:nowrap}
+.t-novo{background:var(--novo)}.t-muda{background:var(--muda)}.t-remove{background:var(--remove)}.t-mantem{background:var(--mantem)}
+.toc{background:var(--b100);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin-bottom:26px}
+.toc h2{font-size:16px;margin-bottom:8px}
+.toc ol{margin:0;padding-left:20px;columns:2;column-gap:28px}
+.toc li{margin:2px 0;break-inside:avoid}
+.toc a{color:var(--primary);text-decoration:none}
+.layer{margin:34px 0 10px;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid var(--line);padding-bottom:6px}
+.screen{background:var(--b100);border:1px solid var(--line);border-radius:10px;margin:18px 0 28px;overflow:hidden}
+.screen-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--b200)}
+.screen-head h2{font-size:18px}
+.rn{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--primary);font-weight:600}
+.screen-body{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0}
+@media (max-width:980px){.screen-body{grid-template-columns:1fr}}
+.mock{padding:18px;background:var(--b200);min-width:0}
+.notes{padding:16px 18px;border-left:1px solid var(--line);font-size:13px}
+@media (max-width:980px){.notes{border-left:0;border-top:1px solid var(--line)}}
+.notes h3{font-size:14px;margin:0 0 8px}
+.notes ol{margin:0 0 12px;padding-left:0;list-style:none}
+.notes li{margin:0 0 9px;padding-left:28px;position:relative}
+.notes li .pin{position:absolute;left:0;top:1px}
+.notes .rule{background:var(--b200);border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-top:8px;font-size:12.5px}
+.notes .rule b{color:var(--primary)}
+.pin{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;background:var(--muda);color:#fff;font-size:11px;font-weight:700;flex:none}
+.pin.n{background:var(--novo)}.pin.r{background:var(--remove)}
+/* app shell */
+.app{display:grid;grid-template-columns:44px 170px minmax(0,1fr);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--b100);min-height:360px}
+.app.nosb{grid-template-columns:44px minmax(0,1fr)}
+@media (max-width:760px){.app,.app.nosb{grid-template-columns:1fr}.rail,.side{display:none!important}}
+.rail{background:var(--neutral);display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0}
+.rail span{width:30px;height:30px;border-radius:6px;display:grid;place-items:center;color:#cfe0ee;font-size:10.5px;font-weight:700}
+.rail span.on{background:var(--primary);color:#fff}
+.side{border-right:1px solid var(--line);padding:10px 8px;font-size:12.5px;background:var(--b100)}
+.side .sec{font-size:10.5px;text-transform:uppercase;color:var(--muted);margin:10px 6px 4px;letter-spacing:.06em}
+.side a{display:block;padding:5px 8px;border-radius:var(--r);color:var(--txt);text-decoration:none}
+.side a.on{background:var(--accent);color:var(--primary-2);font-weight:600}
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);font-size:12px;flex-wrap:wrap}
+.branch{border:1px solid var(--line);border-radius:var(--r);padding:3px 8px;background:var(--b200)}
+.tabs{display:flex;gap:2px;padding:6px 10px 0;border-bottom:1px solid var(--line);font-size:12px;overflow-x:auto}
+.tabs span{padding:6px 10px;border:1px solid transparent;border-bottom:0;border-radius:var(--r) var(--r) 0 0;white-space:nowrap;color:var(--muted)}
+.tabs span.on{background:var(--b100);border-color:var(--line);color:var(--txt);font-weight:600;margin-bottom:-1px}
+.content{padding:14px;flex:1;min-width:0}
+.formgrid{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px}
+@media (max-width:760px){.formgrid{grid-template-columns:1fr}}
+.stepper{display:flex;flex-direction:column;gap:4px;font-size:12.5px}
+.stepper span{padding:7px 9px;border-radius:var(--r);color:var(--muted);display:flex;align-items:center;gap:6px}
+.stepper span.on{background:var(--accent);color:var(--primary-2);font-weight:600}
+.stepper span.done::before{content:"✓";color:var(--ok);font-weight:700}
+.fs{border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:12px;background:var(--b100);position:relative}
+.fs h4{margin:0 0 2px;font-size:13.5px;font-family:Outfit,Inter,sans-serif}
+.fs .d{font-size:12px;color:var(--muted);margin-bottom:10px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:640px){.g2,.g3{grid-template-columns:1fr}}
+.f label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:3px}
+.in{border:1px solid var(--line);border-radius:var(--r);padding:6px 9px;font-size:12.5px;background:var(--b100);min-height:31px;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.in.sel::after{content:"▾";color:var(--muted)}
+.in.ta{min-height:54px;align-items:flex-start}
+.in.dis{background:var(--b200);color:var(--muted)}
+.in.lock{background:repeating-linear-gradient(135deg,var(--b200),var(--b200) 6px,var(--b100) 6px,var(--b100) 12px);color:var(--muted)}
+.in.hl{border-color:var(--muda);box-shadow:0 0 0 2px color-mix(in srgb,var(--muda) 22%,transparent)}
+.in.hn{border-color:var(--novo);box-shadow:0 0 0 2px color-mix(in srgb,var(--novo) 22%,transparent)}
+.in.hr{border-color:var(--remove);box-shadow:0 0 0 2px color-mix(in srgb,var(--remove) 18%,transparent);text-decoration:line-through;color:var(--muted)}
+.footer{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;padding:9px 12px;border-top:1px solid var(--line);background:var(--b100)}
+.btn{display:inline-flex;align-items:center;gap:5px;border-radius:var(--r);padding:6px 12px;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--b100);color:var(--txt);white-space:nowrap}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.g{background:transparent;border-color:transparent;color:var(--primary)}
+.btn.d{background:var(--err);border-color:var(--err);color:#fff}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px}
+.b-ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.b-warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.b-err{background:color-mix(in srgb,var(--err) 14%,transparent);color:var(--err)}
+.b-info{background:color-mix(in srgb,var(--info) 14%,transparent);color:var(--info)}
+.b-neu{background:var(--b300);color:var(--txt)}
+table.t{width:100%;border-collapse:collapse;font-size:12.5px}
+table.t th{text-align:left;font-weight:600;color:var(--muted);font-size:11.5px;padding:7px 8px;border-bottom:1px solid var(--line);background:var(--b200)}
+table.t td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tscroll{overflow-x:auto}
+.cols3{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px}
+.cols3 .span{grid-column:1/-1}
+.cols3 .span .opts{display:flex;flex-wrap:wrap;gap:2px 10px;padding:4px 0}
+@media (max-width:760px){.cols3{grid-template-columns:1fr}}
+.pick{border:1px solid var(--line);border-radius:var(--r);background:var(--b100)}
+.pick .h{font-size:11.5px;font-weight:600;padding:6px 9px;border-bottom:1px solid var(--line);background:var(--b200)}
+.pick .i{padding:6px 9px;font-size:12.5px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:6px;align-items:center}
+.pick .i.on{background:var(--accent);color:var(--primary-2);font-weight:600}
+.radio{display:flex;align-items:center;gap:7px;padding:5px 9px;font-size:12.5px}
+.radio i{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--muted);display:inline-block;flex:none}
+.radio.on i{border-color:var(--primary);background:radial-gradient(var(--primary) 45%,transparent 50%)}
+.chk{display:flex;align-items:flex-start;gap:7px;font-size:12.5px;margin:6px 0}
+.chk i{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--muted);flex:none;margin-top:2px}
+.chk.on i{background:var(--primary);border-color:var(--primary);box-shadow:inset 0 0 0 2px var(--b100)}
+.alert{border-radius:var(--r);padding:8px 10px;font-size:12.5px;display:flex;gap:8px;align-items:flex-start;margin:8px 0}
+.a-warn{background:color-mix(in srgb,var(--warn) 12%,transparent);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+.a-info{background:var(--accent);border:1px solid color-mix(in srgb,var(--primary) 30%,transparent)}
+.a-err{background:color-mix(in srgb,var(--err) 10%,transparent);border:1px solid color-mix(in srgb,var(--err) 35%,transparent)}
+.a-ok{background:color-mix(in srgb,var(--ok) 10%,transparent);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent)}
+.float{position:absolute;top:-9px;right:-9px}
+.rel{position:relative}
+.kanban{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:8px;overflow-x:auto}
+.kcol{background:var(--b200);border:1px solid var(--line);border-radius:var(--r);padding:6px;min-height:200px}
+.kcol .kh{font-size:11.5px;font-weight:600;display:flex;justify-content:space-between;margin-bottom:6px;padding:2px 4px;border-left:3px solid var(--primary)}
+.card{background:var(--b100);border:1px solid var(--line);border-radius:var(--r);padding:7px;font-size:12px;margin-bottom:6px}
+.card .nm{font-weight:600}
+.card .sm{color:var(--muted);font-size:11px}
+.modal{border:1px solid var(--line);border-radius:8px;background:var(--b100);box-shadow:0 10px 30px rgba(0,0,0,.18);max-width:520px;margin:14px auto 0}
+.modal .mh{padding:10px 14px;border-bottom:1px solid var(--line);font-weight:600;font-family:Outfit,Inter,sans-serif}
+.modal .mb{padding:12px 14px}
+.modal .mf{padding:9px 14px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.bar{height:22px;border-radius:4px;background:var(--b300);position:relative;margin:6px 0 2px}
+.bar .rng{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--ok) 35%,transparent);border-left:2px solid var(--ok);border-right:2px solid var(--ok)}
+.bar .mk{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--err);border-radius:2px}
+.scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted)}
+.tl{display:flex;gap:0;margin:6px 0}
+.tl div{flex:1;text-align:center;font-size:11px;position:relative;padding-top:18px;color:var(--muted)}
+.tl div::before{content:"";position:absolute;top:5px;left:50%;width:11px;height:11px;border-radius:50%;background:var(--b300);transform:translateX(-50%)}
+.tl div::after{content:"";position:absolute;top:10px;left:calc(50% + 7px);right:calc(-50% + 7px);height:2px;background:var(--b300)}
+.tl div:last-child::after{display:none}
+.tl div.done{color:var(--txt)}.tl div.done::before{background:var(--ok)}.tl div.done::after{background:var(--ok)}
+.tl div.cur{color:var(--primary);font-weight:600}.tl div.cur::before{background:var(--primary);box-shadow:0 0 0 3px var(--accent)}
+.phone{width:300px;max-width:100%;margin:0 auto;border:8px solid #1b2530;border-radius:26px;background:var(--b100);overflow:hidden}
+.phone .ph{background:var(--primary);color:#fff;padding:12px;font-weight:600;font-family:Outfit,Inter,sans-serif}
+.phone .pb{padding:12px;font-size:12.5px}
+.editor{display:grid;grid-template-columns:250px minmax(0,1fr);gap:10px}
+@media (max-width:760px){.editor{grid-template-columns:1fr}}
+.preview{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff;color:#1e2a35}
+.preview .hero{padding:18px;color:#fff;background:linear-gradient(135deg,#0f766e,#14b8a6)}
+.preview .blk{padding:10px 14px;border-top:1px solid #e5e7eb;font-size:12px}
+.blocklist .bi{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:var(--r);padding:6px 8px;margin-bottom:5px;font-size:12.5px;background:var(--b100)}
+.blocklist .bi::before{content:"⋮⋮";color:var(--muted);font-size:11px}
+.sw{display:inline-block;width:18px;height:18px;border-radius:4px;border:1px solid var(--line);vertical-align:middle}
+.score{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(4,34px) minmax(0,1fr);gap:4px;align-items:center;font-size:12px}
+.score .c{border:1px solid var(--line);border-radius:4px;text-align:center;padding:3px 0}
+.score .c.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700}
+.muted{color:var(--muted)}
+.small{font-size:11.5px}
+.mt{margin-top:10px}
+.foot{margin-top:40px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="cover">
+  <h1>Gesint: telas das regras de negócio</h1>
+  <p>Wireframes do que <b>muda</b> ou <b>entra</b> em cada regra (RN-xx), desenhados sobre a interface atual do sistema (rail DP/RH/CTB/CFG, workspace em abas, stepper lateral e rodapé Cancelar/Salvar). Os rótulos existentes foram tirados do código (<code>gommo@cb764f67</code>).</p>
+  <div class="legend">
+    <span class="tag t-novo">NOVO</span><span class="tag t-muda">MUDA</span><span class="tag t-remove">REMOVE</span><span class="tag t-mantem">JÁ EXISTE</span>
+    <span class="tag" style="background:rgba(255,255,255,.18);white-space:normal">Os números nos campos correspondem às notas ao lado</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h2>Índice</h2>
+  <ol>
+    <li><a href="#t1">CFG › Usuários: abrangência do perfil</a> · RN-03</li>
+    <li><a href="#t2">CFG › Perfis: permissões sensíveis e exportação</a> · RN-03</li>
+    <li><a href="#t3">Afastamento: CID protegido</a> · RN-02 / SEG-02</li>
+    <li><a href="#t4">Anexos com permissão herdada</a> · SEG-01</li>
+    <li><a href="#t5">CFG › Trilha de auditoria</a> · RN-05</li>
+    <li><a href="#t6">DP › Cargos: competências, níveis e faixas</a> · RN-10/11/12</li>
+    <li><a href="#t7">RH › Requisição de vaga</a> · RN-30</li>
+    <li><a href="#t8">RH › Vaga: cargo, responsáveis e publicação</a> · RN-31/32</li>
+    <li><a href="#t9">CFG › Página de carreiras (editor)</a> · RN-32</li>
+    <li><a href="#t10">Página pública: candidatura com dado mínimo</a> · RN-33 / SEG-04</li>
+    <li><a href="#t11">Kanban: reprovação com motivo e IA como apoio</a> · RN-34/35</li>
+    <li><a href="#t12">Entrevista estruturada (scorecard)</a> · RN-36</li>
+    <li><a href="#t13">Proposta e conversão para pré-admissão</a> · RN-37/38</li>
+    <li><a href="#t14">Portal do candidato</a> · RN-33 / D8</li>
+    <li><a href="#t15">DP › Desligamento reconstruído</a> · RN-21</li>
+    <li><a href="#t16">Avaliação de experiência 45/90</a> · RN-13/41</li>
+  </ol>
+</div>
+
+<div class="layer">Camada 0: fundações (autorização, LGPD, auditoria)</div>
+
+<!-- T1 -->
+<section class="screen" id="t1">
+  <div class="screen-head"><div><div class="rn">RN-03 · D2</div><h2>CFG › Usuários › Perfis: abrangência do vínculo</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="app">
+        <div class="rail"><span>DP</span><span>RH</span><span>CTB</span><span class="on">CFG</span></div>
+        <div class="side"><div class="sec">Acesso</div><a>Perfis</a><a class="on">Usuários</a><a>Auditoria <span class="tag t-novo" style="font-size:9px">NOVO</span></a><div class="sec">Sistema</div><a>Processo de Admissão</a><a>Página de carreiras <span class="tag t-novo" style="font-size:9px">NOVO</span></a></div>
+        <div class="main">
+          <div class="topbar"><span>Configurações do sistema</span><span class="branch">Filial: Matriz Goiânia <span class="badge b-info">Matriz</span></span></div>
+          <div class="tabs"><span>Listagem</span><span class="on">Editar</span></div>
+          <div class="content">
+            <div class="formgrid">
+              <div class="stepper"><span class="done">Dados</span><span class="on">Perfis</span></div>
+              <div>
+                <div class="fs"><h4>Perfis por filial e sistema</h4><div class="d">Usuário: <b>marina.lopes</b> · Colaborador: Marina Lopes (Gestora Comercial)</div>
+                  <div class="cols3">
+                    <div class="pick"><div class="h">Filiais</div><div class="i on">Matriz Goiânia</div><div class="i">Filial Anápolis</div><div class="i">Filial Aparecida</div></div>
+                    <div class="pick"><div class="h">Sistemas</div><div class="i">DP</div><div class="i on">RH</div><div class="i">CTB</div></div>
+                    <div class="pick"><div class="h">Perfis</div><div class="i on">Gestor requisitante ✓</div><div class="i">Recrutador</div><div class="i">Analista RH</div></div>
+                    <div class="pick rel span" style="border-color:var(--novo)"><span class="pin n float">1</span><div class="h">Abrangência do perfil "Gestor requisitante" na Matriz Goiânia · RH</div>
+                      <div class="opts"><div class="radio"><i></i>Toda a filial</div>
+                      <div class="radio"><i></i>Departamento…</div>
+                      <div class="radio on"><i></i>Minha equipe direta</div>
+                      <div class="radio"><i></i>Vagas atribuídas a mim</div>
+                      <div class="radio"><i></i>Somente o próprio</div></div>
+                      <div class="small muted" style="padding:4px 9px 8px">Equipe = colaboradores cujo gestor é <b>Marina Lopes</b> <span class="pin n" style="width:15px;height:15px;font-size:9px">2</span></div>
+                    </div>
+                  </div>
+                  <div class="alert a-info mt"><span class="pin n">3</span><div>Prévia: com esta configuração, Marina verá <b>12 colaboradores</b> (equipe direta) na Matriz Goiânia. Campos sensíveis: <b>não</b>. As vagas em que ela é responsável aparecem pela atribuição na própria vaga (tela 8).</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="footer"><span class="btn">Cancelar</span><span class="btn p">Salvar</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <ol>
+        <li><span class="pin n">1</span><b>Nova coluna "Abrangência"</b> no vínculo filial → sistema → perfil (grava <code>user_role.data_scope</code>). As três colunas atuais continuam iguais.</li>
+        <li><span class="pin n">2</span>"Equipe direta" exige saber quem é o gestor de cada colaborador. O campo existe só no departamento (<code>responsibleCollaboratorIds</code>), então vira regra de cadastro do colaborador.</li>
+        <li><span class="pin n">3</span>Prévia do que o usuário vai enxergar, para quem configura não conceder mais do que pretendia.</li>
+      </ol>
+      <div class="rule"><b>Regra:</b> o mesmo perfil ("Gestor requisitante") serve para todos os gestores; só muda a abrangência. Não se criam perfis duplicados por equipe.</div>
+      <div class="rule"><b>Regra:</b> GLOBAL_ADMIN não tem abrangência (vê tudo). A tela mostra o aviso "Acesso total, sem restrição de escopo".</div>
+    </div>
+  </div>
+</section>
+
+<!-- T2 -->
+<section class="screen" id="t2">
+  <div class="screen-head"><div><div class="rn">RN-03 · D4 · D7</div><h2>CFG › Perfis: permissões de dado sensível e exportação</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="app nosb">
+        <div class="rail"><span>DP</span><span>RH</span><span>CTB</span><span class="on">CFG</span></div>
+        <div class="main">
+          <div class="tabs"><span>Listagem</span><span class="on">Editar</span></div>
+          <div class="content">
+            <div class="fs"><h4>Perfil</h4><div class="g2"><div class="f"><label>Nome do perfil</label><div class="in">Analista DP</div></div><div class="f"><label>Descrição</label><div class="in">Rotinas de DP da filial</div></div></div></div>
+            <div class="fs"><h4>Permissões · DP</h4><div class="d">Adicionar todos · Remover todos</div>
+              <div class="tscroll"><table class="t">
+                <tr><th>Menu</th><th>Consultar</th><th>Criar / editar</th><th>Excluir</th><th>Seleção</th><th class="rel">Sensível / financeiro <span class="pin n">1</span></th><th class="rel">Exportar <span class="pin n">2</span></th></tr>
+                <tr><td>Colaboradores</td><td>✅</td><td>✅</td><td>—</td><td>✅</td><td>☐ <span class="small muted">raça/cor, PCD (sensível) · dados bancários, salário (financeiro)</span></td><td>☐</td></tr>
+                <tr><td>Afastamento</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>☐ <span class="small muted">CID, obs. médicas</span></td><td>☐</td></tr>
+                <tr><td>Exames ocupacionais</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>☐ <span class="small muted">clínico (já existe)</span></td><td>☐</td></tr>
+                <tr><td>Desligamento</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>—</td><td>☐</td></tr>
+              </table></div>
+              <div class="alert a-warn mt"><span class="pin n">3</span><div>Ao marcar <b>Dado sensível</b>, o sistema pede uma justificativa e registra a concessão na <b>Trilha de auditoria</b>.</div></div>
+            </div>
+          </div>
+          <div class="footer"><span class="btn">Cancelar</span><span class="btn p">Salvar perfil</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <ol>
+        <li><span class="pin n">1</span><b>Coluna "Sensível / financeiro"</b> (<code>modulo:sensitive</code> e <code>modulo:financial</code>), que generaliza o <code>occupationalexam:clinical</code> que já existe em Exames. Segue as 4 classes da RN-02: comum, pessoal, sensível e financeiro.</li>
+        <li><span class="pin n">2</span><b>Coluna "Exportar"</b>: o Excel da listagem passa a exigir permissão própria. Exportar dado sensível gera log.</li>
+        <li><span class="pin n">3</span>Conceder dado sensível exige justificativa e fica auditado.</li>
+      </ol>
+      <div class="rule"><b>Regra:</b> ninguém concede o que não tem (anti-escalada, já existe). O campo sensível segue a mesma regra.</div>
+    </div>
+  </div>
+</section>
+
+<!-- T3 -->
+<section class="screen" id="t3">
+  <div class="screen-head"><div><div class="rn">RN-02 · SEG-02</div><h2>DP › Afastamento › Atestado: CID protegido</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="app">
+        <div class="rail"><span class="on">DP</span><span>RH</span><span>CTB</span><span>CFG</span></div>
+        <div class="side"><div class="sec">Colaboradores e vínculos</div><a>Férias</a><a class="on">Afastamento</a><a>Desligamento</a><a>Ponto</a></div>
+        <div class="main">
+          <div class="tabs"><span>Listagem</span><span class="on">Editar</span></div>
+          <div class="content">
+            <div class="formgrid">
+              <div class="stepper"><span class="done">Afastamento</span><span class="on">Atestado</span><span>Impactos</span><span>Documentos</span></div>
+              <div>
+                <div class="fs"><h4>Atestado e origem</h4><div class="d">Visão de um usuário <b>sem</b> a permissão "Dado sensível" em Afastamento</div>
+                  <div class="g2">
+                    <div class="f rel"><label>CID</label><div class="in lock">🔒 Restrito <span class="pin">1</span></div></div>
+                    <div class="f"><label>Médico</label><div class="in">Dr. Paulo R. Andrade</div></div>
+                    <div class="f"><label>CRM</label><div class="in">GO 12.345</div></div>
+                    <div class="f"><label>Origem do atestado</label><div class="in sel">Consulta particular</div></div>
+                    <div class="f"><label>Dias relacionados</label><div class="in">3</div></div>
+                    <div class="f rel"><label>Orientação</label><div class="in">Repouso domiciliar</div></div>
+                  </div>
+                  <div class="alert a-info mt"><span class="pin">2</span><div>Você vê o <b>tipo</b> e o <b>período</b>, suficientes para abono e cálculo. O diagnóstico só aparece para SESMT/médico do trabalho.</div></div>
+                </div>
+                <div class="fs rel"><span class="pin n float">3</span><h4>Visão com permissão (SESMT)</h4>
+                  <div class="g2"><div class="f"><label>CID</label><div class="in">J11 · Influenza</div></div><div class="f"><label>&nbsp;</label><div class="small muted">👁 Seu acesso a este campo foi registrado.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="footer"><span class="btn">Cancelar</span><span class="btn">Novo cadastro</span><span class="btn p">Salvar</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <ol>
+        <li><span class="pin">1</span>Hoje o CID aparece para qualquer um com <code>leave:read</code>. Passa a ficar <b>mascarado na leitura</b> e é <b>descartado na gravação</b> para quem não tem <code>leave:sensitive</code>.</li>
+        <li><span class="pin">2</span>Explica ao usuário por que ele não vê o campo e o que ainda pode fazer.</li>
+        <li><span class="pin n">3</span>Quem tem permissão vê o dado, e cada leitura gera um registro na trilha de auditoria.</li>
+      </ol>
+      <div class="rule"><b>Recomendação (RN-02):</b> <b>não guardar o CID</b>, porque tipo e período bastam para abono e afastamento previdenciário. Esta tela vale para o caso de o produto decidir mantê-lo, e nesse caso a RN-02 precisa ser ajustada.</div>
+    </div>
+  </div>
+</section>
+
+<!-- T4 -->
+<section class="screen" id="t4">
+  <div class="screen-head"><div><div class="rn">SEG-01 · D5</div><h2>Anexos (componente <code>EntityAttachments</code>) com permissão herdada</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="fs"><h4>Documentos</h4><div class="d">Afastamento #0148 · Visão de um gestor com <code>leave:read</code> mas sem dado sensível</div>
+        <div class="tscroll"><table class="t">
+          <tr><th>Arquivo</th><th>Tipo</th><th>Classe</th><th>Enviado em</th><th></th></tr>
+          <tr><td>requerimento_ferias.pdf</td><td>Formulário</td><td><span class="badge b-neu">Comum</span></td><td>12/09/2026</td><td><span class="btn g">Baixar</span></td></tr>
+          <tr class="rel"><td>atestado_medico.pdf</td><td>Atestado</td><td><span class="badge b-err">Sensível</span> <span class="pin">1</span></td><td>12/09/2026</td><td><span class="btn g" style="color:var(--muted)">🔒 Sem permissão</span></td></tr>
+        </table></div>
+        <div class="alert a-err mt"><span class="pin">2</span><div><b>API:</b> <code>GET /storage/{id}/download</code> passa a checar a permissão da <b>entidade dona</b> (Afastamento → <code>leave:read</code>; atestado → <code>leave:sensitive</code>) e não mais só <code>storage:read</code>. Chamada sem filial selecionada → <b>403</b>.</div></div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <ol>
+        <li><span class="pin">1</span>Todo anexo ganha uma <b>classe</b> da RN-02 (comum, pessoal, sensível ou financeiro) definida pelo tipo de documento.</li>
+        <li><span class="pin">2</span>A mudança principal é no backend: hoje qualquer usuário logado, até o colaborador pelo app, baixa qualquer anexo cujo ID ele obtenha.</li>
+      </ol>
+      <div class="rule"><b>Critério de aceite:</b> um usuário sem <code>leave:read</code> recebe 403 ao baixar o anexo de um afastamento, mesmo tendo o ID do arquivo.</div>
+      <div class="rule"><b>Vale também para:</b> currículos (candidato), selfies do ponto e documentos de admissão.</div>
+    </div>
+  </div>
+</section>
+
+<!-- T5 -->
+<section class="screen" id="t5">
+  <div class="screen-head"><div><div class="rn">RN-05 · D7</div><h2>CFG › Trilha de auditoria</h2></div><div><span class="tag t-novo">NOVO</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="app nosb">
+        <div class="rail"><span>DP</span><span>RH</span><span>CTB</span><span class="on">CFG</span></div>
+        <div class="main">
+          <div class="tabs"><span class="on">Trilha de auditoria</span></div>
+          <div class="content">
+            <div class="g3" style="margin-bottom:10px"><div class="f"><label>Período</label><div class="in sel">Últimos 30 dias</div></div><div class="f"><label>Categoria</label><div class="in sel">Todas</div></div><div class="f"><label>Usuário ou registro</label><div class="in">Buscar…</div></div></div>
+            <div class="tscroll"><table class="t">
+              <tr><th>Quando</th><th>Quem</th><th>Categoria</th><th>Ação</th><th>Registro</th><th>Motivo</th></tr>
+              <tr><td>23/09 14:02</td><td>ana.sesmt</td><td><span class="badge b-err">Dado sensível</span></td><td>Leu CID</td><td>Afastamento #0148</td><td class="muted">—</td></tr>
+              <tr><td>23/09 11:40</td><td>marina.lopes</td><td><span class="badge b-warn">Decisão</span></td><td>Reprovou candidato</td><td>Candidatura #2291</td><td>Não atende requisito: CNH categoria D</td></tr>
+              <tr><td>22/09 17:15</td><td>leo.admin</td><td><span class="badge b-info">Acesso</span></td><td>Concedeu "Dado sensível" em Afastamento</td><td>Perfil SESMT</td><td>Médica do trabalho contratada</td></tr>
+              <tr><td>22/09 09:03</td><td>joao.dp</td><td><span class="badge b-warn">Decisão</span></td><td>Registrou desligamento</td><td>Colab. #0077</td><td>Pedido de demissão</td></tr>
+              <tr><td>21/09 16:20</td><td>carla.rh</td><td><span class="badge b-neu">Exportação</span></td><td>Exportou Excel (48 linhas)</td><td>Colaboradores</td><td class="muted">—</td></tr>
+            </table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que entra</h3>
+      <ol>
+        <li><span class="pin n">1</span>Usa a tabela <code>audit_log</code>, que <b>já existe e está vazia</b>. A Sprint 1 do plano do Flávio também prevê trilha de auditoria.</li>
+        <li><span class="pin n">2</span>Quatro categorias: <b>Dado sensível</b> (leitura), <b>Decisão sobre pessoa</b> (com motivo obrigatório), <b>Acesso</b> (perfis e permissões) e <b>Exportação</b>.</li>
+      </ol>
+      <div class="rule"><b>Regra:</b> o registro é imutável, sem editar nem excluir. Só GLOBAL_ADMIN e o perfil "Auditor" (incluído na matriz da RN-03 v1.1) consultam.</div>
+      <div class="rule"><b>Uso:</b> atender o titular (LGPD art. 18/20) e servir de prova em reclamação trabalhista.</div>
+    </div>
+  </div>
+</section>
+
+<div class="layer">Camada 1: cargos e competências</div>
+
+<!-- T6 -->
+<section class="screen" id="t6">
+  <div class="screen-head"><div><div class="rn">RN-10 · RN-11 · RN-12</div><h2>DP › Organização › Cargos: competências, níveis e faixas</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="app">
+        <div class="rail"><span class="on">DP</span><span>RH</span><span>CTB</span><span>CFG</span></div>
+        <div class="side"><div class="sec">Organização</div><a>Departamentos</a><a class="on">Cargos</a><a>Tabela salarial <span class="tag t-novo" style="font-size:9px">NOVO</span></a><a>Clínicas / Médicos</a></div>
+        <div class="main">
+          <div class="tabs"><span>Listagem</span><span class="on">Editar</span><span>Matriz de Exames</span></div>
+          <div class="content">
+            <div class="formgrid">
+              <div class="stepper"><span class="done">Cargo</span><span class="rel">Descrição <span class="tag t-novo" style="font-size:9px">NOVO</span></span><span class="on">Competências</span><span>Níveis e faixas</span><span>Saúde ocupacional</span></div>
+              <div>
+                <div class="fs"><h4>Cargo</h4><div class="g3"><div class="f"><label>Título do cargo</label><div class="in">Atendente de Farmácia</div></div><div class="f"><label>Código CBO</label><div class="in">5211-30</div></div><div class="f"><label>Família</label><div class="in sel hn">Atendimento</div></div></div></div>
+                <div class="fs rel"><span class="pin n float">1</span><h4>Competências exigidas</h4><div class="d">Vindas do catálogo. O nível esperado orienta a seleção, a experiência e o desempenho.</div>
+                  <div class="tscroll"><table class="t">
+                    <tr><th>Competência</th><th>Tipo</th><th>Nível esperado (1–4)</th><th>Usada em</th></tr>
+                    <tr><td>Atendimento ao cliente</td><td>Comportamental</td><td><b>3</b> · resolve reclamações sem escalar</td><td class="small">Seleção · Experiência · Desempenho</td></tr>
+                    <tr><td>Dispensação segura</td><td>Técnica</td><td><b>2</b> · confere receita e lote</td><td class="small">Prova técnica · Experiência</td></tr>
+                    <tr><td>Trabalho em equipe</td><td>Comportamental</td><td><b>2</b></td><td class="small">Entrevista · PDI</td></tr>
+                  </table></div><span class="btn g mt">+ Adicionar competência</span>
+                </div>
+                <div class="fs rel"><span class="pin n float">2</span><h4>Níveis e faixas salariais</h4><div class="d">Tabela salarial vigente: <b>2026-A</b> (desde 01/03/2026)</div>
+                  <div class="tscroll"><table class="t"><tr><th>Nível</th><th>Mínimo</th><th>Referência</th><th>Máximo</th></tr>
+                    <tr><td>I</td><td>R$ 1.850</td><td>R$ 2.000</td><td>R$ 2.200</td></tr>
+                    <tr><td>II</td><td>R$ 2.150</td><td>R$ 2.350</td><td>R$ 2.600</td></tr>
+                    <tr><td>III</td><td>R$ 2.550</td><td>R$ 2.800</td><td>R$ 3.100</td></tr></table></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="footer"><span class="btn">Cancelar</span><span class="btn">Novo cadastro</span><span class="btn p">Salvar</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <p class="small">Hoje o cargo tem: Título, CBO e Natureza. Senioridade e salário ficam na <b>vaga</b>.</p>
+      <ol>
+        <li><span class="pin n">1</span><b>Competências no cargo.</b> O catálogo <b>já existe</b> para o PDI (CFG › "Competências PDI" e "Níveis de proficiência", entidade <code>Competency</code>). <b>Muda:</b> vira catálogo único, com indicadores observáveis por nível, usado por cargo, seleção, experiência e desempenho.</li>
+        <li><span class="pin n">2</span><b>Níveis e faixas</b> ligados a uma tabela salarial <b>com vigência</b>, no mesmo princípio da Matriz de Exames.</li>
+      </ol>
+      <div class="rule"><b>Regra:</b> salário fora da faixa em vaga, proposta ou promoção gera exceção com alçada de aprovação.</div>
+      <div class="rule"><b>Regra:</b> alterar competências ou faixas cria uma nova versão; o histórico responde "o que valia nesta data?".</div>
+    </div>
+  </div>
+</section>
+
+<div class="layer">Camada 3: Recrutamento e Seleção (funil de pré-admissão)</div>
+
+<!-- T7 -->
+<section class="screen" id="t7">
+  <div class="screen-head"><div><div class="rn">RN-30</div><h2>RH › Requisição de vaga</h2></div><div><span class="tag t-novo">NOVO</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="app">
+        <div class="rail"><span>DP</span><span class="on">RH</span><span>CTB</span><span>CFG</span></div>
+        <div class="side"><div class="sec">Recrutamento</div><a class="on">Requisições <span class="tag t-novo" style="font-size:9px">NOVO</span></a><a>Vagas</a><a>Banco de talentos</a></div>
+        <div class="main">
+          <div class="tabs"><span>Listagem</span><span class="on">Cadastro</span></div>
+          <div class="content">
+            <div class="fs"><h4>Posição</h4>
+              <div class="g3">
+                <div class="f"><label>Cargo *</label><div class="in sel">Atendente de Farmácia</div></div>
+                <div class="f"><label>Nível *</label><div class="in sel">II</div></div>
+                <div class="f"><label>Filial</label><div class="in dis">Matriz Goiânia</div></div>
+                <div class="f"><label>Tipo de vínculo *</label><div class="in sel">CLT · experiência 45+45</div></div>
+                <div class="f"><label>Posições</label><div class="in">1</div></div>
+                <div class="f"><label>Início desejado</label><div class="in">01/11/2026</div></div>
+              </div>
+            </div>
+            <div class="fs rel"><span class="pin n float">1</span><h4>Motivo</h4>
+              <div class="g2"><div><div class="radio"><i></i>Aumento de quadro</div><div class="radio on"><i></i>Substituição</div></div>
+              <div class="f"><label>Substitui</label><div class="in dis">Rafael Souza · desligado em 15/09 (pedido de demissão)</div></div></div>
+            </div>
+            <div class="fs rel"><span class="pin n float">2</span><h4>Remuneração proposta</h4>
+              <div class="f"><label>Salário proposto</label><div class="in hl">R$ 2.750,00</div></div>
+              <div class="bar"><div class="rng" style="left:20%;right:25%"></div><div class="mk" style="left:83%"></div></div>
+              <div class="scale"><span>R$ 1.900</span><span>Faixa nível II: R$ 2.150 – R$ 2.600</span><span>R$ 3.000</span></div>
+              <div class="alert a-warn"><div>⚠ Acima do máximo da faixa (+5,8%). Exige aprovação de <b>Diretoria</b> e justificativa.</div></div>
+              <div class="f"><label>Justificativa *</label><div class="in ta">Mercado local aquecido; duas recusas na última vaga.</div></div>
+            </div>
+            <div class="fs rel"><span class="pin n float">3</span><h4>Aprovação</h4>
+              <div class="tl"><div class="done">Gestor<br><span class="small">Marina · 23/09</span></div><div class="cur">RH<br><span class="small">pendente</span></div><div>Diretoria<br><span class="small">(fora da faixa)</span></div><div>Vaga aberta</div></div>
+            </div>
+          </div>
+          <div class="footer"><span class="btn">Cancelar</span><span class="btn">Salvar rascunho</span><span class="btn p">Enviar para aprovação</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que entra</h3>
+      <ol>
+        <li><span class="pin n">1</span>Na <b>substituição</b>, a requisição nasce do evento "posição vaga" emitido pelo desligamento (RN-21) e já vem preenchida.</li>
+        <li><span class="pin n">2</span><b>Salário confrontado com a faixa</b> do cargo e nível (RN-12). Fora da faixa, exige justificativa e sobe a alçada.</li>
+        <li><span class="pin n">3</span>Fluxo de aprovação com prazos (RN-07). Aprovada, a requisição <b>gera a vaga</b>, sem digitar de novo.</li>
+      </ol>
+      <div class="rule"><b>Permissão:</b> o gestor requisitante cria requisições só para a própria equipe (abrangência "Equipe").</div><div class="rule"><b>Alçada:</b> dentro da faixa: gestor → RH → orçamento. Fora da faixa: sobe para a Diretoria (RN-30).</div>
+    </div>
+  </div>
+</section>
+
+<!-- T8 -->
+<section class="screen" id="t8">
+  <div class="screen-head"><div><div class="rn">RN-31 · RN-32</div><h2>RH › Vaga: herda o cargo, ganha responsáveis e muda a publicação</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="app nosb">
+        <div class="rail"><span>DP</span><span class="on">RH</span><span>CTB</span><span>CFG</span></div>
+        <div class="main">
+          <div class="tabs"><span>Listagem</span><span class="on">Editar</span><span>Vaga - Atendente de Farmácia</span></div>
+          <div class="content">
+            <div class="formgrid">
+              <div class="stepper"><span class="on">Dados</span><span>Detalhes</span><span>Responsáveis <span class="tag t-novo" style="font-size:9px">NOVO</span></span><span>Publicação</span></div>
+              <div>
+                <div class="fs"><h4>Dados</h4>
+                  <div class="g3">
+                    <div class="f rel"><label>Cargo *</label><div class="in sel hl">Atendente de Farmácia</div><span class="pin float" style="top:10px">1</span></div>
+                    <div class="f"><label>Nível</label><div class="in sel hl">II</div></div>
+                    <div class="f"><label>Posições</label><div class="in">1</div></div>
+                    <div class="f rel"><label>Senioridade</label><div class="in hr">Pleno</div><span class="pin r float" style="top:10px">2</span></div>
+                    <div class="f"><label>Área / departamento</label><div class="in dis">Loja Centro (do cadastro)</div></div>
+                    <div class="f"><label>Salário</label><div class="in dis">R$ 2.750 (da requisição)</div></div>
+                  </div>
+                  <div class="chk on rel mt"><i></i><div><b>Vaga afirmativa / PCD</b> <span class="tag t-novo" style="font-size:9px">NOVO</span><br><span class="small muted">Ativa a autodeclaração opcional, guardada em separado e invisível para quem avalia.</span></div></div>
+                </div>
+                <div class="fs rel"><span class="pin n float">3</span><h4>Responsáveis</h4><div class="g2"><div class="f"><label>Recrutador(a)</label><div class="in sel">Carla Mendes</div></div><div class="f"><label>Gestor(a) requisitante</label><div class="in sel">Marina Lopes</div></div><div class="f"><label>Entrevistadores</label><div class="in sel">Marina Lopes, Pedro Alves</div></div><div class="f"><label>Prazo de retorno ao candidato</label><div class="in">5 dias úteis</div></div></div></div>
+                <div class="fs rel"><span class="pin float">4</span><h4>Publicação</h4>
+                  <div class="chk on"><i></i><span>Publicar página de candidatura · <span class="small muted">empresa.gesint.com.br/careers/atendente-de-farmacia</span></span></div>
+                  <div class="chk on"><i></i><span><b>Google for Jobs</b> (dados estruturados na página) <span class="tag t-novo" style="font-size:9px">NOVO</span></span></div>
+                  <div class="chk on"><i></i><span>Link e texto prontos para <b>WhatsApp</b> <span class="tag t-novo" style="font-size:9px">NOVO</span></span></div>
+                  <div class="chk"><i></i><span>Catho · Indeed · LinkedIn · InfoJobs · Vagas.com <span class="badge b-neu">Em breve</span></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="footer"><span class="btn">Cancelar</span><span class="btn p">Salvar</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <ol>
+        <li><span class="pin">1</span><b>Cargo passa a ser obrigatório</b>. Descrição, requisitos, competências e exames vêm do cargo. Hoje "Nome do cargo" é texto livre e o vínculo com o cargo é opcional.</li>
+        <li><span class="pin r">2</span><b>Senioridade e salário saem da vaga</b>: viram nível do cargo e valor da requisição.</li>
+        <li><span class="pin n">3</span><b>Responsáveis</b>: definem quem enxerga a vaga (abrangência "Vagas atribuídas") e o prazo de retorno ao candidato.</li>
+        <li><span class="pin">4</span>Publicação: entram Google for Jobs e WhatsApp, que são gratuitos. Os sites pagos continuam "Em breve" até confirmar as APIs.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- T9 -->
+<section class="screen" id="t9">
+  <div class="screen-head"><div><div class="rn">RN-32</div><h2>CFG › Página de carreiras: tema e blocos</h2></div><div><span class="tag t-novo">NOVO</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="editor">
+        <div>
+          <div class="fs"><h4>Tema</h4>
+            <div class="f"><label>Logo</label><div class="in">logo-farmavida.svg <span class="btn g" style="padding:0">Trocar</span></div></div>
+            <div class="g2 mt"><div class="f"><label>Cor principal</label><div class="in"><span class="sw" style="background:#0f766e"></span> #0F766E</div></div><div class="f"><label>Cor de destaque</label><div class="in"><span class="sw" style="background:#14b8a6"></span> #14B8A6</div></div></div>
+            <div class="f mt"><label>Endereço</label><div class="in">farmavida.gesint.com.br/careers</div></div>
+            <div class="small muted mt">Domínio próprio (carreiras.farmavida.com.br): etapa 2</div>
+          </div>
+          <div class="fs rel"><span class="pin n float">1</span><h4>Blocos</h4><div class="d">Arraste para ordenar</div>
+            <div class="blocklist"><div class="bi">Capa + proposta de valor</div><div class="bi">Por que trabalhar aqui</div><div class="bi">Benefícios</div><div class="bi">Um dia aqui (fotos e depoimentos)</div><div class="bi">Vagas abertas</div><div class="bi">Banco de talentos</div></div>
+          </div>
+        </div>
+        <div class="rel"><span class="pin n float">2</span>
+          <div class="preview">
+            <div class="hero"><div style="font-weight:700;font-size:13px;opacity:.9">FARMAVIDA</div><div style="font-family:Outfit;font-size:20px;font-weight:700;margin-top:6px">Cuidar de gente começa por aqui.</div><div style="font-size:12px;opacity:.9">14 lojas em Goiás · 320 pessoas</div></div>
+            <div class="blk"><b>Benefícios</b><br>Plano de saúde · Vale-alimentação · Trilha de formação em farmácia clínica</div>
+            <div class="blk"><b>Vagas abertas (3)</b><br>Atendente de Farmácia · Goiânia ›<br>Farmacêutico(a) · Anápolis ›<br>Auxiliar de Estoque · Aparecida ›</div>
+            <div class="blk"><b>Não encontrou sua vaga?</b> Entre no banco de talentos ›</div>
+          </div>
+          <div class="small muted mt">Prévia do celular · <span class="btn g" style="padding:0">Ver no desktop</span></div>
+        </div>
+      </div>
+      <div class="footer" style="border:1px solid var(--line);border-radius:var(--r);margin-top:10px"><span class="btn">Descartar</span><span class="btn">Salvar rascunho</span><span class="btn p">Publicar</span></div>
+    </div>
+    <div class="notes">
+      <h3>O que entra</h3>
+      <ol>
+        <li><span class="pin n">1</span>Personalização por <b>tema + blocos prontos</b>, e não por editor livre: bonito sem esforço, sem quebrar o layout e acessível.</li>
+        <li><span class="pin n">2</span>Prévia ao vivo, com o celular primeiro (é por onde o candidato de PME se candidata).</li>
+      </ol>
+      <div class="rule"><b>Endomarketing:</b> o bloco "Um dia aqui" usa fotos e depoimentos <b>reais</b> de colaboradores, com autorização de uso de imagem registrada.</div>
+      <div class="rule"><b>Hoje:</b> já existe a página pública <b>por vaga</b> (<code>/careers/[slug]</code>). Falta a <b>página da empresa</b> e o tema.</div>
+    </div>
+  </div>
+</section>
+
+<!-- T10 -->
+<section class="screen" id="t10">
+  <div class="screen-head"><div><div class="rn">RN-02 · RN-33 · SEG-04</div><h2>Página pública: candidatura com dado mínimo e consentimento</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="fs" style="max-width:560px;margin:0 auto">
+        <div class="badge b-info">VAGA ABERTA</div>
+        <h4 style="font-size:17px;margin-top:6px">Atendente de Farmácia · Goiânia</h4>
+        <div class="d">Informações pessoais</div>
+        <div class="g2">
+          <div class="f"><label>Nome</label><div class="in">Juliana</div></div>
+          <div class="f"><label>Sobrenome</label><div class="in">Ferreira</div></div>
+          <div class="f"><label>E-mail *</label><div class="in">juliana@email.com</div></div>
+          <div class="f"><label>Telefone / WhatsApp *</label><div class="in">(62) 9 9999-0000</div></div>
+          <div class="f rel"><label>CPF</label><div class="in hr">000.000.000-00</div><span class="pin r float" style="top:10px">1</span></div>
+          <div class="f"><label>Cidade</label><div class="in">Goiânia</div></div>
+          <div class="f"><label>Como conheceu a vaga?</label><div class="in sel">WhatsApp</div></div>
+        </div>
+        <div class="d mt">Currículo · Experiências (sem mudança)</div>
+        <div class="rel" style="border-top:1px solid var(--line);padding-top:8px;margin-top:8px"><span class="pin n float">2</span>
+          <div class="chk on"><i></i><div>Li e aceito o <u>aviso de privacidade</u> para participar <b>deste processo seletivo</b>. *</div></div>
+          <div class="chk"><i></i><div>Quero entrar no <b>banco de talentos</b> por 12 meses para outras vagas (opcional).</div></div>
+          <div class="alert a-info rel"><span class="pin n">3</span><div>Seu currículo será lido por uma <b>ferramenta de IA</b> para ajudar o recrutador. A decisão é sempre de uma pessoa, e você pode pedir revisão.</div></div>
+        </div>
+        <div style="text-align:right" class="mt"><span class="btn p">Enviar candidatura</span></div>
+      </div>
+      <div class="alert a-ok" style="max-width:560px;margin:10px auto 0"><span class="pin n">4</span><div><b>Candidatura enviada!</b> Enviamos um link para <b>juliana@email.com</b> para você acompanhar o processo.</div></div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <ol>
+        <li><span class="pin r">1</span><b>O CPF sai da candidatura</b> e vai para a pré-admissão: sem autenticação, ele permite sobrescrever o cadastro de outra pessoa (SEG-04). <b>A data de nascimento já não é pedida aqui</b>, mas o backend grava nulo por cima do cadastro, e o "Criar Admissão" exige esse dado. Resultado: <b>quem se candidata pela página nunca é convertido</b>. Ela passa a ser coletada só na pré-admissão (evita também idade na triagem, Lei 9.029/95).</li>
+        <li><span class="pin n">2</span><b>Dois consentimentos separados</b>, com data e versão do termo guardadas.</li>
+        <li><span class="pin n">3</span>Transparência sobre o uso de IA (o currículo vai para Gemini/OpenAI). Como a decisão é sempre humana, o art. 20 da LGPD não se aplica em sentido estrito (ele trata de decisão <i>exclusivamente</i> automatizada). A revisão é oferecida como boa prática.</li>
+        <li><span class="pin n">4</span>Link mágico por e-mail: abre o portal do candidato (tela 14).</li>
+      </ol>
+      <div class="rule"><b>Deduplicação</b> passa a ser por e-mail confirmado. Candidatura pública <b>nunca</b> sobrescreve dados já existentes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- T11 -->
+<section class="screen" id="t11">
+  <div class="screen-head"><div><div class="rn">RN-34 · RN-35 · RN-05</div><h2>Kanban da vaga: reprovação com motivo e IA como apoio</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="tabs" style="background:var(--b100);border:1px solid var(--line);border-bottom:0;border-radius:var(--r) var(--r) 0 0"><span>Detalhamento</span><span class="on">Candidatos</span></div>
+      <div style="background:var(--b100);border:1px solid var(--line);padding:8px;border-radius:0 0 var(--r) var(--r)">
+        <div class="kanban">
+          <div class="kcol"><div class="kh">Análise de Currículo <span>3</span></div>
+            <div class="card"><div class="nm">Juliana Ferreira</div><div class="sm">WhatsApp · há 2 dias</div><div class="mt"><span class="badge b-info">IA: 82 · apoio</span> <span class="pin" style="width:15px;height:15px;font-size:9px">1</span></div></div>
+            <div class="card"><div class="nm">Bruno Lima</div><div class="sm">Página · há 3 dias</div><div class="mt"><span class="badge b-neu">IA: 61 · apoio</span></div></div>
+          </div>
+          <div class="kcol"><div class="kh">Entrevista Inicial <span>2</span></div><div class="card"><div class="nm">Ana Costa</div><div class="sm">Nota prova: 8,5 / 10</div></div></div>
+          <div class="kcol"><div class="kh">Entrevista Com Gestor <span>1</span></div><div class="card"><div class="nm">Carlos Dias</div><div class="sm">Scorecard: 2 de 2 avaliadores</div><span class="badge b-warn">Retorno vence amanhã</span></div></div>
+          <div class="kcol" style="border-left:3px solid var(--ok)"><div class="kh">Contratação <span>0</span></div><div class="sm muted">Sem candidatos</div></div>
+          <div class="kcol" style="border-left:3px solid var(--err)"><div class="kh">Reprovados <span class="tag t-novo" style="font-size:9px">NOVO</span></div><div class="card rel" style="outline:2px dashed var(--err)"><div class="nm">Bruno Lima</div><div class="sm">arrastado agora…</div></div></div>
+        </div>
+      </div>
+      <div class="modal rel"><span class="pin n float">2</span>
+        <div class="mh">Reprovar Bruno Lima</div>
+        <div class="mb">
+          <div class="f"><label>Motivo *</label><div class="in sel">Não atende requisito obrigatório do cargo</div></div>
+          <div class="f mt"><label>Qual requisito? *</label><div class="in sel">Disponibilidade para escala 6x1</div></div>
+          <div class="f mt"><label>Observação interna</label><div class="in ta">Informou indisponibilidade aos sábados.</div></div>
+          <div class="chk on rel"><i></i><div>Enviar retorno ao candidato (modelo "Não seguiu no processo") <span class="pin n" style="width:15px;height:15px;font-size:9px">3</span></div></div>
+          <div class="small muted">A decisão será registrada em seu nome na trilha de auditoria.</div>
+        </div>
+        <div class="mf"><span class="btn">Cancelar</span><span class="btn d">Confirmar reprovação</span></div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <ol>
+        <li><span class="pin">1</span>O selo da IA continua, mas passa a dizer <b>"apoio"</b> e abre a explicação ("O que a vaga exige × Avaliação do candidato", que já existe). A nota <b>nunca move o card</b>, e o código atual já respeita isso.</li>
+        <li><span class="pin n">2</span><b>Reprovar exige motivo padronizado</b> ligado a requisito do cargo, nunca a atributo pessoal, e fica registrado com autor (RN-05).</li>
+        <li><span class="pin n">3</span>Retorno automático ao candidato, com prazo (SLA) visível no card.</li>
+      </ol>
+      <div class="rule"><b>Mantém:</b> as colunas configuráveis em CFG › Processo de Admissão › Colunas do Kanban. Hoje as colunas-padrão (V66) não têm reprovação: <b>"Reprovados" é nova</b> e passa a ser uma coluna de sistema, que não pode ser excluída.</div><div class="rule"><b>Atenção:</b> as colunas-padrão atuais incluem "Fit Cultural" e "Avaliação Comportamental". Elas só devem receber avaliações das camadas A/B definidas (questões situacionais e, no futuro, o inventário próprio), nunca impressões sem critério.</div>
+      <div class="rule"><b>Critério de aceite:</b> não é possível mover para "Reprovados" sem motivo, nem pela API.</div>
+    </div>
+  </div>
+</section>
+
+<!-- T12 -->
+<section class="screen" id="t12">
+  <div class="screen-head"><div><div class="rn">RN-36 (+ RN-51 futuro)</div><h2>Entrevista estruturada: scorecard por competência</h2></div><div><span class="tag t-novo">NOVO</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="modal" style="max-width:640px;margin:0 auto">
+        <div class="mh">Scorecard · Carlos Dias · Atendente de Farmácia II</div>
+        <div class="mb">
+          <div class="small muted" style="margin-bottom:8px">Avaliador: Marina Lopes · As competências e os níveis vêm do cargo</div>
+          <div class="score" style="font-weight:600;color:var(--muted);font-size:11px"><span>Competência / pergunta-guia</span><span style="text-align:center">1</span><span style="text-align:center">2</span><span style="text-align:center">3</span><span style="text-align:center">4</span><span>Evidência</span></div>
+          <div class="score mt"><span><b>Atendimento ao cliente</b><br><span class="small muted">"Conte uma vez em que um cliente saiu insatisfeito…"</span></span><span class="c">1</span><span class="c">2</span><span class="c on">3</span><span class="c">4</span><span class="small">Recuperou cliente com troca, sem escalar</span></div>
+          <div class="score mt"><span><b>Dispensação segura</b><br><span class="small muted">Situação: receita com dose ilegível</span></span><span class="c">1</span><span class="c on">2</span><span class="c">3</span><span class="c">4</span><span class="small">Consultaria o farmacêutico ✓</span></div>
+          <div class="score mt"><span><b>Trabalho em equipe</b></span><span class="c">1</span><span class="c">2</span><span class="c on">3</span><span class="c">4</span><span class="small">Cobriu colega em pico de movimento</span></div>
+          <div class="alert a-info mt rel"><span class="pin n">2</span><div><b>Perguntas sugeridas pelo inventário de estilo de trabalho</b> (fase 2, informativo): "Como você organiza tarefas quando o movimento dispara?"</div></div>
+          <div class="f mt"><label>Recomendação</label><div class="in sel">Seguir no processo</div></div>
+        </div>
+        <div class="mf"><span class="btn">Salvar rascunho</span><span class="btn p">Enviar avaliação</span></div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que entra</h3>
+      <ol>
+        <li><span class="pin n">1</span>Notas de 1 a 4 com <b>descrição observável de cada nível</b> (catálogo RN-10). Cada nota exige uma evidência escrita.</li>
+        <li><span class="pin n">2</span>Espaço reservado para o inventário próprio (RN-51): ele <b>só sugere perguntas</b>, sem nota e sem peso na decisão.</li>
+      </ol>
+      <div class="rule"><b>Regra:</b> com mais de um avaliador, a consolidação só aparece depois que todos enviarem, para evitar que um influencie o outro.</div>
+      <div class="rule"><b>Permissão:</b> o entrevistador vê o scorecard e o currículo da vaga atribuída, mas não a pretensão salarial.</div>
+    </div>
+  </div>
+</section>
+
+<!-- T13 -->
+<section class="screen" id="t13">
+  <div class="screen-head"><div><div class="rn">RN-37 · RN-38</div><h2>Proposta e conversão para pré-admissão</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="modal rel" style="max-width:600px;margin:0 auto"><span class="pin float">1</span>
+        <div class="mh">Contratar Ana Costa · Atendente de Farmácia II</div>
+        <div class="mb">
+          <div class="d" style="font-size:12px;color:var(--muted)">Hoje: o botão "Criar Admissão" copia 6 campos, fixa CLT e início = hoje, e falha para quem veio da página pública (sem data de nascimento).</div>
+          <div class="fs rel" style="margin-top:8px"><span class="pin n float">2</span><h4>Proposta</h4>
+            <div class="g2"><div class="f"><label>Tipo de vínculo</label><div class="in sel">CLT · experiência 45+45</div></div><div class="f"><label>Data de início</label><div class="in">03/11/2026</div></div><div class="f"><label>Salário</label><div class="in">R$ 2.400,00 <span class="badge b-ok">na faixa</span></div></div><div class="f"><label>Escala</label><div class="in sel">6x1 · 44h</div></div></div>
+            <div class="f mt"><label>Aceite do candidato</label><div class="in sel">Aceita em 24/09 (portal)</div></div>
+          </div>
+          <div class="fs rel"><span class="pin n float">3</span><h4>O que acontece ao confirmar</h4>
+            <div class="chk on"><i></i><span>Cria a admissão ligada a esta candidatura (mesma pessoa, sem redigitar)</span></div>
+            <div class="chk on"><i></i><span>Envia link de <b>pré-admissão</b> à candidata: documentos, dados bancários, dados do eSocial, autodeclarações</span></div>
+            <div class="chk on"><i></i><span>Agenda o <b>exame admissional</b> conforme a Matriz de Exames do cargo</span></div>
+            <div class="chk on"><i></i><span>Encerra as demais candidaturas ativas desta vaga e envia retorno</span></div>
+            <div class="alert a-warn"><div>⚠ Ana foi colaboradora até 10/08/2026 (dispensa sem justa causa). Recontratar antes de 90 dias da dispensa sem justa causa é presumido fraudulento (Portaria MTP 671/2021, arts. 311–312).</div></div>
+          </div>
+        </div>
+        <div class="mf"><span class="btn">Cancelar</span><span class="btn p">Confirmar contratação</span></div>
+      </div>
+      <div class="fs mt" style="max-width:600px;margin:12px auto 0"><h4>Admissão › Acompanhamento (esteira existente)</h4>
+        <div class="tl"><div class="cur">Pré-admissão<br><span class="small">candidata</span></div><div>Documentos</div><div>ASO</div><div>Contrato</div><div>Registro</div><div>S-2200</div><div>Integração</div></div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <ol>
+        <li><span class="pin">1</span>O botão "Criar Admissão" <b>já existe</b>, mas a conversão roda no navegador, em três chamadas. Passa a ser <b>uma transação no backend</b>.</li>
+        <li><span class="pin n">2</span>Tipo de vínculo, início e salário vêm da <b>proposta</b>, e não mais "CLT e hoje" fixos.</li>
+        <li><span class="pin n">3</span>A conversão dispara pré-admissão, exame e encerramento das demais candidaturas. <b>Os dados sensíveis são preenchidos pela própria candidata nesta etapa.</b></li>
+      </ol>
+      <div class="rule"><b>Mantém:</b> a esteira Documentos → ASO → Contrato → Registro → S-2200 → Integração, que ganha a etapa "Pré-admissão" à frente.</div>
+    </div>
+  </div>
+</section>
+
+<!-- T14 -->
+<section class="screen" id="t14">
+  <div class="screen-head"><div><div class="rn">RN-33 · D8</div><h2>Portal do candidato (acesso por link, sem senha)</h2></div><div><span class="tag t-novo">NOVO</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="phone">
+        <div class="ph">Farmavida · Minhas candidaturas</div>
+        <div class="pb">
+          <div class="fs"><h4>Atendente de Farmácia</h4><div class="small muted">Goiânia · enviada em 20/09</div>
+            <div class="tl" style="margin-top:6px"><div class="done">Recebida</div><div class="done">Triagem</div><div class="cur">Entrevista</div><div>Resultado</div></div>
+            <div class="alert a-info"><div>📅 Entrevista em <b>25/09 às 10h</b> · <u>Confirmar</u></div></div>
+          </div>
+          <div class="fs"><h4>Meus dados</h4><div class="small">Editar contato · Baixar meus dados · <span style="color:var(--err)">Retirar candidatura</span></div></div>
+          <div class="fs"><h4>Privacidade</h4>
+            <div class="chk on"><i></i><span>Processo seletivo atual</span></div>
+            <div class="chk"><i></i><span>Banco de talentos (12 meses)</span></div>
+            <div class="small muted">Pedir revisão de decisão · Falar com o encarregado (DPO)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que entra</h3>
+      <ol>
+        <li><span class="pin n">1</span>Entrada <b>sem senha</b>, por link mágico ou código no e-mail/WhatsApp, com sessão própria de candidato, separada dos usuários do tenant.</li>
+        <li><span class="pin n">2</span>O candidato acompanha o status: acaba o "fiquei sem retorno", que é a maior queixa em processos seletivos.</li>
+        <li><span class="pin n">3</span>Direitos do titular (LGPD art. 18) <b>em autoatendimento</b>: acesso, correção, retirada, revogação de consentimento e pedido de revisão (boa prática; o art. 20 exige isso só para decisão exclusivamente automatizada).</li>
+      </ol>
+      <div class="rule"><b>Etapa seguinte:</b> o mesmo portal vira o <b>autoatendimento do colaborador</b> depois da admissão (holerite, férias, atestado).</div>
+    </div>
+  </div>
+</section>
+
+<div class="layer">Camadas 2 e 4: pontas do ciclo</div>
+
+<!-- T15 -->
+<section class="screen" id="t15">
+  <div class="screen-head"><div><div class="rn">RN-21</div><h2>DP › Desligamento reconstruído</h2></div><div><span class="tag t-muda">MUDA</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="app">
+        <div class="rail"><span class="on">DP</span><span>RH</span><span>CTB</span><span>CFG</span></div>
+        <div class="side"><div class="sec">Colaboradores e vínculos</div><a>Férias</a><a>Afastamento</a><a class="on">Desligamento</a></div>
+        <div class="main">
+          <div class="tabs"><span>Listagem</span><span class="on">Editar</span></div>
+          <div class="content">
+            <div class="formgrid">
+              <div class="stepper"><span class="done">Desligamento</span><span class="on">Aviso prévio <span class="tag t-novo" style="font-size:9px">NOVO</span></span><span>Exame demissional <span class="tag t-novo" style="font-size:9px">NOVO</span></span><span>Checklist <span class="tag t-muda" style="font-size:9px">MUDA</span></span><span>Entrevista (já existe)</span><span>Contador <span class="tag t-novo" style="font-size:9px">NOVO</span></span><span>Documentos</span></div>
+              <div>
+                <div class="fs"><h4>Desligamento</h4><div class="g3"><div class="f"><label>Colaborador</label><div class="in">Rafael Souza</div></div><div class="f rel"><label>Motivo (tabela eSocial)</label><div class="in sel hl">07 · Pedido de demissão</div><span class="pin float" style="top:10px">1</span></div><div class="f"><label>Último dia trabalhado</label><div class="in">15/09/2026</div></div></div></div>
+                <div class="fs rel"><span class="pin n float">2</span><h4>Aviso prévio</h4><div class="g3"><div class="f"><label>Tipo</label><div class="in sel">Cumprido pelo empregado</div></div><div class="f"><label>Dias</label><div class="in dis">30 dias · pedido de demissão</div></div><div class="f"><label>Redução de jornada</label><div class="in dis">Não se aplica</div></div></div></div>
+                <div class="fs rel"><span class="pin n float">3</span><h4>Exame demissional</h4>
+                  <div class="alert a-ok"><div>✓ Dispensável: o último exame (periódico) foi há <b>62 dias</b>, dentro do limite de 135 dias para o grau de risco 2 (NR-7). <span class="btn g" style="padding:0">Registrar dispensa</span></div></div>
+                  <div class="small muted">Se for necessário: prazo até 10 dias após o término → pendência com alerta, <b>sem travar</b> o desligamento.</div>
+                </div>
+                <div class="fs rel"><span class="pin n float">4</span><h4>Checklist de saída</h4>
+                  <div class="chk on"><i></i><span>Crachá e uniforme devolvidos</span></div><div class="chk"><i></i><span>Acesso ao sistema do PDV revogado</span></div><div class="chk"><i></i><span>Acesso ao Gesint desativado no último dia</span></div>
+                </div>
+                <div class="alert a-info rel"><span class="pin n">5</span><div>Ao concluir: <b>pacote enviado ao contador</b> (dados + documentos para rescisão e S-2299) e evento <b>"posição vaga"</b> → sugerir requisição de substituição.</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="footer"><span class="btn">Cancelar</span><span class="btn">Salvar</span><span class="btn p">Concluir desligamento</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que muda</h3>
+      <p class="small">Hoje: Colaborador, Data, Tipo (6 opções), Observações do desligamento, Observações da homologação e Documentos.</p>
+      <ol>
+        <li><span class="pin">1</span>O tipo passa a usar a <b>tabela de motivos do eSocial</b>.</li>
+        <li><span class="pin n">2</span>Aviso prévio calculado pelo sistema a partir do motivo. <b>Pedido de demissão: 30 dias</b>, sem proporcionalidade (a Lei 12.506 favorece só o empregado) e sem redução de jornada (CLT art. 488, só na dispensa pelo empregador). Dispensa sem justa causa: 30 dias + 3 por ano, até 90.</li>
+        <li><span class="pin n">3</span>Demissional como <b>pendência com prazo</b>, com a regra de dispensa da NR-7 aplicada automaticamente a partir da Matriz de Exames.</li>
+        <li><span class="pin">4</span>O "Checklist de devoluções" <b>já existe</b> dentro da entrevista de desligamento (e em CFG). <b>Muda:</b> vira etapa do próprio desligamento e ganha a revogação de acessos.</li>
+        <li><span class="pin n">5</span>Saída para o contador e ligação com a requisição (RN-30).</li>
+      </ol>
+      <div class="rule"><b>Depende de decisão:</b> se o Gesint calcular verbas (plano de sprints do repositório), entra a aba "Verbas / TRCT". Se não, o pacote segue para o contador. Ver RN-03, seção 7.</div>
+      <div class="rule"><b>Regra:</b> sem marca de "não recontratar". <span class="tag t-muda">MUDA</span> A entrevista de desligamento <b>já tem</b> a seção "Recontratação" ("Empresa recontrataria?"). Ela passa a alimentar só indicadores agregados e <b>não é exibida</b> na triagem nem na conversão de candidatos, para não virar lista de bloqueio (Lei 9.029/95).</div>
+    </div>
+  </div>
+</section>
+
+<!-- T16 -->
+<section class="screen" id="t16">
+  <div class="screen-head"><div><div class="rn">RN-13 · RN-41</div><h2>Avaliação de experiência 45/90 dias</h2></div><div><span class="tag t-novo">NOVO</span></div></div>
+  <div class="screen-body">
+    <div class="mock">
+      <div class="app nosb">
+        <div class="rail"><span>DP</span><span class="on">RH</span><span>CTB</span><span>CFG</span></div>
+        <div class="main">
+          <div class="topbar"><span>RH › Pessoas › Experiência</span><span class="badge b-warn">3 vencem em 7 dias</span></div>
+          <div class="content">
+            <div class="tscroll"><table class="t">
+              <tr><th>Colaborador</th><th>Cargo</th><th>Admissão</th><th>Marco</th><th>Vence em</th><th>Seleção × Experiência</th><th>Status</th></tr>
+              <tr><td>Ana Costa</td><td>Atendente II</td><td>03/11/2026</td><td>45 dias</td><td><b>17/12</b></td><td class="small">Entrevista 2,7 → Exp. 3,0</td><td><span class="badge b-info">Aguardando gestor</span></td></tr>
+              <tr><td>João Prado</td><td>Aux. Estoque</td><td>12/08/2026</td><td>90 dias</td><td><b>09/11</b></td><td class="small">Prova 7,0 → Exp. 2,1</td><td><span class="badge b-warn">Decidir</span></td></tr>
+            </table></div>
+            <div class="modal rel"><span class="pin n float">1</span>
+              <div class="mh">Fim do período de experiência · João Prado</div>
+              <div class="mb">
+                <div class="small muted">Contrato de experiência: 45 dias + prorrogação única de 45 (máx. 90 · CLT arts. 445 e 451). Vence em 09/11/2026.</div>
+                <div class="radio mt"><i></i>Efetivar (prazo indeterminado)</div>
+                <div class="radio on"><i></i>Encerrar ao fim do prazo</div>
+                <div class="radio" style="color:var(--muted)"><i></i>Prorrogar <span class="small">(indisponível: já prorrogado uma vez)</span></div>
+                <div class="f mt"><label>Motivo *</label><div class="in sel">Desempenho abaixo do esperado em Dispensação segura</div></div>
+                <div class="alert a-warn"><div>⚠ Se nada for decidido até 09/11, o contrato <b>vira prazo indeterminado automaticamente</b> (continuidade após o termo; limite de 90 dias da CLT art. 445, parágrafo único; prorrogação única, art. 451).</div></div>
+              </div>
+              <div class="mf"><span class="btn">Cancelar</span><span class="btn p">Registrar decisão</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h3>O que entra</h3>
+      <ol>
+        <li><span class="pin n">1</span>Decisão de efetivar, encerrar ou prorrogar <b>com motivo e autor</b> (RN-05). A regra de prorrogação única e o limite de 90 dias vêm do tipo de vínculo (RN-13).</li>
+        <li><span class="pin n">2</span>A avaliação usa <b>as mesmas competências do cargo</b> usadas na seleção. A coluna "Seleção × Experiência" é o começo do indicador de qualidade da contratação (RN-42).</li>
+      </ol>
+      <div class="rule"><b>Hoje:</b> não existe conceito de período de experiência (o gap do próprio repositório confirma). "Encerrar" aciona o desligamento (tela 15).</div>
+    </div>
+  </div>
+</section>
+
+<div class="foot">
+  Gesint · Telas das regras de negócio · v1.1 (auditada) · 23/09/2026 · Leo Junio Gomes Silva. Wireframes ilustrativos: dados fictícios. Rótulos marcados como "já existe" conferidos no frontend (<code>gommo-frontend/src</code>, commit <code>cb764f67</code>). Documentos relacionados: <code>gesint-ordem-regras-de-negocio.md</code> (v1.2) e <code>gesint-RN-03-autorizacao.md</code> (v1.1).
+</div>
+
+</div>
+</body>
+</html>

@@ -41,4 +41,10 @@ public class AppUserRequestDto {
      * uma: admin de RH numa e apenas consulta de ponto em outra.
      */
     private Map<UUID, Map<SystemScopeEnum, List<UUID>>> roleIdsByBranch;
+
+    /**
+     * Perfis de atuacao do usuario por filial e por sistema.
+     * Mesma forma de {@link #roleIdsByBranch}.
+     */
+    private Map<UUID, Map<SystemScopeEnum, List<UUID>>> actingProfileIdsByBranch;
 }

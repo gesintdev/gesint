@@ -8,8 +8,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.http.HttpHeaders;
@@ -28,6 +30,8 @@ import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
 import br.com.gommo.core.tenant.TenantHttpResponses;
 import br.com.gommo.core.tenant.TenantSchemaNames;
+import br.com.gommo.modules.cfg.access.catalog.PermissionModuleCatalog;
+import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.root.exception.AuthException;
 
 @Component
@@ -121,9 +125,55 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             permissions = basePermissions;
         }
 
-        return permissions == null
-                ? List.of()
-                : permissions.stream().map(SimpleGrantedAuthority::new).toList();
+        return toGrantedAuthorities(permissions);
+    }
+
+    /**
+     * GLOBAL_ADMIN carrega {@code *}; ADMIN de sistema carrega {@code ADM:DP} etc.
+     * Expande pelo catalogo canonico em {@code public.permission} + {@link PermissionModuleCatalog}
+     * para nao depender de role_permission sincronizado (permissoes novas sem re-login no request).
+     */
+    private List<SimpleGrantedAuthority> toGrantedAuthorities(List<String> permissions) {
+        if (permissions == null || permissions.isEmpty()) {
+            return List.of();
+        }
+        Set<String> expanded = new LinkedHashSet<>();
+        Set<String> adminModules = new LinkedHashSet<>();
+        boolean unrestricted = false;
+        for (String permission : permissions) {
+            if (permission == null || permission.isBlank()) {
+                continue;
+            }
+            if (AuthorityWildcards.isUnrestricted(permission)) {
+                unrestricted = true;
+                continue;
+            }
+            if (AuthorityWildcards.isSystemAdminMarker(permission)) {
+                SystemScopeEnum system = AuthorityWildcards.systemFromMarker(permission);
+                if (system != null) {
+                    adminModules.addAll(PermissionModuleCatalog.modulesFor(system));
+                }
+                continue;
+            }
+            expanded.add(permission);
+        }
+        if (unrestricted) {
+            expanded.addAll(jdbcTemplate.queryForList("SELECT authority FROM public.permission", String.class));
+        } else if (!adminModules.isEmpty()) {
+            expanded.addAll(authoritiesForModules(adminModules));
+        }
+        return expanded.stream().sorted().map(SimpleGrantedAuthority::new).toList();
+    }
+
+    private List<String> authoritiesForModules(Set<String> modules) {
+        if (modules.isEmpty()) {
+            return List.of();
+        }
+        String placeholders = String.join(",", modules.stream().map(module -> "?").toList());
+        return jdbcTemplate.queryForList(
+                "SELECT authority FROM public.permission WHERE module IN (" + placeholders + ")",
+                String.class,
+                modules.toArray());
     }
 
     /**

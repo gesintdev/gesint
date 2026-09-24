@@ -45,6 +45,8 @@ export function InputAutocomplete({
     labelFor,
     id: idProp,
     wrapperClassName,
+    sensitive,
+    sensitivePermission,
     className,
     autoComplete = "off",
     trailingAction,
@@ -212,6 +214,8 @@ export function InputAutocomplete({
             labelFor={labelFor}
             id={id}
             wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
         >
             <div ref={rootRef} className="relative">
                 <div className={clsx("gommo-field", fieldClass(disabled, false, Boolean(error)), className)}>

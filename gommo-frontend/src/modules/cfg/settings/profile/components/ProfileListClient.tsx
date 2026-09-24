@@ -78,11 +78,9 @@ export function ProfileListClient() {
             rowKey="id"
             emptyMessage="Nenhum perfil cadastrado."
             onRowActivate={(row) => {
-                if (!isEditable(row)) return;
                 startEdit(row.id, row);
             }}
             renderActions={(row) =>
-                // Perfis Administrador vem do provisionamento do tenant e nao podem ser alterados.
                 isEditable(row) ? (
                     <CrudTableActions
                         row={row}
@@ -95,7 +93,14 @@ export function ProfileListClient() {
                         activateLoading={activateMutation.isPending && activateMutation.variables === row.id}
                         deactivateLoading={deactivateMutation.isPending && deactivateMutation.variables === row.id}
                     />
-                ) : null
+                ) : (
+                    <CrudTableActions
+                        row={row}
+                        showOpenTab={false}
+                        editAriaLabel="Visualizar"
+                        onEdit={() => startEdit(row.id, row)}
+                    />
+                )
             }
         />
     );

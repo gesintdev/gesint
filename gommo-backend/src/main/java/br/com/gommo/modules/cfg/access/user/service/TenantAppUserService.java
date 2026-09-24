@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.gommo.core.branch.BranchException;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.cfg.access.actingprofile.entity.ActingProfile;
+import br.com.gommo.modules.cfg.access.actingprofile.repository.ActingProfileRepository;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.dp.organization.company.repository.CompanyRepository;
 import br.com.gommo.modules.cfg.access.user.dto.AppUserRequestDto;
@@ -19,9 +21,11 @@ import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.root.entity.AppUser;
 import br.com.gommo.modules.root.entity.Role;
+import br.com.gommo.modules.root.entity.UserActingProfileAssignment;
 import br.com.gommo.modules.root.entity.UserRoleAssignment;
 import br.com.gommo.modules.root.repository.AppUserRepository;
 import br.com.gommo.modules.root.repository.RoleRepository;
+import br.com.gommo.modules.root.repository.UserActingProfileAssignmentRepository;
 import br.com.gommo.modules.root.repository.UserRoleAssignmentRepository;
 import br.com.gommo.modules.root.security.AccessTokenSupport;
 import br.com.gommo.modules.root.security.SystemAdminUsers;
@@ -31,22 +35,28 @@ public class TenantAppUserService implements ITenantAppUserService {
 
     private final AppUserRepository appUserRepository;
     private final RoleRepository roleRepository;
+    private final ActingProfileRepository actingProfileRepository;
     private final CollaboratorRepository collaboratorRepository;
     private final UserRoleAssignmentRepository assignmentRepository;
+    private final UserActingProfileAssignmentRepository actingProfileAssignmentRepository;
     private final CompanyRepository companyRepository;
     private final TenantAppUserMapper mapper;
 
     public TenantAppUserService(
         AppUserRepository appUserRepository,
         RoleRepository roleRepository,
+        ActingProfileRepository actingProfileRepository,
         CollaboratorRepository collaboratorRepository,
         UserRoleAssignmentRepository assignmentRepository,
+        UserActingProfileAssignmentRepository actingProfileAssignmentRepository,
         CompanyRepository companyRepository,
         TenantAppUserMapper mapper) {
         this.appUserRepository = appUserRepository;
         this.roleRepository = roleRepository;
+        this.actingProfileRepository = actingProfileRepository;
         this.collaboratorRepository = collaboratorRepository;
         this.assignmentRepository = assignmentRepository;
+        this.actingProfileAssignmentRepository = actingProfileAssignmentRepository;
         this.companyRepository = companyRepository;
         this.mapper = mapper;
     }
@@ -57,8 +67,7 @@ public class TenantAppUserService implements ITenantAppUserService {
     public List<AppUserResponseDto> findAll() {
         return appUserRepository.findAllByStatusNotOrderByCreatedAtDesc(StatusEnum.DELETED).stream()
             .filter(user -> !SystemAdminUsers.isSystemAdmin(user))
-            .map(user -> mapper.toResponse(
-                user, resolveCollaborator(user.getCollaboratorId()), loadRolesByBranch(user.getId())))
+            .map(this::toResponse)
             .toList();
     }
 
@@ -66,8 +75,7 @@ public class TenantAppUserService implements ITenantAppUserService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('user:read')")
     public AppUserResponseDto findById(UUID id) {
-        AppUser user = findVisibleUser(id);
-        return mapper.toResponse(user, resolveCollaborator(user.getCollaboratorId()), loadRolesByBranch(user.getId()));
+        return toResponse(findVisibleUser(id));
     }
 
     @Override
@@ -90,7 +98,7 @@ public class TenantAppUserService implements ITenantAppUserService {
             .build();
         AppUser saved = appUserRepository.save(user);
         replaceAssignments(saved, request);
-        AppUserResponseDto response = mapper.toResponse(saved, collaborator, loadRolesByBranch(saved.getId()));
+        AppUserResponseDto response = toResponse(saved, collaborator);
         response.setAccessToken(plainToken);
         return response;
     }
@@ -115,7 +123,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         user.setEmail(request.getEmail().trim().toLowerCase());
         AppUser saved = appUserRepository.save(user);
         replaceAssignments(saved, request);
-        return mapper.toResponse(saved, collaborator, loadRolesByBranch(saved.getId()));
+        return toResponse(saved, collaborator);
     }
 
     @Override
@@ -132,7 +140,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         user.setEmail(request.getEmail().trim().toLowerCase());
         AppUser saved = appUserRepository.save(user);
         replaceAssignments(saved, request);
-        return mapper.toResponse(saved, collaborator, loadRolesByBranch(saved.getId()));
+        return toResponse(saved, collaborator);
     }
 
     @Override
@@ -145,8 +153,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         user.setPasswordHash(null);
         user.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
         AppUser saved = appUserRepository.save(user);
-        AppUserResponseDto response = mapper.toResponse(
-            saved, resolveCollaborator(saved.getCollaboratorId()), loadRolesByBranch(saved.getId()));
+        AppUserResponseDto response = toResponse(saved);
         response.setAccessToken(plainToken);
         return response;
     }
@@ -159,6 +166,18 @@ public class TenantAppUserService implements ITenantAppUserService {
         assertMutableUser(user);
         user.setStatus(StatusEnum.DELETED);
         appUserRepository.save(user);
+    }
+
+    private AppUserResponseDto toResponse(AppUser user) {
+        return toResponse(user, resolveCollaborator(user.getCollaboratorId()));
+    }
+
+    private AppUserResponseDto toResponse(AppUser user, Collaborator collaborator) {
+        return mapper.toResponse(
+            user,
+            collaborator,
+            loadRolesByBranch(user.getId()),
+            loadActingProfilesByBranch(user.getId()));
     }
 
     private AppUser findVisibleUser(UUID id) {
@@ -262,22 +281,23 @@ public class TenantAppUserService implements ITenantAppUserService {
      * Regrava os vinculos do usuario a partir do payload filial -> sistema -> perfis.
      *
      * A substituicao e total, como era antes com {@code setRoles}: o que nao vier no payload
-     * deixa de valer.
+     * deixa de valer. O mesmo vale para perfis de atuacao.
      */
     private void replaceAssignments(AppUser user, AppUserRequestDto request) {
+        replaceRoleAssignments(user, request.getRoleIdsByBranch());
+        replaceActingProfileAssignments(user, request.getActingProfileIdsByBranch());
+    }
+
+    private void replaceRoleAssignments(
+            AppUser user, Map<UUID, Map<SystemScopeEnum, List<UUID>>> roleIdsByBranch) {
         assignmentRepository.deleteAllByUserId(user.getId());
         assignmentRepository.flush();
 
-        Map<UUID, Map<SystemScopeEnum, List<UUID>>> roleIdsByBranch = request.getRoleIdsByBranch();
         if (roleIdsByBranch == null || roleIdsByBranch.isEmpty()) {
             return;
         }
 
-        Set<UUID> validBranchIds = new HashSet<>(
-                companyRepository.findAllByStatusNotOrderBySortOrderAscLegalNameAsc(StatusEnum.DELETED).stream()
-                        .map(company -> company.getId())
-                        .toList());
-
+        Set<UUID> validBranchIds = validBranchIds();
         List<UserRoleAssignment> assignments = new ArrayList<>();
         for (Map.Entry<UUID, Map<SystemScopeEnum, List<UUID>>> branchEntry : roleIdsByBranch.entrySet()) {
             UUID branchId = branchEntry.getKey();
@@ -309,6 +329,55 @@ public class TenantAppUserService implements ITenantAppUserService {
         assignmentRepository.saveAll(assignments);
     }
 
+    private void replaceActingProfileAssignments(
+            AppUser user, Map<UUID, Map<SystemScopeEnum, List<UUID>>> actingProfileIdsByBranch) {
+        actingProfileAssignmentRepository.deleteAllByUserId(user.getId());
+        actingProfileAssignmentRepository.flush();
+
+        if (actingProfileIdsByBranch == null || actingProfileIdsByBranch.isEmpty()) {
+            return;
+        }
+
+        Set<UUID> validBranchIds = validBranchIds();
+        List<UserActingProfileAssignment> assignments = new ArrayList<>();
+        for (Map.Entry<UUID, Map<SystemScopeEnum, List<UUID>>> branchEntry :
+                actingProfileIdsByBranch.entrySet()) {
+            UUID branchId = branchEntry.getKey();
+            if (branchId == null || !validBranchIds.contains(branchId)) {
+                throw BranchException.notFound();
+            }
+            Map<SystemScopeEnum, List<UUID>> profileIdsBySystem = branchEntry.getValue();
+            if (profileIdsBySystem == null) {
+                continue;
+            }
+            for (SystemScopeEnum system : SystemScopeEnum.values()) {
+                List<UUID> profileIds = profileIdsBySystem.get(system);
+                if (profileIds == null) {
+                    continue;
+                }
+                for (UUID profileId : profileIds) {
+                    if (profileId == null) {
+                        continue;
+                    }
+                    ActingProfile profile = loadAssignableActingProfile(profileId, system);
+                    assignments.add(UserActingProfileAssignment.builder()
+                            .userId(user.getId())
+                            .actingProfileId(profile.getId())
+                            .companyId(branchId)
+                            .build());
+                }
+            }
+        }
+        actingProfileAssignmentRepository.saveAll(assignments);
+    }
+
+    private Set<UUID> validBranchIds() {
+        return new HashSet<>(
+                companyRepository.findAllByStatusNotOrderBySortOrderAscLegalNameAsc(StatusEnum.DELETED).stream()
+                        .map(company -> company.getId())
+                        .toList());
+    }
+
     private Map<UUID, List<Role>> loadRolesByBranch(UUID userId) {
         List<UserRoleAssignment> assignments = assignmentRepository.findAllByUserId(userId);
         if (assignments.isEmpty()) {
@@ -331,6 +400,33 @@ public class TenantAppUserService implements ITenantAppUserService {
         return rolesByBranch;
     }
 
+    private Map<UUID, List<ActingProfile>> loadActingProfilesByBranch(UUID userId) {
+        List<UserActingProfileAssignment> assignments =
+                actingProfileAssignmentRepository.findAllByUserId(userId);
+        if (assignments.isEmpty()) {
+            return Map.of();
+        }
+        Set<UUID> profileIds = assignments.stream()
+                .map(UserActingProfileAssignment::getActingProfileId)
+                .collect(Collectors.toSet());
+        Map<UUID, ActingProfile> profilesById = new HashMap<>();
+        actingProfileRepository.findAllById(profileIds).forEach(profile -> profilesById.put(profile.getId(), profile));
+
+        Map<UUID, List<ActingProfile>> profilesByBranch = new LinkedHashMap<>();
+        for (UserActingProfileAssignment assignment : assignments) {
+            ActingProfile profile = profilesById.get(assignment.getActingProfileId());
+            if (profile == null
+                    || profile.getStatus() == StatusEnum.DELETED
+                    || assignment.getCompanyId() == null) {
+                continue;
+            }
+            profilesByBranch
+                    .computeIfAbsent(assignment.getCompanyId(), key -> new ArrayList<>())
+                    .add(profile);
+        }
+        return profilesByBranch;
+    }
+
     private Role loadAssignableRole(UUID roleId, SystemScopeEnum expectedSystem) {
         Role role = roleRepository
             .findByIdWithPermissions(roleId, StatusEnum.DELETED)
@@ -340,5 +436,16 @@ public class TenantAppUserService implements ITenantAppUserService {
             throw TenantAppUserException.invalidRoleForSystem();
         }
         return role;
+    }
+
+    private ActingProfile loadAssignableActingProfile(UUID profileId, SystemScopeEnum expectedSystem) {
+        ActingProfile profile = actingProfileRepository
+            .findByIdAndStatusNot(profileId, StatusEnum.DELETED)
+            .filter(p -> p.getStatus() == StatusEnum.ACTIVE)
+            .orElseThrow(TenantAppUserException::invalidActingProfileForSystem);
+        if (profile.getSystem() != expectedSystem) {
+            throw TenantAppUserException.invalidActingProfileForSystem();
+        }
+        return profile;
     }
 }

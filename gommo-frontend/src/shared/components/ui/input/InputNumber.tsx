@@ -57,6 +57,8 @@ export function InputNumber({
     wrapperClassName,
     id,
     labelFor,
+    sensitive,
+    sensitivePermission,
 }: InputNumberProps) {
     const maskOpts: MaskNumberOptions = numberMaskOptions({ integer, decimalPlaces, thousandSeparator });
     const toDisplay = (num: number | null | undefined) =>
@@ -73,6 +75,8 @@ export function InputNumber({
             wrapperClassName={wrapperClassName}
             id={id}
             labelFor={labelFor}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
             leftIcon={leftIcon ?? numberAdornment(prefix)}
             rightSlot={rightSlot ?? numberAdornment(suffix)}
             displayValue={toDisplay(value)}
