@@ -5,6 +5,7 @@ import {type SubmitEvent, useEffect, useState} from "react";
 import {toast} from "sonner";
 
 import {DepartmentPickerField} from "@/modules/dp/organization/department/components/DepartmentPickerField";
+import {JobPositionCompetencySection} from "@/modules/dp/organization/jobposition/competency/components/JobPositionCompetencySection";
 import type {JobPositionCreateDto, JobPositionNature} from "@/modules/dp/organization/jobposition/dto/jobposition.dto";
 import {JOBPOSITION_CLIENT_MESSAGES} from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
 import {jobpositionKeys} from "@/modules/dp/organization/jobposition/jobposition.query";
@@ -13,6 +14,7 @@ import {
     emptyJobPositionForm,
     jobpositionToFormDto,
 } from "@/modules/dp/organization/jobposition/lib/jobposition.mapper";
+import {JobPositionSalaryTableSection} from "@/modules/dp/organization/jobposition/salarytable/components/JobPositionSalaryTableSection";
 import {cboOccupationService} from "@/modules/dp/organization/jobposition/services/cbo-occupation.service";
 import {jobpositionService} from "@/modules/dp/organization/jobposition/services/jobposition.service";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
@@ -27,7 +29,11 @@ import {ExceptionCapture} from "@/shared/exceptions";
 import {useBranchScopedDetailQuery} from "@/shared/hooks/useBranchScopedDetailQuery";
 import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
 
-const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Cargo"}];
+const FORM_STEPS: FormStepNavItem[] = [
+    {id: "cadastro", label: "Cargo"},
+    {id: "competencias", label: "Competências"},
+    {id: "niveis-faixas", label: "Níveis e faixas"},
+];
 
 export function JobPositionFormClient() {
     const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
@@ -200,6 +206,11 @@ export function JobPositionFormClient() {
                     wrapperClassName="sm:col-span-6"
                 />
             </FormSection>
+
+            <JobPositionCompetencySection jobPositionId={isEditing ? editingId : null} />
+
+            <JobPositionSalaryTableSection jobPositionId={isEditing ? editingId : null} />
+
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );

@@ -10,6 +10,7 @@ export class JobPosition {
     cboCode!: string;
     departmentId!: string;
     nature?: JobPositionNature;
+    description?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -20,4 +21,5 @@ export class JobPositionCreateDto {
     cboCode?: string;
     departmentId?: string;
     nature?: JobPositionNature;
+    description?: string;
 }

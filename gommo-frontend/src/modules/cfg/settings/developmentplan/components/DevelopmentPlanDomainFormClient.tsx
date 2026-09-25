@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type SubmitEvent, useEffect, useMemo, useState} from "react";
+import clsx from "clsx";
+import {type SubmitEvent, useEffect, useId, useMemo, useState} from "react";
 import {toast} from "sonner";
 
 import {
@@ -19,6 +20,7 @@ import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputCheckbox, InputNumber, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
 import {ExceptionCapture} from "@/shared/exceptions";
 
 export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentPlanDomainConfig }) {
@@ -109,8 +111,47 @@ function toForm(record: DevelopmentPlanDomainRecord, fields: DomainFieldConfig[]
     return Object.fromEntries(fields.map((field) => [field.name, source[field.name] ?? (field.type === "checkbox" ? false : "")]));
 }
 
+function resolveWrapperClassName(field: DomainFieldConfig): string {
+    if (field.colSpan === 12) return "sm:col-span-12";
+    if (field.colSpan === 4) return "sm:col-span-4";
+    if (field.colSpan === 6) return "sm:col-span-6";
+    if (field.type === "checkbox") return "sm:col-span-4";
+    if (field.type === "textarea") return "sm:col-span-12";
+    if (field.name.toLowerCase().includes("description")) return "sm:col-span-12";
+    return "sm:col-span-6";
+}
+
+function DomainTextarea({
+    label,
+    value,
+    onValueChange,
+    required,
+    wrapperClassName,
+}: {
+    label: string;
+    value: string;
+    onValueChange: (value: string) => void;
+    required?: boolean;
+    wrapperClassName?: string;
+}) {
+    const autoId = useId();
+    const id = `domain-textarea-${autoId}`;
+
+    return (
+        <InputFieldChrome label={label} id={id} required={required} wrapperClassName={wrapperClassName}>
+            <textarea
+                id={id}
+                rows={4}
+                value={value}
+                onChange={(event) => onValueChange(event.target.value)}
+                className={clsx("gommo-control w-full resize-y px-3 py-2 text-sm", fieldClass())}
+            />
+        </InputFieldChrome>
+    );
+}
+
 function renderField(field: DomainFieldConfig, value: unknown, update: (_field: string, _value: unknown) => void) {
-    const wrapperClassName = field.type === "checkbox" ? "sm:col-span-4" : "sm:col-span-6";
+    const wrapperClassName = resolveWrapperClassName(field);
     if (field.type === "number") {
         return <InputNumber key={field.name} label={field.label} value={typeof value === "number" ? value : null}
                             onValueChange={(v) => update(field.name, v ?? undefined)} integer required={field.required}
@@ -133,7 +174,19 @@ function renderField(field: DomainFieldConfig, value: unknown, update: (_field: 
             />
         );
     }
+    if (field.type === "textarea") {
+        return (
+            <DomainTextarea
+                key={field.name}
+                label={field.label}
+                value={String(value ?? "")}
+                onValueChange={(v) => update(field.name, v)}
+                required={field.required}
+                wrapperClassName={wrapperClassName}
+            />
+        );
+    }
     return <InputString key={field.name} label={field.label} value={String(value ?? "")}
                         onValueChange={(v) => update(field.name, v)} required={field.required}
-                        wrapperClassName={field.name.toLowerCase().includes("description") ? "sm:col-span-12" : wrapperClassName}/>;
+                        wrapperClassName={wrapperClassName}/>;
 }

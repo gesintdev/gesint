@@ -47,9 +47,9 @@ export const DEVELOPMENT_PLAN_DOMAIN_CONFIGS: Record<string, DevelopmentPlanDoma
         emptyMessage: "Nenhuma competência cadastrada.",
         fieldTabName: "name",
         fields: [
-            {name: "name", label: "Nome", type: "text", required: true},
-            {name: "description", label: "Descrição", type: "text"},
-            {name: "type", label: "Tipo", type: "select", required: true, options: COMPETENCY_TYPE_ITEMS},
+            {name: "name", label: "Nome", type: "text", required: true, colSpan: 6},
+            {name: "type", label: "Tipo", type: "select", required: true, options: COMPETENCY_TYPE_ITEMS, colSpan: 6},
+            {name: "description", label: "Descrição", type: "textarea", colSpan: 12},
         ],
         columns: baseColumns([
             {id: "name", columnName: "Nome", fieldValue: "name", dataType: TableDataType.TEXT},

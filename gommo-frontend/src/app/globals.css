@@ -2629,10 +2629,26 @@ kbd {
 }
 
 .gommo-form-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
     padding: 0.875rem 1.25rem;
     border-bottom: 1px solid color-mix(in srgb, var(--gommo-primary) 14%, var(--gommo-border-subtle));
     background: color-mix(in srgb, var(--gommo-primary) 9%, var(--color-base-100));
     border-radius: var(--gommo-tab-radius) var(--gommo-tab-radius) 0 0;
+}
+
+.gommo-form-section__header-main {
+    min-width: 0;
+    flex: 1;
+}
+
+.gommo-form-section__header-actions {
+    display: flex;
+    shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 [data-theme="dark"] .gommo-form-section__header {

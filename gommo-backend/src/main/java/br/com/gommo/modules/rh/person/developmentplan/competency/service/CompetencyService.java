@@ -32,14 +32,14 @@ public class CompetencyService extends BaseService<Competency, CompetencyRequest
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    @PreAuthorize("hasAnyAuthority('developmentplanconfig:read', 'jobposition:read')")
     public List<CompetencyResponseDto> findAll() {
         return findAll(StatusEnum.ACTIVE);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    @PreAuthorize("hasAnyAuthority('developmentplanconfig:read', 'jobposition:read')")
     public List<CompetencyResponseDto> findAll(StatusEnum status) {
         StatusEnum resolved = status == StatusEnum.INACTIVE ? StatusEnum.INACTIVE : StatusEnum.ACTIVE;
         return repository.findAllByStatusNotOrderByNameAsc(StatusEnum.DELETED).stream()
@@ -50,14 +50,14 @@ public class CompetencyService extends BaseService<Competency, CompetencyRequest
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    @PreAuthorize("hasAnyAuthority('developmentplanconfig:read', 'jobposition:read')")
     public CompetencyResponseDto findById(UUID id) {
         return super.findById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    @PreAuthorize("hasAnyAuthority('developmentplanconfig:read', 'jobposition:read')")
     public PageableResponseDto<CompetencyResponseDto> findPage(int page, int size) {
         return super.findPage(page, size);
     }

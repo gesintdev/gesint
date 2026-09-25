@@ -1,6 +1,6 @@
 ﻿import {BaseService} from "@/modules/root/services/base.service";
 
-export type DomainFieldType = "text" | "number" | "select" | "checkbox";
+export type DomainFieldType = "text" | "textarea" | "number" | "select" | "checkbox";
 export type DomainOption = { value: string; label: string };
 export type DomainFieldConfig = {
     name: string;
@@ -8,6 +8,8 @@ export type DomainFieldConfig = {
     type: DomainFieldType;
     required?: boolean;
     options?: DomainOption[];
+    /** Largura no grid 12-col (padrão: 6; checkbox: 4; textarea: 12). */
+    colSpan?: 4 | 6 | 12;
 };
 
 export class DevelopmentPlanDomainRecord {

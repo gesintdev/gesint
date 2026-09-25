@@ -7,6 +7,7 @@ export function jobpositionToFormDto(entity: JobPosition): JobPositionCreateDto 
         departmentId: entity.departmentId ?? "",
         nature: entity.nature ?? undefined,
         companyId: entity.companyId ?? null,
+        description: entity.description ?? "",
     };
 }
 
@@ -16,4 +17,5 @@ export const emptyJobPositionForm = (defaultCompanyId?: string | null): JobPosit
     cboCode: "",
     departmentId: "",
     nature: undefined,
+    description: "",
 });

@@ -33,14 +33,14 @@ public class ProficiencyLevelService
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    @PreAuthorize("hasAnyAuthority('developmentplanconfig:read', 'jobposition:read')")
     public List<ProficiencyLevelResponseDto> findAll() {
         return findAll(StatusEnum.ACTIVE);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    @PreAuthorize("hasAnyAuthority('developmentplanconfig:read', 'jobposition:read')")
     public List<ProficiencyLevelResponseDto> findAll(StatusEnum status) {
         StatusEnum resolved = status == StatusEnum.INACTIVE ? StatusEnum.INACTIVE : StatusEnum.ACTIVE;
         return repository.findAllByStatusNotOrderByLevelOrderAsc(StatusEnum.DELETED).stream()
@@ -51,14 +51,14 @@ public class ProficiencyLevelService
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    @PreAuthorize("hasAnyAuthority('developmentplanconfig:read', 'jobposition:read')")
     public ProficiencyLevelResponseDto findById(UUID id) {
         return super.findById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('developmentplanconfig:read')")
+    @PreAuthorize("hasAnyAuthority('developmentplanconfig:read', 'jobposition:read')")
     public PageableResponseDto<ProficiencyLevelResponseDto> findPage(int page, int size) {
         return super.findPage(page, size);
     }
