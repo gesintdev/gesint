@@ -78,6 +78,22 @@ BEGIN
             END IF;
         END LOOP;
 
+        -- Historico Envers (revinfo + <tabela>_aud) criado pelas migrations em public.
+        FOR tbl IN
+            SELECT tablename FROM pg_tables
+            WHERE schemaname = 'public'
+              AND (tablename = 'revinfo' OR right(tablename, 4) = '_aud')
+            ORDER BY tablename
+        LOOP
+            IF to_regclass(format('%I.%I', tenant_record.schema_name, tbl)) IS NULL THEN
+                EXECUTE format(
+                    'CREATE TABLE %I.%I (LIKE public.%I INCLUDING ALL)',
+                    tenant_record.schema_name, tbl, tbl
+                );
+                RAISE NOTICE 'Created %.%', tenant_record.schema_name, tbl;
+            END IF;
+        END LOOP;
+
         IF EXISTS (
             SELECT 1 FROM information_schema.tables
             WHERE table_schema = tenant_record.schema_name

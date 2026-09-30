@@ -48,7 +48,11 @@ public class TenantSchemaStructureSynchronizer {
         List<String> createdIndexes = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
-        for (String table : TENANT_TABLES) {
+        List<String> tables = new ArrayList<>(TENANT_TABLES);
+        tables.add(TenantSchemaTableCatalog.AUDIT_REVISION_TABLE);
+        tables.addAll(publicAuditTables());
+
+        for (String table : tables) {
             if (!tableExists("public", table)) {
                 warnings.add("Tabela ausente no template public: " + table);
                 continue;
@@ -208,6 +212,21 @@ public class TenantSchemaStructureSynchronizer {
     }
 
     // --- utilitarios -----------------------------------------------------------------------
+
+    private List<String> publicAuditTables() {
+        String suffix = TenantSchemaTableCatalog.AUDIT_TABLE_SUFFIX;
+        return jdbcTemplate.queryForList(
+                """
+                SELECT tablename
+                  FROM pg_tables
+                 WHERE schemaname = 'public'
+                   AND right(tablename, ?) = ?
+                 ORDER BY tablename
+                """,
+                String.class,
+                suffix.length(),
+                suffix);
+    }
 
     private boolean tableExists(String schema, String table) {
         Boolean exists = jdbcTemplate.queryForObject(

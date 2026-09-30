@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.exception.BusinessException;
 import br.com.gommo.modules.dp.payment.dto.PaymentBatchProcessResponseDto;
@@ -51,6 +54,7 @@ public class PaymentBatchService implements IPaymentBatchService {
     private final PaymentBatchProcessTrigger processTrigger;
     private final PaymentReceiptPdfParser pdfParser;
     private final PaymentPersonNameFormatter personNameFormatter;
+    private final AuditTrailRecorder auditTrail;
 
     public PaymentBatchService(
             PaymentPeriodRepository periodRepository,
@@ -62,7 +66,8 @@ public class PaymentBatchService implements IPaymentBatchService {
             PaymentCollaboratorResolver collaboratorResolver,
             PaymentSlipNotificationService notificationService,
             PaymentBatchProcessTrigger processTrigger,
-            PaymentPersonNameFormatter personNameFormatter) {
+            PaymentPersonNameFormatter personNameFormatter,
+            AuditTrailRecorder auditTrail) {
         this.periodRepository = periodRepository;
         this.batchRepository = batchRepository;
         this.slipRepository = slipRepository;
@@ -73,6 +78,7 @@ public class PaymentBatchService implements IPaymentBatchService {
         this.notificationService = notificationService;
         this.processTrigger = processTrigger;
         this.personNameFormatter = personNameFormatter;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -123,6 +129,7 @@ public class PaymentBatchService implements IPaymentBatchService {
                     .build();
             batch.setStatus(StatusEnum.ACTIVE);
             batch = batchRepository.save(batch);
+            auditTrail.record(AuditTrailEntry.of(AuditActionEnum.CREATE, batch));
 
             processTrigger.scheduleAfterCommit(batch.getId(), sourceBytes);
 
@@ -145,6 +152,7 @@ public class PaymentBatchService implements IPaymentBatchService {
         PaymentBatch batch = findBatch(batchId);
         batch.setStatus(StatusEnum.DELETED);
         batchRepository.save(batch);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.DELETE, batch));
         List<PaymentSlip> slips =
                 slipRepository.findByPaymentBatchIdAndStatusNotOrderByExtractedNameAsc(batchId, StatusEnum.DELETED);
         for (PaymentSlip slip : slips) {

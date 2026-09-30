@@ -13,7 +13,10 @@ import java.time.LocalDate;
 
 import br.com.gommo.core.entity.AuditEntity;
 
+import org.hibernate.envers.Audited;
+
 @Entity
+@Audited
 @Table(name = "medical_clinic")
 @Getter
 @Setter

@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+
+import br.com.gommo.core.audit.CurrentAuditor;
 
 @Configuration
 public class JpaAuditingConfig {
@@ -21,12 +21,6 @@ public class JpaAuditingConfig {
 
     @Bean
     public AuditorAware<UUID> auditorAware() {
-        return () -> {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof UUID userId)) {
-                return Optional.empty();
-            }
-            return Optional.of(userId);
-        };
+        return CurrentAuditor::userId;
     }
 }

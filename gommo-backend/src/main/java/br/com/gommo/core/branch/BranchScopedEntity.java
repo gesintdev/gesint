@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
+import org.hibernate.envers.Audited;
 
 import br.com.gommo.core.entity.AuditEntity;
 import jakarta.persistence.Column;
@@ -39,6 +40,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @MappedSuperclass
+@Audited
 @FilterDef(
         name = BranchScopedEntity.FILTER_NAME,
         parameters = @ParamDef(name = BranchScopedEntity.FILTER_PARAM, type = UUID.class))

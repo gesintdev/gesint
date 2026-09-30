@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.security.JwtProperties;
 import br.com.gommo.core.security.JwtService;
@@ -70,6 +75,7 @@ import br.com.gommo.modules.root.security.SystemAdminUsers;
 @Service
 public class AuthService implements IAuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private static final ZoneId SESSION_ZONE = ZoneId.of("America/Sao_Paulo");
     /**
      * Janela em que o refresh token rotacionado continua aceito. Cobre respostas de rotacao que o
@@ -97,6 +103,7 @@ public class AuthService implements IAuthService {
     private final TenantContractedSystemsLookup tenantContractedSystemsLookup;
     private final AdminClientLookup adminClientLookup;
     private final BranchAccessResolver branchAccessResolver;
+    private final AuditTrailRecorder auditTrail;
 
     public AuthService(
             AppUserRepository appUserRepository,
@@ -117,7 +124,8 @@ public class AuthService implements IAuthService {
             PlatformAdminUserLookup platformAdminUserLookup,
             TenantContractedSystemsLookup tenantContractedSystemsLookup,
             AdminClientLookup adminClientLookup,
-            BranchAccessResolver branchAccessResolver) {
+            BranchAccessResolver branchAccessResolver,
+            AuditTrailRecorder auditTrail) {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
         this.collaboratorRepository = collaboratorRepository;
@@ -137,6 +145,7 @@ public class AuthService implements IAuthService {
         this.tenantContractedSystemsLookup = tenantContractedSystemsLookup;
         this.adminClientLookup = adminClientLookup;
         this.branchAccessResolver = branchAccessResolver;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -149,22 +158,47 @@ public class AuthService implements IAuthService {
             throw new BadCredentialsException("Invalid credentials");
         }
 
-        AppUser user = appUserRepository
-                .findActiveByLogin(login, StatusEnum.DELETED)
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
-
-        if (!StringUtils.hasText(user.getPasswordHash())
-                || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+        AppUser user = appUserRepository.findActiveByLogin(login, StatusEnum.DELETED).orElse(null);
+        if (user == null) {
+            recordLoginFailure(null, login);
             throw new BadCredentialsException("Invalid credentials");
         }
 
-        assertLoginAllowed(user.getId(), user.getUsername());
-        assertTenantHasActiveContractedSystem(user.getUsername());
+        if (!StringUtils.hasText(user.getPasswordHash())
+                || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            recordLoginFailure(user, login);
+            throw new BadCredentialsException("Invalid credentials");
+        }
+
+        try {
+            assertLoginAllowed(user.getId(), user.getUsername());
+            assertTenantHasActiveContractedSystem(user.getUsername());
+        } catch (RuntimeException ex) {
+            recordLoginFailure(user, login);
+            throw ex;
+        }
 
         user.setLastLogin(OffsetDateTime.now());
         appUserRepository.save(user);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.LOGIN, user).actor(user.getId()));
 
         return buildTokenResponse(user);
+    }
+
+    /**
+     * Transacao propria: a do login e desfeita pela BadCredentialsException. Falha ao gravar nao
+     * pode trocar a resposta de credencial invalida por erro 500.
+     */
+    private void recordLoginFailure(AppUser user, String login) {
+        AuditTrailEntry entry = user != null
+                ? AuditTrailEntry.of(AuditActionEnum.LOGIN_FAILED, user).actor(user.getId())
+                : AuditTrailEntry.of(AuditActionEnum.LOGIN_FAILED, AppUser.class, null)
+                        .detail("(login: " + login + ")");
+        try {
+            auditTrail.recordIsolated(entry);
+        } catch (RuntimeException ex) {
+            log.warn("Falha ao registrar tentativa de login recusada na trilha de auditoria", ex);
+        }
     }
 
     @Override

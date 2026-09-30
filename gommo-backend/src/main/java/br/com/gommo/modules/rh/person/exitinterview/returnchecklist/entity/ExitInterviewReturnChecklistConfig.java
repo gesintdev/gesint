@@ -11,7 +11,10 @@ import lombok.experimental.SuperBuilder;
 
 import br.com.gommo.core.entity.AuditEntity;
 
+import org.hibernate.envers.Audited;
+
 @Entity
+@Audited
 @Table(name = "exit_interview_return_checklist_item")
 @Getter
 @Setter

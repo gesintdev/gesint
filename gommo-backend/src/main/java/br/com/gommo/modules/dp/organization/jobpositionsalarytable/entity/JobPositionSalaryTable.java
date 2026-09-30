@@ -19,10 +19,12 @@ import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.Filter;
+import org.hibernate.envers.Audited;
 
 import br.com.gommo.core.branch.BranchCatalogEntity;
 
 @Entity
+@Audited
 @Table(name = "job_position_salary_table")
 @Getter
 @Setter

@@ -18,7 +18,10 @@ import lombok.experimental.SuperBuilder;
 
 import br.com.gommo.core.entity.AuditEntity;
 
+import org.hibernate.envers.Audited;
+
 @Entity
+@Audited
 @Table(name = "work_schedule")
 @Getter
 @Setter

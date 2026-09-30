@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.Filter;
+import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,6 +18,7 @@ import lombok.experimental.SuperBuilder;
 import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
+@Audited
 @Table(name = "agenda_event")
 @Getter
 @Setter

@@ -27,6 +27,18 @@ class PermissionModuleCatalogTest {
         assertThat(PermissionModuleCatalog.modulesFor(SystemScopeEnum.RH)).doesNotContain("occupationalexam");
     }
 
+    /**
+     * Trilha de auditoria e concedida no perfil CFG, mas o administrador do sistema (ADM:CFG)
+     * nao a herda: so GLOBAL_ADMIN e perfis com audit:read (Auditor) enxergam.
+     */
+    @Test
+    void trilhaDeAuditoriaFicaEmCfgSemCoberturaDoAdministradorDoSistema() {
+        assertThat(PermissionModuleCatalog.modulesFor(SystemScopeEnum.CFG)).contains("audit");
+        assertThat(PermissionModuleCatalog.systemAdminModulesFor(SystemScopeEnum.CFG))
+                .doesNotContain("audit")
+                .contains("role");
+    }
+
     /** Todo modulo exposto por um sistema precisa ser alcancavel por allModules(). */
     @Test
     void todosOsModulosDeCadaSistemaEstaoEmAllModules() {

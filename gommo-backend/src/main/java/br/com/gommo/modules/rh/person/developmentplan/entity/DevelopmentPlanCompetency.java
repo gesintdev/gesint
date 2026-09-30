@@ -18,8 +18,11 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+import org.hibernate.envers.Audited;
+
 /** Competency diagnosis assessed in a development plan. Relational child of {@link DevelopmentPlan}. */
 @Entity
+@Audited
 @Table(name = "development_plan_competency")
 @Getter
 @Setter

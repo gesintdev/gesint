@@ -15,6 +15,7 @@ const MODULES_BY_SYSTEM: Record<string, ReadonlySet<string>> = {
         "developmentplanconfig",
         "attendance",
         "notification",
+        "audit",
     ]),
     DP: new Set([
         "company",
@@ -60,6 +61,9 @@ const MODULES_BY_SYSTEM: Record<string, ReadonlySet<string>> = {
     ]),
 };
 
+/** Espelho de EXPLICIT_GRANT_ONLY_MODULES: fora do acesso dinamico ADM:{sistema}. */
+const EXPLICIT_GRANT_ONLY_MODULES: ReadonlySet<string> = new Set(["audit"]);
+
 const SYSTEM_ADMIN_PREFIX = "ADM:";
 
 export function isSystemAdminMarker(authority: string): boolean {
@@ -76,7 +80,7 @@ export function moduleCoveredBySystemAdmin(
     permission: string,
 ): boolean {
     const module = permission.includes(":") ? permission.slice(0, permission.indexOf(":")) : permission;
-    if (!module) return false;
+    if (!module || EXPLICIT_GRANT_ONLY_MODULES.has(module)) return false;
     for (const authority of granted) {
         const system = systemFromAdminMarker(authority);
         if (!system) continue;

@@ -20,7 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.cfg.settings.documenttype.entity.DocumentDataClassEnum;
 import br.com.gommo.modules.storage.access.StorageAttachmentAccessGuard;
 import br.com.gommo.modules.storage.config.StorageProperties;
 import br.com.gommo.modules.storage.dto.StorageObjectLinkResponseDto;
@@ -42,18 +46,21 @@ public class StorageService implements IStorageService {
     private final StorageMapper mapper;
     private final StorageProperties properties;
     private final StorageAttachmentAccessGuard attachmentAccessGuard;
+    private final AuditTrailRecorder auditTrail;
 
     public StorageService(
             StorageObjectRepository objectRepository,
             StorageObjectLinkRepository linkRepository,
             StorageMapper mapper,
             StorageProperties properties,
-            StorageAttachmentAccessGuard attachmentAccessGuard) {
+            StorageAttachmentAccessGuard attachmentAccessGuard,
+            AuditTrailRecorder auditTrail) {
         this.objectRepository = objectRepository;
         this.linkRepository = linkRepository;
         this.mapper = mapper;
         this.properties = properties;
         this.attachmentAccessGuard = attachmentAccessGuard;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -249,7 +256,10 @@ public class StorageService implements IStorageService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('storage:read')")
     public InputStream download(UUID objectId) {
-        attachmentAccessGuard.assertCanDownload(objectId);
+        attachmentAccessGuard.assertCanDownload(objectId).ifPresent(restricted -> auditTrail.recordIsolated(
+                AuditTrailEntry.of(AuditActionEnum.ATTACHMENT_DOWNLOAD, StorageObject.class, objectId)
+                        .detail(restricted.dataClass() == DocumentDataClassEnum.SENSIVEL ? "sensível" : "financeiro")
+                        .recordLabel("Anexo de " + restricted.ownerLabel())));
         return downloadInternal(objectId);
     }
 

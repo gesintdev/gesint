@@ -7,6 +7,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.branch.BranchException;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.cfg.access.actingprofile.entity.ActingProfile;
@@ -41,6 +44,7 @@ public class TenantAppUserService implements ITenantAppUserService {
     private final UserActingProfileAssignmentRepository actingProfileAssignmentRepository;
     private final CompanyRepository companyRepository;
     private final TenantAppUserMapper mapper;
+    private final AuditTrailRecorder auditTrail;
 
     public TenantAppUserService(
         AppUserRepository appUserRepository,
@@ -50,7 +54,8 @@ public class TenantAppUserService implements ITenantAppUserService {
         UserRoleAssignmentRepository assignmentRepository,
         UserActingProfileAssignmentRepository actingProfileAssignmentRepository,
         CompanyRepository companyRepository,
-        TenantAppUserMapper mapper) {
+        TenantAppUserMapper mapper,
+        AuditTrailRecorder auditTrail) {
         this.appUserRepository = appUserRepository;
         this.roleRepository = roleRepository;
         this.actingProfileRepository = actingProfileRepository;
@@ -59,6 +64,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         this.actingProfileAssignmentRepository = actingProfileAssignmentRepository;
         this.companyRepository = companyRepository;
         this.mapper = mapper;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -97,6 +103,7 @@ public class TenantAppUserService implements ITenantAppUserService {
             .status(StatusEnum.ACTIVE)
             .build();
         AppUser saved = appUserRepository.save(user);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.CREATE, saved));
         replaceAssignments(saved, request);
         AppUserResponseDto response = toResponse(saved, collaborator);
         response.setAccessToken(plainToken);
@@ -122,6 +129,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         user.setName(Objects.isNull(request.getName()) ? collaborator.getFullName() : request.getName().trim());
         user.setEmail(request.getEmail().trim().toLowerCase());
         AppUser saved = appUserRepository.save(user);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.ACTIVATE, saved));
         replaceAssignments(saved, request);
         return toResponse(saved, collaborator);
     }
@@ -139,6 +147,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         user.setUsername(request.getUsername().trim());
         user.setEmail(request.getEmail().trim().toLowerCase());
         AppUser saved = appUserRepository.save(user);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, saved));
         replaceAssignments(saved, request);
         return toResponse(saved, collaborator);
     }
@@ -153,6 +162,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         user.setPasswordHash(null);
         user.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
         AppUser saved = appUserRepository.save(user);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.PASSWORD_RESET, saved));
         AppUserResponseDto response = toResponse(saved);
         response.setAccessToken(plainToken);
         return response;
@@ -166,6 +176,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         assertMutableUser(user);
         user.setStatus(StatusEnum.DELETED);
         appUserRepository.save(user);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.DELETE, user));
     }
 
     private AppUserResponseDto toResponse(AppUser user) {
@@ -284,8 +295,47 @@ public class TenantAppUserService implements ITenantAppUserService {
      * deixa de valer. O mesmo vale para perfis de atuacao.
      */
     private void replaceAssignments(AppUser user, AppUserRequestDto request) {
+        Set<UUID> previousRoleIds = assignedRoleIds(user.getId());
         replaceRoleAssignments(user, request.getRoleIdsByBranch());
         replaceActingProfileAssignments(user, request.getActingProfileIdsByBranch());
+        recordProfileAssignmentChanges(user, previousRoleIds, assignedRoleIds(user.getId()));
+    }
+
+    private Set<UUID> assignedRoleIds(UUID userId) {
+        return assignmentRepository.findAllByUserId(userId).stream()
+                .map(UserRoleAssignment::getRoleId)
+                .collect(Collectors.toSet());
+    }
+
+    /** Perfis ganhos ou perdidos (em qualquer filial) viram um evento de Acesso. */
+    private void recordProfileAssignmentChanges(AppUser user, Set<UUID> previous, Set<UUID> current) {
+        Set<UUID> added = new HashSet<>(current);
+        added.removeAll(previous);
+        Set<UUID> removed = new HashSet<>(previous);
+        removed.removeAll(current);
+        if (added.isEmpty() && removed.isEmpty()) {
+            return;
+        }
+        Set<UUID> changed = new HashSet<>(added);
+        changed.addAll(removed);
+        Map<UUID, String> names = new HashMap<>();
+        roleRepository.findAllById(changed).forEach(role -> names.put(role.getId(), role.getName()));
+        List<String> parts = new ArrayList<>();
+        if (!added.isEmpty()) {
+            parts.add("+ " + joinRoleNames(added, names));
+        }
+        if (!removed.isEmpty()) {
+            parts.add("- " + joinRoleNames(removed, names));
+        }
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.PROFILE_ASSIGNMENT, user)
+                .detail("(" + String.join("; ", parts) + ")"));
+    }
+
+    private static String joinRoleNames(Set<UUID> roleIds, Map<UUID, String> names) {
+        return roleIds.stream()
+                .map(id -> names.getOrDefault(id, id.toString()))
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.joining(", "));
     }
 
     private void replaceRoleAssignments(

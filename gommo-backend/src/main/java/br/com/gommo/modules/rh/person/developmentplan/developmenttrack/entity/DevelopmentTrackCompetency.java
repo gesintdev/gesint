@@ -16,11 +16,14 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+import org.hibernate.envers.Audited;
+
 /**
  * Expected competency of a development track. Relational child of {@link DevelopmentTrack}
  * (cascade + orphanRemoval), persisted together with the track.
  */
 @Entity
+@Audited
 @Table(name = "development_track_competency")
 @Getter
 @Setter

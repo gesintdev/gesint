@@ -1,6 +1,7 @@
 package br.com.gommo.modules.rh.person.developmentplan.entity;
 
 import org.hibernate.annotations.Filter;
+import org.hibernate.envers.Audited;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -26,6 +27,7 @@ import br.com.gommo.core.branch.BranchScopedEntity;
 import lombok.Builder;
 
 @Entity
+@Audited
 @Table(name = "development_plan")
 @Getter
 @Setter

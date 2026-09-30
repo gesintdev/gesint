@@ -14,6 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.hibernate.envers.Audited;
+
 /**
  * Vinculo usuario x perfil de atuacao x filial.
  *
@@ -24,6 +26,7 @@ import lombok.Setter;
  * porque componente nulo em chave composta faz o JPA devolver a entidade como nula.
  */
 @Entity
+@Audited
 @Table(name = "user_acting_profile")
 @Getter
 @Setter

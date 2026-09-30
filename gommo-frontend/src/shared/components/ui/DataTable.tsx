@@ -126,7 +126,12 @@ function renderCellContent(
 
     if (dataType === TableDataType.BADGE && value != null && value !== "") {
         return (
-            <span className={clsx("gommo-badge", badgeClassForStatus(value, col.badgeLabels))}>
+            <span
+                className={clsx(
+                    "gommo-badge",
+                    col.badgeClassNames?.[String(value)] ?? badgeClassForStatus(value, col.badgeLabels),
+                )}
+            >
                 {formatBadgeCellValue(value, col.badgeLabels)}
             </span>
         );

@@ -13,6 +13,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -54,6 +57,7 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
     private final DepartmentRepository departmentRepository;
     private final JobPositionRepository jobPositionRepository;
     private final AppUserRepository appUserRepository;
+    private final AuditTrailRecorder auditTrail;
 
     public ExitInterviewService(
             ExitInterviewRepository repository,
@@ -64,7 +68,8 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
             CompanyRepository companyRepository,
             DepartmentRepository departmentRepository,
             JobPositionRepository jobPositionRepository,
-            AppUserRepository appUserRepository) {
+            AppUserRepository appUserRepository,
+            AuditTrailRecorder auditTrail) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -75,6 +80,7 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         this.departmentRepository = departmentRepository;
         this.jobPositionRepository = jobPositionRepository;
         this.appUserRepository = appUserRepository;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -180,7 +186,9 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         entity.setCompletedAt(OffsetDateTime.now());
         entity.setCanceledAt(null);
         entity.setCancelReason(null);
-        return mapper.toResponse(repository.save(entity));
+        ExitInterview saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.COMPLETE, saved));
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -194,7 +202,9 @@ public class ExitInterviewService extends BaseService<ExitInterview, ExitIntervi
         entity.setInterviewStatus(ExitInterviewStatusEnum.CANCELED);
         entity.setCanceledAt(OffsetDateTime.now());
         entity.setCancelReason(request == null ? null : request.getReason());
-        return mapper.toResponse(repository.save(entity));
+        ExitInterview saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.CANCEL, saved).reason(saved.getCancelReason()));
+        return mapper.toResponse(saved);
     }
 
     @Override

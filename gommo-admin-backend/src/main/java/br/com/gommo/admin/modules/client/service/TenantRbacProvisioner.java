@@ -45,7 +45,9 @@ public class TenantRbacProvisioner {
                         status      gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
                         is_system   BOOLEAN NOT NULL DEFAULT false,
                         role_type   gommo_types.role_type_enum NOT NULL DEFAULT 'CUSTOM',
+                        created_by  UUID,
                         created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+                        updated_by  UUID,
                         updated_at  TIMESTAMPTZ
                     )
                     """
@@ -55,6 +57,13 @@ public class TenantRbacProvisioner {
                     """
                     ALTER TABLE "%s".role
                         ADD COLUMN IF NOT EXISTS role_type gommo_types.role_type_enum NOT NULL DEFAULT 'CUSTOM'
+                    """
+                            .formatted(schema));
+            jdbcTemplate.execute(
+                    """
+                    ALTER TABLE "%s".role
+                        ADD COLUMN IF NOT EXISTS created_by UUID,
+                        ADD COLUMN IF NOT EXISTS updated_by UUID
                     """
                             .formatted(schema));
             // Schemas anteriores ao role_type so distinguiam perfis por is_system.
@@ -135,7 +144,40 @@ public class TenantRbacProvisioner {
                 """
                         .formatted(schema, schema));
 
+        seedAuditorProfile(schema);
         syncAdminProfilePermissions(schema);
+    }
+
+    /**
+     * Perfil padrao Auditor (RN-05): CUSTOM, fora do filtro is_system acima. Codigo pelo MAX do
+     * tenant; se o cliente ja tiver um perfil com o mesmo nome, o dele prevalece.
+     */
+    private void seedAuditorProfile(String schema) {
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".role (
+                    id, code, name, description, system, status, is_system, role_type, created_at, updated_at
+                )
+                SELECT r.id, COALESCE((SELECT MAX(t.code) FROM "%s".role t), 0) + 1, r.name, r.description,
+                       r.system, r.status, r.is_system, r.role_type, r.created_at, r.updated_at
+                FROM public.role r
+                WHERE r.id = ?::uuid
+                ON CONFLICT DO NOTHING
+                """
+                        .formatted(schema, schema),
+                TenantSchemaTableCatalog.AUDITOR_ROLE_ID);
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%s".role_permission (role_id, permission_id)
+                SELECT rp.role_id, rp.permission_id
+                FROM public.role_permission rp
+                WHERE rp.role_id = ?::uuid
+                  AND EXISTS (SELECT 1 FROM "%s".role t WHERE t.id = rp.role_id)
+                ON CONFLICT DO NOTHING
+                """
+                        .formatted(schema, schema),
+                TenantSchemaTableCatalog.AUDITOR_ROLE_ID);
     }
 
     private void syncAdminProfilePermissions(String schema) {

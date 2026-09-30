@@ -52,6 +52,7 @@ public class PermissionCatalogService implements IPermissionCatalogService {
             Map.entry("digitalcertificate", "Certificados digitais"),
             Map.entry("documenttype", "Tipos de documento"),
             Map.entry("developmentplanconfig", "Configurações de PDI"),
+            Map.entry("audit", "Trilha de auditoria"),
             Map.entry("agenda", "Agenda"));
 
     private final PermissionRepository permissionRepository;

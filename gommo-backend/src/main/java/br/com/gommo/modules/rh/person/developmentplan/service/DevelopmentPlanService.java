@@ -12,6 +12,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -37,19 +40,22 @@ public class DevelopmentPlanService extends BaseService<DevelopmentPlan, Develop
     private final AdmissionProcessRepository admissionProcessRepository;
     private final DepartmentRepository departmentRepository;
     private final JobPositionRepository jobPositionRepository;
+    private final AuditTrailRecorder auditTrail;
 
     public DevelopmentPlanService(
             DevelopmentPlanRepository repository,
             DevelopmentPlanMapper mapper,
             AdmissionProcessRepository admissionProcessRepository,
             DepartmentRepository departmentRepository,
-            JobPositionRepository jobPositionRepository) {
+            JobPositionRepository jobPositionRepository,
+            AuditTrailRecorder auditTrail) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.admissionProcessRepository = admissionProcessRepository;
         this.departmentRepository = departmentRepository;
         this.jobPositionRepository = jobPositionRepository;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -149,7 +155,9 @@ public class DevelopmentPlanService extends BaseService<DevelopmentPlan, Develop
         entity.setApprovedAt(OffsetDateTime.now());
         entity.setApprovedBy(request != null ? request.getApprovedBy() : null);
         mapper.recalculate(entity);
-        return mapper.toResponse(repository.save(entity));
+        DevelopmentPlan saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.APPROVE, saved));
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -164,7 +172,9 @@ public class DevelopmentPlanService extends BaseService<DevelopmentPlan, Develop
         entity.setPlanStatus(DevelopmentPlanStatusEnum.COMPLETED);
         entity.setCompletedAt(OffsetDateTime.now());
         entity.setProgress(100);
-        return mapper.toResponse(repository.save(entity));
+        DevelopmentPlan saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.COMPLETE, saved));
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -179,7 +189,9 @@ public class DevelopmentPlanService extends BaseService<DevelopmentPlan, Develop
         entity.setPlanStatus(DevelopmentPlanStatusEnum.CANCELED);
         entity.setCanceledAt(OffsetDateTime.now());
         entity.setCancelReason(request != null ? request.getReason() : null);
-        return mapper.toResponse(repository.save(entity));
+        DevelopmentPlan saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.CANCEL, saved).reason(saved.getCancelReason()));
+        return mapper.toResponse(saved);
     }
 
     @Override

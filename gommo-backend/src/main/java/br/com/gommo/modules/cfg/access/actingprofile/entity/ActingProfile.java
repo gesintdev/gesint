@@ -14,12 +14,14 @@ import lombok.experimental.SuperBuilder;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.entity.AuditEntity;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 
 @Entity
+@Audited
 @Table(name = "acting_profile")
 @Getter
 @Setter

@@ -9,6 +9,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.persistence.EntityCodeIncrementer;
 import br.com.gommo.modules.cfg.access.actingprofile.dto.ActingProfileRequestDto;
@@ -28,16 +31,19 @@ public class ActingProfileService implements IActingProfileService {
     private final ActingProfileMapper mapper;
     private final AccessScopePolicy accessScopePolicy;
     private final EntityManager entityManager;
+    private final AuditTrailRecorder auditTrail;
 
     public ActingProfileService(
             ActingProfileRepository repository,
             ActingProfileMapper mapper,
             AccessScopePolicy accessScopePolicy,
-            EntityManager entityManager) {
+            EntityManager entityManager,
+            AuditTrailRecorder auditTrail) {
         this.repository = repository;
         this.mapper = mapper;
         this.accessScopePolicy = accessScopePolicy;
         this.entityManager = entityManager;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -69,7 +75,9 @@ public class ActingProfileService implements IActingProfileService {
         ActingProfile entity = mapper.toEntity(request);
         entity.setCode(EntityCodeIncrementer.nextCode(entityManager, ActingProfile.class));
         entity.setStatus(StatusEnum.ACTIVE);
-        return mapper.toResponse(repository.save(entity));
+        ActingProfile saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.CREATE, saved));
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -79,7 +87,9 @@ public class ActingProfileService implements IActingProfileService {
         ActingProfile entity = findProfile(id);
         validateRequest(request, id);
         mapper.updateEntity(entity, request);
-        return mapper.toResponse(repository.save(entity));
+        ActingProfile saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, saved));
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -89,6 +99,7 @@ public class ActingProfileService implements IActingProfileService {
         ActingProfile entity = findProfile(id);
         entity.setStatus(StatusEnum.ACTIVE);
         repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.ACTIVATE, entity));
     }
 
     @Override
@@ -98,6 +109,7 @@ public class ActingProfileService implements IActingProfileService {
         ActingProfile entity = findProfile(id);
         entity.setStatus(StatusEnum.INACTIVE);
         repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.DEACTIVATE, entity));
     }
 
     @Override
@@ -107,6 +119,7 @@ public class ActingProfileService implements IActingProfileService {
         ActingProfile entity = findProfile(id);
         entity.setStatus(StatusEnum.DELETED);
         repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.DELETE, entity));
     }
 
     private ActingProfile findProfile(UUID id) {

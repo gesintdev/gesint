@@ -7,6 +7,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.modules.ctb.payroll.dto.PayrollRunResponseDto;
 import br.com.gommo.modules.ctb.payroll.entity.PayrollRun;
 import br.com.gommo.modules.ctb.payroll.entity.PayrollStatusEnum;
@@ -21,14 +24,17 @@ public class PayrollRunLifecycleService implements IPayrollRunLifecycleService {
     private final PayrollRunRepository payrollRunRepository;
     private final PayrollRunLockService payrollRunLockService;
     private final PayrollRunMapper mapper;
+    private final AuditTrailRecorder auditTrail;
 
     public PayrollRunLifecycleService(
             PayrollRunRepository payrollRunRepository,
             PayrollRunLockService payrollRunLockService,
-            PayrollRunMapper mapper) {
+            PayrollRunMapper mapper,
+            AuditTrailRecorder auditTrail) {
         this.payrollRunRepository = payrollRunRepository;
         this.payrollRunLockService = payrollRunLockService;
         this.mapper = mapper;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -49,7 +55,9 @@ public class PayrollRunLifecycleService implements IPayrollRunLifecycleService {
         PayrollRunStateMachine.assertCanClose(payrollRun.getPayrollStatus());
         payrollRun.setPayrollStatus(PayrollStatusEnum.CLOSED);
         payrollRun.setClosedAt(OffsetDateTime.now());
-        return mapper.toResponse(payrollRunRepository.save(payrollRun));
+        PayrollRun saved = payrollRunRepository.save(payrollRun);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.CLOSE, saved));
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -63,6 +71,8 @@ public class PayrollRunLifecycleService implements IPayrollRunLifecycleService {
         if (payrollRun.getOpenedAt() == null) {
             payrollRun.setOpenedAt(OffsetDateTime.now());
         }
-        return mapper.toResponse(payrollRunRepository.save(payrollRun));
+        PayrollRun saved = payrollRunRepository.save(payrollRun);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.REOPEN, saved));
+        return mapper.toResponse(saved);
     }
 }

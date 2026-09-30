@@ -16,11 +16,14 @@ import java.time.OffsetDateTime;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
+@Audited
 @Table(name = "digital_certificate")
 @Getter
 @Setter
@@ -76,9 +79,12 @@ public class DigitalCertificate extends BranchScopedEntity {
     @Column(name = "is_default", nullable = false)
     private Boolean isDefault = false;
 
+    /** Material criptografico fica fora do historico: so a versao vigente pode existir. */
+    @NotAudited
     @Column(name = "pkcs12_encrypted", nullable = false, columnDefinition = "BYTEA")
     private byte[] pkcs12Encrypted;
 
+    @NotAudited
     @Column(name = "password_encrypted", nullable = false, columnDefinition = "BYTEA")
     private byte[] passwordEncrypted;
 }

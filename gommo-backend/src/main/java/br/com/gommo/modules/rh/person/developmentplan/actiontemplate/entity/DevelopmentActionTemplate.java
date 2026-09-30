@@ -16,7 +16,10 @@ import java.util.UUID;
 import br.com.gommo.core.entity.AuditEntity;
 import br.com.gommo.modules.rh.person.developmentplan.entity.DevelopmentActionTypeEnum;
 
+import org.hibernate.envers.Audited;
+
 @Entity
+@Audited
 @Table(name = "development_action_template")
 @Getter
 @Setter

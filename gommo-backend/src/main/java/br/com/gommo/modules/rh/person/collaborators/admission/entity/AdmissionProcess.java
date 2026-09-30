@@ -23,6 +23,8 @@ import java.util.UUID;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.branch.BranchScopedEntity;
@@ -35,6 +37,7 @@ import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
 
 @Entity
+@Audited
 @Table(name = "admission_process")
 @Getter
 @Setter
@@ -137,10 +140,12 @@ public class AdmissionProcess extends BranchScopedEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "city_id")
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     private City city;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "state_id")
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     private State state;
 
     @Column(name = "expected_start_date")

@@ -25,7 +25,8 @@ public final class PermissionModuleCatalog {
                         "exitinterview",
                         "developmentplanconfig",
                         "attendance",
-                        "notification"));
+                        "notification",
+                        "audit"));
         MODULES_BY_SYSTEM.put(
                 SystemScopeEnum.DP,
                 Set.of(
@@ -76,10 +77,23 @@ public final class PermissionModuleCatalog {
                         "storage"));
     }
 
+    /**
+     * Modulos concedidos so explicitamente (GLOBAL_ADMIN ou perfil com a permissao): nao entram
+     * no acesso dinamico do Administrador do sistema (ADM:{sistema}). Trilha de auditoria: RN-05.
+     */
+    private static final Set<String> EXPLICIT_GRANT_ONLY_MODULES = Set.of("audit");
+
     private PermissionModuleCatalog() {}
 
     public static Set<String> modulesFor(SystemScopeEnum system) {
         return MODULES_BY_SYSTEM.getOrDefault(system, Set.of());
+    }
+
+    /** Modulos cobertos pelo Administrador do sistema ({@code ADM:{sistema}}). */
+    public static Set<String> systemAdminModulesFor(SystemScopeEnum system) {
+        Set<String> modules = new LinkedHashSet<>(modulesFor(system));
+        modules.removeAll(EXPLICIT_GRANT_ONLY_MODULES);
+        return modules;
     }
 
     public static Set<String> allModules() {

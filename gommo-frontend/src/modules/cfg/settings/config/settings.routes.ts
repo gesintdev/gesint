@@ -8,6 +8,7 @@ import {
     KanbanSquare,
     KeyRound,
     Menu,
+    ScrollText,
     Settings2,
     Shield,
     StickyNote,
@@ -86,6 +87,14 @@ const accessRoutes: AppRoute[] = [
             () => import("@/modules/cfg/settings/appuser/components/AppUserFormClient"),
             "AppUserFormClient",
         ),
+    }),
+    customWorkspaceRoute({
+        id: "settings-audit-trail",
+        href: "/settings/audit-trail",
+        label: "Trilha de auditoria",
+        icon: ScrollText,
+        permission: "audit:read",
+        load: () => import("@/modules/cfg/settings/audittrail/components/AuditTrailPage"),
     }),
 ];
 
