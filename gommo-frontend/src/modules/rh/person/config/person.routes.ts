@@ -2,6 +2,8 @@ import {
     Briefcase,
     CalendarDays,
     ClipboardList,
+    ClipboardPlus,
+    Megaphone,
     MessageSquare,
     Target,
     UserSearch,
@@ -10,7 +12,7 @@ import {
 import { collaboratorSharedRouteGroup } from "@/modules/rh/person/collaborators/config/collaborator.shared-routes";
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
-import { lazyNamed, tabbedCrudRoute } from "@/shared/routing";
+import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
 
 export const personRoutes: AppRoute[] = [
     collaboratorSharedRouteGroup,
@@ -39,45 +41,70 @@ export const personRoutes: AppRoute[] = [
         listToFormLabel: LEAVE_VACATION_CRUD_LABELS.listToFormLabel,
         showListToFormButton: true,
     }),
-    tabbedCrudRoute({
-        id: "job-vacancy",
-        href: "/job-vacancy",
-        label: "Vagas",
-        icon: Briefcase,
-        permission: "jobvacancy:read",
-        routeId: "job-vacancy",
-        tabShortLabel: "Vaga",
-        fieldTabName: "jobTitle",
-        list: lazyNamed(
-            () => import("@/modules/rh/person/jobvacancy/components/JobVacancyListClient"),
-            "JobVacancyListClient",
-        ),
-        form: lazyNamed(
-            () => import("@/modules/rh/person/jobvacancy/components/JobVacancyFormClient"),
-            "JobVacancyFormClient",
-        ),
-        workspace: lazyNamed(
-            () => import("@/modules/rh/person/jobvacancy/components/JobVacancyWorkspacePage"),
-            "JobVacancyWorkspacePage",
-        ),
-    }),
-    tabbedCrudRoute({
-        id: "candidate",
-        href: "/candidate",
-        label: "Banco de talentos",
-        icon: UserSearch,
-        permission: "candidate:read",
-        routeId: "candidate",
-        tabShortLabel: "Talento",
-        fieldTabName: "fullName",
-        list: lazyNamed(
-            () => import("@/modules/rh/person/candidate/components/CandidateListClient"),
-            "CandidateListClient",
-        ),
-        form: lazyNamed(
-            () => import("@/modules/rh/person/candidate/components/CandidateFormClient"),
-            "CandidateFormClient",
-        ),
+    routeGroup({
+        id: "recruitment",
+        label: "Recrutamento",
+        icon: Megaphone,
+        children: [
+            tabbedCrudRoute({
+                id: "job-requisition",
+                href: "/job-requisition",
+                label: "Requisições",
+                icon: ClipboardPlus,
+                permission: "jobrequisition:read",
+                routeId: "job-requisition",
+                tabShortLabel: "Requisição",
+                fieldTabName: "jobPositionTitle",
+                list: lazyNamed(
+                    () => import("@/modules/rh/person/jobrequisition/components/JobRequisitionListClient"),
+                    "JobRequisitionListClient",
+                ),
+                form: lazyNamed(
+                    () => import("@/modules/rh/person/jobrequisition/components/JobRequisitionFormClient"),
+                    "JobRequisitionFormClient",
+                ),
+            }),
+            tabbedCrudRoute({
+                id: "job-vacancy",
+                href: "/job-vacancy",
+                label: "Vagas",
+                icon: Briefcase,
+                permission: "jobvacancy:read",
+                routeId: "job-vacancy",
+                tabShortLabel: "Vaga",
+                fieldTabName: "jobTitle",
+                list: lazyNamed(
+                    () => import("@/modules/rh/person/jobvacancy/components/JobVacancyListClient"),
+                    "JobVacancyListClient",
+                ),
+                form: lazyNamed(
+                    () => import("@/modules/rh/person/jobvacancy/components/JobVacancyFormClient"),
+                    "JobVacancyFormClient",
+                ),
+                workspace: lazyNamed(
+                    () => import("@/modules/rh/person/jobvacancy/components/JobVacancyWorkspacePage"),
+                    "JobVacancyWorkspacePage",
+                ),
+            }),
+            tabbedCrudRoute({
+                id: "candidate",
+                href: "/candidate",
+                label: "Banco de talentos",
+                icon: UserSearch,
+                permission: "candidate:read",
+                routeId: "candidate",
+                tabShortLabel: "Talento",
+                fieldTabName: "fullName",
+                list: lazyNamed(
+                    () => import("@/modules/rh/person/candidate/components/CandidateListClient"),
+                    "CandidateListClient",
+                ),
+                form: lazyNamed(
+                    () => import("@/modules/rh/person/candidate/components/CandidateFormClient"),
+                    "CandidateFormClient",
+                ),
+            }),
+        ],
     }),
     tabbedCrudRoute({
         id: "exit-interview",

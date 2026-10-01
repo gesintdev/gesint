@@ -54,6 +54,10 @@ import {
     JOB_VACANCY_CLIENT_MESSAGES,
     JOB_VACANCY_MESSAGES,
 } from "@/modules/rh/person/jobvacancy/exceptions/job-vacancy.messages";
+import {
+    JOB_REQUISITION_CLIENT_MESSAGES,
+    JOB_REQUISITION_MESSAGES,
+} from "@/modules/rh/person/jobrequisition/exceptions/job-requisition.messages";
 import { AUTH_CLIENT_MESSAGES, AUTH_MESSAGES } from "@/modules/root/exceptions/auth.messages";
 import { CORE_MESSAGES } from "@/shared/exceptions/core.messages";
 
@@ -95,6 +99,8 @@ const REGISTRY: Record<string, string> = {
     ...EXITINTERVIEW_CLIENT_MESSAGES,
     ...JOB_VACANCY_MESSAGES,
     ...JOB_VACANCY_CLIENT_MESSAGES,
+    ...JOB_REQUISITION_MESSAGES,
+    ...JOB_REQUISITION_CLIENT_MESSAGES,
 };
 
 export function resolveMessageByCode(code: string | undefined, fallback: string): string {

@@ -33,6 +33,7 @@ public final class BranchScopedTables {
             "esocial_event",
             "esocial_health_event",
             "exit_interview",
+            "job_requisition",
             "job_vacancy",
             "job_vacancy_application",
             "leave_request",
