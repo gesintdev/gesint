@@ -14,11 +14,13 @@ import lombok.experimental.SuperBuilder;
 import java.util.UUID;
 
 import org.hibernate.annotations.Filter;
+import org.hibernate.envers.Audited;
 
 import br.com.gommo.core.branch.BranchCatalogEntity;
 import br.com.gommo.modules.dp.organization.jobposition.entity.JobPositionNatureEnum;
 
 @Entity
+@Audited
 @Table(name = "job_position")
 @Getter
 @Setter

@@ -23,8 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.envers.Audited;
+
 /** SMART goal of a development plan. Relational child of {@link DevelopmentPlan}; owns actions. */
 @Entity
+@Audited
 @Table(name = "development_plan_goal")
 @Getter
 @Setter

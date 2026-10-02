@@ -13,6 +13,8 @@ import java.util.UUID;
 
 import br.com.gommo.core.entity.AuditEntity;
 
+import org.hibernate.envers.Audited;
+
 /**
  * Empresa do cliente. A matriz ({@code headquarters = true}) e a raiz da arvore e as filiais
  * apontam para ela por {@code parentId}.
@@ -21,6 +23,7 @@ import br.com.gommo.core.entity.AuditEntity;
  * nao e escopada: quem seleciona a filial precisa enxergar a lista inteira a que tem acesso.
  */
 @Entity
+@Audited
 @Table(name = "company")
 @Getter
 @Setter

@@ -17,6 +17,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -73,6 +76,7 @@ public class OccupationalExamService
     private final OccupationalExamTriggerService triggerService;
     private final OccupationalExamIndicatorsService indicatorsService;
     private final EsocialS2220Service esocialS2220Service;
+    private final AuditTrailRecorder auditTrail;
 
     public OccupationalExamService(
             OccupationalExamRepository repository,
@@ -84,7 +88,8 @@ public class OccupationalExamService
             CollaboratorRepository collaboratorRepository,
             OccupationalExamTriggerService triggerService,
             OccupationalExamIndicatorsService indicatorsService,
-            EsocialS2220Service esocialS2220Service) {
+            EsocialS2220Service esocialS2220Service,
+            AuditTrailRecorder auditTrail) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -96,6 +101,7 @@ public class OccupationalExamService
         this.triggerService = triggerService;
         this.indicatorsService = indicatorsService;
         this.esocialS2220Service = esocialS2220Service;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -116,7 +122,12 @@ public class OccupationalExamService
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('occupationalexam:read')")
     public OccupationalExamResponseDto findById(UUID id) {
-        return toSecureResponse(findEntity(id));
+        OccupationalExam entity = findEntity(id);
+        if (hasClinicalAuthority()) {
+            auditTrail.recordIsolated(
+                    AuditTrailEntry.of(AuditActionEnum.SENSITIVE_READ, entity).detail("dados clínicos"));
+        }
+        return toSecureResponse(entity);
     }
 
     @Override

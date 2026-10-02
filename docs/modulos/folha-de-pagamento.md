@@ -185,7 +185,7 @@ O processamento:
 
 Novas tabelas de negócio relacionadas à folha devem seguir o checklist multi-tenant:
 
-1. Criar migration Flyway no `gommo-backend`.
+1. Criar migration Flyway no `gommo-backend`, com `SELECT public.gommo_audit_sync_table('<tabela>');` e entidade `@Audited` (histórico Envers, ver `.agents/rules/gommo.mdc`).
 2. Incluir a tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin backend.
 3. Espelhar a tabela em `scripts/dev/seed-tenant-empresa-a.sql`.
 4. Sincronizar tenants já provisionados em dev quando necessário.

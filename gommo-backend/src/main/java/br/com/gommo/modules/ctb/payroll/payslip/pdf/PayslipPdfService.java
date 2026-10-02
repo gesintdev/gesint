@@ -23,7 +23,11 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.modules.ctb.payroll.event.entity.PayrollEventTypeEnum;
+import br.com.gommo.modules.ctb.payroll.payslip.entity.Payslip;
 
 @Service
 public class PayslipPdfService implements IPayslipPdfService {
@@ -40,20 +44,25 @@ public class PayslipPdfService implements IPayslipPdfService {
     private static final Font SMALL_FONT = FontFactory.getFont(FontFactory.HELVETICA, 8);
 
     private final PayslipPdfDataLoader dataLoader;
+    private final AuditTrailRecorder auditTrail;
 
-    public PayslipPdfService(PayslipPdfDataLoader dataLoader) {
+    public PayslipPdfService(PayslipPdfDataLoader dataLoader, AuditTrailRecorder auditTrail) {
         this.dataLoader = dataLoader;
+        this.auditTrail = auditTrail;
     }
 
     @Override
     @PreAuthorize("hasAuthority('payslip:read')")
     public byte[] generatePdf(UUID payslipId) {
         PayslipPdfDocument document = dataLoader.load(payslipId);
+        byte[] pdf;
         try {
-            return render(document);
+            pdf = render(document);
         } catch (DocumentException ex) {
             throw new IllegalStateException("Falha ao gerar PDF do holerite", ex);
         }
+        auditTrail.recordIsolated(AuditTrailEntry.of(AuditActionEnum.PAYSLIP_VIEW, Payslip.class, payslipId));
+        return pdf;
     }
 
     @Override

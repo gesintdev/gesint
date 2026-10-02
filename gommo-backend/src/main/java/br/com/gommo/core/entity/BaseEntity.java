@@ -16,14 +16,20 @@ import lombok.experimental.SuperBuilder;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
+/**
+ * {@code @Audited} aqui so inclui os campos herdados no historico das entidades que tambem sao
+ * {@code @Audited}; nao liga auditoria em subclasses sem a anotacao.
+ */
 @Getter
 @Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @MappedSuperclass
+@Audited
 public abstract class BaseEntity implements CodedEntity {
 
     @Id

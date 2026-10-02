@@ -18,12 +18,14 @@ import java.util.UUID;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.branch.BranchScopedEntity;
 import br.com.gommo.modules.rh.person.contract.recess.entity.RecessFinancialModeEnum;
 
 @Entity
+@Audited
 @Table(name = "leave_request")
 @Getter
 @Setter

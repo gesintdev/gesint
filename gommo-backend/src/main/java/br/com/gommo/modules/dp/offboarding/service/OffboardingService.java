@@ -10,11 +10,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.dp.offboarding.dto.OffboardingRequestDto;
 import br.com.gommo.modules.dp.offboarding.dto.OffboardingResponseDto;
+import br.com.gommo.modules.dp.offboarding.entity.DismissalTypeEnum;
 import br.com.gommo.modules.dp.offboarding.entity.Offboarding;
 import br.com.gommo.modules.dp.offboarding.exception.OffboardingException;
 import br.com.gommo.modules.dp.offboarding.mapper.OffboardingMapper;
@@ -37,6 +41,7 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
     private final ISearchDocumentIndexer searchDocumentIndexer;
     private final OccupationalExamTriggerService occupationalExamTriggerService;
     private final EmploymentContractRepository employmentContractRepository;
+    private final AuditTrailRecorder auditTrail;
 
     public OffboardingService(
         OffboardingRepository repository,
@@ -44,7 +49,8 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
         CollaboratorRepository collaboratorRepository,
         ISearchDocumentIndexer searchDocumentIndexer,
         OccupationalExamTriggerService occupationalExamTriggerService,
-        EmploymentContractRepository employmentContractRepository) {
+        EmploymentContractRepository employmentContractRepository,
+        AuditTrailRecorder auditTrail) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -52,6 +58,7 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
         this.searchDocumentIndexer = searchDocumentIndexer;
         this.occupationalExamTriggerService = occupationalExamTriggerService;
         this.employmentContractRepository = employmentContractRepository;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -93,6 +100,9 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
         Offboarding entity = mapper.toEntity(request);
         entity.setStatus(StatusEnum.ACTIVE);
         Offboarding saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.TERMINATE, saved)
+                .detail("(" + dismissalTypeLabel(saved.getDismissalType()) + ")")
+                .reason(saved.getDismissalNotes()));
         markCollaboratorOffboarded(saved.getCollaboratorId());
         UUID jobPositionId = employmentContractRepository
                 .findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(
@@ -102,6 +112,20 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
         occupationalExamTriggerService.onTermination(
                 saved.getCollaboratorId(), jobPositionId, saved.getDismissalDate(), 2);
         return toEnrichedResponse(saved);
+    }
+
+    private static String dismissalTypeLabel(DismissalTypeEnum type) {
+        if (type == null) {
+            return "tipo não informado";
+        }
+        return switch (type) {
+            case WITHOUT_CAUSE -> "sem justa causa";
+            case WITH_CAUSE -> "por justa causa";
+            case RESIGNATION -> "pedido de demissão";
+            case AGREEMENT -> "acordo";
+            case END_OF_CONTRACT -> "término de contrato";
+            case OTHER -> "outro";
+        };
     }
 
     @Override

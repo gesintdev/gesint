@@ -2,6 +2,7 @@ package br.com.gommo.modules.root.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -10,7 +11,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +24,14 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import br.com.gommo.core.entity.CodedEntity;
 import br.com.gommo.core.entity.StatusEnum;
@@ -32,6 +39,8 @@ import br.com.gommo.modules.cfg.access.entity.RoleTypeEnum;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 
 @Entity
+@Audited
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "role")
 @Getter
 @Setter
@@ -73,12 +82,24 @@ public class Role implements CodedEntity {
     @Builder.Default
     private RoleTypeEnum roleType = RoleTypeEnum.CUSTOM;
 
+    @CreatedBy
+    @Column(name = "created_by")
+    private UUID createdBy;
+
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @LastModifiedBy
+    @Column(name = "updated_by")
+    private UUID updatedBy;
+
+    @LastModifiedDate
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    /** Permissao e catalogo seedado (nao auditado); o historico guarda o vinculo em role_permission_aud. */
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "role_permission",
@@ -111,15 +132,5 @@ public class Role implements CodedEntity {
         if (id == null) {
             id = UUID.randomUUID();
         }
-        OffsetDateTime now = OffsetDateTime.now();
-        if (createdAt == null) {
-            createdAt = now;
-        }
-        updatedAt = now;
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = OffsetDateTime.now();
     }
 }

@@ -10,11 +10,13 @@ import java.util.UUID;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
+@Audited
 @Table(name = "tax_obligation")
 @Getter
 @Setter

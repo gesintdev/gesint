@@ -1,6 +1,7 @@
 package br.com.gommo.modules.storage.access;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.core.Authentication;
@@ -41,24 +42,35 @@ public class StorageAttachmentAccessGuard {
         requireAuthority(owner.read());
     }
 
+    /** Anexo sensível ou financeiro liberado: o download precisa ir para a trilha de auditoria. */
+    public record RestrictedAttachment(DocumentDataClassEnum dataClass, String ownerLabel) {}
+
     /**
      * Download / metadados de um objeto: exige {@code :read} e, conforme a classe do tipo,
      * {@code :sensitive}/clinical ou {@code :financial}.
+     *
+     * @return a classe restrita mais alta entre os vínculos, se houver
      */
-    public void assertCanDownload(UUID storageObjectId) {
+    public Optional<RestrictedAttachment> assertCanDownload(UUID storageObjectId) {
         requireActiveBranch();
         List<StorageObjectLink> links =
                 linkRepository.findAllByStorageObjectIdAndStatusNot(storageObjectId, StatusEnum.DELETED);
         if (links.isEmpty()) {
             // Objeto órfão (upload sem vínculo): só storage:read do PreAuthorize.
-            return;
+            return Optional.empty();
         }
+        RestrictedAttachment restricted = null;
         for (StorageObjectLink link : links) {
-            assertCanDownloadLink(link);
+            RestrictedAttachment current = assertCanDownloadLink(link);
+            if (current != null
+                    && (restricted == null || current.dataClass() == DocumentDataClassEnum.SENSIVEL)) {
+                restricted = current;
+            }
         }
+        return Optional.ofNullable(restricted);
     }
 
-    private void assertCanDownloadLink(StorageObjectLink link) {
+    private RestrictedAttachment assertCanDownloadLink(StorageObjectLink link) {
         OwnerAuthorities owner = StorageOwnerAccess.resolve(link.getEntityType())
                 .orElseThrow(StorageException::accessDenied);
         requireAuthority(owner.read());
@@ -78,9 +90,10 @@ public class StorageAttachmentAccessGuard {
                 requireAuthority(owner.financial());
             }
             case COMUM, PESSOAL -> {
-                // read já conferido
+                return null;
             }
         }
+        return new RestrictedAttachment(dataClass, owner.label());
     }
 
     private DocumentDataClassEnum resolveDataClass(String documentTypeCode) {

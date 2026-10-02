@@ -1,6 +1,8 @@
 package br.com.gommo.modules.root.entity;
 
 import org.hibernate.annotations.Immutable;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +26,7 @@ import java.util.UUID;
 import br.com.gommo.core.entity.AuditEntity;
 
 @Entity
+@Audited
 @Table(name = "app_user")
 @Getter
 @Setter
@@ -43,9 +46,12 @@ public class AppUser extends AuditEntity {
     @Column(nullable = false, unique = true, length = 200)
     private String email;
 
+    /** Hashes de credencial nao vao para o historico: versoes antigas nao podem vazar via {@code _aud}. */
+    @NotAudited
     @Column(name = "password_hash")
     private String passwordHash;
 
+    @NotAudited
     @Column(name = "access_token_hash", length = 64)
     private String accessTokenHash;
 
@@ -53,6 +59,7 @@ public class AppUser extends AuditEntity {
     @Builder.Default
     private boolean firstAccessCompleted = false;
 
+    @NotAudited
     @Column(name = "last_login")
     private OffsetDateTime lastLogin;
 
@@ -64,6 +71,7 @@ public class AppUser extends AuditEntity {
      * Esta view continua servindo a perguntas que independem de filial, como "e administrador?".
      */
     @Immutable
+    @NotAudited
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",

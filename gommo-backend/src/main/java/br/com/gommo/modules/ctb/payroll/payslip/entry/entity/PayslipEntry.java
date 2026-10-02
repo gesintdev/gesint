@@ -1,6 +1,7 @@
 package br.com.gommo.modules.ctb.payroll.payslip.entry.entity;
 
 import org.hibernate.annotations.Filter;
+import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,6 +18,7 @@ import java.util.UUID;
 import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
+@Audited
 @Table(name = "payslip_entry")
 @Getter
 @Setter

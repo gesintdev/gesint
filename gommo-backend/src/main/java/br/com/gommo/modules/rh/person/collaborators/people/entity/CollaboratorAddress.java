@@ -1,6 +1,8 @@
 package br.com.gommo.modules.rh.person.collaborators.people.entity;
 
 import org.hibernate.annotations.Filter;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,6 +23,7 @@ import br.com.gommo.modules.rh.person.collaborators.address.entity.City;
 import br.com.gommo.modules.rh.person.collaborators.address.entity.State;
 
 @Entity
+@Audited
 @Table(name = "collaborator_address")
 @Getter
 @Setter
@@ -50,10 +53,12 @@ public class CollaboratorAddress extends BranchScopedEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "city_id")
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     private City city;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "state_id")
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     private State state;
 
     @Column(name = "is_primary", nullable = false)

@@ -21,9 +21,11 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 @Entity
+@Audited
 @Table(name = "job_position_salary_table_item")
 @Getter
 @Setter

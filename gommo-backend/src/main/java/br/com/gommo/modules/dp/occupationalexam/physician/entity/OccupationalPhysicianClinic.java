@@ -15,7 +15,10 @@ import lombok.Setter;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import org.hibernate.envers.Audited;
+
 @Entity
+@Audited
 @Table(name = "occupational_physician_clinic")
 @Getter
 @Setter

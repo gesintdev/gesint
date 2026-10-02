@@ -16,11 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.entity.AuditEntity;
 
 @Entity
+@Audited
 @Table(name = "document_type")
 @Getter
 @Setter

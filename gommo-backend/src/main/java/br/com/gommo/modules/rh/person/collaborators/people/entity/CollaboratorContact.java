@@ -1,6 +1,7 @@
 package br.com.gommo.modules.rh.person.collaborators.people.entity;
 
 import org.hibernate.annotations.Filter;
+import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import br.com.gommo.core.branch.BranchScopedEntity;
 
 @Entity
+@Audited
 @Table(name = "collaborator_contact")
 @Getter
 @Setter

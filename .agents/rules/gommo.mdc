@@ -66,6 +66,7 @@ Novos módulos devem seguir o mesmo caminho do menu lateral. Exemplo: se a sideb
 - RBAC com `@PreAuthorize` no service do módulo.
 - Entidades: `BaseEntity` (UUID, status) + `AuditEntity` (created/updated by/at).
 - Soft delete: `status = DELETED`; nunca DELETE físico para entidades de negócio.
+- Histórico obrigatório (Hibernate Envers): toda entidade com CRUD (e filhos do agregado) leva `@Audited`. Ver seção "Auditoria (Envers)".
 - Flyway para toda alteração de schema: `V{n}__descricao_snake_case.sql`.
 - API versionada: `/api/v1/...`.
 - DTOs sempre classes com Lombok; não usar records em DTO público.
@@ -128,17 +129,49 @@ MVP usa schema dedicado por cliente (ex.: `tenant_*` ou slug livre como `posto_s
 Ao criar tabela/entidade de negócio:
 
 1. Criar migration Flyway em `gommo-backend`.
-2. Incluir a tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin backend.
-3. Espelhar em `scripts/dev/seed-tenant-empresa-a.sql` (`tenant_tables`).
-4. Sincronizar tenants existentes em dev quando necessário — **avisar o usuário explicitamente** (reinício do backend, sync Admin, SQL manual ou re-login).
-5. Nunca filtrar tenant manualmente no service; usar `TenantSchemaDataSource` + JWT/header (`X-Tenant-Slug`).
-6. Trabalho `@Async` deve usar `TenantContextTaskDecorator` no executor.
+2. Na mesma migration, criar o histórico: `SELECT public.gommo_audit_sync_table('<tabela>');` (ver "Auditoria (Envers)").
+3. Incluir a tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin backend (a `<tabela>_aud` não entra no catálogo; o Admin replica toda `*_aud` de `public`).
+4. Espelhar em `scripts/dev/seed-tenant-empresa-a.sql` (`tenant_tables`).
+5. Sincronizar tenants existentes em dev quando necessário — **avisar o usuário explicitamente** (reinício do backend, sync Admin, SQL manual ou re-login).
+6. Nunca filtrar tenant manualmente no service; usar `TenantSchemaDataSource` + JWT/header (`X-Tenant-Slug`).
+7. Trabalho `@Async` deve usar `TenantContextTaskDecorator` no executor.
 
 Sync de migration para schemas de cliente: iterar **todos** os schemas com `permission`/`app_user` (exceto `public`, `admin`, `gommo_types`, `pg_*`), não só `tenant_%`.
 
 **Aviso obrigatório:** sempre que a entrega exigir reprovisionar, sync de schema de tenant, restart com Flyway, ou novo login para pegar authorities, dizer isso de forma clara ao usuário — não assumir que ele descubra sozinho.
 
 Frontend envia headers de tenant via `api.client.ts` / `tenant.ts`; não criar lógica extra por tela.
+
+## Auditoria (Envers) — obrigatório
+
+Duas camadas, ambas obrigatórias em tabela com CRUD:
+
+- **Colunas** (Spring Data Auditing): `created_by`, `created_at`, `updated_by`, `updated_at` via `AuditEntity` (ou `BranchScopedEntity`/`BranchCatalogEntity`). Usuário vem de `CurrentAuditor`.
+- **Histórico** (Hibernate Envers): `@Audited` na entidade concreta. Cada transação gera uma linha em `revinfo` (`rev`, `changed_at`, `changed_by`) e o estado completo da linha em `<tabela>_aud` (`rev`, `revtype`: 0 insert, 1 update, 2 delete físico). Soft delete aparece como update com `status = DELETED`.
+
+Ao criar entidade/tabela:
+
+1. `@Audited` na entidade concreta (as superclasses já são `@Audited`) e nos filhos do agregado.
+2. Relação com entidade não auditada (ex.: `City`, `State`, `Permission`): `@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)` no campo.
+3. Segredo/credencial/material criptográfico: `@NotAudited` no campo (ex.: `AppUser.passwordHash`, `DigitalCertificate.pkcs12Encrypted`).
+4. Migration: `SELECT public.gommo_audit_sync_table('<tabela>');` depois do `CREATE TABLE`. Para `@ManyToMany` auditado, chamar também para a tabela de junção.
+5. Coluna nova ou tipo alterado em tabela auditada: chamar `gommo_audit_sync_table('<tabela>')` de novo na mesma migration; senão o boot falha (`ddl-auto: validate`).
+
+A função cria/alinha `<tabela>_aud` em `public` e em **todos** os schemas de cliente, e garante `revinfo` neles. Tenants novos recebem `revinfo` e toda `*_aud` pelo `TenantSchemaStructureSynchronizer` (Admin); `TenantMissingTableRepair` (Client, startup) é a rede de segurança. Sem a `_aud` no schema do tenant, toda escrita na entidade falha.
+
+Exceção só com justificativa em `EnversAuditCoverageTest.NOT_AUDITED` (entidade técnica, catálogo somente leitura ou derivado). O teste quebra o build se entidade nova não for `@Audited` ou se faltar a migration da `_aud`.
+
+## Trilha de auditoria (CFG › Trilha de auditoria, RN-05) — obrigatório
+
+Envers guarda o estado da linha; a trilha (`audit_log`, pacote `core/audit/trail`) guarda **quem fez o quê** em linguagem de negócio, para LGPD (art. 18/20) e prova trabalhista. Registro imutável (`@Immutable`), sem editar nem excluir. Leitura exige `audit:read` (GLOBAL_ADMIN e perfil "Auditor"); o módulo `audit` fica em `PermissionModuleCatalog.EXPLICIT_GRANT_ONLY_MODULES`, então `ADM:CFG` não herda.
+
+- Ação = `AuditActionEnum` (verbo PT-BR + categoria fixa em `AuditCategoryEnum`: Cadastro, Dado sensível, Decisão, Acesso, Exportação). Ação nova entra no enum; não gravar texto livre na coluna `action`.
+- **Cadastro**: `CrudAuditTrailAspect` grava automaticamente create/update/delete/activate/deactivate de todo service que estende `BaseService`. Entidade nova precisa de rótulo em `AuditRecordLabels` (`AuditTrailCoverageTest` quebra o build). Service de CRUD fora do `BaseService` grava explicitamente com `AuditTrailRecorder.record(...)`.
+- **Decisão sobre pessoa** (aprovar, reprovar, devolver, desligar, concluir, cancelar, fechar/reabrir folha): `auditTrail.record(AuditTrailEntry.of(ação, entidade).detail(...).reason(motivo))` na mesma transação da decisão.
+- **Dado sensível** (leitura de CID, dados clínicos, download de anexo sensível/financeiro, holerite): `recordIsolated` (REQUIRES_NEW), porque leitura roda em transação `readOnly`.
+- **Acesso**: concessão/retirada de permissão, perfis do usuário, reset de senha, login e login recusado.
+- `detail` complementa o verbo ("Leu" + "CID"); `recordLabel` é "Rótulo #código". Nunca gravar nome de pessoa, CPF ou valor sensível na trilha (minimização LGPD).
+- Falha ao gravar a trilha derruba a operação (fail closed), exceto login recusado.
 
 ## Encoding e textos PT-BR
 

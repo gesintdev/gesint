@@ -14,7 +14,10 @@ import lombok.experimental.SuperBuilder;
 import br.com.gommo.core.entity.AuditEntity;
 import br.com.gommo.modules.rh.person.developmentplan.entity.CompetencyTypeEnum;
 
+import org.hibernate.envers.Audited;
+
 @Entity
+@Audited
 @Table(name = "competency")
 @Getter
 @Setter

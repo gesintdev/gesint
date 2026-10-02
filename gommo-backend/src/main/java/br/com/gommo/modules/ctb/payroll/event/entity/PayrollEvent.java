@@ -12,11 +12,13 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.entity.AuditEntity;
 
 @Entity
+@Audited
 @Table(name = "payroll_event")
 @Getter
 @Setter

@@ -57,6 +57,8 @@ export type TableColumnConfig = {
     avatarSize?: "sm" | "md" | "lg";
     /** Rótulos customizados para células BADGE (sobrescreve o mapa global) */
     badgeLabels?: Record<string, string>;
+    /** Classes customizadas por valor em células BADGE (sobrescreve a cor derivada do status). */
+    badgeClassNames?: Record<string, string>;
     /**
      * Quando true, a coluna não exibe filtro.
      * Por padrão todas as colunas são filtráveis.

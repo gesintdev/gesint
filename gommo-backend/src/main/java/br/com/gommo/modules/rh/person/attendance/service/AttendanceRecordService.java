@@ -1,5 +1,8 @@
 package br.com.gommo.modules.rh.person.attendance.service;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
@@ -77,6 +80,7 @@ public class AttendanceRecordService
     private final SystemSettingRepository settingRepository;
     private final SystemNotificationService notificationService;
     private final IStorageService storageService;
+    private final AuditTrailRecorder auditTrail;
 
     public AttendanceRecordService(
         AttendanceRecordRepository repository,
@@ -90,7 +94,8 @@ public class AttendanceRecordService
         WorkScheduleRepository workScheduleRepository,
         SystemSettingRepository settingRepository,
         SystemNotificationService notificationService,
-        IStorageService storageService) {
+        IStorageService storageService,
+        AuditTrailRecorder auditTrail) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.requestRepository = requestRepository;
@@ -104,6 +109,7 @@ public class AttendanceRecordService
         this.settingRepository = settingRepository;
         this.notificationService = notificationService;
         this.storageService = storageService;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -587,6 +593,13 @@ public class AttendanceRecordService
             throw AttendanceRecordException.invalidSubmission();
         }
         AttendanceRequest saved = requestRepository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(
+                        REQUEST_APPROVED.equals(saved.getRequestStatus())
+                                ? AuditActionEnum.APPROVE
+                                : AuditActionEnum.REJECT,
+                        saved)
+                .detail("solicitação de ponto")
+                .reason(request.getReason()));
         notificationService.notifyAttendanceRequestReviewed(saved, action, request.getReason());
         return toEnrichedRequestResponse(saved);
     }

@@ -1,5 +1,6 @@
 package br.com.gommo.core.tenant;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,14 +13,26 @@ import org.springframework.stereotype.Component;
 
 /**
  * Clona tabelas do template {@code public} que faltam em tenants ja provisionados.
- * Idempotente — roda no startup como rede de seguranca alem da migration V97.
+ * Idempotente — roda no startup como rede de seguranca alem das migrations V97 e V121.
+ *
+ * Inclui o historico Envers ({@code revinfo} + toda {@code <tabela>_aud} de public): sem ele,
+ * qualquer escrita em entidade {@code @Audited} falha no tenant.
  */
 @Component
 public class TenantMissingTableRepair {
 
     private static final Logger log = LoggerFactory.getLogger(TenantMissingTableRepair.class);
 
-    private static final List<String> REQUIRED_TABLES = List.of("candidate_experience");
+    private static final List<String> REQUIRED_TABLES = List.of("candidate_experience", "revinfo");
+
+    private static final String SELECT_PUBLIC_AUDIT_TABLES =
+            """
+            SELECT tablename
+              FROM pg_tables
+             WHERE schemaname = 'public'
+               AND right(tablename, 4) = '_aud'
+             ORDER BY tablename
+            """;
 
     private static final String SELECT_SCHEMAS_FROM_ADMIN =
             """
@@ -45,10 +58,11 @@ public class TenantMissingTableRepair {
 
     public int repairAllTenants() {
         Set<String> schemas = resolveTenantSchemas();
+        List<String> tables = requiredTables();
         int repairedSchemas = 0;
         for (String schema : schemas) {
             try {
-                if (repairSchema(schema) > 0) {
+                if (repairSchema(schema, tables) > 0) {
                     repairedSchemas++;
                 }
             } catch (RuntimeException ex) {
@@ -58,13 +72,23 @@ public class TenantMissingTableRepair {
         return repairedSchemas;
     }
 
-    private int repairSchema(String rawSchema) {
+    private List<String> requiredTables() {
+        List<String> tables = new ArrayList<>(REQUIRED_TABLES);
+        try {
+            tables.addAll(jdbcTemplate.queryForList(SELECT_PUBLIC_AUDIT_TABLES, String.class));
+        } catch (DataAccessException ex) {
+            log.warn("Nao foi possivel listar tabelas de historico em public: {}", ex.getMessage());
+        }
+        return tables;
+    }
+
+    private int repairSchema(String rawSchema, List<String> tables) {
         String schema = TenantSchemaNames.requireSafe(rawSchema);
         if ("public".equalsIgnoreCase(schema) || !tableExists(schema, "candidate")) {
             return 0;
         }
         int repaired = 0;
-        for (String table : REQUIRED_TABLES) {
+        for (String table : tables) {
             repaired += cloneTableIfMissing(schema, table);
         }
         return repaired;

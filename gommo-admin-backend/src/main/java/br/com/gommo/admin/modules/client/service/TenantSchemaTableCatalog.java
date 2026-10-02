@@ -81,5 +81,17 @@ public final class TenantSchemaTableCatalog {
             "search_document",
             "audit_log");
 
+    /**
+     * Historico Hibernate Envers do Client. As tabelas {@code <tabela>_aud} nao sao listadas aqui:
+     * o sincronizador replica toda tabela de public com este sufixo, entao uma migration nova com
+     * {@code public.gommo_audit_sync_table('<tabela>')} ja chega aos tenants sem editar o catalogo.
+     */
+    public static final String AUDIT_REVISION_TABLE = "revinfo";
+
+    public static final String AUDIT_TABLE_SUFFIX = "_aud";
+
+    /** Perfil padrao Auditor (trilha de auditoria, RN-05), seedado pela migration V122 do Client. */
+    public static final String AUDITOR_ROLE_ID = "56000000-0000-0000-0000-000000000100";
+
     private TenantSchemaTableCatalog() {}
 }

@@ -17,8 +17,11 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import org.hibernate.envers.Audited;
+
 /** Periodic follow-up check-in of a development plan. Relational child of {@link DevelopmentPlan}. */
 @Entity
+@Audited
 @Table(name = "development_plan_checkin")
 @Getter
 @Setter

@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.branch.BranchScopedEntity;
@@ -29,6 +30,7 @@ import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewRatingDto;
 import br.com.gommo.modules.rh.person.exitinterview.dto.ExitInterviewReturnChecklistItemDto;
 
 @Entity
+@Audited
 @Table(name = "exit_interview")
 @Getter
 @Setter

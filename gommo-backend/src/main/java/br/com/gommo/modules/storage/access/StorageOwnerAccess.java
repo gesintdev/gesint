@@ -9,18 +9,23 @@ import java.util.Optional;
  */
 public final class StorageOwnerAccess {
 
-    /** {@code sensitive}/{@code financial} vazios = classe não aplicável para este dono. */
-    public record OwnerAuthorities(String read, String sensitive, String financial) {}
+    /**
+     * {@code sensitive}/{@code financial} vazios = classe não aplicável para este dono.
+     * {@code label}: nome da entidade dona exibido na trilha de auditoria.
+     */
+    public record OwnerAuthorities(String read, String sensitive, String financial, String label) {}
 
     private static final Map<String, OwnerAuthorities> BY_ENTITY_TYPE = Map.of(
-            "leave_request", new OwnerAuthorities("leave:read", "leave:sensitive", ""),
+            "leave_request", new OwnerAuthorities("leave:read", "leave:sensitive", "", "Afastamento"),
             "admission_process",
-                    new OwnerAuthorities("admission:read", "admission:sensitive", "admission:financial"),
+                    new OwnerAuthorities(
+                            "admission:read", "admission:sensitive", "admission:financial", "Admissão"),
             "occupational_exam",
-                    new OwnerAuthorities("occupationalexam:read", "occupationalexam:clinical", ""),
-            "candidate", new OwnerAuthorities("candidate:read", "", ""),
-            "exit_interview", new OwnerAuthorities("exitinterview:read", "", ""),
-            "offboarding", new OwnerAuthorities("offboarding:read", "", ""));
+                    new OwnerAuthorities(
+                            "occupationalexam:read", "occupationalexam:clinical", "", "Exame ocupacional"),
+            "candidate", new OwnerAuthorities("candidate:read", "", "", "Candidato"),
+            "exit_interview", new OwnerAuthorities("exitinterview:read", "", "", "Entrevista de desligamento"),
+            "offboarding", new OwnerAuthorities("offboarding:read", "", "", "Desligamento"));
 
     private StorageOwnerAccess() {}
 

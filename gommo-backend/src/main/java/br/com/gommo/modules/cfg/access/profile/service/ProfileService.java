@@ -2,6 +2,7 @@ package br.com.gommo.modules.cfg.access.profile.service;
 
 import jakarta.persistence.EntityManager;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.core.persistence.EntityCodeIncrementer;
 import br.com.gommo.modules.cfg.access.catalog.PermissionModuleCatalog;
@@ -38,18 +42,21 @@ public class ProfileService implements IProfileService {
     private final ProfileMapper mapper;
     private final EntityManager entityManager;
     private final AccessScopePolicy accessScopePolicy;
+    private final AuditTrailRecorder auditTrail;
 
     public ProfileService(
             RoleRepository roleRepository,
             PermissionRepository permissionRepository,
             ProfileMapper mapper,
             EntityManager entityManager,
-            AccessScopePolicy accessScopePolicy) {
+            AccessScopePolicy accessScopePolicy,
+            AuditTrailRecorder auditTrail) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.mapper = mapper;
         this.entityManager = entityManager;
         this.accessScopePolicy = accessScopePolicy;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -93,7 +100,10 @@ public class ProfileService implements IProfileService {
                 .roleType(RoleTypeEnum.CUSTOM)
                 .permissions(resolvePermissions(request, Set.of()))
                 .build();
-        return mapper.toResponse(roleRepository.save(role));
+        Role saved = roleRepository.save(role);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.CREATE, saved));
+        recordPermissionChanges(saved, Set.of());
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -106,9 +116,11 @@ public class ProfileService implements IProfileService {
         }
         validateSystemContracted(request.getSystem());
         validateUniqueName(request.getName(), request.getSystem(), id);
-        Set<UUID> currentPermissionIds = role.getPermissions() == null
+        Set<Permission> previousPermissions = role.getPermissions() == null
                 ? Set.of()
-                : role.getPermissions().stream().map(Permission::getId).collect(Collectors.toSet());
+                : Set.copyOf(role.getPermissions());
+        Set<UUID> currentPermissionIds =
+                previousPermissions.stream().map(Permission::getId).collect(Collectors.toSet());
         role.setName(request.getName().trim());
         role.setDescription(
                 StringUtils.hasText(request.getDescription())
@@ -116,7 +128,10 @@ public class ProfileService implements IProfileService {
                         : null);
         role.setSystem(request.getSystem());
         role.setPermissions(resolvePermissions(request, currentPermissionIds));
-        return mapper.toResponse(roleRepository.save(role));
+        Role saved = roleRepository.save(role);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, saved));
+        recordPermissionChanges(saved, previousPermissions);
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -129,6 +144,7 @@ public class ProfileService implements IProfileService {
         }
         role.setStatus(StatusEnum.ACTIVE);
         roleRepository.save(role);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.ACTIVATE, role));
     }
 
     @Override
@@ -141,6 +157,7 @@ public class ProfileService implements IProfileService {
         }
         role.setStatus(StatusEnum.INACTIVE);
         roleRepository.save(role);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.DEACTIVATE, role));
     }
 
     @Override
@@ -153,6 +170,31 @@ public class ProfileService implements IProfileService {
         }
         role.setStatus(StatusEnum.DELETED);
         roleRepository.save(role);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.DELETE, role));
+    }
+
+    /** Um evento por permissao concedida/retirada: o detalhe e a descricao da permissao. */
+    private void recordPermissionChanges(Role role, Set<Permission> previous) {
+        Set<Permission> current = role.getPermissions() == null ? Set.of() : role.getPermissions();
+        Set<UUID> previousIds = previous.stream().map(Permission::getId).collect(Collectors.toSet());
+        Set<UUID> currentIds = current.stream().map(Permission::getId).collect(Collectors.toSet());
+        current.stream()
+                .filter(permission -> !previousIds.contains(permission.getId()))
+                .sorted(Comparator.comparing(Permission::getAuthority))
+                .forEach(permission -> auditTrail.record(
+                        AuditTrailEntry.of(AuditActionEnum.PERMISSION_GRANT, role).detail(permissionLabel(permission))));
+        previous.stream()
+                .filter(permission -> !currentIds.contains(permission.getId()))
+                .sorted(Comparator.comparing(Permission::getAuthority))
+                .forEach(permission -> auditTrail.record(
+                        AuditTrailEntry.of(AuditActionEnum.PERMISSION_REVOKE, role).detail(permissionLabel(permission))));
+    }
+
+    private static String permissionLabel(Permission permission) {
+        String description = StringUtils.hasText(permission.getDescription())
+                ? permission.getDescription()
+                : permission.getAuthority();
+        return "\"" + description + "\" (" + permission.getAuthority() + ")";
     }
 
     private Role findProfile(UUID id) {

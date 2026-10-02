@@ -20,7 +20,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.hibernate.envers.Audited;
+
 @Entity
+@Audited
 @Table(name = "work_schedule_day")
 @Getter
 @Setter

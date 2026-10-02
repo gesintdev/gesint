@@ -13,6 +13,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
@@ -25,6 +26,7 @@ import br.com.gommo.core.branch.BranchScopedEntity;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationStageCommentDto;
 
 @Entity
+@Audited
 @Table(name = "job_vacancy_application")
 @Getter
 @Setter

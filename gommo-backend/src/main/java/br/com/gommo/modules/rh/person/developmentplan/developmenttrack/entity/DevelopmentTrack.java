@@ -18,7 +18,10 @@ import java.util.List;
 import br.com.gommo.core.entity.AuditEntity;
 import lombok.Builder;
 
+import org.hibernate.envers.Audited;
+
 @Entity
+@Audited
 @Table(name = "development_track")
 @Getter
 @Setter

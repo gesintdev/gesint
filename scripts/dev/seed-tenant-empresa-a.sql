@@ -141,6 +141,18 @@ BEGIN
         END IF;
     END LOOP;
 
+    -- 3b. Historico Envers (revinfo + <tabela>_aud), como TenantSchemaStructureSynchronizer
+    FOR tbl IN
+        SELECT tablename FROM pg_tables
+        WHERE schemaname = 'public'
+          AND (tablename = 'revinfo' OR right(tablename, 4) = '_aud')
+        ORDER BY tablename
+    LOOP
+        IF to_regclass(format('%I.%I', v_schema, tbl)) IS NULL THEN
+            EXECUTE format('CREATE TABLE %I.%I (LIKE public.%I INCLUDING ALL)', v_schema, tbl, tbl);
+        END IF;
+    END LOOP;
+
     -- 4. Tabelas de auth no tenant
     IF NOT EXISTS (
         SELECT 1 FROM information_schema.tables
@@ -195,7 +207,8 @@ BEGIN
                 system gommo_types.system_scope_enum NOT NULL DEFAULT 'RH',
                 status gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
                 is_system BOOLEAN NOT NULL DEFAULT false,
-                created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ
+                created_by UUID, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                updated_by UUID, updated_at TIMESTAMPTZ
             )
         $sql$, v_schema);
         EXECUTE format('CREATE UNIQUE INDEX uk_%s_role_code ON %I.role (code)', v_schema, v_schema);
@@ -232,6 +245,15 @@ BEGIN
     INSERT INTO tenant_empresa_a.role_permission (role_id, permission_id)
     SELECT v_admin_role, p.id FROM tenant_empresa_a.permission p
     ON CONFLICT DO NOTHING;
+
+    -- Perfil padrao Auditor (V122); role_type chega pela sincronizacao se o schema for antigo.
+    IF to_regprocedure('public.gommo_seed_auditor_profile(text)') IS NOT NULL
+       AND EXISTS (
+           SELECT 1 FROM information_schema.columns
+           WHERE table_schema = v_schema AND table_name = 'role' AND column_name = 'role_type'
+       ) THEN
+        PERFORM public.gommo_seed_auditor_profile(v_schema);
+    END IF;
 
     IF NOT EXISTS (
         SELECT 1 FROM information_schema.tables WHERE table_schema = v_schema AND table_name = 'user_role'

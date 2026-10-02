@@ -151,7 +151,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (AuthorityWildcards.isSystemAdminMarker(permission)) {
                 SystemScopeEnum system = AuthorityWildcards.systemFromMarker(permission);
                 if (system != null) {
-                    adminModules.addAll(PermissionModuleCatalog.modulesFor(system));
+                    adminModules.addAll(PermissionModuleCatalog.systemAdminModulesFor(system));
                 }
                 continue;
             }

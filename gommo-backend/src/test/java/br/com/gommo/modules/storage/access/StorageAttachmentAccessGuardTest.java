@@ -77,7 +77,11 @@ class StorageAttachmentAccessGuardTest {
         when(documentTypeRepository.findByTypeCodeIgnoreCaseAndStatusNot("ATESTADO", StatusEnum.DELETED))
                 .thenReturn(Optional.of(documentType("ATESTADO", DocumentDataClassEnum.SENSIVEL)));
 
-        guard.assertCanDownload(objectId);
+        assertThat(guard.assertCanDownload(objectId))
+                .hasValueSatisfying(restricted -> {
+                    assertThat(restricted.dataClass()).isEqualTo(DocumentDataClassEnum.SENSIVEL);
+                    assertThat(restricted.ownerLabel()).isEqualTo("Afastamento");
+                });
     }
 
     @Test
@@ -88,7 +92,7 @@ class StorageAttachmentAccessGuardTest {
         when(documentTypeRepository.findByTypeCodeIgnoreCaseAndStatusNot("FORMULARIO", StatusEnum.DELETED))
                 .thenReturn(Optional.of(documentType("FORMULARIO", DocumentDataClassEnum.COMUM)));
 
-        guard.assertCanDownload(objectId);
+        assertThat(guard.assertCanDownload(objectId)).isEmpty();
     }
 
     @Test

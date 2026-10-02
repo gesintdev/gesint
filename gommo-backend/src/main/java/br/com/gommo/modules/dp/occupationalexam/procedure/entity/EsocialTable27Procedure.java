@@ -11,11 +11,14 @@ import lombok.experimental.SuperBuilder;
 
 import br.com.gommo.core.entity.AuditEntity;
 
+import org.hibernate.envers.Audited;
+
 /**
  * Tabela 27 do eSocial (procedimentos diagnosticos). Seed via migration;
  * nao e enum fixo no Java.
  */
 @Entity
+@Audited
 @Table(name = "esocial_table27_procedure")
 @Getter
 @Setter

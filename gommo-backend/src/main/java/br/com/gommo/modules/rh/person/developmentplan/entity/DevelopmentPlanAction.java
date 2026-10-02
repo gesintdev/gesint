@@ -20,8 +20,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import org.hibernate.envers.Audited;
+
 /** Action of a development plan. Relational child of {@link DevelopmentPlanGoal}. */
 @Entity
+@Audited
 @Table(name = "development_plan_action")
 @Getter
 @Setter

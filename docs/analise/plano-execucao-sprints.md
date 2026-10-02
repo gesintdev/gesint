@@ -8,6 +8,7 @@
 
 - Sprint = 2 semanas. Estimativa total: **Sprint 0 + 15 sprints (~8 meses)** para 1 time full-stack pequeno. Ajustar conforme capacity real.
 - Toda tabela nova segue o protocolo multi-tenant: migration Flyway no `gommo-backend` + inclusão em `TenantSchemaTableCatalog.HR_DATA_TABLES` + espelho no `seed-tenant-empresa-a.sql`.
+- Toda tabela nova com CRUD nasce auditada: entidade `@Audited` (Hibernate Envers) + `SELECT public.gommo_audit_sync_table('<tabela>')` na migration (histórico em `<tabela>_aud` + `revinfo`). Regra completa em `.agents/rules/gommo.mdc` ("Auditoria (Envers)").
 - Regra de ouro do PDF: **tudo que muda no tempo tem vigência**; **folha fechada é imutável**; **mudança crítica gera trilha de auditoria com motivo**.
 - "Pronto" = backend (entidade + migration + service + RBAC) + frontend (rota + lista + form) + teste da regra pura + critério de aceite do roteiro validado.
 - Navegacao atual: no DP, Ferias, Afastamento e Desligamento sao menus diretos e separados; no RH fica a solicitacao/visao de ferias e a entrevista de desligamento.
@@ -46,6 +47,8 @@
 - Backend: justificativa obrigatória em `POST /payroll-runs/{id}/reopen` e em retificações; persistir `justificativa_reabertura`.
 - Frontend: tela de auditoria (consulta por entidade/período/usuário); modal de motivo na reabertura de folha.
 - Migrations: ajustes em `audit_log` se necessário; campo motivo em fluxos de reabertura.
+
+**Status:** trilha entregue (V122 + `core/audit/trail` + CFG › Trilha de auditoria, RN-05). Valor anterior/novo fica no histórico Envers (`*_aud`); a trilha registra Cadastro, Dado sensível, Decisão e Acesso, com motivo quando o fluxo já o coleta. Pendentes nesta sprint: justificativa obrigatória na reabertura de folha e o log de Exportação (depende da permissão `modulo:export` da RN-03).
 
 **Aceite (roteiro):** TC-011; Mês 2 (reabertura controlada); Mês 18 (retificação exige justificativa).
 

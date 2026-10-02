@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import br.com.gommo.core.audit.trail.AuditActionEnum;
+import br.com.gommo.core.audit.trail.AuditTrailEntry;
+import br.com.gommo.core.audit.trail.AuditTrailRecorder;
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.cfg.settings.agenda.dto.AgendaEventRequestDto;
 import br.com.gommo.modules.cfg.settings.agenda.dto.AgendaEventResponseDto;
@@ -24,10 +27,13 @@ public class AgendaEventService implements IAgendaEventService {
 
     private final AgendaEventRepository repository;
     private final AgendaEventMapper mapper;
+    private final AuditTrailRecorder auditTrail;
 
-    public AgendaEventService(AgendaEventRepository repository, AgendaEventMapper mapper) {
+    public AgendaEventService(
+            AgendaEventRepository repository, AgendaEventMapper mapper, AuditTrailRecorder auditTrail) {
         this.repository = repository;
         this.mapper = mapper;
+        this.auditTrail = auditTrail;
     }
 
     @Override
@@ -56,7 +62,9 @@ public class AgendaEventService implements IAgendaEventService {
         AgendaEvent entity = mapper.toEntity(request);
         entity.setOwnerUserId(currentUserId());
         entity.setStatus(StatusEnum.ACTIVE);
-        return mapper.toResponse(repository.save(entity));
+        AgendaEvent saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.CREATE, saved));
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -66,7 +74,9 @@ public class AgendaEventService implements IAgendaEventService {
         validate(request);
         AgendaEvent entity = findOwned(id);
         mapper.updateEntity(entity, request);
-        return mapper.toResponse(repository.save(entity));
+        AgendaEvent saved = repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, saved));
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -76,6 +86,7 @@ public class AgendaEventService implements IAgendaEventService {
         AgendaEvent entity = findOwned(id);
         entity.setStatus(StatusEnum.DELETED);
         repository.save(entity);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.DELETE, entity));
     }
 
     private AgendaEvent findOwned(UUID id) {
