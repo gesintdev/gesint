@@ -23,7 +23,6 @@ public class CandidateRequestDto {
     @Size(max = 200)
     private String fullName;
 
-    @NotBlank
     @Size(max = 14)
     private String cpf;
 

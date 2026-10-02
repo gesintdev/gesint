@@ -1,5 +1,6 @@
 package br.com.gommo.modules.rh.person.jobvacancy.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,4 +17,6 @@ public interface JobVacancyRepository extends IBaseRepository<JobVacancy> {
     Optional<JobVacancy> findBySlugAndStatusNotAndIdNot(String slug, StatusEnum status, UUID id);
 
     Optional<JobVacancy> findBySlugAndIsPublicTrueAndStatus(String slug, StatusEnum status);
+
+    List<JobVacancy> findAllByIsPublicTrueAndStatusOrderByPublishedAtDesc(StatusEnum status);
 }

@@ -66,7 +66,7 @@ export function JobVacancyApplicationFormClient() {
             (candidatesQuery.data ?? []).map((item) => ({
                 value: item.id,
                 label: item.fullName,
-                description: item.cpf,
+                description: item.cpf || item.email || undefined,
             })),
         [candidatesQuery.data],
     );

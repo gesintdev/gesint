@@ -26,6 +26,7 @@ public final class PermissionModuleCatalog {
                         "developmentplanconfig",
                         "attendance",
                         "notification",
+                        "careerspage",
                         "audit"));
         MODULES_BY_SYSTEM.put(
                 SystemScopeEnum.DP,

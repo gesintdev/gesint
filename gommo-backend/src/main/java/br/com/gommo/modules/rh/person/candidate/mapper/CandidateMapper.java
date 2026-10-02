@@ -15,7 +15,7 @@ public class CandidateMapper {
     public Candidate toEntity(CandidateRequestDto dto) {
         return Candidate.builder()
                 .fullName(requireName(dto.getFullName()))
-                .cpf(requireCpf(dto.getCpf()))
+                .cpf(optionalCpf(dto.getCpf()))
                 .email(trimToNull(dto.getEmail()))
                 .phone(trimToNull(dto.getPhone()))
                 .birthDate(dto.getBirthDate())
@@ -28,7 +28,7 @@ public class CandidateMapper {
 
     public void updateEntity(Candidate entity, CandidateRequestDto dto) {
         entity.setFullName(requireName(dto.getFullName()));
-        entity.setCpf(requireCpf(dto.getCpf()));
+        entity.setCpf(optionalCpf(dto.getCpf()));
         entity.setEmail(trimToNull(dto.getEmail()));
         entity.setPhone(trimToNull(dto.getPhone()));
         entity.setBirthDate(dto.getBirthDate());
@@ -66,8 +66,8 @@ public class CandidateMapper {
         return value == null ? "" : value.trim();
     }
 
-    private static String requireCpf(String value) {
-        return value == null ? "" : value.trim();
+    private static String optionalCpf(String value) {
+        return trimToNull(value);
     }
 
     private static String normalizeState(String value) {

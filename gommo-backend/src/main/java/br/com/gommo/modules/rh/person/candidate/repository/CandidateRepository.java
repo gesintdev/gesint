@@ -8,4 +8,6 @@ import br.com.gommo.modules.rh.person.candidate.entity.Candidate;
 
 public interface CandidateRepository extends IBaseRepository<Candidate> {
     Optional<Candidate> findByCpfAndStatusNot(String cpf, StatusEnum status);
+
+    Optional<Candidate> findFirstByEmailIgnoreCaseAndStatusNotOrderByCreatedAtAsc(String email, StatusEnum status);
 }

@@ -13,7 +13,7 @@ export class Candidate {
     code!: number;
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     fullName!: string;
-    cpf!: string;
+    cpf?: string | null;
     email?: string;
     phone?: string;
     birthDate?: string;

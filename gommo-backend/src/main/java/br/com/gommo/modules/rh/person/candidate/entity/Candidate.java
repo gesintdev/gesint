@@ -29,7 +29,8 @@ public class Candidate extends BranchScopedEntity {
     @Column(name = "full_name", nullable = false, length = 200)
     private String fullName;
 
-    @Column(nullable = false, length = 14)
+    /** Opcional: candidatura publica nao pede CPF (RN-02); ele entra na pre-admissao. */
+    @Column(length = 14)
     private String cpf;
 
     @Column(length = 200)

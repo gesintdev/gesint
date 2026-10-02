@@ -53,6 +53,8 @@ public final class TenantSchemaTableCatalog {
             "performance_review",
             "job_vacancy",
             "job_requisition",
+            "careers_page",
+            "careers_page_block",
             "candidate",
             "candidate_experience",
             "job_vacancy_application",

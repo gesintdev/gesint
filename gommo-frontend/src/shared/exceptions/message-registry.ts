@@ -58,6 +58,7 @@ import {
     JOB_REQUISITION_CLIENT_MESSAGES,
     JOB_REQUISITION_MESSAGES,
 } from "@/modules/rh/person/jobrequisition/exceptions/job-requisition.messages";
+import { CAREERS_CLIENT_MESSAGES, CAREERS_MESSAGES } from "@/modules/careers/shared/exceptions/careers.messages";
 import { AUTH_CLIENT_MESSAGES, AUTH_MESSAGES } from "@/modules/root/exceptions/auth.messages";
 import { CORE_MESSAGES } from "@/shared/exceptions/core.messages";
 
@@ -101,6 +102,8 @@ const REGISTRY: Record<string, string> = {
     ...JOB_VACANCY_CLIENT_MESSAGES,
     ...JOB_REQUISITION_MESSAGES,
     ...JOB_REQUISITION_CLIENT_MESSAGES,
+    ...CAREERS_MESSAGES,
+    ...CAREERS_CLIENT_MESSAGES,
 };
 
 export function resolveMessageByCode(code: string | undefined, fallback: string): string {

@@ -4,6 +4,7 @@ import {
     ClipboardList,
     Columns3,
     FileText,
+    Globe,
     GraduationCap,
     KanbanSquare,
     KeyRound,
@@ -213,6 +214,14 @@ const rhRoutes: AppRoute[] = [
                 ),
             }),
         ],
+    }),
+    customWorkspaceRoute({
+        id: "settings-careers-page",
+        href: "/settings/careers-page",
+        label: "Página de carreiras",
+        icon: Globe,
+        permission: "careerspage:read",
+        load: () => import("@/modules/careers/admin/components/CareersPageEditorPage"),
     }),
     tabbedCrudRoute({
         id: "settings-exit-interview-return-checklist",

@@ -91,10 +91,6 @@ export function CandidateFormClient() {
             setError("Informe o nome do candidato.");
             return;
         }
-        if (!form.cpf.replace(/\D/g, "")) {
-            setError("Informe o CPF do candidato.");
-            return;
-        }
         saveMutation.mutate(form);
     };
 
@@ -158,7 +154,7 @@ export function CandidateFormClient() {
                     label="CPF"
                     value={form.cpf}
                     onValueChange={(v) => update("cpf", v)}
-                    required
+                    hint="Opcional até a pré-admissão (RN-02)."
                     wrapperClassName="sm:col-span-4"
                 />
                 <InputString

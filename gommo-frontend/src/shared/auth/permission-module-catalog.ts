@@ -15,6 +15,7 @@ const MODULES_BY_SYSTEM: Record<string, ReadonlySet<string>> = {
         "developmentplanconfig",
         "attendance",
         "notification",
+        "careerspage",
         "audit",
     ]),
     DP: new Set([

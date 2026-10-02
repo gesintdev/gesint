@@ -1,7 +1,10 @@
 package br.com.gommo.modules.rh.person.recruiting.ai;
 
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,8 +96,8 @@ public class ApplicationAiAnalysisService {
                 return;
             }
 
-            List<CandidateExperienceDto> manual = experienceService.listByCandidateId(application.getCandidateId());
-            StorageObjectLinkResponseDto curriculum = findCurriculum(application.getCandidateId());
+            List<CandidateExperienceDto> manual = findExperiences(application);
+            StorageObjectLinkResponseDto curriculum = findCurriculum(application);
             boolean hasCurriculum = curriculum != null;
 
             String resumeText = "";
@@ -180,10 +183,78 @@ public class ApplicationAiAnalysisService {
         applicationRepository.save(application);
     }
 
-    private StorageObjectLinkResponseDto findCurriculum(UUID candidateId) {
-        return storageService.listByEntityInternal(CANDIDATE_ENTITY_TYPE, candidateId).stream()
-                .filter(link -> CURRICULUM_LINK_ROLE.equalsIgnoreCase(link.getLinkRole()))
-                .findFirst()
-                .orElse(null);
+    /** Candidatura publica guarda o curriculo enviado naquela vaga; o candidato pode ter varios. */
+    private StorageObjectLinkResponseDto findCurriculum(JobVacancyApplication application) {
+        List<StorageObjectLinkResponseDto> curricula =
+                storageService.listByEntityInternal(CANDIDATE_ENTITY_TYPE, application.getCandidateId()).stream()
+                        .filter(link -> CURRICULUM_LINK_ROLE.equalsIgnoreCase(link.getLinkRole()))
+                        .toList();
+        String submittedObjectId = snapshotText(application, "resumeObjectId");
+        if (submittedObjectId != null) {
+            for (StorageObjectLinkResponseDto link : curricula) {
+                if (link.getStorageObjectId() != null
+                        && submittedObjectId.equals(link.getStorageObjectId().toString())) {
+                    return link;
+                }
+            }
+        }
+        return curricula.isEmpty() ? null : curricula.get(0);
+    }
+
+    private List<CandidateExperienceDto> findExperiences(JobVacancyApplication application) {
+        Map<String, Object> snapshot = application.getApplicantSnapshot();
+        if (snapshot != null && snapshot.get("experiences") instanceof List<?> submitted && !submitted.isEmpty()) {
+            List<CandidateExperienceDto> experiences = new ArrayList<>();
+            for (Object item : submitted) {
+                if (item instanceof Map<?, ?> map) {
+                    CandidateExperienceDto experience = toExperience(map);
+                    if (experience != null) {
+                        experiences.add(experience);
+                    }
+                }
+            }
+            if (!experiences.isEmpty()) {
+                return experiences;
+            }
+        }
+        return experienceService.listByCandidateId(application.getCandidateId());
+    }
+
+    private static CandidateExperienceDto toExperience(Map<?, ?> map) {
+        LocalDate startDate = parseDate(map.get("startDate"));
+        Object companyName = map.get("companyName");
+        Object jobTitle = map.get("jobTitle");
+        if (startDate == null || companyName == null || jobTitle == null) {
+            return null;
+        }
+        Object description = map.get("description");
+        return CandidateExperienceDto.builder()
+                .companyName(companyName.toString())
+                .jobTitle(jobTitle.toString())
+                .startDate(startDate)
+                .endDate(parseDate(map.get("endDate")))
+                .currentJob(Boolean.TRUE.equals(map.get("currentJob")))
+                .description(description == null ? null : description.toString())
+                .build();
+    }
+
+    private static LocalDate parseDate(Object value) {
+        if (value == null || value.toString().isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(value.toString());
+        } catch (DateTimeParseException ex) {
+            return null;
+        }
+    }
+
+    private static String snapshotText(JobVacancyApplication application, String key) {
+        Map<String, Object> snapshot = application.getApplicantSnapshot();
+        if (snapshot == null) {
+            return null;
+        }
+        Object value = snapshot.get(key);
+        return value == null || value.toString().isBlank() ? null : value.toString();
     }
 }

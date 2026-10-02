@@ -17,6 +17,7 @@ import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -81,4 +82,24 @@ public class JobVacancyApplication extends BranchScopedEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "ai_analysis", columnDefinition = "jsonb")
     private Map<String, Object> aiAnalysis;
+
+    @Column(name = "privacy_consent_at")
+    private OffsetDateTime privacyConsentAt;
+
+    @Column(name = "privacy_consent_version", length = 40)
+    private String privacyConsentVersion;
+
+    @Column(name = "talent_pool_consent_at")
+    private OffsetDateTime talentPoolConsentAt;
+
+    @Column(name = "talent_pool_consent_version", length = 40)
+    private String talentPoolConsentVersion;
+
+    @Column(name = "talent_pool_consent_until")
+    private LocalDate talentPoolConsentUntil;
+
+    /** Dados enviados na candidatura publica; o cadastro do candidato existente nunca e sobrescrito. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "applicant_snapshot", columnDefinition = "jsonb")
+    private Map<String, Object> applicantSnapshot;
 }

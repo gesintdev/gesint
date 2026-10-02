@@ -127,7 +127,8 @@ public class CandidateService extends BaseService<Candidate, CandidateRequestDto
 
         String cpf = request.getCpf() == null ? "" : request.getCpf().trim();
         if (cpf.isEmpty()) {
-            throw CandidateException.cpfRequired();
+            request.setCpf(null);
+            return;
         }
         request.setCpf(cpf);
 
