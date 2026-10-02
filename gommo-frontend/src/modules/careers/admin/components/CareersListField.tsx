@@ -3,6 +3,7 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 
 import { CareersImageField } from "@/modules/careers/admin/components/CareersImageField";
+import { Button } from "@/shared/components/ui/Button";
 import { InputString } from "@/shared/components/ui/input/index";
 
 type ListFieldDef = {
@@ -77,33 +78,31 @@ export function CareersListField({ label, items, fields, addLabel, max = 12, dis
                         ),
                     )}
                     <div className="flex justify-end gap-1">
-                        <button
-                            type="button"
-                            className="gommo-btn gommo-btn--ghost gommo-btn--icon-only gommo-btn--sm"
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             aria-label="Mover para cima"
                             disabled={disabled || index === 0}
                             onClick={() => move(index, -1)}
-                        >
-                            <ArrowUp className="size-3.5" strokeWidth={2} />
-                        </button>
-                        <button
-                            type="button"
-                            className="gommo-btn gommo-btn--ghost gommo-btn--icon-only gommo-btn--sm"
+                            leftIcon={<ArrowUp className="size-3.5" strokeWidth={2} />}
+                        />
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             aria-label="Mover para baixo"
                             disabled={disabled || index === items.length - 1}
                             onClick={() => move(index, 1)}
-                        >
-                            <ArrowDown className="size-3.5" strokeWidth={2} />
-                        </button>
-                        <button
-                            type="button"
-                            className="gommo-btn gommo-btn--ghost gommo-btn--icon-only gommo-btn--sm text-base-content/50 hover:text-error"
+                            leftIcon={<ArrowDown className="size-3.5" strokeWidth={2} />}
+                        />
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-base-content/50 hover:text-error"
                             aria-label="Remover item"
                             disabled={disabled}
                             onClick={() => onChange(items.filter((_, i) => i !== index))}
-                        >
-                            <Trash2 className="size-3.5" strokeWidth={2} />
-                        </button>
+                            leftIcon={<Trash2 className="size-3.5" strokeWidth={2} />}
+                        />
                     </div>
                 </div>
             ))}

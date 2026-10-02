@@ -15,6 +15,7 @@ import {
     CAREERS_SENIORITY_LABELS,
     CAREERS_WORK_MODALITY_LABELS,
 } from "@/modules/careers/shared/lib/careers-labels";
+import { InputSelect, InputString, type SelectItem } from "@/shared/components/ui/input/index";
 
 type CareersVacancyListProps = {
     vacancies: CareersVacancySummary[];
@@ -40,23 +41,18 @@ function FilterSelect({
 }: {
     label: string;
     value: string;
-    options: { value: string; label: string }[];
+    options: SelectItem[];
     onChange: (value: string) => void;
 }) {
     return (
-        <select
-            aria-label={label}
+        <InputSelect
+            items={options}
             value={value}
-            onChange={(event) => onChange(event.target.value)}
-            className="h-10 min-w-0 rounded-[var(--careers-radius)] border border-base-content/15 bg-base-100 px-3 text-sm text-base-content outline-none focus:border-primary"
-        >
-            <option value={ALL}>{label}</option>
-            {options.map((option) => (
-                <option key={option.value} value={option.value}>
-                    {option.label}
-                </option>
-            ))}
-        </select>
+            placeholder={label}
+            clearable
+            onValueChange={onChange}
+            wrapperClassName="min-w-40 flex-1"
+        />
     );
 }
 
@@ -155,21 +151,14 @@ export function CareersVacancyList({ vacancies, showFilters, preview, emptyHint 
     return (
         <div className="grid gap-4">
             {hasFilters ? (
-                <div className="grid gap-2 @md:grid-cols-[1fr_auto_auto_auto]">
-                    <label className="relative">
-                        <Search
-                            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-base-content/40"
-                            strokeWidth={2}
-                        />
-                        <input
-                            type="search"
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                            placeholder="Buscar por cargo, área ou cidade"
-                            aria-label="Buscar vagas"
-                            className="h-10 w-full rounded-[var(--careers-radius)] border border-base-content/15 bg-base-100 pl-9 pr-3 text-sm text-base-content outline-none focus:border-primary"
-                        />
-                    </label>
+                <div className="flex flex-wrap gap-2">
+                    <InputString
+                        value={query}
+                        onValueChange={setQuery}
+                        placeholder="Buscar por cargo, área ou cidade"
+                        leftIcon={<Search className="size-4 text-base-content/40" strokeWidth={2} />}
+                        wrapperClassName="basis-full @3xl:basis-64 @3xl:flex-[2]"
+                    />
                     {departments.length > 1 ? (
                         <FilterSelect
                             label="Todas as áreas"

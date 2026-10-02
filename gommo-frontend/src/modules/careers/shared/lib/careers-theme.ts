@@ -55,8 +55,9 @@ export function contrastRatio(hex: string): number {
 }
 
 /**
- * Variáveis CSS aplicadas no contêiner do site. Cores vazias mantêm o tema padrão do Gesint
- * (as classes `bg-primary` etc. continuam lendo `--color-primary`).
+ * Variáveis CSS aplicadas no contêiner do site. Cores vazias mantêm o tema padrão do Gesint.
+ * O `@theme inline` do globals.css compila `bg-primary`/`text-primary` direto para `--gommo-primary*`,
+ * por isso a paleta `--gommo-primary*` é sobrescrita junto com `--color-primary`.
  */
 export function careersThemeStyle(branding?: Partial<CareersBranding> | null): CSSProperties {
     const style: Record<string, string> = {
@@ -65,6 +66,16 @@ export function careersThemeStyle(branding?: Partial<CareersBranding> | null): C
     };
     const primary = branding?.primaryColor;
     if (primary && HEX.test(primary)) {
+        const shade = (mix: string, percent: number) => `color-mix(in srgb, ${primary} ${percent}%, ${mix})`;
+        style["--gommo-primary"] = primary;
+        style["--gommo-primary-700"] = primary;
+        style["--gommo-primary-dark"] = shade("black", 82);
+        style["--gommo-primary-800"] = shade("black", 82);
+        style["--gommo-primary-darker"] = shade("black", 64);
+        style["--gommo-primary-light"] = shade("white", 80);
+        style["--gommo-primary-500"] = shade("white", 80);
+        style["--gommo-primary-50"] = shade("white", 8);
+        style["--gommo-primary-100"] = shade("white", 20);
         style["--color-primary"] = primary;
         style["--color-primary-content"] = readableContentColor(primary);
     }

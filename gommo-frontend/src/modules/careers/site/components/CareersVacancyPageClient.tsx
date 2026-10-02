@@ -174,24 +174,26 @@ function ExperienceCard({
                 </button>
                 <div className="flex items-center gap-2">
                     {!isOnly ? (
-                        <button
-                            type="button"
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-base-content/50 hover:text-error"
                             onClick={() => onRemove(exp.id)}
-                            className="rounded px-1.5 py-1 text-xs text-base-content/45 hover:text-error"
                         >
                             Remover
-                        </button>
+                        </Button>
                     ) : null}
-                    <button
-                        type="button"
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setExpanded((value) => !value)}
                         aria-label={expanded ? "Recolher experiência" : "Expandir experiência"}
-                        className="p-1"
-                    >
-                        <ChevronDown
-                            className={clsx("size-4 text-base-content/45 transition-transform", expanded && "rotate-180")}
-                        />
-                    </button>
+                        leftIcon={
+                            <ChevronDown
+                                className={clsx("size-4 text-base-content/45 transition-transform", expanded && "rotate-180")}
+                            />
+                        }
+                    />
                 </div>
             </div>
 

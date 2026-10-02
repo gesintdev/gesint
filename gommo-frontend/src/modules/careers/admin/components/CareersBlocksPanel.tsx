@@ -20,6 +20,7 @@ import {
     type CareersCustomBlockType,
 } from "@/modules/careers/shared/dto/careers.dto";
 import { CAREERS_BLOCK_META, CAREERS_MAX_BLOCKS, createCustomBlock } from "@/modules/careers/shared/lib/careers-blocks";
+import { Button } from "@/shared/components/ui/Button";
 
 type CareersBlocksPanelProps = {
     blocks: CareersEditorBlock[];
@@ -96,30 +97,37 @@ function SortableBlockRow({
                         </span>
                     </span>
                 </button>
-                <button
-                    type="button"
-                    className="gommo-btn gommo-btn--ghost gommo-btn--icon-only gommo-btn--sm text-base-content/55"
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-base-content/55"
                     aria-label={block.visible ? "Ocultar bloco" : "Mostrar bloco"}
                     title={lockedVisible ? "As vagas abertas sempre aparecem" : block.visible ? "Ocultar" : "Mostrar"}
                     disabled={disabled || lockedVisible}
                     onClick={() => onChange({ visible: !block.visible })}
-                >
-                    {lockedVisible ? (
-                        <Lock className="size-3.5" strokeWidth={2} />
-                    ) : block.visible ? (
-                        <Eye className="size-3.5" strokeWidth={2} />
-                    ) : (
-                        <EyeOff className="size-3.5" strokeWidth={2} />
-                    )}
-                </button>
-                <button
-                    type="button"
-                    className="gommo-btn gommo-btn--ghost gommo-btn--icon-only gommo-btn--sm text-base-content/55"
+                    leftIcon={
+                        lockedVisible ? (
+                            <Lock className="size-3.5" strokeWidth={2} />
+                        ) : block.visible ? (
+                            <Eye className="size-3.5" strokeWidth={2} />
+                        ) : (
+                            <EyeOff className="size-3.5" strokeWidth={2} />
+                        )
+                    }
+                />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-base-content/55"
                     aria-label={expanded ? "Recolher" : "Editar bloco"}
                     onClick={onToggleExpanded}
-                >
-                    <ChevronDown className={clsx("size-3.5 transition-transform", expanded && "rotate-180")} strokeWidth={2} />
-                </button>
+                    leftIcon={
+                        <ChevronDown
+                            className={clsx("size-3.5 transition-transform", expanded && "rotate-180")}
+                            strokeWidth={2}
+                        />
+                    }
+                />
             </div>
             {expanded ? (
                 <div className="grid gap-3 border-t border-(--gommo-border-subtle) px-3 py-3">
@@ -127,24 +135,25 @@ function SortableBlockRow({
                     <CareersBlockFields block={block} disabled={disabled} onChange={onChange} />
                     {!isSystem ? (
                         <div className="flex justify-end gap-2 pt-1">
-                            <button
-                                type="button"
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 disabled={disabled}
                                 onClick={onDuplicate}
-                                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-base-content/60 hover:bg-base-200"
+                                leftIcon={<Copy className="size-3.5" strokeWidth={2} />}
                             >
-                                <Copy className="size-3.5" strokeWidth={2} />
                                 Duplicar
-                            </button>
-                            <button
-                                type="button"
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-error"
                                 disabled={disabled}
                                 onClick={onRemove}
-                                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-error hover:bg-error/10"
+                                leftIcon={<Trash2 className="size-3.5" strokeWidth={2} />}
                             >
-                                <Trash2 className="size-3.5" strokeWidth={2} />
                                 Excluir bloco
-                            </button>
+                            </Button>
                         </div>
                     ) : null}
                 </div>
@@ -245,13 +254,9 @@ export function CareersBlocksPanel({ blocks, disabled, onChange }: CareersBlocks
                             );
                         })}
                     </div>
-                    <button
-                        type="button"
-                        className="justify-self-end text-xs font-medium text-base-content/55 hover:text-base-content"
-                        onClick={() => setAdding(false)}
-                    >
+                    <Button variant="ghost" size="sm" className="justify-self-end" onClick={() => setAdding(false)}>
                         Cancelar
-                    </button>
+                    </Button>
                 </div>
             ) : (
                 <button
