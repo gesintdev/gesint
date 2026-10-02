@@ -16,6 +16,11 @@ Monorepo ERP com sistemas DP/RH/CTB/CFG e painel Admin. Dois lados da plataforma
 
 Em conversas e docs, preferir **Admin** e **Client**. Não chamar o app do tenant de “HR” (HR/RH é só o sistema de Recursos Humanos dentro do Client).
 
+## Branches
+
+- `develop` é a branch de integração (ambiente de desenvolvimento). Toda atividade nasce dela (`feat/*`, `fix/*`, `chore/*`) e volta para ela.
+- `main` é produção: recebe merge apenas da `develop` em release. Nunca commitar, mergear ou abrir PR de feature direto na `main`.
+
 ## Stack
 
 - Frontend: Next.js, TypeScript strict, Tailwind 4, DaisyUI, NextAuth, next-themes, Framer Motion, Sonner, TanStack Query

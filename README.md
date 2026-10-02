@@ -47,6 +47,19 @@ Estado atual: Folha está em CTB/Contabilidade. Pagamentos permanece em DP.
 
 Já existem no código `PayrollRun`, `PayrollEvent`, `Payslip`, `PayslipEntry`, processamento por strategies, lifecycle de competência e PDF com OpenPDF.
 
+## Fluxo de branches
+
+| Branch | Uso | Ambiente |
+|---|---|---|
+| `main` | Versão estável; recebe merge apenas da `develop` em release | Produção |
+| `develop` | Integração contínua de todas as features | Desenvolvimento / lab |
+| `feat/*`, `fix/*`, `chore/*` | Uma atividade por branch, criada a partir da `develop` | Local |
+
+1. `git switch develop && git pull` antes de começar.
+2. `git switch -c feat/minha-atividade`.
+3. Ao terminar, abrir PR (ou merge) para a `develop`, nunca direto na `main`.
+4. Release: merge da `develop` na `main`.
+
 ## Início rápido local
 
 1. Copie `.env.example` para `.env` na raiz e configure as variáveis.
