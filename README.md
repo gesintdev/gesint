@@ -52,7 +52,7 @@ Já existem no código `PayrollRun`, `PayrollEvent`, `Payslip`, `PayslipEntry`, 
 | Branch | Uso | Ambiente |
 |---|---|---|
 | `main` | Versão estável; recebe merge apenas da `develop` em release | Produção |
-| `develop` | Integração contínua de todas as features | Desenvolvimento / lab |
+| `develop` | Integração contínua de todas as features | Desenvolvimento local |
 | `feat/*`, `fix/*`, `chore/*` | Uma atividade por branch, criada a partir da `develop` | Local |
 
 1. `git switch develop && git pull` antes de começar.

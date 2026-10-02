@@ -126,7 +126,7 @@ Configuração comum a todas:
 | Campo | Valor |
 |-------|--------|
 | **Repository** | mesmo monorepo `gommo` |
-| **Branch** | `develop` no ambiente de desenvolvimento/lab; `main` em produção |
+| **Branch** | `main` (produção) |
 | **Build Pack** | Dockerfile |
 | **Base Directory** | pasta da tabela acima (sem `infra/coolify`) |
 | **Ports Exposes** | porta da tabela |

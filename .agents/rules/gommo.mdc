@@ -18,7 +18,7 @@ Em conversas e docs, preferir **Admin** e **Client**. Não chamar o app do tenan
 
 ## Branches
 
-- `develop` é a branch de integração (ambiente de desenvolvimento). Toda atividade nasce dela (`feat/*`, `fix/*`, `chore/*`) e volta para ela.
+- `develop` é a branch de integração do desenvolvimento local. Toda atividade nasce dela (`feat/*`, `fix/*`, `chore/*`) e volta para ela.
 - `main` é produção: recebe merge apenas da `develop` em release. Nunca commitar, mergear ou abrir PR de feature direto na `main`.
 
 ## Stack
