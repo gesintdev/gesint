@@ -6,12 +6,13 @@ import { useTheme } from "next-themes";
 
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { useAdminPathname } from "@/shared/hooks/useAdminPathname";
-import { ADMIN_MENUS } from "@/shared/routing/admin-nav";
+import { ADMIN_MENUS, emailSettingsPath, SETTINGS_BASE_PATH } from "@/shared/routing/admin-nav";
 
 export function AdminSidebar() {
     const pathname = useAdminPathname();
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === "dark";
+    const settingsActive = pathname === SETTINGS_BASE_PATH || pathname.startsWith(`${SETTINGS_BASE_PATH}/`);
 
     return (
         <aside
@@ -89,8 +90,8 @@ export function AdminSidebar() {
             </nav>
 
             <div style={{ padding: "10px 8px", borderTop: "1px solid var(--ga-border)" }}>
-                <button
-                    type="button"
+                <Link
+                    href={emailSettingsPath()}
                     style={{
                         display: "flex",
                         alignItems: "center",
@@ -98,16 +99,20 @@ export function AdminSidebar() {
                         width: "100%",
                         padding: "8px 10px",
                         borderRadius: "var(--ga-radius-sm)",
-                        border: "none",
-                        cursor: "pointer",
-                        background: "transparent",
-                        color: "var(--ga-text-muted)",
+                        textDecoration: "none",
+                        background: settingsActive
+                            ? isDark
+                                ? "rgba(0,123,255,0.15)"
+                                : "var(--ga-primary-50)"
+                            : "transparent",
+                        color: settingsActive ? "var(--ga-primary)" : "var(--ga-text-muted)",
+                        fontWeight: settingsActive ? 600 : 400,
                         fontSize: 13,
                     }}
                 >
                     <Settings size={15} />
                     Configurações
-                </button>
+                </Link>
             </div>
         </aside>
     );

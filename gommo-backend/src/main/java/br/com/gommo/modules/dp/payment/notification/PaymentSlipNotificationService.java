@@ -2,17 +2,16 @@ package br.com.gommo.modules.dp.payment.notification;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import br.com.gommo.core.mail.EmailMessage;
+import br.com.gommo.core.mail.EmailSendResult;
+import br.com.gommo.core.mail.EmailSendStatusEnum;
+import br.com.gommo.core.mail.EmailService;
 import br.com.gommo.modules.dp.payment.exception.PaymentException;
 
 @Service
@@ -20,38 +19,25 @@ public class PaymentSlipNotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentSlipNotificationService.class);
 
-    private final ObjectProvider<JavaMailSender> mailSenderProvider;
-
-    @Value("${spring.mail.username:}")
-    private String mailFrom;
+    private final EmailService emailService;
 
     @Value("${gommo.payment.whatsapp-base-url:https://wa.me/}")
     private String whatsappBaseUrl;
 
-    public PaymentSlipNotificationService(ObjectProvider<JavaMailSender> mailSenderProvider) {
-        this.mailSenderProvider = mailSenderProvider;
+    public PaymentSlipNotificationService(EmailService emailService) {
+        this.emailService = emailService;
     }
 
     public void sendEmail(String to, String collaboratorName, String periodLabel, byte[] pdfBytes, String filename) {
         if (to == null || to.isBlank()) {
             throw PaymentException.contactMissing();
         }
-        JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
-        if (mailSender == null || mailFrom == null || mailFrom.isBlank()) {
-            log.warn("Mail not configured. Skipping email to {} for {}", to, collaboratorName);
-            return;
-        }
-        try {
-            var message = mailSender.createMimeMessage();
-            var helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
-            helper.setFrom(Objects.requireNonNull(mailFrom));
-            helper.setTo(to.trim());
-            helper.setSubject("Recibo de pagamento - " + periodLabel);
-            helper.setText(buildEmailBody(collaboratorName, periodLabel), false);
-            helper.addAttachment(filename, new ByteArrayResource(pdfBytes), "application/pdf");
-            mailSender.send(message);
-        } catch (Exception ex) {
-            log.error("Failed to send payment slip email to {}", to, ex);
+        EmailMessage message = EmailMessage
+                .text(to, "Recibo de pagamento - " + periodLabel, buildEmailBody(collaboratorName, periodLabel))
+                .withAttachment(filename, pdfBytes, "application/pdf");
+        EmailSendResult result = emailService.send(message);
+        if (result.status() == EmailSendStatusEnum.FAILED) {
+            log.error("Failed to send payment slip email to {}: {}", to, result.detail());
             throw PaymentException.batchProcessingFailed();
         }
     }

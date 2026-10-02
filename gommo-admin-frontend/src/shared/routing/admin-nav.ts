@@ -1,4 +1,4 @@
-import { Boxes, Building2, type LucideIcon, Users } from "lucide-react";
+import { Boxes, Building2, type LucideIcon, Settings, Users } from "lucide-react";
 
 export type AdminMenuKey = "clients" | "systems" | "users";
 
@@ -74,6 +74,12 @@ export function usersFormPath(id: string | number) {
     return `/users/form/${id}`;
 }
 
+export const SETTINGS_BASE_PATH = "/settings";
+
+export function emailSettingsPath() {
+    return `${SETTINGS_BASE_PATH}/email`;
+}
+
 export type AdminRouteState =
     | {
           menu: AdminMenuDef;
@@ -118,6 +124,13 @@ export function parseAdminPathname(pathname: string): AdminRouteState | null {
 }
 
 export function buildAdminBreadcrumb(pathname: string): AdminBreadcrumbItem[] {
+    if (pathname === SETTINGS_BASE_PATH || pathname.startsWith(`${SETTINGS_BASE_PATH}/`)) {
+        return [
+            { label: "Configurações", href: emailSettingsPath(), icon: Settings },
+            { label: "E-mail (SMTP)" },
+        ];
+    }
+
     const state = parseAdminPathname(pathname);
     if (!state) return [];
 

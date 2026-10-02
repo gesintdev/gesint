@@ -51,6 +51,8 @@ gommo-admin:
       secret: ${JWT_SECRET}
       access-token-minutes: 15
       refresh-token-days: 7
+    # Mesma chave do gommo-backend: o Client decifra a senha SMTP gravada aqui. Fallback: JWT_SECRET.
+    secret-encryption-key: ${GOMMO_SECRET_ENCRYPTION_KEY:}
   cors:
     allowed-origins: ${ADMIN_CORS_ORIGINS:http://localhost:3001}
   hr:
