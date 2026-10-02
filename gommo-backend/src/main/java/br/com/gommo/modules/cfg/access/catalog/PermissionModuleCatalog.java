@@ -69,6 +69,7 @@ public final class PermissionModuleCatalog {
                         "leave",
                         "performance",
                         "jobvacancy",
+                        "jobrequisition",
                         "candidate",
                         "jobvacancyapplication",
                         "developmentplan",

@@ -52,6 +52,7 @@ const MODULES_BY_SYSTEM: Record<string, ReadonlySet<string>> = {
         "leave",
         "performance",
         "jobvacancy",
+        "jobrequisition",
         "candidate",
         "jobvacancyapplication",
         "developmentplan",

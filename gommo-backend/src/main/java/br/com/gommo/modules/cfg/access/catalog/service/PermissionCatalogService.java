@@ -27,6 +27,7 @@ public class PermissionCatalogService implements IPermissionCatalogService {
             Map.entry("company", "Empresas"),
             Map.entry("department", "Departamentos"),
             Map.entry("jobposition", "Cargos"),
+            Map.entry("jobrequisition", "Requisições de vaga"),
             Map.entry("payroll", "Folha de pagamento"),
             Map.entry("payrollevent", "Eventos de folha"),
             Map.entry("payslip", "Holerites"),
