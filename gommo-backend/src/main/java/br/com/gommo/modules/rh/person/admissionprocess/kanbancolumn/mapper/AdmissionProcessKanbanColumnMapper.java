@@ -34,6 +34,7 @@ public class AdmissionProcessKanbanColumnMapper {
                 .name(entity.getName())
                 .color(entity.getColor())
                 .displayOrder(entity.getDisplayOrder())
+                .systemColumn(entity.isSystemColumn())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

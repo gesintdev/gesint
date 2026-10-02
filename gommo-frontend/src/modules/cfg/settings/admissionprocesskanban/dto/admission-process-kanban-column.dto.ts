@@ -6,6 +6,7 @@ export class AdmissionProcessKanbanColumn {
     name!: string;
     color?: string | null;
     displayOrder!: number;
+    systemColumn?: boolean;
     createdAt?: string;
     updatedAt?: string;
 }

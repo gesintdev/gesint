@@ -18,6 +18,7 @@ public class AdmissionProcessKanbanColumnResponseDto {
     private final String name;
     private final String color;
     private final Integer displayOrder;
+    private final boolean systemColumn;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

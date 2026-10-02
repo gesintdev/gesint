@@ -12,16 +12,17 @@ import type {
 } from "@/modules/cfg/settings/admissionprocesskanban/dto/admission-process-kanban-column.dto";
 import {candidateKeys} from "@/modules/rh/person/candidate/candidate.query";
 import {candidateService} from "@/modules/rh/person/candidate/services/candidate.service";
-import {CandidateProfileView} from "@/modules/rh/person/jobvacancy/components/CandidateProfileView";
 import {
     CandidateMatchScoreDetailModal,
     type CandidateMatchScoreDetailTarget,
 } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
-import {HIRING_KANBAN_COLUMN_KEY} from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
+import {CandidateProfileView} from "@/modules/rh/person/jobvacancy/components/CandidateProfileView";
 import {
     applicationAiScore,
     isApplicationAiPending,
 } from "@/modules/rh/person/jobvacancy/lib/application-match-score";
+import {HIRING_KANBAN_COLUMN_KEY} from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
+import {REJECTION_FEEDBACK_LABELS} from "@/modules/rh/person/jobvacancy/lib/job-application-rejection";
 import type {JobVacancyApplication} from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import {jobVacancyApplicationKeys} from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import {
@@ -500,6 +501,38 @@ export function JobVacancyApplicationKanbanDetailModal({
                                     value={formatCellValue(application.appliedAt, TableDataType.DATETIME)}
                                 />
                             </section>
+
+                            {application.rejectionReason ? (
+                                <section className="grid gap-3 rounded-lg border border-error/20 bg-error/[0.03] p-3 sm:grid-cols-2">
+                                    <DetailField label="Motivo da reprovação" value={application.rejectionReasonLabel ?? ""} />
+                                    <DetailField label="Requisito" value={application.rejectionRequirement ?? ""} />
+                                    <DetailField
+                                        label="Reprovado por"
+                                        value={[
+                                            application.rejectedByName,
+                                            formatCellValue(application.rejectedAt, TableDataType.DATETIME),
+                                        ]
+                                            .filter(Boolean)
+                                            .join(" · ")}
+                                    />
+                                    <DetailField
+                                        label="Retorno ao candidato"
+                                        value={[
+                                            application.rejectionFeedbackStatus
+                                                ? REJECTION_FEEDBACK_LABELS[application.rejectionFeedbackStatus]
+                                                : "",
+                                            application.rejectionFeedbackDetail,
+                                        ]
+                                            .filter(Boolean)
+                                            .join(" · ")}
+                                    />
+                                    {application.rejectionNote ? (
+                                        <div className="sm:col-span-2">
+                                            <DetailField label="Observação interna" value={application.rejectionNote} />
+                                        </div>
+                                    ) : null}
+                                </section>
+                            ) : null}
 
                             {application.candidateId ? (
                                 <section className="grid gap-2 text-xs">

@@ -14,6 +14,7 @@ import {
 } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
 import { CandidateMatchScoreTag } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreTag";
 import { JobVacancyApplicationKanbanDetailModal } from "@/modules/rh/person/jobvacancy/components/JobVacancyApplicationKanbanDetailModal";
+import { JobVacancyApplicationRejectModal } from "@/modules/rh/person/jobvacancy/components/JobVacancyApplicationRejectModal";
 import {
     applicationAiScore,
     isApplicationAiPending,
@@ -22,8 +23,16 @@ import {
     createAdmissionFromKanbanCard,
     HIRING_KANBAN_COLUMN_KEY,
 } from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
+import {
+    REJECTED_KANBAN_COLUMN_KEY,
+    REJECTION_FEEDBACK_LABELS,
+    REJECTION_FEEDBACK_TONE,
+} from "@/modules/rh/person/jobvacancy/lib/job-application-rejection";
 import { useJobVacancyAdmissionProcessStore } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-admission-process.store";
-import type { JobVacancyApplication } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
+import type {
+    JobVacancyApplication,
+    JobVacancyApplicationRejectDto,
+} from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { CRUD_TAB_LIST, useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -50,6 +59,7 @@ export function JobVacancyAdmissionProcessTab() {
     const jobVacancyId = useJobVacancyAdmissionProcessStore((state) => state.jobVacancyId);
     const [pendingItemIds, setPendingItemIds] = useState<Set<string>>(() => new Set());
     const [detailApplicationId, setDetailApplicationId] = useState<string | null>(null);
+    const [rejectApplicationId, setRejectApplicationId] = useState<string | null>(null);
     const [scoreDetailTarget, setScoreDetailTarget] = useState<CandidateMatchScoreDetailTarget | null>(
         null,
     );
@@ -66,7 +76,9 @@ export function JobVacancyAdmissionProcessTab() {
         enabled: Boolean(jobVacancyId),
         refetchInterval: (current) => {
             const rows = current.state.data ?? [];
-            return rows.some((row) => isApplicationAiPending(row)) ? 4000 : false;
+            return rows.some((row) => isApplicationAiPending(row) || row.rejectionFeedbackStatus === "PENDING")
+                ? 4000
+                : false;
         },
     });
 
@@ -129,6 +141,37 @@ export function JobVacancyAdmissionProcessTab() {
         [applicationsQuery.data, detailApplicationId],
     );
 
+    const rejectApplication = useMemo(
+        () => (applicationsQuery.data ?? []).find((row) => row.id === rejectApplicationId) ?? null,
+        [applicationsQuery.data, rejectApplicationId],
+    );
+
+    const rejectMutation = useMutation({
+        mutationFn: ({ id, dto }: { id: string; dto: JobVacancyApplicationRejectDto }) =>
+            jobVacancyApplicationService.reject(id, dto),
+        onMutate: ({ id }) => markPending(id, true),
+        onSuccess: (updated) => {
+            toast.success("Candidato reprovado");
+            setRejectApplicationId(null);
+            if (jobVacancyId) {
+                queryClient.setQueryData<JobVacancyApplication[]>(
+                    jobVacancyApplicationKeys.byVacancy(jobVacancyId),
+                    (current) => current?.map((row) => (row.id === updated.id ? updated : row)),
+                );
+            }
+        },
+        onError: (err: unknown) =>
+            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível reprovar o candidato." }),
+        onSettled: async (_data, _error, variables) => {
+            markPending(variables.id, false);
+            if (!jobVacancyId) return;
+            await queryClient.invalidateQueries({
+                queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId),
+            });
+            await queryClient.invalidateQueries({ queryKey: jobVacancyApplicationKeys.all });
+        },
+    });
+
     const hireMutation = useMutation({
         mutationFn: (candidateId: string) =>
             createAdmissionFromKanbanCard({
@@ -172,17 +215,35 @@ export function JobVacancyAdmissionProcessTab() {
             .map((row) => {
                 const score = applicationAiScore(row) ?? -1;
                 const pending = isApplicationAiPending(row);
+                const feedbackStatus = row.rejectionFeedbackStatus ?? null;
                 return {
                     id: row.id,
                     applicationId: row.id,
                     candidateId: row.candidateId,
                     title: row.candidateFullName ?? "Candidato",
                     subtitle: row.candidateEmail ?? undefined,
-                    meta: row.candidatePhone ? formatPhone(row.candidatePhone) : undefined,
+                    meta: row.rejectionReason ? (
+                        <div className="grid gap-0.5">
+                            <span className="line-clamp-2 text-base-content/60" title={row.rejectionRequirement ?? undefined}>
+                                {row.rejectionReasonLabel}
+                            </span>
+                            {feedbackStatus ? (
+                                <span
+                                    className={clsx("font-medium", REJECTION_FEEDBACK_TONE[feedbackStatus])}
+                                    title={row.rejectionFeedbackDetail ?? undefined}
+                                >
+                                    {REJECTION_FEEDBACK_LABELS[feedbackStatus]}
+                                </span>
+                            ) : null}
+                        </div>
+                    ) : row.candidatePhone ? (
+                        formatPhone(row.candidatePhone)
+                    ) : undefined,
                     badge: (
                         <CandidateMatchScoreTag
                             score={score < 0 ? null : score}
                             pending={pending}
+                            supportLabel
                             onClick={() =>
                                 openScoreDetail({
                                     applicationId: row.id,
@@ -273,6 +334,15 @@ export function JobVacancyAdmissionProcessTab() {
             await queryClient.invalidateQueries({ queryKey: jobVacancyApplicationKeys.all });
         },
     });
+
+    const handleItemMove = (event: KanbanItemMoveEvent) => {
+        const targetColumn = sortedColumns.find((column) => column.id === event.toColumnId);
+        if (targetColumn?.columnKey === REJECTED_KANBAN_COLUMN_KEY) {
+            if (event.fromColumnId !== event.toColumnId) setRejectApplicationId(event.itemId);
+            return;
+        }
+        moveMutation.mutate(event);
+    };
 
     const handleSwitchVacancy = () => {
         goToTab(CRUD_TAB_LIST);
@@ -386,7 +456,7 @@ export function JobVacancyAdmissionProcessTab() {
             <KanbanBoard
                 columns={boardColumns}
                 pendingItemIds={pendingItemIds}
-                onItemMove={(event) => moveMutation.mutate(event)}
+                onItemMove={handleItemMove}
                 onCardDetailClick={(item) => setDetailApplicationId(item.applicationId)}
                 emptyColumnLabel="Sem candidatos"
                 className="min-h-0 flex-1"
@@ -402,6 +472,15 @@ export function JobVacancyAdmissionProcessTab() {
                         : undefined
                 }
                 createAdmissionLoading={hireMutation.isPending}
+            />
+            <JobVacancyApplicationRejectModal
+                open={Boolean(rejectApplicationId)}
+                application={rejectApplication}
+                loading={rejectMutation.isPending}
+                onCancel={() => setRejectApplicationId(null)}
+                onConfirm={(dto) => {
+                    if (rejectApplicationId) rejectMutation.mutate({ id: rejectApplicationId, dto });
+                }}
             />
             <CandidateMatchScoreDetailModal
                 open={Boolean(scoreDetailTarget)}

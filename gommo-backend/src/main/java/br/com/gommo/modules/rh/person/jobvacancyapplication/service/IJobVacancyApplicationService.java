@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import br.com.gommo.core.base.service.IBaseService;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationKanbanColumnRequestDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRejectRequestDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRejectionReasonDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationResponseDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationStageCommentRequestDto;
@@ -22,4 +24,8 @@ public interface IJobVacancyApplicationService
             UUID id, JobVacancyApplicationStageCommentRequestDto request);
 
     JobVacancyApplicationResponseDto reanalyze(UUID id);
+
+    List<JobVacancyApplicationRejectionReasonDto> listRejectionReasons();
+
+    JobVacancyApplicationResponseDto reject(UUID id, JobVacancyApplicationRejectRequestDto request);
 }

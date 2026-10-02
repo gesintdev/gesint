@@ -76,4 +76,32 @@ public final class JobVacancyApplicationException {
                 JobVacancyApplicationExceptions.STAGE_COMMENT_COLUMN_NOT_FOUND_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException rejectionReasonRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.REJECTION_REASON_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.REJECTION_REASON_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException rejectionRequirementRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.REJECTION_REQUIREMENT_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.REJECTION_REQUIREMENT_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException alreadyRejected() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.ALREADY_REJECTED_CODE,
+                JobVacancyApplicationExceptions.ALREADY_REJECTED_MSG,
+                HttpStatus.CONFLICT);
+    }
+
+    public static BusinessException rejectedColumnMissing() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.REJECTED_COLUMN_MISSING_CODE,
+                JobVacancyApplicationExceptions.REJECTED_COLUMN_MISSING_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

@@ -126,9 +126,9 @@ BEGIN
         ) THEN
             EXECUTE format($sql$
                 INSERT INTO %I.admission_process_kanban_column (
-                    id, status, column_key, name, color, display_order, code, created_at
+                    id, status, column_key, name, color, display_order, code, system_column, created_at
                 )
-                SELECT p.id, p.status, p.column_key, p.name, p.color, p.display_order, p.code, now()
+                SELECT p.id, p.status, p.column_key, p.name, p.color, p.display_order, p.code, p.system_column, now()
                 FROM public.admission_process_kanban_column p
                 WHERE p.status <> 'DELETED'
                   AND NOT EXISTS (

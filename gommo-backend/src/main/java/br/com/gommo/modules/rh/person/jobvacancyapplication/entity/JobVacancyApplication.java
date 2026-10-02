@@ -102,4 +102,49 @@ public class JobVacancyApplication extends BranchScopedEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "applicant_snapshot", columnDefinition = "jsonb")
     private Map<String, Object> applicantSnapshot;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rejection_reason", length = 48)
+    private JobVacancyApplicationRejectionReasonEnum rejectionReason;
+
+    @Column(name = "rejection_requirement", length = 300)
+    private String rejectionRequirement;
+
+    @Column(name = "rejection_note", columnDefinition = "TEXT")
+    private String rejectionNote;
+
+    @Column(name = "rejected_at")
+    private OffsetDateTime rejectedAt;
+
+    @Column(name = "rejected_by")
+    private UUID rejectedBy;
+
+    @Column(name = "rejected_by_name", length = 200)
+    private String rejectedByName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rejection_feedback_status", length = 16)
+    private RejectionFeedbackStatusEnum rejectionFeedbackStatus;
+
+    @Column(name = "rejection_feedback_at")
+    private OffsetDateTime rejectionFeedbackAt;
+
+    @Column(name = "rejection_feedback_detail", length = 500)
+    private String rejectionFeedbackDetail;
+
+    public boolean isRejected() {
+        return rejectionReason != null;
+    }
+
+    public void clearRejection() {
+        rejectionReason = null;
+        rejectionRequirement = null;
+        rejectionNote = null;
+        rejectedAt = null;
+        rejectedBy = null;
+        rejectedByName = null;
+        rejectionFeedbackStatus = null;
+        rejectionFeedbackAt = null;
+        rejectionFeedbackDetail = null;
+    }
 }

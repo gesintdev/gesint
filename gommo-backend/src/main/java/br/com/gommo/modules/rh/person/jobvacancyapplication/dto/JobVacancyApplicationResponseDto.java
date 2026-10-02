@@ -9,7 +9,9 @@ import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.ApplicationAiStatusEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationRejectionReasonEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationStatusEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.RejectionFeedbackStatusEnum;
 
 @Getter
 @Builder
@@ -33,6 +35,16 @@ public class JobVacancyApplicationResponseDto {
     private final ApplicationAiStatusEnum aiStatus;
     private final OffsetDateTime aiAnalyzedAt;
     private final Map<String, Object> aiAnalysis;
+    private final JobVacancyApplicationRejectionReasonEnum rejectionReason;
+    private final String rejectionReasonLabel;
+    private final String rejectionRequirement;
+    private final String rejectionNote;
+    private final OffsetDateTime rejectedAt;
+    private final UUID rejectedBy;
+    private final String rejectedByName;
+    private final RejectionFeedbackStatusEnum rejectionFeedbackStatus;
+    private final OffsetDateTime rejectionFeedbackAt;
+    private final String rejectionFeedbackDetail;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

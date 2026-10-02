@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gommo.core.base.controller.BaseController;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationKanbanColumnRequestDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRejectRequestDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRejectionReasonDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationResponseDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationStageCommentRequestDto;
@@ -59,5 +61,16 @@ public class JobVacancyApplicationController
     @PostMapping("/{id}/reanalyze")
     public ResponseEntity<JobVacancyApplicationResponseDto> reanalyze(@PathVariable UUID id) {
         return ResponseEntity.ok(applicationService.reanalyze(id));
+    }
+
+    @GetMapping("/rejection-reasons")
+    public ResponseEntity<List<JobVacancyApplicationRejectionReasonDto>> listRejectionReasons() {
+        return ResponseEntity.ok(applicationService.listRejectionReasons());
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<JobVacancyApplicationResponseDto> reject(
+            @PathVariable UUID id, @Valid @RequestBody JobVacancyApplicationRejectRequestDto request) {
+        return ResponseEntity.ok(applicationService.reject(id, request));
     }
 }

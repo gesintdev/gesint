@@ -186,6 +186,7 @@ public class RecruitingCareersGateway implements CareersPlatformGateway {
 
     private String firstKanbanColumnKey() {
         return kanbanColumnRepository.findAllByStatusNotOrderByDisplayOrderAscNameAsc(StatusEnum.DELETED).stream()
+                .filter(column -> !column.isSystemColumn())
                 .map(AdmissionProcessKanbanColumn::getColumnKey)
                 .filter(key -> key != null && !key.isBlank())
                 .findFirst()

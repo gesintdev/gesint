@@ -1,5 +1,7 @@
 package br.com.gommo.modules.rh.person.jobvacancyapplication.service;
 
+import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,15 +29,22 @@ import br.com.gommo.modules.rh.person.candidate.repository.CandidateRepository;
 import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancy;
 import br.com.gommo.modules.rh.person.jobvacancy.repository.JobVacancyRepository;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationKanbanColumnRequestDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRejectRequestDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRejectionReasonDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationResponseDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationStageCommentDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationStageCommentRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplication;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationRejectionReasonEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationStatusEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.RejectionFeedbackStatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.exception.JobVacancyApplicationException;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.mapper.JobVacancyApplicationMapper;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.repository.JobVacancyApplicationRepository;
 import br.com.gommo.modules.rh.person.recruiting.ai.ApplicationAiAnalysisService;
+import br.com.gommo.modules.root.entity.AppUser;
+import br.com.gommo.modules.root.repository.AppUserRepository;
 
 @Service
 public class JobVacancyApplicationService
@@ -47,6 +56,8 @@ public class JobVacancyApplicationService
     private final CandidateRepository candidateRepository;
     private final AdmissionProcessKanbanColumnRepository kanbanColumnRepository;
     private final ApplicationAiAnalysisService applicationAiAnalysisService;
+    private final AppUserRepository appUserRepository;
+    private final JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService;
 
     public JobVacancyApplicationService(
             JobVacancyApplicationRepository repository,
@@ -54,7 +65,9 @@ public class JobVacancyApplicationService
             JobVacancyRepository jobVacancyRepository,
             CandidateRepository candidateRepository,
             AdmissionProcessKanbanColumnRepository kanbanColumnRepository,
-            ApplicationAiAnalysisService applicationAiAnalysisService) {
+            ApplicationAiAnalysisService applicationAiAnalysisService,
+            AppUserRepository appUserRepository,
+            JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService) {
         super(repository, entity -> mapper.toResponse(entity, null, null), mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -62,6 +75,8 @@ public class JobVacancyApplicationService
         this.candidateRepository = candidateRepository;
         this.kanbanColumnRepository = kanbanColumnRepository;
         this.applicationAiAnalysisService = applicationAiAnalysisService;
+        this.appUserRepository = appUserRepository;
+        this.rejectionFeedbackService = rejectionFeedbackService;
     }
 
     @Override
@@ -122,6 +137,7 @@ public class JobVacancyApplicationService
         String firstColumnKey = kanbanColumnRepository
                 .findAllByStatusNotOrderByDisplayOrderAscNameAsc(StatusEnum.DELETED)
                 .stream()
+                .filter(column -> !column.isSystemColumn())
                 .map(AdmissionProcessKanbanColumn::getColumnKey)
                 .filter(key -> key != null && !key.isBlank())
                 .findFirst()
@@ -147,15 +163,99 @@ public class JobVacancyApplicationService
     public JobVacancyApplicationResponseDto updateKanbanColumn(
             UUID id, JobVacancyApplicationKanbanColumnRequestDto request) {
         JobVacancyApplication entity = findEntity(id);
-        String key = request.getKanbanColumnKey();
-        if (key != null) {
-            key = key.trim().toLowerCase();
-            if (key.isEmpty()) {
-                key = null;
+        String key = normalizeColumnKey(request.getKanbanColumnKey());
+        if (AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(key)) {
+            if (entity.isRejected()) {
+                return enrich(entity);
             }
+            throw JobVacancyApplicationException.rejectionReasonRequired();
         }
+        reopenIfRejected(entity);
         entity.setKanbanColumnKey(key);
         return enrich(repository.save(entity));
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('jobvacancyapplication:read', 'admission:read')")
+    public List<JobVacancyApplicationRejectionReasonDto> listRejectionReasons() {
+        return Arrays.stream(JobVacancyApplicationRejectionReasonEnum.values())
+                .map(JobVacancyApplicationRejectionReasonDto::of)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('jobvacancyapplication:write', 'admission:write')")
+    public JobVacancyApplicationResponseDto reject(UUID id, JobVacancyApplicationRejectRequestDto request) {
+        JobVacancyApplication entity = findEntity(id);
+        if (entity.isRejected()) {
+            throw JobVacancyApplicationException.alreadyRejected();
+        }
+        JobVacancyApplicationRejectionReasonEnum reason = request.getReason();
+        if (reason == null) {
+            throw JobVacancyApplicationException.rejectionReasonRequired();
+        }
+        String requirement = trimToNull(request.getRequirement());
+        if (reason.isRequiresRequirement() && requirement == null) {
+            throw JobVacancyApplicationException.rejectionRequirementRequired();
+        }
+        boolean rejectedColumnExists = kanbanColumnRepository
+                .findAllByStatusNotOrderByDisplayOrderAscNameAsc(StatusEnum.DELETED)
+                .stream()
+                .anyMatch(column -> AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(column.getColumnKey()));
+        if (!rejectedColumnExists) {
+            throw JobVacancyApplicationException.rejectedColumnMissing();
+        }
+
+        UUID userId = currentUserId();
+        entity.setKanbanColumnKey(AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY);
+        entity.setApplicationStatus(JobVacancyApplicationStatusEnum.REJECTED);
+        entity.setRejectionReason(reason);
+        entity.setRejectionRequirement(requirement);
+        entity.setRejectionNote(trimToNull(request.getNote()));
+        entity.setRejectedAt(OffsetDateTime.now());
+        entity.setRejectedBy(userId);
+        entity.setRejectedByName(userId == null ? null : appUserRepository.findById(userId).map(AppUser::getName).orElse(null));
+        entity.setRejectionFeedbackStatus(
+                request.isSendFeedback() ? RejectionFeedbackStatusEnum.PENDING : RejectionFeedbackStatusEnum.NOT_SENT);
+        entity.setRejectionFeedbackAt(null);
+        entity.setRejectionFeedbackDetail(null);
+
+        JobVacancyApplication saved = repository.save(entity);
+        if (request.isSendFeedback()) {
+            UUID applicationId = saved.getId();
+            runAfterCommit(() -> rejectionFeedbackService.sendAsync(applicationId));
+        }
+        return enrich(saved);
+    }
+
+    private void reopenIfRejected(JobVacancyApplication entity) {
+        if (!entity.isRejected()) {
+            return;
+        }
+        entity.clearRejection();
+        if (entity.getApplicationStatus() == JobVacancyApplicationStatusEnum.REJECTED) {
+            entity.setApplicationStatus(JobVacancyApplicationStatusEnum.SCREENING);
+        }
+    }
+
+    private static void runAfterCommit(Runnable task) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    task.run();
+                }
+            });
+        } else {
+            task.run();
+        }
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     @Override
@@ -204,6 +304,9 @@ public class JobVacancyApplicationService
     @PreAuthorize("hasAuthority('jobvacancyapplication:write')")
     public JobVacancyApplicationResponseDto create(JobVacancyApplicationRequestDto request) {
         validateRequest(request, null);
+        if (targetsRejection(request)) {
+            throw JobVacancyApplicationException.rejectionReasonRequired();
+        }
         JobVacancyApplication entity = mapper.toEntity(request);
         entity.setStatus(StatusEnum.ACTIVE);
         return enrich(repository.save(entity));
@@ -215,8 +318,23 @@ public class JobVacancyApplicationService
     public JobVacancyApplicationResponseDto update(UUID id, JobVacancyApplicationRequestDto request) {
         validateRequest(request, id);
         JobVacancyApplication entity = findEntity(id);
+        String requestedKey = normalizeColumnKey(request.getKanbanColumnKey());
+        if (entity.isRejected()) {
+            if (requestedKey != null && !AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(requestedKey)) {
+                reopenIfRejected(entity);
+            } else {
+                request.setApplicationStatus(JobVacancyApplicationStatusEnum.REJECTED);
+            }
+        } else if (targetsRejection(request)) {
+            throw JobVacancyApplicationException.rejectionReasonRequired();
+        }
         mapper.updateEntity(entity, request);
         return enrich(repository.save(entity));
+    }
+
+    private boolean targetsRejection(JobVacancyApplicationRequestDto request) {
+        return AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(normalizeColumnKey(request.getKanbanColumnKey()))
+                || request.getApplicationStatus() == JobVacancyApplicationStatusEnum.REJECTED;
     }
 
 

@@ -24,7 +24,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Coluna" }];
 
 export function AdmissionProcessKanbanColumnFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessKanbanColumnCreateDto>(
         emptyAdmissionProcessKanbanColumnForm,
@@ -35,6 +35,7 @@ export function AdmissionProcessKanbanColumnFormClient() {
         queryFn: () => admissionProcessKanbanColumnService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
     });
+    const isSystemColumn = isEditing && Boolean(detailQuery.data?.systemColumn);
 
     useEffect(() => {
         if (!isEditing) {
@@ -69,7 +70,7 @@ export function AdmissionProcessKanbanColumnFormClient() {
             if (isEditing && editingId) return admissionProcessKanbanColumnService.update(editingId, payload);
             return admissionProcessKanbanColumnService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: admissionProcessKanbanColumnKeys.all });
             if (editingId) {
                 await queryClient.invalidateQueries({
@@ -77,8 +78,7 @@ export function AdmissionProcessKanbanColumnFormClient() {
                 });
             }
             toast.success(isEditing ? "Coluna atualizada" : "Coluna cadastrada");
-            setForm(emptyAdmissionProcessKanbanColumnForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {
@@ -164,6 +164,8 @@ export function AdmissionProcessKanbanColumnFormClient() {
                     value={form.columnKey ?? ""}
                     onValueChange={(v) => update("columnKey", keyFromColumnName(v))}
                     wrapperClassName="sm:col-span-4"
+                    readOnly={isSystemColumn}
+                    hint={isSystemColumn ? "Coluna do sistema: a chave não pode ser alterada." : undefined}
                     required
                 />
                 <InputNumber

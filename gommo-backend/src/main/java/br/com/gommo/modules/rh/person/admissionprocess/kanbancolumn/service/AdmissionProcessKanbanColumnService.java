@@ -72,6 +72,7 @@ public class AdmissionProcessKanbanColumnService
     @PreAuthorize("hasAuthority('admission:write')")
     public AdmissionProcessKanbanColumnResponseDto create(AdmissionProcessKanbanColumnRequestDto request) {
         normalize(request);
+        rejectReservedKey(request.getColumnKey());
         return super.create(request);
     }
 
@@ -80,6 +81,15 @@ public class AdmissionProcessKanbanColumnService
     @PreAuthorize("hasAuthority('admission:write')")
     public AdmissionProcessKanbanColumnResponseDto update(UUID id, AdmissionProcessKanbanColumnRequestDto request) {
         normalize(request);
+        AdmissionProcessKanbanColumn current = findEntity(id);
+        if (current.isSystemColumn()) {
+            if (request.getColumnKey() != null && !request.getColumnKey().equals(current.getColumnKey())) {
+                throw AdmissionProcessKanbanColumnException.systemColumnLocked();
+            }
+            request.setColumnKey(current.getColumnKey());
+        } else {
+            rejectReservedKey(request.getColumnKey());
+        }
         return super.update(id, request);
     }
 
@@ -94,6 +104,7 @@ public class AdmissionProcessKanbanColumnService
     @Transactional
     @PreAuthorize("hasAuthority('admission:write')")
     public void deactivate(UUID id) {
+        requireNotSystemColumn(id);
         super.deactivate(id);
     }
 
@@ -101,7 +112,20 @@ public class AdmissionProcessKanbanColumnService
     @Transactional
     @PreAuthorize("hasAuthority('admission:delete')")
     public void delete(UUID id) {
+        requireNotSystemColumn(id);
         super.delete(id);
+    }
+
+    private void requireNotSystemColumn(UUID id) {
+        if (findEntity(id).isSystemColumn()) {
+            throw AdmissionProcessKanbanColumnException.systemColumnLocked();
+        }
+    }
+
+    private static void rejectReservedKey(String columnKey) {
+        if (AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(columnKey)) {
+            throw AdmissionProcessKanbanColumnException.reservedKey();
+        }
     }
 
     @Override

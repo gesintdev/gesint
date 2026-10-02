@@ -1,6 +1,8 @@
 import type {
     JobVacancyApplication,
     JobVacancyApplicationCreateDto,
+    JobVacancyApplicationRejectDto,
+    JobVacancyApplicationRejectionReason,
 } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { BaseService } from "@/modules/root/services/base.service";
 import { apiFetch } from "@/shared/lib/api.client";
@@ -45,6 +47,17 @@ class JobVacancyApplicationService extends BaseService<
     reanalyze(id: string): Promise<JobVacancyApplication> {
         return apiFetch<JobVacancyApplication>(`${this.basePath}/${id}/reanalyze`, {
             method: "POST",
+        });
+    }
+
+    getRejectionReasons(): Promise<JobVacancyApplicationRejectionReason[]> {
+        return apiFetch<JobVacancyApplicationRejectionReason[]>(`${this.basePath}/rejection-reasons`);
+    }
+
+    reject(id: string, dto: JobVacancyApplicationRejectDto): Promise<JobVacancyApplication> {
+        return apiFetch<JobVacancyApplication>(`${this.basePath}/${id}/reject`, {
+            method: "POST",
+            body: dto,
         });
     }
 }

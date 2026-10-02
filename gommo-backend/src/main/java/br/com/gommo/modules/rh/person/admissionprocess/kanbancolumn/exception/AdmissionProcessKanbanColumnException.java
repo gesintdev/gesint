@@ -14,4 +14,18 @@ public final class AdmissionProcessKanbanColumnException {
                 AdmissionProcessKanbanColumnExceptions.NOT_FOUND_MSG,
                 HttpStatus.NOT_FOUND);
     }
+
+    public static BusinessException systemColumnLocked() {
+        return new BusinessException(
+                AdmissionProcessKanbanColumnExceptions.SYSTEM_COLUMN_LOCKED_CODE,
+                AdmissionProcessKanbanColumnExceptions.SYSTEM_COLUMN_LOCKED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException reservedKey() {
+        return new BusinessException(
+                AdmissionProcessKanbanColumnExceptions.RESERVED_KEY_CODE,
+                AdmissionProcessKanbanColumnExceptions.RESERVED_KEY_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

@@ -43,6 +43,7 @@ public class TenantDefaultDataProvisioner {
         tenantRbacProvisioner.provisionRbacTables(schema);
         seedDefaultWorkSchedule(schema);
         seedAdmissionKanbanColumns(schema);
+        seedRejectedKanbanColumn(schema);
         seedSystemSettings(schema);
         seedExitInterviewReturnChecklistItems(schema);
         seedPayrollEvents(schema);
@@ -120,6 +121,43 @@ public class TenantDefaultDataProvisioner {
                 ) AS d(column_key, name, display_order)
                 """
                         .formatted(schema));
+    }
+
+    /** Coluna de sistema "Reprovados": so recebe cards pela reprovacao com motivo e nao pode ser excluida. */
+    private void seedRejectedKanbanColumn(String schema) {
+        if (!tableExists(schema, "admission_process_kanban_column")
+                || !columnExists(schema, "admission_process_kanban_column", "system_column")) {
+            return;
+        }
+        jdbcTemplate.update(
+                """
+                INSERT INTO "%1$s".admission_process_kanban_column (
+                    id, code, status, column_key, name, color, display_order, system_column, created_at
+                )
+                SELECT gen_random_uuid(),
+                       COALESCE((SELECT MAX(code) FROM "%1$s".admission_process_kanban_column), 0) + 1,
+                       'ACTIVE', 'rejected', 'Reprovados', '#DC2626', 1000, true, now()
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM "%1$s".admission_process_kanban_column
+                    WHERE LOWER(column_key) = 'rejected' AND status <> 'DELETED'
+                )
+                """
+                        .formatted(schema));
+    }
+
+    private boolean columnExists(String schema, String table, String column) {
+        Boolean exists = jdbcTemplate.queryForObject(
+                """
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = ? AND table_name = ? AND column_name = ?
+                )
+                """,
+                Boolean.class,
+                schema,
+                table,
+                column);
+        return Boolean.TRUE.equals(exists);
     }
 
     private void seedSystemSettings(String schema) {

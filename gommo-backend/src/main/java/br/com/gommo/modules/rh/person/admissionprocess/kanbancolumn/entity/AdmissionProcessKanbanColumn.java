@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +24,8 @@ import org.hibernate.envers.Audited;
 @AllArgsConstructor
 public class AdmissionProcessKanbanColumn extends AuditEntity {
 
+    public static final String REJECTED_COLUMN_KEY = "rejected";
+
     @Column(name = "column_key", nullable = false, length = 80)
     private String columnKey;
 
@@ -34,4 +37,8 @@ public class AdmissionProcessKanbanColumn extends AuditEntity {
 
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder;
+
+    @Builder.Default
+    @Column(name = "system_column", nullable = false)
+    private boolean systemColumn = false;
 }

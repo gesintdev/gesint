@@ -1,13 +1,23 @@
+import { CAREERS_CLIENT_MESSAGES, CAREERS_MESSAGES } from "@/modules/careers/shared/exceptions/careers.messages";
+import { ADMISSION_PROCESS_KANBAN_COLUMN_MESSAGES } from "@/modules/cfg/settings/admissionprocesskanban/exceptions/admission-process-kanban-column.messages";
 import {
     AGENDA_CLIENT_MESSAGES,
     AGENDA_MESSAGES,
 } from "@/modules/cfg/settings/agenda/exceptions/agenda-event.messages";
+import {
+    APP_USER_CLIENT_MESSAGES,
+    APP_USER_MESSAGES,
+} from "@/modules/cfg/settings/appuser/exceptions/appuser.messages";
 import {
     BENEFIT_CLIENT_MESSAGES,
     BENEFIT_MESSAGES,
 } from "@/modules/ctb/payroll/benefit/exceptions/benefit-plan.messages";
 import { PAYROLL_CLIENT_MESSAGES, PAYROLL_MESSAGES } from "@/modules/ctb/payroll/exceptions/payroll-run.messages";
 import { PAYSLIP_CLIENT_MESSAGES, PAYSLIP_MESSAGES } from "@/modules/ctb/payroll/payslip/exceptions/payslip.messages";
+import {
+    ATTENDANCE_CLIENT_MESSAGES,
+    ATTENDANCE_MESSAGES,
+} from "@/modules/dp/attendance/exceptions/attendance-record.messages";
 import {
     OFFBOARDING_CLIENT_MESSAGES,
     OFFBOARDING_MESSAGES,
@@ -26,17 +36,9 @@ import {
 } from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
 import { PAYMENT_CLIENT_MESSAGES, PAYMENT_MESSAGES } from "@/modules/dp/payment/exceptions/payment.messages";
 import {
-    ATTENDANCE_CLIENT_MESSAGES,
-    ATTENDANCE_MESSAGES,
-} from "@/modules/dp/attendance/exceptions/attendance-record.messages";
-import {
     ADMISSION_CLIENT_MESSAGES,
     ADMISSION_MESSAGES,
 } from "@/modules/rh/person/collaborators/admission/exceptions/admission-process.messages";
-import {
-    APP_USER_CLIENT_MESSAGES,
-    APP_USER_MESSAGES,
-} from "@/modules/cfg/settings/appuser/exceptions/appuser.messages";
 import {
     COLLABORATOR_CLIENT_MESSAGES,
     COLLABORATOR_MESSAGES,
@@ -49,16 +51,16 @@ import {
     EXITINTERVIEW_CLIENT_MESSAGES,
     EXITINTERVIEW_MESSAGES,
 } from "@/modules/rh/person/exitinterview/exceptions/exit-interview.messages";
-import { LEAVE_CLIENT_MESSAGES, LEAVE_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
-import {
-    JOB_VACANCY_CLIENT_MESSAGES,
-    JOB_VACANCY_MESSAGES,
-} from "@/modules/rh/person/jobvacancy/exceptions/job-vacancy.messages";
 import {
     JOB_REQUISITION_CLIENT_MESSAGES,
     JOB_REQUISITION_MESSAGES,
 } from "@/modules/rh/person/jobrequisition/exceptions/job-requisition.messages";
-import { CAREERS_CLIENT_MESSAGES, CAREERS_MESSAGES } from "@/modules/careers/shared/exceptions/careers.messages";
+import {
+    JOB_VACANCY_CLIENT_MESSAGES,
+    JOB_VACANCY_MESSAGES,
+} from "@/modules/rh/person/jobvacancy/exceptions/job-vacancy.messages";
+import { JOB_VACANCY_APPLICATION_MESSAGES } from "@/modules/rh/person/jobvacancyapplication/exceptions/job-vacancy-application.messages";
+import { LEAVE_CLIENT_MESSAGES, LEAVE_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
 import { AUTH_CLIENT_MESSAGES, AUTH_MESSAGES } from "@/modules/root/exceptions/auth.messages";
 import { CORE_MESSAGES } from "@/shared/exceptions/core.messages";
 
@@ -104,6 +106,8 @@ const REGISTRY: Record<string, string> = {
     ...JOB_REQUISITION_CLIENT_MESSAGES,
     ...CAREERS_MESSAGES,
     ...CAREERS_CLIENT_MESSAGES,
+    ...JOB_VACANCY_APPLICATION_MESSAGES,
+    ...ADMISSION_PROCESS_KANBAN_COLUMN_MESSAGES,
 };
 
 export function resolveMessageByCode(code: string | undefined, fallback: string): string {

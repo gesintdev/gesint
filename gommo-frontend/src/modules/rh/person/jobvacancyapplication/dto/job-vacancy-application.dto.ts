@@ -8,6 +8,22 @@ export type JobVacancyApplicationStatus =
 
 export type ApplicationAiStatus = "PENDING" | "PROCESSING" | "READY" | "FAILED" | "SKIPPED";
 
+export type RejectionFeedbackStatus = "NOT_SENT" | "PENDING" | "SENT" | "FAILED";
+
+export type JobVacancyApplicationRejectionReason = {
+    key: string;
+    label: string;
+    requiresRequirement: boolean;
+    defaultSendFeedback: boolean;
+};
+
+export type JobVacancyApplicationRejectDto = {
+    reason: string;
+    requirement?: string;
+    note?: string;
+    sendFeedback: boolean;
+};
+
 export type JobVacancyApplicationStageComment = {
     text?: string;
     updatedAt?: string;
@@ -57,6 +73,16 @@ export class JobVacancyApplication {
     aiStatus?: ApplicationAiStatus | null;
     aiAnalyzedAt?: string | null;
     aiAnalysis?: ApplicationAiAnalysis | null;
+    rejectionReason?: string | null;
+    rejectionReasonLabel?: string | null;
+    rejectionRequirement?: string | null;
+    rejectionNote?: string | null;
+    rejectedAt?: string | null;
+    rejectedBy?: string | null;
+    rejectedByName?: string | null;
+    rejectionFeedbackStatus?: RejectionFeedbackStatus | null;
+    rejectionFeedbackAt?: string | null;
+    rejectionFeedbackDetail?: string | null;
     createdAt?: string;
     updatedAt?: string;
 }
