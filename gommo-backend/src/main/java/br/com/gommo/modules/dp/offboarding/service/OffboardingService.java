@@ -27,6 +27,7 @@ import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.exception.CollaboratorException;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.contract.repository.EmploymentContractRepository;
+import br.com.gommo.modules.rh.person.jobrequisition.service.JobRequisitionTriggerService;
 import br.com.gommo.modules.dp.occupationalexam.exam.service.OccupationalExamTriggerService;
 import br.com.gommo.modules.root.search.document.SearchDocumentType;
 import br.com.gommo.modules.root.search.document.service.ISearchDocumentIndexer;
@@ -42,6 +43,7 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
     private final OccupationalExamTriggerService occupationalExamTriggerService;
     private final EmploymentContractRepository employmentContractRepository;
     private final AuditTrailRecorder auditTrail;
+    private final JobRequisitionTriggerService jobRequisitionTriggerService;
 
     public OffboardingService(
         OffboardingRepository repository,
@@ -50,7 +52,8 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
         ISearchDocumentIndexer searchDocumentIndexer,
         OccupationalExamTriggerService occupationalExamTriggerService,
         EmploymentContractRepository employmentContractRepository,
-        AuditTrailRecorder auditTrail) {
+        AuditTrailRecorder auditTrail,
+        JobRequisitionTriggerService jobRequisitionTriggerService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -59,6 +62,7 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
         this.occupationalExamTriggerService = occupationalExamTriggerService;
         this.employmentContractRepository = employmentContractRepository;
         this.auditTrail = auditTrail;
+        this.jobRequisitionTriggerService = jobRequisitionTriggerService;
     }
 
     @Override
@@ -111,6 +115,7 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
                 .orElse(null);
         occupationalExamTriggerService.onTermination(
                 saved.getCollaboratorId(), jobPositionId, saved.getDismissalDate(), 2);
+        jobRequisitionTriggerService.onTermination(saved);
         return toEnrichedResponse(saved);
     }
 

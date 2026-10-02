@@ -7,6 +7,10 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     show-sql: false
+  flyway:
+    # Banco local é compartilhado entre branches: tolera migrations aplicadas por outra branch e versões intercaladas.
+    ignore-migration-patterns: ${FLYWAY_IGNORE_MIGRATION_PATTERNS:*:missing}
+    out-of-order: ${FLYWAY_OUT_OF_ORDER:true}
 
 gommo:
   multi-tenant:

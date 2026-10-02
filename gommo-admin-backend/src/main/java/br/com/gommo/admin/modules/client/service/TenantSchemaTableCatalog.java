@@ -52,6 +52,7 @@ public final class TenantSchemaTableCatalog {
             "exit_interview_return_checklist_item",
             "performance_review",
             "job_vacancy",
+            "job_requisition",
             "candidate",
             "candidate_experience",
             "job_vacancy_application",
