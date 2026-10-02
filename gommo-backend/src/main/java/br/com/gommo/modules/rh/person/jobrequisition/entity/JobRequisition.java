@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
 import br.com.gommo.core.branch.BranchScopedEntity;
@@ -27,6 +28,7 @@ import br.com.gommo.modules.dp.organization.jobpositionsalarytable.entity.JobPos
 import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancyContractTypeEnum;
 
 @Entity
+@Audited
 @Table(name = "job_requisition")
 @Getter
 @Setter

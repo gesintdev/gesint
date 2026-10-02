@@ -44,6 +44,7 @@ public final class AuditRecordLabels {
             Map.entry("JobPosition", "Cargo"),
             Map.entry("JobPositionCompetency", "Competência do cargo"),
             Map.entry("JobPositionSalaryTable", "Tabela salarial"),
+            Map.entry("JobRequisition", "Requisição de vaga"),
             Map.entry("JobVacancy", "Vaga"),
             Map.entry("JobVacancyApplication", "Candidatura"),
             Map.entry("LeaveRequest", "Afastamento"),
