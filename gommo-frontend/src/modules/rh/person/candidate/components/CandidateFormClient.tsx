@@ -31,7 +31,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function CandidateFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CandidateCreateDto>(emptyCandidateForm);
     const [error, setError] = useState<string | null>(null);
@@ -67,12 +67,11 @@ export function CandidateFormClient() {
             if (isEditing && editingId) return candidateService.update(editingId, payload);
             return candidateService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: candidateKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: candidateKeys.detail(editingId) });
             toast.success(isEditing ? "Candidato atualizado" : "Candidato cadastrado");
-            setForm(emptyCandidateForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

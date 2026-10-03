@@ -29,6 +29,22 @@ public final class BrazilianBusinessCalendar {
         return !nationalHolidays(date.getYear()).contains(date);
     }
 
+    /** Dias uteis entre {@code start} (exclusive) e {@code end} (inclusive). */
+    public static int businessDaysBetweenExclusive(LocalDate start, LocalDate end) {
+        if (start == null || end == null || !end.isAfter(start)) {
+            return 0;
+        }
+        int count = 0;
+        LocalDate cursor = start;
+        while (cursor.isBefore(end)) {
+            cursor = cursor.plusDays(1);
+            if (isBusinessDay(cursor)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     /** Data resultante de somar {@code businessDays} dias uteis, sem contar o dia de partida. */
     public static LocalDate addBusinessDays(LocalDate start, int businessDays) {
         if (start == null) {

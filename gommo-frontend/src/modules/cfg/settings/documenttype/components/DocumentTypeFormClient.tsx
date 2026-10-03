@@ -50,7 +50,7 @@ function toFormDto(detail: DocumentType): DocumentTypeRequestDto {
 }
 
 export function DocumentTypeFormClient() {
-    const {editingId, isEditing, goToList, startCreate, returnToList} = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate, showSavedRecord} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DocumentTypeRequestDto>(emptyForm);
     const [systemManaged, setSystemManaged] = useState(false);
@@ -96,14 +96,13 @@ export function DocumentTypeFormClient() {
             if (isEditing && editingId) return documentTypeService.update(editingId, payload);
             return documentTypeService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({queryKey: documentTypeKeys.all});
             if (editingId) {
                 await queryClient.invalidateQueries({queryKey: documentTypeKeys.detail(editingId)});
             }
             toast.success(isEditing ? "Tipo de documento atualizado" : "Tipo de documento cadastrado");
-            setForm(emptyForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

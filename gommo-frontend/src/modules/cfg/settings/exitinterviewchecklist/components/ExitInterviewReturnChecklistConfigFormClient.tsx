@@ -24,7 +24,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Item" }];
 
 export function ExitInterviewReturnChecklistConfigFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ExitInterviewReturnChecklistConfigCreateDto>(
         emptyExitInterviewReturnChecklistConfigForm,
@@ -67,7 +67,7 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
             if (isEditing && editingId) return exitInterviewReturnChecklistConfigService.update(editingId, payload);
             return exitInterviewReturnChecklistConfigService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: exitInterviewReturnChecklistConfigKeys.all });
             if (editingId) {
                 await queryClient.invalidateQueries({
@@ -75,8 +75,7 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
                 });
             }
             toast.success(isEditing ? "Item de devolução atualizado" : "Item de devolução cadastrado");
-            setForm(emptyExitInterviewReturnChecklistConfigForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

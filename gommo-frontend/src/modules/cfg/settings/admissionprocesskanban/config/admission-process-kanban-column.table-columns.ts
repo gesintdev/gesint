@@ -30,6 +30,15 @@ export const ADMISSION_PROCESS_KANBAN_COLUMN_TABLE_COLUMNS: TableColumnConfig[] 
         dataType: TableDataType.FLOAT,
     },
     {
+        id: "slaSummary",
+        columnName: "Prazo na etapa",
+        fieldValue: "slaSummary",
+        dataType: TableDataType.TEXT,
+        notFilterable: true,
+        className: "hidden md:table-cell",
+        headerClassName: "hidden md:table-cell",
+    },
+    {
         id: "status",
         columnName: "Status",
         fieldValue: "status",

@@ -1,0 +1,47 @@
+name: Release notes
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "gommo-frontend/src/generated/**"
+  workflow_dispatch:
+
+concurrency:
+  group: release-notes
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Gerar notas de versao
+        run: node gommo-frontend/scripts/generate-release-notes.mjs HEAD
+
+      - name: Commit, tag e push
+        run: |
+          if git diff --quiet -- gommo-frontend/src/generated; then
+            echo "Notas de versao ja atualizadas."
+            exit 0
+          fi
+          VERSION=$(node -p "require('./gommo-frontend/src/generated/release-version.json').version")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gommo-frontend/src/generated
+          git commit -m "chore(release): v${VERSION} [skip ci]"
+          git pull --rebase origin main
+          git tag -f "v${VERSION}"
+          git push origin HEAD:main
+          git push -f origin "v${VERSION}"

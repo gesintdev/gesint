@@ -29,8 +29,9 @@ export type OpenWorkspaceRecordInput = OpenWorkspaceTabInput & {
     entityKey: WorkspaceEntityKey;
 };
 
-function tabBaseLabel(tab: WorkspaceTab): string {
-    return (tab.shortLabel || tab.routeLabel).trim();
+function tabBaseLabel(tab: WorkspaceTab, groupShortLabel?: string): string {
+    const label = (tab.shortLabel || tab.routeLabel).trim();
+    return groupShortLabel ? `${groupShortLabel} › ${label}` : label;
 }
 
 function appendTabTitleSuffix(base: string, suffix?: string): string {
@@ -41,8 +42,9 @@ function appendTabTitleSuffix(base: string, suffix?: string): string {
     return `${normalizedBase} - ${normalizedSuffix}`;
 }
 
-export function formatWorkspaceTabTitle(tab: WorkspaceTab): string {
-    const base = tabBaseLabel(tab);
+/** `groupShortLabel`: abreviação do grupo de menu da rota, exibida como breadcrumb. */
+export function formatWorkspaceTabTitle(tab: WorkspaceTab, groupShortLabel?: string): string {
+    const base = tabBaseLabel(tab, groupShortLabel);
     if (tab.entityKey === "list") {
         return appendTabTitleSuffix(base, tab.titleSuffix);
     }

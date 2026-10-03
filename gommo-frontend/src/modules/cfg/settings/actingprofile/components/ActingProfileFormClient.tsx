@@ -32,7 +32,7 @@ import {InputString} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
 
 export function ActingProfileFormClient() {
-    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const {scopes: availableSystems} = useProfileScopeAccess();
     const [form, setForm] = useState<ActingProfileCreateDto>(() =>
@@ -74,7 +74,7 @@ export function ActingProfileFormClient() {
             }
             return actingProfileService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({queryKey: actingProfileKeys.all});
             if (editingId) {
                 await queryClient.invalidateQueries({
@@ -82,7 +82,7 @@ export function ActingProfileFormClient() {
                 });
             }
             toast.success(isEditing ? "Perfil de atuação atualizado" : "Perfil de atuação cadastrado");
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

@@ -7,6 +7,8 @@ export class AdmissionProcessKanbanColumn {
     color?: string | null;
     displayOrder!: number;
     systemColumn?: boolean;
+    slaEnabled?: boolean;
+    slaBusinessDays?: number;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -16,4 +18,6 @@ export class AdmissionProcessKanbanColumnCreateDto {
     name!: string;
     color?: string | null;
     displayOrder!: number;
+    slaEnabled?: boolean;
+    slaBusinessDays?: number;
 }

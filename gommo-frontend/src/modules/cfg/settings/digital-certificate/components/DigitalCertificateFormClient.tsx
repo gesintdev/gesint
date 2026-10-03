@@ -39,7 +39,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function DigitalCertificateFormClient() {
-    const { editingId, isEditing, goToList, startCreate, returnToList } = useCrudScreen();
+    const { editingId, isEditing, goToList, startCreate, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DigitalCertificateCreateDto>(emptyDigitalCertificateForm);
     const [fileName, setFileName] = useState<string>("");
@@ -88,7 +88,7 @@ export function DigitalCertificateFormClient() {
             if (isEditing && editingId) return digitalCertificateService.update(editingId, payload);
             return digitalCertificateService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: digitalCertificateKeys.all });
             if (editingId) {
                 await queryClient.invalidateQueries({
@@ -96,8 +96,7 @@ export function DigitalCertificateFormClient() {
                 });
             }
             toast.success(isEditing ? "Certificado atualizado" : "Certificado cadastrado");
-            setForm(emptyDigitalCertificateForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

@@ -51,7 +51,7 @@ function DescriptionTextarea({label, value, onValueChange, wrapperClassName}: De
 }
 
 export function DepartmentFormClient() {
-    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
     const {activeBranchId} = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DepartmentCreateDto>(() => emptyDepartmentForm(activeBranchId));
@@ -88,9 +88,9 @@ export function DepartmentFormClient() {
             if (isEditing && editingId) return departmentService.update(editingId, dto);
             return departmentService.create(dto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             const savedEditingId = editingId;
-            returnToList();
+            void showSavedRecord(saved.id, saved);
             toast.success(isEditing ? "Departamento atualizado(a)" : "Departamento cadastrado(a)");
             setForm(emptyDepartmentForm(activeBranchId));
             await queryClient.invalidateQueries({queryKey: departmentKeys.all});

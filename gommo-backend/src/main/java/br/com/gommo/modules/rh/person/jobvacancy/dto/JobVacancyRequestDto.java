@@ -42,6 +42,10 @@ public class JobVacancyRequestDto {
     private String activities;
     private String assignments;
     private String requirements;
+
+    @Builder.Default
+    private List<String> requirementItems = new ArrayList<>();
+
     private String benefits;
 
     @Size(max = 200)

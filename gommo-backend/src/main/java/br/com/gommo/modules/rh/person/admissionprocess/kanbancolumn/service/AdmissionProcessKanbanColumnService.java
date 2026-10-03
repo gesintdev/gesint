@@ -123,7 +123,7 @@ public class AdmissionProcessKanbanColumnService
     }
 
     private static void rejectReservedKey(String columnKey) {
-        if (AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(columnKey)) {
+        if (AdmissionProcessKanbanColumn.CLOSED_COLUMN_KEY.equals(columnKey)) {
             throw AdmissionProcessKanbanColumnException.reservedKey();
         }
     }

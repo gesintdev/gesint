@@ -64,7 +64,7 @@ import {digitsOnly} from "@/shared/lib/input/digits";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 export function AdmissionProcessFormClient() {
-    const {editingId, isEditing, goToList, returnToList, startCreate, startEdit} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessCreateDto>(emptyAdmissionProcessForm);
     const [error, setError] = useState<string | null>(null);
@@ -260,8 +260,7 @@ export function AdmissionProcessFormClient() {
             await queryClient.invalidateQueries({queryKey: admissionprocessKeys.detail(savedId)});
             await queryClient.invalidateQueries({queryKey: ["storage-links", "admission_process", savedId]});
             toast.success(isEditing ? "Admissão atualizada" : "Admissão registrada");
-            setForm(emptyAdmissionProcessForm());
-            returnToList();
+            void showSavedRecord(savedId);
         },
         onError: async (err: unknown) => {
             const partialAdmissionId =
@@ -279,7 +278,7 @@ export function AdmissionProcessFormClient() {
             await queryClient.invalidateQueries({queryKey: admissionprocessKeys.all});
             if (partialAdmissionId) {
                 keepPendingAfterPartialRef.current = true;
-                void startEdit(partialAdmissionId, undefined, {skipDirtyCheck: true});
+                void showSavedRecord(partialAdmissionId);
                 toast.info(ADMISSION_CLIENT_MESSAGES.ADMISSION_PARTIAL_SAVE_HINT);
                 return;
             }

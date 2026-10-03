@@ -64,7 +64,7 @@ function inclusiveDays(startDate?: string, endDate?: string) {
 }
 
 export function LeaveAbsenceFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const canViewSensitive = useHasPermission("leave:sensitive");
     const [form, setForm] = useState<LeaveRequestCreateDto & { notes?: string }>(emptyLeaveRequestForm);
@@ -142,8 +142,7 @@ export function LeaveAbsenceFormClient() {
                 queryKey: ["storage-links", LEAVE_ABSENCE_ENTITY_TYPE, savedId],
             });
             toast.success(isEditing ? "Afastamento salvo" : "Afastamento cadastrado");
-            setForm(emptyLeaveAbsenceForm());
-            returnToList();
+            void showSavedRecord(savedId);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED });

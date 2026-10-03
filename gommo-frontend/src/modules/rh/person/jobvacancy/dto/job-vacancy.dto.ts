@@ -17,6 +17,7 @@ export class JobVacancy {
     activities?: string;
     assignments?: string;
     requirements?: string;
+    requirementItems?: string[];
     benefits?: string;
     department?: string;
     location?: string;
@@ -44,6 +45,7 @@ export class JobVacancyCreateDto {
     activities?: string;
     assignments?: string;
     requirements?: string;
+    requirementItems?: string[];
     benefits?: string;
     department?: string;
     location?: string;

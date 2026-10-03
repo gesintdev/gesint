@@ -249,7 +249,7 @@ function validateBeforeComplete(form: ExitInterviewCreateDto): string | null {
 
 export function ExitInterviewFormClient() {
     const { data: session } = useSession();
-    const { editingId, isEditing, goToList, returnToList, startCreate, startEdit } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ExitInterviewCreateDto>(emptyExitInterviewForm);
     const [error, setError] = useState<string | null>(null);
@@ -332,7 +332,7 @@ export function ExitInterviewFormClient() {
             await queryClient.invalidateQueries({ queryKey: exitinterviewKeys.detail(savedId) });
             await queryClient.invalidateQueries({ queryKey: ["storage-links", EXIT_INTERVIEW_ENTITY_TYPE, savedId] });
             toast.success(isEditing ? "Entrevista de desligamento salva" : "Entrevista de desligamento cadastrada");
-            startEdit(savedId);
+            void showSavedRecord(savedId);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

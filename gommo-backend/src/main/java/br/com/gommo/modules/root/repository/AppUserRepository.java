@@ -94,4 +94,15 @@ public interface AppUserRepository extends IBaseRepository<AppUser> {
             WHERE LOWER(u.email) = LOWER(:email) AND u.status <> :deleted
             """)
     Optional<AppUser> findActiveByEmail(@Param("email") String email, @Param("deleted") StatusEnum deleted);
+
+    @Query(
+            """
+            SELECT DISTINCT u FROM AppUser u
+            JOIN u.roles r
+            JOIN r.permissions p
+            WHERE u.status <> :deleted
+              AND r.status <> :deleted
+              AND p.authority IN ('admission:write', 'jobvacancyapplication:write')
+            """)
+    List<AppUser> findRecruitingNotificationRecipients(@Param("deleted") StatusEnum deleted);
 }

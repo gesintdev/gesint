@@ -7,14 +7,15 @@ import {type ReactNode, Suspense, useCallback, useEffect, useState} from "react"
 import {AgendaModal} from "@/modules/cfg/settings/agenda/components/AgendaModal";
 import {AttendanceClockModal} from "@/modules/dp/attendance/components/AttendanceClockModal";
 import type {SystemEnum} from "@/modules/root/enum/SystemEnum";
+import {AiAssistantPanel} from "@/shared/components/assistant/AiAssistantPanel";
 import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {HeaderAiAssistant} from "@/shared/components/layout/HeaderAiAssistant";
 import {HeaderBranchSelector} from "@/shared/components/layout/HeaderBranchSelector";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
-import {useSessionReady} from "@/shared/components/providers/SessionGate";
-import {AiAssistantPanel} from "@/shared/components/assistant/AiAssistantPanel";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
+import {useSessionReady} from "@/shared/components/providers/SessionGate";
+import {HeaderReleaseVersion} from "@/shared/components/release-notes/HeaderReleaseVersion";
 import {GlobalSearchPalette} from "@/shared/components/search/GlobalSearchPalette";
 import {ActiveBranchProvider} from "@/shared/context/ActiveBranchContext";
 import {ActiveSystemProvider} from "@/shared/context/ActiveSystemContext";
@@ -118,6 +119,7 @@ export function SystemShell({
                                 <div className="flex shrink-0 items-center lg:hidden">
                                     <GommoLogo collapsed/>
                                 </div>
+                                <HeaderReleaseVersion/>
                                 <div className="min-w-2 flex-1" aria-hidden/>
                                 <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
                                     <HeaderBranchSelector/>

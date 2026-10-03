@@ -6,6 +6,10 @@ import { ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { applicationAiScore } from "@/modules/rh/person/jobvacancy/lib/application-match-score";
+import {
+    MINIMUM_COMPATIBILITY_SCORE,
+} from "@/modules/rh/person/jobvacancy/lib/job-application-rejection";
 import type {
     JobVacancyApplication,
     JobVacancyApplicationRejectDto,
@@ -13,12 +17,13 @@ import type {
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { Button } from "@/shared/components/ui/Button";
-import { InputCheckbox, InputSelect, InputString, type SelectItem } from "@/shared/components/ui/input/index";
+import { InputCheckbox, InputSelect, type SelectItem } from "@/shared/components/ui/input/index";
 import { fieldClass } from "@/shared/components/ui/input/InputFieldChrome";
 
 type JobVacancyApplicationRejectModalProps = {
     open: boolean;
     application: JobVacancyApplication | null;
+    requirementOptions?: string[];
     loading?: boolean;
     onCancel: () => void;
     onConfirm: (dto: JobVacancyApplicationRejectDto) => void;
@@ -27,6 +32,7 @@ type JobVacancyApplicationRejectModalProps = {
 export function JobVacancyApplicationRejectModal({
     open,
     application,
+    requirementOptions = [],
     loading = false,
     onCancel,
     onConfirm,
@@ -53,6 +59,15 @@ export function JobVacancyApplicationRejectModal({
     );
     const selectedReason = reasons.find((item) => item.key === reason);
     const requiresRequirement = Boolean(selectedReason?.requiresRequirement);
+    const isAssessmentReason = reason === "ASSESSMENT_BELOW_MINIMUM";
+    const aiScore = applicationAiScore(application);
+    const assessmentBlocked =
+        isAssessmentReason &&
+        (aiScore == null || aiScore >= (selectedReason?.minimumCompatibilityScore ?? MINIMUM_COMPATIBILITY_SCORE));
+    const requirementItems = useMemo(
+        (): SelectItem[] => requirementOptions.map((item) => ({ value: item, label: item })),
+        [requirementOptions],
+    );
     const hasEmail = Boolean(application?.candidateEmail?.trim());
 
     useEffect(() => {
@@ -80,19 +95,28 @@ export function JobVacancyApplicationRejectModal({
 
     const handleReasonChange = (value: string) => {
         setReason(value);
+        setRequirement("");
         const next = reasons.find((item) => item.key === value);
         if (next) setSendFeedback(next.defaultSendFeedback);
     };
 
-    const reasonError = submitted && !reason ? "Selecione o motivo da reprovação." : undefined;
+    const reasonError = submitted && !reason ? "Selecione o motivo do encerramento." : undefined;
     const requirementError =
         submitted && requiresRequirement && !requirement.trim()
-            ? "Informe qual requisito da vaga não foi atendido."
+            ? requirementOptions.length === 0
+                ? "Cadastre requisitos na vaga antes de usar este motivo."
+                : "Selecione qual requisito da vaga não foi atendido."
+            : undefined;
+    const assessmentError =
+        submitted && assessmentBlocked
+            ? aiScore == null
+                ? "Aguarde a análise da IA ou escolha outro motivo."
+                : `A compatibilidade atual é ${aiScore}% (mínimo para este motivo: ${MINIMUM_COMPATIBILITY_SCORE}%).`
             : undefined;
 
     const handleConfirm = () => {
         setSubmitted(true);
-        if (!reason || (requiresRequirement && !requirement.trim())) return;
+        if (!reason || (requiresRequirement && !requirement.trim()) || assessmentBlocked) return;
         onConfirm({
             reason,
             requirement: requiresRequirement ? requirement.trim() : undefined,
@@ -116,7 +140,7 @@ export function JobVacancyApplicationRejectModal({
             <div className="modal-box flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden p-0">
                 <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
                     <div className="min-w-0">
-                        <h3 className="text-base font-semibold text-base-content">Reprovar candidato</h3>
+                        <h3 className="text-base font-semibold text-base-content">Encerrar candidato</h3>
                         <p className="mt-0.5 truncate text-sm text-base-content/55">
                             {application?.candidateFullName ?? "Candidato"}
                         </p>
@@ -143,23 +167,39 @@ export function JobVacancyApplicationRejectModal({
                         required
                     />
                     {requiresRequirement ? (
-                        <InputString
+                        <InputSelect
                             label="Qual requisito?"
+                            items={requirementItems}
                             value={requirement}
                             onValueChange={setRequirement}
-                            placeholder="Ex.: 3 anos de experiência com folha de pagamento"
-                            maxLength={300}
-                            disabled={loading}
+                            placeholder={
+                                requirementOptions.length === 0
+                                    ? "Nenhum requisito cadastrado na vaga"
+                                    : "Selecione o requisito"
+                            }
+                            disabled={loading || requirementOptions.length === 0}
                             error={requirementError}
-                            hint="Use o requisito como está descrito na vaga."
+                            hint="Lista montada a partir dos requisitos da vaga e competências do cargo."
                             required
                         />
                     ) : null}
-                    <div className="grid gap-1">
-                        <label
-                            htmlFor="reject-note"
-                            className="text-xs font-medium text-base-content/70"
+                    {isAssessmentReason ? (
+                        <p
+                            className={clsx(
+                                "rounded-lg border px-3 py-2 text-[0.6875rem]",
+                                assessmentBlocked
+                                    ? "border-warning/30 bg-warning/10 text-warning"
+                                    : "border-base-content/8 bg-base-content/[0.02] text-base-content/60",
+                            )}
                         >
+                            {aiScore == null
+                                ? `Compatibilidade mínima fixa em ${MINIMUM_COMPATIBILITY_SCORE}% (configurável no futuro).`
+                                : `Compatibilidade da IA: ${aiScore}%. Mínimo para este motivo: ${MINIMUM_COMPATIBILITY_SCORE}%.`}
+                            {assessmentError ? ` ${assessmentError}` : null}
+                        </p>
+                    ) : null}
+                    <div className="grid gap-1">
+                        <label htmlFor="reject-note" className="text-xs font-medium text-base-content/70">
                             Observação interna
                         </label>
                         <textarea
@@ -186,7 +226,7 @@ export function JobVacancyApplicationRejectModal({
                         />
                         <p className="pl-6 text-[0.6875rem] text-base-content/45">
                             {hasEmail
-                                ? "E-mail neutro de que o processo não seguiu. O motivo não é enviado."
+                                ? "E-mail neutro de encerramento. O motivo interno não é enviado."
                                 : "Candidato sem e-mail cadastrado: o retorno não pode ser enviado."}
                         </p>
                     </div>
@@ -200,8 +240,14 @@ export function JobVacancyApplicationRejectModal({
                     <Button type="button" variant="ghost" disabled={loading} onClick={onCancel}>
                         Cancelar
                     </Button>
-                    <Button type="button" variant="danger" loading={loading} onClick={handleConfirm}>
-                        Confirmar reprovação
+                    <Button
+                        type="button"
+                        variant="danger"
+                        loading={loading}
+                        disabled={assessmentBlocked}
+                        onClick={handleConfirm}
+                    >
+                        Confirmar encerramento
                     </Button>
                 </div>
             </div>

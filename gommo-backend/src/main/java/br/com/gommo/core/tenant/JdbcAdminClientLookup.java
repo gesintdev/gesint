@@ -2,6 +2,8 @@ package br.com.gommo.core.tenant;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -78,6 +80,18 @@ public class JdbcAdminClientLookup implements AdminClientLookup {
     @Override
     public Optional<TenantContext> findByCustomDomain(String customDomain) {
         return findOne(BASE_SELECT + " AND e.custom_domain = ?", customDomain);
+    }
+
+    @Override
+    public List<TenantContext> findAllReadyTenants() {
+        try {
+            return jdbcTemplate.query(
+                    BASE_SELECT + " AND e.provisioning_status = 'READY' ORDER BY c.slug",
+                    (rs, rowNum) -> mapRow(rs));
+        } catch (DataAccessException ex) {
+            log.warn("admin.client list ready tenants failed: {}", ex.getMessage());
+            return List.of();
+        }
     }
 
     @Override

@@ -109,7 +109,7 @@ const ORIGIN_OPTIONS = {
 } as const;
 
 export function DevelopmentPlanFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DevelopmentPlanFormDto>(emptyDevelopmentPlanForm);
     const [error, setError] = useState<string | null>(null);
@@ -144,12 +144,11 @@ export function DevelopmentPlanFormClient() {
             if (isEditing && editingId) return developmentPlanService.update(editingId, developmentPlanToRequestDto(dto));
             return developmentPlanService.create(developmentPlanToRequestDto(dto));
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: developmentPlanKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: developmentPlanKeys.detail(editingId) });
             toast.success(isEditing ? "PDI atualizado" : "PDI cadastrado");
-            setForm(emptyDevelopmentPlanForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível salvar o PDI." });

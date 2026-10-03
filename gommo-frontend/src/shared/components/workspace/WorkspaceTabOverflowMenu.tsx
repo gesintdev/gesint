@@ -8,6 +8,7 @@ import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
 import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
+import { findRouteGroupShortLabel } from "@/shared/workspace/workspace-routes";
 
 type WorkspaceTabOverflowMenuProps = {
     moduleTabs: WorkspaceTab[];
@@ -55,7 +56,7 @@ export function WorkspaceTabOverflowMenu({ moduleTabs, activeTabId, onSelect }: 
                             <li className="px-3 py-2 text-[13px] text-base-content/50">Nenhum módulo aberto</li>
                         ) : null}
                         {moduleTabs.map((tab) => {
-                            const title = formatWorkspaceTabTitle(tab);
+                            const title = formatWorkspaceTabTitle(tab, findRouteGroupShortLabel(tab.routeId));
                             const active = tab.id === activeTabId;
                             return (
                                 <li key={tab.id} role="none">

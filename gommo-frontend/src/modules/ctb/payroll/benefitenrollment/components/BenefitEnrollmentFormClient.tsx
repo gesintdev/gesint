@@ -27,7 +27,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Adesão" }];
 
 export function BenefitEnrollmentFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<BenefitEnrollmentCreateDto>(emptyBenefitEnrollmentForm);
     const [error, setError] = useState<string | null>(null);
@@ -76,12 +76,11 @@ export function BenefitEnrollmentFormClient() {
                 return benefitEnrollmentService.update(editingId, payload as BenefitEnrollmentCreateDto);
             return benefitEnrollmentService.create(payload as BenefitEnrollmentCreateDto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: benefitEnrollmentKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: benefitEnrollmentKeys.detail(editingId) });
             toast.success(isEditing ? "Vínculo atualizado" : "Vínculo cadastrado");
-            setForm(emptyBenefitEnrollmentForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

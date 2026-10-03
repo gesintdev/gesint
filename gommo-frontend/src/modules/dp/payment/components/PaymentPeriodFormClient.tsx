@@ -25,7 +25,7 @@ import { InputMonth, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 export function PaymentPeriodFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startEdit } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PaymentPeriodCreateDto>(() => emptyPaymentPeriodForm());
     const [error, setError] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export function PaymentPeriodFormClient() {
             await queryClient.invalidateQueries({ queryKey: paymentPeriodKeys.all });
             await queryClient.invalidateQueries({ queryKey: paymentPeriodKeys.detail(saved.id) });
             toast.success(isEditing ? "Período atualizado" : "Período cadastrado");
-            startEdit(saved.id);
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: PAYMENT_CLIENT_MESSAGES.PAYMENT_SAVE_FAILED });

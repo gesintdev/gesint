@@ -61,7 +61,7 @@ function FormulaTextarea({ label, hint, value, onValueChange, wrapperClassName }
 }
 
 export function PayrollEventFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayrollEventCreateDto>(emptyPayrollEventForm);
     const [error, setError] = useState<string | null>(null);
@@ -96,12 +96,11 @@ export function PayrollEventFormClient() {
             if (isEditing && editingId) return payrollEventService.update(editingId, dto);
             return payrollEventService.create(dto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: payrollEventKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: payrollEventKeys.detail(editingId) });
             toast.success(isEditing ? "Evento de folha atualizado" : "Evento de folha cadastrado");
-            setForm(emptyPayrollEventForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

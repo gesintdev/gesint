@@ -40,7 +40,7 @@ public final class JobVacancyApplicationExceptions {
 
     public static final String REJECTION_REASON_REQUIRED_CODE = "JOB_VACANCY_APPLICATION_REJECTION_REASON_REQUIRED";
     public static final String REJECTION_REASON_REQUIRED_MSG =
-            "Para mover para Reprovados, informe o motivo da reprova\u00e7\u00e3o";
+            "Para mover para Encerrados, informe o motivo do encerramento";
 
     public static final String REJECTION_REQUIREMENT_REQUIRED_CODE =
             "JOB_VACANCY_APPLICATION_REJECTION_REQUIREMENT_REQUIRED";
@@ -52,5 +52,14 @@ public final class JobVacancyApplicationExceptions {
 
     public static final String REJECTED_COLUMN_MISSING_CODE = "JOB_VACANCY_APPLICATION_REJECTED_COLUMN_MISSING";
     public static final String REJECTED_COLUMN_MISSING_MSG =
-            "A coluna Reprovados n\u00e3o est\u00e1 configurada neste ambiente";
+            "A coluna Encerrados n\u00e3o est\u00e1 configurada neste ambiente";
+
+    public static final String REJECTION_REQUIREMENT_INVALID_CODE = "JOB_VACANCY_APPLICATION_REJECTION_REQUIREMENT_INVALID";
+    public static final String REJECTION_REQUIREMENT_INVALID_MSG =
+            "O requisito informado n\u00e3o consta nos requisitos ou compet\u00eancias da vaga";
+
+    public static final String ASSESSMENT_BELOW_MINIMUM_NOT_APPLICABLE_CODE =
+            "JOB_VACANCY_APPLICATION_ASSESSMENT_BELOW_MINIMUM_NOT_APPLICABLE";
+    public static final String ASSESSMENT_BELOW_MINIMUM_NOT_APPLICABLE_MSG =
+            "Este motivo s\u00f3 se aplica quando a compatibilidade da IA est\u00e1 abaixo de 80%";
 }

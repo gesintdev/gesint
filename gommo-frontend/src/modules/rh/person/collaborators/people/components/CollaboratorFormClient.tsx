@@ -44,7 +44,7 @@ const COLLABORATOR_FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function CollaboratorFormClient() {
-    const { editingId, isEditing, goToList, returnToList } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CollaboratorCreateDto>(emptyCollaboratorForm);
     const [error, setError] = useState<string | null>(null);
@@ -83,11 +83,11 @@ export function CollaboratorFormClient() {
             if (!editingId) throw new Error("Edição requer colaborador selecionado");
             return collaboratorService.update(editingId, collaboratorFormToPayload(dto));
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: collaboratorKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: collaboratorKeys.detail(editingId) });
             toast.success("Dados pessoais atualizados");
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

@@ -4,8 +4,8 @@ import {
     closestCenter,
     defaultDropAnimationSideEffects,
     DndContext,
-    DragOverlay,
     type DragEndEvent,
+    DragOverlay,
     type DragStartEvent,
     type DropAnimation,
     PointerSensor,
@@ -17,13 +17,13 @@ import { CSS } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { Pin, X } from "lucide-react";
 import {
+    type CSSProperties,
     Fragment,
+    type MouseEvent,
     useCallback,
     useMemo,
     useRef,
     useState,
-    type CSSProperties,
-    type MouseEvent,
 } from "react";
 
 import {
@@ -39,6 +39,7 @@ import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
 import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
 import { isDashboardTabId } from "@/shared/workspace/workspace-dashboard";
+import { findRouteGroupShortLabel } from "@/shared/workspace/workspace-routes";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
 
 type WorkspaceTabBarProps = {
@@ -89,7 +90,7 @@ function WorkspaceTabFace({
     buttonRef,
     ...rest
 }: WorkspaceTabFaceProps) {
-    const title = formatWorkspaceTabTitle(tab);
+    const title = formatWorkspaceTabTitle(tab, findRouteGroupShortLabel(tab.routeId));
     const pinned = Boolean(tab.pinned);
 
     return (

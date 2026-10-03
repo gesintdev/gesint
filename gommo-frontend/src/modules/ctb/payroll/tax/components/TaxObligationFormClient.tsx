@@ -23,7 +23,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Obrigação" }];
 
 export function TaxObligationFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<TaxObligationCreateDto>(emptyTaxObligationForm);
     const [error, setError] = useState<string | null>(null);
@@ -65,12 +65,11 @@ export function TaxObligationFormClient() {
                 return taxObligationService.update(editingId, payload as TaxObligationCreateDto);
             return taxObligationService.create(payload as TaxObligationCreateDto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: taxObligationKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: taxObligationKeys.detail(editingId) });
             toast.success(isEditing ? "Obrigação fiscal atualizada" : "Obrigação fiscal cadastrada");
-            setForm(emptyTaxObligationForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: TAX_CLIENT_MESSAGES.TAX_SAVE_FAILED });

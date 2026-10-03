@@ -36,7 +36,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function JobPositionFormClient() {
-    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
     const {activeBranchId} = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<JobPositionCreateDto>(() => emptyJobPositionForm(activeBranchId));
@@ -94,15 +94,10 @@ export function JobPositionFormClient() {
             if (isEditing && editingId) return jobpositionService.update(editingId, dto);
             return jobpositionService.create(dto);
         },
-        onSuccess: async () => {
-            const savedEditingId = editingId;
-            returnToList();
+        onSuccess: async (saved) => {
             toast.success(isEditing ? "Cargo atualizado(a)" : "Cargo cadastrado(a)");
-            setForm(emptyJobPositionForm(activeBranchId));
             await queryClient.invalidateQueries({queryKey: jobpositionKeys.all});
-            if (savedEditingId) {
-                queryClient.removeQueries({queryKey: jobpositionKeys.detail(savedEditingId)});
-            }
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

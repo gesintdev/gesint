@@ -11,6 +11,8 @@ export function admissionProcessKanbanColumnToFormDto(
         name: entity.name ?? "",
         color: entity.color ?? "",
         displayOrder: entity.displayOrder ?? 0,
+        slaEnabled: entity.slaEnabled ?? true,
+        slaBusinessDays: entity.slaBusinessDays ?? 5,
     };
 }
 
@@ -19,6 +21,8 @@ export const emptyAdmissionProcessKanbanColumnForm = (): AdmissionProcessKanbanC
     name: "",
     color: "",
     displayOrder: 0,
+    slaEnabled: true,
+    slaBusinessDays: 5,
 });
 
 export function keyFromColumnName(value: string): string {

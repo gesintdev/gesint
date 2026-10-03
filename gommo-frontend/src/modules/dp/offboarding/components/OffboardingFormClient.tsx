@@ -37,7 +37,7 @@ const OFFBOARDING_FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function OffboardingFormClient() {
-    const {editingId, isEditing, goToList, startCreate, returnToList, startEdit} = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate, showSavedRecord} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<OffboardingCreateDto>(emptyOffboardingForm);
     const [error, setError] = useState<string | null>(null);
@@ -84,7 +84,7 @@ export function OffboardingFormClient() {
             await queryClient.invalidateQueries({queryKey: collaboratorKeys.all});
             await queryClient.invalidateQueries({queryKey: offboardingKeys.detail(result.id)});
             toast.success(isEditing ? "Desligamento atualizado" : "Desligamento cadastrado");
-            startEdit(result.id);
+            void showSavedRecord(result.id, result);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

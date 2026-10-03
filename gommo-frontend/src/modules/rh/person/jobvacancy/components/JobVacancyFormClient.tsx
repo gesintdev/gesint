@@ -83,7 +83,7 @@ function TextAreaField({ label, value, onValueChange, wrapperClassName, placehol
 }
 
 export function JobVacancyFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setFormState] = useState<JobVacancyCreateDto>(emptyJobVacancyForm);
     const [error, setError] = useState<string | null>(null);
@@ -137,12 +137,11 @@ export function JobVacancyFormClient() {
             if (isEditing && editingId) return jobVacancyService.update(editingId, payload);
             return jobVacancyService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: jobVacancyKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: jobVacancyKeys.detail(editingId) });
             toast.success(isEditing ? "Vaga atualizada" : "Vaga cadastrada");
-            setForm(emptyJobVacancyForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

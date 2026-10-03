@@ -26,7 +26,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Avaliação" }];
 
 export function PerformanceReviewFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PerformanceReviewCreateDto>(emptyPerformanceReviewForm);
     const [error, setError] = useState<string | null>(null);
@@ -62,12 +62,11 @@ export function PerformanceReviewFormClient() {
             if (isEditing && editingId) return performanceReviewService.update(editingId, dto);
             return performanceReviewService.create(dto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: performanceReviewKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: performanceReviewKeys.detail(editingId) });
             toast.success(isEditing ? "Avaliação atualizada" : "Avaliação cadastrada");
-            setForm(emptyPerformanceReviewForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

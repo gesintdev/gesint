@@ -15,6 +15,7 @@ export type JobVacancyApplicationRejectionReason = {
     label: string;
     requiresRequirement: boolean;
     defaultSendFeedback: boolean;
+    minimumCompatibilityScore?: number | null;
 };
 
 export type JobVacancyApplicationRejectDto = {

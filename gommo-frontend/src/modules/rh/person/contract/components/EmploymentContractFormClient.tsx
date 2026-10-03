@@ -26,7 +26,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contrato" }];
 
 export function EmploymentContractFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<EmploymentContractCreateDto>(emptyEmploymentContractForm);
     const [error, setError] = useState<string | null>(null);
@@ -67,12 +67,11 @@ export function EmploymentContractFormClient() {
                 return employmentcontractService.update(editingId, payload as EmploymentContractCreateDto);
             return employmentcontractService.create(payload as EmploymentContractCreateDto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: employmentcontractKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: employmentcontractKeys.detail(editingId) });
             toast.success(isEditing ? "Contrato atualizado" : "Contrato cadastrado");
-            setForm(emptyEmploymentContractForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: CONTRACT_CLIENT_MESSAGES.CONTRACT_SAVE_FAILED });

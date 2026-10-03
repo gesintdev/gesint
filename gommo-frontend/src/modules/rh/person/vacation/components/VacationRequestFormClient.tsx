@@ -67,7 +67,7 @@ function formSteps(mode: VacationFormMode): FormStepNavItem[] {
 
 export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormClientProps) {
     const isRh = mode === "rh";
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<VacationFormState>(() => ({
         ...emptyVacationForm(),
@@ -223,23 +223,19 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
 
     const saveMutation = useMutation({
         mutationFn: async (payload: { parsed: VacationRequestFormSchema; groupId: string }) => {
-            if (isRh) {
-                const dtoList = vacationFormToRhLeaveDtos(payload.parsed, payload.groupId);
-                for (const dto of dtoList) {
-                    await leaverequestService.create(dto);
-                }
-                return dtoList[0];
-            }
-            const dtoList = vacationFormToLeaveDtos(payload.parsed, payload.groupId);
-            if (isEditing && editingId) {
+            const dtoList = isRh
+                ? vacationFormToRhLeaveDtos(payload.parsed, payload.groupId)
+                : vacationFormToLeaveDtos(payload.parsed, payload.groupId);
+            if (!isRh && isEditing && editingId) {
                 return leaverequestService.update(editingId, dtoList[0]);
             }
+            const created = [];
             for (const dto of dtoList) {
-                await leaverequestService.create(dto);
+                created.push(await leaverequestService.create(dto));
             }
-            return dtoList[0];
+            return created[0];
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: leaverequestKeys.all });
             if (!isRh && editingId) {
                 await queryClient.invalidateQueries({ queryKey: leaverequestKeys.detail(editingId) });
@@ -251,8 +247,11 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
                       ? "Férias atualizadas"
                       : "Férias cadastradas",
             );
-            setForm({ ...emptyVacationForm(), approved: !isRh });
-            returnToList();
+            if (isRh) {
+                setForm({ ...emptyVacationForm(), approved: false });
+            } else if (saved) {
+                void showSavedRecord(saved.id, saved);
+            }
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED });

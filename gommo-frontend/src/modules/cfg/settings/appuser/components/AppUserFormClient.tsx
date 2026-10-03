@@ -101,7 +101,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 const DELETED_USER_CONFLICT_CODE = "APP_USER_DELETED_EXISTS";
 
 export function AppUserFormClient() {
-    const {editingId, isEditing, goToList, returnToList} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
     const {branches} = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AppUserCreateDto>(emptyForm());
@@ -221,9 +221,9 @@ export function AppUserFormClient() {
             } else {
                 toast.success(mode === "update" ? "Usuário atualizado" : "Usuário cadastrado");
             }
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
-        [queryClient, returnToList],
+        [queryClient, showSavedRecord],
     );
 
     const branchIds = useMemo(() => branches.map((branch) => branch.id), [branches]);

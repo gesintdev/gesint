@@ -28,6 +28,7 @@ public class JobVacancyResponseDto {
     private final String activities;
     private final String assignments;
     private final String requirements;
+    private final List<String> requirementItems;
     private final String benefits;
     private final String department;
     private final String location;

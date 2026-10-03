@@ -54,6 +54,15 @@ public class JobVacancyApplication extends BranchScopedEntity {
     @Column(name = "kanban_column_key", length = 80)
     private String kanbanColumnKey;
 
+    @Column(name = "kanban_column_entered_at")
+    private OffsetDateTime kanbanColumnEnteredAt;
+
+    @Column(name = "kanban_sla_last_reminder_date")
+    private LocalDate kanbanSlaLastReminderDate;
+
+    @Column(name = "kanban_sla_candidate_notified_at")
+    private OffsetDateTime kanbanSlaCandidateNotifiedAt;
+
     /** Comentarios por etapa do kanban, chave = column_key. */
     @Builder.Default
     @JdbcTypeCode(SqlTypes.JSON)

@@ -123,26 +123,41 @@ public class TenantDefaultDataProvisioner {
                         .formatted(schema));
     }
 
-    /** Coluna de sistema "Reprovados": so recebe cards pela reprovacao com motivo e nao pode ser excluida. */
+    /** Coluna de sistema "Encerrados": so recebe cards pelo encerramento com motivo e nao pode ser excluida. */
     private void seedRejectedKanbanColumn(String schema) {
         if (!tableExists(schema, "admission_process_kanban_column")
                 || !columnExists(schema, "admission_process_kanban_column", "system_column")) {
             return;
         }
+        if (columnExists(schema, "admission_process_kanban_column", "sla_enabled")) {
+            jdbcTemplate.update(
+                    """
+                    UPDATE "%1$s".admission_process_kanban_column
+                    SET name = 'Encerrados', column_key = 'closed', sla_enabled = false
+                    WHERE LOWER(column_key) = 'rejected' AND status <> 'DELETED'
+                    """
+                            .formatted(schema));
+        }
+        String slaColumns = columnExists(schema, "admission_process_kanban_column", "sla_enabled")
+                ? ", sla_enabled, sla_business_days"
+                : "";
+        String slaValues = columnExists(schema, "admission_process_kanban_column", "sla_enabled")
+                ? ", false, 5"
+                : "";
         jdbcTemplate.update(
                 """
                 INSERT INTO "%1$s".admission_process_kanban_column (
-                    id, code, status, column_key, name, color, display_order, system_column, created_at
+                    id, code, status, column_key, name, color, display_order, system_column%2$s, created_at
                 )
                 SELECT gen_random_uuid(),
                        COALESCE((SELECT MAX(code) FROM "%1$s".admission_process_kanban_column), 0) + 1,
-                       'ACTIVE', 'rejected', 'Reprovados', '#DC2626', 1000, true, now()
+                       'ACTIVE', 'closed', 'Encerrados', '#DC2626', 1000, true%3$s, now()
                 WHERE NOT EXISTS (
                     SELECT 1 FROM "%1$s".admission_process_kanban_column
-                    WHERE LOWER(column_key) = 'rejected' AND status <> 'DELETED'
+                    WHERE LOWER(column_key) = 'closed' AND status <> 'DELETED'
                 )
                 """
-                        .formatted(schema));
+                        .formatted(schema, slaColumns, slaValues));
     }
 
     private boolean columnExists(String schema, String table, String column) {

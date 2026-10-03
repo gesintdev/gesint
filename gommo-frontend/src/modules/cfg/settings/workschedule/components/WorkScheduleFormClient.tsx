@@ -38,7 +38,7 @@ type DayTimeField = keyof Pick<
 >;
 
 export function WorkScheduleFormClient() {
-    const {editingId, isEditing, goToList, startCreate, returnToList} = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate, showSavedRecord} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<WorkScheduleCreateDto>(emptyWorkScheduleForm);
     const [error, setError] = useState<string | null>(null);
@@ -84,15 +84,14 @@ export function WorkScheduleFormClient() {
             if (isEditing && editingId) return workScheduleService.update(editingId, payload);
             return workScheduleService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({queryKey: workScheduleKeys.all});
             await queryClient.invalidateQueries({queryKey: workScheduleKeys.active});
             if (editingId) {
                 await queryClient.invalidateQueries({queryKey: workScheduleKeys.detail(editingId)});
             }
             toast.success(isEditing ? "Escala atualizada" : "Escala cadastrada");
-            setForm(emptyWorkScheduleForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

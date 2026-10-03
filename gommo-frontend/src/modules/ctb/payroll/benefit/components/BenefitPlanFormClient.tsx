@@ -21,7 +21,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Benefício" }];
 
 export function BenefitPlanFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<BenefitPlanCreateDto>(emptyBenefitPlanForm);
     const [error, setError] = useState<string | null>(null);
@@ -62,12 +62,11 @@ export function BenefitPlanFormClient() {
             if (isEditing && editingId) return benefitplanService.update(editingId, payload as BenefitPlanCreateDto);
             return benefitplanService.create(payload as BenefitPlanCreateDto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: benefitplanKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: benefitplanKeys.detail(editingId) });
             toast.success(isEditing ? "Plano de benefício atualizado" : "Plano de benefício cadastrado");
-            setForm(emptyBenefitPlanForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: BENEFIT_CLIENT_MESSAGES.BENEFIT_SAVE_FAILED });

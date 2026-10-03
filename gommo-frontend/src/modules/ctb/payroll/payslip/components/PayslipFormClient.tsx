@@ -27,7 +27,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contracheque" }];
 
 export function PayslipFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayslipCreateDto>(() => emptyPayslipForm());
     const [error, setError] = useState<string | null>(null);
@@ -84,12 +84,11 @@ export function PayslipFormClient() {
             if (isEditing && editingId) return payslipService.update(editingId, payload as PayslipCreateDto);
             return payslipService.create(payload as PayslipCreateDto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: payslipKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: payslipKeys.detail(editingId) });
             toast.success(isEditing ? "Holerite atualizado" : "Holerite cadastrado");
-            setForm(emptyPayslipForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: PAYSLIP_CLIENT_MESSAGES.PAYSLIP_SAVE_FAILED });

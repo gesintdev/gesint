@@ -24,7 +24,7 @@ import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFi
 import {ExceptionCapture} from "@/shared/exceptions";
 
 export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentPlanDomainConfig }) {
-    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const service = useMemo(() => new DevelopmentPlanDomainService(config.endpoint), [config.endpoint]);
     const queryKey = ["development-plan-domain", config.id] as const;
@@ -63,11 +63,10 @@ export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentP
             if (isEditing && editingId) return service.update(editingId, dto);
             return service.create(dto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({queryKey});
             toast.success(isEditing ? "Registro atualizado" : "Registro cadastrado");
-            setForm(emptyForm(config.fields));
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível salvar o registro."});

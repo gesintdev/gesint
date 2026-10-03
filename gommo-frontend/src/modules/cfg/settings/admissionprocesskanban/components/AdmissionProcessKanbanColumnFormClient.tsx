@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useState } from "react";
+import clsx from "clsx";
+import { type FormEvent, useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 
 import { admissionProcessKanbanColumnKeys } from "@/modules/cfg/settings/admissionprocesskanban/admission-process-kanban-column.query";
@@ -18,10 +19,19 @@ import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrud
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputColor, InputNumber, InputString } from "@/shared/components/ui/input/index";
+import { InputCheckbox, InputColor, InputNumber, InputString } from "@/shared/components/ui/input/index";
+import { InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Coluna" }];
+const DEFAULT_SLA_BUSINESS_DAYS = 5;
+const MIN_SLA_BUSINESS_DAYS = 1;
+const MAX_SLA_BUSINESS_DAYS = 90;
+
+function clampSlaBusinessDays(value: number | null | undefined): number {
+    const resolved = value ?? DEFAULT_SLA_BUSINESS_DAYS;
+    return Math.max(MIN_SLA_BUSINESS_DAYS, Math.min(MAX_SLA_BUSINESS_DAYS, resolved));
+}
 
 export function AdmissionProcessKanbanColumnFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
@@ -36,6 +46,8 @@ export function AdmissionProcessKanbanColumnFormClient() {
         enabled: isEditing && Boolean(editingId),
     });
     const isSystemColumn = isEditing && Boolean(detailQuery.data?.systemColumn);
+    const slaEnabled = form.slaEnabled ?? true;
+    const slaEnabledFieldId = useId();
 
     useEffect(() => {
         if (!isEditing) {
@@ -57,15 +69,15 @@ export function AdmissionProcessKanbanColumnFormClient() {
         getEmptyForm: () => emptyAdmissionProcessKanbanColumnForm(),
     });
 
-
     const saveMutation = useMutation({
         mutationFn: async (dto: AdmissionProcessKanbanColumnCreateDto) => {
             const color = dto.color?.trim() || null;
-            const payload = {
+            const payload: AdmissionProcessKanbanColumnCreateDto = {
                 ...dto,
                 columnKey: dto.columnKey || keyFromColumnName(dto.name),
                 color,
                 displayOrder: dto.displayOrder ?? 0,
+                slaBusinessDays: clampSlaBusinessDays(dto.slaBusinessDays),
             };
             if (isEditing && editingId) return admissionProcessKanbanColumnService.update(editingId, payload);
             return admissionProcessKanbanColumnService.create(payload);
@@ -151,7 +163,11 @@ export function AdmissionProcessKanbanColumnFormClient() {
                 </>
             }
         >
-            <FormSection id="cadastro" title="Coluna do kanban" description="Etapas do processo de admissão.">
+            <FormSection
+                id="cadastro"
+                title="Coluna do kanban"
+                description="Etapas do processo de admissão. Prazo padrão: 5 dias úteis; zera ao mudar de etapa."
+            >
                 <InputString
                     label="Nome"
                     value={form.name ?? ""}
@@ -182,6 +198,49 @@ export function AdmissionProcessKanbanColumnFormClient() {
                     onValueChange={(v) => update("color", v)}
                     wrapperClassName="sm:col-span-4"
                 />
+                {isSystemColumn ? (
+                    <p className="sm:col-span-8 self-end pb-2 text-sm text-base-content/55">
+                        Colunas do sistema (como Encerrados) não monitoram prazo na etapa.
+                    </p>
+                ) : (
+                    <div className="sm:col-span-8 flex flex-wrap items-start gap-2.5">
+                        <InputFieldChrome
+                            label="Monitorar prazo"
+                            id={slaEnabledFieldId}
+                            labelFor={false}
+                            wrapperClassName="w-max shrink-0"
+                        >
+                            <InputCheckbox
+                                size="xs"
+                                checked={slaEnabled}
+                                onCheckedChange={(checked) => update("slaEnabled", checked)}
+                                label="Ativo na etapa"
+                                className={clsx(
+                                    "min-h-9 w-max rounded-lg border px-3 py-2 transition-colors",
+                                    slaEnabled
+                                        ? "border-primary/35 bg-primary/8 text-primary"
+                                        : "border-base-300/50 bg-base-200/20 text-base-content/85 hover:bg-base-200/40",
+                                )}
+                                labelClassName={clsx(
+                                    "text-sm whitespace-nowrap",
+                                    slaEnabled ? "font-medium text-primary" : "text-base-content/75",
+                                )}
+                            />
+                        </InputFieldChrome>
+                        <InputNumber
+                            label="Prazo máximo parado"
+                            value={form.slaBusinessDays ?? null}
+                            onValueChange={(v) => update("slaBusinessDays", v ?? undefined)}
+                            wrapperClassName="w-[12rem] shrink-0"
+                            integer
+                            decimalPlaces={0}
+                            thousandSeparator={false}
+                            align="left"
+                            suffix="dias úteis"
+                            disabled={!slaEnabled}
+                        />
+                    </div>
+                )}
             </FormSection>
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>

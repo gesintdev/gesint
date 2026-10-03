@@ -6,7 +6,19 @@ import { toast } from "sonner";
 import { admissionProcessKanbanColumnKeys } from "@/modules/cfg/settings/admissionprocesskanban/admission-process-kanban-column.query";
 import { ADMISSION_PROCESS_KANBAN_COLUMN_TABLE_COLUMNS } from "@/modules/cfg/settings/admissionprocesskanban/config/admission-process-kanban-column.table-columns";
 import type { AdmissionProcessKanbanColumn } from "@/modules/cfg/settings/admissionprocesskanban/dto/admission-process-kanban-column.dto";
+
 import { admissionProcessKanbanColumnService } from "@/modules/cfg/settings/admissionprocesskanban/services/admission-process-kanban-column.service";
+
+type AdmissionProcessKanbanColumnRow = AdmissionProcessKanbanColumn & {
+    slaSummary: string;
+};
+
+function withSlaSummary(row: AdmissionProcessKanbanColumn): AdmissionProcessKanbanColumnRow {
+    if (row.systemColumn) return { ...row, slaSummary: "—" };
+    if (row.slaEnabled === false) return { ...row, slaSummary: "Desativado" };
+    const days = row.slaBusinessDays ?? 5;
+    return { ...row, slaSummary: days === 1 ? "1 dia útil" : `${days} dias úteis` };
+}
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { useCrudStatusActions } from "@/shared/components/crud/useCrudStatusActions";
@@ -42,12 +54,12 @@ export function AdmissionProcessKanbanColumnListClient() {
     };
 
     return (
-        <QueryPagedTablePanel<AdmissionProcessKanbanColumn>
+        <QueryPagedTablePanel<AdmissionProcessKanbanColumnRow>
             queryKey={admissionProcessKanbanColumnKeys.all}
             initialFilters={CATALOG_STATUS_INITIAL_FILTERS}
             request={async (page, size, filters) => {
                 const rows = await loadActiveAndInactiveRows((options) => admissionProcessKanbanColumnService.getAll(options));
-                return paginateCatalogRows(rows, page, size, filters);
+                return paginateCatalogRows(rows.map(withSlaSummary), page, size, filters);
             }}
             columns={ADMISSION_PROCESS_KANBAN_COLUMN_TABLE_COLUMNS}
             rowKey="id"

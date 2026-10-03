@@ -32,7 +32,7 @@ const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Afastamento" }]
 type LeaveFormField = keyof LeaveRequestCreateDto;
 
 export function LeaveRequestFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<LeaveRequestCreateDto>(emptyLeaveRequestForm);
     const [error, setError] = useState<string | null>(null);
@@ -71,12 +71,11 @@ export function LeaveRequestFormClient() {
             if (isEditing && editingId) return leaverequestService.update(editingId, dto);
             return leaverequestService.create(dto);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: leaverequestKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: leaverequestKeys.detail(editingId) });
             toast.success(isEditing ? "Registro salvo" : "Afastamento cadastrado");
-            setForm(emptyLeaveRequestForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: LEAVE_CLIENT_MESSAGES.LEAVE_SAVE_FAILED });

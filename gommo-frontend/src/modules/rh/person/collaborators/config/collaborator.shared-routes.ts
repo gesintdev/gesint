@@ -10,6 +10,7 @@ import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
 export const collaboratorSharedRouteGroup: AppRoute = routeGroup({
     id: "collaborator",
     label: "Colaboradores",
+    tabShortLabel: "Colab.",
     icon: Users,
     permission: "admission:read",
     children: [

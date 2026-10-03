@@ -26,7 +26,7 @@ import { isValidCnpj } from "@/shared/lib/input/cnpj";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "dados", label: "Clinica" }];
 
 export function MedicalClinicFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<MedicalClinicCreateDto>(emptyMedicalClinicForm);
     const [error, setError] = useState<string | null>(null);
@@ -63,14 +63,13 @@ export function MedicalClinicFormClient() {
             if (isEditing && editingId) return medicalClinicService.update(editingId, payload);
             return medicalClinicService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: medicalClinicKeys.all });
             if (editingId) {
                 await queryClient.invalidateQueries({ queryKey: medicalClinicKeys.detail(editingId) });
             }
             toast.success(isEditing ? "Clinica atualizada" : "Clinica cadastrada");
-            setForm(emptyMedicalClinicForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

@@ -17,6 +17,7 @@ export const organizationRoutes: AppRoute[] = [
     routeGroup({
         id: "organization",
         label: "Organização",
+        tabShortLabel: "Org.",
         icon: Network,
         children: [
             tabbedCrudRoute({

@@ -8,6 +8,7 @@
         "start": "next start",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
+        "release-notes": "node scripts/generate-release-notes.mjs",
         "format": "prettier --config ../prettier.config.mjs --ignore-path ../.prettierignore --write .",
         "format:check": "prettier --config ../prettier.config.mjs --ignore-path ../.prettierignore --check ."
     },

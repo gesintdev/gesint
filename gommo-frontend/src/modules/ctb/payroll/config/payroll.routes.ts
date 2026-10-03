@@ -69,6 +69,7 @@ export const payrollRoutes: AppRoute[] = [
     routeGroup({
         id: "benefit",
         label: "Benefícios",
+        tabShortLabel: "Benef.",
         icon: Gift,
         children: [
             tabbedCrudRoute({

@@ -152,7 +152,7 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('offboarding:read')")
     public List<OffboardingResponseDto> findAll(StatusEnum status) {
-        return super.findAll(status);
+        return mapToResponses(repository.findAllByStatusOrderByCreatedAtDesc(resolveListStatus(status)));
     }
 
     @Override

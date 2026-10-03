@@ -26,7 +26,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Competência" }];
 
 export function PayrollRunFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayrollRunCreateDto>(() => emptyPayrollRunForm());
     const [error, setError] = useState<string | null>(null);
@@ -67,12 +67,11 @@ export function PayrollRunFormClient() {
             if (isEditing && editingId) return payrollrunService.update(editingId, payload);
             return payrollrunService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: payrollrunKeys.all });
             if (editingId) await queryClient.invalidateQueries({ queryKey: payrollrunKeys.detail(editingId) });
             toast.success(isEditing ? "Competência atualizada" : "Competência cadastrada");
-            setForm(emptyPayrollRunForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, { fallbackMessage: PAYROLL_CLIENT_MESSAGES.PAYROLL_SAVE_FAILED });

@@ -33,7 +33,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function OccupationalPhysicianFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<OccupationalPhysicianCreateDto>(emptyOccupationalPhysicianForm);
     const [error, setError] = useState<string | null>(null);
@@ -70,7 +70,7 @@ export function OccupationalPhysicianFormClient() {
             if (isEditing && editingId) return occupationalPhysicianService.update(editingId, payload);
             return occupationalPhysicianService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: occupationalPhysicianKeys.all });
             if (editingId) {
                 await queryClient.invalidateQueries({
@@ -78,8 +78,7 @@ export function OccupationalPhysicianFormClient() {
                 });
             }
             toast.success(isEditing ? "Medico atualizado" : "Medico cadastrado");
-            setForm(emptyOccupationalPhysicianForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

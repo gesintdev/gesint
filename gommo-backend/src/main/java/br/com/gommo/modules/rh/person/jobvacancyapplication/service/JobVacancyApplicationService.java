@@ -1,5 +1,6 @@
 package br.com.gommo.modules.rh.person.jobvacancyapplication.service;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import br.com.gommo.modules.rh.person.candidate.entity.Candidate;
 import br.com.gommo.modules.rh.person.candidate.repository.CandidateRepository;
 import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancy;
 import br.com.gommo.modules.rh.person.jobvacancy.repository.JobVacancyRepository;
+import br.com.gommo.modules.rh.person.jobvacancy.service.JobVacancyRequirementOptionsService;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationKanbanColumnRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRejectRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationRejectionReasonDto;
@@ -58,6 +60,7 @@ public class JobVacancyApplicationService
     private final ApplicationAiAnalysisService applicationAiAnalysisService;
     private final AppUserRepository appUserRepository;
     private final JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService;
+    private final JobVacancyRequirementOptionsService requirementOptionsService;
 
     public JobVacancyApplicationService(
             JobVacancyApplicationRepository repository,
@@ -67,7 +70,8 @@ public class JobVacancyApplicationService
             AdmissionProcessKanbanColumnRepository kanbanColumnRepository,
             ApplicationAiAnalysisService applicationAiAnalysisService,
             AppUserRepository appUserRepository,
-            JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService) {
+            JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService,
+            JobVacancyRequirementOptionsService requirementOptionsService) {
         super(repository, entity -> mapper.toResponse(entity, null, null), mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -77,6 +81,7 @@ public class JobVacancyApplicationService
         this.applicationAiAnalysisService = applicationAiAnalysisService;
         this.appUserRepository = appUserRepository;
         this.rejectionFeedbackService = rejectionFeedbackService;
+        this.requirementOptionsService = requirementOptionsService;
     }
 
     @Override
@@ -151,7 +156,7 @@ public class JobVacancyApplicationService
 
         for (JobVacancyApplication application : applications) {
             if (application.getKanbanColumnKey() == null || application.getKanbanColumnKey().isBlank()) {
-                application.setKanbanColumnKey(firstColumnKey);
+                assignKanbanColumn(application, firstColumnKey);
             }
         }
         return enrichAll(repository.saveAll(applications));
@@ -164,14 +169,14 @@ public class JobVacancyApplicationService
             UUID id, JobVacancyApplicationKanbanColumnRequestDto request) {
         JobVacancyApplication entity = findEntity(id);
         String key = normalizeColumnKey(request.getKanbanColumnKey());
-        if (AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(key)) {
+        if (AdmissionProcessKanbanColumn.CLOSED_COLUMN_KEY.equals(key)) {
             if (entity.isRejected()) {
                 return enrich(entity);
             }
             throw JobVacancyApplicationException.rejectionReasonRequired();
         }
         reopenIfRejected(entity);
-        entity.setKanbanColumnKey(key);
+        assignKanbanColumn(entity, key);
         return enrich(repository.save(entity));
     }
 
@@ -199,16 +204,27 @@ public class JobVacancyApplicationService
         if (reason.isRequiresRequirement() && requirement == null) {
             throw JobVacancyApplicationException.rejectionRequirementRequired();
         }
+        JobVacancy vacancy = jobVacancyRepository
+                .findByIdAndStatusNot(entity.getJobVacancyId(), StatusEnum.DELETED)
+                .orElseThrow(JobVacancyApplicationException::vacancyNotFound);
+        if (reason.isRequiresRequirement()
+                && !requirementOptionsService.isAllowedRequirement(vacancy, requirement)) {
+            throw JobVacancyApplicationException.rejectionRequirementInvalid();
+        }
+        if (reason == JobVacancyApplicationRejectionReasonEnum.ASSESSMENT_BELOW_MINIMUM
+                && !isBelowMinimumCompatibility(entity.getAiScore())) {
+            throw JobVacancyApplicationException.assessmentBelowMinimumNotApplicable();
+        }
         boolean rejectedColumnExists = kanbanColumnRepository
                 .findAllByStatusNotOrderByDisplayOrderAscNameAsc(StatusEnum.DELETED)
                 .stream()
-                .anyMatch(column -> AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(column.getColumnKey()));
+                .anyMatch(column -> AdmissionProcessKanbanColumn.CLOSED_COLUMN_KEY.equals(column.getColumnKey()));
         if (!rejectedColumnExists) {
             throw JobVacancyApplicationException.rejectedColumnMissing();
         }
 
         UUID userId = currentUserId();
-        entity.setKanbanColumnKey(AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY);
+        assignKanbanColumn(entity, AdmissionProcessKanbanColumn.CLOSED_COLUMN_KEY);
         entity.setApplicationStatus(JobVacancyApplicationStatusEnum.REJECTED);
         entity.setRejectionReason(reason);
         entity.setRejectionRequirement(requirement);
@@ -320,7 +336,7 @@ public class JobVacancyApplicationService
         JobVacancyApplication entity = findEntity(id);
         String requestedKey = normalizeColumnKey(request.getKanbanColumnKey());
         if (entity.isRejected()) {
-            if (requestedKey != null && !AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(requestedKey)) {
+            if (requestedKey != null && !AdmissionProcessKanbanColumn.CLOSED_COLUMN_KEY.equals(requestedKey)) {
                 reopenIfRejected(entity);
             } else {
                 request.setApplicationStatus(JobVacancyApplicationStatusEnum.REJECTED);
@@ -333,8 +349,30 @@ public class JobVacancyApplicationService
     }
 
     private boolean targetsRejection(JobVacancyApplicationRequestDto request) {
-        return AdmissionProcessKanbanColumn.REJECTED_COLUMN_KEY.equals(normalizeColumnKey(request.getKanbanColumnKey()))
+        return AdmissionProcessKanbanColumn.CLOSED_COLUMN_KEY.equals(normalizeColumnKey(request.getKanbanColumnKey()))
                 || request.getApplicationStatus() == JobVacancyApplicationStatusEnum.REJECTED;
+    }
+
+    private void assignKanbanColumn(JobVacancyApplication entity, String columnKey) {
+        String normalized = normalizeColumnKey(columnKey);
+        if (normalized == null) {
+            return;
+        }
+        if (normalized.equals(entity.getKanbanColumnKey())) {
+            return;
+        }
+        entity.setKanbanColumnKey(normalized);
+        entity.setKanbanColumnEnteredAt(OffsetDateTime.now());
+        entity.setKanbanSlaLastReminderDate(null);
+        entity.setKanbanSlaCandidateNotifiedAt(null);
+    }
+
+    private static boolean isBelowMinimumCompatibility(BigDecimal aiScore) {
+        if (aiScore == null) {
+            return false;
+        }
+        return aiScore.compareTo(BigDecimal.valueOf(JobVacancyApplicationRejectionReasonEnum.MINIMUM_COMPATIBILITY_SCORE))
+                < 0;
     }
 
 

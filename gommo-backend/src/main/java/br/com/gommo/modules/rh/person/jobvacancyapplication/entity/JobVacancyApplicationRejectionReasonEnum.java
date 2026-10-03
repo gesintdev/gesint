@@ -1,25 +1,19 @@
 package br.com.gommo.modules.rh.person.jobvacancyapplication.entity;
 
 /**
- * Motivos padronizados de reprovacao (RN-35). Sempre ligados a requisito da vaga ou ao andamento do processo,
- * nunca a atributo pessoal. Provisorio: sera substituido por cadastro proprio.
+ * Motivos padronizados de encerramento da candidatura (RN-35). Lista fixa do sistema; o campo
+ * {@code rejectionRequirement} vem dos requisitos/competencias da vaga quando {@link #requiresRequirement}.
  */
 public enum JobVacancyApplicationRejectionReasonEnum {
-    REQUIRED_EXPERIENCE("Não atende à experiência exigida", true, true),
-    REQUIRED_EDUCATION("Não atende à formação exigida", true, true),
-    TECHNICAL_SKILLS("Não atende às competências técnicas exigidas", true, true),
-    CERTIFICATION_LICENSE("Não possui certificação ou registro obrigatório", true, true),
-    ASSESSMENT_PERFORMANCE("Resultado insuficiente em teste ou avaliação técnica", true, true),
-    SCHEDULE_LOCATION("Incompatível com jornada, local ou disponibilidade exigidos", true, true),
-    MORE_ALIGNED_CANDIDATE("Outro candidato mais aderente aos requisitos", true, true),
-    SALARY_MISALIGNMENT("Pretensão salarial acima da faixa da vaga", false, true),
-    INCOMPLETE_APPLICATION("Candidatura incompleta ou documentação pendente", false, true),
-    NO_SHOW("Não compareceu à entrevista ou etapa agendada", false, true),
-    UNREACHABLE("Sem retorno após tentativas de contato", false, true),
-    POSITION_CLOSED("Vaga encerrada, preenchida ou suspensa", false, true),
-    CANDIDATE_WITHDREW("Candidato desistiu do processo", false, false),
-    OFFER_DECLINED("Candidato recusou a proposta", false, false),
-    INCONSISTENT_INFORMATION("Informações inconsistentes na candidatura", false, false);
+    REQUIREMENT_NOT_MET("Não atende requisito", true, true),
+    ASSESSMENT_BELOW_MINIMUM("Avaliação abaixo do mínimo", false, true),
+    MORE_ALIGNED_CANDIDATE("Outro candidato mais aderente", false, true),
+    INCOMPATIBLE_CONDITIONS("Condições incompatíveis", false, true),
+    CANDIDATE_WITHDREW("Candidato desistiu", false, false),
+    NO_SHOW("Não compareceu", false, true),
+    VACANCY_CANCELLED("Vaga cancelada", false, false);
+
+    public static final int MINIMUM_COMPATIBILITY_SCORE = 80;
 
     private final String label;
     private final boolean requiresRequirement;

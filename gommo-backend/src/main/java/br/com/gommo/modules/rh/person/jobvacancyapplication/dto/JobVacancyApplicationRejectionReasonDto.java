@@ -12,6 +12,7 @@ public class JobVacancyApplicationRejectionReasonDto {
     private final String label;
     private final boolean requiresRequirement;
     private final boolean defaultSendFeedback;
+    private final Integer minimumCompatibilityScore;
 
     public static JobVacancyApplicationRejectionReasonDto of(JobVacancyApplicationRejectionReasonEnum reason) {
         return JobVacancyApplicationRejectionReasonDto.builder()
@@ -19,6 +20,10 @@ public class JobVacancyApplicationRejectionReasonDto {
                 .label(reason.getLabel())
                 .requiresRequirement(reason.isRequiresRequirement())
                 .defaultSendFeedback(reason.isDefaultSendFeedback())
+                .minimumCompatibilityScore(
+                        reason == JobVacancyApplicationRejectionReasonEnum.ASSESSMENT_BELOW_MINIMUM
+                                ? JobVacancyApplicationRejectionReasonEnum.MINIMUM_COMPATIBILITY_SCORE
+                                : null)
                 .build();
     }
 }

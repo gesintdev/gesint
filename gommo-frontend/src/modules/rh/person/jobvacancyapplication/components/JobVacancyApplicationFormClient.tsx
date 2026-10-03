@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 import { candidateKeys } from "@/modules/rh/person/candidate/candidate.query";
 import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
+import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
+import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import type {
     JobVacancyApplicationCreateDto,
     JobVacancyApplicationStatus,
@@ -19,8 +21,6 @@ import {
 } from "@/modules/rh/person/jobvacancyapplication/lib/job-vacancy-application.mapper";
 import { JOB_VACANCY_APPLICATION_STATUS_ITEMS } from "@/modules/rh/person/jobvacancyapplication/lib/job-vacancy-application.options";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
-import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
-import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
@@ -33,7 +33,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "dados", label: "Dados" }];
 
 export function JobVacancyApplicationFormClient() {
-    const { editingId, isEditing, goToList, returnToList, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<JobVacancyApplicationCreateDto>(emptyJobVacancyApplicationForm);
     const [error, setError] = useState<string | null>(null);
@@ -97,7 +97,7 @@ export function JobVacancyApplicationFormClient() {
             if (isEditing && editingId) return jobVacancyApplicationService.update(editingId, payload);
             return jobVacancyApplicationService.create(payload);
         },
-        onSuccess: async () => {
+        onSuccess: async (saved) => {
             await queryClient.invalidateQueries({ queryKey: jobVacancyApplicationKeys.all });
             await queryClient.invalidateQueries({ queryKey: jobVacancyKeys.all });
             if (editingId) {
@@ -106,8 +106,7 @@ export function JobVacancyApplicationFormClient() {
                 });
             }
             toast.success(isEditing ? "Candidatura atualizada" : "Candidatura cadastrada");
-            setForm(emptyJobVacancyApplicationForm());
-            returnToList();
+            void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {

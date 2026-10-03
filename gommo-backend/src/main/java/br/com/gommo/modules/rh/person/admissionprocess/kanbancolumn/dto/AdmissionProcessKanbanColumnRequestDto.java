@@ -1,5 +1,7 @@
 package br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -26,4 +28,10 @@ public class AdmissionProcessKanbanColumnRequestDto {
     private String color;
 
     @NotNull private Integer displayOrder;
+
+    private Boolean slaEnabled;
+
+    @Min(1)
+    @Max(90)
+    private Integer slaBusinessDays;
 }

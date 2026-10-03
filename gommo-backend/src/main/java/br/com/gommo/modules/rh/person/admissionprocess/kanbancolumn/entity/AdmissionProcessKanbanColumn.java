@@ -24,7 +24,12 @@ import org.hibernate.envers.Audited;
 @AllArgsConstructor
 public class AdmissionProcessKanbanColumn extends AuditEntity {
 
-    public static final String REJECTED_COLUMN_KEY = "rejected";
+    /** Coluna de sistema: candidaturas encerradas (reprovacao, desistencia, vaga cancelada). */
+    public static final String CLOSED_COLUMN_KEY = "closed";
+
+    /** @deprecated use {@link #CLOSED_COLUMN_KEY}; mantido para dados legados. */
+    @Deprecated
+    public static final String REJECTED_COLUMN_KEY = "closed";
 
     @Column(name = "column_key", nullable = false, length = 80)
     private String columnKey;
@@ -41,4 +46,12 @@ public class AdmissionProcessKanbanColumn extends AuditEntity {
     @Builder.Default
     @Column(name = "system_column", nullable = false)
     private boolean systemColumn = false;
+
+    @Builder.Default
+    @Column(name = "sla_enabled", nullable = false)
+    private boolean slaEnabled = true;
+
+    @Builder.Default
+    @Column(name = "sla_business_days", nullable = false)
+    private Integer slaBusinessDays = 5;
 }

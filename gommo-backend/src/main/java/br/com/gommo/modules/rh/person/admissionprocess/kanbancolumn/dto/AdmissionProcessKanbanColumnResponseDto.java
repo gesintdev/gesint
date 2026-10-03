@@ -19,6 +19,8 @@ public class AdmissionProcessKanbanColumnResponseDto {
     private final String color;
     private final Integer displayOrder;
     private final boolean systemColumn;
+    private final boolean slaEnabled;
+    private final Integer slaBusinessDays;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

@@ -28,4 +28,15 @@ public interface JobVacancyApplicationRepository extends IBaseRepository<JobVaca
             GROUP BY a.jobVacancyId
             """)
     List<Object[]> countActiveGroupedByJobVacancyId(@Param("deleted") StatusEnum deleted);
+
+    @Query(
+            """
+            SELECT a FROM JobVacancyApplication a
+            WHERE a.status <> :deleted
+              AND a.kanbanColumnKey IS NOT NULL
+              AND LOWER(a.kanbanColumnKey) <> LOWER(:closedColumnKey)
+              AND a.rejectionReason IS NULL
+            """)
+    List<JobVacancyApplication> findKanbanSlaCandidates(
+            @Param("deleted") StatusEnum deleted, @Param("closedColumnKey") String closedColumnKey);
 }

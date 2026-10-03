@@ -1,5 +1,6 @@
 package br.com.gommo.core.tenant;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,4 +17,7 @@ public interface AdminClientLookup {
     Optional<TenantContext> findByCustomDomain(String customDomain);
 
     Optional<String> findMobileLoginCodeByClientId(UUID clientId);
+
+    /** Tenants com schema provisionado, para rotinas agendadas multi-tenant. */
+    List<TenantContext> findAllReadyTenants();
 }

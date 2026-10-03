@@ -57,6 +57,11 @@ public class JobVacancy extends BranchScopedEntity {
     @Column(columnDefinition = "TEXT")
     private String requirements;
 
+    @Builder.Default
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "requirement_items", columnDefinition = "jsonb", nullable = false)
+    private List<String> requirementItems = new ArrayList<>();
+
     @Column(columnDefinition = "TEXT")
     private String benefits;
 

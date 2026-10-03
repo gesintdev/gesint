@@ -44,6 +44,7 @@ export const personRoutes: AppRoute[] = [
     routeGroup({
         id: "recruitment",
         label: "Recrutamento",
+        tabShortLabel: "Recrut.",
         icon: Megaphone,
         children: [
             tabbedCrudRoute({

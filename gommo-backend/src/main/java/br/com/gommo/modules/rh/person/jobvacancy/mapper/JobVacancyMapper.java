@@ -1,7 +1,9 @@
 package br.com.gommo.modules.rh.person.jobvacancy.mapper;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
@@ -12,14 +14,13 @@ import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancy;
 @Component
 public class JobVacancyMapper {
     public JobVacancy toEntity(JobVacancyRequestDto dto) {
-        return JobVacancy.builder()
+        JobVacancy entity = JobVacancy.builder()
                 .jobPositionId(dto.getJobPositionId())
                 .jobTitle(requireTitle(dto.getJobTitle()))
                 .positionsCount(dto.getPositionsCount())
                 .description(trimToNull(dto.getDescription()))
                 .activities(trimToNull(dto.getActivities()))
                 .assignments(trimToNull(dto.getAssignments()))
-                .requirements(trimToNull(dto.getRequirements()))
                 .benefits(trimToNull(dto.getBenefits()))
                 .department(trimToNull(dto.getDepartment()))
                 .location(trimToNull(dto.getLocation()))
@@ -34,6 +35,8 @@ public class JobVacancyMapper {
                 .slug(trimToNull(dto.getSlug()))
                 .isPublic(Boolean.TRUE.equals(dto.getIsPublic()))
                 .build();
+        applyRequirements(entity, dto);
+        return entity;
     }
 
     public void updateEntity(JobVacancy entity, JobVacancyRequestDto dto) {
@@ -43,7 +46,7 @@ public class JobVacancyMapper {
         entity.setDescription(trimToNull(dto.getDescription()));
         entity.setActivities(trimToNull(dto.getActivities()));
         entity.setAssignments(trimToNull(dto.getAssignments()));
-        entity.setRequirements(trimToNull(dto.getRequirements()));
+        applyRequirements(entity, dto);
         entity.setBenefits(trimToNull(dto.getBenefits()));
         entity.setDepartment(trimToNull(dto.getDepartment()));
         entity.setLocation(trimToNull(dto.getLocation()));
@@ -75,6 +78,7 @@ public class JobVacancyMapper {
                 .activities(entity.getActivities())
                 .assignments(entity.getAssignments())
                 .requirements(entity.getRequirements())
+                .requirementItems(copyItems(entity.getRequirementItems()))
                 .benefits(entity.getBenefits())
                 .department(entity.getDepartment())
                 .location(entity.getLocation())
@@ -102,15 +106,57 @@ public class JobVacancyMapper {
         return new ArrayList<>(boards);
     }
 
-    private static String requireTitle(String value) {
-        return value == null ? "" : value.trim();
+    private static List<String> copyItems(List<String> items) {
+        if (items == null || items.isEmpty()) {
+            return List.of();
+        }
+        return List.copyOf(items);
     }
 
-    private static String trimToNull(String value) {
+    private void applyRequirements(JobVacancy entity, JobVacancyRequestDto dto) {
+        List<String> items = resolveRequirementItems(dto);
+        entity.setRequirementItems(new ArrayList<>(items));
+        entity.setRequirements(items.isEmpty() ? trimToNull(dto.getRequirements()) : String.join("\n", items));
+    }
+
+    private List<String> resolveRequirementItems(JobVacancyRequestDto dto) {
+        Set<String> items = new LinkedHashSet<>();
+        if (dto.getRequirementItems() != null) {
+            dto.getRequirementItems().stream()
+                    .map(this::trimToNull)
+                    .filter(value -> value != null)
+                    .forEach(items::add);
+        }
+        if (items.isEmpty()) {
+            splitRequirementText(dto.getRequirements()).forEach(items::add);
+        }
+        return new ArrayList<>(items);
+    }
+
+    private List<String> splitRequirementText(String requirements) {
+        if (requirements == null || requirements.isBlank()) {
+            return List.of();
+        }
+        List<String> items = new ArrayList<>();
+        for (String line : requirements.split("[\\r\\n;]+")) {
+            String trimmed = trimToNull(line);
+            if (trimmed != null) {
+                items.add(trimmed);
+            }
+        }
+        return items;
+    }
+
+    private String trimToNull(String value) {
         if (value == null) {
             return null;
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
+
+    private static String requireTitle(String value) {
+        return value == null ? "" : value.trim();
+    }
+
 }

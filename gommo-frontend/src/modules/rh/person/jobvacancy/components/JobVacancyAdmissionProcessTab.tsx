@@ -24,10 +24,12 @@ import {
     HIRING_KANBAN_COLUMN_KEY,
 } from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
 import {
-    REJECTED_KANBAN_COLUMN_KEY,
+    CLOSED_KANBAN_COLUMN_KEY,
     REJECTION_FEEDBACK_LABELS,
     REJECTION_FEEDBACK_TONE,
 } from "@/modules/rh/person/jobvacancy/lib/job-application-rejection";
+import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
+import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import { useJobVacancyAdmissionProcessStore } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-admission-process.store";
 import type {
     JobVacancyApplication,
@@ -69,6 +71,23 @@ export function JobVacancyAdmissionProcessTab() {
         queryKey: admissionProcessKanbanColumnKeys.all,
         queryFn: () => admissionProcessKanbanColumnService.getAll(),
     });
+
+    const vacancyQuery = useQuery({
+        queryKey: jobVacancyKeys.detail(jobVacancyId ?? ""),
+        queryFn: () => jobVacancyService.getById(jobVacancyId!),
+        enabled: Boolean(jobVacancyId),
+    });
+
+    const closureRequirementOptions = useMemo(() => {
+        const items = vacancyQuery.data?.requirementItems ?? [];
+        if (items.length > 0) return items;
+        const legacy = vacancyQuery.data?.requirements;
+        if (!legacy?.trim()) return [];
+        return legacy
+            .split(/[\r\n;]+/)
+            .map((line) => line.trim())
+            .filter(Boolean);
+    }, [vacancyQuery.data?.requirementItems, vacancyQuery.data?.requirements]);
 
     const applicationsQuery = useQuery({
         queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId ?? ""),
@@ -151,7 +170,7 @@ export function JobVacancyAdmissionProcessTab() {
             jobVacancyApplicationService.reject(id, dto),
         onMutate: ({ id }) => markPending(id, true),
         onSuccess: (updated) => {
-            toast.success("Candidato reprovado");
+            toast.success("Candidato encerrado");
             setRejectApplicationId(null);
             if (jobVacancyId) {
                 queryClient.setQueryData<JobVacancyApplication[]>(
@@ -161,7 +180,7 @@ export function JobVacancyAdmissionProcessTab() {
             }
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível reprovar o candidato." }),
+            ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível encerrar o candidato." }),
         onSettled: async (_data, _error, variables) => {
             markPending(variables.id, false);
             if (!jobVacancyId) return;
@@ -337,7 +356,7 @@ export function JobVacancyAdmissionProcessTab() {
 
     const handleItemMove = (event: KanbanItemMoveEvent) => {
         const targetColumn = sortedColumns.find((column) => column.id === event.toColumnId);
-        if (targetColumn?.columnKey === REJECTED_KANBAN_COLUMN_KEY) {
+        if (targetColumn?.columnKey === CLOSED_KANBAN_COLUMN_KEY) {
             if (event.fromColumnId !== event.toColumnId) setRejectApplicationId(event.itemId);
             return;
         }
@@ -476,6 +495,7 @@ export function JobVacancyAdmissionProcessTab() {
             <JobVacancyApplicationRejectModal
                 open={Boolean(rejectApplicationId)}
                 application={rejectApplication}
+                requirementOptions={closureRequirementOptions}
                 loading={rejectMutation.isPending}
                 onCancel={() => setRejectApplicationId(null)}
                 onConfirm={(dto) => {

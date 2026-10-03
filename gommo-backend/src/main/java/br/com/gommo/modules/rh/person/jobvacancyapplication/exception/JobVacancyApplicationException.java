@@ -104,4 +104,18 @@ public final class JobVacancyApplicationException {
                 JobVacancyApplicationExceptions.REJECTED_COLUMN_MISSING_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException rejectionRequirementInvalid() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.REJECTION_REQUIREMENT_INVALID_CODE,
+                JobVacancyApplicationExceptions.REJECTION_REQUIREMENT_INVALID_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException assessmentBelowMinimumNotApplicable() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.ASSESSMENT_BELOW_MINIMUM_NOT_APPLICABLE_CODE,
+                JobVacancyApplicationExceptions.ASSESSMENT_BELOW_MINIMUM_NOT_APPLICABLE_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

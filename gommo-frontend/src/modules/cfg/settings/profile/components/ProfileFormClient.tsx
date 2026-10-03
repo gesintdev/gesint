@@ -100,7 +100,7 @@ function toProfileDirtySnapshot(drafts: ProfileDraftItem[]): ProfileDirtySnapsho
 const shownProfileDraftRestoreToasts = new Set<string>();
 
 export function ProfileFormClient() {
-    const {editingId, isEditing, goToList, returnToList, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
     const queryClient = useQueryClient();
     const {data: session} = useSession();
     const tenantSlug = session?.tenantSlug?.trim() || "default";
@@ -380,7 +380,7 @@ export function ProfileFormClient() {
             }
             return created;
         },
-        onSuccess: async () => {
+        onSuccess: async (result) => {
             clearProfileFormDraft(tenantSlug, username, draftMode, editingId);
             shownProfileDraftRestoreToasts.delete(
                 isEditing
@@ -395,7 +395,8 @@ export function ProfileFormClient() {
                       ? "Perfis cadastrados"
                       : "Perfil cadastrado",
             );
-            returnToList();
+            const saved = Array.isArray(result) ? result[0] : result;
+            if (saved) void showSavedRecord(saved.id, saved);
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível salvar o perfil."});

@@ -186,6 +186,7 @@ const rhRoutes: AppRoute[] = [
     routeGroup({
         id: "settings-admission-process",
         label: "Processo de Admissão",
+        tabShortLabel: "Proc. Adm.",
         icon: KanbanSquare,
         permission: "admission:read",
         children: [

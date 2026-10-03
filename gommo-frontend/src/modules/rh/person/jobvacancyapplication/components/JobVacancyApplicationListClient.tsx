@@ -11,8 +11,8 @@ import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyappl
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { CrudTableActions } from "@/shared/components/crud/CrudTableActions";
 import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
-import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { ExceptionCapture } from "@/shared/exceptions";
+import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
 import { SystemAlert } from "@/shared/system-alert";
 
 export function JobVacancyApplicationListClient() {

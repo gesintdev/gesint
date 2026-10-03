@@ -107,7 +107,7 @@ function offboardingLabel(name?: string | null, dismissalDate?: string | null, d
 }
 
 export function JobRequisitionFormClient() {
-    const { editingId, isEditing, goToList, startEdit } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const { activeBranch, branches } = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<JobRequisitionFormDto>(emptyJobRequisitionForm);
@@ -196,7 +196,7 @@ export function JobRequisitionFormClient() {
         setForm(jobRequisitionToFormDto(result));
         await queryClient.invalidateQueries({ queryKey: jobRequisitionKeys.all });
         if (!isEditing) {
-            await startEdit(result.id, result, { skipDirtyCheck: true });
+            await showSavedRecord(result.id, result);
         }
     };
 

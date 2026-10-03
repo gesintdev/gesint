@@ -72,8 +72,11 @@ type CrudScreenContextValue = {
     isEditing: boolean;
     /** Volta à listagem com confirmação se houver alterações não salvas (cancelar, etc.). */
     goToList: () => void | Promise<void>;
-    /** Volta à listagem após salvar — sem confirmação de descarte. */
-    returnToList: () => void;
+    /**
+     * Após salvar, mantém o formulário aberto em edição do registro retornado pela API —
+     * sem voltar à listagem e sem confirmação de descarte.
+     */
+    showSavedRecord: (id: string, record?: object) => void | Promise<void>;
     goToForm: () => void;
     goToTab: (tabId: string) => void | Promise<void>;
     startCreate: () => void | Promise<void>;
@@ -326,9 +329,6 @@ export function CrudScreen({
         setActiveTab(CRUD_TAB_LIST);
         syncWorkspace({});
     }, [syncWorkspace]);
-    const returnToList = useCallback(() => {
-        resetToList();
-    }, [resetToList]);
     const goToList = useCallback(async () => {
         if (!(await confirmDiscardFormChanges())) return;
         resetToList();
@@ -364,6 +364,10 @@ export function CrudScreen({
             });
         },
         [canWrite, confirmDiscardFormChanges, crudConfig, editingId, syncWorkspace],
+    );
+    const showSavedRecord = useCallback(
+        (id: string, record?: object) => startEdit(id, record, { skipDirtyCheck: true }),
+        [startEdit],
     );
     /**
      * Troca de aba interna nao descarta o formulario (ele permanece montado).
@@ -427,13 +431,13 @@ export function CrudScreen({
             editingId,
             isEditing,
             goToList,
-            returnToList,
+            showSavedRecord,
             goToForm,
             startCreate,
             startEdit,
             goToTab,
         }),
-        [activeTab, editingId, goToForm, goToList, goToTab, isEditing, returnToList, startCreate, startEdit],
+        [activeTab, editingId, goToForm, goToList, goToTab, isEditing, showSavedRecord, startCreate, startEdit],
     );
     const extraTabPanel = visibleExtraTabs.find((t) => t.id === activeTab)?.content ?? null;
 
@@ -461,7 +465,7 @@ export function CrudScreen({
                                         onClick={() => {
                                             if (disabled) return;
                                             if (tab.id === CRUD_TAB_LIST) {
-                                                // Só troca a aba; nao limpa editingId (Cancelar/Salvar usam goToList/returnToList).
+                                                // Só troca a aba; nao limpa editingId (Cancelar usa goToList; Salvar mantém o formulário via showSavedRecord).
                                                 void goToTab(CRUD_TAB_LIST);
                                                 return;
                                             }

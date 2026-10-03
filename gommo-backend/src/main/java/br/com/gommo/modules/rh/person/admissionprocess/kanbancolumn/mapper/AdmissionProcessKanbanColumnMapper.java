@@ -15,6 +15,8 @@ public class AdmissionProcessKanbanColumnMapper {
                 .name(trimToNull(dto.getName()))
                 .color(normalizeColor(dto.getColor()))
                 .displayOrder(dto.getDisplayOrder())
+                .slaEnabled(resolveSlaEnabled(dto.getSlaEnabled(), true))
+                .slaBusinessDays(resolveSlaBusinessDays(dto.getSlaBusinessDays(), 5))
                 .build();
     }
 
@@ -23,6 +25,11 @@ public class AdmissionProcessKanbanColumnMapper {
         entity.setName(trimToNull(dto.getName()));
         entity.setColor(normalizeColor(dto.getColor()));
         entity.setDisplayOrder(dto.getDisplayOrder());
+        if (!entity.isSystemColumn()) {
+            entity.setSlaEnabled(resolveSlaEnabled(dto.getSlaEnabled(), entity.isSlaEnabled()));
+            entity.setSlaBusinessDays(
+                    resolveSlaBusinessDays(dto.getSlaBusinessDays(), entity.getSlaBusinessDays()));
+        }
     }
 
     public AdmissionProcessKanbanColumnResponseDto toResponse(AdmissionProcessKanbanColumn entity) {
@@ -35,6 +42,8 @@ public class AdmissionProcessKanbanColumnMapper {
                 .color(entity.getColor())
                 .displayOrder(entity.getDisplayOrder())
                 .systemColumn(entity.isSystemColumn())
+                .slaEnabled(entity.isSlaEnabled())
+                .slaBusinessDays(entity.getSlaBusinessDays())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -55,5 +64,14 @@ public class AdmissionProcessKanbanColumnMapper {
         if (value == null) return null;
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static boolean resolveSlaEnabled(Boolean requested, boolean fallback) {
+        return requested != null ? requested : fallback;
+    }
+
+    private static int resolveSlaBusinessDays(Integer requested, Integer fallback) {
+        int base = requested != null ? requested : (fallback != null ? fallback : 5);
+        return Math.max(1, Math.min(90, base));
     }
 }
