@@ -2,6 +2,8 @@ package br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,4 +56,15 @@ public class AdmissionProcessKanbanColumn extends AuditEntity {
     @Builder.Default
     @Column(name = "sla_business_days", nullable = false)
     private Integer slaBusinessDays = 5;
+
+    /** Quando true, o card nesta coluna exibe a aba Avaliacao (scorecard de entrevista). */
+    @Builder.Default
+    @Column(name = "interview_column", nullable = false)
+    private boolean interviewColumn = false;
+
+    /** Acao disparada ao entrar na coluna (ex.: abrir proposta de contratacao). */
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "column_action", nullable = false, length = 40)
+    private KanbanColumnActionEnum columnAction = KanbanColumnActionEnum.NONE;
 }

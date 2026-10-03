@@ -19,14 +19,26 @@ import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrud
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
-import { InputCheckbox, InputColor, InputNumber, InputString } from "@/shared/components/ui/input/index";
+import {
+    InputCheckbox,
+    InputColor,
+    InputNumber,
+    InputSelect,
+    InputString,
+} from "@/shared/components/ui/input/index";
 import { InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Coluna" }];
 const DEFAULT_SLA_BUSINESS_DAYS = 5;
 const MIN_SLA_BUSINESS_DAYS = 1;
 const MAX_SLA_BUSINESS_DAYS = 90;
+
+const COLUMN_ACTION_ITEMS: SelectItem[] = [
+    { value: "NONE", label: "Nenhuma" },
+    { value: "CREATE_ADMISSION", label: "Abrir proposta de contratação" },
+];
 
 function clampSlaBusinessDays(value: number | null | undefined): number {
     const resolved = value ?? DEFAULT_SLA_BUSINESS_DAYS;
@@ -47,7 +59,9 @@ export function AdmissionProcessKanbanColumnFormClient() {
     });
     const isSystemColumn = isEditing && Boolean(detailQuery.data?.systemColumn);
     const slaEnabled = form.slaEnabled ?? true;
+    const interviewColumn = form.interviewColumn ?? false;
     const slaEnabledFieldId = useId();
+    const interviewColumnFieldId = useId();
 
     useEffect(() => {
         if (!isEditing) {
@@ -200,7 +214,7 @@ export function AdmissionProcessKanbanColumnFormClient() {
                 />
                 {isSystemColumn ? (
                     <p className="sm:col-span-8 self-end pb-2 text-sm text-base-content/55">
-                        Colunas do sistema (como Encerrados) não monitoram prazo na etapa.
+                        Colunas do sistema (como Encerrados) não monitoram prazo na etapa nem usam scorecard.
                     </p>
                 ) : (
                     <div className="sm:col-span-8 flex flex-wrap items-start gap-2.5">
@@ -238,6 +252,40 @@ export function AdmissionProcessKanbanColumnFormClient() {
                             align="left"
                             suffix="dias úteis"
                             disabled={!slaEnabled}
+                        />
+                        <InputFieldChrome
+                            label="Coluna de entrevista"
+                            id={interviewColumnFieldId}
+                            labelFor={false}
+                            wrapperClassName="w-max shrink-0"
+                            hint="Exibe a aba Avaliação no card desta etapa."
+                        >
+                            <InputCheckbox
+                                size="xs"
+                                checked={interviewColumn}
+                                onCheckedChange={(checked) => update("interviewColumn", checked)}
+                                label="Usar scorecard"
+                                className={clsx(
+                                    "min-h-9 w-max rounded-lg border px-3 py-2 transition-colors",
+                                    interviewColumn
+                                        ? "border-primary/35 bg-primary/8 text-primary"
+                                        : "border-base-300/50 bg-base-200/20 text-base-content/85 hover:bg-base-200/40",
+                                )}
+                                labelClassName={clsx(
+                                    "text-sm whitespace-nowrap",
+                                    interviewColumn ? "font-medium text-primary" : "text-base-content/75",
+                                )}
+                            />
+                        </InputFieldChrome>
+                        <InputSelect
+                            label="Ação ao entrar na coluna"
+                            items={COLUMN_ACTION_ITEMS}
+                            value={form.columnAction ?? "NONE"}
+                            onValueChange={(v) =>
+                                update("columnAction", (v || "NONE") as "NONE" | "CREATE_ADMISSION")
+                            }
+                            wrapperClassName="min-w-[16rem] flex-1"
+                            hint="Como no Pipeline: dispara um fluxo ao soltar o card nesta etapa."
                         />
                     </div>
                 )}

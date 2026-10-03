@@ -42,6 +42,9 @@ public class JobVacancyApplication extends BranchScopedEntity {
     @Column(name = "candidate_id", nullable = false)
     private UUID candidateId;
 
+    @Column(name = "admission_process_id")
+    private UUID admissionProcessId;
+
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "application_status", nullable = false, length = 32)

@@ -13,16 +13,13 @@ import {
     type CandidateMatchScoreDetailTarget,
 } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
 import { CandidateMatchScoreTag } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreTag";
+import { HireProposalModal } from "@/modules/rh/person/jobvacancy/components/HireProposalModal";
 import { JobVacancyApplicationKanbanDetailModal } from "@/modules/rh/person/jobvacancy/components/JobVacancyApplicationKanbanDetailModal";
 import { JobVacancyApplicationRejectModal } from "@/modules/rh/person/jobvacancy/components/JobVacancyApplicationRejectModal";
 import {
     applicationAiScore,
     isApplicationAiPending,
 } from "@/modules/rh/person/jobvacancy/lib/application-match-score";
-import {
-    createAdmissionFromKanbanCard,
-    HIRING_KANBAN_COLUMN_KEY,
-} from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
 import {
     CLOSED_KANBAN_COLUMN_KEY,
     REJECTION_FEEDBACK_LABELS,
@@ -53,6 +50,7 @@ type AdmissionKanbanCard = KanbanItem & {
     candidateId: string;
     score: number;
     hasCurriculum?: boolean;
+    hired?: boolean;
 };
 
 export function JobVacancyAdmissionProcessTab() {
@@ -62,6 +60,8 @@ export function JobVacancyAdmissionProcessTab() {
     const [pendingItemIds, setPendingItemIds] = useState<Set<string>>(() => new Set());
     const [detailApplicationId, setDetailApplicationId] = useState<string | null>(null);
     const [rejectApplicationId, setRejectApplicationId] = useState<string | null>(null);
+    const [hireApplicationId, setHireApplicationId] = useState<string | null>(null);
+    const [hireColumnKey, setHireColumnKey] = useState<string>("");
     const [scoreDetailTarget, setScoreDetailTarget] = useState<CandidateMatchScoreDetailTarget | null>(
         null,
     );
@@ -155,6 +155,11 @@ export function JobVacancyAdmissionProcessTab() {
         );
     }, [columnsQuery.data]);
 
+    const hireColumn = useMemo(
+        () => sortedColumns.find((column) => column.columnAction === "CREATE_ADMISSION") ?? null,
+        [sortedColumns],
+    );
+
     const detailApplication = useMemo(
         () => (applicationsQuery.data ?? []).find((row) => row.id === detailApplicationId) ?? null,
         [applicationsQuery.data, detailApplicationId],
@@ -191,27 +196,30 @@ export function JobVacancyAdmissionProcessTab() {
         },
     });
 
-    const hireMutation = useMutation({
-        mutationFn: (candidateId: string) =>
-            createAdmissionFromKanbanCard({
-                candidateId,
-                jobVacancyId,
-            }),
-        onSuccess: () => {
-            toast.success("Admissão criada a partir do candidato");
-            setDetailApplicationId(null);
+    const openHireProposal = useCallback(
+        (applicationId: string, columnKey?: string) => {
+            const key = columnKey?.trim() || hireColumn?.columnKey?.trim() || "";
+            if (!key) {
+                toast.error("Nenhuma coluna configurada com ação de proposta de contratação.");
+                return;
+            }
+            setHireColumnKey(key);
+            setHireApplicationId(applicationId);
         },
-        onError: (err: unknown) =>
-            ExceptionCapture.handle(err, {
-                fallbackMessage: "Não foi possível criar a admissão do candidato.",
-            }),
-    });
+        [hireColumn?.columnKey],
+    );
 
-    const handleHiringDrop = useCallback((item?: AdmissionKanbanCard) => {
-        if (!item?.applicationId) return;
-        // Abre o detalhe para revisão; a criação da admissão é ação explícita no modal.
-        setDetailApplicationId(item.applicationId);
-    }, []);
+    const handleHireColumnDrop = useCallback(
+        (item?: AdmissionKanbanCard) => {
+            if (!item?.applicationId) return;
+            if (item.hired) {
+                setDetailApplicationId(item.applicationId);
+                return;
+            }
+            openHireProposal(item.applicationId, hireColumn?.columnKey);
+        },
+        [hireColumn?.columnKey, openHireProposal],
+    );
 
     const openScoreDetail = useCallback((row: {
         applicationId: string;
@@ -230,18 +238,50 @@ export function JobVacancyAdmissionProcessTab() {
             (row) => row.status !== "DELETED" && Boolean(row.kanbanColumnKey?.trim()),
         );
 
+        const interviewColumnKeys = new Set(
+            sortedColumns.filter((column) => column.interviewColumn).map((column) => column.columnKey),
+        );
+
         const cards: AdmissionKanbanCard[] = applications
             .map((row) => {
                 const score = applicationAiScore(row) ?? -1;
                 const pending = isApplicationAiPending(row);
                 const feedbackStatus = row.rejectionFeedbackStatus ?? null;
+                const columnKey = row.kanbanColumnKey?.trim() ?? "";
+                const hired =
+                    row.applicationStatus === "HIRED" || Boolean(row.admissionProcessId);
+                const averages =
+                    columnKey && interviewColumnKeys.has(columnKey) ? (row.interviewAverages ?? []) : [];
+                const averagesMeta =
+                    averages.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                            {averages.slice(0, 3).map((average) => (
+                                <span
+                                    key={average.competencyId}
+                                    className="rounded border border-base-content/10 bg-base-100 px-1.5 py-0.5 text-[0.625rem] text-base-content/65"
+                                    title={`${average.competencyName ?? "Competência"}: média ${average.average}`}
+                                >
+                                    {(average.competencyName ?? "Comp.").slice(0, 12)}
+                                    {average.competencyName && average.competencyName.length > 12 ? "…" : ""}{" "}
+                                    · {average.average}
+                                </span>
+                            ))}
+                            {averages.length > 3 ? (
+                                <span className="text-[0.625rem] text-base-content/45">
+                                    +{averages.length - 3}
+                                </span>
+                            ) : null}
+                        </div>
+                    ) : null;
                 return {
                     id: row.id,
                     applicationId: row.id,
                     candidateId: row.candidateId,
                     title: row.candidateFullName ?? "Candidato",
                     subtitle: row.candidateEmail ?? undefined,
-                    meta: row.rejectionReason ? (
+                    meta: hired ? (
+                        <span className="font-medium text-success">Contratado</span>
+                    ) : row.rejectionReason ? (
                         <div className="grid gap-0.5">
                             <span className="line-clamp-2 text-base-content/60" title={row.rejectionRequirement ?? undefined}>
                                 {row.rejectionReasonLabel}
@@ -255,6 +295,8 @@ export function JobVacancyAdmissionProcessTab() {
                                 </span>
                             ) : null}
                         </div>
+                    ) : averagesMeta ? (
+                        averagesMeta
                     ) : row.candidatePhone ? (
                         formatPhone(row.candidatePhone)
                     ) : undefined,
@@ -274,6 +316,7 @@ export function JobVacancyAdmissionProcessTab() {
                     ),
                     score,
                     hasCurriculum: Boolean(row.aiAnalysis?.hasCurriculum),
+                    hired,
                 };
             })
             .sort((a, b) => {
@@ -284,7 +327,7 @@ export function JobVacancyAdmissionProcessTab() {
             });
 
         return sortedColumns.map((column) => {
-            const isHiring = column.columnKey === HIRING_KANBAN_COLUMN_KEY;
+            const isHireColumn = column.columnAction === "CREATE_ADMISSION";
             return {
                 id: column.id,
                 title: column.name,
@@ -293,10 +336,10 @@ export function JobVacancyAdmissionProcessTab() {
                     const application = applications.find((row) => row.id === card.id);
                     return application?.kanbanColumnKey?.trim() === column.columnKey;
                 }),
-                onDrop: isHiring ? handleHiringDrop : undefined,
+                onDrop: isHireColumn ? handleHireColumnDrop : undefined,
             };
         });
-    }, [applicationsQuery.data, handleHiringDrop, openScoreDetail, sortedColumns]);
+    }, [applicationsQuery.data, handleHireColumnDrop, openScoreDetail, sortedColumns]);
 
     const markPending = (itemId: string, pending: boolean) => {
         setPendingItemIds((current) => {
@@ -365,6 +408,15 @@ export function JobVacancyAdmissionProcessTab() {
 
     const handleSwitchVacancy = () => {
         goToTab(CRUD_TAB_LIST);
+    };
+
+    const handleHireSuccess = async () => {
+        if (!jobVacancyId) return;
+        await queryClient.invalidateQueries({
+            queryKey: jobVacancyApplicationKeys.byVacancy(jobVacancyId),
+        });
+        await queryClient.invalidateQueries({ queryKey: jobVacancyApplicationKeys.all });
+        setDetailApplicationId(null);
     };
 
     const isBoardRefreshing =
@@ -485,12 +537,27 @@ export function JobVacancyAdmissionProcessTab() {
                 application={detailApplication}
                 columns={sortedColumns}
                 onClose={() => setDetailApplicationId(null)}
-                onCreateAdmission={
-                    detailApplication?.candidateId
-                        ? () => hireMutation.mutate(detailApplication.candidateId)
+                onConfirmHire={
+                    detailApplication &&
+                    hireColumn &&
+                    detailApplication.kanbanColumnKey?.trim() === hireColumn.columnKey &&
+                    detailApplication.applicationStatus !== "HIRED" &&
+                    !detailApplication.admissionProcessId
+                        ? () => openHireProposal(detailApplication.id, hireColumn.columnKey)
                         : undefined
                 }
-                createAdmissionLoading={hireMutation.isPending}
+            />
+            <HireProposalModal
+                open={Boolean(hireApplicationId)}
+                applicationId={hireApplicationId}
+                columnKey={hireColumnKey}
+                onClose={() => {
+                    setHireApplicationId(null);
+                    setHireColumnKey("");
+                }}
+                onSuccess={() => {
+                    void handleHireSuccess();
+                }}
             />
             <JobVacancyApplicationRejectModal
                 open={Boolean(rejectApplicationId)}

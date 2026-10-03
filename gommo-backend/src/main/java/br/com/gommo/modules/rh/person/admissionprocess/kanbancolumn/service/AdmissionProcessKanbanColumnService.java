@@ -13,6 +13,7 @@ import br.com.gommo.core.entity.StatusEnum;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.dto.AdmissionProcessKanbanColumnRequestDto;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.dto.AdmissionProcessKanbanColumnResponseDto;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.entity.AdmissionProcessKanbanColumn;
+import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.entity.KanbanColumnActionEnum;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.exception.AdmissionProcessKanbanColumnException;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.mapper.AdmissionProcessKanbanColumnMapper;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.repository.AdmissionProcessKanbanColumnRepository;
@@ -73,6 +74,7 @@ public class AdmissionProcessKanbanColumnService
     public AdmissionProcessKanbanColumnResponseDto create(AdmissionProcessKanbanColumnRequestDto request) {
         normalize(request);
         rejectReservedKey(request.getColumnKey());
+        assertUniqueHireAction(null, request.getColumnAction());
         return super.create(request);
     }
 
@@ -87,8 +89,10 @@ public class AdmissionProcessKanbanColumnService
                 throw AdmissionProcessKanbanColumnException.systemColumnLocked();
             }
             request.setColumnKey(current.getColumnKey());
+            request.setColumnAction(KanbanColumnActionEnum.NONE);
         } else {
             rejectReservedKey(request.getColumnKey());
+            assertUniqueHireAction(id, request.getColumnAction());
         }
         return super.update(id, request);
     }
@@ -154,6 +158,22 @@ public class AdmissionProcessKanbanColumnService
         }
         if (request.getDisplayOrder() == null) {
             request.setDisplayOrder(0);
+        }
+        if (request.getColumnAction() == null) {
+            request.setColumnAction(KanbanColumnActionEnum.NONE);
+        }
+    }
+
+    private void assertUniqueHireAction(UUID currentId, KanbanColumnActionEnum action) {
+        if (action != KanbanColumnActionEnum.CREATE_ADMISSION) {
+            return;
+        }
+        boolean exists = repository.findAllByStatusNotOrderByDisplayOrderAscNameAsc(StatusEnum.DELETED).stream()
+                .filter(column -> column.getStatus() != StatusEnum.DELETED)
+                .filter(column -> column.getColumnAction() == KanbanColumnActionEnum.CREATE_ADMISSION)
+                .anyMatch(column -> currentId == null || !column.getId().equals(currentId));
+        if (exists) {
+            throw AdmissionProcessKanbanColumnException.duplicateHireAction();
         }
     }
 }

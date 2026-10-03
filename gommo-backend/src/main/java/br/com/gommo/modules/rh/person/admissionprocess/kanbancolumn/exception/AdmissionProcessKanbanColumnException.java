@@ -28,4 +28,11 @@ public final class AdmissionProcessKanbanColumnException {
                 AdmissionProcessKanbanColumnExceptions.RESERVED_KEY_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException duplicateHireAction() {
+        return new BusinessException(
+                AdmissionProcessKanbanColumnExceptions.DUPLICATE_HIRE_ACTION_CODE,
+                AdmissionProcessKanbanColumnExceptions.DUPLICATE_HIRE_ACTION_MSG,
+                HttpStatus.CONFLICT);
+    }
 }

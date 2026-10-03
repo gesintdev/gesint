@@ -50,7 +50,7 @@ public class Collaborator extends BranchScopedEntity {
     @Column(name = "rg_state_code", length = 2)
     private String rgStateCode;
 
-    @Column(name = "birth_date", nullable = false)
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Enumerated(EnumType.STRING)

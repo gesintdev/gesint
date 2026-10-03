@@ -1,7 +1,26 @@
 package br.com.gommo.modules.dp.offboarding.service;
 
+import java.util.List;
+import java.util.UUID;
+
 import br.com.gommo.core.base.service.IBaseService;
+import br.com.gommo.modules.dp.offboarding.dto.EsocialDismissalReasonDto;
+import br.com.gommo.modules.dp.offboarding.dto.OffboardingAccountantPackageDto;
+import br.com.gommo.modules.dp.offboarding.dto.OffboardingDemissionalPreviewDto;
 import br.com.gommo.modules.dp.offboarding.dto.OffboardingRequestDto;
 import br.com.gommo.modules.dp.offboarding.dto.OffboardingResponseDto;
 
-public interface IOffboardingService extends IBaseService<OffboardingRequestDto, OffboardingResponseDto> {}
+public interface IOffboardingService extends IBaseService<OffboardingRequestDto, OffboardingResponseDto> {
+
+    List<EsocialDismissalReasonDto> listEsocialDismissalReasons();
+
+    OffboardingDemissionalPreviewDto demissionalPreview(UUID id);
+
+    OffboardingResponseDto registerDemissionalWaiver(UUID id, String notes);
+
+    OffboardingResponseDto conclude(UUID id);
+
+    OffboardingAccountantPackageDto accountantPackagePreview(UUID id);
+
+    OffboardingAccountantPackageDto sendAccountantPackage(UUID id);
+}

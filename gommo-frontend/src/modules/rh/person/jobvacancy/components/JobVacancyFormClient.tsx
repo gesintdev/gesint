@@ -7,6 +7,7 @@ import { type FormEvent, useEffect, useId, useMemo, useRef, useState } from "rea
 import { toast } from "sonner";
 
 import { JobPositionPickerField } from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
+import { JobVacancyCompetencySection } from "@/modules/rh/person/jobvacancy/competency/components/JobVacancyCompetencySection";
 import type {
     JobBoardKey,
     JobVacancyContractType,
@@ -52,6 +53,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [
     { id: "dados", label: "Dados" },
     { id: "detalhes", label: "Detalhes" },
+    { id: "competencias-entrevista", label: "Competências" },
     { id: "publicacao", label: "Publicação" },
 ];
 
@@ -397,6 +399,11 @@ export function JobVacancyFormClient() {
                     placeholder="Um benefício por linha"
                 />
             </FormSection>
+
+            <JobVacancyCompetencySection
+                jobVacancyId={isEditing ? editingId : null}
+                hasJobPosition={Boolean(form.jobPositionId)}
+            />
 
             <FormSection id="publicacao" title="Publicação" bodyClassName="!grid-cols-1">
                 <div className="grid gap-6 lg:grid-cols-12 lg:items-start">

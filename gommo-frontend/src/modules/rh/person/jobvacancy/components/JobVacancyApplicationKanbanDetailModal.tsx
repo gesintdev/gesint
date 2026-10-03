@@ -17,11 +17,11 @@ import {
     type CandidateMatchScoreDetailTarget,
 } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
 import {CandidateProfileView} from "@/modules/rh/person/jobvacancy/components/CandidateProfileView";
+import {InterviewScorecardPanel} from "@/modules/rh/person/jobvacancy/components/InterviewScorecardPanel";
 import {
     applicationAiScore,
     isApplicationAiPending,
 } from "@/modules/rh/person/jobvacancy/lib/application-match-score";
-import {HIRING_KANBAN_COLUMN_KEY} from "@/modules/rh/person/jobvacancy/lib/create-admission-from-kanban-card";
 import {REJECTION_FEEDBACK_LABELS} from "@/modules/rh/person/jobvacancy/lib/job-application-rejection";
 import type {JobVacancyApplication} from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import {jobVacancyApplicationKeys} from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
@@ -42,8 +42,8 @@ type JobVacancyApplicationKanbanDetailModalProps = {
     application: JobVacancyApplication | null;
     columns: AdmissionProcessKanbanColumn[];
     onClose: () => void;
-    onCreateAdmission?: () => void;
-    createAdmissionLoading?: boolean;
+    onConfirmHire?: () => void;
+    confirmHireLoading?: boolean;
 };
 
 type EditableStageComment = {
@@ -297,24 +297,32 @@ function buildDraftsFromApplication(
     return drafts;
 }
 
+type DetailTab = "comments" | "evaluation";
+
 export function JobVacancyApplicationKanbanDetailModal({
                                                            open,
                                                            application,
                                                            columns,
                                                            onClose,
-                                                           onCreateAdmission,
-                                                           createAdmissionLoading = false,
+                                                           onConfirmHire,
+                                                           confirmHireLoading = false,
                                                        }: JobVacancyApplicationKanbanDetailModalProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const queryClient = useQueryClient();
     const [mounted, setMounted] = useState(false);
     const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+    const [activeTab, setActiveTab] = useState<DetailTab>("comments");
 
     const currentColumnKey = application?.kanbanColumnKey?.trim() ?? "";
-    const currentColumnName =
-        columns.find((column) => column.columnKey === currentColumnKey)?.name ?? currentColumnKey;
-    const showCreateAdmission =
-        Boolean(onCreateAdmission) && currentColumnKey === HIRING_KANBAN_COLUMN_KEY;
+    const currentColumn = columns.find((column) => column.columnKey === currentColumnKey);
+    const currentColumnName = currentColumn?.name ?? currentColumnKey;
+    const isInterviewColumn = Boolean(currentColumn?.interviewColumn);
+    const alreadyHired =
+        application?.applicationStatus === "HIRED" || Boolean(application?.admissionProcessId);
+    const showConfirmHire =
+        Boolean(onConfirmHire) &&
+        currentColumn?.columnAction === "CREATE_ADMISSION" &&
+        !alreadyHired;
 
     const editableStages = useMemo((): EditableStageComment[] => {
         if (!application) return [];
@@ -367,7 +375,14 @@ export function JobVacancyApplicationKanbanDetailModal({
     useEffect(() => {
         if (!open || !application) return;
         setCommentDrafts(buildDraftsFromApplication(application, stageKeys));
+        setActiveTab("comments");
     }, [open, application, stageKeys]);
+
+    useEffect(() => {
+        if (!isInterviewColumn && activeTab === "evaluation") {
+            setActiveTab("comments");
+        }
+    }, [activeTab, isInterviewColumn]);
 
     const dirtyEntries = useMemo(() => {
         if (!application) return [];
@@ -442,8 +457,8 @@ export function JobVacancyApplicationKanbanDetailModal({
         dirtyEntries.length > 0 &&
         !saveMutation.isPending &&
         !deleteMutation.isPending &&
-        !createAdmissionLoading;
-    const busy = saveMutation.isPending || deleteMutation.isPending || createAdmissionLoading;
+        !confirmHireLoading;
+    const busy = saveMutation.isPending || deleteMutation.isPending || confirmHireLoading;
 
     if (!mounted) return null;
 
@@ -547,58 +562,99 @@ export function JobVacancyApplicationKanbanDetailModal({
                                 </section>
                             ) : null}
 
-                            <section className="grid gap-2 text-xs">
-                                <div>
-                                    <h4 className="text-xs font-semibold text-base-content">
+                            {isInterviewColumn ? (
+                                <div className="flex gap-1 border-b border-base-content/10">
+                                    <button
+                                        type="button"
+                                        className={clsx(
+                                            "px-3 py-2 text-xs font-semibold transition-colors",
+                                            activeTab === "comments"
+                                                ? "border-b-2 border-primary text-primary"
+                                                : "text-base-content/55 hover:text-base-content/80",
+                                        )}
+                                        onClick={() => setActiveTab("comments")}
+                                    >
                                         Comentários por etapa
-                                    </h4>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={clsx(
+                                            "px-3 py-2 text-xs font-semibold transition-colors",
+                                            activeTab === "evaluation"
+                                                ? "border-b-2 border-primary text-primary"
+                                                : "text-base-content/55 hover:text-base-content/80",
+                                        )}
+                                        onClick={() => setActiveTab("evaluation")}
+                                    >
+                                        Avaliação
+                                    </button>
                                 </div>
+                            ) : null}
 
-                                {editableStages.length === 0 ? (
-                                    <p className="rounded-lg border border-dashed border-base-content/15 px-3 py-3 text-xs text-base-content/45">
-                                        Nenhuma etapa disponível para comentário.
-                                    </p>
-                                ) : (
-                                    <div className="grid gap-1.5">
-                                        {editableStages.map((stage) => {
-                                            const draft = commentDrafts[stage.columnKey] ?? "";
-                                            const saved =
-                                                application.stageComments?.[stage.columnKey]?.text ??
-                                                "";
-                                            const hasComment = Boolean(draft.trim() || saved.trim());
-                                            return (
-                                                <StageCommentAccordion
-                                                    key={stage.columnKey}
-                                                    title={
-                                                        stage.isCurrent
-                                                            ? `${stage.title} (atual)`
-                                                            : stage.title
-                                                    }
-                                                    value={draft}
-                                                    updatedAt={stage.updatedAt}
-                                                    columnColor={stage.color}
-                                                    defaultOpen={stage.isCurrent}
-                                                    disabled={busy}
-                                                    canDelete={hasComment}
-                                                    deleteLoading={
-                                                        deleteMutation.isPending &&
-                                                        deleteMutation.variables === stage.columnKey
-                                                    }
-                                                    onChange={(value) =>
-                                                        setCommentDrafts((current) => ({
-                                                            ...current,
-                                                            [stage.columnKey]: value,
-                                                        }))
-                                                    }
-                                                    onDelete={() =>
-                                                        void handleDeleteComment(stage.columnKey)
-                                                    }
-                                                />
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </section>
+                            {(!isInterviewColumn || activeTab === "comments") ? (
+                                <section className="grid gap-2 text-xs">
+                                    {!isInterviewColumn ? (
+                                        <div>
+                                            <h4 className="text-xs font-semibold text-base-content">
+                                                Comentários por etapa
+                                            </h4>
+                                        </div>
+                                    ) : null}
+
+                                    {editableStages.length === 0 ? (
+                                        <p className="rounded-lg border border-dashed border-base-content/15 px-3 py-3 text-xs text-base-content/45">
+                                            Nenhuma etapa disponível para comentário.
+                                        </p>
+                                    ) : (
+                                        <div className="grid gap-1.5">
+                                            {editableStages.map((stage) => {
+                                                const draft = commentDrafts[stage.columnKey] ?? "";
+                                                const saved =
+                                                    application.stageComments?.[stage.columnKey]?.text ??
+                                                    "";
+                                                const hasComment = Boolean(draft.trim() || saved.trim());
+                                                return (
+                                                    <StageCommentAccordion
+                                                        key={stage.columnKey}
+                                                        title={
+                                                            stage.isCurrent
+                                                                ? `${stage.title} (atual)`
+                                                                : stage.title
+                                                        }
+                                                        value={draft}
+                                                        updatedAt={stage.updatedAt}
+                                                        columnColor={stage.color}
+                                                        defaultOpen={stage.isCurrent}
+                                                        disabled={busy}
+                                                        canDelete={hasComment}
+                                                        deleteLoading={
+                                                            deleteMutation.isPending &&
+                                                            deleteMutation.variables === stage.columnKey
+                                                        }
+                                                        onChange={(value) =>
+                                                            setCommentDrafts((current) => ({
+                                                                ...current,
+                                                                [stage.columnKey]: value,
+                                                            }))
+                                                        }
+                                                        onDelete={() =>
+                                                            void handleDeleteComment(stage.columnKey)
+                                                        }
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </section>
+                            ) : null}
+
+                            {isInterviewColumn && activeTab === "evaluation" && currentColumnKey ? (
+                                <InterviewScorecardPanel
+                                    applicationId={application.id}
+                                    jobVacancyId={application.jobVacancyId}
+                                    columnKey={currentColumnKey}
+                                />
+                            ) : null}
                         </div>
                     ) : null}
                 </div>
@@ -607,23 +663,37 @@ export function JobVacancyApplicationKanbanDetailModal({
                     <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>
                         Fechar
                     </Button>
-                    <Button
-                        type="button"
-                        variant={showCreateAdmission ? "outline" : undefined}
-                        loading={saveMutation.isPending}
-                        disabled={!canSave}
-                        onClick={() => saveMutation.mutate()}
-                    >
-                        Salvar
-                    </Button>
-                    {showCreateAdmission ? (
+                    {(!isInterviewColumn || activeTab === "comments") ? (
                         <Button
                             type="button"
-                            loading={createAdmissionLoading}
-                            disabled={busy || !application?.candidateId}
-                            onClick={onCreateAdmission}
+                            variant={showConfirmHire || alreadyHired ? "outline" : undefined}
+                            loading={saveMutation.isPending}
+                            disabled={!canSave}
+                            onClick={() => saveMutation.mutate()}
                         >
-                            Criar Admissão
+                            Salvar
+                        </Button>
+                    ) : null}
+                    {alreadyHired && application?.admissionProcessId ? (
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                window.location.href = `/collaborator/admission?edit=${encodeURIComponent(
+                                    application.admissionProcessId!,
+                                )}`;
+                            }}
+                        >
+                            Abrir admissão
+                        </Button>
+                    ) : null}
+                    {showConfirmHire ? (
+                        <Button
+                            type="button"
+                            loading={confirmHireLoading}
+                            disabled={busy || !application?.candidateId}
+                            onClick={onConfirmHire}
+                        >
+                            Confirmar contratação
                         </Button>
                     ) : null}
                 </div>

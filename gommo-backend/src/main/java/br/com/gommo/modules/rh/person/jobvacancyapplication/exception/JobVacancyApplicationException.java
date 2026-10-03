@@ -118,4 +118,102 @@ public final class JobVacancyApplicationException {
                 JobVacancyApplicationExceptions.ASSESSMENT_BELOW_MINIMUM_NOT_APPLICABLE_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException interviewColumnRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_COLUMN_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_COLUMN_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException interviewColumnNotEnabled() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_COLUMN_NOT_ENABLED_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_COLUMN_NOT_ENABLED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException interviewCompetenciesMissing() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_COMPETENCIES_MISSING_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_COMPETENCIES_MISSING_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException interviewScoreIncomplete() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_SCORE_INCOMPLETE_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_SCORE_INCOMPLETE_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException interviewScoreInvalid() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_SCORE_INVALID_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_SCORE_INVALID_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException interviewJustificationRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_JUSTIFICATION_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_JUSTIFICATION_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException interviewCompetencyNotInScorecard() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_COMPETENCY_NOT_IN_SCORECARD_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_COMPETENCY_NOT_IN_SCORECARD_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException interviewAlreadySubmitted() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_ALREADY_SUBMITTED_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_ALREADY_SUBMITTED_MSG,
+                HttpStatus.CONFLICT);
+    }
+
+    public static BusinessException interviewEvaluatorRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_EVALUATOR_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_EVALUATOR_REQUIRED_MSG,
+                HttpStatus.UNAUTHORIZED);
+    }
+
+    public static BusinessException hireColumnRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.HIRE_COLUMN_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.HIRE_COLUMN_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException hireAcceptanceRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.HIRE_ACCEPTANCE_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.HIRE_ACCEPTANCE_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException hireCpfRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.HIRE_CPF_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.HIRE_CPF_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException hireAlreadyDone() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.HIRE_ALREADY_DONE_CODE,
+                JobVacancyApplicationExceptions.HIRE_ALREADY_DONE_MSG,
+                HttpStatus.CONFLICT);
+    }
+
+    public static BusinessException hireCandidateRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.HIRE_CANDIDATE_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.HIRE_CANDIDATE_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

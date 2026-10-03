@@ -24,6 +24,7 @@ public enum AuditActionEnum {
     REJECT(AuditCategoryEnum.DECISION, "Reprovou"),
     RETURN(AuditCategoryEnum.DECISION, "Devolveu para ajuste"),
     TERMINATE(AuditCategoryEnum.DECISION, "Registrou desligamento"),
+    HIRE(AuditCategoryEnum.DECISION, "Contratou"),
     COMPLETE(AuditCategoryEnum.DECISION, "Concluiu"),
     CANCEL(AuditCategoryEnum.DECISION, "Cancelou"),
     CLOSE(AuditCategoryEnum.DECISION, "Fechou"),

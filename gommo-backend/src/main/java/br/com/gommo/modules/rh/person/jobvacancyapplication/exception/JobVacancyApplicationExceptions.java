@@ -62,4 +62,70 @@ public final class JobVacancyApplicationExceptions {
             "JOB_VACANCY_APPLICATION_ASSESSMENT_BELOW_MINIMUM_NOT_APPLICABLE";
     public static final String ASSESSMENT_BELOW_MINIMUM_NOT_APPLICABLE_MSG =
             "Este motivo s\u00f3 se aplica quando a compatibilidade da IA est\u00e1 abaixo de 80%";
+
+    public static final String INTERVIEW_COLUMN_REQUIRED_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_COLUMN_REQUIRED";
+    public static final String INTERVIEW_COLUMN_REQUIRED_MSG =
+            "Informe a coluna do kanban da avalia\u00e7\u00e3o";
+
+    public static final String INTERVIEW_COLUMN_NOT_ENABLED_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_COLUMN_NOT_ENABLED";
+    public static final String INTERVIEW_COLUMN_NOT_ENABLED_MSG =
+            "Esta coluna n\u00e3o est\u00e1 marcada como entrevista";
+
+    public static final String INTERVIEW_COMPETENCIES_MISSING_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_COMPETENCIES_MISSING";
+    public static final String INTERVIEW_COMPETENCIES_MISSING_MSG =
+            "Configure as compet\u00eancias do cargo ou da vaga para usar o scorecard";
+
+    public static final String INTERVIEW_SCORE_INCOMPLETE_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_SCORE_INCOMPLETE";
+    public static final String INTERVIEW_SCORE_INCOMPLETE_MSG =
+            "Informe nota para todas as compet\u00eancias antes de enviar";
+
+    public static final String INTERVIEW_SCORE_INVALID_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_SCORE_INVALID";
+    public static final String INTERVIEW_SCORE_INVALID_MSG =
+            "A nota deve corresponder a um n\u00edvel de profici\u00eancia v\u00e1lido";
+
+    public static final String INTERVIEW_JUSTIFICATION_REQUIRED_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_JUSTIFICATION_REQUIRED";
+    public static final String INTERVIEW_JUSTIFICATION_REQUIRED_MSG =
+            "Cada nota exige uma justificativa";
+
+    public static final String INTERVIEW_COMPETENCY_NOT_IN_SCORECARD_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_COMPETENCY_NOT_IN_SCORECARD";
+    public static final String INTERVIEW_COMPETENCY_NOT_IN_SCORECARD_MSG =
+            "Compet\u00eancia n\u00e3o faz parte do scorecard desta vaga";
+
+    public static final String INTERVIEW_ALREADY_SUBMITTED_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_ALREADY_SUBMITTED";
+    public static final String INTERVIEW_ALREADY_SUBMITTED_MSG =
+            "Sua avalia\u00e7\u00e3o j\u00e1 foi enviada e n\u00e3o pode ser alterada";
+
+    public static final String INTERVIEW_EVALUATOR_REQUIRED_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_EVALUATOR_REQUIRED";
+    public static final String INTERVIEW_EVALUATOR_REQUIRED_MSG =
+            "N\u00e3o foi poss\u00edvel identificar o avaliador autenticado";
+
+    public static final String HIRE_COLUMN_REQUIRED_CODE = "JOB_VACANCY_APPLICATION_HIRE_COLUMN_REQUIRED";
+    public static final String HIRE_COLUMN_REQUIRED_MSG =
+            "A coluna informada n\u00e3o est\u00e1 configurada para proposta de contrata\u00e7\u00e3o";
+
+    public static final String HIRE_ACCEPTANCE_REQUIRED_CODE =
+            "JOB_VACANCY_APPLICATION_HIRE_ACCEPTANCE_REQUIRED";
+    public static final String HIRE_ACCEPTANCE_REQUIRED_MSG =
+            "Confirme o aceite do candidato antes de contratar";
+
+    public static final String HIRE_CPF_REQUIRED_CODE = "JOB_VACANCY_APPLICATION_HIRE_CPF_REQUIRED";
+    public static final String HIRE_CPF_REQUIRED_MSG =
+            "Informe o CPF do candidato para criar a admiss\u00e3o";
+
+    public static final String HIRE_ALREADY_DONE_CODE = "JOB_VACANCY_APPLICATION_HIRE_ALREADY_DONE";
+    public static final String HIRE_ALREADY_DONE_MSG = "Esta candidatura j\u00e1 foi convertida em admiss\u00e3o";
+
+    public static final String HIRE_CANDIDATE_REQUIRED_CODE =
+            "JOB_VACANCY_APPLICATION_HIRE_CANDIDATE_REQUIRED";
+    public static final String HIRE_CANDIDATE_REQUIRED_MSG =
+            "Candidato da candidatura n\u00e3o encontrado";
 }

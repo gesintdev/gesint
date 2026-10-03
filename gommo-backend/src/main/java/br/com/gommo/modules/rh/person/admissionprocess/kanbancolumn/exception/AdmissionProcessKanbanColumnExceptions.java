@@ -13,4 +13,9 @@ public final class AdmissionProcessKanbanColumnExceptions {
 
     public static final String RESERVED_KEY_CODE = "ADMISSION_PROCESS_KANBAN_COLUMN_RESERVED_KEY";
     public static final String RESERVED_KEY_MSG = "Esta chave e reservada para uma coluna do sistema";
+
+    public static final String DUPLICATE_HIRE_ACTION_CODE =
+            "ADMISSION_PROCESS_KANBAN_COLUMN_DUPLICATE_HIRE_ACTION";
+    public static final String DUPLICATE_HIRE_ACTION_MSG =
+            "J\u00e1 existe uma coluna com a a\u00e7\u00e3o de proposta de contrata\u00e7\u00e3o";
 }

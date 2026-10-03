@@ -92,8 +92,15 @@ public class AdmissionProcess extends BranchScopedEntity {
     @Column(name = "rg_state_code", length = 2)
     private String rgStateCode;
 
-    @Column(name = "birth_date", nullable = false)
+    /** Pode ficar nulo ate a pre-admissao (candidatos da pagina publica). */
+    @Column(name = "birth_date")
     private LocalDate birthDate;
+
+    @Column(name = "source_application_id")
+    private UUID sourceApplicationId;
+
+    @Column(name = "source_candidate_id")
+    private UUID sourceCandidateId;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)

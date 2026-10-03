@@ -1,7 +1,9 @@
 package br.com.gommo.modules.rh.person.jobvacancyapplication.mapper;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
@@ -13,6 +15,7 @@ import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplic
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationStageCommentDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplication;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationStatusEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.dto.InterviewCompetencyAverageDto;
 
 @Component
 public class JobVacancyApplicationMapper {
@@ -47,12 +50,21 @@ public class JobVacancyApplicationMapper {
 
     public JobVacancyApplicationResponseDto toResponse(
             JobVacancyApplication entity, JobVacancy vacancy, Candidate candidate) {
+        return toResponse(entity, vacancy, candidate, List.of());
+    }
+
+    public JobVacancyApplicationResponseDto toResponse(
+            JobVacancyApplication entity,
+            JobVacancy vacancy,
+            Candidate candidate,
+            List<InterviewCompetencyAverageDto> interviewAverages) {
         return JobVacancyApplicationResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
                 .jobVacancyId(entity.getJobVacancyId())
                 .jobVacancyTitle(vacancy != null ? vacancy.getJobTitle() : null)
+                .admissionProcessId(entity.getAdmissionProcessId())
                 .candidateId(entity.getCandidateId())
                 .candidateFullName(candidate != null ? candidate.getFullName() : null)
                 .candidateCpf(candidate != null ? candidate.getCpf() : null)
@@ -77,6 +89,8 @@ public class JobVacancyApplicationMapper {
                 .rejectionFeedbackStatus(entity.getRejectionFeedbackStatus())
                 .rejectionFeedbackAt(entity.getRejectionFeedbackAt())
                 .rejectionFeedbackDetail(entity.getRejectionFeedbackDetail())
+                .interviewAverages(
+                        interviewAverages == null ? new ArrayList<>() : new ArrayList<>(interviewAverages))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

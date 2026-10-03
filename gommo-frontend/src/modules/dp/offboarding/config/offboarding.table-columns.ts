@@ -1,19 +1,10 @@
+import {DISMISSAL_TYPE_LABELS} from "@/modules/dp/offboarding/lib/offboarding-labels";
+import {PROCESS_STATUS_LABELS} from "@/modules/dp/offboarding/lib/offboarding.options";
 import {ENTITY_CODE_TABLE_COLUMN} from "@/shared/config/entity-code.table-column";
 import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types";
 
-export const DISMISSAL_TYPE_LABELS: Record<string, string> = {
-    WITHOUT_CAUSE: "Sem justa causa",
-    WITH_CAUSE: "Com justa causa",
-    RESIGNATION: "Pedido de demissão",
-    AGREEMENT: "Acordo",
-    END_OF_CONTRACT: "Fim de contrato",
-    OTHER: "Outro",
-};
-const OFFBOARDING_STATUS_LABELS: Record<string, string> = {
-    ACTIVE: "Desligado",
-    INACTIVE: "Inativo",
-    DELETED: "Excluído",
-};
+export {DISMISSAL_TYPE_LABELS};
+
 export const OFFBOARDING_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {
@@ -23,10 +14,16 @@ export const OFFBOARDING_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.TEXT,
     },
     {
-        id: "dismissalDate",
-        columnName: "Data",
-        fieldValue: "dismissalDate",
-        dataType: TableDataType.DATE
+        id: "lastWorkDay",
+        columnName: "Último dia",
+        fieldValue: "lastWorkDay",
+        dataType: TableDataType.DATE,
+    },
+    {
+        id: "esocialDismissalReasonLabel",
+        columnName: "Motivo eSocial",
+        fieldValue: "esocialDismissalReasonLabel",
+        dataType: TableDataType.TEXT,
     },
     {
         id: "dismissalType",
@@ -36,10 +33,10 @@ export const OFFBOARDING_TABLE_COLUMNS: TableColumnConfig[] = [
         badgeLabels: DISMISSAL_TYPE_LABELS,
     },
     {
-        id: "status",
-        columnName: "Status",
-        fieldValue: "status",
+        id: "processStatus",
+        columnName: "Processo",
+        fieldValue: "processStatus",
         dataType: TableDataType.BADGE,
-        badgeLabels: OFFBOARDING_STATUS_LABELS,
+        badgeLabels: PROCESS_STATUS_LABELS,
     },
 ];

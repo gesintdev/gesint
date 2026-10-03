@@ -7,6 +7,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.entity.KanbanColumnActionEnum;
 
 @Getter
 @Builder
@@ -21,6 +22,8 @@ public class AdmissionProcessKanbanColumnResponseDto {
     private final boolean systemColumn;
     private final boolean slaEnabled;
     private final Integer slaBusinessDays;
+    private final boolean interviewColumn;
+    private final KanbanColumnActionEnum columnAction;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

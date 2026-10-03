@@ -54,6 +54,13 @@ export type ApplicationAiAnalysis = {
     error?: string;
 };
 
+export type InterviewCompetencyAverage = {
+    competencyId: string;
+    competencyName?: string | null;
+    average?: number | null;
+    submissionsCount?: number | null;
+};
+
 export class JobVacancyApplication {
     id!: string;
     code!: number;
@@ -84,6 +91,8 @@ export class JobVacancyApplication {
     rejectionFeedbackStatus?: RejectionFeedbackStatus | null;
     rejectionFeedbackAt?: string | null;
     rejectionFeedbackDetail?: string | null;
+    interviewAverages?: InterviewCompetencyAverage[] | null;
+    admissionProcessId?: string | null;
     createdAt?: string;
     updatedAt?: string;
 }

@@ -12,6 +12,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.entity.KanbanColumnActionEnum;
+
 @Getter
 @Setter
 @Builder
@@ -34,4 +36,8 @@ public class AdmissionProcessKanbanColumnRequestDto {
     @Min(1)
     @Max(90)
     private Integer slaBusinessDays;
+
+    private Boolean interviewColumn;
+
+    private KanbanColumnActionEnum columnAction;
 }

@@ -1,3 +1,7 @@
+/**
+ * @deprecated Prefer `jobVacancyApplicationService.hire` / `HireProposalModal` (RN-37).
+ * Mantido apenas se algum fluxo legado ainda importar o helper.
+ */
 import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
 import type { AdmissionProcess } from "@/modules/rh/person/collaborators/admission/dto/admission-process.dto";
 import {
@@ -7,7 +11,7 @@ import {
 import { admissionprocessService } from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 
-/** Chave padrao da coluna de contratacao (V66). Hardcoded ate haver gatilho configuravel. */
+/** @deprecated Use `column.columnAction === "CREATE_ADMISSION"` da configuração do kanban. */
 export const HIRING_KANBAN_COLUMN_KEY = "hiring";
 
 export type CreateAdmissionFromKanbanCardInput = {
@@ -16,8 +20,7 @@ export type CreateAdmissionFromKanbanCardInput = {
 };
 
 /**
- * Cria uma admissao com os dados basicos do candidato.
- * Campos obrigatorios ausentes no candidato (ex.: birthDate) bloqueiam a criacao.
+ * @deprecated Use POST /job-vacancy-applications/{id}/hire.
  */
 export async function createAdmissionFromKanbanCard(
     input: CreateAdmissionFromKanbanCardInput,

@@ -34,7 +34,7 @@ public class CollaboratorRequestDto {
 
     @Size(max = 2) private String rgStateCode;
 
-    @NotNull private LocalDate birthDate;
+    private LocalDate birthDate;
 
     private GenderEnum gender;
 

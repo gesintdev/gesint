@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.dto.AdmissionProcessKanbanColumnRequestDto;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.dto.AdmissionProcessKanbanColumnResponseDto;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.entity.AdmissionProcessKanbanColumn;
+import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.entity.KanbanColumnActionEnum;
 
 @Component
 public class AdmissionProcessKanbanColumnMapper {
@@ -17,6 +18,8 @@ public class AdmissionProcessKanbanColumnMapper {
                 .displayOrder(dto.getDisplayOrder())
                 .slaEnabled(resolveSlaEnabled(dto.getSlaEnabled(), true))
                 .slaBusinessDays(resolveSlaBusinessDays(dto.getSlaBusinessDays(), 5))
+                .interviewColumn(resolveFlag(dto.getInterviewColumn(), false))
+                .columnAction(resolveAction(dto.getColumnAction(), KanbanColumnActionEnum.NONE))
                 .build();
     }
 
@@ -29,6 +32,10 @@ public class AdmissionProcessKanbanColumnMapper {
             entity.setSlaEnabled(resolveSlaEnabled(dto.getSlaEnabled(), entity.isSlaEnabled()));
             entity.setSlaBusinessDays(
                     resolveSlaBusinessDays(dto.getSlaBusinessDays(), entity.getSlaBusinessDays()));
+            entity.setInterviewColumn(resolveFlag(dto.getInterviewColumn(), entity.isInterviewColumn()));
+            entity.setColumnAction(resolveAction(dto.getColumnAction(), entity.getColumnAction()));
+        } else {
+            entity.setColumnAction(KanbanColumnActionEnum.NONE);
         }
     }
 
@@ -44,6 +51,11 @@ public class AdmissionProcessKanbanColumnMapper {
                 .systemColumn(entity.isSystemColumn())
                 .slaEnabled(entity.isSlaEnabled())
                 .slaBusinessDays(entity.getSlaBusinessDays())
+                .interviewColumn(entity.isInterviewColumn())
+                .columnAction(
+                        entity.getColumnAction() != null
+                                ? entity.getColumnAction()
+                                : KanbanColumnActionEnum.NONE)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -67,7 +79,18 @@ public class AdmissionProcessKanbanColumnMapper {
     }
 
     private static boolean resolveSlaEnabled(Boolean requested, boolean fallback) {
+        return resolveFlag(requested, fallback);
+    }
+
+    private static boolean resolveFlag(Boolean requested, boolean fallback) {
         return requested != null ? requested : fallback;
+    }
+
+    private static KanbanColumnActionEnum resolveAction(
+            KanbanColumnActionEnum requested, KanbanColumnActionEnum fallback) {
+        return requested != null
+                ? requested
+                : (fallback != null ? fallback : KanbanColumnActionEnum.NONE);
     }
 
     private static int resolveSlaBusinessDays(Integer requested, Integer fallback) {

@@ -900,7 +900,12 @@ export function ExitInterviewFormClient() {
                     disabled={isFinal}
                 />
             </FormSection>
-            <FormSection id="devolucoes" title="Checklist de devoluções" bodyClassName="!block">
+            <FormSection
+                id="devolucoes"
+                title="Checklist de devoluções"
+                description="Registro histórico na entrevista. O fluxo operacional de devoluções e acessos fica em DP › Desligamento."
+                bodyClassName="!block"
+            >
                 <div className="overflow-hidden rounded-lg border border-base-300/70 bg-base-100 shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-190 text-sm">

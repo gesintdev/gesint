@@ -42,6 +42,8 @@ import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApp
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationStatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.RejectionFeedbackStatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.exception.JobVacancyApplicationException;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.dto.InterviewCompetencyAverageDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.service.InterviewScorecardService;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.mapper.JobVacancyApplicationMapper;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.repository.JobVacancyApplicationRepository;
 import br.com.gommo.modules.rh.person.recruiting.ai.ApplicationAiAnalysisService;
@@ -61,6 +63,7 @@ public class JobVacancyApplicationService
     private final AppUserRepository appUserRepository;
     private final JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService;
     private final JobVacancyRequirementOptionsService requirementOptionsService;
+    private final InterviewScorecardService interviewScorecardService;
 
     public JobVacancyApplicationService(
             JobVacancyApplicationRepository repository,
@@ -71,7 +74,8 @@ public class JobVacancyApplicationService
             ApplicationAiAnalysisService applicationAiAnalysisService,
             AppUserRepository appUserRepository,
             JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService,
-            JobVacancyRequirementOptionsService requirementOptionsService) {
+            JobVacancyRequirementOptionsService requirementOptionsService,
+            InterviewScorecardService interviewScorecardService) {
         super(repository, entity -> mapper.toResponse(entity, null, null), mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -82,6 +86,7 @@ public class JobVacancyApplicationService
         this.appUserRepository = appUserRepository;
         this.rejectionFeedbackService = rejectionFeedbackService;
         this.requirementOptionsService = requirementOptionsService;
+        this.interviewScorecardService = interviewScorecardService;
     }
 
     @Override
@@ -451,7 +456,16 @@ public class JobVacancyApplicationService
     private JobVacancyApplicationResponseDto enrich(JobVacancyApplication entity) {
         JobVacancy vacancy = jobVacancyRepository.findById(entity.getJobVacancyId()).orElse(null);
         Candidate candidate = candidateRepository.findById(entity.getCandidateId()).orElse(null);
-        return mapper.toResponse(entity, vacancy, candidate);
+        Map<UUID, String> columnById = new LinkedHashMap<>();
+        String columnKey = normalizeColumnKey(entity.getKanbanColumnKey());
+        if (columnKey != null) {
+            columnById.put(entity.getId(), columnKey);
+        }
+        Map<UUID, List<InterviewCompetencyAverageDto>> averages =
+                interviewScorecardService.averagesForApplications(
+                        new InterviewScorecardService.CollectionAwareApplications(Set.of(entity.getId()), columnById));
+        return mapper.toResponse(
+                entity, vacancy, candidate, averages.getOrDefault(entity.getId(), List.of()));
     }
 
     private List<JobVacancyApplicationResponseDto> enrichAll(List<JobVacancyApplication> entities) {
@@ -461,9 +475,16 @@ public class JobVacancyApplicationService
 
         Set<UUID> vacancyIds = new HashSet<>();
         Set<UUID> candidateIds = new HashSet<>();
+        Set<UUID> applicationIds = new HashSet<>();
+        Map<UUID, String> columnByApplicationId = new LinkedHashMap<>();
         for (JobVacancyApplication entity : entities) {
             vacancyIds.add(entity.getJobVacancyId());
             candidateIds.add(entity.getCandidateId());
+            applicationIds.add(entity.getId());
+            String columnKey = normalizeColumnKey(entity.getKanbanColumnKey());
+            if (columnKey != null) {
+                columnByApplicationId.put(entity.getId(), columnKey);
+            }
         }
 
         Map<UUID, JobVacancy> vacancies = jobVacancyRepository.findAllById(vacancyIds).stream()
@@ -472,11 +493,18 @@ public class JobVacancyApplicationService
                 .findAllByIdInAndStatus(candidateIds, StatusEnum.ACTIVE)
                 .stream()
                 .collect(Collectors.toMap(Candidate::getId, Function.identity()));
+        Map<UUID, List<InterviewCompetencyAverageDto>> averages =
+                interviewScorecardService.averagesForApplications(
+                        new InterviewScorecardService.CollectionAwareApplications(
+                                applicationIds, columnByApplicationId));
 
         return entities.stream()
                 .filter(entity -> candidates.containsKey(entity.getCandidateId()))
                 .map(entity -> mapper.toResponse(
-                        entity, vacancies.get(entity.getJobVacancyId()), candidates.get(entity.getCandidateId())))
+                        entity,
+                        vacancies.get(entity.getJobVacancyId()),
+                        candidates.get(entity.getCandidateId()),
+                        averages.getOrDefault(entity.getId(), List.of())))
                 .toList();
     }
 

@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,6 +14,7 @@ import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.ApplicationAi
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationRejectionReasonEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationStatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.RejectionFeedbackStatusEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.dto.InterviewCompetencyAverageDto;
 
 @Getter
 @Builder
@@ -21,6 +24,7 @@ public class JobVacancyApplicationResponseDto {
     private final StatusEnum status;
     private final UUID jobVacancyId;
     private final String jobVacancyTitle;
+    private final UUID admissionProcessId;
     private final UUID candidateId;
     private final String candidateFullName;
     private final String candidateCpf;
@@ -45,6 +49,8 @@ public class JobVacancyApplicationResponseDto {
     private final RejectionFeedbackStatusEnum rejectionFeedbackStatus;
     private final OffsetDateTime rejectionFeedbackAt;
     private final String rejectionFeedbackDetail;
+    @Builder.Default
+    private final List<InterviewCompetencyAverageDto> interviewAverages = new ArrayList<>();
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

@@ -1,3 +1,5 @@
+export type KanbanColumnAction = "NONE" | "CREATE_ADMISSION";
+
 export class AdmissionProcessKanbanColumn {
     id!: string;
     code!: number;
@@ -9,6 +11,8 @@ export class AdmissionProcessKanbanColumn {
     systemColumn?: boolean;
     slaEnabled?: boolean;
     slaBusinessDays?: number;
+    interviewColumn?: boolean;
+    columnAction?: KanbanColumnAction;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -20,4 +24,6 @@ export class AdmissionProcessKanbanColumnCreateDto {
     displayOrder!: number;
     slaEnabled?: boolean;
     slaBusinessDays?: number;
+    interviewColumn?: boolean;
+    columnAction?: KanbanColumnAction;
 }

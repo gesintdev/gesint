@@ -13,6 +13,8 @@ export function admissionProcessKanbanColumnToFormDto(
         displayOrder: entity.displayOrder ?? 0,
         slaEnabled: entity.slaEnabled ?? true,
         slaBusinessDays: entity.slaBusinessDays ?? 5,
+        interviewColumn: entity.interviewColumn ?? false,
+        columnAction: entity.columnAction ?? "NONE",
     };
 }
 
@@ -23,6 +25,8 @@ export const emptyAdmissionProcessKanbanColumnForm = (): AdmissionProcessKanbanC
     displayOrder: 0,
     slaEnabled: true,
     slaBusinessDays: 5,
+    interviewColumn: false,
+    columnAction: "NONE",
 });
 
 export function keyFromColumnName(value: string): string {
