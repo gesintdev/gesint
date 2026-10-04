@@ -86,7 +86,7 @@ export function HeaderBranchSelector() {
 
     return (
         <>
-            <div ref={containerRef} className="relative w-max max-w-72 shrink-0">
+            <div ref={containerRef} className="relative w-max max-w-36 shrink-0 sm:max-w-48 lg:max-w-72">
             <button
                 type="button"
                 aria-haspopup="listbox"
@@ -94,7 +94,7 @@ export function HeaderBranchSelector() {
                 aria-label="Filial ativa"
                 onClick={() => setOpen((value) => !value)}
                 className={clsx(
-                    "flex h-(--gommo-control-h) min-h-(--gommo-control-h) w-full max-w-72 items-center gap-2 rounded-[var(--gommo-control-radius)] border-0 bg-transparent px-3 text-start transition-colors",
+                    "flex h-(--gommo-control-h) min-h-(--gommo-control-h) w-full max-w-36 items-center gap-1.5 rounded-[var(--gommo-control-radius)] border-0 bg-transparent px-2 text-start transition-colors sm:max-w-48 sm:gap-2 sm:px-3 lg:max-w-72",
                     "hover:bg-base-content/7",
                     open && "bg-base-content/7",
                 )}
@@ -121,7 +121,7 @@ export function HeaderBranchSelector() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -5, scale: 0.97 }}
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        className="surface-popover absolute start-0 z-50 mt-2 flex max-h-80 w-max min-w-full max-w-72 origin-top-left flex-col overflow-hidden p-1.5"
+                        className="surface-popover absolute start-0 z-50 mt-2 flex max-h-80 w-max min-w-full max-w-[min(18rem,calc(100vw-1.25rem))] origin-top-left flex-col overflow-hidden p-1.5"
                     >
                         <div className="min-h-0 overflow-auto py-1">
                             {branches.map((branch) => {

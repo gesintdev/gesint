@@ -53,9 +53,10 @@ export function TablePagination({
     if (mode === "load-more") {
         return (
             <div
-                className="flex flex-wrap items-center justify-between gap-3 border-t border-(--gommo-border-subtle) bg-base-100 px-4 py-3 text-sm text-base-content/65">
-                <span className="whitespace-nowrap">
-                    Mostrando {end} de {totalElements} registros
+                className="gommo-table-pagination flex flex-wrap items-center justify-between gap-3 border-t border-(--gommo-border-subtle) bg-base-100 px-3 py-3 text-sm text-base-content/65 sm:px-4">
+                <span className="min-w-0">
+                    <span className="sm:hidden">{end}/{totalElements}</span>
+                    <span className="hidden sm:inline">Mostrando {end} de {totalElements} registros</span>
                 </span>
                 <Button
                     type="button"
@@ -73,12 +74,20 @@ export function TablePagination({
 
     return (
         <div
-            className="flex flex-nowrap items-center justify-between gap-4 border-t border-(--gommo-border-subtle) bg-base-100 px-4 py-3 text-sm text-base-content/65">
-            <span className="min-w-0 flex-1 whitespace-nowrap">
-                Mostrando {start}-{end} de {totalElements} registros
+            className="gommo-table-pagination flex flex-col gap-3 border-t border-(--gommo-border-subtle) bg-base-100 px-3 py-3 text-sm text-base-content/65 sm:px-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between lg:gap-4">
+            <span className="min-w-0 text-center lg:flex-1 lg:text-start">
+                <span className="sm:hidden">{start}-{end} de {totalElements}</span>
+                <span className="hidden sm:inline">Mostrando {start}-{end} de {totalElements} registros</span>
             </span>
-            <div className="flex shrink-0 items-center justify-center gap-1.5">
-                <Button type="button" variant="outline" size="sm" disabled={!canGoBack} onClick={() => onPageChange(0)}>
+            <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!canGoBack}
+                    onClick={() => onPageChange(0)}
+                    className="gommo-table-pagination__edge"
+                >
                     Primeiro
                 </Button>
                 <Button
@@ -128,11 +137,12 @@ export function TablePagination({
                     size="sm"
                     disabled={!canGoForward}
                     onClick={() => onPageChange(safeTotalPages - 1)}
+                    className="gommo-table-pagination__edge"
                 >
                     Último
                 </Button>
             </div>
-            <label className="flex min-w-0 flex-1 items-center justify-end gap-2 whitespace-nowrap">
+            <label className="flex items-center justify-center gap-2 whitespace-nowrap lg:min-w-0 lg:flex-1 lg:justify-end">
                 <span>Linhas</span>
                 <select
                     className="select select-bordered select-sm h-8 min-h-8 w-20 rounded-lg border-(--gommo-border) bg-base-100 text-sm"

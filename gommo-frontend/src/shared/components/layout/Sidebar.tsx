@@ -442,7 +442,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                             animate={{x: 0}}
                             exit={{x: "-100%"}}
                             transition={{duration: 0.28, ease: [0.22, 1, 0.36, 1]}}
-                            className="fixed left-0 z-50 flex overflow-hidden border-r lg:hidden"
+                            className="sidebar-mobile-drawer fixed left-0 z-50 flex overflow-hidden border-r lg:hidden"
                             style={{
                                 ...sidebarBodyStyle,
                                 width: sidebarTotalWidth,

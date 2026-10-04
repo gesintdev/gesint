@@ -398,7 +398,7 @@ export function EntityAttachments({
                         value={documentType}
                         onValueChange={setDocumentType}
                         placeholder="Selecione o tipo"
-                        wrapperClassName="min-w-[14rem] flex-1"
+                        wrapperClassName="w-full min-w-0 flex-1 sm:min-w-[14rem]"
                         required
                     />
                 ) : null}
@@ -443,7 +443,7 @@ export function EntityAttachments({
                                         value={editingDocumentType}
                                         onValueChange={setEditingDocumentType}
                                         placeholder="Tipo"
-                                        wrapperClassName="min-w-[11rem]"
+                                        wrapperClassName="w-full min-w-0 sm:min-w-[11rem]"
                                     />
                                     <TableActionButton
                                         actionVariant="edit"

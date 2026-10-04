@@ -491,8 +491,8 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                             key={message.id}
                                             className={
                                                 message.role === "user"
-                                                    ? "ml-8 flex justify-end"
-                                                    : "mr-8 flex justify-start"
+                                                    ? "ml-3 flex justify-end sm:ml-8"
+                                                    : "mr-3 flex justify-start sm:mr-8"
                                             }
                                         >
                                             <div
@@ -514,7 +514,7 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                         </div>
                                     ))}
                                     {sending ? (
-                                        <div className="mr-8 flex justify-start">
+                                        <div className="mr-3 flex justify-start sm:mr-8">
                                             <div className="rounded-2xl rounded-bl-md bg-base-200 px-3 py-2 text-[13px] leading-5 text-base-content/55">
                                                 Pensando…
                                             </div>

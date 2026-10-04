@@ -106,7 +106,7 @@ function WorkspaceTabFace({
             onMouseDown={onMouseDown}
             onAuxClick={onAuxClick}
             className={clsx(
-                "gommo-workspace-tab group/tab max-w-60",
+                "gommo-workspace-tab group/tab max-w-36 sm:max-w-48 lg:max-w-60",
                 active && "gommo-workspace-tab--active",
                 pinned && "gommo-workspace-tab--pinned",
                 className,
@@ -306,9 +306,13 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
         closeUnpinnedTabs();
     }, [closeUnpinnedTabs, moduleTabs, pinnedCount]);
 
+    const activeModuleTab = moduleTabs.find((tab) => tab.id === activeTabId) ?? null;
+    const mobileActiveTab = activeModuleTab ?? (dashboardActive ? dashboardTab : null);
+
     return (
         <div className="workspace-tabbar flex shrink-0 items-stretch">
-            <div className="gommo-workspace-tabs workspace-tabbar-tabs min-w-0 flex-1">
+            {/* Trilha horizontal só no desktop — no mobile/tablet fica só a listagem de abas. */}
+            <div className="gommo-workspace-tabs workspace-tabbar-tabs hidden min-w-0 flex-1 lg:flex">
                 <DashboardTabButton
                     tab={dashboardTab}
                     active={dashboardActive}
@@ -376,8 +380,14 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                     </>
                 ) : null}
             </div>
-            <div className="workspace-tabbar-actions flex shrink-0 items-stretch">
-                <WorkspaceTabOverflowMenu moduleTabs={moduleTabs} activeTabId={activeTabId} onSelect={onSelect} />
+            <div className="workspace-tabbar-actions flex min-w-0 flex-1 items-stretch lg:flex-none">
+                <WorkspaceTabOverflowMenu
+                    dashboardTab={dashboardTab}
+                    moduleTabs={moduleTabs}
+                    activeTabId={activeTabId}
+                    activeDisplayTab={mobileActiveTab}
+                    onSelect={onSelect}
+                />
             </div>
             <WorkspaceTabContextMenu
                 state={contextMenu}

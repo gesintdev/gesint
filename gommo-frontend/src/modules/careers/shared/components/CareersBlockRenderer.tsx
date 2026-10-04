@@ -185,7 +185,7 @@ function DayInLifeBlock({ block, preview }: { block: CareersBlock; preview?: boo
                 </p>
             ) : null}
             {photos.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @3xl:grid-cols-3">
                     {photos.map((photo) => (
                         <figure key={photo.objectId} className="overflow-hidden rounded-[var(--careers-radius)] bg-base-100">
                             <CareersImage objectId={photo.objectId} alt={photo.caption || ""} className="aspect-[4/3] w-full object-cover" />
@@ -325,7 +325,7 @@ export function CareersBlockRenderer({
             if (stats.length === 0 && !preview) return null;
             return (
                 <Section title={block.title} subtitle={block.subtitle} muted>
-                    <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @3xl:grid-cols-4">
                         {stats.map((item, index) => (
                             <div key={`${item.label}-${index}`} className="rounded-[var(--careers-radius)] bg-base-100 p-5 text-center">
                                 <p className="text-3xl font-bold text-primary">{item.value}</p>

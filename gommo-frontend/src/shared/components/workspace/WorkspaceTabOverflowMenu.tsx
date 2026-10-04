@@ -11,18 +11,30 @@ import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
 import { findRouteGroupShortLabel } from "@/shared/workspace/workspace-routes";
 
 type WorkspaceTabOverflowMenuProps = {
+    dashboardTab: WorkspaceTab;
     moduleTabs: WorkspaceTab[];
     activeTabId: string | null;
+    /** Aba ativa exibida no trigger compacto (mobile/tablet). */
+    activeDisplayTab?: WorkspaceTab | null;
     onSelect: (tabId: string) => void;
 };
 
-export function WorkspaceTabOverflowMenu({ moduleTabs, activeTabId, onSelect }: WorkspaceTabOverflowMenuProps) {
+export function WorkspaceTabOverflowMenu({
+    dashboardTab,
+    moduleTabs,
+    activeTabId,
+    activeDisplayTab = null,
+    onSelect,
+}: WorkspaceTabOverflowMenuProps) {
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
     const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
     const closeUnpinnedTabs = useWorkspaceStore((s) => s.closeUnpinnedTabs);
     const closeTab = useWorkspaceStore((s) => s.closeTab);
     const hasPinned = moduleTabs.some((tab) => tab.pinned);
+    const activeTitle = activeDisplayTab
+        ? formatWorkspaceTabTitle(activeDisplayTab, findRouteGroupShortLabel(activeDisplayTab.routeId))
+        : "Abas abertas";
 
     useEffect(() => {
         if (!open) return;
@@ -34,24 +46,65 @@ export function WorkspaceTabOverflowMenu({ moduleTabs, activeTabId, onSelect }: 
     }, [open]);
 
     return (
-        <div ref={rootRef} className="relative flex h-full items-center">
+        <div ref={rootRef} className="relative flex h-full min-w-0 flex-1 items-center lg:flex-none">
             <button
                 type="button"
                 aria-expanded={open}
                 aria-haspopup="menu"
                 aria-label={`Listar abas abertas (${moduleTabs.length})`}
                 onClick={() => setOpen((v) => !v)}
-                className="workspace-tabbar-menu-trigger flex cursor-pointer items-center gap-1.5 px-2.5"
+                className="workspace-tabbar-menu-trigger flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 px-2.5 lg:flex-none"
             >
-                <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")} />
-                <span className="tabular-nums text-[12px] font-semibold">{moduleTabs.length}</span>
+                {activeDisplayTab ? (
+                    <span className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
+                        <WorkspaceTabIcon
+                            tab={activeDisplayTab}
+                            className="size-3.5 shrink-0 text-base-content/50"
+                        />
+                        <WorkspaceTabSystemBadge href={activeDisplayTab.href} />
+                        <span className="min-w-0 truncate text-[13px] font-medium text-base-content">
+                            {activeTitle}
+                        </span>
+                    </span>
+                ) : (
+                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-base-content/55 lg:hidden">
+                        Abas abertas
+                    </span>
+                )}
+                <ChevronDown className={clsx("size-4 shrink-0 transition-transform", open && "rotate-180")} />
+                <span className="shrink-0 tabular-nums text-[12px] font-semibold">{moduleTabs.length}</span>
             </button>
             {open && (
                 <div
                     role="menu"
-                    className="surface-card absolute end-0 top-full z-50 mt-1 flex max-h-80 min-w-[16rem] flex-col border border-base-content/10 shadow-lg"
+                    className="surface-card absolute end-0 top-full z-50 mt-1 flex max-h-80 w-[min(20rem,calc(100vw-1.25rem))] min-w-[16rem] flex-col border border-base-content/10 shadow-lg lg:w-auto"
                 >
                     <ul className="min-h-0 flex-1 overflow-y-auto py-1">
+                        <li role="none">
+                            <button
+                                type="button"
+                                role="menuitem"
+                                className={clsx(
+                                    "flex w-full cursor-pointer items-center gap-2 truncate px-3 py-2 text-left text-[13px] transition-colors",
+                                    activeTabId === dashboardTab.id && "bg-primary/8",
+                                )}
+                                onClick={() => {
+                                    onSelect(dashboardTab.id);
+                                    setOpen(false);
+                                }}
+                            >
+                                <WorkspaceTabIcon
+                                    tab={dashboardTab}
+                                    className="size-3.5 shrink-0 text-base-content/50"
+                                />
+                                <span className="truncate">
+                                    {formatWorkspaceTabTitle(
+                                        dashboardTab,
+                                        findRouteGroupShortLabel(dashboardTab.routeId),
+                                    )}
+                                </span>
+                            </button>
+                        </li>
                         {moduleTabs.length === 0 ? (
                             <li className="px-3 py-2 text-[13px] text-base-content/50">Nenhum módulo aberto</li>
                         ) : null}

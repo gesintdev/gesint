@@ -27,7 +27,7 @@ const DEBOUNCE_MS = 250;
 const LIMIT_PER_TYPE = 5;
 const MAX_NAV_RESULTS = 6;
 const FLOATING_WIDTH_PX = 320;
-const FLOATING_MAX_WIDTH = "calc(100vw - 7rem)";
+const FLOATING_MAX_WIDTH = "min(20rem, calc(100vw - 4.5rem))";
 
 type FlatNavRoute = AppRoute & { searchLabel: string };
 

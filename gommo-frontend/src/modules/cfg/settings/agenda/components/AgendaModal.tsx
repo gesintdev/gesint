@@ -80,7 +80,7 @@ export function AgendaModal({open, onClose}: AgendaModalProps) {
     return createPortal(
         <>
             <dialog ref={dialogRef} className="modal" onClose={onClose}>
-                <div className="modal-box flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden p-0">
+                <div className="modal-box flex h-[92dvh] max-h-[92dvh] w-[min(100vw-1rem,72rem)] max-w-6xl flex-col overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">
                     <div className="flex items-center justify-between gap-3 border-b border-base-content/10 px-4 py-3">
                         <div>
                             <h3 className="text-base font-semibold">Agenda</h3>

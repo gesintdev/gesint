@@ -188,7 +188,7 @@ export function WorkScheduleFormClient() {
                 bodyClassName="!block"
             >
                 <div className="overflow-x-auto rounded-lg border border-[var(--gommo-border-subtle)]">
-                    <table className="gommo-table w-full min-w-[56rem]">
+                    <table className="gommo-table w-full min-w-[36rem] sm:min-w-[48rem] lg:min-w-[56rem]">
                         <thead>
                         <tr>
                             <th>Dia</th>

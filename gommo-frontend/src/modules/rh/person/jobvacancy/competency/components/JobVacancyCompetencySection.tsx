@@ -131,7 +131,7 @@ export function JobVacancyCompetencySection({
                                 onValueChange={(value) => setCompetencyId(value)}
                                 onSearch={searchCompetencies}
                                 placeholder="Buscar competência"
-                                wrapperClassName="min-w-[16rem] flex-1"
+                                wrapperClassName="w-full min-w-0 flex-1 sm:min-w-[16rem]"
                             />
                             <Button
                                 type="button"

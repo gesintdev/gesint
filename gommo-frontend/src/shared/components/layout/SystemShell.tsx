@@ -11,6 +11,7 @@ import {AiAssistantPanel} from "@/shared/components/assistant/AiAssistantPanel";
 import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {HeaderAiAssistant} from "@/shared/components/layout/HeaderAiAssistant";
 import {HeaderBranchSelector} from "@/shared/components/layout/HeaderBranchSelector";
+import {HeaderMoreMenu} from "@/shared/components/layout/HeaderMoreMenu";
 import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
@@ -106,7 +107,7 @@ export function SystemShell({
                             >
                                 <GommoLogo collapsed={collapsed}/>
                             </div>
-                            <header className="surface-header flex min-w-0 flex-1 items-center gap-2 pe-3 ps-(--workspace-toolbar-pad-x) sm:gap-2.5 sm:pe-4">
+                            <header className="surface-header flex min-w-0 flex-1 items-center gap-1.5 pe-2 ps-(--workspace-toolbar-pad-x) sm:gap-2.5 sm:pe-4">
                                 <button
                                     type="button"
                                     aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
@@ -119,11 +120,14 @@ export function SystemShell({
                                 <div className="flex shrink-0 items-center lg:hidden">
                                     <GommoLogo collapsed/>
                                 </div>
-                                <HeaderReleaseVersion/>
-                                <div className="min-w-2 flex-1" aria-hidden/>
-                                <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+                                <div className="hidden min-w-0 lg:block">
+                                    <HeaderReleaseVersion/>
+                                </div>
+                                <div className="min-w-1 flex-1 sm:min-w-2" aria-hidden/>
+                                <div className="flex min-w-0 shrink-0 items-center gap-0.5 sm:gap-1">
                                     <HeaderBranchSelector/>
-                                    <div className="flex items-center gap-0.5 sm:gap-1">
+                                    <div className="mx-0.5 hidden h-4 w-px bg-base-content/10 lg:block"/>
+                                    <div className="hidden items-center gap-0.5 lg:flex">
                                         <button
                                             type="button"
                                             aria-label="Agenda"
@@ -132,9 +136,6 @@ export function SystemShell({
                                         >
                                             <CalendarDays className="size-4" strokeWidth={2}/>
                                         </button>
-                                    </div>
-                                    <div className="mx-0.5 hidden h-4 w-px bg-base-content/10 sm:block"/>
-                                    <div className="flex items-center gap-0.5 sm:gap-1">
                                         <button
                                             type="button"
                                             aria-label="Registro de ponto"
@@ -143,11 +144,22 @@ export function SystemShell({
                                         >
                                             <Clock className="size-4" strokeWidth={2}/>
                                         </button>
+                                    </div>
+                                    <div className="mx-0.5 hidden h-4 w-px bg-base-content/10 lg:block"/>
+                                    <div className="flex items-center gap-0.5 sm:gap-1">
                                         <HeaderNotifications/>
                                         <GlobalSearchPalette/>
-                                        <HeaderAiAssistant
-                                            open={aiAssistantOpen}
-                                            onClick={toggleAiAssistant}
+                                        <div className="hidden lg:block">
+                                            <HeaderAiAssistant
+                                                open={aiAssistantOpen}
+                                                onClick={toggleAiAssistant}
+                                            />
+                                        </div>
+                                        <HeaderMoreMenu
+                                            onAgenda={() => setAgendaModalOpen(true)}
+                                            onClock={() => setClockModalOpen(true)}
+                                            onAiAssistant={toggleAiAssistant}
+                                            aiAssistantOpen={aiAssistantOpen}
                                         />
                                         <HeaderUserMenu/>
                                     </div>

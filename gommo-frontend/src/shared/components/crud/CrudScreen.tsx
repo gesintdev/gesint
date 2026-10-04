@@ -503,15 +503,20 @@ export function CrudScreen({
                             className="flex min-h-0 flex-1 flex-col overflow-hidden"
                         >
                             {activeTab === CRUD_TAB_LIST && (
-                                <div className="crud-list-toolbar flex flex-wrap items-center justify-between gap-2 border-b px-4 py-1.5">
-                                    <div className="min-w-0 flex-1">
-                                        {listToolbarContent ?? (
-                                            <div className="text-[13px] text-base-content/50">
-                                                {listToolbar ??
-                                                    "Consulte os registros ou inicie um novo cadastro."}
-                                            </div>
-                                        )}
-                                    </div>
+                                <div
+                                    className={clsx(
+                                        "crud-list-toolbar flex flex-wrap items-center gap-2 border-b px-4 py-1.5",
+                                        listToolbarContent ? "justify-between" : "justify-end lg:justify-between",
+                                    )}
+                                >
+                                    {listToolbarContent ? (
+                                        <div className="min-w-0 flex-1">{listToolbarContent}</div>
+                                    ) : (
+                                        <div className="hidden min-w-0 flex-1 text-[13px] text-base-content/50 lg:block">
+                                            {listToolbar ??
+                                                "Consulte os registros ou inicie um novo cadastro."}
+                                        </div>
+                                    )}
                                     <CrudListToolbarActions
                                         canWrite={canWrite}
                                         showListToFormButton={showListToFormButton}

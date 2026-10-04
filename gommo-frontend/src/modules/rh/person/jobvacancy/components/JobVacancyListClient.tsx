@@ -160,7 +160,7 @@ export function JobVacancyListClient() {
                                                     onDoubleClick={(event) => event.stopPropagation()}
                                                 >
                                                     {url ? (
-                                                        <div className="flex min-w-[12rem] max-w-[18rem] items-center gap-1.5">
+                                                        <div className="flex min-w-0 max-w-[18rem] items-center gap-1.5 sm:min-w-[12rem]">
                                                             <a
                                                                 href={url}
                                                                 target="_blank"

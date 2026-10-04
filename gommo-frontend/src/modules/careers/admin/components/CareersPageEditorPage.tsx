@@ -124,9 +124,9 @@ export function CareersPageEditorPage() {
 
     if (draftQuery.isLoading || (!state && !draftQuery.isError)) {
         return (
-            <div className="flex min-h-0 flex-1 gap-4 p-4">
-                <div className="skeleton-shimmer h-full w-[420px] rounded-xl" />
-                <div className="skeleton-shimmer h-full flex-1 rounded-xl" />
+            <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 lg:flex-row">
+                <div className="skeleton-shimmer h-48 w-full shrink-0 rounded-xl lg:h-full lg:w-[420px]" />
+                <div className="skeleton-shimmer h-full min-h-48 flex-1 rounded-xl" />
             </div>
         );
     }

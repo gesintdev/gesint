@@ -234,7 +234,7 @@ export function CareersBlocksPanel({ blocks, disabled, onChange }: CareersBlocks
             {adding ? (
                 <div className="grid gap-2 rounded-lg border border-(--gommo-border-subtle) bg-base-100 p-3">
                     <p className="text-sm font-semibold text-base-content">Novo bloco</p>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {CAREERS_CUSTOM_BLOCK_TYPES.map((type) => {
                             const meta = CAREERS_BLOCK_META[type];
                             const Icon = meta.icon;

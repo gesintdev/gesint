@@ -204,7 +204,7 @@ function ColumnHeaderWithFilter({
     onChange: (_value: string[]) => void;
 }) {
     return (
-        <div className="flex min-w-[7.5rem] flex-col gap-1.5">
+        <div className="flex min-w-[5.5rem] flex-col gap-1.5 sm:min-w-[7.5rem]">
             <span className="gommo-table-col-title">{column.columnName}</span>
             {isColumnFilterable(column) ? (
                 <div

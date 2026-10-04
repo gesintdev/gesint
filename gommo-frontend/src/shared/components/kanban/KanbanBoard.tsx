@@ -315,10 +315,7 @@ export function KanbanBoard<TItem extends KanbanItem = KanbanItem>({
             onDragCancel={() => setActiveDrag(null)}
         >
             <div
-                className={clsx(
-                    "flex h-full min-h-0 items-stretch gap-3 overflow-x-auto overflow-y-hidden p-3",
-                    className,
-                )}
+                className={clsx("gommo-kanban-board min-w-0 max-w-full", className)}
             >
                 {columns.map((column) => (
                     <KanbanColumnPanel

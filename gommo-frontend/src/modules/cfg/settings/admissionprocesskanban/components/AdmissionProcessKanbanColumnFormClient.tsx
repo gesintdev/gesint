@@ -245,7 +245,7 @@ export function AdmissionProcessKanbanColumnFormClient() {
                             label="Prazo máximo parado"
                             value={form.slaBusinessDays ?? null}
                             onValueChange={(v) => update("slaBusinessDays", v ?? undefined)}
-                            wrapperClassName="w-[12rem] shrink-0"
+                            wrapperClassName="w-full min-w-0 sm:w-[12rem] sm:shrink-0"
                             integer
                             decimalPlaces={0}
                             thousandSeparator={false}
@@ -284,7 +284,7 @@ export function AdmissionProcessKanbanColumnFormClient() {
                             onValueChange={(v) =>
                                 update("columnAction", (v || "NONE") as "NONE" | "CREATE_ADMISSION")
                             }
-                            wrapperClassName="min-w-[16rem] flex-1"
+                            wrapperClassName="w-full min-w-0 flex-1 sm:min-w-[16rem]"
                             hint="Como no Pipeline: dispara um fluxo ao soltar o card nesta etapa."
                         />
                     </div>

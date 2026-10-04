@@ -124,10 +124,12 @@ function PipelineRow({
                 </div>
             </div>
 
-            <div className="flex gap-1.5">
-                {row.steps.map((step) => (
-                    <StepSegment key={step.stepKey} step={step} />
-                ))}
+            <div className="min-w-0 overflow-x-auto lg:overflow-visible">
+                <div className="flex min-w-max gap-1.5 lg:min-w-0">
+                    {row.steps.map((step) => (
+                        <StepSegment key={step.stepKey} step={step} />
+                    ))}
+                </div>
             </div>
 
             <div className="lg:text-right">

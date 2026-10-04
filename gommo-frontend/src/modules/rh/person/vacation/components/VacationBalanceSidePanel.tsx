@@ -67,7 +67,7 @@ export function VacationBalanceSidePanel({
             </div>
             <div className="rounded-lg min-h-19 border border-base-300/60 bg-base-200/30 p-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-base-content/55">Saldo de dias</p>
-                <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
+                <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm min-[400px]:gap-x-4 sm:grid-cols-4">
                     <VacationBalanceDaysInfo title={"Direito"} entitledDays={balance.entitledDays} />
                     <VacationBalanceDaysInfo title={"Gozo"} entitledDays={balance.gozoDays} />
                     <VacationBalanceDaysInfo title={"Vendidos"} entitledDays={balance.pecuniaryDays} />
