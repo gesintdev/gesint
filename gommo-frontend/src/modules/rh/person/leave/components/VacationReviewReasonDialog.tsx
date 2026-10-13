@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";
 import { Button } from "@/shared/components/ui/Button";
@@ -26,8 +27,13 @@ export function VacationReviewReasonDialog({
     loading,
 }: Props) {
     const dialogRef = useRef<HTMLDialogElement>(null);
+    const [mounted, setMounted] = useState(false);
     const [reason, setReason] = useState("");
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         const dialog = dialogRef.current;
@@ -50,7 +56,10 @@ export function VacationReviewReasonDialog({
         onConfirm(reason.trim());
     };
 
-    return (
+    if (!mounted) return null;
+
+    // Portal + backdrop em button: evita <form> aninhado no CrudFormShell.
+    return createPortal(
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
             <div className="modal-box max-w-md">
                 <h3 className="text-base font-semibold">{title}</h3>
@@ -76,11 +85,8 @@ export function VacationReviewReasonDialog({
                     </Button>
                 </div>
             </div>
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" aria-label="Fechar">
-                    fechar
-                </button>
-            </form>
-        </dialog>
+            <button type="button" className="modal-backdrop" aria-label="Fechar" onClick={onClose} />
+        </dialog>,
+        document.body,
     );
 }
