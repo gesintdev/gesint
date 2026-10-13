@@ -15,10 +15,10 @@ import {
 import { horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
 import { Pin, X } from "lucide-react";
 import {
     type CSSProperties,
-    Fragment,
     type MouseEvent,
     useCallback,
     useMemo,
@@ -60,6 +60,14 @@ const TAB_DROP_ANIMATION: DropAnimation = {
             },
         },
     }),
+};
+
+/** Entrada/saída + deslocamento na trilha. Layout desliga durante drag (dnd-kit). */
+const TAB_EASE = [0.22, 1, 0.36, 1] as const;
+const TAB_MOUNT_TRANSITION = {
+    duration: 0.24,
+    ease: TAB_EASE,
+    layout: { duration: 0.28, ease: TAB_EASE },
 };
 
 type WorkspaceTabFaceProps = {
@@ -348,33 +356,58 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                                 aria-label="Módulos abertos"
                             >
                                 <SortableContext items={tabIds} strategy={horizontalListSortingStrategy}>
-                                    <div role="tablist" className="workspace-tabbar-scroll-inner">
-                                        {moduleTabs.map((tab, index) => {
-                                            const active = tab.id === activeTabId;
-                                            const showPinDivider =
-                                                pinnedCount > 0 &&
-                                                pinnedCount < moduleTabs.length &&
-                                                index === pinnedCount;
-                                            return (
-                                                <Fragment key={tab.id}>
-                                                    {index > 0 && !showPinDivider ? (
-                                                        <span className="workspace-tabbar-sep" aria-hidden>
-                                                            |
-                                                        </span>
-                                                    ) : null}
-                                                    {showPinDivider ? (
-                                                        <span className="workspace-tabbar-pin-divider" aria-hidden />
-                                                    ) : null}
-                                                    <SortableWorkspaceTab
-                                                        tab={tab}
-                                                        active={active}
-                                                        onSelect={() => onSelect(tab.id)}
-                                                        onClose={() => onClose(tab.id)}
-                                                        onContextMenu={(event) => openContextMenu(tab, event)}
-                                                    />
-                                                </Fragment>
-                                            );
-                                        })}
+                                    <div
+                                        role="tablist"
+                                        className="workspace-tabbar-scroll-inner relative"
+                                    >
+                                        {/* popLayout: abas que saem saem do fluxo na hora; as que ficam deslizam com layout. */}
+                                        <AnimatePresence initial={false} mode="popLayout">
+                                            {moduleTabs.map((tab, index) => {
+                                                const active = tab.id === activeTabId;
+                                                const showPinDivider =
+                                                    pinnedCount > 0 &&
+                                                    pinnedCount < moduleTabs.length &&
+                                                    index === pinnedCount;
+                                                return (
+                                                    <motion.div
+                                                        key={tab.id}
+                                                        layout={activeDragId ? false : "position"}
+                                                        initial={{ opacity: 0, scale: 0.94, x: 6 }}
+                                                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                                                        exit={{
+                                                            opacity: 0,
+                                                            scale: 0.94,
+                                                            x: -4,
+                                                            transition: { duration: 0.2, ease: "easeOut" },
+                                                        }}
+                                                        transition={TAB_MOUNT_TRANSITION}
+                                                        className="inline-flex shrink-0 items-center gap-1"
+                                                        style={{ transformOrigin: "left center" }}
+                                                    >
+                                                        {index > 0 && !showPinDivider ? (
+                                                            <span className="workspace-tabbar-sep" aria-hidden>
+                                                                |
+                                                            </span>
+                                                        ) : null}
+                                                        {showPinDivider ? (
+                                                            <span
+                                                                className="workspace-tabbar-pin-divider"
+                                                                aria-hidden
+                                                            />
+                                                        ) : null}
+                                                        <SortableWorkspaceTab
+                                                            tab={tab}
+                                                            active={active}
+                                                            onSelect={() => onSelect(tab.id)}
+                                                            onClose={() => onClose(tab.id)}
+                                                            onContextMenu={(event) =>
+                                                                openContextMenu(tab, event)
+                                                            }
+                                                        />
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </AnimatePresence>
                                     </div>
                                 </SortableContext>
                             </div>
