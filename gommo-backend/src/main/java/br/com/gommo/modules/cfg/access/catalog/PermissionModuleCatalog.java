@@ -73,6 +73,7 @@ public final class PermissionModuleCatalog {
                         "jobrequisition",
                         "candidate",
                         "jobvacancyapplication",
+                        "experience",
                         "developmentplan",
                         "notification",
                         "agenda",

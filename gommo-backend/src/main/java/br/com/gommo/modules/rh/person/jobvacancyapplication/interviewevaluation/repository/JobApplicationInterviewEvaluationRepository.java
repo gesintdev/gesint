@@ -16,6 +16,9 @@ import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.
 public interface JobApplicationInterviewEvaluationRepository
         extends IBaseRepository<JobApplicationInterviewEvaluation> {
 
+    List<JobApplicationInterviewEvaluation> findByJobVacancyApplicationIdAndStatusNot(
+            UUID jobVacancyApplicationId, StatusEnum status);
+
     List<JobApplicationInterviewEvaluation> findByJobVacancyApplicationIdAndColumnKeyAndStatusNot(
             UUID jobVacancyApplicationId, String columnKey, StatusEnum status);
 

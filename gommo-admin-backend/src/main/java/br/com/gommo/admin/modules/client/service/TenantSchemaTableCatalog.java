@@ -62,6 +62,8 @@ public final class TenantSchemaTableCatalog {
             "job_vacancy_application",
             "job_application_interview_evaluation",
             "job_application_interview_score",
+            "experience_evaluation",
+            "experience_evaluation_score",
             "competency",
             "proficiency_level",
             "development_track",

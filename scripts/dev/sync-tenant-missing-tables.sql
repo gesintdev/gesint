@@ -41,6 +41,8 @@ DECLARE
         'candidate',
         'candidate_experience',
         'job_vacancy_application',
+        'experience_evaluation',
+        'experience_evaluation_score',
         'payroll_run',
         'payroll_event',
         'payslip',

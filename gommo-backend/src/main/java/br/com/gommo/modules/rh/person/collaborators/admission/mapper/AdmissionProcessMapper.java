@@ -57,6 +57,7 @@ public class AdmissionProcessMapper {
                 .emergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()))
                 .contractStartDate(dto.getContractStartDate())
                 .contractEndDate(dto.getContractEndDate())
+                .experiencePeriod(dto.getExperiencePeriod())
                 .providerCnpj(dto.getProviderCnpj())
                 .providerLegalName(dto.getProviderLegalName())
                 .providerTradeName(dto.getProviderTradeName())
@@ -116,6 +117,7 @@ public class AdmissionProcessMapper {
                 .emergencyContacts(copyEmergencyContacts(entity.getEmergencyContacts()))
                 .contractStartDate(entity.getContractStartDate())
                 .contractEndDate(entity.getContractEndDate())
+                .experiencePeriod(entity.getExperiencePeriod())
                 .providerCnpj(entity.getProviderCnpj())
                 .providerLegalName(entity.getProviderLegalName())
                 .providerTradeName(entity.getProviderTradeName())
@@ -173,6 +175,9 @@ public class AdmissionProcessMapper {
         }
         entity.setContractStartDate(dto.getContractStartDate());
         entity.setContractEndDate(dto.getContractEndDate());
+        if (dto.getExperiencePeriod() != null) {
+            entity.setExperiencePeriod(dto.getExperiencePeriod());
+        }
         entity.setProviderCnpj(dto.getProviderCnpj());
         entity.setProviderLegalName(dto.getProviderLegalName());
         entity.setProviderTradeName(dto.getProviderTradeName());
@@ -298,6 +303,11 @@ public class AdmissionProcessMapper {
                 .emergencyContacts(copyEmergencyContacts(entity.getEmergencyContacts()))
                 .contractStartDate(entity.getContractStartDate())
                 .contractEndDate(entity.getContractEndDate())
+                .experiencePeriod(entity.getExperiencePeriod())
+                .experienceExtensionUsed(entity.isExperienceExtensionUsed())
+                .experienceMilestoneDays(entity.getExperienceMilestoneDays())
+                .experienceDueDate(entity.getExperienceDueDate())
+                .experienceStatus(entity.getExperienceStatus())
                 .providerCnpj(entity.getProviderCnpj())
                 .providerLegalName(entity.getProviderLegalName())
                 .providerTradeName(entity.getProviderTradeName())

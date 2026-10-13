@@ -92,6 +92,10 @@ public class AdmissionProcessRequestDto {
     private LocalDate contractStartDate;
     private LocalDate contractEndDate;
 
+    /** NONE | DAYS_30_60 | DAYS_45_45 | DAYS_90 */
+    @Size(max = 32)
+    private String experiencePeriod;
+
     @Size(max = 14) private String providerCnpj;
 
     @Size(max = 200) private String providerLegalName;

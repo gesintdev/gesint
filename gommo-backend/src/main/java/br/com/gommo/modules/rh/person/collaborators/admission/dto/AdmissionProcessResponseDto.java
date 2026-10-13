@@ -75,6 +75,11 @@ public class AdmissionProcessResponseDto {
     private final List<AdmissionEmergencyContactDto> emergencyContacts;
     private final LocalDate contractStartDate;
     private final LocalDate contractEndDate;
+    private final String experiencePeriod;
+    private final boolean experienceExtensionUsed;
+    private final Integer experienceMilestoneDays;
+    private final LocalDate experienceDueDate;
+    private final String experienceStatus;
     private final String providerCnpj;
     private final String providerLegalName;
     private final String providerTradeName;

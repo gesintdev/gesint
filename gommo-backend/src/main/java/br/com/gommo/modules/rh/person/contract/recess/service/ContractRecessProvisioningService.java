@@ -46,6 +46,11 @@ public class ContractRecessProvisioningService {
         contract.setStartDate(startDate);
         contract.setEndDate(admission.getContractEndDate());
         contract.setBaseSalary(admission.getBaseSalary());
+        contract.setExperiencePeriod(admission.getExperiencePeriod());
+        contract.setExperienceExtensionUsed(admission.isExperienceExtensionUsed());
+        contract.setExperienceMilestoneDays(admission.getExperienceMilestoneDays());
+        contract.setExperienceDueDate(admission.getExperienceDueDate());
+        contract.setExperienceStatus(admission.getExperienceStatus());
         contract = contractRepository.save(contract);
 
         if (admission.getContractType() != br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum.PJ) {

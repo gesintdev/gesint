@@ -188,6 +188,22 @@ public class AdmissionProcess extends BranchScopedEntity {
     @Column(name = "contract_end_date")
     private LocalDate contractEndDate;
 
+    /** Período de experiência (RN-13 / RN-41): NONE, DAYS_30_60, DAYS_45_45, DAYS_90. */
+    @Column(name = "experience_period", length = 32)
+    private String experiencePeriod;
+
+    @Column(name = "experience_extension_used", nullable = false)
+    private boolean experienceExtensionUsed;
+
+    @Column(name = "experience_milestone_days")
+    private Integer experienceMilestoneDays;
+
+    @Column(name = "experience_due_date")
+    private LocalDate experienceDueDate;
+
+    @Column(name = "experience_status", length = 32)
+    private String experienceStatus;
+
     /** CNPJ da empresa prestadora (quando contract_type = PJ). */
     @Column(name = "provider_cnpj", length = 14)
     private String providerCnpj;

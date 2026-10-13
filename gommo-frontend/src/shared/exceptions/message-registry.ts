@@ -52,6 +52,10 @@ import {
     EXITINTERVIEW_MESSAGES,
 } from "@/modules/rh/person/exitinterview/exceptions/exit-interview.messages";
 import {
+    EXPERIENCE_CLIENT_MESSAGES,
+    EXPERIENCE_MESSAGES,
+} from "@/modules/rh/person/experience/exceptions/experience-evaluation.messages";
+import {
     JOB_REQUISITION_CLIENT_MESSAGES,
     JOB_REQUISITION_MESSAGES,
 } from "@/modules/rh/person/jobrequisition/exceptions/job-requisition.messages";
@@ -100,6 +104,8 @@ const REGISTRY: Record<string, string> = {
     ...OFFBOARDING_CLIENT_MESSAGES,
     ...EXITINTERVIEW_MESSAGES,
     ...EXITINTERVIEW_CLIENT_MESSAGES,
+    ...EXPERIENCE_MESSAGES,
+    ...EXPERIENCE_CLIENT_MESSAGES,
     ...JOB_VACANCY_MESSAGES,
     ...JOB_VACANCY_CLIENT_MESSAGES,
     ...JOB_REQUISITION_MESSAGES,

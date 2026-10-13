@@ -35,6 +35,9 @@ import br.com.gommo.modules.rh.person.collaborators.admission.service.AdmissionP
 import br.com.gommo.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gommo.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
+import br.com.gommo.modules.rh.person.jobrequisition.entity.JobRequisition;
+import br.com.gommo.modules.rh.person.jobrequisition.entity.JobRequisitionExperiencePeriodEnum;
+import br.com.gommo.modules.rh.person.jobrequisition.repository.JobRequisitionRepository;
 import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancy;
 import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancyContractTypeEnum;
 import br.com.gommo.modules.rh.person.jobvacancy.repository.JobVacancyRepository;
@@ -68,6 +71,7 @@ public class JobVacancyApplicationHireService {
     private final AppUserRepository appUserRepository;
     private final JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService;
     private final AuditTrailRecorder auditTrail;
+    private final JobRequisitionRepository jobRequisitionRepository;
 
     public JobVacancyApplicationHireService(
             JobVacancyApplicationRepository applicationRepository,
@@ -80,7 +84,8 @@ public class JobVacancyApplicationHireService {
             OffboardingRepository offboardingRepository,
             AppUserRepository appUserRepository,
             JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService,
-            AuditTrailRecorder auditTrail) {
+            AuditTrailRecorder auditTrail,
+            JobRequisitionRepository jobRequisitionRepository) {
         this.applicationRepository = applicationRepository;
         this.candidateRepository = candidateRepository;
         this.jobVacancyRepository = jobVacancyRepository;
@@ -92,6 +97,7 @@ public class JobVacancyApplicationHireService {
         this.appUserRepository = appUserRepository;
         this.rejectionFeedbackService = rejectionFeedbackService;
         this.auditTrail = auditTrail;
+        this.jobRequisitionRepository = jobRequisitionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -173,11 +179,13 @@ public class JobVacancyApplicationHireService {
                 .phone(phone)
                 .expectedStartDate(request.getExpectedStartDate())
                 .startedAt(request.getExpectedStartDate())
+                .contractStartDate(request.getExpectedStartDate())
                 .contractType(request.getContractType())
                 .baseSalary(request.getBaseSalary())
                 .workScheduleId(request.getWorkScheduleId())
                 .jobPositionId(vacancy.getJobPositionId())
                 .companyId(vacancy.getCompanyId())
+                .experiencePeriod(resolveExperiencePeriod(vacancy.getId(), request.getContractType()))
                 .notes("Criado a partir da proposta de contratacao da vaga "
                         + (vacancy.getJobTitle() != null ? vacancy.getJobTitle() : ""))
                 .build();
@@ -345,6 +353,20 @@ public class JobVacancyApplicationHireService {
             case ESTAGIO -> ContractTypeEnum.INTERN;
             case TEMPORARIO -> ContractTypeEnum.INTERMITTENT;
         };
+    }
+
+    private String resolveExperiencePeriod(UUID jobVacancyId, ContractTypeEnum contractType) {
+        if (contractType != ContractTypeEnum.CLT) {
+            return JobRequisitionExperiencePeriodEnum.NONE.name();
+        }
+        return jobRequisitionRepository
+                .findFirstByJobVacancyIdAndStatusNotOrderByCreatedAtDesc(jobVacancyId, StatusEnum.DELETED)
+                .map(JobRequisition::getExperiencePeriod)
+                .map(period -> period == null || period == JobRequisitionExperiencePeriodEnum.NONE
+                        ? JobRequisitionExperiencePeriodEnum.DAYS_45_45
+                        : period)
+                .orElse(JobRequisitionExperiencePeriodEnum.DAYS_45_45)
+                .name();
     }
 
     private static String normalizeColumnKey(String value) {

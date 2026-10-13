@@ -145,6 +145,17 @@ public class OffboardingService extends BaseService<Offboarding, OffboardingRequ
     @Transactional
     @PreAuthorize("hasAuthority('offboarding:write')")
     public OffboardingResponseDto create(OffboardingRequestDto request) {
+        return createDraft(request);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAuthority('experience:decide')")
+    public OffboardingResponseDto createDraftForExperienceEnd(OffboardingRequestDto request) {
+        return createDraft(request);
+    }
+
+    private OffboardingResponseDto createDraft(OffboardingRequestDto request) {
         Offboarding entity = mapper.toEntity(request);
         entity.setStatus(StatusEnum.ACTIVE);
         entity.setProcessStatus(OffboardingProcessStatusEnum.DRAFT);

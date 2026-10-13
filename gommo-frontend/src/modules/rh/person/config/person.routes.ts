@@ -3,6 +3,7 @@ import {
     CalendarDays,
     ClipboardList,
     ClipboardPlus,
+    Hourglass,
     Megaphone,
     MessageSquare,
     Target,
@@ -16,6 +17,29 @@ import { lazyNamed, routeGroup, tabbedCrudRoute } from "@/shared/routing";
 
 export const personRoutes: AppRoute[] = [
     collaboratorSharedRouteGroup,
+    tabbedCrudRoute({
+        id: "experience",
+        href: "/experience",
+        label: "Experiência",
+        icon: Hourglass,
+        permission: "experience:read",
+        routeId: "experience",
+        tabShortLabel: "Exp.",
+        fieldTabName: "collaboratorName",
+        editOnly: true,
+        showListToFormButton: false,
+        listToolbar: "Fila de avaliação do período de experiência (45/90 dias).",
+        formTabLabel: "Avaliação",
+        formTabLabelEdit: "Avaliar experiência",
+        list: lazyNamed(
+            () => import("@/modules/rh/person/experience/components/ExperienceEvaluationListClient"),
+            "ExperienceEvaluationListClient",
+        ),
+        form: lazyNamed(
+            () => import("@/modules/rh/person/experience/components/ExperienceEvaluationFormClient"),
+            "ExperienceEvaluationFormClient",
+        ),
+    }),
     tabbedCrudRoute({
         id: "leave-vacation",
         href: LEAVE_VACATION_CRUD_LABELS.href,

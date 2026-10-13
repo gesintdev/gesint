@@ -38,6 +38,8 @@ import br.com.gommo.modules.rh.person.collaborators.people.repository.Collaborat
 import br.com.gommo.modules.rh.person.collaborators.people.service.CollaboratorProfileService;
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
 import br.com.gommo.modules.rh.person.contract.recess.service.ContractRecessProvisioningService;
+import br.com.gommo.modules.rh.person.experience.entity.ExperiencePeriodEnum;
+import br.com.gommo.modules.rh.person.experience.service.IExperienceEvaluationService;
 import br.com.gommo.modules.rh.person.leave.domain.LeaveAbsenceRules;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gommo.modules.rh.person.leave.entity.LeaveRequest;
@@ -68,6 +70,7 @@ public class AdmissionProcessService
     private final ISearchDocumentIndexer searchDocumentIndexer;
     private final OccupationalExamTriggerService occupationalExamTriggerService;
     private final IAdmissionPipelineService admissionPipelineService;
+    private final IExperienceEvaluationService experienceEvaluationService;
 
     public AdmissionProcessService(
             AdmissionProcessRepository repository,
@@ -82,7 +85,8 @@ public class AdmissionProcessService
             OffboardingRepository offboardingRepository,
             ISearchDocumentIndexer searchDocumentIndexer,
             OccupationalExamTriggerService occupationalExamTriggerService,
-            IAdmissionPipelineService admissionPipelineService) {
+            IAdmissionPipelineService admissionPipelineService,
+            IExperienceEvaluationService experienceEvaluationService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -97,6 +101,7 @@ public class AdmissionProcessService
         this.searchDocumentIndexer = searchDocumentIndexer;
         this.occupationalExamTriggerService = occupationalExamTriggerService;
         this.admissionPipelineService = admissionPipelineService;
+        this.experienceEvaluationService = experienceEvaluationService;
     }
 
     @Override
@@ -168,6 +173,7 @@ public class AdmissionProcessService
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
         contractRecessProvisioningService.sync(saved);
+        syncExperiencePeriod(saved, request.getExperiencePeriod());
         admissionPipelineService.ensureSteps(saved.getId());
         indexAdmission(saved);
         return toEnrichedResponse(saved);
@@ -191,9 +197,36 @@ public class AdmissionProcessService
         applyCompletionDates(entity);
         AdmissionProcess saved = repository.save(entity);
         contractRecessProvisioningService.sync(saved);
+        syncExperiencePeriod(
+                saved,
+                request.getExperiencePeriod() != null
+                        ? request.getExperiencePeriod()
+                        : saved.getExperiencePeriod());
         admissionPipelineService.ensureSteps(saved.getId());
         indexAdmission(saved);
         return toEnrichedResponse(saved);
+    }
+
+    private void syncExperiencePeriod(AdmissionProcess admission, String experiencePeriod) {
+        ExperiencePeriodEnum period = parseExperiencePeriod(experiencePeriod);
+        if (period == ExperiencePeriodEnum.NONE
+                && admission.getContractType() == ContractTypeEnum.CLT
+                && experiencePeriod == null) {
+            return;
+        }
+        experienceEvaluationService.syncFromAdmission(admission, period);
+        repository.save(admission);
+    }
+
+    private static ExperiencePeriodEnum parseExperiencePeriod(String value) {
+        if (value == null || value.isBlank()) {
+            return ExperiencePeriodEnum.NONE;
+        }
+        try {
+            return ExperiencePeriodEnum.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return ExperiencePeriodEnum.NONE;
+        }
     }
 
     private void assertAdmissionalExamIfCompleting(AdmissionProcess entity) {

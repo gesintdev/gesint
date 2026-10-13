@@ -23,4 +23,7 @@ public interface IOffboardingService extends IBaseService<OffboardingRequestDto,
     OffboardingAccountantPackageDto accountantPackagePreview(UUID id);
 
     OffboardingAccountantPackageDto sendAccountantPackage(UUID id);
+
+    /** DRAFT de desligamento disparado pela decisão de encerrar experiência (RN-41 → RN-21). */
+    OffboardingResponseDto createDraftForExperienceEnd(OffboardingRequestDto request);
 }

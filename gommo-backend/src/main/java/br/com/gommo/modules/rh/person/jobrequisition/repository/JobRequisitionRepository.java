@@ -11,4 +11,7 @@ import br.com.gommo.modules.rh.person.jobrequisition.entity.JobRequisition;
 @Repository
 public interface JobRequisitionRepository extends IBaseRepository<JobRequisition> {
     boolean existsByOffboardingIdAndStatusNot(UUID offboardingId, StatusEnum status);
+
+    java.util.Optional<JobRequisition> findFirstByJobVacancyIdAndStatusNotOrderByCreatedAtDesc(
+            UUID jobVacancyId, StatusEnum status);
 }
