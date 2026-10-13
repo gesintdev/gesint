@@ -12,7 +12,6 @@ import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {HeaderAiAssistant} from "@/shared/components/layout/HeaderAiAssistant";
 import {HeaderBranchSelector} from "@/shared/components/layout/HeaderBranchSelector";
 import {HeaderMoreMenu} from "@/shared/components/layout/HeaderMoreMenu";
-import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
 import {useSessionReady} from "@/shared/components/providers/SessionGate";
@@ -161,7 +160,6 @@ export function SystemShell({
                                             onAiAssistant={toggleAiAssistant}
                                             aiAssistantOpen={aiAssistantOpen}
                                         />
-                                        <HeaderUserMenu/>
                                     </div>
                                 </div>
                             </header>

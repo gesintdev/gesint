@@ -7,6 +7,7 @@ import {type MouseEvent, useCallback, useEffect, useMemo, useRef, useState} from
 import {type AppRoute, flattenRoutes} from "@/config/routes";
 import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
 import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
+import {SidebarUserMenu} from "@/shared/components/layout/SidebarUserMenu";
 import {SystemRail} from "@/shared/components/layout/SystemRail";
 import {useActiveSystem, useActiveSystemRoutes} from "@/shared/context/ActiveSystemContext";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
@@ -393,6 +394,10 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                     ))}
                 </nav>
             </div>
+            <SidebarUserMenu
+                collapsed={panelCollapsed}
+                onNavigate={onMobileCloseAction}
+            />
         </>
     );
     const sidebarShell = (opts: { desktop: boolean }) => (
