@@ -202,7 +202,7 @@ table.t td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:mi
     <li><a href="#t13">Proposta e conversão para pré-admissão</a> · RN-37/38</li>
     <li><a href="#t14">Portal do candidato</a> · RN-33 / D8</li>
     <li><a href="#t15">DP › Desligamento reconstruído</a> · RN-21</li>
-    <li><a href="#t16">Avaliação de experiência 45/90</a> · RN-13/41</li>
+    <li><a href="#t16">Avaliação de experiência 45/90</a> · RN-13/41/07</li>
   </ol>
 </div>
 
@@ -839,28 +839,42 @@ table.t td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:mi
 
 <!-- T16 -->
 <section class="screen" id="t16">
-  <div class="screen-head"><div><div class="rn">RN-13 · RN-41</div><h2>Avaliação de experiência 45/90 dias</h2></div><div><span class="tag t-novo">NOVO</span></div></div>
+  <div class="screen-head"><div><div class="rn">RN-13 · RN-41 · RN-07</div><h2>RH › Pessoas › Avaliação de experiência 45/90 dias</h2></div><div><span class="tag t-novo">NOVO</span></div></div>
   <div class="screen-body">
     <div class="mock">
-      <div class="app nosb">
+      <div class="app">
         <div class="rail"><span>DP</span><span class="on">RH</span><span>CTB</span><span>CFG</span></div>
+        <div class="side"><div class="sec">Pessoas</div><a>Colaboradores</a><a>Candidatos</a><a class="on">Experiência <span class="tag t-novo" style="font-size:9px">NOVO</span></a><div class="sec">Recrutamento</div><a>Vagas</a><a>Requisições</a></div>
         <div class="main">
-          <div class="topbar"><span>RH › Pessoas › Experiência</span><span class="badge b-warn">3 vencem em 7 dias</span></div>
+          <div class="topbar"><span>RH › Pessoas › Experiência</span><span class="badge b-warn">3 vencem em 7 dias · RN-07</span></div>
+          <div class="tabs"><span class="on">Em período</span><span>Decididos</span></div>
           <div class="content">
             <div class="tscroll"><table class="t">
               <tr><th>Colaborador</th><th>Cargo</th><th>Admissão</th><th>Marco</th><th>Vence em</th><th>Seleção × Experiência</th><th>Status</th></tr>
               <tr><td>Ana Costa</td><td>Atendente II</td><td>03/11/2026</td><td>45 dias</td><td><b>17/12</b></td><td class="small">Entrevista 2,7 → Exp. 3,0</td><td><span class="badge b-info">Aguardando gestor</span></td></tr>
-              <tr><td>João Prado</td><td>Aux. Estoque</td><td>12/08/2026</td><td>90 dias</td><td><b>09/11</b></td><td class="small">Prova 7,0 → Exp. 2,1</td><td><span class="badge b-warn">Decidir</span></td></tr>
+              <tr style="outline:2px dashed var(--warn);outline-offset:-2px"><td>João Prado</td><td>Aux. Estoque</td><td>12/08/2026</td><td>90 dias</td><td><b>09/11</b></td><td class="small">Prova 7,0 → Exp. 2,1</td><td><span class="badge b-warn">Decidir</span></td></tr>
             </table></div>
-            <div class="modal rel"><span class="pin n float">1</span>
+
+            <div class="fs mt rel"><span class="pin n float">2</span>
+              <h4>Avaliação · João Prado · Auxiliar de Estoque</h4>
+              <div class="d">Mesmas competências e escala 1–4 do cargo usadas na seleção (RN-10 / RN-11 / RN-36). Gestor: Marina Lopes.</div>
+              <div class="score" style="font-weight:600;color:var(--muted);font-size:11px"><span>Competência / indicador</span><span style="text-align:center">1</span><span style="text-align:center">2</span><span style="text-align:center">3</span><span style="text-align:center">4</span><span>Seleção → Exp.</span></div>
+              <div class="score mt"><span><b>Organização de estoque</b><br><span class="small muted">Separação FEFO e conferência de nota</span></span><span class="c">1</span><span class="c on">2</span><span class="c">3</span><span class="c">4</span><span class="small">Sel. 3 → Exp. 2</span></div>
+              <div class="score mt"><span><b>Dispensação segura</b><br><span class="small muted">Checagem de lote e validade</span></span><span class="c on">1</span><span class="c">2</span><span class="c">3</span><span class="c">4</span><span class="small">Sel. 3 → Exp. 1</span></div>
+              <div class="score mt"><span><b>Trabalho em equipe</b></span><span class="c">1</span><span class="c">2</span><span class="c on">3</span><span class="c">4</span><span class="small">Sel. 3 → Exp. 3</span></div>
+              <div class="f mt"><label>Evidências / parecer do gestor *</label><div class="in ta">Erros recorrentes na checagem de validade; melhorou em organização após 45 dias.</div></div>
+            </div>
+
+            <div class="modal rel" style="max-width:560px"><span class="pin n float">1</span>
               <div class="mh">Fim do período de experiência · João Prado</div>
               <div class="mb">
                 <div class="small muted">Contrato de experiência: 45 dias + prorrogação única de 45 (máx. 90 · CLT arts. 445 e 451). Vence em 09/11/2026.</div>
-                <div class="radio mt"><i></i>Efetivar (prazo indeterminado)</div>
-                <div class="radio on"><i></i>Encerrar ao fim do prazo</div>
-                <div class="radio" style="color:var(--muted)"><i></i>Prorrogar <span class="small">(indisponível: já prorrogado uma vez)</span></div>
-                <div class="f mt"><label>Motivo *</label><div class="in sel">Desempenho abaixo do esperado em Dispensação segura</div></div>
+                <div class="radio mt"><i></i>Efetivar (passa a prazo indeterminado)</div>
+                <div class="radio on"><i></i>Encerrar ao fim do prazo <span class="small muted">→ abre desligamento (RN-21)</span></div>
+                <div class="radio" style="color:var(--muted)"><i></i>Prorrogar <span class="small">(indisponível: já prorrogado uma vez · RN-13)</span></div>
+                <div class="f mt"><label>Motivo padronizado *</label><div class="in sel">Desempenho abaixo do esperado em Dispensação segura</div></div>
                 <div class="alert a-warn"><div>⚠ Se nada for decidido até 09/11, o contrato <b>vira prazo indeterminado automaticamente</b> (continuidade após o termo; limite de 90 dias da CLT art. 445, parágrafo único; prorrogação única, art. 451).</div></div>
+                <div class="small muted mt">A decisão registra autor, momento, motivo e evidência (RN-05).</div>
               </div>
               <div class="mf"><span class="btn">Cancelar</span><span class="btn p">Registrar decisão</span></div>
             </div>
@@ -871,10 +885,13 @@ table.t td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:mi
     <div class="notes">
       <h3>O que entra</h3>
       <ol>
-        <li><span class="pin n">1</span>Decisão de efetivar, encerrar ou prorrogar <b>com motivo e autor</b> (RN-05). A regra de prorrogação única e o limite de 90 dias vêm do tipo de vínculo (RN-13).</li>
-        <li><span class="pin n">2</span>A avaliação usa <b>as mesmas competências do cargo</b> usadas na seleção. A coluna "Seleção × Experiência" é o começo do indicador de qualidade da contratação (RN-42).</li>
+        <li><span class="pin n">1</span>Decisão de <b>efetivar</b>, <b>encerrar</b> ou <b>prorrogar</b> com motivo padronizado e autor (RN-05). Prorrogação <b>única</b> e teto de 90 dias vêm do tipo de vínculo (RN-13). Sem decisão no prazo → vira indeterminado automaticamente. <b>Encerrar</b> dispara o desligamento reconstruído (tela 15 / RN-21).</li>
+        <li><span class="pin n">2</span>Avaliação pelas <b>mesmas competências do cargo</b> da seleção (escala 1–4 com indicadores observáveis). A coluna "Seleção × Experiência" inicia o indicador de qualidade da contratação (RN-42).</li>
       </ol>
-      <div class="rule"><b>Hoje:</b> não existe conceito de período de experiência (o gap do próprio repositório confirma). "Encerrar" aciona o desligamento (tela 15).</div>
+      <div class="rule"><b>Prazos (RN-07):</b> o motor único calcula o marco (45 / 90), alerta o gestor e o RH e escala se a decisão atrasar — o mesmo motor do SLA do candidato e do exame demissional.</div>
+      <div class="rule"><b>Hoje:</b> não existe período de experiência no produto (gap confirmado no repositório). O vínculo CLT não diferencia "experiência 45+45" de indeterminado além do rótulo na proposta (tela 13).</div>
+      <div class="rule"><b>Permissão:</b> gestor avalia no próprio escopo; RH vê a fila do estabelecimento; decisão sensível de encerrar exige papel com alçada (recorte da RN-03).</div>
+      <div class="rule"><b>Critério de aceite:</b> (a) colaborador em experiência aparece na fila com data de vencimento; (b) avaliação só libera competências do cargo vigente; (c) não dá para prorrogar duas vezes; (d) prazo vencido sem decisão efetiva automaticamente; (e) "Encerrar" abre a RN-21 com motivo já preenchido.</div>
     </div>
   </div>
 </section>
