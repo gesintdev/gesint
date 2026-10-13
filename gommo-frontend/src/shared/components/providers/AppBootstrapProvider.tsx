@@ -25,6 +25,7 @@ type AppBootstrapContextValue = {
     branches: Branch[];
     contractedSystemKeys: string[] | null;
     contractedSystemKeyOverrides: Record<string, string[]> | null;
+    assistantEnabled: boolean;
 };
 
 const AppBootstrapContext = createContext<AppBootstrapContextValue | null>(null);
@@ -89,6 +90,7 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
             branches: (bootstrap?.branches ?? []) as Branch[],
             contractedSystemKeys: bootstrap?.contractedSystemKeys ?? null,
             contractedSystemKeyOverrides: bootstrap?.contractedSystemKeyOverrides ?? null,
+            assistantEnabled: Boolean(bootstrap?.assistantEnabled),
         };
     }, [envReady, holdForLoginExit, query.data]);
 

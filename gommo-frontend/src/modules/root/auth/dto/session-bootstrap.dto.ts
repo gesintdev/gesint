@@ -33,4 +33,5 @@ export class SessionBootstrap {
     branches!: Array<{ id: string; name: string; cnpj?: string | null; headquarters: boolean }>;
     contractedSystemKeys!: string[] | null;
     contractedSystemKeyOverrides!: Record<string, string[]> | null;
+    assistantEnabled!: boolean;
 }

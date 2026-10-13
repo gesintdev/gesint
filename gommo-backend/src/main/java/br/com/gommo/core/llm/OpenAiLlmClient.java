@@ -56,16 +56,18 @@ public class OpenAiLlmClient implements LlmClient {
                     .body(String.class);
             JsonNode response = parseJson(raw);
             String text = extractText(response);
-            if (!StringUtils.hasText(text)) {
+            List<LlmToolCall> toolCalls = extractToolCalls(response);
+            if (!StringUtils.hasText(text) && toolCalls.isEmpty()) {
                 throw LlmException.emptyResponse();
             }
             LlmTokenUsage usage = extractUsage(response);
             usageTracker.record(usage);
             return LlmResponse.builder()
-                    .content(text.trim())
+                    .content(StringUtils.hasText(text) ? text.trim() : "")
                     .provider("openai")
                     .model(model)
                     .usage(usage)
+                    .toolCalls(toolCalls)
                     .build();
         } catch (BusinessException ex) {
             throw ex;
@@ -110,19 +112,25 @@ public class OpenAiLlmClient implements LlmClient {
     }
 
     private Map<String, Object> buildBody(LlmRequest request, String model) {
-        List<Map<String, String>> messages = new ArrayList<>();
+        List<Map<String, Object>> messages = new ArrayList<>();
         if (StringUtils.hasText(request.getSystemInstruction())) {
             messages.add(Map.of("role", "system", "content", request.getSystemInstruction().trim()));
         }
         for (LlmMessage message : request.getMessages() == null ? List.<LlmMessage>of() : request.getMessages()) {
-            if (message == null || !StringUtils.hasText(message.getContent())) {
+            if (message == null) {
                 continue;
             }
-            String role = normalizeOpenAiRole(message.getRole());
-            messages.add(Map.of("role", role, "content", message.getContent().trim()));
+            Map<String, Object> entry = buildMessageEntry(message);
+            if (entry != null) {
+                messages.add(entry);
+            }
         }
         if (messages.isEmpty()
-                || messages.stream().noneMatch(m -> "user".equals(m.get("role")) || "assistant".equals(m.get("role")))) {
+                || messages.stream()
+                        .noneMatch(m -> {
+                            Object role = m.get("role");
+                            return "user".equals(role) || "assistant".equals(role) || "tool".equals(role);
+                        })) {
             throw LlmException.callFailed("Nenhuma mensagem válida para enviar ao modelo");
         }
 
@@ -137,7 +145,77 @@ public class OpenAiLlmClient implements LlmClient {
                 request.getMaxOutputTokens() != null
                         ? request.getMaxOutputTokens()
                         : properties.getMaxOutputTokens());
+        List<Map<String, Object>> tools = buildTools(request.getTools());
+        if (!tools.isEmpty()) {
+            body.put("tools", tools);
+            body.put("tool_choice", "auto");
+        }
         return body;
+    }
+
+    private Map<String, Object> buildMessageEntry(LlmMessage message) {
+        String role = normalizeOpenAiRole(message.getRole());
+        if ("tool".equals(role)) {
+            if (!StringUtils.hasText(message.getToolCallId())) {
+                return null;
+            }
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("role", "tool");
+            entry.put("tool_call_id", message.getToolCallId().trim());
+            entry.put("content", message.getContent() != null ? message.getContent() : "");
+            return entry;
+        }
+        if (message.getToolCalls() != null && !message.getToolCalls().isEmpty()) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("role", "assistant");
+            entry.put("content", StringUtils.hasText(message.getContent()) ? message.getContent() : null);
+            List<Map<String, Object>> toolCalls = new ArrayList<>();
+            for (LlmToolCall call : message.getToolCalls()) {
+                if (call == null || !StringUtils.hasText(call.getName())) {
+                    continue;
+                }
+                Map<String, Object> fn = new LinkedHashMap<>();
+                fn.put("name", call.getName());
+                fn.put("arguments", StringUtils.hasText(call.getArgumentsJson()) ? call.getArgumentsJson() : "{}");
+                Map<String, Object> toolCall = new LinkedHashMap<>();
+                toolCall.put("id", StringUtils.hasText(call.getId()) ? call.getId() : call.getName());
+                toolCall.put("type", "function");
+                toolCall.put("function", fn);
+                toolCalls.add(toolCall);
+            }
+            if (toolCalls.isEmpty() && !StringUtils.hasText(message.getContent())) {
+                return null;
+            }
+            entry.put("tool_calls", toolCalls);
+            return entry;
+        }
+        if (!StringUtils.hasText(message.getContent())) {
+            return null;
+        }
+        return Map.of("role", role, "content", message.getContent().trim());
+    }
+
+    private List<Map<String, Object>> buildTools(List<LlmTool> tools) {
+        if (tools == null || tools.isEmpty()) {
+            return List.of();
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (LlmTool tool : tools) {
+            if (tool == null || !StringUtils.hasText(tool.getName())) {
+                continue;
+            }
+            Map<String, Object> function = new LinkedHashMap<>();
+            function.put("name", tool.getName().trim());
+            if (StringUtils.hasText(tool.getDescription())) {
+                function.put("description", tool.getDescription().trim());
+            }
+            Map<String, Object> parameters = tool.getParameters() != null && !tool.getParameters().isEmpty()
+                    ? tool.getParameters()
+                    : Map.of("type", "object", "properties", Map.of());
+            function.put("parameters", parameters);
+            result.add(Map.of("type", "function", "function", function));
+        }
+        return result;
     }
 
     private static String normalizeOpenAiRole(String role) {
@@ -151,6 +229,9 @@ public class OpenAiLlmClient implements LlmClient {
         if ("system".equals(normalized)) {
             return "system";
         }
+        if ("tool".equals(normalized) || "function".equals(normalized)) {
+            return "tool";
+        }
         return "user";
     }
 
@@ -163,6 +244,35 @@ public class OpenAiLlmClient implements LlmClient {
             return null;
         }
         return choices.get(0).path("message").path("content").asString(null);
+    }
+
+    private List<LlmToolCall> extractToolCalls(JsonNode response) {
+        if (response == null) {
+            return List.of();
+        }
+        JsonNode choices = response.path("choices");
+        if (!choices.isArray() || choices.isEmpty()) {
+            return List.of();
+        }
+        JsonNode toolCalls = choices.get(0).path("message").path("tool_calls");
+        if (!toolCalls.isArray() || toolCalls.isEmpty()) {
+            return List.of();
+        }
+        List<LlmToolCall> result = new ArrayList<>();
+        for (JsonNode node : toolCalls) {
+            String id = node.path("id").asString(null);
+            String name = node.path("function").path("name").asString(null);
+            String args = node.path("function").path("arguments").asString("{}");
+            if (!StringUtils.hasText(name)) {
+                continue;
+            }
+            result.add(LlmToolCall.builder()
+                    .id(StringUtils.hasText(id) ? id : name)
+                    .name(name)
+                    .argumentsJson(StringUtils.hasText(args) ? args : "{}")
+                    .build());
+        }
+        return List.copyOf(result);
     }
 
     private static String trimSlash(String value) {

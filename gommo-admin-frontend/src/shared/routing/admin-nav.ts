@@ -80,6 +80,10 @@ export function emailSettingsPath() {
     return `${SETTINGS_BASE_PATH}/email`;
 }
 
+export function assistantErrorsPath() {
+    return `${SETTINGS_BASE_PATH}/assistant-errors`;
+}
+
 export type AdminRouteState =
     | {
           menu: AdminMenuDef;
@@ -125,9 +129,12 @@ export function parseAdminPathname(pathname: string): AdminRouteState | null {
 
 export function buildAdminBreadcrumb(pathname: string): AdminBreadcrumbItem[] {
     if (pathname === SETTINGS_BASE_PATH || pathname.startsWith(`${SETTINGS_BASE_PATH}/`)) {
+        const settingsLabel = pathname.includes("/assistant-errors")
+            ? "Logs do Assistente I.A."
+            : "E-mail (SMTP)";
         return [
             { label: "Configurações", href: emailSettingsPath(), icon: Settings },
-            { label: "E-mail (SMTP)" },
+            { label: settingsLabel },
         ];
     }
 

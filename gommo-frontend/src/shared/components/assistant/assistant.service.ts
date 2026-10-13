@@ -18,11 +18,17 @@ export type AssistantLlmUsage = {
     modelOutputTokenLimit?: number | null;
 };
 
+export type AssistantDeepLink = {
+    label: string;
+    href: string;
+};
+
 export type AssistantChatResponse = {
     reply: string;
     provider?: string;
     model?: string;
     usage?: AssistantLlmUsage | null;
+    links?: AssistantDeepLink[] | null;
 };
 
 class AssistantService {

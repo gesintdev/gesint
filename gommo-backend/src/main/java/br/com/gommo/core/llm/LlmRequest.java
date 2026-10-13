@@ -24,6 +24,10 @@ public class LlmRequest {
     @Builder.Default
     private List<LlmMessage> messages = new ArrayList<>();
 
+    /** Declarações de tools (function calling). Vazio = chat simples. */
+    @Builder.Default
+    private List<LlmTool> tools = new ArrayList<>();
+
     private Double temperature;
 
     private Integer maxOutputTokens;

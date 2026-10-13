@@ -8,8 +8,9 @@ import {useEffect, useRef, useState} from "react";
 type HeaderMoreMenuProps = {
     onAgenda: () => void;
     onClock: () => void;
-    onAiAssistant: () => void;
+    onAiAssistant?: () => void;
     aiAssistantOpen?: boolean;
+    showAiAssistant?: boolean;
 };
 
 /**
@@ -21,6 +22,7 @@ export function HeaderMoreMenu({
     onClock,
     onAiAssistant,
     aiAssistantOpen = false,
+    showAiAssistant = true,
 }: HeaderMoreMenuProps) {
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
@@ -92,21 +94,23 @@ export function HeaderMoreMenu({
                             <Clock className="size-4 shrink-0 text-base-content/45" strokeWidth={2}/>
                             Registro de ponto
                         </button>
-                        <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => run(onAiAssistant)}
-                            className={clsx(
-                                "flex w-full items-center gap-2.5 px-3 py-2.5 text-start text-[13px] transition-colors hover:bg-base-content/6",
-                                aiAssistantOpen ? "text-primary" : "text-base-content/80",
-                            )}
-                        >
-                            <Sparkles
-                                className={clsx("size-4 shrink-0", aiAssistantOpen ? "text-primary" : "text-base-content/45")}
-                                strokeWidth={2}
-                            />
-                            Assistente IA
-                        </button>
+                        {showAiAssistant && onAiAssistant ? (
+                            <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => run(onAiAssistant)}
+                                className={clsx(
+                                    "flex w-full items-center gap-2.5 px-3 py-2.5 text-start text-[13px] transition-colors hover:bg-base-content/6",
+                                    aiAssistantOpen ? "text-primary" : "text-base-content/80",
+                                )}
+                            >
+                                <Sparkles
+                                    className={clsx("size-4 shrink-0", aiAssistantOpen ? "text-primary" : "text-base-content/45")}
+                                    strokeWidth={2}
+                                />
+                                Assistente IA
+                            </button>
+                        ) : null}
                     </motion.div>
                 ) : null}
             </AnimatePresence>

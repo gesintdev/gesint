@@ -1,5 +1,8 @@
 package br.com.gommo.modules.root.assistant.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,4 +20,7 @@ public class AssistantChatResponseDto {
     private String provider;
     private String model;
     private AssistantLlmUsageDto usage;
+
+    @Builder.Default
+    private List<AssistantDeepLinkDto> links = new ArrayList<>();
 }

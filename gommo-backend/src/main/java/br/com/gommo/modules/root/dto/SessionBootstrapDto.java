@@ -45,4 +45,10 @@ public class SessionBootstrapDto {
     private final List<String> contractedSystemKeys;
     /** Filiais cujo conjunto de keys difere da base. */
     private final Map<String, List<String>> contractedSystemKeyOverrides;
+
+    /**
+     * True quando o contrato do cliente habilita o assistente de I.A. ({@code with_ai}). Em host
+     * plataforma / ambiente de desenvolvimento sem filtro comercial, fica true.
+     */
+    private final boolean assistantEnabled;
 }

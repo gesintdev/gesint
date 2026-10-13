@@ -14,6 +14,7 @@ import {HeaderBranchSelector} from "@/shared/components/layout/HeaderBranchSelec
 import {HeaderMoreMenu} from "@/shared/components/layout/HeaderMoreMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
+import {useAppBootstrap} from "@/shared/components/providers/AppBootstrapProvider";
 import {useSessionReady} from "@/shared/components/providers/SessionGate";
 import {HeaderReleaseVersion} from "@/shared/components/release-notes/HeaderReleaseVersion";
 import {GlobalSearchPalette} from "@/shared/components/search/GlobalSearchPalette";
@@ -40,12 +41,22 @@ export function SystemShell({
     const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
     const {data: session} = useSession();
     const sessionReady = useSessionReady();
+    const {assistantEnabled} = useAppBootstrap();
     const closeMobileNav = useCallback(() => setMobileNav(false), []);
     const toggleMobileNav = useCallback(() => setMobileNav((open) => !open), []);
     const closeClockModal = useCallback(() => setClockModalOpen(false), []);
     const closeAgendaModal = useCallback(() => setAgendaModalOpen(false), []);
     const closeAiAssistant = useCallback(() => setAiAssistantOpen(false), []);
-    const toggleAiAssistant = useCallback(() => setAiAssistantOpen((open) => !open), []);
+    const toggleAiAssistant = useCallback(() => {
+        if (!assistantEnabled) return;
+        setAiAssistantOpen((open) => !open);
+    }, [assistantEnabled]);
+
+    useEffect(() => {
+        if (!assistantEnabled) {
+            setAiAssistantOpen(false);
+        }
+    }, [assistantEnabled]);
 
     useEffect(() => {
         setAuthToken(session?.accessToken ?? null);
@@ -148,17 +159,20 @@ export function SystemShell({
                                     <div className="flex items-center gap-0.5 sm:gap-1">
                                         <HeaderNotifications/>
                                         <GlobalSearchPalette/>
-                                        <div className="hidden lg:block">
-                                            <HeaderAiAssistant
-                                                open={aiAssistantOpen}
-                                                onClick={toggleAiAssistant}
-                                            />
-                                        </div>
+                                        {assistantEnabled ? (
+                                            <div className="hidden lg:block">
+                                                <HeaderAiAssistant
+                                                    open={aiAssistantOpen}
+                                                    onClick={toggleAiAssistant}
+                                                />
+                                            </div>
+                                        ) : null}
                                         <HeaderMoreMenu
                                             onAgenda={() => setAgendaModalOpen(true)}
                                             onClock={() => setClockModalOpen(true)}
-                                            onAiAssistant={toggleAiAssistant}
+                                            onAiAssistant={assistantEnabled ? toggleAiAssistant : undefined}
                                             aiAssistantOpen={aiAssistantOpen}
+                                            showAiAssistant={assistantEnabled}
                                         />
                                     </div>
                                 </div>
@@ -181,13 +195,15 @@ export function SystemShell({
                                 </main>
                             </div>
                         </div>
+                        {assistantEnabled ? (
+                            <AiAssistantPanel open={aiAssistantOpen} onClose={closeAiAssistant}/>
+                        ) : null}
                     </ActiveSystemProvider>
                     </ActiveBranchProvider>
                 </WorkspaceNavigationProvider>
             </Suspense>
             <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal}/>
             <AgendaModal open={agendaModalOpen} onClose={closeAgendaModal}/>
-            <AiAssistantPanel open={aiAssistantOpen} onClose={closeAiAssistant}/>
         </div>
     );
 }

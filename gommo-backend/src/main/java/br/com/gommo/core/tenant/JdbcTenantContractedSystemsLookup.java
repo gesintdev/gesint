@@ -36,6 +36,20 @@ public class JdbcTenantContractedSystemsLookup implements TenantContractedSystem
             ORDER BY p.sort_order, p.key
             """;
 
+    private static final String SELECT_ASSISTANT_ENABLED =
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM admin.client_contracted_system c
+                WHERE c.client_id = ?
+                  AND c.status <> 'DELETED'
+                  AND c.operational_status = 'ACTIVE'
+                  AND c.with_ai = true
+                  AND (c.effective_from IS NULL OR c.effective_from <= now())
+                  AND (c.deactivate_at IS NULL OR c.deactivate_at > now())
+            )
+            """;
+
     /**
      * Uma linha por par contrato/filial habilitada. Em modo ALL nao ha linha em
      * {@code client_contracted_system_branch}, entao o LEFT JOIN devolve uma linha sem filial e a
@@ -87,6 +101,20 @@ public class JdbcTenantContractedSystemsLookup implements TenantContractedSystem
         } catch (DataAccessException ex) {
             log.warn("admin contracted systems lookup failed for client {}: {}", clientId, ex.getMessage());
             return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public boolean isAssistantEnabled(UUID clientId) {
+        if (clientId == null) {
+            return false;
+        }
+        try {
+            Boolean enabled = jdbcTemplate.queryForObject(SELECT_ASSISTANT_ENABLED, Boolean.class, clientId);
+            return Boolean.TRUE.equals(enabled);
+        } catch (DataAccessException ex) {
+            log.warn("admin assistant enabled lookup failed for client {}: {}", clientId, ex.getMessage());
+            return false;
         }
     }
 

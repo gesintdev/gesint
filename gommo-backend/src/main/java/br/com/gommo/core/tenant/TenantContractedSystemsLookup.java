@@ -19,6 +19,11 @@ public interface TenantContractedSystemsLookup {
     ContractedSystemScope findActiveKeyScope(UUID clientId);
 
     /**
+     * True se o cliente tem ao menos um contrato operacional ACTIVE com {@code with_ai = true}.
+     */
+    boolean isAssistantEnabled(UUID clientId);
+
+    /**
      * @param allBranchesKeys keys validas em qualquer filial
      * @param keysByCompanyId keys extras de cada filial, pela {@code company.id} do schema do
      *     tenant; a matriz entra pelo {@code tenant_company_id} do proprio cliente

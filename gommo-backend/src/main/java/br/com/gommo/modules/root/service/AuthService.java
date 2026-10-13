@@ -515,6 +515,7 @@ public class AuthService implements IAuthService {
         String tenantName = null;
         List<String> contractedSystemKeys = null;
         Map<String, List<String>> contractedSystemKeyOverrides = null;
+        boolean assistantEnabled = !multiTenantProperties.isEnabled();
         TenantContext tenant = null;
         if (multiTenantProperties.isEnabled()) {
             tenant = TenantContextHolder.getOptional().orElse(null);
@@ -525,10 +526,14 @@ public class AuthService implements IAuthService {
                         tenantContractedSystemsLookup.findActiveKeyScope(tenant.clientId());
                 contractedSystemKeys = scope.allBranchesKeys();
                 contractedSystemKeyOverrides = buildKeyOverrides(scope, branchAccess);
+                assistantEnabled = tenantContractedSystemsLookup.isAssistantEnabled(tenant.clientId());
             } else if (tenant != null && tenant.isDevelopmentPublic()) {
                 tenantSlug = tenant.slug();
                 tenantName = tenant.name();
                 contractedSystemKeys = null;
+                assistantEnabled = true;
+            } else if (tenant != null && tenant.isPlatformAccess()) {
+                assistantEnabled = true;
             }
         }
 
@@ -537,6 +542,7 @@ public class AuthService implements IAuthService {
         if (platformAdmin && (tenant == null || tenant.isPlatformAccess())) {
             contractedSystemKeys = null;
             contractedSystemKeyOverrides = null;
+            assistantEnabled = true;
         }
 
         CollaboratorOrganizationSnapshot organization = resolveCollaboratorOrganization(user);
@@ -563,6 +569,7 @@ public class AuthService implements IAuthService {
                 .branches(branchAccess.branches())
                 .contractedSystemKeys(contractedSystemKeys)
                 .contractedSystemKeyOverrides(contractedSystemKeyOverrides)
+                .assistantEnabled(assistantEnabled)
                 .build();
     }
 

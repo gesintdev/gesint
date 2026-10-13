@@ -1,5 +1,8 @@
 package br.com.gommo.core.llm;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,4 +20,11 @@ public class LlmResponse {
     private String provider;
     private String model;
     private LlmTokenUsage usage;
+
+    @Builder.Default
+    private List<LlmToolCall> toolCalls = new ArrayList<>();
+
+    public boolean hasToolCalls() {
+        return toolCalls != null && !toolCalls.isEmpty();
+    }
 }

@@ -2,17 +2,32 @@
 
 import clsx from "clsx";
 import {AnimatePresence, motion} from "framer-motion";
-import {History, MessageSquarePlus, Search, SendHorizontal, Sparkles, Trash2, X} from "lucide-react";
+import {
+    CheckSquare,
+    History,
+    MessageSquarePlus,
+    Search,
+    SendHorizontal,
+    Sparkles,
+    Trash2,
+    X,
+} from "lucide-react";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 
-import {assistantService, type AssistantLlmUsage} from "@/shared/components/assistant/assistant.service";
+import {
+    assistantService,
+    type AssistantDeepLink,
+    type AssistantLlmUsage,
+} from "@/shared/components/assistant/assistant.service";
 import {MarkdownContent} from "@/shared/components/ui/MarkdownContent";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 
 type ChatMessage = {
     id: string;
     role: "assistant" | "user";
     content: string;
+    links?: AssistantDeepLink[];
 };
 
 type Conversation = {
@@ -109,6 +124,7 @@ type AiAssistantPanelProps = {
 };
 
 export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
+    const {openFromHref} = useWorkspaceNavigation();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [showHistory, setShowHistory] = useState(false);
@@ -117,6 +133,8 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
     const [sending, setSending] = useState(false);
     const [hydrated, setHydrated] = useState(false);
     const [usage, setUsage] = useState<AssistantLlmUsage | null>(null);
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
     const listRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const historySearchRef = useRef<HTMLInputElement>(null);
@@ -145,6 +163,9 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
         [activeId, conversations],
     );
     const messages = activeConversation?.messages ?? [];
+    const selectedCount = selectedIds.size;
+    const allSelectableSelected =
+        messages.length > 0 && messages.every((message) => selectedIds.has(message.id));
 
     const filteredConversations = useMemo(() => {
         const query = historyQuery.trim().toLowerCase();
@@ -157,6 +178,11 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
         });
     }, [conversations, historyQuery]);
 
+    const clearSelection = useCallback(() => {
+        setSelectedIds(new Set());
+        setSelectionMode(false);
+    }, []);
+
     const startNewConversation = useCallback(() => {
         const next = createConversation();
         setConversations((prev) => [next, ...prev]);
@@ -164,14 +190,16 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
         setDraft("");
         setShowHistory(false);
         setHistoryQuery("");
-    }, []);
+        clearSelection();
+    }, [clearSelection]);
 
     const openConversation = useCallback((id: string) => {
         setActiveId(id);
         setDraft("");
         setShowHistory(false);
         setHistoryQuery("");
-    }, []);
+        clearSelection();
+    }, [clearSelection]);
 
     const deleteConversation = useCallback((id: string) => {
         setConversations((prev) => {
@@ -186,16 +214,72 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
             }
             return next;
         });
-    }, [activeId]);
+        clearSelection();
+    }, [activeId, clearSelection]);
+
+    const toggleSelectionMode = useCallback(() => {
+        setSelectionMode((value) => {
+            if (value) {
+                setSelectedIds(new Set());
+                return false;
+            }
+            return true;
+        });
+    }, []);
+
+    const toggleMessageSelected = useCallback((messageId: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(messageId)) next.delete(messageId);
+            else next.add(messageId);
+            return next;
+        });
+    }, []);
+
+    const toggleSelectAllMessages = useCallback(() => {
+        setSelectedIds((prev) => {
+            if (messages.length === 0) return prev;
+            const allSelected = messages.every((message) => prev.has(message.id));
+            if (allSelected) return new Set();
+            return new Set(messages.map((message) => message.id));
+        });
+    }, [messages]);
+
+    const deleteSelectedMessages = useCallback(() => {
+        if (!activeId || selectedIds.size === 0) return;
+        const ids = selectedIds;
+        setConversations((prev) =>
+            prev.map((conversation) => {
+                if (conversation.id !== activeId) return conversation;
+                const remaining = conversation.messages.filter((message) => !ids.has(message.id));
+                const nextMessages =
+                    remaining.length > 0
+                        ? remaining
+                        : [{...WELCOME, id: `welcome-${Date.now()}`}];
+                return {
+                    ...conversation,
+                    title: titleFromMessages(nextMessages),
+                    updatedAt: Date.now(),
+                    messages: nextMessages,
+                };
+            }),
+        );
+        clearSelection();
+    }, [activeId, clearSelection, selectedIds]);
 
     useEffect(() => {
         if (!open) return;
         const onKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") onClose();
+            if (event.key !== "Escape") return;
+            if (selectionMode) {
+                clearSelection();
+                return;
+            }
+            onClose();
         };
         document.addEventListener("keydown", onKeyDown);
         return () => document.removeEventListener("keydown", onKeyDown);
-    }, [open, onClose]);
+    }, [open, onClose, selectionMode, clearSelection]);
 
     useEffect(() => {
         if (!open || showHistory) return;
@@ -260,10 +344,15 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
 
         try {
             const response = await assistantService.chat(historyForApi);
+            const links = (response.links ?? []).filter(
+                (link): link is AssistantDeepLink =>
+                    Boolean(link?.href?.trim()) && Boolean(link?.label?.trim()),
+            );
             const assistantMessage: ChatMessage = {
                 id: `assistant-${Date.now()}`,
                 role: "assistant",
                 content: response.reply?.trim() || "Não consegui gerar uma resposta agora.",
+                links: links.length > 0 ? links : undefined,
             };
             if (response.usage) {
                 setUsage(response.usage);
@@ -325,14 +414,14 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                         animate={{x: 0}}
                         exit={{x: "100%"}}
                         transition={{duration: 0.28, ease: [0.22, 1, 0.36, 1]}}
-                        className="fixed right-0 bottom-0 z-50 flex w-full max-w-md flex-col border-l bg-base-100 shadow-xl"
+                        className="fixed right-0 bottom-0 z-50 flex w-full max-w-lg flex-col border-l bg-base-100 shadow-xl sm:max-w-xl"
                         style={{
                             top: "var(--header-height)",
                             borderColor: "var(--sidebar-border)",
                         }}
                     >
                         <header
-                            className="flex h-12 shrink-0 items-center gap-2 border-b px-3 sm:px-4"
+                            className="flex h-12 shrink-0 items-center gap-1.5 border-b px-3 sm:gap-2 sm:px-4"
                             style={{borderColor: "var(--sidebar-border)"}}
                         >
                             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -343,9 +432,28 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                 <p className="truncate text-[11px] text-base-content/45">
                                     {showHistory
                                         ? "Histórico de conversas"
-                                        : activeConversation?.title ?? "Chat de atendimento"}
+                                        : selectionMode
+                                          ? selectedCount > 0
+                                              ? `${selectedCount} selecionada${selectedCount === 1 ? "" : "s"}`
+                                              : "Selecione mensagens"
+                                          : activeConversation?.title ?? "Chat de atendimento"}
                                 </p>
                             </div>
+                            {!showHistory ? (
+                                <button
+                                    type="button"
+                                    aria-label={selectionMode ? "Cancelar seleção" : "Selecionar mensagens"}
+                                    aria-pressed={selectionMode}
+                                    title={selectionMode ? "Cancelar seleção" : "Selecionar mensagens"}
+                                    onClick={toggleSelectionMode}
+                                    className={clsx(
+                                        "gommo-btn gommo-btn--ghost gommo-btn--icon-only",
+                                        selectionMode ? "bg-primary/10 text-primary" : "text-base-content/50",
+                                    )}
+                                >
+                                    <CheckSquare className="size-4" strokeWidth={2}/>
+                                </button>
+                            ) : null}
                             <button
                                 type="button"
                                 aria-label="Nova conversa"
@@ -360,7 +468,10 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                 aria-label={showHistory ? "Voltar ao chat" : "Histórico"}
                                 aria-pressed={showHistory}
                                 title={showHistory ? "Voltar ao chat" : "Histórico"}
-                                onClick={() => setShowHistory((value) => !value)}
+                                onClick={() => {
+                                    setShowHistory((value) => !value);
+                                    clearSelection();
+                                }}
                                 className={clsx(
                                     "gommo-btn gommo-btn--ghost gommo-btn--icon-only",
                                     showHistory ? "bg-primary/10 text-primary" : "text-base-content/50",
@@ -485,38 +596,109 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                             </div>
                         ) : (
                             <>
-                                <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-4 sm:px-4">
-                                    {messages.map((message) => (
-                                        <div
-                                            key={message.id}
-                                            className={
-                                                message.role === "user"
-                                                    ? "ml-3 flex justify-end sm:ml-8"
-                                                    : "mr-3 flex justify-start sm:mr-8"
-                                            }
+                                {selectionMode ? (
+                                    <div
+                                        className="flex shrink-0 items-center gap-2 border-b px-3 py-2 sm:px-4"
+                                        style={{borderColor: "var(--sidebar-border)"}}
+                                    >
+                                        <label className="inline-flex cursor-pointer items-center gap-2 text-[12px] text-base-content/70">
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox checkbox-xs checkbox-primary"
+                                                checked={allSelectableSelected}
+                                                onChange={toggleSelectAllMessages}
+                                                aria-label="Selecionar todas as mensagens"
+                                            />
+                                            Todas
+                                        </label>
+                                        <div className="min-w-0 flex-1"/>
+                                        <button
+                                            type="button"
+                                            disabled={selectedCount === 0}
+                                            onClick={deleteSelectedMessages}
+                                            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-error transition-colors hover:bg-error/10 disabled:pointer-events-none disabled:opacity-40"
                                         >
+                                            <Trash2 className="size-3.5" strokeWidth={2}/>
+                                            Apagar{selectedCount > 0 ? ` (${selectedCount})` : ""}
+                                        </button>
+                                    </div>
+                                ) : null}
+
+                                <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-4 sm:px-4">
+                                    {messages.map((message) => {
+                                        const selected = selectedIds.has(message.id);
+                                        const isUser = message.role === "user";
+                                        return (
                                             <div
-                                                className={
-                                                    message.role === "user"
-                                                        ? "rounded-2xl rounded-br-md bg-primary px-3 py-2 text-[13px] leading-5 text-primary-content whitespace-pre-wrap"
-                                                        : "rounded-2xl rounded-bl-md bg-base-200 px-3 py-2 text-base-content"
-                                                }
-                                            >
-                                                {message.role === "assistant" ? (
-                                                    <MarkdownContent
-                                                        value={message.content}
-                                                        className="text-[13px] leading-5 text-base-content [&_p]:mb-2 [&_ul]:mb-2 [&_ol]:mb-2"
-                                                    />
-                                                ) : (
-                                                    message.content
+                                                key={message.id}
+                                                className={clsx(
+                                                    "flex items-start gap-2",
+                                                    isUser ? "justify-end" : "justify-start",
+                                                    selectionMode ? "ps-0 pe-0" : isUser ? "ml-3 sm:ml-8" : "mr-3 sm:mr-8",
                                                 )}
+                                            >
+                                                {selectionMode ? (
+                                                    <label className="mt-2.5 inline-flex shrink-0 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="checkbox checkbox-xs checkbox-primary"
+                                                            checked={selected}
+                                                            onChange={() => toggleMessageSelected(message.id)}
+                                                            aria-label={`Selecionar mensagem ${isUser ? "enviada" : "do assistente"}`}
+                                                        />
+                                                    </label>
+                                                ) : null}
+                                                <div
+                                                    className={clsx(
+                                                        "min-w-0 max-w-[calc(100%-1.75rem)] px-3 py-2 text-[13px] leading-5",
+                                                        isUser
+                                                            ? "rounded-2xl rounded-br-md bg-primary text-primary-content whitespace-pre-wrap"
+                                                            : "rounded-2xl rounded-bl-md bg-base-200 text-base-content",
+                                                        selectionMode && selected && "ring-2 ring-primary/35",
+                                                    )}
+                                                    onClick={
+                                                        selectionMode
+                                                            ? () => toggleMessageSelected(message.id)
+                                                            : undefined
+                                                    }
+                                                    role={selectionMode ? "button" : undefined}
+                                                >
+                                                    {message.role === "assistant" ? (
+                                                        <>
+                                                            <MarkdownContent
+                                                                value={message.content}
+                                                                className="text-[13px] leading-5 text-base-content [&_p]:mb-2 [&_ul]:mb-2 [&_ol]:mb-2"
+                                                            />
+                                                            {message.links && message.links.length > 0 ? (
+                                                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                                                    {message.links.map((link) => (
+                                                                        <button
+                                                                            key={`${message.id}-${link.href}`}
+                                                                            type="button"
+                                                                            onClick={(event) => {
+                                                                                event.stopPropagation();
+                                                                                openFromHref(link.href);
+                                                                                onClose();
+                                                                            }}
+                                                                            className="inline-flex items-center rounded-lg border border-primary/25 bg-primary/8 px-2.5 py-1 text-[12px] font-medium text-primary transition-colors hover:bg-primary/14"
+                                                                        >
+                                                                            {link.label}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            ) : null}
+                                                        </>
+                                                    ) : (
+                                                        message.content
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                     {sending ? (
                                         <div className="mr-3 flex justify-start sm:mr-8">
-                                            <div className="rounded-2xl rounded-bl-md bg-base-200 px-3 py-2 text-[13px] leading-5 text-base-content/55">
-                                                Pensando…
+                                            <div className="rounded-2xl rounded-bl-md bg-base-200 px-3 py-2.5 text-base-content/55">
+                                                <span className="loading loading-dots loading-sm" aria-label="Pensando"/>
                                             </div>
                                         </div>
                                     ) : null}
@@ -533,7 +715,7 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                             rows={1}
                                             placeholder="Escreva sua mensagem..."
                                             className="max-h-40 min-h-9 flex-1 resize-none overflow-y-hidden bg-transparent px-2 py-1.5 text-[13px] leading-5 text-base-content outline-none placeholder:text-base-content/40 disabled:opacity-60"
-                                            disabled={sending}
+                                            disabled={sending || selectionMode}
                                             onChange={(event) => setDraft(event.target.value)}
                                             onKeyDown={(event) => {
                                                 if (event.key === "Enter" && !event.shiftKey) {
@@ -545,7 +727,7 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                         <button
                                             type="button"
                                             aria-label="Enviar"
-                                            disabled={!draft.trim() || sending}
+                                            disabled={!draft.trim() || sending || selectionMode}
                                             onClick={() => void sendMessage()}
                                             className="gommo-btn gommo-btn--primary gommo-btn--icon-only shrink-0 disabled:opacity-40"
                                         >
@@ -553,8 +735,7 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                         </button>
                                     </div>
                                     <p className="mt-2 text-center text-[10px] text-base-content/35">
-                                        Assistente conectado ao Gemini. A base de conhecimento será enriquecida com o
-                                        tempo.
+                                        Posso orientar fluxos e abrir telas. Ações complexas devem ser feitas no módulo.
                                     </p>
                                     {process.env.NODE_ENV === "development" ? (
                                         <p

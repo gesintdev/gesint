@@ -1,0 +1,430 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "dp-organization-departments",
+      "system": "DP",
+      "menu": "Organização",
+      "topic": "Departamentos",
+      "action": "Consultar e cadastrar departamentos",
+      "href": "/organization/departments",
+      "routeId": "organization-departments",
+      "permission": "department:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["departamento", "departamentos", "organograma", "área", "setor"],
+      "steps": [
+        "Abra o sistema DP.",
+        "No menu Organização, acesse Departamentos.",
+        "Use a listagem para consultar ou o botão Novo para cadastrar."
+      ]
+    },
+    {
+      "id": "dp-organization-job-positions",
+      "system": "DP",
+      "menu": "Organização",
+      "topic": "Cargos",
+      "action": "Consultar e cadastrar cargos",
+      "href": "/organization/job-positions",
+      "routeId": "organization-job-positions",
+      "permission": "jobposition:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["cargo", "cargos", "função", "matriz de exames"],
+      "steps": [
+        "Abra o sistema DP.",
+        "No menu Organização, acesse Cargos.",
+        "Cadastre ou edite o cargo; a matriz de exames fica nas abas do cadastro."
+      ]
+    },
+    {
+      "id": "dp-occupational-exam-clinics",
+      "system": "DP",
+      "menu": "Organização",
+      "topic": "Clínicas",
+      "action": "Gerenciar clínicas de exames",
+      "href": "/occupational-exam/clinics",
+      "routeId": "occupational-exam-clinics",
+      "permission": "occupationalexam:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["clínica", "clinicas", "exame ocupacional", "aso"],
+      "steps": [
+        "Abra o sistema DP.",
+        "Em Organização / Exames, acesse Clínicas.",
+        "Cadastre a clínica e vincule médicos quando necessário."
+      ]
+    },
+    {
+      "id": "dp-occupational-exam-physicians",
+      "system": "DP",
+      "menu": "Organização",
+      "topic": "Médicos",
+      "action": "Gerenciar médicos de exames",
+      "href": "/occupational-exam/physicians",
+      "routeId": "occupational-exam-physicians",
+      "permission": "occupationalexam:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["médico", "medico", "pcmso", "exame"],
+      "steps": [
+        "Abra o sistema DP.",
+        "Em Organização / Exames, acesse Médicos.",
+        "Cadastre o profissional e associe às clínicas."
+      ]
+    },
+    {
+      "id": "dp-admission",
+      "system": "DP",
+      "menu": "Admissão",
+      "topic": "Processo de admissão",
+      "action": "Criar ou acompanhar admissão",
+      "href": "/collaborator/admission",
+      "routeId": "collaborator-admission",
+      "permission": "admission:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["admissão", "admissao", "admitir", "contratar", "novo colaborador", "processo admissional"],
+      "steps": [
+        "Abra o sistema DP (ou RH, se estiver no menu Pessoas).",
+        "Acesse Admissão.",
+        "Crie um novo processo ou abra o registro existente na listagem/esteira.",
+        "Preencha os dados e avance as etapas na própria tela — o assistente não cria admissão."
+      ]
+    },
+    {
+      "id": "dp-people",
+      "system": "DP",
+      "menu": "Pessoas",
+      "topic": "Colaboradores",
+      "action": "Consultar colaboradores",
+      "href": "/collaborator/people",
+      "routeId": "collaborator-people",
+      "permission": "collaborator:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["colaborador", "funcionário", "funcionario", "pessoas", "quadro"],
+      "steps": [
+        "Abra Admissão/Pessoas.",
+        "Acesse Colaboradores.",
+        "Localize a pessoa na listagem e abra o cadastro."
+      ]
+    },
+    {
+      "id": "dp-attendance",
+      "system": "DP",
+      "menu": "Ponto",
+      "topic": "Registro de ponto",
+      "action": "Consultar e tratar ponto",
+      "href": "/attendance",
+      "routeId": "attendance",
+      "permission": "attendance:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["ponto", "batida", "marcação", "marcacao", "espelho", "jornada"],
+      "steps": [
+        "Abra o sistema DP.",
+        "Acesse Ponto.",
+        "Filtre o período e o colaborador; trate inconsistências nas abas da tela."
+      ]
+    },
+    {
+      "id": "dp-vacation",
+      "system": "DP",
+      "menu": "Férias",
+      "topic": "Férias",
+      "action": "Solicitar ou acompanhar férias",
+      "href": "/leave/vacation",
+      "routeId": "leave-vacation",
+      "permission": "leave:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["férias", "ferias", "gozo", "abono"],
+      "steps": [
+        "Abra o sistema DP.",
+        "Acesse Férias.",
+        "Crie a solicitação ou acompanhe o status na listagem."
+      ]
+    },
+    {
+      "id": "dp-absence",
+      "system": "DP",
+      "menu": "Afastamento",
+      "topic": "Afastamentos",
+      "action": "Registrar afastamento",
+      "href": "/leave/absence",
+      "routeId": "leave-absence",
+      "permission": "leave:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["afastamento", "licença", "licenca", "atestado", "inss"],
+      "steps": [
+        "Abra o sistema DP.",
+        "Acesse Afastamento.",
+        "Registre o afastamento com datas e tipo na própria tela."
+      ]
+    },
+    {
+      "id": "dp-leave",
+      "system": "DP",
+      "menu": "Afastamento",
+      "topic": "Solicitações de ausência",
+      "action": "Consultar solicitações de leave",
+      "href": "/leave",
+      "routeId": "leave",
+      "permission": "leave:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["ausência", "ausencia", "leave", "solicitação de ausência"],
+      "steps": [
+        "Abra o sistema DP.",
+        "Acesse o menu de Leave/Afastamentos.",
+        "Consulte ou aprove solicitações conforme sua permissão."
+      ]
+    },
+    {
+      "id": "dp-offboarding",
+      "system": "DP",
+      "menu": "Desligamento",
+      "topic": "Desligamento",
+      "action": "Iniciar ou acompanhar desligamento",
+      "href": "/offboarding",
+      "routeId": "offboarding",
+      "permission": "offboarding:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["desligamento", "demissão", "demissao", "rescisão", "rescisao", "offboarding", "desligar"],
+      "steps": [
+        "Abra o sistema DP.",
+        "Acesse Desligamento.",
+        "Inicie o processo pelo colaborador ou abra um registro em andamento.",
+        "Conclua as etapas (documentos, checklist, etc.) na tela — o assistente não executa o desligamento."
+      ]
+    },
+    {
+      "id": "dp-payments",
+      "system": "DP",
+      "menu": "Pagamentos",
+      "topic": "Competências e holerites",
+      "action": "Gerenciar pagamentos",
+      "href": "/payments",
+      "routeId": "payment-period",
+      "permission": "payment:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["pagamento", "holerite", "contracheque", "competência", "competencia"],
+      "steps": [
+        "Abra o sistema DP.",
+        "Acesse Pagamentos.",
+        "Cadastre a competência e envie os PDFs da contabilidade."
+      ]
+    },
+    {
+      "id": "rh-experience",
+      "system": "RH",
+      "menu": "Experiência",
+      "topic": "Avaliação de experiência",
+      "action": "Acompanhar período de experiência",
+      "href": "/experience",
+      "routeId": "experience",
+      "permission": "experience:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["experiência", "experiencia", "período de experiência", "avaliação"],
+      "steps": [
+        "Abra o sistema RH.",
+        "Acesse Experiência.",
+        "Use as abas Em período / Decididos para acompanhar avaliações."
+      ]
+    },
+    {
+      "id": "rh-job-requisition",
+      "system": "RH",
+      "menu": "Recrutamento",
+      "topic": "Requisição de pessoal",
+      "action": "Criar ou acompanhar requisição",
+      "href": "/job-requisition",
+      "routeId": "job-requisition",
+      "permission": "jobrequisition:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["requisição", "requisicao", "vaga interna", "pedido de vaga"],
+      "steps": [
+        "Abra o sistema RH.",
+        "Acesse Requisição de pessoal.",
+        "Crie a requisição ou acompanhe o fluxo de aprovação na tela."
+      ]
+    },
+    {
+      "id": "rh-job-vacancy",
+      "system": "RH",
+      "menu": "Recrutamento",
+      "topic": "Vagas",
+      "action": "Gerenciar vagas e candidatos",
+      "href": "/job-vacancy",
+      "routeId": "job-vacancy",
+      "permission": "jobvacancy:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["vaga", "vagas", "recrutamento", "kanban", "proposta de contratação", "contratação"],
+      "steps": [
+        "Abra o sistema RH.",
+        "Acesse Vagas.",
+        "Abra a vaga desejada e use as abas (Kanban, Processo, etc.) na tela."
+      ]
+    },
+    {
+      "id": "rh-candidate",
+      "system": "RH",
+      "menu": "Recrutamento",
+      "topic": "Candidatos",
+      "action": "Consultar candidatos",
+      "href": "/candidate",
+      "routeId": "candidate",
+      "permission": "candidate:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["candidato", "candidatos", "currículo", "curriculo"],
+      "steps": [
+        "Abra o sistema RH.",
+        "Acesse Candidatos.",
+        "Localize o candidato e abra o cadastro."
+      ]
+    },
+    {
+      "id": "rh-exit-interview",
+      "system": "RH",
+      "menu": "Entrevista de desligamento",
+      "topic": "Entrevista de desligamento",
+      "action": "Registrar entrevista de desligamento",
+      "href": "/exit-interview",
+      "routeId": "exit-interview",
+      "permission": "exitinterview:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["entrevista de desligamento", "exit interview", "desligamento rh"],
+      "steps": [
+        "Abra o sistema RH.",
+        "Acesse Entrevista de desligamento.",
+        "Preencha o formulário na tela do módulo."
+      ]
+    },
+    {
+      "id": "rh-development-plan",
+      "system": "RH",
+      "menu": "PDI",
+      "topic": "Plano de desenvolvimento",
+      "action": "Acompanhar PDI",
+      "href": "/development-plan",
+      "routeId": "development-plan",
+      "permission": "developmentplan:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["pdi", "desenvolvimento", "plano de desenvolvimento"],
+      "steps": [
+        "Abra o sistema RH.",
+        "Acesse PDI / Desenvolvimento.",
+        "Abra o plano do colaborador e atualize as ações na tela."
+      ]
+    },
+    {
+      "id": "rh-performance",
+      "system": "RH",
+      "menu": "Feedback",
+      "topic": "Desempenho e feedback",
+      "action": "Registrar feedback",
+      "href": "/performance",
+      "routeId": "performance",
+      "permission": "performance:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["feedback", "desempenho", "avaliação de desempenho", "performance"],
+      "steps": [
+        "Abra o sistema RH.",
+        "Acesse Desempenho/Feedback.",
+        "Registre ou consulte o feedback na tela do módulo."
+      ]
+    },
+    {
+      "id": "cfg-profiles",
+      "system": "CFG",
+      "menu": "Access",
+      "topic": "Perfis",
+      "action": "Gerenciar perfis de acesso",
+      "href": "/settings/profiles",
+      "routeId": "settings-profiles",
+      "permission": "role:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["perfil", "perfis", "permissão", "permissao", "rbac"],
+      "steps": [
+        "Abra Configurações.",
+        "Acesse Perfis.",
+        "Ajuste as permissões na tela — o assistente não altera perfis."
+      ]
+    },
+    {
+      "id": "cfg-users",
+      "system": "CFG",
+      "menu": "Access",
+      "topic": "Usuários",
+      "action": "Gerenciar usuários",
+      "href": "/settings/users",
+      "routeId": "settings-users",
+      "permission": "user:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["usuário", "usuario", "login", "acesso"],
+      "steps": [
+        "Abra Configurações.",
+        "Acesse Usuários.",
+        "Cadastre ou edite o usuário e vincule o perfil."
+      ]
+    },
+    {
+      "id": "cfg-preferences",
+      "system": "CFG",
+      "menu": "Preferências",
+      "topic": "Preferências DP/RH",
+      "action": "Ajustar preferências",
+      "href": "/settings/preferences",
+      "routeId": "settings-preferences",
+      "permission": "attendance:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["preferências", "preferencias", "configuração", "configuracao"],
+      "steps": [
+        "Abra Configurações.",
+        "Acesse Preferências.",
+        "Ajuste as opções de DP/RH na tela."
+      ]
+    },
+    {
+      "id": "cfg-admission-kanban",
+      "system": "CFG",
+      "menu": "Preferências",
+      "topic": "Kanban de admissão",
+      "action": "Configurar kanban de admissão",
+      "href": "/settings/admission-process-kanban",
+      "routeId": "settings-admission-kanban",
+      "permission": "admission:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": ["kanban admissão", "esteira admissão", "configuração admissão"],
+      "steps": [
+        "Abra Configurações.",
+        "Acesse o Kanban / esteira de admissão.",
+        "Ajuste as colunas e regras na tela."
+      ]
+    },
+    {
+      "id": "executable-agenda",
+      "system": "CFG",
+      "menu": "Agenda",
+      "topic": "Agenda pessoal",
+      "action": "Criar evento na minha agenda",
+      "href": null,
+      "routeId": null,
+      "permission": null,
+      "complexity": "EXECUTABLE",
+      "keywords": ["agenda", "compromisso", "reunião", "reuniao", "marcar", "agendar"],
+      "steps": [
+        "Informe título, data/hora de início e fim.",
+        "O assistente cria o evento apenas na agenda do usuário logado."
+      ]
+    },
+    {
+      "id": "executable-admission-summary",
+      "system": "DP",
+      "menu": "Admissão",
+      "topic": "Resumo de admissão",
+      "action": "Resumir status de uma admissão",
+      "href": "/collaborator/admission",
+      "routeId": "collaborator-admission",
+      "permission": "admission:read",
+      "complexity": "EXECUTABLE",
+      "keywords": ["resumo admissão", "status admissão", "como está a admissão", "andamento admissão"],
+      "steps": [
+        "Informe o nome do colaborador/candidato.",
+        "O assistente devolve um resumo não sensível (sem CPF/documentos)."
+      ]
+    }
+  ]
+}

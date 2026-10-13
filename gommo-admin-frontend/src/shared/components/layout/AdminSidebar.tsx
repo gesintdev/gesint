@@ -1,12 +1,17 @@
 "use client";
 
-import { Settings } from "lucide-react";
+import { Bot, Mail, Settings } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 
 import { GommoLogo } from "@/shared/components/layout/GommoLogo";
 import { useAdminPathname } from "@/shared/hooks/useAdminPathname";
-import { ADMIN_MENUS, emailSettingsPath, SETTINGS_BASE_PATH } from "@/shared/routing/admin-nav";
+import {
+    ADMIN_MENUS,
+    assistantErrorsPath,
+    emailSettingsPath,
+    SETTINGS_BASE_PATH,
+} from "@/shared/routing/admin-nav";
 
 export function AdminSidebar() {
     const pathname = useAdminPathname();
@@ -90,6 +95,24 @@ export function AdminSidebar() {
             </nav>
 
             <div style={{ padding: "10px 8px", borderTop: "1px solid var(--ga-border)" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        width: "100%",
+                        padding: "8px 10px",
+                        marginBottom: 2,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: settingsActive ? "var(--ga-primary)" : "var(--ga-text-muted)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                    }}
+                >
+                    <Settings size={13} />
+                    Configurações
+                </div>
                 <Link
                     href={emailSettingsPath()}
                     style={{
@@ -100,18 +123,59 @@ export function AdminSidebar() {
                         padding: "8px 10px",
                         borderRadius: "var(--ga-radius-sm)",
                         textDecoration: "none",
-                        background: settingsActive
-                            ? isDark
-                                ? "rgba(0,123,255,0.15)"
-                                : "var(--ga-primary-50)"
-                            : "transparent",
-                        color: settingsActive ? "var(--ga-primary)" : "var(--ga-text-muted)",
-                        fontWeight: settingsActive ? 600 : 400,
+                        marginBottom: 2,
+                        background:
+                            pathname === emailSettingsPath() || pathname.startsWith(`${emailSettingsPath()}/`)
+                                ? isDark
+                                    ? "rgba(0,123,255,0.15)"
+                                    : "var(--ga-primary-50)"
+                                : "transparent",
+                        color:
+                            pathname === emailSettingsPath() || pathname.startsWith(`${emailSettingsPath()}/`)
+                                ? "var(--ga-primary)"
+                                : "var(--ga-text-muted)",
+                        fontWeight:
+                            pathname === emailSettingsPath() || pathname.startsWith(`${emailSettingsPath()}/`)
+                                ? 600
+                                : 400,
                         fontSize: 13,
                     }}
                 >
-                    <Settings size={15} />
-                    Configurações
+                    <Mail size={15} />
+                    E-mail (SMTP)
+                </Link>
+                <Link
+                    href={assistantErrorsPath()}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        width: "100%",
+                        padding: "8px 10px",
+                        borderRadius: "var(--ga-radius-sm)",
+                        textDecoration: "none",
+                        background:
+                            pathname === assistantErrorsPath()
+                                || pathname.startsWith(`${assistantErrorsPath()}/`)
+                                ? isDark
+                                    ? "rgba(0,123,255,0.15)"
+                                    : "var(--ga-primary-50)"
+                                : "transparent",
+                        color:
+                            pathname === assistantErrorsPath()
+                                || pathname.startsWith(`${assistantErrorsPath()}/`)
+                                ? "var(--ga-primary)"
+                                : "var(--ga-text-muted)",
+                        fontWeight:
+                            pathname === assistantErrorsPath()
+                                || pathname.startsWith(`${assistantErrorsPath()}/`)
+                                ? 600
+                                : 400,
+                        fontSize: 13,
+                    }}
+                >
+                    <Bot size={15} />
+                    Logs do Assistente
                 </Link>
             </div>
         </aside>
