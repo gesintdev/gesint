@@ -42,6 +42,8 @@ type WorkspaceState = {
     closeAllTabs: () => void;
     /** Fecha só abas não fixadas. */
     closeUnpinnedTabs: () => void;
+    /** Fecha todas as abas de módulo exceto a informada. */
+    closeOtherTabs: (keepTabId: string) => void;
     togglePinTab: (tabId: string) => void;
     /** Reordena abas pelo array de ids (mantém pin: fixadas só entre si). */
     reorderTabs: (orderedIds: string[]) => void;
@@ -275,6 +277,21 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                 }
                 const nextActive = resolveActiveTabId(activeTabId, nextTabs);
                 set({ tabs: nextTabs, activeTabId: nextActive });
+            },
+            closeOtherTabs: (keepTabId) => {
+                if (isDashboardTabId(keepTabId)) {
+                    get().closeAllTabs();
+                    return;
+                }
+                const { tabs } = get();
+                if (!tabs.some((t) => t.id === keepTabId)) return;
+                const nextTabs = tabs.filter((t) => t.id === keepTabId);
+                for (const tab of tabs) {
+                    if (tab.id !== keepTabId) {
+                        notifyTabClosed(tab.id);
+                    }
+                }
+                set({ tabs: nextTabs, activeTabId: keepTabId });
             },
             togglePinTab: (tabId) => {
                 if (isDashboardTabId(tabId)) return;

@@ -144,6 +144,17 @@ public class JobVacancyApplication extends BranchScopedEntity {
     @Column(name = "rejection_feedback_detail", length = 500)
     private String rejectionFeedbackDetail;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "candidate_acceptance", length = 32)
+    private CandidateAcceptanceEnum candidateAcceptance;
+
+    @Column(name = "acceptance_date")
+    private LocalDate acceptanceDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "acceptance_channel", length = 32)
+    private AcceptanceChannelEnum acceptanceChannel;
+
     public boolean isRejected() {
         return rejectionReason != null;
     }

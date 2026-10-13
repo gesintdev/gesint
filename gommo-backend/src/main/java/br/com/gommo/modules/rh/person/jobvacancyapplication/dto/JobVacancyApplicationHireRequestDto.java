@@ -14,6 +14,8 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
+import br.com.gommo.modules.rh.person.jobrequisition.entity.JobRequisitionExperiencePeriodEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.AcceptanceChannelEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.CandidateAcceptanceEnum;
 
 @Getter
@@ -25,6 +27,9 @@ public class JobVacancyApplicationHireRequestDto {
 
     @NotNull private ContractTypeEnum contractType;
 
+    /** NONE | DAYS_30_60 | DAYS_45_45 | DAYS_90 — aplicavel a CLT. */
+    private JobRequisitionExperiencePeriodEnum experiencePeriod;
+
     @NotNull private LocalDate expectedStartDate;
 
     private BigDecimal baseSalary;
@@ -32,6 +37,12 @@ public class JobVacancyApplicationHireRequestDto {
     private UUID workScheduleId;
 
     @NotNull private CandidateAcceptanceEnum candidateAcceptance;
+
+    /** Data do aceite registrado pelo recrutador (MVP manual). */
+    @NotNull private LocalDate acceptanceDate;
+
+    /** Canal do aceite: VERBAL | EMAIL | WHATSAPP. */
+    @NotNull private AcceptanceChannelEnum acceptanceChannel;
 
     /** CPF pode ser informado na proposta se o candidato da pagina publica nao tiver. */
     @Size(max = 14)

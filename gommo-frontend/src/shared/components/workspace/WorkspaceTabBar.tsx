@@ -232,7 +232,9 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
     const [contextMenu, setContextMenu] = useState<WorkspaceTabContextMenuState | null>(null);
     const [activeDragId, setActiveDragId] = useState<string | null>(null);
     const { openRouteCreate } = useWorkspaceNavigation();
+    const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
     const closeUnpinnedTabs = useWorkspaceStore((s) => s.closeUnpinnedTabs);
+    const closeOtherTabs = useWorkspaceStore((s) => s.closeOtherTabs);
     const togglePinTab = useWorkspaceStore((s) => s.togglePinTab);
     const reorderTabs = useWorkspaceStore((s) => s.reorderTabs);
 
@@ -303,8 +305,19 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                 ? moduleTabs.filter((tab) => !tab.pinned).map((tab) => tab.id)
                 : moduleTabs.map((tab) => tab.id);
         if (!(await confirmDiscardUnsavedChanges(tabIds))) return;
-        closeUnpinnedTabs();
-    }, [closeUnpinnedTabs, moduleTabs, pinnedCount]);
+        if (pinnedCount > 0) closeUnpinnedTabs();
+        else closeAllTabs();
+    }, [closeAllTabs, closeUnpinnedTabs, moduleTabs, pinnedCount]);
+
+    const handleCloseOtherTabs = useCallback(
+        async (tab: WorkspaceTab) => {
+            const otherIds = moduleTabs.filter((item) => item.id !== tab.id).map((item) => item.id);
+            if (otherIds.length === 0) return;
+            if (!(await confirmDiscardUnsavedChanges(otherIds))) return;
+            closeOtherTabs(tab.id);
+        },
+        [closeOtherTabs, moduleTabs],
+    );
 
     const activeModuleTab = moduleTabs.find((tab) => tab.id === activeTabId) ?? null;
     const mobileActiveTab = activeModuleTab ?? (dashboardActive ? dashboardTab : null);
@@ -395,6 +408,10 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                 onDuplicate={handleDuplicate}
                 onTogglePin={(tab) => togglePinTab(tab.id)}
                 onCloseTab={(tab) => onClose(tab.id)}
+                onCloseOtherTabs={(tab) => {
+                    void handleCloseOtherTabs(tab);
+                }}
+                canCloseOtherTabs={moduleTabs.length > 1}
                 onCloseAll={() => {
                     void handleCloseBulkTabs();
                 }}

@@ -209,17 +209,11 @@ export function JobVacancyAdmissionProcessTab() {
         [hireColumn?.columnKey],
     );
 
-    const handleHireColumnDrop = useCallback(
-        (item?: AdmissionKanbanCard) => {
-            if (!item?.applicationId) return;
-            if (item.hired) {
-                setDetailApplicationId(item.applicationId);
-                return;
-            }
-            openHireProposal(item.applicationId, hireColumn?.columnKey);
-        },
-        [hireColumn?.columnKey, openHireProposal],
-    );
+    const handleHireColumnDrop = useCallback((item?: AdmissionKanbanCard) => {
+        if (!item?.applicationId) return;
+        // Arrastar para Contratação abre o modal do candidato; a proposta sai de "Criar Admissão".
+        setDetailApplicationId(item.applicationId);
+    }, []);
 
     const openScoreDetail = useCallback((row: {
         applicationId: string;
@@ -280,7 +274,17 @@ export function JobVacancyAdmissionProcessTab() {
                     title: row.candidateFullName ?? "Candidato",
                     subtitle: row.candidateEmail ?? undefined,
                     meta: hired ? (
-                        <span className="font-medium text-success">Contratado</span>
+                        row.admissionProcessId ? (
+                            <a
+                                className="font-medium text-success hover:underline"
+                                href={`/collaborator/admission?edit=${encodeURIComponent(row.admissionProcessId)}`}
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                Admissão criada
+                            </a>
+                        ) : (
+                            <span className="font-medium text-success">Admissão criada</span>
+                        )
                     ) : row.rejectionReason ? (
                         <div className="grid gap-0.5">
                             <span className="line-clamp-2 text-base-content/60" title={row.rejectionRequirement ?? undefined}>
@@ -543,7 +547,12 @@ export function JobVacancyAdmissionProcessTab() {
                     detailApplication.kanbanColumnKey?.trim() === hireColumn.columnKey &&
                     detailApplication.applicationStatus !== "HIRED" &&
                     !detailApplication.admissionProcessId
-                        ? () => openHireProposal(detailApplication.id, hireColumn.columnKey)
+                        ? () => {
+                              const applicationId = detailApplication.id;
+                              const columnKey = hireColumn.columnKey;
+                              setDetailApplicationId(null);
+                              openHireProposal(applicationId, columnKey);
+                          }
                         : undefined
                 }
             />

@@ -44,6 +44,7 @@ export function signalTone(signal: AdmissionPipelineSignal): PipelineTone {
 }
 
 const STEP_LABELS: Record<AdmissionStepKey, string> = {
+    PRE_ADMISSAO: "Pré-admissão",
     DOCUMENTACAO: "Documentos",
     EXAME: "ASO",
     CONTRATO: "Contrato",

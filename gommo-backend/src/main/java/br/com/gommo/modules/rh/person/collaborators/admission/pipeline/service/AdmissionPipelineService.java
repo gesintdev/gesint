@@ -324,7 +324,9 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             LocalDate today) {
         Map<AdmissionStepKeyEnum, AdmissionStepStatusEnum> statuses = new EnumMap<>(AdmissionStepKeyEnum.class);
 
-        statuses.put(AdmissionStepKeyEnum.DOCUMENTACAO, documentationStatus(documents));
+        AdmissionStepStatusEnum documentation = documentationStatus(documents);
+        statuses.put(AdmissionStepKeyEnum.PRE_ADMISSAO, preAdmissionStatus(documentation));
+        statuses.put(AdmissionStepKeyEnum.DOCUMENTACAO, documentation);
         statuses.put(AdmissionStepKeyEnum.EXAME, examStatus(admission, exam, today));
         statuses.put(AdmissionStepKeyEnum.CONTRATO, contractStatus(admission, documents));
         statuses.put(AdmissionStepKeyEnum.ESOCIAL, esocialStatus(admission, event, today));
@@ -361,6 +363,14 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             return AdmissionStepStatusEnum.DONE;
         }
         return documents.received() > 0 ? AdmissionStepStatusEnum.IN_PROGRESS : AdmissionStepStatusEnum.PENDING;
+    }
+
+    /** Pre-admissao fica em andamento ate a documentacao comecar; depois conclui. */
+    private static AdmissionStepStatusEnum preAdmissionStatus(AdmissionStepStatusEnum documentation) {
+        if (documentation == AdmissionStepStatusEnum.PENDING) {
+            return AdmissionStepStatusEnum.IN_PROGRESS;
+        }
+        return AdmissionStepStatusEnum.DONE;
     }
 
     /**

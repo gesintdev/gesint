@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import br.com.gommo.modules.rh.person.contract.entity.ContractTypeEnum;
+import br.com.gommo.modules.rh.person.jobrequisition.entity.JobRequisitionExperiencePeriodEnum;
 import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancyContractTypeEnum;
 
 @Getter
@@ -31,6 +32,7 @@ public class JobVacancyApplicationHirePreviewDto {
     private UUID jobPositionId;
     private JobVacancyContractTypeEnum vacancyContractType;
     private ContractTypeEnum suggestedContractType;
+    private JobRequisitionExperiencePeriodEnum suggestedExperiencePeriod;
     private BigDecimal suggestedSalary;
     private BigDecimal suggestedSalaryMax;
     private String vacancyWorkSchedule;

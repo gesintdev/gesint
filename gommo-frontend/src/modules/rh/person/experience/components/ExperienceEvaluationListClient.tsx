@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import clsx from "clsx";
+import { useState } from "react";
 
 import { EXPERIENCE_EVALUATION_TABLE_COLUMNS } from "@/modules/rh/person/experience/config/experience-evaluation.table-columns";
 import type { ExperienceEvaluation } from "@/modules/rh/person/experience/dto/experience-evaluation.dto";
@@ -17,6 +18,13 @@ type ExperienceListRow = ExperienceEvaluation & {
     selectionVsExperience: string;
 };
 
+type ExperienceBucket = "open" | "decided";
+
+const BUCKET_TABS: { value: ExperienceBucket; label: string }[] = [
+    { value: "open", label: "Em período" },
+    { value: "decided", label: "Decididos" },
+];
+
 function toListRow(row: ExperienceEvaluation): ExperienceListRow {
     const selection = row.selectionAverage != null ? String(row.selectionAverage) : "—";
     const experience = row.averageScore != null ? String(row.averageScore) : "—";
@@ -29,7 +37,7 @@ function toListRow(row: ExperienceEvaluation): ExperienceListRow {
 
 export function ExperienceEvaluationListClient() {
     const { startEdit } = useCrudScreen();
-    const [bucket, setBucket] = useState<"open" | "decided">("open");
+    const [bucket, setBucket] = useState<ExperienceBucket>("open");
 
     const summaryQuery = useQuery({
         queryKey: experienceEvaluationKeys.summary,
@@ -38,38 +46,41 @@ export function ExperienceEvaluationListClient() {
 
     const dueSoon = summaryQuery.data?.dueSoonCount ?? 0;
 
-    const toolbar = useMemo(
-        () => (
-            <div className="flex flex-wrap items-center gap-2">
-                <div className="join">
-                    <button
-                        type="button"
-                        className={`btn btn-sm join-item ${bucket === "open" ? "btn-primary" : "btn-ghost"}`}
-                        onClick={() => setBucket("open")}
-                    >
-                        Em período
-                    </button>
-                    <button
-                        type="button"
-                        className={`btn btn-sm join-item ${bucket === "decided" ? "btn-primary" : "btn-ghost"}`}
-                        onClick={() => setBucket("decided")}
-                    >
-                        Decididos
-                    </button>
-                </div>
-                {dueSoon > 0 ? (
-                    <span className="badge badge-warning badge-outline">
-                        {dueSoon} {dueSoon === 1 ? "vence" : "vencem"} em 7 dias
-                    </span>
-                ) : null}
-            </div>
-        ),
-        [bucket, dueSoon],
-    );
-
     return (
-        <div className="grid gap-3">
-            {toolbar}
+        <div className="flex min-h-0 flex-1 flex-col">
+            {/* Alinha com o padding do QueryPagedTablePanel (p-1.5) e usa o padrão de abas do CRUD. */}
+            <div className="px-1.5">
+                <div
+                    className="gommo-crud-tablist !px-1"
+                    role="tablist"
+                    aria-label="Fila de experiência"
+                >
+                    {BUCKET_TABS.map((tab) => {
+                        const selected = bucket === tab.value;
+                        return (
+                            <button
+                                key={tab.value}
+                                type="button"
+                                role="tab"
+                                aria-selected={selected}
+                                className={clsx(
+                                    "gommo-crud-tab",
+                                    selected && "gommo-crud-tab--active",
+                                )}
+                                onClick={() => setBucket(tab.value)}
+                            >
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                    {dueSoon > 0 ? (
+                        <span className="badge badge-warning badge-outline ml-auto self-center text-[0.6875rem]">
+                            {dueSoon} {dueSoon === 1 ? "vence" : "vencem"} em 7 dias
+                        </span>
+                    ) : null}
+                </div>
+            </div>
+
             <QueryPagedTablePanel<ExperienceListRow>
                 queryKey={experienceEvaluationKeys.queue(bucket)}
                 request={async (page, size, filters) =>

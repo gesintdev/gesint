@@ -116,6 +116,7 @@ public class JobVacancyApplicationHireService {
                 .filter(row -> row.getApplicationStatus() != JobVacancyApplicationStatusEnum.HIRED)
                 .count();
 
+        ContractTypeEnum suggestedContract = mapContractType(vacancy.getContractType());
         return JobVacancyApplicationHirePreviewDto.builder()
                 .applicationId(application.getId())
                 .candidateId(candidate.getId())
@@ -129,7 +130,8 @@ public class JobVacancyApplicationHireService {
                 .jobVacancyTitle(vacancy.getJobTitle())
                 .jobPositionId(vacancy.getJobPositionId())
                 .vacancyContractType(vacancy.getContractType())
-                .suggestedContractType(mapContractType(vacancy.getContractType()))
+                .suggestedContractType(suggestedContract)
+                .suggestedExperiencePeriod(resolveSuggestedExperiencePeriod(vacancy.getId(), suggestedContract))
                 .suggestedSalary(vacancy.getSalary())
                 .suggestedSalaryMax(vacancy.getSalaryMax())
                 .vacancyWorkSchedule(vacancy.getWorkSchedule())
@@ -185,7 +187,8 @@ public class JobVacancyApplicationHireService {
                 .workScheduleId(request.getWorkScheduleId())
                 .jobPositionId(vacancy.getJobPositionId())
                 .companyId(vacancy.getCompanyId())
-                .experiencePeriod(resolveExperiencePeriod(vacancy.getId(), request.getContractType()))
+                .experiencePeriod(resolveExperiencePeriod(
+                        vacancy.getId(), request.getContractType(), request.getExperiencePeriod()))
                 .notes("Criado a partir da proposta de contratacao da vaga "
                         + (vacancy.getJobTitle() != null ? vacancy.getJobTitle() : ""))
                 .build();
@@ -202,6 +205,9 @@ public class JobVacancyApplicationHireService {
         assignColumn(application, request.getColumnKey());
         application.setApplicationStatus(JobVacancyApplicationStatusEnum.HIRED);
         application.setAdmissionProcessId(admission.getId());
+        application.setCandidateAcceptance(request.getCandidateAcceptance());
+        application.setAcceptanceDate(request.getAcceptanceDate());
+        application.setAcceptanceChannel(request.getAcceptanceChannel());
         application.clearRejection();
         applicationRepository.save(application);
 
@@ -355,9 +361,10 @@ public class JobVacancyApplicationHireService {
         };
     }
 
-    private String resolveExperiencePeriod(UUID jobVacancyId, ContractTypeEnum contractType) {
+    private JobRequisitionExperiencePeriodEnum resolveSuggestedExperiencePeriod(
+            UUID jobVacancyId, ContractTypeEnum contractType) {
         if (contractType != ContractTypeEnum.CLT) {
-            return JobRequisitionExperiencePeriodEnum.NONE.name();
+            return JobRequisitionExperiencePeriodEnum.NONE;
         }
         return jobRequisitionRepository
                 .findFirstByJobVacancyIdAndStatusNotOrderByCreatedAtDesc(jobVacancyId, StatusEnum.DELETED)
@@ -365,8 +372,20 @@ public class JobVacancyApplicationHireService {
                 .map(period -> period == null || period == JobRequisitionExperiencePeriodEnum.NONE
                         ? JobRequisitionExperiencePeriodEnum.DAYS_45_45
                         : period)
-                .orElse(JobRequisitionExperiencePeriodEnum.DAYS_45_45)
-                .name();
+                .orElse(JobRequisitionExperiencePeriodEnum.DAYS_45_45);
+    }
+
+    private String resolveExperiencePeriod(
+            UUID jobVacancyId,
+            ContractTypeEnum contractType,
+            JobRequisitionExperiencePeriodEnum requested) {
+        if (contractType != ContractTypeEnum.CLT) {
+            return JobRequisitionExperiencePeriodEnum.NONE.name();
+        }
+        if (requested != null) {
+            return requested.name();
+        }
+        return resolveSuggestedExperiencePeriod(jobVacancyId, contractType).name();
     }
 
     private static String normalizeColumnKey(String value) {

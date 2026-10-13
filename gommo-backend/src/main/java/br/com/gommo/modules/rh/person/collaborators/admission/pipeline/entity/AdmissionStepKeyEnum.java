@@ -1,18 +1,19 @@
 package br.com.gommo.modules.rh.person.collaborators.admission.pipeline.entity;
 
 /**
- * As seis etapas da esteira, na ordem em que sao exibidas.
+ * Etapas da esteira, na ordem em que sao exibidas (RN-38: Pre-admissao na frente).
  *
- * <p>Nao confundir com os seis passos de {@code AdmissionProgressEvaluator}: aqueles sao as secoes
- * do formulario de cadastro. A coincidencia numerica e acidental.
+ * <p>Nao confundir com os passos de {@code AdmissionProgressEvaluator}: aqueles sao as secoes do
+ * formulario de cadastro.
  */
 public enum AdmissionStepKeyEnum {
-    DOCUMENTACAO(1, "Documentos"),
-    EXAME(2, "ASO"),
-    CONTRATO(3, "Contrato"),
-    REGISTRO(4, "Registro"),
-    ESOCIAL(5, "S-2200"),
-    INTEGRACAO(6, "Integracao");
+    PRE_ADMISSAO(1, "Pre-admissao"),
+    DOCUMENTACAO(2, "Documentos"),
+    EXAME(3, "ASO"),
+    CONTRATO(4, "Contrato"),
+    REGISTRO(5, "Registro"),
+    ESOCIAL(6, "S-2200"),
+    INTEGRACAO(7, "Integracao");
 
     private final int displayOrder;
     private final String shortLabel;

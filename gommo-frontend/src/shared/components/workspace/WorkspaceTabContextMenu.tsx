@@ -1,6 +1,6 @@
 "use client";
 
-import { CopyPlus, Pin, PinOff, X, XCircle } from "lucide-react";
+import { CopyPlus, CopyX, Pin, PinOff, X, XCircle } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -20,7 +20,10 @@ type WorkspaceTabContextMenuProps = {
     onDuplicate: (tab: WorkspaceTab) => void;
     onTogglePin: (tab: WorkspaceTab) => void;
     onCloseTab: (tab: WorkspaceTab) => void;
+    onCloseOtherTabs: (tab: WorkspaceTab) => void;
     onCloseAll: () => void;
+    /** Desabilita "Fechar outras abas" quando não há outras. */
+    canCloseOtherTabs?: boolean;
     closeAllLabel?: string;
 };
 
@@ -32,7 +35,9 @@ export function WorkspaceTabContextMenu({
     onDuplicate,
     onTogglePin,
     onCloseTab,
+    onCloseOtherTabs,
     onCloseAll,
+    canCloseOtherTabs = true,
     closeAllLabel = "Fechar todas",
 }: WorkspaceTabContextMenuProps) {
     const menuRef = useRef<HTMLDivElement>(null);
@@ -124,6 +129,20 @@ export function WorkspaceTabContextMenu({
                     >
                         <X className="size-3.5 shrink-0 text-base-content/45" strokeWidth={2} />
                         Fechar
+                    </button>
+                    <button
+                        type="button"
+                        role="menuitem"
+                        disabled={!canCloseOtherTabs}
+                        className={`${itemClass} disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent`}
+                        onClick={() => {
+                            if (!canCloseOtherTabs) return;
+                            onCloseOtherTabs(state.tab);
+                            onClose();
+                        }}
+                    >
+                        <CopyX className="size-3.5 shrink-0 text-base-content/45" strokeWidth={2} />
+                        Fechar outras abas
                     </button>
                     <div className="my-1 h-px bg-base-content/8" />
                 </>

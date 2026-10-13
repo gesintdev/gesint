@@ -1,4 +1,5 @@
 export type AdmissionStepKey =
+    | "PRE_ADMISSAO"
     | "DOCUMENTACAO"
     | "EXAME"
     | "CONTRATO"

@@ -1,11 +1,15 @@
 export type CandidateAcceptance = "PENDING" | "ACCEPTED" | "DECLINED";
 
+export type AcceptanceChannel = "VERBAL" | "EMAIL" | "WHATSAPP";
+
 export type AdmissionContractType =
     | "CLT"
     | "PJ"
     | "INTERMITTENT"
     | "APPRENTICE"
     | "INTERN";
+
+export type HireExperiencePeriod = "NONE" | "DAYS_30_60" | "DAYS_45_45" | "DAYS_90";
 
 export type JobVacancyApplicationHirePreview = {
     applicationId: string;
@@ -20,6 +24,7 @@ export type JobVacancyApplicationHirePreview = {
     jobPositionId?: string | null;
     vacancyContractType?: string | null;
     suggestedContractType?: AdmissionContractType | null;
+    suggestedExperiencePeriod?: HireExperiencePeriod | null;
     suggestedSalary?: number | null;
     suggestedSalaryMax?: number | null;
     vacancyWorkSchedule?: string | null;
@@ -31,10 +36,13 @@ export type JobVacancyApplicationHirePreview = {
 
 export type JobVacancyApplicationHireRequest = {
     contractType: AdmissionContractType;
+    experiencePeriod?: HireExperiencePeriod | null;
     expectedStartDate: string;
     baseSalary?: number | null;
     workScheduleId?: string | null;
     candidateAcceptance: CandidateAcceptance;
+    acceptanceDate: string;
+    acceptanceChannel: AcceptanceChannel;
     cpf?: string | null;
     birthDate?: string | null;
     email?: string | null;

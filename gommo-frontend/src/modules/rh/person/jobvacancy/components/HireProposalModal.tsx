@@ -10,9 +10,11 @@ import { toast } from "sonner";
 import { workScheduleService } from "@/modules/cfg/settings/workschedule/services/work-schedule.service";
 import { jobPositionSalaryTableService } from "@/modules/dp/organization/jobposition/salarytable/services/job-position-salary-table.service";
 import { CONTRACT_TYPE_ITEMS } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
+import { JOB_REQUISITION_EXPERIENCE_PERIOD_ITEMS } from "@/modules/rh/person/jobrequisition/lib/job-requisition.options";
 import type {
+    AcceptanceChannel,
     AdmissionContractType,
-    CandidateAcceptance,
+    HireExperiencePeriod,
     JobVacancyApplicationHireResponse,
 } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application-hire.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
@@ -35,10 +37,10 @@ type HireProposalModalProps = {
     onSuccess?: (result: JobVacancyApplicationHireResponse) => void;
 };
 
-const ACCEPTANCE_ITEMS: SelectItem[] = [
-    { value: "PENDING", label: "Pendente" },
-    { value: "ACCEPTED", label: "Aceito" },
-    { value: "DECLINED", label: "Recusado" },
+const ACCEPTANCE_CHANNEL_ITEMS: SelectItem[] = [
+    { value: "VERBAL", label: "Verbal" },
+    { value: "EMAIL", label: "E-mail" },
+    { value: "WHATSAPP", label: "WhatsApp" },
 ];
 
 function todayIso(): string {
@@ -64,10 +66,12 @@ export function HireProposalModal({
     const [submitted, setSubmitted] = useState(false);
 
     const [contractType, setContractType] = useState<AdmissionContractType>("CLT");
+    const [experiencePeriod, setExperiencePeriod] = useState<HireExperiencePeriod>("DAYS_45_45");
     const [expectedStartDate, setExpectedStartDate] = useState("");
     const [baseSalary, setBaseSalary] = useState("");
     const [workScheduleId, setWorkScheduleId] = useState("");
-    const [candidateAcceptance, setCandidateAcceptance] = useState<CandidateAcceptance>("PENDING");
+    const [acceptanceDate, setAcceptanceDate] = useState("");
+    const [acceptanceChannel, setAcceptanceChannel] = useState<AcceptanceChannel | "">("");
     const [cpf, setCpf] = useState("");
 
     const previewQuery = useQuery({
@@ -116,6 +120,8 @@ export function HireProposalModal({
         return "out" as const;
     }, [salaryBand, salaryNumber]);
 
+    const isClt = contractType === "CLT";
+
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -134,10 +140,12 @@ export function HireProposalModal({
         if (!open) return;
         setSubmitted(false);
         setExpectedStartDate(todayIso());
-        setCandidateAcceptance("PENDING");
+        setAcceptanceDate(todayIso());
+        setAcceptanceChannel("");
         setWorkScheduleId("");
         setCpf("");
         setContractType("CLT");
+        setExperiencePeriod("DAYS_45_45");
         setBaseSalary("");
     }, [open, applicationId]);
 
@@ -145,6 +153,7 @@ export function HireProposalModal({
         const preview = previewQuery.data;
         if (!preview || !open) return;
         setContractType(preview.suggestedContractType ?? "CLT");
+        setExperiencePeriod(preview.suggestedExperiencePeriod ?? "DAYS_45_45");
         if (preview.suggestedSalary != null && Number.isFinite(Number(preview.suggestedSalary))) {
             setBaseSalary(Number(preview.suggestedSalary).toFixed(2));
         }
@@ -154,12 +163,16 @@ export function HireProposalModal({
     const hireMutation = useMutation({
         mutationFn: () => {
             if (!applicationId) throw new Error("Candidatura inválida.");
+            if (!acceptanceChannel) throw new Error("Informe a forma do aceite.");
             return jobVacancyApplicationService.hire(applicationId, {
                 contractType,
+                experiencePeriod: isClt ? experiencePeriod : "NONE",
                 expectedStartDate,
                 baseSalary: salaryNumber,
                 workScheduleId: workScheduleId || null,
-                candidateAcceptance,
+                candidateAcceptance: "ACCEPTED",
+                acceptanceDate,
+                acceptanceChannel,
                 cpf: cpf.replace(/\D/g, "") || null,
                 columnKey,
             });
@@ -200,10 +213,10 @@ export function HireProposalModal({
     const needsCpf = previewCpfDigits.length !== 11;
     const alreadyHired = Boolean(preview?.alreadyHired);
     const startDateError = submitted && !expectedStartDate ? "Informe a data de início." : undefined;
-    const acceptanceError =
-        submitted && candidateAcceptance !== "ACCEPTED"
-            ? "O aceite do candidato precisa estar como Aceito para confirmar."
-            : undefined;
+    const acceptanceDateError =
+        submitted && !acceptanceDate ? "Informe a data do aceite." : undefined;
+    const acceptanceChannelError =
+        submitted && !acceptanceChannel ? "Informe a forma do aceite." : undefined;
     const cpfDigits = cpf.replace(/\D/g, "");
     const effectiveCpf = needsCpf ? cpfDigits : previewCpfDigits;
     const cpfError =
@@ -214,7 +227,7 @@ export function HireProposalModal({
     const handleConfirm = () => {
         setSubmitted(true);
         if (alreadyHired) return;
-        if (!expectedStartDate || candidateAcceptance !== "ACCEPTED") return;
+        if (!expectedStartDate || !acceptanceDate || !acceptanceChannel) return;
         if (effectiveCpf.length !== 11) return;
         hireMutation.mutate();
     };
@@ -246,10 +259,12 @@ export function HireProposalModal({
             <div className="modal-box flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden p-0">
                 <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
                     <div className="min-w-0">
-                        <h3 className="text-base font-semibold text-base-content">Proposta de contratação</h3>
-                        <p className="mt-0.5 truncate text-sm text-base-content/55">
-                            {preview?.candidateFullName ?? "Candidato"}
+                        <h3 className="text-base font-semibold text-base-content">
+                            Contratar {preview?.candidateFullName ?? "candidato"}
                             {preview?.jobVacancyTitle ? ` · ${preview.jobVacancyTitle}` : ""}
+                        </h3>
+                        <p className="mt-0.5 text-xs text-base-content/50">
+                            Proposta de contratação · RN-37 / RN-38
                         </p>
                     </div>
                     <button
@@ -279,13 +294,6 @@ export function HireProposalModal({
                         </p>
                     ) : (
                         <div className="grid gap-4">
-                            {preview?.rehireWarning ? (
-                                <div className="flex gap-2 rounded-lg border border-warning/35 bg-warning/10 px-3 py-2.5 text-sm text-warning-content">
-                                    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" strokeWidth={2} />
-                                    <p>{preview.rehireWarning}</p>
-                                </div>
-                            ) : null}
-
                             {alreadyHired ? (
                                 <div className="rounded-lg border border-success/25 bg-success/5 px-3 py-2.5 text-sm text-base-content/70">
                                     Esta candidatura já foi convertida em admissão
@@ -307,89 +315,128 @@ export function HireProposalModal({
                                 </div>
                             ) : null}
 
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <InputSelect
-                                    label="Tipo de vínculo"
-                                    items={CONTRACT_TYPE_ITEMS}
-                                    value={contractType}
-                                    onValueChange={(v) =>
-                                        setContractType((v || "CLT") as AdmissionContractType)
-                                    }
-                                    disabled={alreadyHired || hireMutation.isPending}
-                                    required
-                                />
-                                <InputDate
-                                    label="Data de início"
-                                    value={expectedStartDate}
-                                    onValueChange={setExpectedStartDate}
-                                    error={startDateError}
-                                    disabled={alreadyHired || hireMutation.isPending}
-                                    required
-                                />
-                                <div className="grid gap-1.5 sm:col-span-2">
-                                    <InputCurrency
-                                        label="Salário"
-                                        value={baseSalary}
-                                        onValueChange={setBaseSalary}
-                                        emitAsDecimal
-                                        disabled={alreadyHired || hireMutation.isPending}
-                                    />
-                                    {salaryBandStatus ? (
-                                        <span
-                                            className={clsx(
-                                                "inline-flex w-fit rounded px-2 py-0.5 text-[0.6875rem] font-semibold",
-                                                salaryBandStatus === "in"
-                                                    ? "bg-success/15 text-success"
-                                                    : "bg-warning/15 text-warning",
-                                            )}
-                                        >
-                                            {salaryBandStatus === "in"
-                                                ? "Salário na faixa do cargo"
-                                                : "Salário fora da faixa do cargo"}
-                                        </span>
-                                    ) : salaryTableQuery.isFetching ? (
-                                        <span className="text-[0.6875rem] text-base-content/40">
-                                            Consultando faixa salarial…
-                                        </span>
-                                    ) : null}
-                                </div>
-                                <InputSelect
-                                    label="Escala"
-                                    items={workScheduleItems}
-                                    value={workScheduleId}
-                                    onValueChange={setWorkScheduleId}
-                                    placeholder={
-                                        workSchedulesQuery.isLoading
-                                            ? "Carregando escalas…"
-                                            : "Selecione a escala"
-                                    }
-                                    disabled={alreadyHired || hireMutation.isPending}
-                                    wrapperClassName="sm:col-span-2"
-                                />
-                                <InputSelect
-                                    label="Aceite do candidato"
-                                    items={ACCEPTANCE_ITEMS}
-                                    value={candidateAcceptance}
-                                    onValueChange={(v) =>
-                                        setCandidateAcceptance((v || "PENDING") as CandidateAcceptance)
-                                    }
-                                    error={acceptanceError}
-                                    disabled={alreadyHired || hireMutation.isPending}
-                                    required
-                                    wrapperClassName="sm:col-span-2"
-                                />
-                                {needsCpf ? (
-                                    <InputString
-                                        label="CPF"
-                                        value={cpf}
-                                        onValueChange={setCpf}
-                                        error={cpfError}
+                            <section className="grid gap-3">
+                                <h4 className="text-xs font-semibold uppercase tracking-wide text-base-content/55">
+                                    Proposta
+                                </h4>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <InputSelect
+                                        label="Tipo de vínculo"
+                                        items={CONTRACT_TYPE_ITEMS}
+                                        value={contractType}
+                                        onValueChange={(v) =>
+                                            setContractType((v || "CLT") as AdmissionContractType)
+                                        }
                                         disabled={alreadyHired || hireMutation.isPending}
                                         required
-                                        wrapperClassName="sm:col-span-2"
                                     />
-                                ) : null}
-                            </div>
+                                    {isClt ? (
+                                        <InputSelect
+                                            label="Período de experiência"
+                                            items={JOB_REQUISITION_EXPERIENCE_PERIOD_ITEMS}
+                                            value={experiencePeriod}
+                                            onValueChange={(v) =>
+                                                setExperiencePeriod(
+                                                    (v || "DAYS_45_45") as HireExperiencePeriod,
+                                                )
+                                            }
+                                            disabled={alreadyHired || hireMutation.isPending}
+                                            required
+                                        />
+                                    ) : (
+                                        <InputDate
+                                            label="Data de início"
+                                            value={expectedStartDate}
+                                            onValueChange={setExpectedStartDate}
+                                            error={startDateError}
+                                            disabled={alreadyHired || hireMutation.isPending}
+                                            required
+                                        />
+                                    )}
+                                    {isClt ? (
+                                        <InputDate
+                                            label="Data de início"
+                                            value={expectedStartDate}
+                                            onValueChange={setExpectedStartDate}
+                                            error={startDateError}
+                                            disabled={alreadyHired || hireMutation.isPending}
+                                            required
+                                        />
+                                    ) : null}
+                                    <div className="grid gap-1.5">
+                                        <InputCurrency
+                                            label="Salário"
+                                            value={baseSalary}
+                                            onValueChange={setBaseSalary}
+                                            emitAsDecimal
+                                            disabled={alreadyHired || hireMutation.isPending}
+                                        />
+                                        {salaryBandStatus ? (
+                                            <span
+                                                className={clsx(
+                                                    "inline-flex w-fit rounded px-2 py-0.5 text-[0.6875rem] font-semibold",
+                                                    salaryBandStatus === "in"
+                                                        ? "bg-success/15 text-success"
+                                                        : "bg-warning/15 text-warning",
+                                                )}
+                                            >
+                                                {salaryBandStatus === "in" ? "na faixa" : "fora da faixa"}
+                                            </span>
+                                        ) : salaryTableQuery.isFetching ? (
+                                            <span className="text-[0.6875rem] text-base-content/40">
+                                                Consultando faixa salarial…
+                                            </span>
+                                        ) : null}
+                                    </div>
+                                    <InputSelect
+                                        label="Escala"
+                                        items={workScheduleItems}
+                                        value={workScheduleId}
+                                        onValueChange={setWorkScheduleId}
+                                        placeholder={
+                                            workSchedulesQuery.isLoading
+                                                ? "Carregando escalas…"
+                                                : "Selecione a escala"
+                                        }
+                                        disabled={alreadyHired || hireMutation.isPending}
+                                    />
+                                    <InputDate
+                                        label="Data do aceite"
+                                        value={acceptanceDate}
+                                        onValueChange={setAcceptanceDate}
+                                        error={acceptanceDateError}
+                                        disabled={alreadyHired || hireMutation.isPending}
+                                        required
+                                    />
+                                    <InputSelect
+                                        label="Forma do aceite"
+                                        items={ACCEPTANCE_CHANNEL_ITEMS}
+                                        value={acceptanceChannel}
+                                        onValueChange={(v) =>
+                                            setAcceptanceChannel((v || "") as AcceptanceChannel | "")
+                                        }
+                                        error={acceptanceChannelError}
+                                        disabled={alreadyHired || hireMutation.isPending}
+                                        required
+                                        placeholder="Verbal, e-mail ou WhatsApp"
+                                    />
+                                    {needsCpf ? (
+                                        <InputString
+                                            label="CPF"
+                                            value={cpf}
+                                            onValueChange={setCpf}
+                                            error={cpfError}
+                                            disabled={alreadyHired || hireMutation.isPending}
+                                            required
+                                            wrapperClassName="sm:col-span-2"
+                                        />
+                                    ) : null}
+                                </div>
+                                <p className="text-[0.6875rem] text-base-content/45">
+                                    Aceite do candidato: no MVP o recrutador registra à mão (data e
+                                    forma). Aceite pelo portal fica para depois.
+                                </p>
+                            </section>
 
                             <section className="rounded-lg border border-base-content/10 bg-base-content/[0.02] px-3 py-3">
                                 <p className="text-xs font-semibold text-base-content">
@@ -398,20 +445,36 @@ export function HireProposalModal({
                                 <ul className="mt-2 grid gap-1.5 text-xs text-base-content/65">
                                     <li className="flex items-start gap-2">
                                         <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" />
-                                        Cria admissão ligada a esta candidatura
+                                        Cria a admissão ligada a esta candidatura (mesma pessoa, sem
+                                        redigitar)
+                                    </li>
+                                    <li className="flex items-start gap-2 text-base-content/45">
+                                        <Circle className="mt-0.5 size-3.5 shrink-0" />
+                                        Envia link de pré-admissão à candidata: documentos, dados
+                                        bancários, dados do eSocial, autodeclarações
+                                    </li>
+                                    <li className="flex items-start gap-2 text-base-content/45">
+                                        <Circle className="mt-0.5 size-3.5 shrink-0" />
+                                        Agenda o exame admissional conforme a Matriz de Exames do cargo
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" />
-                                        Encerra as demais candidaturas ativas da vaga
+                                        Encerra as demais candidaturas ativas desta vaga e envia
+                                        retorno
                                         {preview?.otherActiveApplicationsCount
                                             ? ` (${preview.otherActiveApplicationsCount})`
                                             : ""}
                                     </li>
-                                    <li className="flex items-start gap-2 text-base-content/45">
-                                        <Circle className="mt-0.5 size-3.5 shrink-0" />
-                                        Link de pré-admissão e exame ocupacional — próxima entrega
-                                    </li>
                                 </ul>
+                                {preview?.rehireWarning ? (
+                                    <div className="mt-3 flex gap-2 rounded-lg border border-warning/35 bg-warning/10 px-3 py-2.5 text-sm text-warning-content">
+                                        <AlertTriangle
+                                            className="mt-0.5 size-4 shrink-0 text-warning"
+                                            strokeWidth={2}
+                                        />
+                                        <p>{preview.rehireWarning}</p>
+                                    </div>
+                                ) : null}
                             </section>
                         </div>
                     )}

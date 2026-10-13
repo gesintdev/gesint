@@ -683,7 +683,7 @@ export function JobVacancyApplicationKanbanDetailModal({
                                 )}`;
                             }}
                         >
-                            Abrir admissão
+                            Admissão criada
                         </Button>
                     ) : null}
                     {showConfirmHire ? (
@@ -693,7 +693,7 @@ export function JobVacancyApplicationKanbanDetailModal({
                             disabled={busy || !application?.candidateId}
                             onClick={onConfirmHire}
                         >
-                            Confirmar contratação
+                            Criar Admissão
                         </Button>
                     ) : null}
                 </div>
