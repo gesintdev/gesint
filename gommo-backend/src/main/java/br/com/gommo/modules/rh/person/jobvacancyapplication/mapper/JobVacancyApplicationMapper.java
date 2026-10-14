@@ -72,6 +72,7 @@ public class JobVacancyApplicationMapper {
                 .candidatePhone(candidate != null ? candidate.getPhone() : null)
                 .applicationStatus(entity.getApplicationStatus())
                 .kanbanColumnKey(entity.getKanbanColumnKey())
+                .kanbanColumnEnteredAt(entity.getKanbanColumnEnteredAt())
                 .stageComments(copyStageComments(entity.getStageComments()))
                 .appliedAt(entity.getAppliedAt())
                 .salaryExpectation(entity.getSalaryExpectation())

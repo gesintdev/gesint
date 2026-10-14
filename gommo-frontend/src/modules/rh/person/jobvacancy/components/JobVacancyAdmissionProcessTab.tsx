@@ -25,6 +25,7 @@ import {
     REJECTION_FEEDBACK_LABELS,
     REJECTION_FEEDBACK_TONE,
 } from "@/modules/rh/person/jobvacancy/lib/job-application-rejection";
+import { resolveKanbanSlaBadge } from "@/modules/rh/person/jobvacancy/lib/kanban-sla-badge";
 import { jobVacancyKeys } from "@/modules/rh/person/jobvacancy/jobvacancy.query";
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import { useJobVacancyAdmissionProcessStore } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-admission-process.store";
@@ -267,6 +268,25 @@ export function JobVacancyAdmissionProcessTab() {
                             ) : null}
                         </div>
                     ) : null;
+                const columnConfig = sortedColumns.find((column) => column.columnKey === columnKey);
+                const slaBadge = resolveKanbanSlaBadge({
+                    enteredAt: row.kanbanColumnEnteredAt,
+                    slaEnabled: columnConfig?.slaEnabled,
+                    slaBusinessDays: columnConfig?.slaBusinessDays,
+                    systemColumn: columnConfig?.systemColumn,
+                });
+                const slaMeta = slaBadge ? (
+                    <span
+                        className={clsx(
+                            "inline-flex rounded-full px-1.5 py-0.5 text-[0.625rem] font-semibold",
+                            slaBadge.tone === "warn" && "bg-warning/15 text-warning",
+                            slaBadge.tone === "err" && "bg-error/15 text-error",
+                            slaBadge.tone === "info" && "bg-info/15 text-info",
+                        )}
+                    >
+                        {slaBadge.label}
+                    </span>
+                ) : null;
                 return {
                     id: row.id,
                     applicationId: row.id,
@@ -299,11 +319,15 @@ export function JobVacancyAdmissionProcessTab() {
                                 </span>
                             ) : null}
                         </div>
-                    ) : averagesMeta ? (
-                        averagesMeta
-                    ) : row.candidatePhone ? (
-                        formatPhone(row.candidatePhone)
-                    ) : undefined,
+                    ) : (
+                        <div className="grid gap-1">
+                            {slaMeta}
+                            {averagesMeta}
+                            {!averagesMeta && !slaMeta && row.candidatePhone
+                                ? formatPhone(row.candidatePhone)
+                                : null}
+                        </div>
+                    ),
                     badge: (
                         <CandidateMatchScoreTag
                             score={score < 0 ? null : score}
