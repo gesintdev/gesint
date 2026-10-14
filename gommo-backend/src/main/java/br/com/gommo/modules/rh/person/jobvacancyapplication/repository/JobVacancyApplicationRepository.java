@@ -18,6 +18,9 @@ public interface JobVacancyApplicationRepository extends IBaseRepository<JobVaca
     Optional<JobVacancyApplication> findByJobVacancyIdAndCandidateIdAndStatusNot(
             UUID jobVacancyId, UUID candidateId, StatusEnum status);
 
+    List<JobVacancyApplication> findByCandidateIdAndStatusNotOrderByAppliedAtDesc(
+            UUID candidateId, StatusEnum status);
+
     long countByJobVacancyIdAndStatusNot(UUID jobVacancyId, StatusEnum status);
 
     @Query(

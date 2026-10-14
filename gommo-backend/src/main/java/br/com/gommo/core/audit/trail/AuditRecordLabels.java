@@ -24,6 +24,7 @@ public final class AuditRecordLabels {
             Map.entry("BenefitEnrollment", "Vínculo de benefício"),
             Map.entry("BenefitPlan", "Plano de benefício"),
             Map.entry("Candidate", "Candidato"),
+            Map.entry("CandidateAccount", "Conta do portal do candidato"),
             Map.entry("Collaborator", "Colaborador"),
             Map.entry("Company", "Empresa"),
             Map.entry("Competency", "Competência"),

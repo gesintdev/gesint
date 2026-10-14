@@ -16,10 +16,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import br.com.gommo.core.tenant.TenantResolutionFilter;
+import br.com.gommo.modules.careers.candidateportal.auth.CandidatePortalSecurity;
+import br.com.gommo.modules.careers.candidateportal.config.CandidatePortalProperties;
 
 @Configuration
 @EnableMethodSecurity
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class, CandidatePortalProperties.class})
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -51,6 +53,8 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/api/v1/public/**")
                         .permitAll()
+                        .requestMatchers(CandidatePortalSecurity.API_PREFIX + "/**")
+                        .hasAuthority(CandidatePortalSecurity.AUTHORITY)
                         .requestMatchers("/api/v1/internal/**")
                         .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/prometheus")

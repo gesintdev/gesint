@@ -6,5 +6,7 @@ public enum JobVacancyApplicationStatusEnum {
     INTERVIEW,
     OFFER,
     HIRED,
-    REJECTED
+    REJECTED,
+    /** Candidato retirou a candidatura pelo portal (RN-33 / D8). */
+    WITHDRAWN
 }

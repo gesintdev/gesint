@@ -35,6 +35,8 @@ import {
     CAREERS_SENIORITY_LABELS,
     CAREERS_WORK_MODALITY_LABELS,
 } from "@/modules/careers/shared/lib/careers-labels";
+import { CandidateVacancyStatusPanel } from "@/modules/careers/portal/components/CandidateVacancyStatusPanel";
+import { useCandidateSession } from "@/modules/careers/portal/hooks/useCandidateSession";
 import { CareersPrivacyNoticeModal } from "@/modules/careers/site/components/CareersPrivacyNoticeModal";
 import {
     CAREERS_MONTHS,
@@ -368,8 +370,13 @@ function ResumeUpload({ file, onChange }: { file: File | null; onChange: (file: 
 
 function ShareActions({ slug, jobTitle }: { slug: string; jobTitle: string }) {
     const [copied, setCopied] = useState(false);
-    const shareUrl = (origin: string) =>
-        `${typeof window !== "undefined" ? window.location.origin : ""}/careers/${encodeURIComponent(slug)}?origem=${origin}`;
+    const [pageOrigin, setPageOrigin] = useState("");
+    useEffect(() => {
+        setPageOrigin(window.location.origin);
+    }, []);
+
+    const shareUrl = (origem: string) =>
+        `${pageOrigin}/careers/${encodeURIComponent(slug)}?origem=${origem}`;
 
     return (
         <div className="flex flex-wrap gap-2">
@@ -385,7 +392,10 @@ function ShareActions({ slug, jobTitle }: { slug: string; jobTitle: string }) {
             <button
                 type="button"
                 onClick={() => {
-                    void navigator.clipboard?.writeText(shareUrl("site")).then(() => {
+                    const absolute =
+                        pageOrigin || (typeof window !== "undefined" ? window.location.origin : "");
+                    const url = `${absolute}/careers/${encodeURIComponent(slug)}?origem=site`;
+                    void navigator.clipboard?.writeText(url).then(() => {
                         setCopied(true);
                         window.setTimeout(() => setCopied(false), 2000);
                     });
@@ -536,6 +546,8 @@ export function CareersVacancyPageClient({ slug, initialData }: { slug: string; 
     const [error, setError] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
     const [privacyOpen, setPrivacyOpen] = useState(false);
+    const { isAuthenticated: candidateLoggedIn } = useCandidateSession();
+    const portalNext = `/careers/${encodeURIComponent(slug)}`;
 
     useEffect(() => {
         const referral = referralFromSearch(window.location.search);
@@ -551,6 +563,21 @@ export function CareersVacancyPageClient({ slug, initialData }: { slug: string; 
         retry: false,
     });
 
+    const myApplicationQuery = useQuery({
+        queryKey: ["candidate-portal", "applications", "vacancy", slug, "exists"],
+        queryFn: async () => {
+            try {
+                return await (
+                    await import("@/modules/careers/portal/services/candidate-portal.service")
+                ).candidatePortalService.getApplicationByVacancySlug(slug);
+            } catch {
+                return null;
+            }
+        },
+        enabled: candidateLoggedIn,
+        retry: false,
+    });
+
     const applyMutation = useMutation({
         mutationFn: ({ payload, resume }: { payload: CareersApplicationPayload; resume: File | null }) =>
             careersSiteService.apply(slug, payload, resume),
@@ -559,6 +586,7 @@ export function CareersVacancyPageClient({ slug, initialData }: { slug: string; 
             setError(null);
             setForm(emptyForm());
             setResumeFile(null);
+            void myApplicationQuery.refetch();
         },
         onError: (err: unknown) => {
             const ex = ExceptionCapture.handle(err, {
@@ -707,6 +735,21 @@ export function CareersVacancyPageClient({ slug, initialData }: { slug: string; 
                 organizationName={vacancy.organizationName}
                 actions={
                     <>
+                        {candidateLoggedIn ? (
+                            <Link
+                                href="/careers/portal"
+                                className="hidden text-[13px] font-semibold text-primary sm:inline"
+                            >
+                                Meu portal
+                            </Link>
+                        ) : (
+                            <Link
+                                href={`/careers/portal/login?next=${encodeURIComponent(portalNext)}`}
+                                className="hidden text-[13px] font-semibold text-primary sm:inline"
+                            >
+                                Entrar
+                            </Link>
+                        )}
                         <span className="hidden text-[13px] text-base-content/45 sm:inline">
                             {completedSections}/3 seções preenchidas
                         </span>
@@ -722,6 +765,13 @@ export function CareersVacancyPageClient({ slug, initialData }: { slug: string; 
                 <JobSidebar vacancy={vacancy} />
 
                 <div className="px-5 py-10 sm:px-10 lg:pb-16">
+                    {candidateLoggedIn && myApplicationQuery.data ? (
+                        <div className="mb-8">
+                            <CandidateVacancyStatusPanel slug={slug} />
+                        </div>
+                    ) : null}
+
+                    {candidateLoggedIn && myApplicationQuery.data ? null : (
                     <div className="mb-8">
                         <h2 className="mb-2 text-[22px] font-extrabold text-base-content">Sua candidatura</h2>
                         <p className="mb-5 text-sm leading-relaxed text-base-content/55">
@@ -730,34 +780,37 @@ export function CareersVacancyPageClient({ slug, initialData }: { slug: string; 
                         </p>
                         <ProgressBar step={completedSections} total={3} />
                     </div>
+                    )}
 
-                    {submitted ? (
-                        <div className="rounded-[var(--careers-radius)] border border-base-content/10 bg-base-100 px-6 py-20 text-center shadow-sm">
+                    {candidateLoggedIn && myApplicationQuery.data ? null : submitted ? (
+                        <div className="rounded-[var(--careers-radius)] border border-base-content/10 bg-base-100 px-6 py-16 text-center shadow-sm sm:py-20">
                             <div className="mx-auto mb-6 flex size-18 items-center justify-center rounded-full bg-primary text-primary-content">
                                 <Check className="size-8" strokeWidth={2.5} />
                             </div>
                             <h3 className="mb-3 text-[26px] font-extrabold text-base-content">Candidatura recebida!</h3>
                             <p className="mx-auto mb-8 max-w-md text-[15px] leading-relaxed text-base-content/55">
-                                Obrigado pelo interesse na {organization}. O time de recrutamento vai analisar seu
-                                perfil e entrará em contato pelo e-mail ou telefone informados.
+                                Obrigado pelo interesse na {organization}. Crie uma conta no portal do candidato para
+                                acompanhar a triagem desta vaga.
                             </p>
                             <div className="flex flex-wrap justify-center gap-2">
+                                <Link
+                                    href={`/careers/portal/register?next=${encodeURIComponent(portalNext)}`}
+                                    className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-content"
+                                >
+                                    Criar conta e acompanhar
+                                </Link>
+                                <Link
+                                    href={`/careers/portal/login?next=${encodeURIComponent(portalNext)}`}
+                                    className="inline-flex h-9 items-center rounded-lg border border-base-content/15 px-4 text-sm font-medium text-base-content hover:bg-base-200"
+                                >
+                                    Ja tenho conta
+                                </Link>
                                 <Link
                                     href="/careers"
                                     className="inline-flex h-9 items-center rounded-lg border border-base-content/15 px-4 text-sm font-medium text-base-content hover:bg-base-200"
                                 >
                                     Ver outras vagas
                                 </Link>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={() => {
-                                        setForm(emptyForm());
-                                        setSubmitted(false);
-                                    }}
-                                >
-                                    Nova candidatura
-                                </Button>
                             </div>
                         </div>
                     ) : (

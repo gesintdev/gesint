@@ -23,6 +23,11 @@ public class JwtService {
 
     public static final String CLAIM_TENANT_ID = "tenantId";
     public static final String CLAIM_TENANT_SLUG = "tenantSlug";
+    /** Distingue sessao de colaborador/staff da sessao do portal do candidato. */
+    public static final String CLAIM_PRINCIPAL = "principal";
+    public static final String PRINCIPAL_STAFF = "staff";
+    public static final String PRINCIPAL_CANDIDATE = "candidate";
+    public static final String TYPE_CANDIDATE_REFRESH = "candidate_refresh";
     /**
      * Excecoes de permissao por filial: {@code {"<branchId>": ["payroll:read", ...]}}.
      *
@@ -112,6 +117,53 @@ public class JwtService {
 
     public String generateRefreshToken(UUID userId) {
         return generateRefreshToken(userId, null, null);
+    }
+
+    /** Access token do portal do candidato: sem permissions de tenant, so principal=candidate. */
+    public String generateCandidateAccessToken(
+            UUID accountId, String email, UUID tenantId, String tenantSlug) {
+        Instant now = Instant.now();
+        Instant expiry = now.plusSeconds(properties.accessTokenMinutes() * 60);
+        var builder = Jwts.builder()
+                .subject(accountId.toString())
+                .claim("username", email)
+                .claim("permissions", List.of())
+                .claim("type", "access")
+                .claim(CLAIM_PRINCIPAL, PRINCIPAL_CANDIDATE)
+                .claim("jti", UUID.randomUUID().toString())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiry));
+        applyTenantClaims(builder, tenantId, tenantSlug);
+        return builder.signWith(secretKey).compact();
+    }
+
+    public String generateCandidateRefreshToken(UUID accountId, UUID tenantId, String tenantSlug) {
+        Instant now = Instant.now();
+        Instant expiry = nextSessionBoundary();
+        var builder = Jwts.builder()
+                .subject(accountId.toString())
+                .claim("type", TYPE_CANDIDATE_REFRESH)
+                .claim(CLAIM_PRINCIPAL, PRINCIPAL_CANDIDATE)
+                .claim("jti", UUID.randomUUID().toString())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiry));
+        applyTenantClaims(builder, tenantId, tenantSlug);
+        return builder.signWith(secretKey).compact();
+    }
+
+    public boolean isCandidateAccessToken(Claims claims) {
+        return PRINCIPAL_CANDIDATE.equals(claims.get(CLAIM_PRINCIPAL, String.class))
+                && "access".equals(claims.get("type", String.class));
+    }
+
+    public boolean isCandidateRefreshToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return PRINCIPAL_CANDIDATE.equals(claims.get(CLAIM_PRINCIPAL, String.class))
+                    && TYPE_CANDIDATE_REFRESH.equals(claims.get("type", String.class));
+        } catch (io.jsonwebtoken.JwtException ex) {
+            return false;
+        }
     }
 
     public Claims parseClaims(String token) {

@@ -1,13 +1,15 @@
 "use client";
 
 import clsx from "clsx";
-import { useId } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
+import { ColorPickerPanel } from "@/shared/components/ui/input/ColorPickerPanel";
 import {
     fieldClass,
     InputFieldChrome,
 } from "@/shared/components/ui/input/InputFieldChrome";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
+import { useClickOutside } from "@/shared/components/ui/input/use-listbox-keyboard";
 
 /** Cor secundária do layout (`--color-secondary` / `--gommo-primary-dark`). */
 export const GOMMO_SECONDARY_COLOR = "#0062cc";
@@ -44,43 +46,94 @@ export function InputColor({
     const autoId = useId();
     const id = idProp ?? autoId;
     const normalized = normalizeHex(value);
-    const preview = normalized || fallbackColor;
-    const pickerValue = /^#[0-9A-Fa-f]{6}$/i.test(preview) ? preview : fallbackColor;
+    const preview = /^#[0-9A-Fa-f]{6}$/i.test(normalized) ? normalized : fallbackColor;
+    const pickerHex = /^#[0-9A-Fa-f]{6}$/i.test(preview) ? preview.toUpperCase() : GOMMO_SECONDARY_COLOR.toUpperCase();
+
+    const [open, setOpen] = useState(false);
+    const rootRef = useRef<HTMLDivElement>(null);
+    const swatchRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const onValueChangeRef = useRef(onValueChange);
+    onValueChangeRef.current = onValueChange;
+
+    const close = useCallback(() => setOpen(false), []);
+    useClickOutside([rootRef, panelRef], close, open);
+
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setOpen(false);
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [open]);
+
+    const canOpen = !disabled && !readOnly;
+
+    const handlePickerChange = useCallback((hex: string) => {
+        onValueChangeRef.current(normalizeHex(hex));
+    }, []);
 
     return (
         <InputFieldChrome {...chrome} id={id} error={error} disabled={disabled} readOnly={readOnly}>
-            <div className={clsx("gommo-field flex items-center gap-2", fieldClass(disabled, readOnly, Boolean(error)), className)}>
-                <input
-                    type="color"
-                    aria-label={chrome.label ? `${chrome.label} (seletor)` : "Seletor de cor"}
-                    className="size-8 shrink-0 cursor-pointer rounded-md border border-base-content/15 bg-transparent p-0.5"
-                    value={pickerValue}
-                    disabled={disabled || readOnly}
-                    onChange={(event) => onValueChange(normalizeHex(event.target.value))}
-                />
-                <input
-                    id={id}
-                    type="text"
-                    inputMode="text"
-                    autoComplete="off"
-                    placeholder={fallbackColor}
-                    maxLength={7}
-                    className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-                    value={normalized}
-                    disabled={disabled}
-                    readOnly={readOnly}
-                    aria-invalid={Boolean(error) || undefined}
-                    onChange={(event) => onValueChange(normalizeHex(event.target.value))}
-                />
-                {allowClear && normalized ? (
+            <div ref={rootRef} className="relative">
+                <div
+                    className={clsx(
+                        "gommo-field flex items-center gap-2",
+                        fieldClass(disabled, readOnly, Boolean(error)),
+                        className,
+                    )}
+                >
                     <button
+                        ref={swatchRef}
                         type="button"
-                        className="shrink-0 text-xs font-medium text-base-content/45 transition hover:text-base-content/70"
-                        disabled={disabled || readOnly}
-                        onClick={() => onValueChange("")}
-                    >
-                        Padrão
-                    </button>
+                        aria-label={chrome.label ? `${chrome.label} (seletor)` : "Seletor de cor"}
+                        aria-expanded={open}
+                        aria-haspopup="dialog"
+                        disabled={!canOpen}
+                        className="size-8 shrink-0 cursor-pointer rounded-md border border-base-content/15 shadow-inner transition hover:brightness-95 disabled:cursor-not-allowed"
+                        style={{ background: preview }}
+                        onClick={() => {
+                            if (!canOpen) return;
+                            setOpen((prev) => !prev);
+                        }}
+                    />
+                    <input
+                        id={id}
+                        type="text"
+                        inputMode="text"
+                        autoComplete="off"
+                        placeholder={fallbackColor}
+                        maxLength={7}
+                        className="min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
+                        value={normalized}
+                        disabled={disabled}
+                        readOnly={readOnly}
+                        aria-invalid={Boolean(error) || undefined}
+                        onChange={(event) => onValueChange(normalizeHex(event.target.value))}
+                        onFocus={close}
+                    />
+                    {allowClear && normalized ? (
+                        <button
+                            type="button"
+                            className="shrink-0 text-xs font-medium text-base-content/45 transition hover:text-base-content/70"
+                            disabled={disabled || readOnly}
+                            onClick={() => {
+                                onValueChange("");
+                                setOpen(false);
+                            }}
+                        >
+                            Padrão
+                        </button>
+                    ) : null}
+                </div>
+                {open ? (
+                    <ColorPickerPanel
+                        ref={panelRef}
+                        value={pickerHex}
+                        anchorRef={swatchRef}
+                        onChange={handlePickerChange}
+                    />
                 ) : null}
             </div>
             {!normalized ? (

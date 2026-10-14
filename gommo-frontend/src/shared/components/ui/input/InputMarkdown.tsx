@@ -48,7 +48,7 @@ marked.setOptions({
 });
 
 const EDITOR_CLASS = clsx(
-    "gommo-markdown min-h-[180px] px-3 py-2.5 text-sm leading-relaxed text-base-content outline-none",
+    "gommo-markdown px-3 py-2.5 text-sm leading-relaxed text-base-content outline-none",
     "[&_h2]:mb-2.5 [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:text-base-content",
     "[&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:text-base [&_h3]:text-base-content",
     "[&_p]:mb-2.5 [&_p]:last:mb-0",
@@ -144,7 +144,7 @@ export function InputMarkdown({
                 attributes: {
                     ...(idProp ? { id: idProp } : {}),
                     class: EDITOR_CLASS,
-                    style: `min-height: ${minHeight}px;`,
+                    style: `min-height: ${Math.min(120, minHeight)}px;`,
                 },
             },
             onUpdate: ({ editor: current }) => {
@@ -322,7 +322,9 @@ export function InputMarkdown({
                         </button>
                     ))}
                 </div>
-                <EditorContent editor={editor} className="gommo-markdown" />
+                <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: minHeight }}>
+                    <EditorContent editor={editor} className="gommo-markdown" />
+                </div>
             </div>
             {hint ? <p className="mt-1.5 text-[11px] text-base-content/45">{hint}</p> : null}
         </InputFieldChrome>

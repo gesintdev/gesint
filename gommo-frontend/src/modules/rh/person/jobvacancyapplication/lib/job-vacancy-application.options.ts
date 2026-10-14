@@ -8,6 +8,7 @@ export const JOB_VACANCY_APPLICATION_STATUS_LABELS: Record<JobVacancyApplication
     OFFER: "Proposta",
     HIRED: "Contratado",
     REJECTED: "Reprovado",
+    WITHDRAWN: "Retirada pelo candidato",
 };
 
 export const JOB_VACANCY_APPLICATION_STATUS_ITEMS: SelectItem[] = (

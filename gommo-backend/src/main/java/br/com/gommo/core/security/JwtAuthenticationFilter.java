@@ -30,6 +30,7 @@ import br.com.gommo.core.tenant.TenantContext;
 import br.com.gommo.core.tenant.TenantContextHolder;
 import br.com.gommo.core.tenant.TenantHttpResponses;
 import br.com.gommo.core.tenant.TenantSchemaNames;
+import br.com.gommo.modules.careers.candidateportal.auth.CandidatePortalSecurity;
 import br.com.gommo.modules.cfg.access.catalog.PermissionModuleCatalog;
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
 import br.com.gommo.modules.root.exception.AuthException;
@@ -69,6 +70,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
                 UUID userId = UUID.fromString(claims.getSubject());
+                if (jwtService.isCandidateAccessToken(claims)) {
+                    authenticateCandidate(request, response, token, userId);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
                 if (multiTenantProperties.isEnabled()) {
                     UUID tokenTenantId = jwtService.extractTenantId(token).orElse(null);
                     tenantAuthValidator.assertTokenMatchesCurrentTenant(tokenTenantId, userId);
@@ -91,6 +97,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Token do portal do candidato so autentica em {@code /api/v1/candidate-portal/**}.
+     * Nunca recebe authorities de staff — evita vazamento cruzado com o ERP do tenant.
+     */
+    private void authenticateCandidate(
+            HttpServletRequest request, HttpServletResponse response, String token, UUID accountId)
+            throws IOException {
+        if (!CandidatePortalSecurity.isCandidatePortalPath(request.getRequestURI())) {
+            SecurityContextHolder.clearContext();
+            return;
+        }
+        if (multiTenantProperties.isEnabled()) {
+            UUID tokenTenantId = jwtService.extractTenantId(token).orElse(null);
+            tenantAuthValidator.assertTokenMatchesCurrentTenant(tokenTenantId, null);
+        }
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                accountId, null, List.of(new SimpleGrantedAuthority(CandidatePortalSecurity.AUTHORITY)));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     /**

@@ -4,7 +4,8 @@ export type JobVacancyApplicationStatus =
     | "INTERVIEW"
     | "OFFER"
     | "HIRED"
-    | "REJECTED";
+    | "REJECTED"
+    | "WITHDRAWN";
 
 export type ApplicationAiStatus = "PENDING" | "PROCESSING" | "READY" | "FAILED" | "SKIPPED";
 

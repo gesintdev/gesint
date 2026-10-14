@@ -1,3 +1,4 @@
+import { CANDIDATE_PORTAL_MESSAGES } from "@/modules/careers/portal/exceptions/candidate-portal.messages";
 import { CAREERS_CLIENT_MESSAGES, CAREERS_MESSAGES } from "@/modules/careers/shared/exceptions/careers.messages";
 import { ADMISSION_PROCESS_KANBAN_COLUMN_MESSAGES } from "@/modules/cfg/settings/admissionprocesskanban/exceptions/admission-process-kanban-column.messages";
 import {
@@ -112,6 +113,7 @@ const REGISTRY: Record<string, string> = {
     ...JOB_REQUISITION_CLIENT_MESSAGES,
     ...CAREERS_MESSAGES,
     ...CAREERS_CLIENT_MESSAGES,
+    ...CANDIDATE_PORTAL_MESSAGES,
     ...JOB_VACANCY_APPLICATION_MESSAGES,
     ...ADMISSION_PROCESS_KANBAN_COLUMN_MESSAGES,
 };

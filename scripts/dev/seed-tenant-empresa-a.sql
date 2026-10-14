@@ -71,6 +71,7 @@ DECLARE
         'careers_page_block',
         'candidate',
         'candidate_experience',
+        'candidate_account',
         'job_vacancy_application',
         'job_application_interview_evaluation',
         'job_application_interview_score',
