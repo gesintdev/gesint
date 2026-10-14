@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.94.1",
+      "hash": "dc5fa863",
+      "date": "2026-10-14T09:24:52-03:00",
+      "type": "fix",
+      "scope": "ui",
+      "breaking": false,
+      "title": "Scroll da grid padrão, gap do avatar e dropdown colapsado",
+      "body": "Alinha a trilha de auditoria ao QueryPagedTablePanel com scroll vertical, aumenta espaço avatar/nome e alinha o menu do usuário à base do card no sidebar recolhido.",
+      "pullRequest": null
+    },
+    {
       "version": "1.94.0",
       "hash": "42ecadab",
       "date": "2026-10-14T09:14:46-03:00",
