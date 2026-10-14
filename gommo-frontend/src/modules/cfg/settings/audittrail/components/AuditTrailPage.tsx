@@ -50,8 +50,8 @@ export function AuditTrailPage() {
 
     return (
         <WorkspacePage>
-            <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] gap-2">
-                <div className="grid grid-cols-1 gap-3 px-2 pt-3 sm:grid-cols-3">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="grid shrink-0 grid-cols-1 gap-3 border-b border-(--gommo-border-subtle) px-4 py-3 sm:grid-cols-3">
                     <InputSelect
                         label="Período"
                         items={AUDIT_PERIOD_ITEMS}
@@ -75,22 +75,23 @@ export function AuditTrailPage() {
                         leftIcon={<Search className="size-4"/>}
                     />
                 </div>
-                <QueryPagedTablePanel<AuditTrailRow>
-                    queryKey={auditTrailKeys.all}
-                    baseFilters={baseFilters}
-                    paginationMode="load-more"
-                    request={async (page, size) => {
-                        const result = await auditTrailService.search(page, size, {
-                            period,
-                            category: category || undefined,
-                            search,
-                        });
-                        return {...result, content: result.content.map(toRow)};
-                    }}
-                    columns={AUDIT_TRAIL_TABLE_COLUMNS}
-                    rowKey="id"
-                    emptyMessage="Nenhum evento registrado no período."
-                />
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                    <QueryPagedTablePanel<AuditTrailRow>
+                        queryKey={auditTrailKeys.all}
+                        baseFilters={baseFilters}
+                        request={async (page, size) => {
+                            const result = await auditTrailService.search(page, size, {
+                                period,
+                                category: category || undefined,
+                                search,
+                            });
+                            return {...result, content: result.content.map(toRow)};
+                        }}
+                        columns={AUDIT_TRAIL_TABLE_COLUMNS}
+                        rowKey="id"
+                        emptyMessage="Nenhum evento registrado no período."
+                    />
+                </div>
             </div>
         </WorkspacePage>
     );

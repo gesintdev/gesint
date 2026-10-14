@@ -359,25 +359,26 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     );
 
     return (
-        <div className="min-h-0 flex-1 p-1.5">
-            <div
-                className="overflow-visible rounded-xl border border-(--gommo-border-subtle) bg-base-100 shadow-sm">
-                <DataTable<TRow>
-                    data={query.data.content}
-                    columns={visibleColumns}
-                    rowActivateOn={rowActivateOn}
-                    actionsFilterSlot={toolbarSlot}
-                    showActionsColumn
-                    renderColumnHeader={(column) => (
-                        <ColumnHeaderWithFilter
-                            column={column}
-                            options={query.data.filterOptions?.[column.fieldValue] ?? []}
-                            value={filters[column.fieldValue] ?? []}
-                            onChange={(value) => updateColumnFilter(column.fieldValue, value)}
-                        />
-                    )}
-                    {...tableProps}
-                />
+        <div className="flex min-h-0 flex-1 flex-col p-1.5">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-(--gommo-border-subtle) bg-base-100 shadow-sm">
+                <div className="min-h-0 flex-1 overflow-auto">
+                    <DataTable<TRow>
+                        data={query.data.content}
+                        columns={visibleColumns}
+                        rowActivateOn={rowActivateOn}
+                        actionsFilterSlot={toolbarSlot}
+                        showActionsColumn
+                        renderColumnHeader={(column) => (
+                            <ColumnHeaderWithFilter
+                                column={column}
+                                options={query.data.filterOptions?.[column.fieldValue] ?? []}
+                                value={filters[column.fieldValue] ?? []}
+                                onChange={(value) => updateColumnFilter(column.fieldValue, value)}
+                            />
+                        )}
+                        {...tableProps}
+                    />
+                </div>
                 <TablePagination
                     page={query.data.page}
                     totalPages={query.data.totalPages}
