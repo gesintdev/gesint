@@ -32,6 +32,8 @@ public class JobVacancyApplicationResponseDto {
     private final String candidatePhone;
     private final JobVacancyApplicationStatusEnum applicationStatus;
     private final String kanbanColumnKey;
+    /** Momento em que o card entrou na coluna atual do kanban (SLA de retorno). */
+    private final OffsetDateTime kanbanColumnEnteredAt;
     private final Map<String, JobVacancyApplicationStageCommentDto> stageComments;
     private final OffsetDateTime appliedAt;
     private final java.math.BigDecimal salaryExpectation;
