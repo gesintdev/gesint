@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.94.2",
+      "hash": "7b462791",
+      "date": "2026-10-14T09:34:14-03:00",
+      "type": "docs",
+      "scope": "rn",
+      "breaking": false,
+      "title": "Marcar T1–T16 no HTML e expor badge SLA no kanban",
+      "body": "Auditoria de implementação nas telas das RNs (rotas, permissões, busca global) e exposição de kanbanColumnEnteredAt para o prazo de retorno no card.",
+      "pullRequest": null
+    },
+    {
       "version": "1.94.1",
       "hash": "dc5fa863",
       "date": "2026-10-14T09:24:52-03:00",
