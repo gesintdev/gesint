@@ -526,14 +526,7 @@ export function CrudScreen({
                                     />
                                 </div>
                             )}
-                            <div
-                                className={clsx(
-                                    "min-h-0 flex-1",
-                                    activeTab === CRUD_TAB_LIST && !listContained
-                                        ? "overflow-y-auto"
-                                        : "flex flex-col overflow-hidden",
-                                )}
-                            >
+                            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                                 <div
                                     className={clsx(
                                         "min-h-0 flex-1 flex-col",

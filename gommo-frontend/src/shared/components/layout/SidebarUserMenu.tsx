@@ -68,7 +68,8 @@ export function SidebarUserMenu({ collapsed, onNavigate }: SidebarUserMenuProps)
             const left = Math.round(
                 Math.min(panelRight + MENU_GAP, window.innerWidth - MENU_WIDTH - pad),
             );
-            const preferredTop = rect.top + rect.height / 2 - menuHeight / 2;
+            // Alinha a borda inferior do dropdown com a borda inferior do card do usuário.
+            const preferredTop = rect.bottom - menuHeight;
             const top = Math.round(
                 Math.min(Math.max(pad, preferredTop), window.innerHeight - menuHeight - pad),
             );
@@ -252,12 +253,13 @@ export function SidebarUserMenu({ collapsed, onNavigate }: SidebarUserMenuProps)
                                       width: MENU_WIDTH,
                                   }}
                               >
-                                  <div className="flex items-center gap-2.5 rounded-md px-2.5 py-2">
+                                  <div className="flex items-center gap-3 rounded-md px-2.5 py-2">
                                       <ProfileAvatar
                                           name={name}
                                           photoObjectId={photoObjectId}
                                           size="md"
                                           shape="circle"
+                                          className="shrink-0"
                                       />
                                       <span className="min-w-0 flex-1 text-left">
                                           <span className="block truncate text-[13px] font-semibold leading-tight text-base-content">
