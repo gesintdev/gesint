@@ -75,6 +75,8 @@ export class JobVacancyApplication {
     candidatePhone?: string;
     applicationStatus!: JobVacancyApplicationStatus;
     kanbanColumnKey?: string | null;
+    /** Entrada na coluna atual do kanban (SLA de retorno). */
+    kanbanColumnEnteredAt?: string | null;
     stageComments?: Record<string, JobVacancyApplicationStageComment> | null;
     appliedAt?: string;
     salaryExpectation?: number | null;
