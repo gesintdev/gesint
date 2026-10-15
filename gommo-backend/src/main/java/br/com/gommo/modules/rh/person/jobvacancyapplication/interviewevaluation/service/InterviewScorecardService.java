@@ -104,9 +104,15 @@ public class InterviewScorecardService {
                 loadScoresByEvaluation(evaluations);
 
         UUID currentUserId = requireCurrentUserId();
-        boolean canSeeOthers = evaluations.stream()
+        boolean allSubmitted = !evaluations.isEmpty()
+                && evaluations.stream()
+                        .allMatch(evaluation ->
+                                evaluation.getEvaluationStatus() == InterviewEvaluationStatusEnum.SUBMITTED);
+        boolean currentUserSubmitted = evaluations.stream()
                 .anyMatch(evaluation -> Objects.equals(evaluation.getEvaluatorUserId(), currentUserId)
                         && evaluation.getEvaluationStatus() == InterviewEvaluationStatusEnum.SUBMITTED);
+        // Consolidação só depois que todos os avaliadores enviarem (RN-36).
+        boolean canSeeOthers = allSubmitted && currentUserSubmitted;
 
         InterviewEvaluationViewDto myEvaluation = null;
         List<InterviewEvaluationViewDto> others = new ArrayList<>();
@@ -136,8 +142,11 @@ public class InterviewScorecardService {
                 .submittedCount(submittedCount)
                 .competencies(competencies)
                 .myEvaluation(myEvaluation)
-                .otherEvaluations(others)
-                .averages(computeAverages(evaluations, scoresByEvaluation, competencyById))
+                .otherEvaluations(canSeeOthers ? others : List.of())
+                .averages(
+                        canSeeOthers
+                                ? computeAverages(evaluations, scoresByEvaluation, competencyById)
+                                : List.of())
                 .build();
     }
 
@@ -195,6 +204,18 @@ public class InterviewScorecardService {
             if (columnEvals.isEmpty()) {
                 continue;
             }
+            // averagesForApplications só recebe SUBMITTED; consolida se houver ao menos uma.
+            // Médias no kanban só quando todos os avaliadores da coluna enviaram.
+            List<JobApplicationInterviewEvaluation> allForColumn =
+                    evaluationRepository.findByJobVacancyApplicationIdAndColumnKeyAndStatusNot(
+                            appEntry.getKey(), currentColumn, StatusEnum.DELETED);
+            boolean allSubmitted = !allForColumn.isEmpty()
+                    && allForColumn.stream()
+                            .allMatch(evaluation ->
+                                    evaluation.getEvaluationStatus() == InterviewEvaluationStatusEnum.SUBMITTED);
+            if (!allSubmitted) {
+                continue;
+            }
             result.put(appEntry.getKey(), computeAverages(columnEvals, scoresByEvaluation, competencyById));
         }
         return result;
@@ -237,6 +258,9 @@ public class InterviewScorecardService {
                 .collect(Collectors.toCollection(HashSet::new));
 
         if (submit) {
+            if (request.getRecommendation() == null) {
+                throw JobVacancyApplicationException.interviewRecommendationRequired();
+            }
             for (UUID competencyId : expectedIds) {
                 InterviewScoreItemDto item = requestedByCompetency.get(competencyId);
                 if (item == null || item.getScore() == null) {
@@ -280,6 +304,7 @@ public class InterviewScorecardService {
         }
 
         evaluation.setEvaluatorName(resolveEvaluatorName(currentUserId));
+        evaluation.setRecommendation(request.getRecommendation());
         if (submit) {
             evaluation.setEvaluationStatus(InterviewEvaluationStatusEnum.SUBMITTED);
             evaluation.setSubmittedAt(OffsetDateTime.now());
@@ -373,6 +398,8 @@ public class InterviewScorecardService {
                     .competencyId(competency.getId())
                     .competencyName(competency.getName())
                     .competencyType(competency.getType())
+                    .description(competency.getDescription())
+                    .interviewGuideQuestion(competency.getInterviewGuideQuestion())
                     .source(source)
                     .build());
         }
@@ -460,6 +487,7 @@ public class InterviewScorecardService {
                 .evaluatorUserId(evaluation.getEvaluatorUserId())
                 .evaluatorName(evaluation.getEvaluatorName())
                 .evaluationStatus(evaluation.getEvaluationStatus())
+                .recommendation(evaluation.getRecommendation())
                 .submittedAt(evaluation.getSubmittedAt())
                 .mine(mine)
                 .scoresVisible(scoresVisible)

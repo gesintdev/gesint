@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,12 @@ public class JobVacancyMapper {
                 .targetBoards(copyBoards(dto.getTargetBoards()))
                 .slug(trimToNull(dto.getSlug()))
                 .isPublic(Boolean.TRUE.equals(dto.getIsPublic()))
+                .recruiterCollaboratorId(dto.getRecruiterCollaboratorId())
+                .requestingManagerCollaboratorId(dto.getRequestingManagerCollaboratorId())
+                .interviewerCollaboratorIds(copyCollaboratorIds(dto.getInterviewerCollaboratorIds()))
+                .candidateReturnSlaBusinessDays(resolveSlaDays(dto.getCandidateReturnSlaBusinessDays()))
+                .affirmativePcd(Boolean.TRUE.equals(dto.getAffirmativePcd()))
+                .publishGoogleJobs(resolvePublishGoogleJobs(dto.getPublishGoogleJobs()))
                 .build();
         applyRequirements(entity, dto);
         return entity;
@@ -60,6 +67,12 @@ public class JobVacancyMapper {
         entity.setTargetBoards(copyBoards(dto.getTargetBoards()));
         entity.setSlug(trimToNull(dto.getSlug()));
         entity.setIsPublic(Boolean.TRUE.equals(dto.getIsPublic()));
+        entity.setRecruiterCollaboratorId(dto.getRecruiterCollaboratorId());
+        entity.setRequestingManagerCollaboratorId(dto.getRequestingManagerCollaboratorId());
+        entity.setInterviewerCollaboratorIds(copyCollaboratorIds(dto.getInterviewerCollaboratorIds()));
+        entity.setCandidateReturnSlaBusinessDays(resolveSlaDays(dto.getCandidateReturnSlaBusinessDays()));
+        entity.setAffirmativePcd(Boolean.TRUE.equals(dto.getAffirmativePcd()));
+        entity.setPublishGoogleJobs(resolvePublishGoogleJobs(dto.getPublishGoogleJobs()));
     }
 
     public JobVacancyResponseDto toResponse(JobVacancy entity) {
@@ -93,6 +106,12 @@ public class JobVacancyMapper {
                 .slug(entity.getSlug())
                 .isPublic(Boolean.TRUE.equals(entity.getIsPublic()))
                 .publishedAt(entity.getPublishedAt())
+                .recruiterCollaboratorId(entity.getRecruiterCollaboratorId())
+                .requestingManagerCollaboratorId(entity.getRequestingManagerCollaboratorId())
+                .interviewerCollaboratorIds(copyCollaboratorIds(entity.getInterviewerCollaboratorIds()))
+                .candidateReturnSlaBusinessDays(resolveSlaDays(entity.getCandidateReturnSlaBusinessDays()))
+                .affirmativePcd(Boolean.TRUE.equals(entity.getAffirmativePcd()))
+                .publishGoogleJobs(resolvePublishGoogleJobs(entity.getPublishGoogleJobs()))
                 .candidateCount(candidateCount)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
@@ -111,6 +130,21 @@ public class JobVacancyMapper {
             return List.of();
         }
         return List.copyOf(items);
+    }
+
+    private static List<UUID> copyCollaboratorIds(List<UUID> source) {
+        if (source == null || source.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(source);
+    }
+
+    private static Integer resolveSlaDays(Integer value) {
+        return value == null || value < 1 ? 5 : value;
+    }
+
+    private static boolean resolvePublishGoogleJobs(Boolean value) {
+        return value == null || Boolean.TRUE.equals(value);
     }
 
     private void applyRequirements(JobVacancy entity, JobVacancyRequestDto dto) {

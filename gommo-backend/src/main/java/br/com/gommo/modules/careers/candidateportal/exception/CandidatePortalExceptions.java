@@ -38,4 +38,29 @@ public final class CandidatePortalExceptions {
 
     public static final String UNAUTHORIZED_CODE = "CANDIDATE_PORTAL_UNAUTHORIZED";
     public static final String UNAUTHORIZED_MSG = "Sess\u00e3o do candidato inv\u00e1lida ou expirada";
+
+    public static final String OFFER_NOT_FOUND_CODE = "CANDIDATE_PORTAL_OFFER_NOT_FOUND";
+    public static final String OFFER_NOT_FOUND_MSG = "Proposta de contrata\u00e7\u00e3o n\u00e3o encontrada";
+
+    public static final String OFFER_NOT_ACTIONABLE_CODE = "CANDIDATE_PORTAL_OFFER_NOT_ACTIONABLE";
+    public static final String OFFER_NOT_ACTIONABLE_MSG =
+            "Esta proposta j\u00e1 foi respondida ou n\u00e3o est\u00e1 dispon\u00edvel";
+
+    public static final String PRE_ADMISSION_NOT_FOUND_CODE = "CANDIDATE_PORTAL_PRE_ADMISSION_NOT_FOUND";
+    public static final String PRE_ADMISSION_NOT_FOUND_MSG =
+            "Pr\u00e9-admiss\u00e3o n\u00e3o encontrada para esta conta";
+
+    public static final String PRE_ADMISSION_TOKEN_INVALID_CODE =
+            "CANDIDATE_PORTAL_PRE_ADMISSION_TOKEN_INVALID";
+    public static final String PRE_ADMISSION_TOKEN_INVALID_MSG =
+            "Link de pr\u00e9-admiss\u00e3o inv\u00e1lido ou expirado";
+
+    public static final String PRE_ADMISSION_INCOMPLETE_CODE = "CANDIDATE_PORTAL_PRE_ADMISSION_INCOMPLETE";
+    public static final String PRE_ADMISSION_INCOMPLETE_MSG =
+            "Preencha os itens obrigat\u00f3rios da pr\u00e9-admiss\u00e3o antes de concluir";
+
+    public static final String PRE_ADMISSION_DOCUMENT_TYPE_CODE =
+            "CANDIDATE_PORTAL_PRE_ADMISSION_DOCUMENT_TYPE";
+    public static final String PRE_ADMISSION_DOCUMENT_TYPE_MSG =
+            "Informe o tipo do documento (ex.: RG, CPF, COMPROVANTE_ENDERECO)";
 }

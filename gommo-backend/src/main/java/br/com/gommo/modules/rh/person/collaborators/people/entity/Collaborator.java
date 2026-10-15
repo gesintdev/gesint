@@ -81,4 +81,8 @@ public class Collaborator extends BranchScopedEntity {
     /** Codigo unico para app mobile e registro de ponto web (enviado por e-mail futuramente). */
     @Column(name = "access_code", length = 9)
     private String accessCode;
+
+    /** Gestor direto — base da abrangência TEAM (RN-03). */
+    @Column(name = "manager_collaborator_id")
+    private UUID managerCollaboratorId;
 }

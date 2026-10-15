@@ -12,8 +12,14 @@ public final class JobVacancyExceptions {
     public static final String POSITIONS_INVALID_CODE = "JOB_VACANCY_POSITIONS_INVALID";
     public static final String POSITIONS_INVALID_MSG = "A quantidade de posi\u00e7\u00f5es deve ser maior que zero";
 
+    public static final String JOB_POSITION_REQUIRED_CODE = "JOB_VACANCY_JOB_POSITION_REQUIRED";
+    public static final String JOB_POSITION_REQUIRED_MSG = "Selecione o cargo vinculado \u00e0 vaga";
+
     public static final String JOB_POSITION_NOT_FOUND_CODE = "JOB_VACANCY_JOB_POSITION_NOT_FOUND";
     public static final String JOB_POSITION_NOT_FOUND_MSG = "Cargo informado n\u00e3o encontrado";
+
+    public static final String SLA_INVALID_CODE = "JOB_VACANCY_SLA_INVALID";
+    public static final String SLA_INVALID_MSG = "O prazo de retorno ao candidato deve ser de pelo menos 1 dia \u00fatil";
 
     public static final String SLUG_DUPLICATE_CODE = "JOB_VACANCY_SLUG_DUPLICATE";
     public static final String SLUG_DUPLICATE_MSG = "J\u00e1 existe uma vaga com este link p\u00fablico";

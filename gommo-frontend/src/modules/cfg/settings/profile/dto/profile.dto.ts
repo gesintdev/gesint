@@ -36,6 +36,8 @@ export type ProfileCreateDto = {
     description?: string;
     system: SystemScope;
     permissionIds: string[];
+    /** permissionId → justificativa (concessões sensíveis/financeiras/clínicas). */
+    sensitivePermissionJustifications?: Record<string, string>;
 };
 
 export type PermissionModuleGroup = {

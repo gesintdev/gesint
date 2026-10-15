@@ -489,12 +489,23 @@ export function ProfileFormClient() {
         });
     };
 
-    const applyPermissionToggle = (permissionId: string, checked: boolean) => {
+    const applyPermissionToggle = (permissionId: string, checked: boolean, justification?: string) => {
         if (!activeDraft) return;
         const current = new Set(activeDraft.permissionIds);
-        if (checked) current.add(permissionId);
-        else current.delete(permissionId);
-        updateActiveDraft({permissionIds: Array.from(current)});
+        const justifications = {...(activeDraft.sensitiveJustifications ?? {})};
+        if (checked) {
+            current.add(permissionId);
+            if (justification?.trim()) {
+                justifications[permissionId] = justification.trim();
+            }
+        } else {
+            current.delete(permissionId);
+            delete justifications[permissionId];
+        }
+        updateActiveDraft({
+            permissionIds: Array.from(current),
+            sensitiveJustifications: justifications,
+        });
     };
 
     const togglePermission = (permissionId: string, checked: boolean) => {
@@ -507,11 +518,21 @@ export function ProfileFormClient() {
         applyPermissionToggle(permissionId, checked);
     };
 
-    const handleSensitiveJustificationConfirm = (_justification: string) => {
+    const handleSensitiveJustificationConfirm = (justification: string) => {
         if (!pendingSensitivePermissionId) return;
-        applyPermissionToggle(pendingSensitivePermissionId, true);
+        applyPermissionToggle(pendingSensitivePermissionId, true, justification);
         setPendingSensitivePermissionId(null);
     };
+
+    const catalogPermissionById = useMemo(() => {
+        const map = new Map<string, {id: string; authority: string}>();
+        for (const group of systemCatalogQuery.data ?? []) {
+            for (const permission of group.permissions) {
+                map.set(permission.id, permission);
+            }
+        }
+        return map;
+    }, [systemCatalogQuery.data]);
 
     const handleRouteAccessToggle = useCallback((route: AppRoute) => {
         const ctx = routeAccessCtxRef.current;
@@ -530,37 +551,71 @@ export function ProfileFormClient() {
         }
         const accessState = ctx.routeAccessStateById.get(route.id) ?? "unchecked";
         const current = new Set(ctx.permissionIds);
-        // unchecked → marca tudo; checked/indeterminate → limpa (1 clique desmarca).
+        let skippedSensitive = 0;
+        // unchecked → marca tudo (exceto sensíveis novas); checked/indeterminate → limpa.
         if (accessState === "unchecked") {
-            for (const id of catalogIds) current.add(id);
+            for (const id of catalogIds) {
+                if (current.has(id)) continue;
+                const authority = catalogPermissionById.get(id)?.authority;
+                if (authority && isSensitivePermissionAuthority(authority)) {
+                    skippedSensitive += 1;
+                    continue;
+                }
+                current.add(id);
+            }
         } else {
             for (const id of catalogIds) current.delete(id);
         }
         const leaf = collectPermissionLeafRoutes([route])[0];
         setDrafts((prev) =>
-            prev.map((draft) =>
-                draft.clientId === ctx.activeClientId
-                    ? {
-                          ...draft,
-                          permissionIds: Array.from(current),
-                          selectedRouteId: leaf?.id ?? route.id,
-                      }
-                    : draft,
-            ),
+            prev.map((draft) => {
+                if (draft.clientId !== ctx.activeClientId) return draft;
+                const justifications = {...(draft.sensitiveJustifications ?? {})};
+                if (accessState !== "unchecked") {
+                    for (const id of catalogIds) delete justifications[id];
+                }
+                return {
+                    ...draft,
+                    permissionIds: Array.from(current),
+                    sensitiveJustifications: justifications,
+                    selectedRouteId: leaf?.id ?? route.id,
+                };
+            }),
         );
-    }, []);
+        if (skippedSensitive > 0) {
+            toast.message(
+                "Permissões sensíveis precisam de justificativa — marque-as individualmente na coluna Sensível.",
+            );
+        }
+    }, [catalogPermissionById]);
 
     const handleSelectAllMenus = () => {
         if (!activeDraft) return;
         if (allMenusAccessState === "checked") {
-            updateActiveDraft({permissionIds: []});
+            updateActiveDraft({permissionIds: [], sensitiveJustifications: {}});
             return;
         }
         const firstLeaf = collectPermissionLeafRoutesFromSections(navSections)[0];
+        const current = new Set(activeDraft.permissionIds);
+        let skippedSensitive = 0;
+        for (const id of allCatalogPermissionIds) {
+            if (current.has(id)) continue;
+            const authority = catalogPermissionById.get(id)?.authority;
+            if (authority && isSensitivePermissionAuthority(authority)) {
+                skippedSensitive += 1;
+                continue;
+            }
+            current.add(id);
+        }
         updateActiveDraft({
-            permissionIds: allCatalogPermissionIds,
+            permissionIds: Array.from(current),
             selectedRouteId: firstLeaf?.id ?? activeDraft.selectedRouteId,
         });
+        if (skippedSensitive > 0) {
+            toast.message(
+                "Permissões sensíveis precisam de justificativa — marque-as individualmente na coluna Sensível.",
+            );
+        }
     };
 
     const handleCancel = () => {
@@ -599,12 +654,23 @@ export function ProfileFormClient() {
         setError(null);
 
         const toSave = (isEditing ? drafts : drafts.filter(draftHasContent))
-            .map((draft) => ({
-                name: draft.name.trim(),
-                description: draft.description.trim() || undefined,
-                system: draft.system,
-                permissionIds: draft.permissionIds,
-            }))
+            .map((draft) => {
+                const justifications: Record<string, string> = {};
+                for (const [permissionId, reason] of Object.entries(draft.sensitiveJustifications ?? {})) {
+                    if (draft.permissionIds.includes(permissionId) && reason.trim()) {
+                        justifications[permissionId] = reason.trim();
+                    }
+                }
+                return {
+                    name: draft.name.trim(),
+                    description: draft.description.trim() || undefined,
+                    system: draft.system,
+                    permissionIds: draft.permissionIds,
+                    ...(Object.keys(justifications).length > 0
+                        ? {sensitivePermissionJustifications: justifications}
+                        : {}),
+                };
+            })
             .filter((draft) => draft.name.length > 0);
 
         if (toSave.length === 0) {

@@ -8,6 +8,8 @@ export type ProfileDraftItem = {
     name: string;
     description: string;
     permissionIds: string[];
+    /** Justificativas de permissões sensíveis concedidas nesta sessão de edição. */
+    sensitiveJustifications?: Record<string, string>;
     selectedRouteId?: string | null;
 };
 
@@ -51,6 +53,7 @@ export function createEmptyProfileDraft(system: SystemScope, selectedRouteId?: s
         name: "",
         description: "",
         permissionIds: [],
+        sensitiveJustifications: {},
         selectedRouteId: selectedRouteId ?? null,
     };
 }

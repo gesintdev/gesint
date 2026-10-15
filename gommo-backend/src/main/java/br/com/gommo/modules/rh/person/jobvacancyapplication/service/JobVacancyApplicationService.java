@@ -23,6 +23,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.cfg.access.security.AccessScopePolicy;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.entity.AdmissionProcessKanbanColumn;
 import br.com.gommo.modules.rh.person.admissionprocess.kanbancolumn.repository.AdmissionProcessKanbanColumnRepository;
 import br.com.gommo.modules.rh.person.candidate.entity.Candidate;
@@ -64,6 +65,7 @@ public class JobVacancyApplicationService
     private final JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService;
     private final JobVacancyRequirementOptionsService requirementOptionsService;
     private final InterviewScorecardService interviewScorecardService;
+    private final AccessScopePolicy accessScopePolicy;
 
     public JobVacancyApplicationService(
             JobVacancyApplicationRepository repository,
@@ -75,7 +77,8 @@ public class JobVacancyApplicationService
             AppUserRepository appUserRepository,
             JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService,
             JobVacancyRequirementOptionsService requirementOptionsService,
-            InterviewScorecardService interviewScorecardService) {
+            InterviewScorecardService interviewScorecardService,
+            AccessScopePolicy accessScopePolicy) {
         super(repository, entity -> mapper.toResponse(entity, null, null), mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -87,6 +90,7 @@ public class JobVacancyApplicationService
         this.rejectionFeedbackService = rejectionFeedbackService;
         this.requirementOptionsService = requirementOptionsService;
         this.interviewScorecardService = interviewScorecardService;
+        this.accessScopePolicy = accessScopePolicy;
     }
 
     @Override
@@ -465,7 +469,11 @@ public class JobVacancyApplicationService
                 interviewScorecardService.averagesForApplications(
                         new InterviewScorecardService.CollectionAwareApplications(Set.of(entity.getId()), columnById));
         return mapper.toResponse(
-                entity, vacancy, candidate, averages.getOrDefault(entity.getId(), List.of()));
+                entity,
+                vacancy,
+                candidate,
+                averages.getOrDefault(entity.getId(), List.of()),
+                includeSalaryExpectation());
     }
 
     private List<JobVacancyApplicationResponseDto> enrichAll(List<JobVacancyApplication> entities) {
@@ -498,14 +506,22 @@ public class JobVacancyApplicationService
                         new InterviewScorecardService.CollectionAwareApplications(
                                 applicationIds, columnByApplicationId));
 
+        boolean includeSalary = includeSalaryExpectation();
         return entities.stream()
                 .filter(entity -> candidates.containsKey(entity.getCandidateId()))
                 .map(entity -> mapper.toResponse(
                         entity,
                         vacancies.get(entity.getJobVacancyId()),
                         candidates.get(entity.getCandidateId()),
-                        averages.getOrDefault(entity.getId(), List.of())))
+                        averages.getOrDefault(entity.getId(), List.of()),
+                        includeSalary))
                 .toList();
+    }
+
+    /** Pretensão salarial: só com permissão financeira (entrevistador sem financial não vê). */
+    private boolean includeSalaryExpectation() {
+        return accessScopePolicy.hasAuthority("collaborator:financial")
+                || accessScopePolicy.hasAuthority("admission:financial");
     }
 
     private String normalizeColumnKey(String value) {

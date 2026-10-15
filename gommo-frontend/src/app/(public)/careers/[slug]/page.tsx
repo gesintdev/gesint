@@ -44,7 +44,7 @@ export default async function CareersVacancyPage({ params }: CareersVacancyPageP
 
     return (
         <>
-            {vacancy ? (
+            {vacancy && vacancy.publishGoogleJobs !== false ? (
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{

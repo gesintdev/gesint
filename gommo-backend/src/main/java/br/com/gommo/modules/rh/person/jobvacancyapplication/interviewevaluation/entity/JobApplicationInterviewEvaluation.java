@@ -50,4 +50,8 @@ public class JobApplicationInterviewEvaluation extends BranchScopedEntity {
 
     @Column(name = "submitted_at")
     private OffsetDateTime submittedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recommendation", length = 40)
+    private InterviewRecommendationEnum recommendation;
 }

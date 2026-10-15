@@ -9,7 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import br.com.gommo.modules.cfg.access.entity.SystemScopeEnum;
@@ -28,4 +30,11 @@ public class ProfileRequestDto {
     @NotNull private SystemScopeEnum system;
 
     private List<UUID> permissionIds;
+
+    /**
+     * Justificativas das concessões sensíveis/financeiras/clínicas (permissionId → motivo).
+     * Obrigatório no backend para cada permissão sensível recém-concedida.
+     */
+    @Builder.Default
+    private Map<UUID, String> sensitivePermissionJustifications = new HashMap<>();
 }

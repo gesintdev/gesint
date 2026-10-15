@@ -15,6 +15,7 @@ import br.com.gommo.modules.careers.candidateportal.auth.CandidatePortalSecurity
 import br.com.gommo.modules.careers.candidateportal.dto.CandidatePortalApplicationSummaryDto;
 import br.com.gommo.modules.careers.candidateportal.dto.CandidatePortalConsentUpdateRequestDto;
 import br.com.gommo.modules.careers.candidateportal.dto.CandidatePortalMeResponseDto;
+import br.com.gommo.modules.careers.candidateportal.dto.CandidatePortalOfferDto;
 import br.com.gommo.modules.careers.candidateportal.dto.CandidatePortalProfileUpdateRequestDto;
 import br.com.gommo.modules.careers.candidateportal.entity.CandidateAccount;
 import br.com.gommo.modules.careers.candidateportal.exception.CandidatePortalException;
@@ -25,9 +26,13 @@ import br.com.gommo.modules.rh.person.candidate.repository.CandidateRepository;
 import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancy;
 import br.com.gommo.modules.rh.person.jobvacancy.lib.JobVacancySlug;
 import br.com.gommo.modules.rh.person.jobvacancy.repository.JobVacancyRepository;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationOfferResponseDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.AcceptanceChannelEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.CandidateAcceptanceEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplication;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationStatusEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.repository.JobVacancyApplicationRepository;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.service.JobVacancyApplicationHireService;
 
 @Service
 public class CandidatePortalService {
@@ -36,16 +41,19 @@ public class CandidatePortalService {
     private final CandidateRepository candidateRepository;
     private final JobVacancyApplicationRepository applicationRepository;
     private final JobVacancyRepository jobVacancyRepository;
+    private final JobVacancyApplicationHireService hireService;
 
     public CandidatePortalService(
             CandidateAccountRepository accountRepository,
             CandidateRepository candidateRepository,
             JobVacancyApplicationRepository applicationRepository,
-            JobVacancyRepository jobVacancyRepository) {
+            JobVacancyRepository jobVacancyRepository,
+            JobVacancyApplicationHireService hireService) {
         this.accountRepository = accountRepository;
         this.candidateRepository = candidateRepository;
         this.applicationRepository = applicationRepository;
         this.jobVacancyRepository = jobVacancyRepository;
+        this.hireService = hireService;
     }
 
     @Transactional(readOnly = true)
@@ -138,6 +146,39 @@ public class CandidatePortalService {
         return toSummary(application);
     }
 
+    @Transactional(readOnly = true)
+    public List<CandidatePortalOfferDto> listPendingOffers() {
+        CandidateAccount account = requireAccount();
+        return applicationRepository
+                .findByCandidateIdAndStatusNotOrderByAppliedAtDesc(account.getCandidateId(), StatusEnum.DELETED)
+                .stream()
+                .filter(this::isOfferPending)
+                .map(this::toOffer)
+                .toList();
+    }
+
+    @Transactional
+    public CandidatePortalOfferDto acceptOffer(UUID applicationId) {
+        CandidateAccount account = requireAccount();
+        JobVacancyApplicationOfferResponseDto response =
+                hireService.acceptOfferByCandidate(applicationId, account.getCandidateId());
+        JobVacancyApplication application = applicationRepository
+                .findByIdAndStatusNot(applicationId, StatusEnum.DELETED)
+                .orElseThrow(CandidatePortalException::offerNotFound);
+        return toOffer(application, response);
+    }
+
+    @Transactional
+    public CandidatePortalOfferDto declineOffer(UUID applicationId, String reason) {
+        CandidateAccount account = requireAccount();
+        JobVacancyApplicationOfferResponseDto response =
+                hireService.declineOfferByCandidate(applicationId, account.getCandidateId(), reason);
+        JobVacancyApplication application = applicationRepository
+                .findByIdAndStatusNot(applicationId, StatusEnum.DELETED)
+                .orElseThrow(CandidatePortalException::offerNotFound);
+        return toOffer(application, response);
+    }
+
     @Transactional
     public CandidatePortalMeResponseDto updateConsents(CandidatePortalConsentUpdateRequestDto request) {
         CandidateAccount account = requireAccount();
@@ -162,6 +203,11 @@ public class CandidatePortalService {
     }
 
     private CandidatePortalApplicationSummaryDto toSummary(JobVacancyApplication application, JobVacancy vacancy) {
+        boolean offerPending = isOfferPending(application);
+        boolean offerAccepted = application.getCandidateAcceptance() == CandidateAcceptanceEnum.ACCEPTED
+                && application.getAcceptanceChannel() == AcceptanceChannelEnum.PORTAL;
+        boolean offerDeclined = application.getCandidateAcceptance() == CandidateAcceptanceEnum.DECLINED
+                && application.getAcceptanceChannel() == AcceptanceChannelEnum.PORTAL;
         return CandidatePortalApplicationSummaryDto.builder()
                 .applicationId(application.getId())
                 .vacancyId(application.getJobVacancyId())
@@ -174,7 +220,62 @@ public class CandidatePortalService {
                 .resultLabel(CandidatePortalTimeline.resultLabel(application))
                 .withdrawable(CandidatePortalTimeline.withdrawable(application))
                 .timeline(CandidatePortalTimeline.build(application))
+                .offerPending(offerPending)
+                .offerAccepted(offerAccepted)
+                .offerDeclined(offerDeclined)
+                .offerContractType(application.getOfferContractType())
+                .offerBaseSalary(application.getOfferBaseSalary())
+                .offerExpectedStartDate(application.getOfferExpectedStartDate())
+                .offerSentAt(application.getOfferSentAt())
+                .preAdmissionAvailable(application.getAdmissionProcessId() != null
+                        && application.getApplicationStatus() == JobVacancyApplicationStatusEnum.HIRED)
+                .admissionProcessId(application.getAdmissionProcessId())
                 .build();
+    }
+
+    private CandidatePortalOfferDto toOffer(JobVacancyApplication application) {
+        JobVacancy vacancy = jobVacancyRepository.findById(application.getJobVacancyId()).orElse(null);
+        return CandidatePortalOfferDto.builder()
+                .applicationId(application.getId())
+                .jobTitle(vacancy != null ? vacancy.getJobTitle() : "Vaga")
+                .location(vacancy != null ? vacancy.getLocation() : null)
+                .contractType(application.getOfferContractType())
+                .baseSalary(application.getOfferBaseSalary())
+                .expectedStartDate(application.getOfferExpectedStartDate())
+                .experiencePeriod(application.getOfferExperiencePeriod())
+                .offerSentAt(application.getOfferSentAt())
+                .candidateAcceptance(
+                        application.getCandidateAcceptance() != null
+                                ? application.getCandidateAcceptance().name()
+                                : null)
+                .actionable(isOfferPending(application))
+                .build();
+    }
+
+    private CandidatePortalOfferDto toOffer(
+            JobVacancyApplication application, JobVacancyApplicationOfferResponseDto response) {
+        return CandidatePortalOfferDto.builder()
+                .applicationId(application.getId())
+                .jobTitle(response.getJobVacancyTitle())
+                .contractType(
+                        response.getContractType() != null ? response.getContractType().name() : null)
+                .baseSalary(response.getBaseSalary())
+                .expectedStartDate(response.getExpectedStartDate())
+                .experiencePeriod(response.getExperiencePeriod())
+                .offerSentAt(response.getOfferSentAt())
+                .candidateAcceptance(
+                        response.getCandidateAcceptance() != null
+                                ? response.getCandidateAcceptance().name()
+                                : null)
+                .actionable(false)
+                .build();
+    }
+
+    private boolean isOfferPending(JobVacancyApplication application) {
+        return application.getApplicationStatus() == JobVacancyApplicationStatusEnum.OFFER
+                && application.getCandidateAcceptance() == CandidateAcceptanceEnum.PENDING
+                && application.getOfferSentAt() != null
+                && application.getAdmissionProcessId() == null;
     }
 
     private CandidateAccount requireAccount() {

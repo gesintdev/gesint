@@ -18,6 +18,7 @@ export class DevelopmentPlanDomainRecord {
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     name?: string;
     description?: string;
+    interviewGuideQuestion?: string;
     type?: string;
     levelOrder?: number;
     weight?: number;

@@ -86,4 +86,46 @@ public final class CandidatePortalException extends BusinessException {
                 CandidatePortalExceptions.UNAUTHORIZED_MSG,
                 HttpStatus.UNAUTHORIZED);
     }
+
+    public static CandidatePortalException offerNotFound() {
+        return new CandidatePortalException(
+                CandidatePortalExceptions.OFFER_NOT_FOUND_CODE,
+                CandidatePortalExceptions.OFFER_NOT_FOUND_MSG,
+                HttpStatus.NOT_FOUND);
+    }
+
+    public static CandidatePortalException offerNotActionable() {
+        return new CandidatePortalException(
+                CandidatePortalExceptions.OFFER_NOT_ACTIONABLE_CODE,
+                CandidatePortalExceptions.OFFER_NOT_ACTIONABLE_MSG,
+                HttpStatus.CONFLICT);
+    }
+
+    public static CandidatePortalException preAdmissionNotFound() {
+        return new CandidatePortalException(
+                CandidatePortalExceptions.PRE_ADMISSION_NOT_FOUND_CODE,
+                CandidatePortalExceptions.PRE_ADMISSION_NOT_FOUND_MSG,
+                HttpStatus.NOT_FOUND);
+    }
+
+    public static CandidatePortalException preAdmissionTokenInvalid() {
+        return new CandidatePortalException(
+                CandidatePortalExceptions.PRE_ADMISSION_TOKEN_INVALID_CODE,
+                CandidatePortalExceptions.PRE_ADMISSION_TOKEN_INVALID_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static CandidatePortalException preAdmissionIncomplete() {
+        return new CandidatePortalException(
+                CandidatePortalExceptions.PRE_ADMISSION_INCOMPLETE_CODE,
+                CandidatePortalExceptions.PRE_ADMISSION_INCOMPLETE_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static CandidatePortalException preAdmissionDocumentType() {
+        return new CandidatePortalException(
+                CandidatePortalExceptions.PRE_ADMISSION_DOCUMENT_TYPE_CODE,
+                CandidatePortalExceptions.PRE_ADMISSION_DOCUMENT_TYPE_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

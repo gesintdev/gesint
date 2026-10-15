@@ -108,6 +108,11 @@ public final class JobVacancyApplicationExceptions {
     public static final String INTERVIEW_EVALUATOR_REQUIRED_MSG =
             "N\u00e3o foi poss\u00edvel identificar o avaliador autenticado";
 
+    public static final String INTERVIEW_RECOMMENDATION_REQUIRED_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_RECOMMENDATION_REQUIRED";
+    public static final String INTERVIEW_RECOMMENDATION_REQUIRED_MSG =
+            "Informe a recomenda\u00e7\u00e3o antes de enviar a avalia\u00e7\u00e3o";
+
     public static final String HIRE_COLUMN_REQUIRED_CODE = "JOB_VACANCY_APPLICATION_HIRE_COLUMN_REQUIRED";
     public static final String HIRE_COLUMN_REQUIRED_MSG =
             "A coluna informada n\u00e3o est\u00e1 configurada para proposta de contrata\u00e7\u00e3o";
@@ -128,4 +133,17 @@ public final class JobVacancyApplicationExceptions {
             "JOB_VACANCY_APPLICATION_HIRE_CANDIDATE_REQUIRED";
     public static final String HIRE_CANDIDATE_REQUIRED_MSG =
             "Candidato da candidatura n\u00e3o encontrado";
+
+    public static final String OFFER_ALREADY_SENT_CODE = "JOB_VACANCY_APPLICATION_OFFER_ALREADY_SENT";
+    public static final String OFFER_ALREADY_SENT_MSG =
+            "J\u00e1 existe uma proposta pendente de aceite no portal para esta candidatura";
+
+    public static final String OFFER_NOT_PENDING_CODE = "JOB_VACANCY_APPLICATION_OFFER_NOT_PENDING";
+    public static final String OFFER_NOT_PENDING_MSG =
+            "N\u00e3o h\u00e1 proposta pendente de aceite no portal para esta candidatura";
+
+    public static final String PORTAL_ACCEPTANCE_REQUIRED_CODE =
+            "JOB_VACANCY_APPLICATION_PORTAL_ACCEPTANCE_REQUIRED";
+    public static final String PORTAL_ACCEPTANCE_REQUIRED_MSG =
+            "Aguarde o aceite do candidato no portal antes de confirmar a contrata\u00e7\u00e3o com canal PORTAL";
 }

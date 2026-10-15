@@ -32,6 +32,12 @@ export function jobVacancyToFormDto(entity: JobVacancy): JobVacancyCreateDto {
         targetBoards: entity.targetBoards ?? [],
         slug: entity.slug ?? "",
         isPublic: Boolean(entity.isPublic),
+        recruiterCollaboratorId: entity.recruiterCollaboratorId ?? null,
+        requestingManagerCollaboratorId: entity.requestingManagerCollaboratorId ?? null,
+        interviewerCollaboratorIds: entity.interviewerCollaboratorIds ?? [],
+        candidateReturnSlaBusinessDays: entity.candidateReturnSlaBusinessDays ?? 5,
+        affirmativePcd: Boolean(entity.affirmativePcd),
+        publishGoogleJobs: entity.publishGoogleJobs !== false,
     };
 }
 
@@ -53,6 +59,12 @@ export const emptyJobVacancyForm = (): JobVacancyCreateDto => ({
     targetBoards: [],
     slug: "",
     isPublic: false,
+    recruiterCollaboratorId: null,
+    requestingManagerCollaboratorId: null,
+    interviewerCollaboratorIds: [],
+    candidateReturnSlaBusinessDays: 5,
+    affirmativePcd: false,
+    publishGoogleJobs: true,
 });
 
 export function jobVacancyFormToPayload(form: JobVacancyCreateDto): JobVacancyCreateDto {
@@ -79,5 +91,11 @@ export function jobVacancyFormToPayload(form: JobVacancyCreateDto): JobVacancyCr
         targetBoards: form.targetBoards ?? [],
         slug,
         isPublic,
+        recruiterCollaboratorId: form.recruiterCollaboratorId?.trim() || null,
+        requestingManagerCollaboratorId: form.requestingManagerCollaboratorId?.trim() || null,
+        interviewerCollaboratorIds: form.interviewerCollaboratorIds ?? [],
+        candidateReturnSlaBusinessDays: form.candidateReturnSlaBusinessDays ?? 5,
+        affirmativePcd: Boolean(form.affirmativePcd),
+        publishGoogleJobs: form.publishGoogleJobs !== false,
     };
 }

@@ -3,5 +3,7 @@ package br.com.gommo.modules.rh.person.jobvacancyapplication.entity;
 public enum AcceptanceChannelEnum {
     VERBAL,
     EMAIL,
-    WHATSAPP
+    WHATSAPP,
+    /** Aceite registrado pelo próprio candidato no portal de carreiras. */
+    PORTAL
 }

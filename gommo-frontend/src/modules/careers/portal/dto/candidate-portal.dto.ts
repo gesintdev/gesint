@@ -47,6 +47,66 @@ export type CandidatePortalApplication = {
     resultLabel?: string | null;
     withdrawable: boolean;
     timeline: CandidatePortalTimelineStep[];
+    offerPending?: boolean;
+    offerAccepted?: boolean;
+    offerDeclined?: boolean;
+    offerContractType?: string | null;
+    offerBaseSalary?: number | null;
+    offerExpectedStartDate?: string | null;
+    offerSentAt?: string | null;
+    preAdmissionAvailable?: boolean;
+    admissionProcessId?: string | null;
+};
+
+export type CandidatePortalOffer = {
+    applicationId: string;
+    jobTitle: string;
+    location?: string | null;
+    contractType?: string | null;
+    baseSalary?: number | null;
+    expectedStartDate?: string | null;
+    experiencePeriod?: string | null;
+    offerSentAt?: string | null;
+    candidateAcceptance?: string | null;
+    actionable?: boolean;
+};
+
+export type CandidatePortalPreAdmissionItem = {
+    key: string;
+    label: string;
+    done: boolean;
+    required: boolean;
+};
+
+export type CandidatePortalPreAdmissionDocument = {
+    linkId: string;
+    objectId: string;
+    documentType?: string | null;
+    displayName?: string | null;
+};
+
+export type CandidatePortalPreAdmission = {
+    admissionProcessId: string;
+    applicationId?: string | null;
+    jobTitle?: string | null;
+    fullName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    birthDate?: string | null;
+    cpf?: string | null;
+    bankCode?: string | null;
+    bankAgency?: string | null;
+    bankAccount?: string | null;
+    bankAccountDigit?: string | null;
+    bankAccountType?: string | null;
+    pixKey?: string | null;
+    affirmativePcd?: boolean;
+    pcdSelfDeclared?: boolean | null;
+    completed?: boolean;
+    completedAt?: string | null;
+    linkSentAt?: string | null;
+    pendingItems?: CandidatePortalPreAdmissionItem[];
+    documents?: CandidatePortalPreAdmissionDocument[];
 };
 
 export type CandidatePortalRegisterPayload = {

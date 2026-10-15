@@ -1,10 +1,12 @@
 package br.com.gommo.modules.rh.person.jobvacancyapplication.service;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +31,7 @@ import br.com.gommo.modules.rh.person.candidate.entity.Candidate;
 import br.com.gommo.modules.rh.person.candidate.repository.CandidateRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gommo.modules.rh.person.collaborators.admission.dto.AdmissionProcessResponseDto;
+import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.rh.person.collaborators.admission.service.AdmissionProcessService;
@@ -44,6 +47,9 @@ import br.com.gommo.modules.rh.person.jobvacancy.repository.JobVacancyRepository
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationHirePreviewDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationHireRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationHireResponseDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationOfferRequestDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationOfferResponseDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.AcceptanceChannelEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.CandidateAcceptanceEnum;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplication;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.entity.JobVacancyApplicationRejectionReasonEnum;
@@ -58,7 +64,9 @@ import br.com.gommo.modules.root.repository.AppUserRepository;
 public class JobVacancyApplicationHireService {
 
     private static final int REHIRE_WARNING_DAYS = 90;
+    private static final int PRE_ADMISSION_TOKEN_DAYS = 30;
     private static final DateTimeFormatter DATE_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final JobVacancyApplicationRepository applicationRepository;
     private final CandidateRepository candidateRepository;
@@ -117,6 +125,19 @@ public class JobVacancyApplicationHireService {
                 .count();
 
         ContractTypeEnum suggestedContract = mapContractType(vacancy.getContractType());
+        boolean portalAccepted = application.getCandidateAcceptance() == CandidateAcceptanceEnum.ACCEPTED
+                && application.getAcceptanceChannel() == AcceptanceChannelEnum.PORTAL;
+        boolean portalDeclined = application.getCandidateAcceptance() == CandidateAcceptanceEnum.DECLINED
+                && application.getAcceptanceChannel() == AcceptanceChannelEnum.PORTAL;
+        boolean offerPending = application.getApplicationStatus() == JobVacancyApplicationStatusEnum.OFFER
+                && application.getCandidateAcceptance() == CandidateAcceptanceEnum.PENDING
+                && application.getOfferSentAt() != null;
+
+        ContractTypeEnum offerContract = parseContractType(application.getOfferContractType());
+        if (offerContract != null) {
+            suggestedContract = offerContract;
+        }
+
         return JobVacancyApplicationHirePreviewDto.builder()
                 .applicationId(application.getId())
                 .candidateId(candidate.getId())
@@ -131,8 +152,14 @@ public class JobVacancyApplicationHireService {
                 .jobPositionId(vacancy.getJobPositionId())
                 .vacancyContractType(vacancy.getContractType())
                 .suggestedContractType(suggestedContract)
-                .suggestedExperiencePeriod(resolveSuggestedExperiencePeriod(vacancy.getId(), suggestedContract))
-                .suggestedSalary(vacancy.getSalary())
+                .suggestedExperiencePeriod(
+                        application.getOfferExperiencePeriod() != null
+                                ? parseExperiencePeriod(application.getOfferExperiencePeriod())
+                                : resolveSuggestedExperiencePeriod(vacancy.getId(), suggestedContract))
+                .suggestedSalary(
+                        application.getOfferBaseSalary() != null
+                                ? application.getOfferBaseSalary()
+                                : vacancy.getSalary())
                 .suggestedSalaryMax(vacancy.getSalaryMax())
                 .vacancyWorkSchedule(vacancy.getWorkSchedule())
                 .alreadyHired(application.getAdmissionProcessId() != null
@@ -140,7 +167,67 @@ public class JobVacancyApplicationHireService {
                 .admissionProcessId(application.getAdmissionProcessId())
                 .rehireWarning(resolveRehireWarning(digitsOnly(candidate.getCpf())))
                 .otherActiveApplicationsCount(others)
+                .candidateAcceptance(application.getCandidateAcceptance())
+                .acceptanceDate(application.getAcceptanceDate())
+                .acceptanceChannel(application.getAcceptanceChannel())
+                .offerPending(offerPending)
+                .portalAccepted(portalAccepted)
+                .portalDeclined(portalDeclined)
+                .offerSentAt(application.getOfferSentAt())
+                .offerExpectedStartDate(application.getOfferExpectedStartDate())
+                .offerBaseSalary(application.getOfferBaseSalary())
+                .offerContractType(offerContract)
+                .offerExperiencePeriod(application.getOfferExperiencePeriod())
+                .offerWorkScheduleId(application.getOfferWorkScheduleId())
+                .affirmativePcd(Boolean.TRUE.equals(vacancy.getAffirmativePcd()))
                 .build();
+    }
+
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('jobvacancyapplication:write', 'admission:write')")
+    public JobVacancyApplicationOfferResponseDto sendOffer(
+            UUID applicationId, JobVacancyApplicationOfferRequestDto request) {
+        JobVacancyApplication application = requireApplication(applicationId);
+        if (application.getAdmissionProcessId() != null
+                || application.getApplicationStatus() == JobVacancyApplicationStatusEnum.HIRED) {
+            throw JobVacancyApplicationException.hireAlreadyDone();
+        }
+        if (application.isRejected()) {
+            throw JobVacancyApplicationException.alreadyRejected();
+        }
+        if (application.getCandidateAcceptance() == CandidateAcceptanceEnum.ACCEPTED
+                && application.getAcceptanceChannel() == AcceptanceChannelEnum.PORTAL) {
+            throw JobVacancyApplicationException.offerAlreadySent();
+        }
+        if (application.getApplicationStatus() == JobVacancyApplicationStatusEnum.OFFER
+                && application.getCandidateAcceptance() == CandidateAcceptanceEnum.PENDING
+                && application.getOfferSentAt() != null) {
+            throw JobVacancyApplicationException.offerAlreadySent();
+        }
+
+        Candidate candidate = requireCandidate(application.getCandidateId());
+        JobVacancy vacancy = requireVacancy(application.getJobVacancyId());
+
+        application.setApplicationStatus(JobVacancyApplicationStatusEnum.OFFER);
+        application.setCandidateAcceptance(CandidateAcceptanceEnum.PENDING);
+        application.setAcceptanceDate(null);
+        application.setAcceptanceChannel(null);
+        application.setOfferSentAt(OffsetDateTime.now());
+        application.setOfferContractType(request.getContractType().name());
+        application.setOfferBaseSalary(request.getBaseSalary());
+        application.setOfferExpectedStartDate(request.getExpectedStartDate());
+        application.setOfferExperiencePeriod(
+                resolveExperiencePeriod(vacancy.getId(), request.getContractType(), request.getExperiencePeriod()));
+        application.setOfferWorkScheduleId(request.getWorkScheduleId());
+        application.setOfferDeclineReason(null);
+        application.clearRejection();
+        applicationRepository.save(application);
+
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, application)
+                .detail("Proposta de contratacao enviada ao portal")
+                .reason("Aguardando aceite do candidato"));
+
+        return toOfferResponse(application, candidate, vacancy);
     }
 
     @Transactional
@@ -158,6 +245,11 @@ public class JobVacancyApplicationHireService {
         if (request.getCandidateAcceptance() != CandidateAcceptanceEnum.ACCEPTED) {
             throw JobVacancyApplicationException.hireAcceptanceRequired();
         }
+        if (request.getAcceptanceChannel() == AcceptanceChannelEnum.PORTAL
+                && !(application.getCandidateAcceptance() == CandidateAcceptanceEnum.ACCEPTED
+                        && application.getAcceptanceChannel() == AcceptanceChannelEnum.PORTAL)) {
+            throw JobVacancyApplicationException.portalAcceptanceRequired();
+        }
 
         requireHireColumn(request.getColumnKey());
         Candidate candidate = requireCandidate(application.getCandidateId());
@@ -171,6 +263,16 @@ public class JobVacancyApplicationHireService {
         LocalDate birthDate = request.getBirthDate() != null ? request.getBirthDate() : candidate.getBirthDate();
         String email = firstNonBlank(trimToNull(request.getEmail()), trimToNull(candidate.getEmail()));
         String phone = firstNonBlank(trimToNull(request.getPhone()), trimToNull(candidate.getPhone()));
+
+        LocalDate acceptanceDate = request.getAcceptanceDate();
+        AcceptanceChannelEnum acceptanceChannel = request.getAcceptanceChannel();
+        if (application.getCandidateAcceptance() == CandidateAcceptanceEnum.ACCEPTED
+                && application.getAcceptanceChannel() == AcceptanceChannelEnum.PORTAL) {
+            acceptanceChannel = AcceptanceChannelEnum.PORTAL;
+            if (application.getAcceptanceDate() != null) {
+                acceptanceDate = application.getAcceptanceDate();
+            }
+        }
 
         AdmissionProcessRequestDto admissionRequest = AdmissionProcessRequestDto.builder()
                 .admissionStatus(AdmissionStatusEnum.IN_PROGRESS)
@@ -194,20 +296,31 @@ public class JobVacancyApplicationHireService {
                 .build();
 
         AdmissionProcessResponseDto admission = admissionProcessService.create(admissionRequest);
-        admissionProcessRepository
+        String preAdmissionToken = null;
+        boolean preAdmissionLinkSent = false;
+        AdmissionProcess admissionEntity = admissionProcessRepository
                 .findByIdAndStatusNot(admission.getId(), StatusEnum.DELETED)
-                .ifPresent(entity -> {
-                    entity.setSourceApplicationId(application.getId());
-                    entity.setSourceCandidateId(candidate.getId());
-                    admissionProcessRepository.save(entity);
-                });
+                .orElse(null);
+        if (admissionEntity != null) {
+            admissionEntity.setSourceApplicationId(application.getId());
+            admissionEntity.setSourceCandidateId(candidate.getId());
+            if (acceptanceChannel == AcceptanceChannelEnum.PORTAL) {
+                preAdmissionToken = newPreAdmissionToken();
+                admissionEntity.setPreAdmissionToken(preAdmissionToken);
+                admissionEntity.setPreAdmissionTokenExpiresAt(
+                        OffsetDateTime.now().plusDays(PRE_ADMISSION_TOKEN_DAYS));
+                admissionEntity.setPreAdmissionLinkSentAt(OffsetDateTime.now());
+                preAdmissionLinkSent = true;
+            }
+            admissionProcessRepository.save(admissionEntity);
+        }
 
         assignColumn(application, request.getColumnKey());
         application.setApplicationStatus(JobVacancyApplicationStatusEnum.HIRED);
         application.setAdmissionProcessId(admission.getId());
-        application.setCandidateAcceptance(request.getCandidateAcceptance());
-        application.setAcceptanceDate(request.getAcceptanceDate());
-        application.setAcceptanceChannel(request.getAcceptanceChannel());
+        application.setCandidateAcceptance(CandidateAcceptanceEnum.ACCEPTED);
+        application.setAcceptanceDate(acceptanceDate);
+        application.setAcceptanceChannel(acceptanceChannel);
         application.clearRejection();
         applicationRepository.save(application);
 
@@ -224,8 +337,122 @@ public class JobVacancyApplicationHireService {
                 .admissionCode(admission.getCode())
                 .candidateFullName(candidate.getFullName())
                 .closedApplicationIds(closedIds)
+                .closedApplicationsCount(closedIds.size())
                 .rehireWarning(rehireWarning)
+                .preAdmissionPortalPath(
+                        preAdmissionToken != null
+                                ? "/careers/portal/pre-admission?token=" + preAdmissionToken
+                                : null)
+                .preAdmissionLinkSent(preAdmissionLinkSent)
+                .asoPredicted(true)
                 .build();
+    }
+
+    /**
+     * Aceite pelo candidato autenticado no portal. Sem {@code @PreAuthorize} de staff —
+     * chamado apenas pelo {@code CandidatePortalService}.
+     */
+    @Transactional
+    public JobVacancyApplicationOfferResponseDto acceptOfferByCandidate(UUID applicationId, UUID candidateId) {
+        JobVacancyApplication application = requireOwnedPendingOffer(applicationId, candidateId);
+        Candidate candidate = requireCandidate(candidateId);
+        JobVacancy vacancy = requireVacancy(application.getJobVacancyId());
+
+        application.setCandidateAcceptance(CandidateAcceptanceEnum.ACCEPTED);
+        application.setAcceptanceDate(LocalDate.now());
+        application.setAcceptanceChannel(AcceptanceChannelEnum.PORTAL);
+        application.setOfferDeclineReason(null);
+        applicationRepository.save(application);
+
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, application)
+                .detail("Candidato aceitou a proposta no portal")
+                .reason("Aceite PORTAL"));
+
+        return toOfferResponse(application, candidate, vacancy);
+    }
+
+    /**
+     * Recusa pelo candidato autenticado no portal. Sem {@code @PreAuthorize} de staff.
+     */
+    @Transactional
+    public JobVacancyApplicationOfferResponseDto declineOfferByCandidate(
+            UUID applicationId, UUID candidateId, String reason) {
+        JobVacancyApplication application = requireOwnedPendingOffer(applicationId, candidateId);
+        Candidate candidate = requireCandidate(candidateId);
+        JobVacancy vacancy = requireVacancy(application.getJobVacancyId());
+
+        application.setCandidateAcceptance(CandidateAcceptanceEnum.DECLINED);
+        application.setAcceptanceDate(LocalDate.now());
+        application.setAcceptanceChannel(AcceptanceChannelEnum.PORTAL);
+        application.setOfferDeclineReason(trimToNull(reason));
+        applicationRepository.save(application);
+
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, application)
+                .detail("Candidato recusou a proposta no portal")
+                .reason(trimToNull(reason) != null ? reason.trim() : "Recusa PORTAL"));
+
+        return toOfferResponse(application, candidate, vacancy);
+    }
+
+    private JobVacancyApplication requireOwnedPendingOffer(UUID applicationId, UUID candidateId) {
+        JobVacancyApplication application = requireApplication(applicationId);
+        if (!candidateId.equals(application.getCandidateId())) {
+            throw JobVacancyApplicationException.notFound();
+        }
+        if (application.getAdmissionProcessId() != null
+                || application.getApplicationStatus() == JobVacancyApplicationStatusEnum.HIRED) {
+            throw JobVacancyApplicationException.hireAlreadyDone();
+        }
+        if (application.getApplicationStatus() != JobVacancyApplicationStatusEnum.OFFER
+                || application.getCandidateAcceptance() != CandidateAcceptanceEnum.PENDING
+                || application.getOfferSentAt() == null) {
+            throw JobVacancyApplicationException.offerNotPending();
+        }
+        return application;
+    }
+
+    private JobVacancyApplicationOfferResponseDto toOfferResponse(
+            JobVacancyApplication application, Candidate candidate, JobVacancy vacancy) {
+        return JobVacancyApplicationOfferResponseDto.builder()
+                .applicationId(application.getId())
+                .candidateAcceptance(application.getCandidateAcceptance())
+                .offerSentAt(application.getOfferSentAt())
+                .contractType(parseContractType(application.getOfferContractType()))
+                .baseSalary(application.getOfferBaseSalary())
+                .expectedStartDate(application.getOfferExpectedStartDate())
+                .experiencePeriod(application.getOfferExperiencePeriod())
+                .workScheduleId(application.getOfferWorkScheduleId())
+                .candidateFullName(candidate.getFullName())
+                .jobVacancyTitle(vacancy.getJobTitle())
+                .build();
+    }
+
+    private static String newPreAdmissionToken() {
+        byte[] bytes = new byte[24];
+        SECURE_RANDOM.nextBytes(bytes);
+        return HexFormat.of().formatHex(bytes);
+    }
+
+    private static ContractTypeEnum parseContractType(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return ContractTypeEnum.valueOf(raw.trim());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    private static JobRequisitionExperiencePeriodEnum parseExperiencePeriod(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return JobRequisitionExperiencePeriodEnum.valueOf(raw.trim());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
     private List<UUID> closeOtherApplications(JobVacancyApplication hired, UUID vacancyId) {

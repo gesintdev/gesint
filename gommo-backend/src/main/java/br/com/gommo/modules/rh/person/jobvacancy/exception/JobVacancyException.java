@@ -28,10 +28,24 @@ public final class JobVacancyException {
                 HttpStatus.BAD_REQUEST);
     }
 
+    public static BusinessException jobPositionRequired() {
+        return new BusinessException(
+                JobVacancyExceptions.JOB_POSITION_REQUIRED_CODE,
+                JobVacancyExceptions.JOB_POSITION_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
     public static BusinessException jobPositionNotFound() {
         return new BusinessException(
                 JobVacancyExceptions.JOB_POSITION_NOT_FOUND_CODE,
                 JobVacancyExceptions.JOB_POSITION_NOT_FOUND_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException slaInvalid() {
+        return new BusinessException(
+                JobVacancyExceptions.SLA_INVALID_CODE,
+                JobVacancyExceptions.SLA_INVALID_MSG,
                 HttpStatus.BAD_REQUEST);
     }
 

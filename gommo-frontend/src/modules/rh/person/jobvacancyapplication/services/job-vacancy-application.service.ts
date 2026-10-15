@@ -6,6 +6,8 @@ import type {
     JobVacancyApplicationHirePreview,
     JobVacancyApplicationHireRequest,
     JobVacancyApplicationHireResponse,
+    JobVacancyApplicationOfferRequest,
+    JobVacancyApplicationOfferResponse,
 } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application-hire.dto";
 import type {
     JobVacancyApplication,
@@ -95,6 +97,13 @@ class JobVacancyApplicationService extends BaseService<
 
     hire(id: string, dto: JobVacancyApplicationHireRequest): Promise<JobVacancyApplicationHireResponse> {
         return apiFetch<JobVacancyApplicationHireResponse>(`${this.basePath}/${id}/hire`, {
+            method: "POST",
+            body: dto,
+        });
+    }
+
+    sendOffer(id: string, dto: JobVacancyApplicationOfferRequest): Promise<JobVacancyApplicationOfferResponse> {
+        return apiFetch<JobVacancyApplicationOfferResponse>(`${this.basePath}/${id}/offer`, {
             method: "POST",
             body: dto,
         });

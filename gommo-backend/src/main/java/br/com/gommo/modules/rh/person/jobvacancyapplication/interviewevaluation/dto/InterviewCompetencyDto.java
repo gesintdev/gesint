@@ -20,5 +20,9 @@ public class InterviewCompetencyDto {
     private UUID competencyId;
     private String competencyName;
     private CompetencyTypeEnum competencyType;
+    /** Definição da competência (RN-10). */
+    private String description;
+    /** Pergunta-guia sugerida na entrevista. */
+    private String interviewGuideQuestion;
     private String source;
 }

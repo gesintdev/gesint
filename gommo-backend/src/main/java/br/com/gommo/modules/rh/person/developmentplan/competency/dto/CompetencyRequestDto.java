@@ -25,6 +25,9 @@ public class CompetencyRequestDto {
     @Size(max = 2000)
     private String description;
 
+    @Size(max = 2000)
+    private String interviewGuideQuestion;
+
     @NotNull
     private CompetencyTypeEnum type;
 }
