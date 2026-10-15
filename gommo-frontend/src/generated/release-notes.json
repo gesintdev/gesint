@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.95.0",
+      "hash": "d1c1e314",
+      "date": "2026-10-15T08:12:39-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (RN parciais)",
+      "body": "**Commits incluídos**\n\n- fix(ui): scroll da grid padrão, gap do avatar e dropdown colapsado\n- docs(rn): marcar T1–T16 no HTML e expor badge SLA no kanban\n- feat(rn): fecha parciais T2/T8/T12/T13 e avança T1 (sem eSocial)",
+      "pullRequest": null
+    },
+    {
       "version": "1.94.2",
       "hash": "7b462791",
       "date": "2026-10-14T09:34:14-03:00",
