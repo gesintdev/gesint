@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.95.1",
+      "hash": "54fa84f6",
+      "date": "2026-10-15T14:24:20-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (bank_account fix)",
+      "body": "**Commits incluídos**\n\n- fix(admission): separa bank_account JSONB (eSocial) do varchar da pré-admissão",
+      "pullRequest": null
+    },
+    {
       "version": "1.95.0",
       "hash": "d1c1e314",
       "date": "2026-10-15T08:12:39-03:00",
