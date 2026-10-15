@@ -32,6 +32,10 @@ public class Competency extends AuditEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    /** Pergunta-guia sugerida no scorecard de entrevista (RN-10 / RN-36). */
+    @Column(name = "interview_guide_question", columnDefinition = "TEXT")
+    private String interviewGuideQuestion;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private CompetencyTypeEnum type;

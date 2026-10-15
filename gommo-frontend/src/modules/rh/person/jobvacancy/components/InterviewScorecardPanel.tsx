@@ -7,13 +7,16 @@ import { toast } from "sonner";
 
 import { DevelopmentPlanDomainService } from "@/modules/cfg/settings/developmentplan/services/development-plan-domain.service";
 import type {
+    InterviewRecommendation,
     InterviewScoreItem,
     InterviewScorecard,
 } from "@/modules/rh/person/jobvacancyapplication/dto/interview-scorecard.dto";
+import { INTERVIEW_RECOMMENDATION_ITEMS } from "@/modules/rh/person/jobvacancyapplication/dto/interview-scorecard.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { Button } from "@/shared/components/ui/Button";
 import { fieldClass } from "@/shared/components/ui/input/InputFieldChrome";
+import { InputSelect } from "@/shared/components/ui/input/InputSelect";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -44,6 +47,11 @@ function draftsFromScorecard(scorecard: InterviewScorecard | undefined): Record<
     return next;
 }
 
+function recommendationLabel(value?: InterviewRecommendation | null): string | null {
+    if (!value) return null;
+    return INTERVIEW_RECOMMENDATION_ITEMS.find((item) => item.value === value)?.label ?? value;
+}
+
 export function InterviewScorecardPanel({
     applicationId,
     jobVacancyId,
@@ -51,6 +59,7 @@ export function InterviewScorecardPanel({
 }: InterviewScorecardPanelProps) {
     const queryClient = useQueryClient();
     const [drafts, setDrafts] = useState<Record<string, ScoreDraft>>({});
+    const [recommendation, setRecommendation] = useState<InterviewRecommendation | null>(null);
 
     const levelsQuery = useQuery({
         queryKey: ["development-proficiency-levels", "interview-scorecard"],
@@ -67,6 +76,7 @@ export function InterviewScorecardPanel({
     useEffect(() => {
         if (scorecardQuery.data) {
             setDrafts(draftsFromScorecard(scorecardQuery.data));
+            setRecommendation(scorecardQuery.data.myEvaluation?.recommendation ?? null);
         }
     }, [scorecardQuery.data]);
 
@@ -109,6 +119,7 @@ export function InterviewScorecardPanel({
         mutationFn: () =>
             jobVacancyApplicationService.saveInterviewScorecardDraft(applicationId, {
                 columnKey,
+                recommendation,
                 scores: buildPayload(),
             }),
         onSuccess: async () => {
@@ -123,6 +134,7 @@ export function InterviewScorecardPanel({
         mutationFn: () =>
             jobVacancyApplicationService.submitInterviewScorecard(applicationId, {
                 columnKey,
+                recommendation,
                 scores: buildPayload(),
             }),
         onSuccess: async () => {
@@ -141,9 +153,14 @@ export function InterviewScorecardPanel({
                 return;
             }
         }
+        if (!recommendation) {
+            toast.error("Informe a recomendação antes de enviar.");
+            return;
+        }
         const confirmed = await SystemAlert.confirm({
             title: "Enviar avaliação",
-            message: "Após enviar, você não poderá editar. As notas dos outros avaliadores ficarão visíveis.",
+            message:
+                "Após enviar, você não poderá editar. As notas dos outros avaliadores e a média só ficam visíveis quando todos enviarem.",
             confirmLabel: "Enviar",
             cancelLabel: "Cancelar",
             variant: "warning",
@@ -190,7 +207,7 @@ export function InterviewScorecardPanel({
         <div className="grid gap-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs text-base-content/55">
-                    Escala do PDI (níveis de proficiência). Cada nota exige justificativa.
+                    Escala do PDI (níveis de proficiência). Cada nota exige evidência escrita.
                     {scorecardQuery.data?.submittedCount
                         ? ` · ${scorecardQuery.data.submittedCount} avaliação(ões) enviada(s)`
                         : ""}
@@ -230,6 +247,8 @@ export function InterviewScorecardPanel({
                         score: null,
                         justification: "",
                     };
+                    const guide =
+                        competency.interviewGuideQuestion?.trim() || competency.description?.trim() || null;
                     return (
                         <div
                             key={competency.competencyId}
@@ -240,6 +259,11 @@ export function InterviewScorecardPanel({
                                     <p className="text-sm font-semibold text-base-content">
                                         {competency.competencyName ?? "Competência"}
                                     </p>
+                                    {guide ? (
+                                        <p className="mt-0.5 text-[0.6875rem] italic text-base-content/55">
+                                            {guide.startsWith('"') ? guide : `“${guide}”`}
+                                        </p>
+                                    ) : null}
                                     {competency.source === "JOB_POSITION" ? (
                                         <p className="mt-0.5 text-[0.6875rem] text-base-content/45">
                                             Do cargo
@@ -249,12 +273,16 @@ export function InterviewScorecardPanel({
                                 <div className="flex flex-wrap gap-1">
                                     {levels.map((level) => {
                                         const active = draft.score === level.levelOrder;
+                                        const title = level.description?.trim()
+                                            ? `${level.name}: ${level.description}`
+                                            : level.name;
                                         return (
                                             <button
                                                 key={level.id}
                                                 type="button"
                                                 disabled={submitted || busy}
-                                                title={level.name}
+                                                title={title}
+                                                aria-label={title}
                                                 className={clsx(
                                                     "inline-flex size-8 items-center justify-center rounded-md border text-xs font-semibold transition-colors",
                                                     active
@@ -282,7 +310,7 @@ export function InterviewScorecardPanel({
                                 rows={2}
                                 disabled={submitted || busy}
                                 value={draft.justification}
-                                placeholder="Justificativa / evidência"
+                                placeholder="Evidência observável"
                                 onChange={(event) =>
                                     setDrafts((current) => ({
                                         ...current,
@@ -302,7 +330,22 @@ export function InterviewScorecardPanel({
                 })}
             </div>
 
-            {averages.length > 0 ? (
+            <div className="max-w-sm">
+                <InputSelect
+                    label="Recomendação"
+                    value={recommendation ?? undefined}
+                    onValueChange={(value) =>
+                        setRecommendation(value ? (value as InterviewRecommendation) : null)
+                    }
+                    items={INTERVIEW_RECOMMENDATION_ITEMS}
+                    placeholder="Selecione"
+                    disabled={submitted || busy}
+                    clearable
+                    required
+                />
+            </div>
+
+            {canSeeOthers && averages.length > 0 ? (
                 <div className="rounded-lg border border-base-content/10 bg-base-content/[0.02] px-3 py-3">
                     <p className="text-xs font-semibold text-base-content">Média por competência</p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -318,9 +361,11 @@ export function InterviewScorecardPanel({
                 </div>
             ) : null}
 
-            {!canSeeOthers && (scorecardQuery.data?.submittedCount ?? 0) > 0 && !submitted ? (
+            {!canSeeOthers && (scorecardQuery.data?.submittedCount ?? 0) > 0 ? (
                 <p className="text-xs text-base-content/50">
-                    As notas dos outros avaliadores ficam visíveis depois que você enviar a sua.
+                    {submitted
+                        ? "Aguardando os demais avaliadores enviarem para liberar a consolidação."
+                        : "As notas dos outros e a média só ficam visíveis quando todos enviarem."}
                 </p>
             ) : null}
 
@@ -334,6 +379,9 @@ export function InterviewScorecardPanel({
                         >
                             <p className="text-xs font-medium text-base-content">
                                 {evaluation.evaluatorName ?? "Avaliador"}
+                                {recommendationLabel(evaluation.recommendation)
+                                    ? ` · ${recommendationLabel(evaluation.recommendation)}`
+                                    : ""}
                             </p>
                             <div className="mt-1.5 grid gap-1">
                                 {(evaluation.scores ?? []).map((score) => (

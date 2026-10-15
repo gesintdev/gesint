@@ -46,4 +46,11 @@ public final class ProfileException {
                 "Uma ou mais permissões são inválidas ou não pertencem ao sistema do perfil.",
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException sensitiveJustificationRequired() {
+        return new BusinessException(
+                "PROFILE_SENSITIVE_JUSTIFICATION_REQUIRED",
+                "Informe a justificativa ao conceder permissão sensível, financeira ou clínica.",
+                HttpStatus.BAD_REQUEST);
+    }
 }

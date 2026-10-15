@@ -109,4 +109,27 @@ public class JobVacancy extends BranchScopedEntity {
 
     @Column(name = "published_at")
     private OffsetDateTime publishedAt;
+
+    @Column(name = "recruiter_collaborator_id")
+    private UUID recruiterCollaboratorId;
+
+    @Column(name = "requesting_manager_collaborator_id")
+    private UUID requestingManagerCollaboratorId;
+
+    @Builder.Default
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "interviewer_collaborator_ids", columnDefinition = "jsonb", nullable = false)
+    private List<UUID> interviewerCollaboratorIds = new ArrayList<>();
+
+    @Builder.Default
+    @Column(name = "candidate_return_sla_business_days", nullable = false)
+    private Integer candidateReturnSlaBusinessDays = 5;
+
+    @Builder.Default
+    @Column(name = "affirmative_pcd", nullable = false)
+    private Boolean affirmativePcd = false;
+
+    @Builder.Default
+    @Column(name = "publish_google_jobs", nullable = false)
+    private Boolean publishGoogleJobs = true;
 }

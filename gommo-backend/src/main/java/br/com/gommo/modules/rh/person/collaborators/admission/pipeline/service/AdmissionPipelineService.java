@@ -325,7 +325,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
         Map<AdmissionStepKeyEnum, AdmissionStepStatusEnum> statuses = new EnumMap<>(AdmissionStepKeyEnum.class);
 
         AdmissionStepStatusEnum documentation = documentationStatus(documents);
-        statuses.put(AdmissionStepKeyEnum.PRE_ADMISSAO, preAdmissionStatus(documentation));
+        statuses.put(AdmissionStepKeyEnum.PRE_ADMISSAO, preAdmissionStatus(admission, documentation));
         statuses.put(AdmissionStepKeyEnum.DOCUMENTACAO, documentation);
         statuses.put(AdmissionStepKeyEnum.EXAME, examStatus(admission, exam, today));
         statuses.put(AdmissionStepKeyEnum.CONTRATO, contractStatus(admission, documents));
@@ -365,12 +365,16 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
         return documents.received() > 0 ? AdmissionStepStatusEnum.IN_PROGRESS : AdmissionStepStatusEnum.PENDING;
     }
 
-    /** Pre-admissao fica em andamento ate a documentacao comecar; depois conclui. */
-    private static AdmissionStepStatusEnum preAdmissionStatus(AdmissionStepStatusEnum documentation) {
-        if (documentation == AdmissionStepStatusEnum.PENDING) {
-            return AdmissionStepStatusEnum.IN_PROGRESS;
+    /**
+     * Pre-admissao: DONE quando o candidato conclui no portal (ou documentacao ja avanca);
+     * IN_PROGRESS enquanto aguarda dados bancarios / docs self-serve.
+     */
+    private static AdmissionStepStatusEnum preAdmissionStatus(
+            AdmissionProcess admission, AdmissionStepStatusEnum documentation) {
+        if (admission.getPreAdmissionCompletedAt() != null || documentation != AdmissionStepStatusEnum.PENDING) {
+            return AdmissionStepStatusEnum.DONE;
         }
-        return AdmissionStepStatusEnum.DONE;
+        return AdmissionStepStatusEnum.IN_PROGRESS;
     }
 
     /**

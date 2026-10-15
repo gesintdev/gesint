@@ -1,9 +1,19 @@
 export type InterviewEvaluationStatus = "DRAFT" | "SUBMITTED";
 
+export type InterviewRecommendation = "ADVANCE" | "HOLD" | "REJECT";
+
+export const INTERVIEW_RECOMMENDATION_ITEMS: Array<{ value: InterviewRecommendation; label: string }> = [
+    { value: "ADVANCE", label: "Seguir no processo" },
+    { value: "HOLD", label: "Manter em observação" },
+    { value: "REJECT", label: "Não recomendar" },
+];
+
 export type InterviewCompetency = {
     competencyId: string;
     competencyName?: string | null;
     competencyType?: string | null;
+    description?: string | null;
+    interviewGuideQuestion?: string | null;
     source?: string | null;
 };
 
@@ -25,6 +35,7 @@ export type InterviewEvaluationView = {
     evaluatorUserId?: string;
     evaluatorName?: string | null;
     evaluationStatus?: InterviewEvaluationStatus;
+    recommendation?: InterviewRecommendation | null;
     submittedAt?: string | null;
     mine?: boolean;
     scoresVisible?: boolean;
@@ -52,5 +63,6 @@ export type InterviewScorecard = {
 
 export type InterviewScorecardUpsertDto = {
     columnKey: string;
+    recommendation?: InterviewRecommendation | null;
     scores: InterviewScoreItem[];
 };

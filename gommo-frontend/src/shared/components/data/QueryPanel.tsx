@@ -14,6 +14,7 @@ import {Button} from "@/shared/components/ui/Button";
 import {DataTable, type DataTableRowActivateOn} from "@/shared/components/ui/DataTable";
 import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {apiFetch} from "@/shared/lib/api.client";
 import {exportTableToExcel} from "@/shared/lib/table/export-table-excel";
 import {sortRowsByCreatedAtDesc} from "@/shared/lib/table/sort-rows-by-created-at";
 import {isColumnFilterable, type TableColumnConfig} from "@/shared/types/table.types";
@@ -337,6 +338,20 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
                 columns: visibleColumns,
                 fileName: exportFileName,
             });
+            if (resolvedExportPermission) {
+                try {
+                    await apiFetch("/api/v1/audit-trail/exports", {
+                        method: "POST",
+                        body: {
+                            exportPermission: resolvedExportPermission,
+                            fileName: exportFileName,
+                            rowCount: result.content.length,
+                        },
+                    });
+                } catch {
+                    // Exportação já concluída; falha só no registro não bloqueia o download.
+                }
+            }
             toast.success("Planilha exportada");
         } catch (err: unknown) {
             ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível exportar a planilha."});

@@ -155,6 +155,27 @@ public class JobVacancyApplication extends BranchScopedEntity {
     @Column(name = "acceptance_channel", length = 32)
     private AcceptanceChannelEnum acceptanceChannel;
 
+    @Column(name = "offer_sent_at")
+    private OffsetDateTime offerSentAt;
+
+    @Column(name = "offer_contract_type", length = 32)
+    private String offerContractType;
+
+    @Column(name = "offer_base_salary", precision = 14, scale = 2)
+    private BigDecimal offerBaseSalary;
+
+    @Column(name = "offer_expected_start_date")
+    private LocalDate offerExpectedStartDate;
+
+    @Column(name = "offer_experience_period", length = 32)
+    private String offerExperiencePeriod;
+
+    @Column(name = "offer_work_schedule_id")
+    private UUID offerWorkScheduleId;
+
+    @Column(name = "offer_decline_reason", length = 500)
+    private String offerDeclineReason;
+
     public boolean isRejected() {
         return rejectionReason != null;
     }

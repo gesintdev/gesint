@@ -26,6 +26,8 @@ import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplic
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationHirePreviewDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationHireRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationHireResponseDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationOfferRequestDto;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.dto.JobVacancyApplicationOfferResponseDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.dto.InterviewScorecardResponseDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.dto.InterviewScorecardUpsertRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.service.InterviewScorecardService;
@@ -117,5 +119,11 @@ public class JobVacancyApplicationController
     public ResponseEntity<JobVacancyApplicationHireResponseDto> hire(
             @PathVariable UUID id, @Valid @RequestBody JobVacancyApplicationHireRequestDto request) {
         return ResponseEntity.ok(hireService.hire(id, request));
+    }
+
+    @PostMapping("/{id}/offer")
+    public ResponseEntity<JobVacancyApplicationOfferResponseDto> sendOffer(
+            @PathVariable UUID id, @Valid @RequestBody JobVacancyApplicationOfferRequestDto request) {
+        return ResponseEntity.ok(hireService.sendOffer(id, request));
     }
 }

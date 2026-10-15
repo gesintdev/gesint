@@ -26,4 +26,14 @@ public class JobVacancyApplicationHireResponseDto {
     private List<UUID> closedApplicationIds = new ArrayList<>();
 
     private String rehireWarning;
+
+    /** Caminho relativo do portal para a pré-admissão (quando canal PORTAL). */
+    private String preAdmissionPortalPath;
+
+    private boolean preAdmissionLinkSent;
+
+    /** ASO admissional previsto criado no hire (ensureAdmissionalPredicted). */
+    private boolean asoPredicted;
+
+    private int closedApplicationsCount;
 }

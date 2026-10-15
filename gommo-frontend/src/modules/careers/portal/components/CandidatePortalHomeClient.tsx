@@ -51,6 +51,36 @@ export function CandidatePortalHomeClient() {
         enabled: isAuthenticated,
     });
 
+    const offersQuery = useQuery({
+        queryKey: candidatePortalKeys.offers,
+        queryFn: () => candidatePortalService.listOffers(),
+        enabled: isAuthenticated,
+    });
+
+    const acceptOffer = useMutation({
+        mutationFn: (applicationId: string) => candidatePortalService.acceptOffer(applicationId),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: candidatePortalKeys.applications });
+            void queryClient.invalidateQueries({ queryKey: candidatePortalKeys.offers });
+            setMessage("Proposta aceita. Aguarde a confirmação do RH para liberar a pré-admissão.");
+        },
+        onError: (err) => {
+            setError(ExceptionCapture.displayMessage(err, "Não foi possível aceitar a proposta."));
+        },
+    });
+
+    const declineOffer = useMutation({
+        mutationFn: (applicationId: string) => candidatePortalService.declineOffer(applicationId),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: candidatePortalKeys.applications });
+            void queryClient.invalidateQueries({ queryKey: candidatePortalKeys.offers });
+            setMessage("Proposta recusada.");
+        },
+        onError: (err) => {
+            setError(ExceptionCapture.displayMessage(err, "Não foi possível recusar a proposta."));
+        },
+    });
+
     useEffect(() => {
         if (meQuery.data) {
             setFullName(meQuery.data.fullName ?? "");
@@ -99,11 +129,66 @@ export function CandidatePortalHomeClient() {
 
     const me = meQuery.data;
     const applications = applicationsQuery.data ?? [];
+    const offers = offersQuery.data ?? [];
 
     return (
         <CandidatePortalShell title="Minhas candidaturas" organizationName={me?.organizationName}>
             {message ? <p className="mb-4 text-sm text-success">{message}</p> : null}
             {error ? <p className="mb-4 text-sm text-error">{error}</p> : null}
+
+            {offers.length > 0 ? (
+                <section className="mb-6 grid gap-3">
+                    <h2 className="text-sm font-bold uppercase tracking-wide text-base-content/55">
+                        Propostas pendentes
+                    </h2>
+                    {offers.map((offer) => (
+                        <article
+                            key={offer.applicationId}
+                            className="rounded-xl border border-primary/25 bg-primary/5 p-4 sm:p-5"
+                        >
+                            <h3 className="text-base font-bold">{offer.jobTitle}</h3>
+                            <p className="mt-1 text-xs text-base-content/60">
+                                {[
+                                    offer.location,
+                                    offer.baseSalary != null
+                                        ? `R$ ${Number(offer.baseSalary).toLocaleString("pt-BR", {
+                                              minimumFractionDigits: 2,
+                                          })}`
+                                        : null,
+                                    offer.expectedStartDate
+                                        ? `início ${formatAppliedAt(offer.expectedStartDate)}`
+                                        : null,
+                                ]
+                                    .filter(Boolean)
+                                    .join(" · ")}
+                            </p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    loading={acceptOffer.isPending}
+                                    onClick={() => acceptOffer.mutate(offer.applicationId)}
+                                >
+                                    Aceitar proposta
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    disabled={declineOffer.isPending}
+                                    onClick={() => {
+                                        if (window.confirm("Recusar esta proposta?")) {
+                                            declineOffer.mutate(offer.applicationId);
+                                        }
+                                    }}
+                                >
+                                    Recusar
+                                </Button>
+                            </div>
+                        </article>
+                    ))}
+                </section>
+            ) : null}
 
             <div className="grid gap-4">
                 {applicationsQuery.isLoading ? (
@@ -143,22 +228,42 @@ export function CandidatePortalHomeClient() {
                             {application.resultLabel ? (
                                 <p className="mt-3 text-sm font-medium text-base-content/80">{application.resultLabel}</p>
                             ) : null}
-                            {application.withdrawable ? (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="mt-3 text-error"
-                                    disabled={withdraw.isPending}
-                                    onClick={() => {
-                                        if (window.confirm("Retirar esta candidatura?")) {
-                                            withdraw.mutate(application.applicationId);
-                                        }
-                                    }}
-                                >
-                                    Retirar candidatura
-                                </Button>
-                            ) : null}
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                {application.preAdmissionAvailable ? (
+                                    <Link
+                                        href="/careers/portal/pre-admission"
+                                        className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-content"
+                                    >
+                                        Continuar pré-admissão
+                                    </Link>
+                                ) : null}
+                                {application.offerPending ? (
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        loading={acceptOffer.isPending}
+                                        onClick={() => acceptOffer.mutate(application.applicationId)}
+                                    >
+                                        Aceitar proposta
+                                    </Button>
+                                ) : null}
+                                {application.withdrawable ? (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-error"
+                                        disabled={withdraw.isPending}
+                                        onClick={() => {
+                                            if (window.confirm("Retirar esta candidatura?")) {
+                                                withdraw.mutate(application.applicationId);
+                                            }
+                                        }}
+                                    >
+                                        Retirar candidatura
+                                    </Button>
+                                ) : null}
+                            </div>
                         </article>
                     ))
                 )}

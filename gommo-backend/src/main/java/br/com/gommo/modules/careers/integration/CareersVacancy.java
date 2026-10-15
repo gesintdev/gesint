@@ -32,4 +32,6 @@ public class CareersVacancy {
     private final BigDecimal salaryMax;
     private final OffsetDateTime publishedAt;
     private final LocalDate expectedCompletionDate;
+    /** Quando false, a página pública omite o JSON-LD JobPosting (Google for Jobs). Default true. */
+    private final Boolean publishGoogleJobs;
 }

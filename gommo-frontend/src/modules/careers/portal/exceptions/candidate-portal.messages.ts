@@ -10,4 +10,12 @@ export const CANDIDATE_PORTAL_MESSAGES = {
     CANDIDATE_PORTAL_APPLICATION_NOT_FOUND: "Candidatura não encontrada",
     CANDIDATE_PORTAL_WITHDRAW_NOT_ALLOWED: "Esta candidatura não pode ser retirada neste momento",
     CANDIDATE_PORTAL_UNAUTHORIZED: "Sessão do candidato inválida ou expirada",
+    CANDIDATE_PORTAL_OFFER_NOT_FOUND: "Proposta de contratação não encontrada",
+    CANDIDATE_PORTAL_OFFER_NOT_ACTIONABLE: "Esta proposta já foi respondida ou não está disponível",
+    CANDIDATE_PORTAL_PRE_ADMISSION_NOT_FOUND: "Pré-admissão não encontrada para esta conta",
+    CANDIDATE_PORTAL_PRE_ADMISSION_TOKEN_INVALID: "Link de pré-admissão inválido ou expirado",
+    CANDIDATE_PORTAL_PRE_ADMISSION_INCOMPLETE:
+        "Preencha os itens obrigatórios da pré-admissão antes de concluir",
+    CANDIDATE_PORTAL_PRE_ADMISSION_DOCUMENT_TYPE:
+        "Informe o tipo do documento (ex.: RG, CPF, COMPROVANTE_ENDERECO)",
 };

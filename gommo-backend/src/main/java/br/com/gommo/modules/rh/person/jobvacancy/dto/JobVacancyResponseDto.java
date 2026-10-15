@@ -44,6 +44,14 @@ public class JobVacancyResponseDto {
     @JsonProperty("isPublic")
     private final Boolean isPublic;
     private final OffsetDateTime publishedAt;
+    private final UUID recruiterCollaboratorId;
+    private final UUID requestingManagerCollaboratorId;
+    private final List<UUID> interviewerCollaboratorIds;
+    private final Integer candidateReturnSlaBusinessDays;
+    @JsonProperty("affirmativePcd")
+    private final Boolean affirmativePcd;
+    @JsonProperty("publishGoogleJobs")
+    private final Boolean publishGoogleJobs;
     private final Integer candidateCount;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;

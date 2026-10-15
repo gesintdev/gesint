@@ -248,4 +248,44 @@ public class AdmissionProcess extends BranchScopedEntity {
 
     @Column(name = "recess_notes", columnDefinition = "TEXT")
     private String recessNotes;
+
+    @Column(name = "bank_code", length = 10)
+    private String bankCode;
+
+    @Column(name = "bank_agency", length = 20)
+    private String bankAgency;
+
+    @Column(name = "bank_account", length = 30)
+    private String bankAccount;
+
+    @Column(name = "bank_account_digit", length = 5)
+    private String bankAccountDigit;
+
+    @Column(name = "bank_account_type", length = 20)
+    private String bankAccountType;
+
+    @Column(name = "pix_key", length = 120)
+    private String pixKey;
+
+    @Column(name = "pre_admission_token", length = 64)
+    private String preAdmissionToken;
+
+    @Column(name = "pre_admission_token_expires_at")
+    private OffsetDateTime preAdmissionTokenExpiresAt;
+
+    @Column(name = "pre_admission_link_sent_at")
+    private OffsetDateTime preAdmissionLinkSentAt;
+
+    @Column(name = "pre_admission_completed_at")
+    private OffsetDateTime preAdmissionCompletedAt;
+
+    /**
+     * Autodeclaração PCD (RN-02): opcional na pré-admissão de vaga afirmativa.
+     * Não deve ser exposta em views de entrevista/kanban.
+     */
+    @Column(name = "pcd_self_declared")
+    private Boolean pcdSelfDeclared;
+
+    @Column(name = "pcd_self_declared_at")
+    private OffsetDateTime pcdSelfDeclaredAt;
 }

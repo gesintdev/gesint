@@ -97,6 +97,7 @@ public class CareersSiteService {
                 .salaryMax(showSalary ? vacancy.getSalaryMax() : null)
                 .publishedAt(vacancy.getPublishedAt())
                 .expectedCompletionDate(vacancy.getExpectedCompletionDate())
+                .publishGoogleJobs(vacancy.getPublishGoogleJobs() == null || Boolean.TRUE.equals(vacancy.getPublishGoogleJobs()))
                 .organizationName(organizationName)
                 .customized(published != null)
                 .branding(toBranding(theme))

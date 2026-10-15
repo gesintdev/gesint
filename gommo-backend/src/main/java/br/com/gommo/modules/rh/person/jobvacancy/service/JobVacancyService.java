@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.gommo.core.base.dto.PageableResponseDto;
 import br.com.gommo.core.base.service.BaseService;
 import br.com.gommo.core.entity.StatusEnum;
+import br.com.gommo.modules.cfg.access.security.DataScopeResolver;
 import br.com.gommo.modules.dp.organization.jobposition.repository.JobPositionRepository;
 import br.com.gommo.modules.rh.person.jobvacancy.dto.JobVacancyRequestDto;
 import br.com.gommo.modules.rh.person.jobvacancy.dto.JobVacancyResponseDto;
@@ -30,17 +31,20 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
     private final JobVacancyMapper mapper;
     private final JobPositionRepository jobPositionRepository;
     private final JobVacancyApplicationRepository applicationRepository;
+    private final DataScopeResolver dataScopeResolver;
 
     public JobVacancyService(
             JobVacancyRepository repository,
             JobVacancyMapper mapper,
             JobPositionRepository jobPositionRepository,
-            JobVacancyApplicationRepository applicationRepository) {
+            JobVacancyApplicationRepository applicationRepository,
+            DataScopeResolver dataScopeResolver) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
         this.jobPositionRepository = jobPositionRepository;
         this.applicationRepository = applicationRepository;
+        this.dataScopeResolver = dataScopeResolver;
     }
 
     @Override
@@ -55,7 +59,8 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
     @PreAuthorize("hasAuthority('jobvacancy:read')")
     public List<JobVacancyResponseDto> findAll(StatusEnum status) {
         StatusEnum resolved = resolveListStatus(status);
-        List<JobVacancy> vacancies = repository.findAllByStatusOrderByCreatedAtDesc(resolved);
+        List<JobVacancy> vacancies =
+                applyAssignedScopeFilter(repository.findAllByStatusOrderByCreatedAtDesc(resolved));
         Map<UUID, Integer> counts = loadCandidateCounts();
         return vacancies.stream()
                 .map(entity -> mapper.toResponse(entity, counts.getOrDefault(entity.getId(), 0)))
@@ -79,17 +84,33 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
                 page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
         var result = repository.findAllByStatus(StatusEnum.ACTIVE, pageable);
         Map<UUID, Integer> counts = loadCandidateCounts();
-        List<JobVacancyResponseDto> content = result.getContent().stream()
+        List<JobVacancy> scoped = applyAssignedScopeFilter(result.getContent());
+        List<JobVacancyResponseDto> content = scoped.stream()
                 .map(entity -> mapper.toResponse(entity, counts.getOrDefault(entity.getId(), 0)))
                 .toList();
+        // Filtro ASSIGNED é pós-página (MVP); totalElements reflete a página filtrada.
         return PageableResponseDto.<JobVacancyResponseDto>builder()
                 .content(content)
                 .page(page)
                 .size(size)
-                .totalElements(result.getTotalElements())
+                .totalElements(dataScopeResolver.hasAssignedScopeOnly() ? content.size() : result.getTotalElements())
                 .totalPages(result.getTotalPages())
                 .filterOptions(java.util.Map.of("status", List.of(StatusEnum.ACTIVE.name(), StatusEnum.INACTIVE.name())))
                 .build();
+    }
+
+    private List<JobVacancy> applyAssignedScopeFilter(List<JobVacancy> vacancies) {
+        if (!dataScopeResolver.hasAssignedScopeOnly()) {
+            return vacancies;
+        }
+        UUID collaboratorId = dataScopeResolver.currentCollaboratorId().orElse(null);
+        return vacancies.stream()
+                .filter(vacancy -> dataScopeResolver.isAssignedToVacancy(
+                        vacancy.getRecruiterCollaboratorId(),
+                        vacancy.getRequestingManagerCollaboratorId(),
+                        vacancy.getInterviewerCollaboratorIds(),
+                        collaboratorId))
+                .toList();
     }
 
     @Override
@@ -169,13 +190,30 @@ public class JobVacancyService extends BaseService<JobVacancy, JobVacancyRequest
             throw JobVacancyException.positionsInvalid();
         }
 
-        if (request.getJobPositionId() != null) {
-            boolean exists = jobPositionRepository
-                    .findByIdAndStatusNot(request.getJobPositionId(), StatusEnum.DELETED)
-                    .isPresent();
-            if (!exists) {
-                throw JobVacancyException.jobPositionNotFound();
-            }
+        if (request.getJobPositionId() == null) {
+            throw JobVacancyException.jobPositionRequired();
+        }
+        boolean jobPositionExists = jobPositionRepository
+                .findByIdAndStatusNot(request.getJobPositionId(), StatusEnum.DELETED)
+                .isPresent();
+        if (!jobPositionExists) {
+            throw JobVacancyException.jobPositionNotFound();
+        }
+
+        Integer slaDays = request.getCandidateReturnSlaBusinessDays();
+        if (slaDays == null) {
+            request.setCandidateReturnSlaBusinessDays(5);
+        } else if (slaDays < 1) {
+            throw JobVacancyException.slaInvalid();
+        }
+
+        if (request.getInterviewerCollaboratorIds() == null) {
+            request.setInterviewerCollaboratorIds(List.of());
+        }
+
+        request.setAffirmativePcd(Boolean.TRUE.equals(request.getAffirmativePcd()));
+        if (request.getPublishGoogleJobs() == null) {
+            request.setPublishGoogleJobs(true);
         }
 
         boolean publish = Boolean.TRUE.equals(request.getIsPublic());

@@ -13,6 +13,7 @@ public class CompetencyMapper {
         return Competency.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
+                .interviewGuideQuestion(dto.getInterviewGuideQuestion())
                 .type(dto.getType())
                 .build();
     }
@@ -20,6 +21,7 @@ public class CompetencyMapper {
     public void updateEntity(Competency entity, CompetencyRequestDto dto) {
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
+        entity.setInterviewGuideQuestion(dto.getInterviewGuideQuestion());
         entity.setType(dto.getType());
     }
 
@@ -30,6 +32,7 @@ public class CompetencyMapper {
                 .status(entity.getStatus())
                 .name(entity.getName())
                 .description(entity.getDescription())
+                .interviewGuideQuestion(entity.getInterviewGuideQuestion())
                 .type(entity.getType())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())

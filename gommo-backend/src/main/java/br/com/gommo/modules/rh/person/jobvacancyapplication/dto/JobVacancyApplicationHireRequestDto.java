@@ -41,7 +41,7 @@ public class JobVacancyApplicationHireRequestDto {
     /** Data do aceite registrado pelo recrutador (MVP manual). */
     @NotNull private LocalDate acceptanceDate;
 
-    /** Canal do aceite: VERBAL | EMAIL | WHATSAPP. */
+    /** Canal do aceite: VERBAL | EMAIL | WHATSAPP | PORTAL. */
     @NotNull private AcceptanceChannelEnum acceptanceChannel;
 
     /** CPF pode ser informado na proposta se o candidato da pagina publica nao tiver. */

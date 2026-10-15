@@ -28,6 +28,7 @@ import br.com.gommo.modules.rh.person.jobvacancy.entity.JobVacancyWorkModalityEn
 @NoArgsConstructor
 @AllArgsConstructor
 public class JobVacancyRequestDto {
+    @NotNull
     private UUID jobPositionId;
 
     @NotBlank
@@ -78,4 +79,20 @@ public class JobVacancyRequestDto {
 
     @JsonProperty("isPublic")
     private Boolean isPublic;
+
+    private UUID recruiterCollaboratorId;
+
+    private UUID requestingManagerCollaboratorId;
+
+    @Builder.Default
+    private List<UUID> interviewerCollaboratorIds = new ArrayList<>();
+
+    @Min(1)
+    private Integer candidateReturnSlaBusinessDays;
+
+    @JsonProperty("affirmativePcd")
+    private Boolean affirmativePcd;
+
+    @JsonProperty("publishGoogleJobs")
+    private Boolean publishGoogleJobs;
 }

@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,6 +17,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hibernate.envers.Audited;
+
+import br.com.gommo.modules.cfg.access.actingprofile.entity.DataScopeEnum;
 
 /**
  * Vinculo usuario x perfil de atuacao x filial.
@@ -47,4 +51,15 @@ public class UserActingProfileAssignment {
 
     @Column(name = "company_id")
     private UUID companyId;
+
+    /**
+     * Override da abrangência do template {@code ActingProfile}.
+     * Null = herda o {@code dataScope} do perfil de atuação.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "data_scope", length = 32)
+    private DataScopeEnum dataScope;
+
+    @Column(name = "scope_ref")
+    private UUID scopeRef;
 }

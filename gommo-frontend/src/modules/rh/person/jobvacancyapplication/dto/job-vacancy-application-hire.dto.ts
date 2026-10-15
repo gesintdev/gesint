@@ -1,6 +1,6 @@
 export type CandidateAcceptance = "PENDING" | "ACCEPTED" | "DECLINED";
 
-export type AcceptanceChannel = "VERBAL" | "EMAIL" | "WHATSAPP";
+export type AcceptanceChannel = "VERBAL" | "EMAIL" | "WHATSAPP" | "PORTAL";
 
 export type AdmissionContractType =
     | "CLT"
@@ -32,6 +32,40 @@ export type JobVacancyApplicationHirePreview = {
     admissionProcessId?: string | null;
     rehireWarning?: string | null;
     otherActiveApplicationsCount?: number | null;
+    candidateAcceptance?: CandidateAcceptance | null;
+    acceptanceDate?: string | null;
+    acceptanceChannel?: AcceptanceChannel | null;
+    offerPending?: boolean;
+    portalAccepted?: boolean;
+    portalDeclined?: boolean;
+    offerSentAt?: string | null;
+    offerExpectedStartDate?: string | null;
+    offerBaseSalary?: number | null;
+    offerContractType?: AdmissionContractType | null;
+    offerExperiencePeriod?: HireExperiencePeriod | string | null;
+    offerWorkScheduleId?: string | null;
+    affirmativePcd?: boolean;
+};
+
+export type JobVacancyApplicationOfferRequest = {
+    contractType: AdmissionContractType;
+    experiencePeriod?: HireExperiencePeriod | null;
+    expectedStartDate: string;
+    baseSalary?: number | null;
+    workScheduleId?: string | null;
+};
+
+export type JobVacancyApplicationOfferResponse = {
+    applicationId: string;
+    candidateAcceptance?: CandidateAcceptance | null;
+    offerSentAt?: string | null;
+    contractType?: AdmissionContractType | null;
+    baseSalary?: number | null;
+    expectedStartDate?: string | null;
+    experiencePeriod?: string | null;
+    workScheduleId?: string | null;
+    candidateFullName?: string | null;
+    jobVacancyTitle?: string | null;
 };
 
 export type JobVacancyApplicationHireRequest = {
@@ -56,5 +90,9 @@ export type JobVacancyApplicationHireResponse = {
     admissionCode?: number | null;
     candidateFullName?: string | null;
     closedApplicationIds?: string[];
+    closedApplicationsCount?: number | null;
     rehireWarning?: string | null;
+    preAdmissionPortalPath?: string | null;
+    preAdmissionLinkSent?: boolean;
+    asoPredicted?: boolean;
 };

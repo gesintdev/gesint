@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.entity.InterviewEvaluationStatusEnum;
+import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.entity.InterviewRecommendationEnum;
 
 @Getter
 @Setter
@@ -24,6 +25,7 @@ public class InterviewEvaluationViewDto {
     private UUID evaluatorUserId;
     private String evaluatorName;
     private InterviewEvaluationStatusEnum evaluationStatus;
+    private InterviewRecommendationEnum recommendation;
     private OffsetDateTime submittedAt;
     private boolean mine;
     private boolean scoresVisible;

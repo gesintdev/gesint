@@ -41,7 +41,32 @@ const ACCEPTANCE_CHANNEL_ITEMS: SelectItem[] = [
     { value: "VERBAL", label: "Verbal" },
     { value: "EMAIL", label: "E-mail" },
     { value: "WHATSAPP", label: "WhatsApp" },
+    { value: "PORTAL", label: "Portal do candidato" },
 ];
+
+function ChecklistItem({
+    done,
+    children,
+}: {
+    done: boolean;
+    children: React.ReactNode;
+}) {
+    return (
+        <li
+            className={clsx(
+                "flex items-start gap-2",
+                done ? "text-base-content/65" : "text-base-content/45",
+            )}
+        >
+            {done ? (
+                <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" />
+            ) : (
+                <Circle className="mt-0.5 size-3.5 shrink-0" />
+            )}
+            {children}
+        </li>
+    );
+}
 
 function todayIso(): string {
     return new Date().toISOString().slice(0, 10);
@@ -153,11 +178,25 @@ export function HireProposalModal({
         const preview = previewQuery.data;
         if (!preview || !open) return;
         setContractType(preview.suggestedContractType ?? "CLT");
-        setExperiencePeriod(preview.suggestedExperiencePeriod ?? "DAYS_45_45");
+        setExperiencePeriod(
+            (preview.suggestedExperiencePeriod as HireExperiencePeriod) ?? "DAYS_45_45",
+        );
         if (preview.suggestedSalary != null && Number.isFinite(Number(preview.suggestedSalary))) {
             setBaseSalary(Number(preview.suggestedSalary).toFixed(2));
         }
         setCpf(preview.candidateCpf?.replace(/\D/g, "") ?? "");
+        if (preview.offerExpectedStartDate) {
+            setExpectedStartDate(preview.offerExpectedStartDate);
+        }
+        if (preview.offerWorkScheduleId) {
+            setWorkScheduleId(preview.offerWorkScheduleId);
+        }
+        if (preview.portalAccepted) {
+            setAcceptanceChannel("PORTAL");
+            if (preview.acceptanceDate) {
+                setAcceptanceDate(preview.acceptanceDate);
+            }
+        }
     }, [previewQuery.data, open]);
 
     const hireMutation = useMutation({
@@ -196,6 +235,11 @@ export function HireProposalModal({
                         : undefined,
                 },
             );
+            if (result.preAdmissionLinkSent && result.preAdmissionPortalPath) {
+                toast.message("Link de pré-admissão gerado", {
+                    description: result.preAdmissionPortalPath,
+                });
+            }
             if (result.rehireWarning) {
                 toast.warning(result.rehireWarning);
             }
@@ -208,13 +252,40 @@ export function HireProposalModal({
             }),
     });
 
+    const offerMutation = useMutation({
+        mutationFn: () => {
+            if (!applicationId) throw new Error("Candidatura inválida.");
+            return jobVacancyApplicationService.sendOffer(applicationId, {
+                contractType,
+                experiencePeriod: isClt ? experiencePeriod : "NONE",
+                expectedStartDate,
+                baseSalary: salaryNumber,
+                workScheduleId: workScheduleId || null,
+            });
+        },
+        onSuccess: () => {
+            toast.success("Proposta enviada ao portal do candidato");
+            void previewQuery.refetch();
+        },
+        onError: (err: unknown) =>
+            ExceptionCapture.handle(err, {
+                fallbackMessage: "Não foi possível enviar a proposta ao portal.",
+            }),
+    });
+
     const preview = previewQuery.data;
     const previewCpfDigits = preview?.candidateCpf?.replace(/\D/g, "") ?? "";
     const needsCpf = previewCpfDigits.length !== 11;
     const alreadyHired = Boolean(preview?.alreadyHired);
+    const portalAccepted = Boolean(preview?.portalAccepted);
+    const offerPending = Boolean(preview?.offerPending);
+    const portalDeclined = Boolean(preview?.portalDeclined);
+    const waitingPortalAccept = acceptanceChannel === "PORTAL" && !portalAccepted;
     const startDateError = submitted && !expectedStartDate ? "Informe a data de início." : undefined;
     const acceptanceDateError =
-        submitted && !acceptanceDate ? "Informe a data do aceite." : undefined;
+        submitted && !waitingPortalAccept && !acceptanceDate
+            ? "Informe a data do aceite."
+            : undefined;
     const acceptanceChannelError =
         submitted && !acceptanceChannel ? "Informe a forma do aceite." : undefined;
     const cpfDigits = cpf.replace(/\D/g, "");
@@ -224,12 +295,24 @@ export function HireProposalModal({
             ? "Informe um CPF válido (11 dígitos)."
             : undefined;
 
+    const checklistPreAdmissionDone = acceptanceChannel === "PORTAL";
+    const checklistAsoDone = true;
+    const checklistOthersDone = true;
+
     const handleConfirm = () => {
         setSubmitted(true);
         if (alreadyHired) return;
+        if (waitingPortalAccept) return;
         if (!expectedStartDate || !acceptanceDate || !acceptanceChannel) return;
         if (effectiveCpf.length !== 11) return;
         hireMutation.mutate();
+    };
+
+    const handleSendOffer = () => {
+        setSubmitted(true);
+        if (alreadyHired || portalAccepted) return;
+        if (!expectedStartDate) return;
+        offerMutation.mutate();
     };
 
     if (!mounted) return null;
@@ -312,6 +395,29 @@ export function HireProposalModal({
                                     ) : (
                                         "."
                                     )}
+                                </div>
+                            ) : null}
+
+                            {portalAccepted ? (
+                                <div className="rounded-lg border border-success/25 bg-success/5 px-3 py-2.5 text-sm text-base-content/70">
+                                    Candidato já aceitou a proposta pelo portal
+                                    {preview?.acceptanceDate
+                                        ? ` em ${preview.acceptanceDate}`
+                                        : ""}
+                                    . Confirme os termos e finalize a contratação.
+                                </div>
+                            ) : null}
+
+                            {offerPending ? (
+                                <div className="rounded-lg border border-info/25 bg-info/5 px-3 py-2.5 text-sm text-base-content/70">
+                                    Proposta enviada ao portal — aguardando aceite do candidato.
+                                </div>
+                            ) : null}
+
+                            {portalDeclined ? (
+                                <div className="rounded-lg border border-warning/35 bg-warning/10 px-3 py-2.5 text-sm text-base-content/70">
+                                    Candidato recusou a proposta no portal. Você pode enviar uma nova
+                                    proposta ou registrar outro canal de aceite.
                                 </div>
                             ) : null}
 
@@ -405,8 +511,13 @@ export function HireProposalModal({
                                         value={acceptanceDate}
                                         onValueChange={setAcceptanceDate}
                                         error={acceptanceDateError}
-                                        disabled={alreadyHired || hireMutation.isPending}
-                                        required
+                                        disabled={
+                                            alreadyHired ||
+                                            hireMutation.isPending ||
+                                            portalAccepted ||
+                                            waitingPortalAccept
+                                        }
+                                        required={!waitingPortalAccept}
                                     />
                                     <InputSelect
                                         label="Forma do aceite"
@@ -416,9 +527,11 @@ export function HireProposalModal({
                                             setAcceptanceChannel((v || "") as AcceptanceChannel | "")
                                         }
                                         error={acceptanceChannelError}
-                                        disabled={alreadyHired || hireMutation.isPending}
+                                        disabled={
+                                            alreadyHired || hireMutation.isPending || portalAccepted
+                                        }
                                         required
-                                        placeholder="Verbal, e-mail ou WhatsApp"
+                                        placeholder="Verbal, e-mail, WhatsApp ou portal"
                                     />
                                     {needsCpf ? (
                                         <InputString
@@ -433,8 +546,11 @@ export function HireProposalModal({
                                     ) : null}
                                 </div>
                                 <p className="text-[0.6875rem] text-base-content/45">
-                                    Aceite do candidato: no MVP o recrutador registra à mão (data e
-                                    forma). Aceite pelo portal fica para depois.
+                                    {portalAccepted
+                                        ? "Aceite já registrado pelo portal. Finalize a contratação abaixo."
+                                        : waitingPortalAccept
+                                          ? "Com canal Portal: envie a proposta e aguarde o aceite do candidato antes de confirmar."
+                                          : "Registre o aceite (verbal, e-mail ou WhatsApp) ou use o portal do candidato."}
                                 </p>
                             </section>
 
@@ -442,29 +558,34 @@ export function HireProposalModal({
                                 <p className="text-xs font-semibold text-base-content">
                                     O que acontece ao confirmar
                                 </p>
-                                <ul className="mt-2 grid gap-1.5 text-xs text-base-content/65">
-                                    <li className="flex items-start gap-2">
-                                        <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" />
+                                <ul className="mt-2 grid gap-1.5 text-xs">
+                                    <ChecklistItem done>
                                         Cria a admissão ligada a esta candidatura (mesma pessoa, sem
                                         redigitar)
-                                    </li>
-                                    <li className="flex items-start gap-2 text-base-content/45">
-                                        <Circle className="mt-0.5 size-3.5 shrink-0" />
-                                        Envia link de pré-admissão à candidata: documentos, dados
-                                        bancários, dados do eSocial, autodeclarações
-                                    </li>
-                                    <li className="flex items-start gap-2 text-base-content/45">
-                                        <Circle className="mt-0.5 size-3.5 shrink-0" />
-                                        Agenda o exame admissional conforme a Matriz de Exames do cargo
-                                    </li>
-                                    <li className="flex items-start gap-2">
-                                        <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" />
+                                    </ChecklistItem>
+                                    <ChecklistItem done={checklistPreAdmissionDone}>
+                                        {checklistPreAdmissionDone
+                                            ? `Gera link de pré-admissão no portal (documentos, dados bancários${
+                                                  preview?.affirmativePcd
+                                                      ? ", autodeclaração PCD opcional"
+                                                      : ""
+                                              })`
+                                            : "Link de pré-admissão no portal — apenas com canal Portal"}
+                                    </ChecklistItem>
+                                    <ChecklistItem done={checklistAsoDone}>
+                                        Prevê o exame admissional (ASO) conforme a Matriz de Exames do
+                                        cargo
+                                    </ChecklistItem>
+                                    <ChecklistItem done={checklistOthersDone}>
                                         Encerra as demais candidaturas ativas desta vaga e envia
                                         retorno
                                         {preview?.otherActiveApplicationsCount
                                             ? ` (${preview.otherActiveApplicationsCount})`
                                             : ""}
-                                    </li>
+                                    </ChecklistItem>
+                                    <ChecklistItem done={false}>
+                                        Envio S-2200 / eSocial fica fora desta etapa (fora de escopo)
+                                    </ChecklistItem>
                                 </ul>
                                 {preview?.rehireWarning ? (
                                     <div className="mt-3 flex gap-2 rounded-lg border border-warning/35 bg-warning/10 px-3 py-2.5 text-sm text-warning-content">
@@ -484,17 +605,38 @@ export function HireProposalModal({
                     <Button
                         type="button"
                         variant="ghost"
-                        disabled={hireMutation.isPending}
+                        disabled={hireMutation.isPending || offerMutation.isPending}
                         onClick={onClose}
                     >
                         Cancelar
                     </Button>
+                    {waitingPortalAccept || offerPending || portalDeclined ? (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            loading={offerMutation.isPending}
+                            disabled={
+                                offerMutation.isPending ||
+                                hireMutation.isPending ||
+                                alreadyHired ||
+                                portalAccepted ||
+                                offerPending ||
+                                previewQuery.isLoading ||
+                                previewQuery.isError
+                            }
+                            onClick={handleSendOffer}
+                        >
+                            {offerPending ? "Proposta já enviada" : "Enviar proposta ao portal"}
+                        </Button>
+                    ) : null}
                     <Button
                         type="button"
                         loading={hireMutation.isPending}
                         disabled={
                             hireMutation.isPending ||
+                            offerMutation.isPending ||
                             alreadyHired ||
+                            waitingPortalAccept ||
                             previewQuery.isLoading ||
                             previewQuery.isError
                         }

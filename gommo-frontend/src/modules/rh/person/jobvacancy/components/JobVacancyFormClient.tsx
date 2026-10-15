@@ -7,6 +7,7 @@ import { type FormEvent, useEffect, useId, useMemo, useRef, useState } from "rea
 import { toast } from "sonner";
 
 import { JobPositionPickerField } from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
+import { jobpositionService } from "@/modules/dp/organization/jobposition/services/jobposition.service";
 import { JobVacancyCompetencySection } from "@/modules/rh/person/jobvacancy/competency/components/JobVacancyCompetencySection";
 import type {
     JobBoardKey,
@@ -31,6 +32,8 @@ import {
     JOB_VACANCY_WORK_SCHEDULE_ITEMS,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.options";
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
+import { CollaboratorMultiPickerField } from "@/shared/components/crud/CollaboratorMultiPickerField";
+import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
@@ -53,6 +56,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [
     { id: "dados", label: "Dados" },
     { id: "detalhes", label: "Detalhes" },
+    { id: "responsaveis", label: "Responsáveis" },
     { id: "competencias-entrevista", label: "Competências" },
     { id: "publicacao", label: "Publicação" },
 ];
@@ -82,6 +86,11 @@ function TextAreaField({ label, value, onValueChange, wrapperClassName, placehol
             />
         </InputFieldChrome>
     );
+}
+
+function buildWhatsAppShareText(jobTitle: string, url: string): string {
+    const title = jobTitle.trim() || "vaga";
+    return `Olá! Confira a vaga de ${title}: ${url}`;
 }
 
 export function JobVacancyFormClient() {
@@ -161,6 +170,27 @@ export function JobVacancyFormClient() {
             return next;
         });
     };
+    const applyJobPosition = async (jobPositionId: string) => {
+        if (!jobPositionId.trim()) {
+            setForm((prev) => ({ ...prev, jobPositionId: null, jobTitle: "" }));
+            return;
+        }
+        try {
+            const position = await jobpositionService.getById(jobPositionId);
+            setForm((prev) => {
+                const title = position.title ?? prev.jobTitle;
+                const autoSlug = !prev.slug || prev.slug === slugFromJobTitle(prev.jobTitle);
+                return {
+                    ...prev,
+                    jobPositionId,
+                    jobTitle: title,
+                    slug: autoSlug ? slugFromJobTitle(title) : prev.slug,
+                };
+            });
+        } catch {
+            setForm((prev) => ({ ...prev, jobPositionId }));
+        }
+    };
     const toggleBoard = (board: JobBoardKey) => {
         setForm((prev) => {
             const current = prev.targetBoards ?? [];
@@ -175,6 +205,10 @@ export function JobVacancyFormClient() {
         setError(null);
         // formRef é atualizado de forma síncrona em todo setForm (inclui blur do markdown).
         const snapshot = formRef.current;
+        if (!snapshot.jobPositionId?.trim()) {
+            setError("Selecione o cargo vinculado à vaga.");
+            return;
+        }
         if (!snapshot.jobTitle.trim()) {
             setError("Informe o nome do cargo da vaga.");
             return;
@@ -183,18 +217,32 @@ export function JobVacancyFormClient() {
             setError("A quantidade de posições deve ser maior que zero.");
             return;
         }
+        if (
+            snapshot.candidateReturnSlaBusinessDays != null &&
+            snapshot.candidateReturnSlaBusinessDays < 1
+        ) {
+            setError("O prazo de retorno ao candidato deve ser de pelo menos 1 dia útil.");
+            return;
+        }
         if (snapshot.isPublic && !(snapshot.slug?.trim() || slugFromJobTitle(snapshot.jobTitle))) {
             setError("Informe um slug válido para a página pública.");
             return;
         }
         saveMutation.mutate(snapshot);
     };
-    const pickerValue = form.jobPositionId?.trim() || form.jobTitle || "";
     const publicSlug = form.slug?.trim() || slugFromJobTitle(form.jobTitle);
     const publicCareersUrl = useMemo(() => {
         if (!publicSlug || typeof window === "undefined") return "";
         return `${window.location.origin}/careers/${encodeURIComponent(publicSlug)}`;
     }, [publicSlug]);
+    const whatsappShareUrl = useMemo(() => {
+        if (!publicCareersUrl) return "";
+        return `${publicCareersUrl}?origem=whatsapp`;
+    }, [publicCareersUrl]);
+    const whatsappShareText = useMemo(
+        () => buildWhatsAppShareText(form.jobTitle, whatsappShareUrl || publicCareersUrl),
+        [form.jobTitle, whatsappShareUrl, publicCareersUrl],
+    );
     const copyPublicLink = async () => {
         if (!publicCareersUrl) return;
         try {
@@ -202,6 +250,15 @@ export function JobVacancyFormClient() {
             toast.success("Link da candidatura copiado");
         } catch {
             toast.error("Não foi possível copiar o link.");
+        }
+    };
+    const copyWhatsAppText = async () => {
+        if (!whatsappShareText) return;
+        try {
+            await navigator.clipboard.writeText(whatsappShareText);
+            toast.success("Texto do WhatsApp copiado");
+        } catch {
+            toast.error("Não foi possível copiar o texto.");
         }
     };
 
@@ -256,21 +313,11 @@ export function JobVacancyFormClient() {
         >
             <FormSection id="dados" title="Dados da vaga">
                 <JobPositionPickerField
-                    allowCustomTitle
-                    label="Nome do cargo"
-                    value={pickerValue}
-                    onValueChange={(selection) => {
-                        setForm((prev) => {
-                            const title = selection.title;
-                            const autoSlug =
-                                !prev.slug || prev.slug === slugFromJobTitle(prev.jobTitle);
-                            return {
-                                ...prev,
-                                jobPositionId: selection.jobPositionId,
-                                jobTitle: title,
-                                slug: autoSlug ? slugFromJobTitle(title) : prev.slug,
-                            };
-                        });
+                    label="Cargo"
+                    hint="Obrigatório. Título e competências herdam do cargo cadastrado."
+                    value={form.jobPositionId ?? ""}
+                    onValueChange={(id) => {
+                        void applyJobPosition(id);
                     }}
                     required
                     wrapperClassName="sm:col-span-8"
@@ -282,6 +329,14 @@ export function JobVacancyFormClient() {
                     integer
                     required
                     wrapperClassName="sm:col-span-4"
+                />
+                <InputString
+                    label="Título da vaga"
+                    value={form.jobTitle ?? ""}
+                    onValueChange={(v) => update("jobTitle", v)}
+                    hint="Preenchido pelo cargo; pode ajustar o texto público."
+                    required
+                    wrapperClassName="sm:col-span-8"
                 />
                 <InputSelect
                     label="Senioridade"
@@ -359,6 +414,31 @@ export function JobVacancyFormClient() {
                     clearable
                     wrapperClassName="sm:col-span-4"
                 />
+                <label
+                    className={clsx(
+                        "flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors sm:col-span-12",
+                        form.affirmativePcd
+                            ? "border-primary/40 bg-primary/5"
+                            : "border-base-300 bg-base-100 hover:border-base-content/20",
+                    )}
+                >
+                    <InputCheckbox
+                        size="sm"
+                        checked={Boolean(form.affirmativePcd)}
+                        onCheckedChange={(checked) => update("affirmativePcd", checked)}
+                        className="mt-0.5"
+                        aria-label="Vaga afirmativa / PCD"
+                    />
+                    <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-base-content">
+                            Vaga afirmativa / PCD
+                        </span>
+                        <span className="mt-0.5 block text-xs text-base-content/55">
+                            Ativa a autodeclaração opcional no portal do candidato (fluxo completo na T13). A
+                            flag da vaga já fica persistida.
+                        </span>
+                    </span>
+                </label>
             </FormSection>
 
             <FormSection id="detalhes" title="Detalhes">
@@ -400,6 +480,38 @@ export function JobVacancyFormClient() {
                 />
             </FormSection>
 
+            <FormSection id="responsaveis" title="Responsáveis">
+                <CollaboratorPickerField
+                    label="Recrutador(a)"
+                    value={form.recruiterCollaboratorId ?? ""}
+                    onValueChange={(id) => update("recruiterCollaboratorId", id || null)}
+                    wrapperClassName="sm:col-span-6"
+                />
+                <CollaboratorPickerField
+                    label="Gestor(a) requisitante"
+                    value={form.requestingManagerCollaboratorId ?? ""}
+                    onValueChange={(id) => update("requestingManagerCollaboratorId", id || null)}
+                    managersOnly
+                    hint="Somente colaboradores em cargos de gestão"
+                    wrapperClassName="sm:col-span-6"
+                />
+                <CollaboratorMultiPickerField
+                    label="Entrevistadores"
+                    hint="Colaboradores que participam das entrevistas desta vaga"
+                    selectedIds={form.interviewerCollaboratorIds ?? []}
+                    onChange={(ids) => update("interviewerCollaboratorIds", ids)}
+                    wrapperClassName="sm:col-span-8"
+                />
+                <InputNumber
+                    label="Prazo de retorno ao candidato"
+                    hint="Dias úteis (mín. 1)"
+                    value={form.candidateReturnSlaBusinessDays ?? 5}
+                    onValueChange={(v) => update("candidateReturnSlaBusinessDays", v ?? 5)}
+                    integer
+                    wrapperClassName="sm:col-span-4"
+                />
+            </FormSection>
+
             <JobVacancyCompetencySection
                 jobVacancyId={isEditing ? editingId : null}
                 hasJobPosition={Boolean(form.jobPositionId)}
@@ -424,6 +536,10 @@ export function JobVacancyFormClient() {
                                         ...prev,
                                         isPublic: checked,
                                         slug: prev.slug?.trim() || slugFromJobTitle(prev.jobTitle),
+                                        publishGoogleJobs:
+                                            checked && prev.publishGoogleJobs == null
+                                                ? true
+                                                : prev.publishGoogleJobs,
                                     }));
                                 }}
                                 className="mt-0.5"
@@ -435,6 +551,33 @@ export function JobVacancyFormClient() {
                                 </span>
                                 <span className="mt-0.5 block text-xs text-base-content/55">
                                     Gera um link público para candidatos se inscreverem sem login.
+                                </span>
+                            </span>
+                        </label>
+
+                        <label
+                            className={clsx(
+                                "flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors",
+                                !form.isPublic && "opacity-60",
+                                form.isPublic && form.publishGoogleJobs !== false
+                                    ? "border-primary/40 bg-primary/5"
+                                    : "border-base-300 bg-base-100 hover:border-base-content/20",
+                            )}
+                        >
+                            <InputCheckbox
+                                size="sm"
+                                checked={form.publishGoogleJobs !== false}
+                                disabled={!form.isPublic}
+                                onCheckedChange={(checked) => update("publishGoogleJobs", checked)}
+                                className="mt-0.5"
+                                aria-label="Google for Jobs"
+                            />
+                            <span className="min-w-0">
+                                <span className="block text-sm font-semibold text-base-content">
+                                    Google for Jobs
+                                </span>
+                                <span className="mt-0.5 block text-xs text-base-content/55">
+                                    Publica dados estruturados (JSON-LD JobPosting) na página pública.
                                 </span>
                             </span>
                         </label>
@@ -486,6 +629,55 @@ export function JobVacancyFormClient() {
                                     >
                                         Abrir página
                                     </Button>
+                                </div>
+
+                                <div className="mt-4 border-t border-base-content/10 pt-3">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.04em] text-base-content/45">
+                                        WhatsApp
+                                    </p>
+                                    <p className="mt-1 text-xs text-base-content/55">
+                                        Texto pronto para colar no WhatsApp (inclui origem=whatsapp).
+                                    </p>
+                                    <textarea
+                                        readOnly
+                                        rows={3}
+                                        value={whatsappShareText}
+                                        className={clsx(
+                                            "gommo-control mt-2 w-full resize-none px-3 py-2 text-sm",
+                                            fieldClass(),
+                                        )}
+                                    />
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="outline"
+                                            leftIcon={<Copy className="size-3.5" strokeWidth={2.25} />}
+                                            onClick={() => void copyWhatsAppText()}
+                                        >
+                                            Copiar texto
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            disabled={!isEditing}
+                                            title={
+                                                isEditing
+                                                    ? undefined
+                                                    : "Salve a vaga para liberar o compartilhamento"
+                                            }
+                                            onClick={() =>
+                                                window.open(
+                                                    `https://wa.me/?text=${encodeURIComponent(whatsappShareText)}`,
+                                                    "_blank",
+                                                    "noopener,noreferrer",
+                                                )
+                                            }
+                                        >
+                                            Abrir WhatsApp
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         ) : null}

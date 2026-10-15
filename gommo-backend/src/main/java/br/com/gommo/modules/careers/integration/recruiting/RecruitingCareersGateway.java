@@ -281,6 +281,7 @@ public class RecruitingCareersGateway implements CareersPlatformGateway {
                 .salaryMax(vacancy.getSalaryMax())
                 .publishedAt(vacancy.getPublishedAt())
                 .expectedCompletionDate(vacancy.getExpectedCompletionDate())
+                .publishGoogleJobs(vacancy.getPublishGoogleJobs() == null || Boolean.TRUE.equals(vacancy.getPublishGoogleJobs()))
                 .build();
     }
 }

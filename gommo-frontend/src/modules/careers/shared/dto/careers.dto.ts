@@ -99,6 +99,8 @@ export type CareersVacancy = CareersVacancySummary & {
     requirements?: string | null;
     benefits?: string | null;
     workSchedule?: string | null;
+    /** Omit JSON-LD when false. Defaults to true when absent. */
+    publishGoogleJobs?: boolean | null;
     organizationName: string;
     customized: boolean;
     branding: CareersBranding;

@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -102,7 +103,7 @@ public class ProfileService implements IProfileService {
                 .build();
         Role saved = roleRepository.save(role);
         auditTrail.record(AuditTrailEntry.of(AuditActionEnum.CREATE, saved));
-        recordPermissionChanges(saved, Set.of());
+        recordPermissionChanges(saved, Set.of(), request.getSensitivePermissionJustifications());
         return mapper.toResponse(saved);
     }
 
@@ -130,7 +131,7 @@ public class ProfileService implements IProfileService {
         role.setPermissions(resolvePermissions(request, currentPermissionIds));
         Role saved = roleRepository.save(role);
         auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, saved));
-        recordPermissionChanges(saved, previousPermissions);
+        recordPermissionChanges(saved, previousPermissions, request.getSensitivePermissionJustifications());
         return mapper.toResponse(saved);
     }
 
@@ -174,15 +175,28 @@ public class ProfileService implements IProfileService {
     }
 
     /** Um evento por permissao concedida/retirada: o detalhe e a descricao da permissao. */
-    private void recordPermissionChanges(Role role, Set<Permission> previous) {
+    private void recordPermissionChanges(
+            Role role, Set<Permission> previous, Map<UUID, String> sensitiveJustifications) {
         Set<Permission> current = role.getPermissions() == null ? Set.of() : role.getPermissions();
         Set<UUID> previousIds = previous.stream().map(Permission::getId).collect(Collectors.toSet());
         Set<UUID> currentIds = current.stream().map(Permission::getId).collect(Collectors.toSet());
+        Map<UUID, String> reasons =
+                sensitiveJustifications == null ? Map.of() : sensitiveJustifications;
         current.stream()
                 .filter(permission -> !previousIds.contains(permission.getId()))
                 .sorted(Comparator.comparing(Permission::getAuthority))
-                .forEach(permission -> auditTrail.record(
-                        AuditTrailEntry.of(AuditActionEnum.PERMISSION_GRANT, role).detail(permissionLabel(permission))));
+                .forEach(permission -> {
+                    AuditTrailEntry entry = AuditTrailEntry.of(AuditActionEnum.PERMISSION_GRANT, role)
+                            .detail(permissionLabel(permission));
+                    if (isSensitiveAuthority(permission.getAuthority())) {
+                        String reason = reasons.get(permission.getId());
+                        if (!StringUtils.hasText(reason)) {
+                            throw ProfileException.sensitiveJustificationRequired();
+                        }
+                        entry.reason(reason.trim());
+                    }
+                    auditTrail.record(entry);
+                });
         previous.stream()
                 .filter(permission -> !currentIds.contains(permission.getId()))
                 .sorted(Comparator.comparing(Permission::getAuthority))
@@ -195,6 +209,15 @@ public class ProfileService implements IProfileService {
                 ? permission.getDescription()
                 : permission.getAuthority();
         return "\"" + description + "\" (" + permission.getAuthority() + ")";
+    }
+
+    private static boolean isSensitiveAuthority(String authority) {
+        if (authority == null || authority.isBlank()) {
+            return false;
+        }
+        int sep = authority.indexOf(':');
+        String action = sep >= 0 ? authority.substring(sep + 1) : authority;
+        return "sensitive".equals(action) || "financial".equals(action) || "clinical".equals(action);
     }
 
     private Role findProfile(UUID id) {

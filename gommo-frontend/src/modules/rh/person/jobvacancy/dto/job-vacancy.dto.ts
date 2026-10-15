@@ -32,6 +32,12 @@ export class JobVacancy {
     slug?: string | null;
     isPublic?: boolean;
     publishedAt?: string | null;
+    recruiterCollaboratorId?: string | null;
+    requestingManagerCollaboratorId?: string | null;
+    interviewerCollaboratorIds?: string[];
+    candidateReturnSlaBusinessDays?: number;
+    affirmativePcd?: boolean;
+    publishGoogleJobs?: boolean;
     candidateCount?: number;
     createdAt?: string;
     updatedAt?: string;
@@ -59,4 +65,10 @@ export class JobVacancyCreateDto {
     targetBoards?: JobBoardKey[];
     slug?: string;
     isPublic?: boolean;
+    recruiterCollaboratorId?: string | null;
+    requestingManagerCollaboratorId?: string | null;
+    interviewerCollaboratorIds?: string[];
+    candidateReturnSlaBusinessDays?: number;
+    affirmativePcd?: boolean;
+    publishGoogleJobs?: boolean;
 }

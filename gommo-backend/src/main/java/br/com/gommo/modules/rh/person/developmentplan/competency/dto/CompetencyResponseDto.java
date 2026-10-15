@@ -17,6 +17,7 @@ public class CompetencyResponseDto {
     private final StatusEnum status;
     private final String name;
     private final String description;
+    private final String interviewGuideQuestion;
     private final CompetencyTypeEnum type;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;

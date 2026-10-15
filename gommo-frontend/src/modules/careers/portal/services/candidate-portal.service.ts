@@ -2,6 +2,8 @@ import type {
     CandidatePortalApplication,
     CandidatePortalLoginPayload,
     CandidatePortalMe,
+    CandidatePortalOffer,
+    CandidatePortalPreAdmission,
     CandidatePortalProviders,
     CandidatePortalRegisterPayload,
     CandidatePortalTokenResponse,
@@ -141,6 +143,80 @@ class CandidatePortalService {
             { method: "POST" },
         );
     }
+
+    listOffers(): Promise<CandidatePortalOffer[]> {
+        return withCandidateToken<CandidatePortalOffer[]>(`${PORTAL_BASE}/offers`);
+    }
+
+    acceptOffer(applicationId: string): Promise<CandidatePortalOffer> {
+        return withCandidateToken<CandidatePortalOffer>(
+            `${PORTAL_BASE}/applications/${encodeURIComponent(applicationId)}/offer/accept`,
+            { method: "POST" },
+        );
+    }
+
+    declineOffer(applicationId: string, reason?: string): Promise<CandidatePortalOffer> {
+        return withCandidateToken<CandidatePortalOffer>(
+            `${PORTAL_BASE}/applications/${encodeURIComponent(applicationId)}/offer/decline`,
+            { method: "POST", body: reason ? { reason } : {} },
+        );
+    }
+
+    getPreAdmission(token?: string | null): Promise<CandidatePortalPreAdmission> {
+        const qs = token ? `?token=${encodeURIComponent(token)}` : "";
+        return withCandidateToken<CandidatePortalPreAdmission>(`${PORTAL_BASE}/pre-admission${qs}`);
+    }
+
+    updatePreAdmission(
+        payload: Partial<CandidatePortalPreAdmission>,
+        token?: string | null,
+    ): Promise<CandidatePortalPreAdmission> {
+        const qs = token ? `?token=${encodeURIComponent(token)}` : "";
+        return withCandidateToken<CandidatePortalPreAdmission>(`${PORTAL_BASE}/pre-admission${qs}`, {
+            method: "PUT",
+            body: payload,
+        });
+    }
+
+    completePreAdmission(token?: string | null): Promise<CandidatePortalPreAdmission> {
+        const qs = token ? `?token=${encodeURIComponent(token)}` : "";
+        return withCandidateToken<CandidatePortalPreAdmission>(`${PORTAL_BASE}/pre-admission/complete${qs}`, {
+            method: "POST",
+        });
+    }
+
+    async uploadPreAdmissionDocument(
+        file: File,
+        documentType: string,
+        token?: string | null,
+    ): Promise<CandidatePortalPreAdmission> {
+        const session = await ensureFreshSession();
+        if (!session) {
+            throw new Error("CANDIDATE_PORTAL_UNAUTHORIZED");
+        }
+        const form = new FormData();
+        form.append("file", file);
+        const qs = new URLSearchParams({ documentType });
+        if (token) qs.set("token", token);
+        try {
+            return await apiFetch<CandidatePortalPreAdmission>(
+                `${PORTAL_BASE}/pre-admission/documents?${qs.toString()}`,
+                {
+                    method: "POST",
+                    body: form,
+                    token: session.accessToken,
+                    skipAuth: false,
+                    skipAuthRetry: true,
+                },
+            );
+        } catch (error) {
+            const status = (error as { status?: number })?.status;
+            if (status === 401) {
+                clearCandidateSession();
+            }
+            throw error;
+        }
+    }
 }
 
 export const candidatePortalService = new CandidatePortalService();
@@ -148,6 +224,8 @@ export const candidatePortalService = new CandidatePortalService();
 export const candidatePortalKeys = {
     me: ["candidate-portal", "me"] as const,
     applications: ["candidate-portal", "applications"] as const,
+    offers: ["candidate-portal", "offers"] as const,
+    preAdmission: (token?: string | null) => ["candidate-portal", "pre-admission", token ?? ""] as const,
     byVacancy: (slug: string) => ["candidate-portal", "applications", "vacancy", slug] as const,
     providers: ["candidate-portal", "providers"] as const,
 };

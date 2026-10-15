@@ -168,6 +168,13 @@ public final class JobVacancyApplicationException {
                 HttpStatus.BAD_REQUEST);
     }
 
+    public static BusinessException interviewRecommendationRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_RECOMMENDATION_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_RECOMMENDATION_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
     public static BusinessException interviewAlreadySubmitted() {
         return new BusinessException(
                 JobVacancyApplicationExceptions.INTERVIEW_ALREADY_SUBMITTED_CODE,
@@ -214,6 +221,27 @@ public final class JobVacancyApplicationException {
         return new BusinessException(
                 JobVacancyApplicationExceptions.HIRE_CANDIDATE_REQUIRED_CODE,
                 JobVacancyApplicationExceptions.HIRE_CANDIDATE_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException offerAlreadySent() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.OFFER_ALREADY_SENT_CODE,
+                JobVacancyApplicationExceptions.OFFER_ALREADY_SENT_MSG,
+                HttpStatus.CONFLICT);
+    }
+
+    public static BusinessException offerNotPending() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.OFFER_NOT_PENDING_CODE,
+                JobVacancyApplicationExceptions.OFFER_NOT_PENDING_MSG,
+                HttpStatus.CONFLICT);
+    }
+
+    public static BusinessException portalAcceptanceRequired() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.PORTAL_ACCEPTANCE_REQUIRED_CODE,
+                JobVacancyApplicationExceptions.PORTAL_ACCEPTANCE_REQUIRED_MSG,
                 HttpStatus.BAD_REQUEST);
     }
 }

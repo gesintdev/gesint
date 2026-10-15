@@ -29,6 +29,7 @@ public class CareersVacancyResponseDto {
     private final BigDecimal salaryMax;
     private final OffsetDateTime publishedAt;
     private final LocalDate expectedCompletionDate;
+    private final Boolean publishGoogleJobs;
     private final String organizationName;
     private final boolean customized;
     private final CareersBrandingDto branding;

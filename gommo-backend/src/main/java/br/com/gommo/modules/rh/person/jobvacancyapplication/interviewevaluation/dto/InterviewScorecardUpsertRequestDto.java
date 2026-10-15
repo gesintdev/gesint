@@ -13,6 +13,8 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.gommo.modules.rh.person.jobvacancyapplication.interviewevaluation.entity.InterviewRecommendationEnum;
+
 @Getter
 @Setter
 @Builder
@@ -23,6 +25,8 @@ public class InterviewScorecardUpsertRequestDto {
     @NotBlank
     @Size(max = 80)
     private String columnKey;
+
+    private InterviewRecommendationEnum recommendation;
 
     @NotNull
     @Valid
