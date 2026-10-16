@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.96.0",
+      "hash": "4674953c",
+      "date": "2026-10-16T08:05:23-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (assistant UX e sidemenu)",
+      "body": "**Commits incluídos**\n\n- feat(assistant): respostas em linguagem de negócio e UX do painel",
+      "pullRequest": null
+    },
+    {
       "version": "1.95.1",
       "hash": "54fa84f6",
       "date": "2026-10-15T14:24:20-03:00",
