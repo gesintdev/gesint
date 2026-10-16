@@ -16,6 +16,7 @@ import { admissionprocessService } from "@/modules/rh/person/collaborators/admis
 import { useHasPermission } from "@/shared/auth/permissions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { DataTable } from "@/shared/components/ui/DataTable";
 import { ExceptionCapture } from "@/shared/exceptions";
 
@@ -79,11 +80,7 @@ export function AdmissionOccupationalExamTab() {
 
     if (admissionQuery.isLoading) {
         return (
-            <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
-                ))}
-            </div>
+            <SkeletonStack count={4} padded />
         );
     }
 
@@ -134,11 +131,7 @@ export function AdmissionOccupationalExamTab() {
             </div>
 
             {examsQuery.isLoading ? (
-                <div className="grid gap-2">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="skeleton-shimmer h-10 w-full" />
-                    ))}
-                </div>
+                <SkeletonStack count={3} />
             ) : examsQuery.isError ? (
                 <p className="text-sm font-medium text-error">
                     {ExceptionCapture.displayMessage(

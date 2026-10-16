@@ -15,6 +15,7 @@ import {
 import { canWriteRoute } from "@/shared/auth/route-access";
 import { CRUD_TAB_LIST, useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
 import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
@@ -58,11 +59,7 @@ export function JobVacancyDetailTab() {
 
     if (detailQuery.isLoading) {
         return (
-            <div className="grid gap-2 p-5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
-                ))}
-            </div>
+            <SkeletonStack count={5} padded />
         );
     }
 

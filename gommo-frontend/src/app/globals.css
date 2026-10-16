@@ -2202,6 +2202,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 ────────────────────────────────────────────── */
 .skeleton-shimmer {
     border-radius: var(--gommo-control-radius);
+    flex-shrink: 0;
     background: linear-gradient(
         90deg,
         var(--gommo-skeleton-base) 0%,
@@ -2210,6 +2211,25 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Stack compacto — evita gap enorme quando o pai e alto (grid 1fr / flex-1). */
+.skeleton-stack {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 0.5rem;
+    align-self: flex-start;
+}
+
+/*
+ * Rede de seguranca: grids cujo unico filho direto e .skeleton-shimmer
+ * nao devem esticar as tracks (causa tipica de “espaco entre linhas enorme”).
+ */
+div:has(> .skeleton-shimmer):not(:has(> :not(.skeleton-shimmer))) {
+    align-content: start;
+    grid-auto-rows: max-content;
 }
 
 /* ──────────────────────────────────────────────

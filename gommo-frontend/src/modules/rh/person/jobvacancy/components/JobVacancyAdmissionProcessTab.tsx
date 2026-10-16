@@ -43,6 +43,7 @@ import {
     type KanbanItemMoveEvent,
 } from "@/shared/components/kanban";
 import { Button } from "@/shared/components/ui/Button";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { formatPhone } from "@/shared/lib/table/format-cell-value";
 
@@ -471,11 +472,7 @@ export function JobVacancyAdmissionProcessTab() {
 
     if (columnsQuery.isLoading || applicationsQuery.isLoading || startProcessMutation.isPending) {
         return (
-            <div className="grid gap-2 p-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-24 w-full" />
-                ))}
-            </div>
+            <SkeletonStack count={4} padded="sm" rowClassName="h-24" />
         );
     }
 

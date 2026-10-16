@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Eye } from "lucide-react";
 import { useMemo, useState } from "react";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 
 import { admissionProcessKanbanColumnKeys } from "@/modules/cfg/settings/admissionprocesskanban/admission-process-kanban-column.query";
 import { admissionProcessKanbanColumnService } from "@/modules/cfg/settings/admissionprocesskanban/services/admission-process-kanban-column.service";
@@ -98,11 +99,7 @@ export function JobVacancyCandidatesPanel({ jobVacancyId }: JobVacancyCandidates
 
     if (query.isLoading) {
         return (
-            <div className="grid gap-2 p-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-8 w-full" />
-                ))}
-            </div>
+            <SkeletonStack count={3} padded="sm" rowClassName="h-8" />
         );
     }
 

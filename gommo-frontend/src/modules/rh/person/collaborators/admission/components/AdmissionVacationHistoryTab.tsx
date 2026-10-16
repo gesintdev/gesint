@@ -22,6 +22,7 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { Button } from "@/shared/components/ui/Button";
 import { DataTable } from "@/shared/components/ui/DataTable";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
@@ -130,13 +131,7 @@ export function AdmissionVacationHistoryTab() {
     if (!editingId) return <EmptyAdmissionState />;
 
     if (admissionQuery.isLoading || vacationHistoryQuery.isLoading || eligibleQuery.isLoading) {
-        return (
-            <div className="grid gap-2 p-5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" style={{ animationDelay: `${i * 70}ms` }} />
-                ))}
-            </div>
-        );
+        return <SkeletonStack count={5} padded />;
     }
 
     if (admissionQuery.isError) {
