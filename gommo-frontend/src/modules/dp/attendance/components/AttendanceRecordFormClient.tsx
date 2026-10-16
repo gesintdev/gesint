@@ -40,6 +40,7 @@ import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPick
 import {CRUD_TAB_FORM, useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {useCrudFormDirty} from "@/shared/components/crud/useCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
+import {SkeletonStack} from "@/shared/components/ui/SkeletonStack";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {SystemAlert} from "@/shared/system-alert";
 
@@ -472,15 +473,7 @@ export function AttendanceRecordFormClient() {
                     onDetailRequest={() => undefined}
                 />
             ) : historyQuery.isLoading ? (
-                <div className="grid gap-2 p-4">
-                    {Array.from({length: 8}).map((_, index) => (
-                        <div
-                            key={index}
-                            className="skeleton-shimmer h-9 w-full"
-                            style={{animationDelay: `${index * 50}ms`}}
-                        />
-                    ))}
-                </div>
+                <SkeletonStack count={8} padded="sm" rowClassName="h-9" />
             ) : historyQuery.isError ? (
                 <div className="p-4">
                     <p className="text-sm font-medium text-error">

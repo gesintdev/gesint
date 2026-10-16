@@ -13,6 +13,7 @@ import { isAbsenceLeave } from "@/modules/rh/person/leave/lib/leave-request.filt
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { DataTable } from "@/shared/components/ui/DataTable";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 const ABSENCE_HISTORY_COLUMNS = LEAVE_TABLE_COLUMNS.filter((column) => column.id !== "collaboratorName");
@@ -89,13 +90,7 @@ export function AdmissionAbsenceHistoryTab() {
     if (!editingId) return <EmptyAdmissionState />;
 
     if (admissionQuery.isLoading || absenceHistoryQuery.isLoading) {
-        return (
-            <div className="grid gap-2 p-5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" style={{ animationDelay: `${i * 70}ms` }} />
-                ))}
-            </div>
-        );
+        return <SkeletonStack count={5} padded />;
     }
 
     if (admissionQuery.isError) {

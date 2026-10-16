@@ -12,6 +12,7 @@ import {TableGridToolbar} from "@/shared/components/data/TableGridToolbar";
 import {TablePagination} from "@/shared/components/data/TablePagination";
 import {Button} from "@/shared/components/ui/Button";
 import {DataTable, type DataTableRowActivateOn} from "@/shared/components/ui/DataTable";
+import {SkeletonStack} from "@/shared/components/ui/SkeletonStack";
 import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {apiFetch} from "@/shared/lib/api.client";
@@ -99,11 +100,16 @@ export type QueryPagedTablePanelProps<TRow extends object> = QueryTablePanelTabl
 };
 
 function TableSkeleton() {
+    return <SkeletonStack count={8} padded="sm"/>;
+}
+
+function TablePanelShell({children, footer}: {children: ReactNode; footer?: ReactNode}) {
     return (
-        <div className="grid gap-2 p-4">
-            {Array.from({length: 5}).map((_, i) => (
-                <div key={i} className="skeleton-shimmer h-10 w-full" style={{animationDelay: `${i * 70}ms`}}/>
-            ))}
+        <div className="flex min-h-0 flex-1 flex-col p-1.5">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-(--gommo-border-subtle) bg-base-100 shadow-sm">
+                <div className="min-h-0 flex-1 overflow-auto">{children}</div>
+                {footer}
+            </div>
         </div>
     );
 }
@@ -135,7 +141,11 @@ export function QueryPanel<TRow extends object>({
     useQueryPanelRefresh(query);
 
     if (query.isLoading) {
-        return <>{fallback ?? <TableSkeleton/>}</>;
+        return (
+            <div className="min-h-0 flex-1 overflow-auto p-1.5">
+                {fallback ?? <TableSkeleton/>}
+            </div>
+        );
     }
 
     if (query.isError) {
@@ -156,7 +166,7 @@ export function QueryPanel<TRow extends object>({
     if (query.data === undefined) return null;
 
     return (
-        <div className="min-h-0 flex-1 p-1.5">
+        <div className="min-h-0 flex-1 overflow-auto p-1.5">
             {children({data: query.data, refetch: query.refetch, isFetching: query.isFetching})}
         </div>
     );
@@ -287,7 +297,7 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     }, [baseFilters, initialFilters, pageSize]);
 
     if (query.isLoading) {
-        return <>{fallback ?? <TableSkeleton/>}</>;
+        return <TablePanelShell>{fallback ?? <TableSkeleton/>}</TablePanelShell>;
     }
 
     if (query.isError) {
@@ -295,12 +305,14 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
         const error = new Error(ex.displayMessage);
         return (
             errorFallback?.(error, () => void query.refetch()) ?? (
-                <div className="m-4 rounded-xl bg-error/8 p-4">
-                    <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
-                    <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
-                        Tentar novamente
-                    </Button>
-                </div>
+                <TablePanelShell>
+                    <div className="m-4 rounded-xl bg-error/8 p-4">
+                        <p className="text-sm font-semibold text-error">{ex.displayMessage}</p>
+                        <Button variant="primary" size="sm" className="mt-3" onClick={() => query.refetch()}>
+                            Tentar novamente
+                        </Button>
+                    </div>
+                </TablePanelShell>
             )
         );
     }
@@ -374,26 +386,8 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
     );
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col p-1.5">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-(--gommo-border-subtle) bg-base-100 shadow-sm">
-                <div className="min-h-0 flex-1 overflow-auto">
-                    <DataTable<TRow>
-                        data={query.data.content}
-                        columns={visibleColumns}
-                        rowActivateOn={rowActivateOn}
-                        actionsFilterSlot={toolbarSlot}
-                        showActionsColumn
-                        renderColumnHeader={(column) => (
-                            <ColumnHeaderWithFilter
-                                column={column}
-                                options={query.data.filterOptions?.[column.fieldValue] ?? []}
-                                value={filters[column.fieldValue] ?? []}
-                                onChange={(value) => updateColumnFilter(column.fieldValue, value)}
-                            />
-                        )}
-                        {...tableProps}
-                    />
-                </div>
+        <TablePanelShell
+            footer={
                 <TablePagination
                     page={query.data.page}
                     totalPages={query.data.totalPages}
@@ -408,7 +402,24 @@ export function QueryPagedTablePanel<TRow extends object>(props: QueryPagedTable
                         setSize(nextSize);
                     }}
                 />
-            </div>
-        </div>
+            }
+        >
+            <DataTable<TRow>
+                data={query.data.content}
+                columns={visibleColumns}
+                rowActivateOn={rowActivateOn}
+                actionsFilterSlot={toolbarSlot}
+                showActionsColumn
+                renderColumnHeader={(column) => (
+                    <ColumnHeaderWithFilter
+                        column={column}
+                        options={query.data.filterOptions?.[column.fieldValue] ?? []}
+                        value={filters[column.fieldValue] ?? []}
+                        onChange={(value) => updateColumnFilter(column.fieldValue, value)}
+                    />
+                )}
+                {...tableProps}
+            />
+        </TablePanelShell>
     );
 }

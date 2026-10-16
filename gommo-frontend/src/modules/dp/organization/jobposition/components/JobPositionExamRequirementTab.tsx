@@ -13,6 +13,7 @@ import { OCCUPATIONAL_EXAM_CLIENT_MESSAGES } from "@/modules/dp/occupational-exa
 import { useHasPermission } from "@/shared/auth/permissions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { DataTable } from "@/shared/components/ui/DataTable";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
@@ -71,11 +72,7 @@ export function JobPositionExamRequirementTab() {
 
     if (requirementsQuery.isLoading) {
         return (
-            <div className="grid gap-2 p-5">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
-                ))}
-            </div>
+            <SkeletonStack count={4} padded />
         );
     }
 

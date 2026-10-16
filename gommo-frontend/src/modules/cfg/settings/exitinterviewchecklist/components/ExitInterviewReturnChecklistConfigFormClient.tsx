@@ -16,6 +16,7 @@ import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputNumber, InputString } from "@/shared/components/ui/input/index";
@@ -105,11 +106,7 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
 
     if (isEditing && detailQuery.isLoading) {
         return (
-            <div className="grid gap-2 p-5">
-                {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-10 w-full" />
-                ))}
-            </div>
+            <SkeletonStack count={3} padded />
         );
     }
 

@@ -22,6 +22,7 @@ import { experienceEvaluationService } from "@/modules/rh/person/experience/serv
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
 import { fieldClass } from "@/shared/components/ui/input/InputFieldChrome";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
@@ -210,13 +211,7 @@ export function ExperienceEvaluationFormClient() {
     }
 
     if (detailQuery.isLoading) {
-        return (
-            <div className="grid gap-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="skeleton-shimmer h-14 w-full rounded-lg" />
-                ))}
-            </div>
-        );
+        return <SkeletonStack count={4} rowClassName="h-14 rounded-lg" />;
     }
 
     if (detailQuery.isError || !detail) {
