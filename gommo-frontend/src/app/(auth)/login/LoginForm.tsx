@@ -183,9 +183,13 @@ export function LoginForm() {
             <Button type="submit" size="lg" className="gommo-btn--block login-submit mt-1" loading={loading}>
                 Entrar
             </Button>
-            <p className="mt-3 text-sm text-base-content/60">
+            <div className="login-form__divider" aria-hidden="true">
+                <span>ou</span>
+            </div>
+            <p className="login-form__alt">
+                Primeiro acesso?{" "}
                 <Link href="/definir-senha" className="login-forgot">
-                    Definir senha / primeiro acesso
+                    Definir senha
                 </Link>
             </p>
             {process.env.NODE_ENV === "development" && (

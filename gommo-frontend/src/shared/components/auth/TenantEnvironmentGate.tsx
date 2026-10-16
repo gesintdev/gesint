@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 
 import { LoginShell } from "@/shared/components/auth/LoginShell";
+import { AppLoadingScreen } from "@/shared/components/layout/AppLoadingScreen";
 import { AppException } from "@/shared/exceptions";
 import { apiFetch } from "@/shared/lib/api.client";
 import { resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
@@ -92,11 +93,7 @@ export function TenantEnvironmentGate({ children }: { children: ReactNode }) {
     }
 
     if (state.status === "checking") {
-        return (
-            <LoginShell>
-                <p className="mt-4 text-sm text-base-content/60">Validando ambiente...</p>
-            </LoginShell>
-        );
+        return <AppLoadingScreen message="Validando ambiente..." />;
     }
 
     return (

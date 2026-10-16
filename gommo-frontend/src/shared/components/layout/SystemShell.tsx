@@ -8,6 +8,7 @@ import {AgendaModal} from "@/modules/cfg/settings/agenda/components/AgendaModal"
 import {AttendanceClockModal} from "@/modules/dp/attendance/components/AttendanceClockModal";
 import type {SystemEnum} from "@/modules/root/enum/SystemEnum";
 import {AiAssistantPanel} from "@/shared/components/assistant/AiAssistantPanel";
+import {AppLoadingScreen} from "@/shared/components/layout/AppLoadingScreen";
 import {GommoLogo} from "@/shared/components/layout/GommoLogo";
 import {HeaderAiAssistant} from "@/shared/components/layout/HeaderAiAssistant";
 import {HeaderBranchSelector} from "@/shared/components/layout/HeaderBranchSelector";
@@ -77,11 +78,7 @@ export function SystemShell({
     }, []);
 
     if (!sessionReady) {
-        return (
-            <div className="flex h-dvh items-center justify-center text-sm text-base-content/50">
-                Carregando...
-            </div>
-        );
+        return <AppLoadingScreen />;
     }
 
     return (
@@ -90,13 +87,7 @@ export function SystemShell({
               ActiveSystemProvider e WorkspaceNavigationProvider hidratam no mesmo Suspense
               que a Sidebar/header (useSearchParams + preferencias de sistema).
             */}
-            <Suspense
-                fallback={
-                    <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-base-content/50">
-                        Carregando...
-                    </div>
-                }
-            >
+            <Suspense fallback={<AppLoadingScreen variant="inline" />}>
                 <WorkspaceNavigationProvider>
                     <ActiveBranchProvider initialBranchId={initialBranchId}>
                     <ActiveSystemProvider
