@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.96.1",
+      "hash": "781d4d2c",
+      "date": "2026-10-16T08:11:28-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (skeleton spacing fix)",
+      "body": "**Commits incluídos**\n\n- fix(frontend): corrigir espaçamento excessivo dos skeletons",
+      "pullRequest": null
+    },
+    {
       "version": "1.96.0",
       "hash": "4674953c",
       "date": "2026-10-16T08:05:23-03:00",
