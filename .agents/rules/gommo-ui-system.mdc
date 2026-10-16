@@ -1,452 +1,246 @@
 ---
-description: Gommo UI System — estilo Stripe/Linear enterprise premium (layout, tipografia, componentes)
+description: Gommo UI System — padrão visual obrigatório do Client (tokens, tipografia, raios, casca, tabelas, formulários, dashboard, login, carregamento, animações)
 globs: gommo-frontend/**/*.{tsx,css}
 alwaysApply: false
 ---
 
 # Gommo UI System
 
-Você é um designer senior especializado em SaaS enterprise premium.
+Você é um designer sênior de SaaS enterprise premium. Referências de estilo: Stripe Dashboard, Linear, Vercel, Attio.
+Corporativo, moderno e minimalista: hierarquia forte, pouca saturação, sem visual gamer/bootstrap, sem glassmorphism na área logada.
 
-O projeto Gommo deve seguir EXTREMAMENTE o estilo visual da Stripe Dashboard.
-
-Referências obrigatórias:
-- Stripe Dashboard
-- Linear
-- Vercel
-- Attio
-
-O sistema é corporativo, moderno e minimalista.
-
-## Filosofia Visual
-
-- Interfaces limpas
-- Muito espaço em branco
-- Hierarquia visual forte
-- Pouca saturação
-- Visual enterprise premium
-- Nada de aparência gamer
-- Nada de aparência bootstrap antiga
-- Nada de gradientes exagerados
-- Nada de glassmorphism
-- Nada de animações excessivas
-
-## Stack
-
-- TailwindCSS
-- DaisyUI
-- React / Next.js
-
-Sempre reutilize os componentes existentes do projeto antes de criar novos.
+Este documento descreve o padrão **implementado** no `gommo-frontend`. Ao criar ou alterar telas, siga-o fielmente.
+Se algo aqui divergir do código, o código em `gommo-frontend/src/app/globals.css` é a fonte da verdade — corrija este documento junto.
 
 ---
 
-# Cores (tokens centralizados)
+## 0. Regras de ouro
 
-**Fonte única:** `gommo-frontend/src/app/globals.css` → bloco `:root { /* TOKENS */ }`.
+1. **Só tokens.** Cores, bordas, sombras e raios vêm de variáveis CSS (`--gommo-*`, `--color-*`, `--radius-*`). Nunca hex solto em `.tsx`.
+2. **Estilo em `globals.css`, por classe semântica.** Padrões reutilizáveis viram classe com prefixo do contexto (`.gommo-*`, `.login-*`, `.app-loading*`, `.gommo-dash-*`). Tailwind só para layout pontual (flex, gap, grid, spacing).
+3. **Reutilize antes de criar.** `Button`, `Card`, `DataTable`/`QueryTablePanel`, `CrudFormShell`, `FormSection`, inputs de `@/shared/components/ui/input`, `AppLoadingScreen`, `SystemLogo`.
+4. **Peso de fonte via `font-weight`** (Tailwind `font-medium`/`font-semibold`). Nunca coloque `font-variation-settings: "wght" N` em container/`body` — isso anula todos os pesos dos descendentes (bug histórico: tudo saía em ~350).
+5. **Dados reais apenas.** Nenhum número, nome ou data fictícia em tela. Referências visuais com mock (ex.: HTML de exemplo) indicam **layout**, não conteúdo; métricas novas exigem API.
+6. **Os dois temas sempre.** Toda mudança visual precisa funcionar em `gommo` (claro) e `dark`.
+7. **Valide vendo a tela.** Rode o app e confira claro + escuro (ver §14) antes de concluir.
 
-Para trocar a paleta depois, altere **somente** os tokens `--gommo-*` no topo do arquivo. Não hardcode hex em componentes.
+---
 
-## Brand
+## 1. Cores (tokens)
+
+Fonte única: `globals.css` → bloco `:root { /* TOKENS */ }`. Para trocar paleta, altere **só** os `--gommo-*`.
+
+### Marca — azul Gommo
 
 | Token | Valor | Uso |
-|-------|--------|-----|
-| `--gommo-primary` | `#6d28d9` | Cor principal (botões, links ativos, accent) |
-| `--gommo-primary-dark` | `#5b21b6` | Hover escuro, **bordas** (mix) |
-| `--gommo-primary-light` | `#8b5cf6` | Primary no **dark mode** |
-| `--gommo-primary-50` … `950` | escala violet | Fundos suaves, sidebar accent, focus |
+|---|---|---|
+| `--gommo-primary` | `#007bff` | Botão primário, links, item ativo, gráficos |
+| `--gommo-primary-dark` | `#0062cc` | Hover/active do primário, bordas de ênfase |
+| `--gommo-primary-darker` | `#004a99` | Sombra do primário |
+| `--gommo-primary-light` | `#2da8f7` | Primário no **dark mode** (`--color-primary` no tema dark) |
+| `--gommo-primary-50` … `950` | escala azul | Fundos suaves; `950` (`#0a1b2e`) = painel da marca no login |
 
-Classes legacy `digital-blue-*` no Tailwind apontam para a escala `--gommo-primary-*`.
+Classes legacy `digital-blue-*` apontam para a escala `--gommo-primary-*`.
+Em componentes, prefira `var(--color-primary)` / `text-primary`: ele troca sozinho para o tom claro no dark.
 
-## Semânticas (manter por enquanto)
+### Semânticas
 
-| Token | Uso |
-|-------|-----|
-| `--gommo-success` | `#16a34a` |
-| `--gommo-warning` | `#d97706` |
-| `--gommo-error` | `#dc2626` (danger) |
-| `--gommo-info` | `#3385ff` |
+`--gommo-success #16a34a` · `--gommo-warning #d97706` · `--gommo-error #dc2626` · `--gommo-info #2da8f7`
+(DaisyUI: `--color-success|warning|error|info`). Use só para **status**, nunca decoração.
 
-DaisyUI: `--color-success`, `--color-warning`, `--color-error`, `--color-info` referenciam esses tokens.
+### Superfícies
 
-## Superfícies
+| Camada | Claro | Escuro |
+|---|---|---|
+| Página (`--color-page`) | `#f3f7f8` | `oklch(12% …)` |
+| Cards/sidebar (`--color-base-100`) | `#ffffff` | `oklch(17% …)` |
+| **Rail de sistemas** (`--system-rail-bg`) | cinza frio, **mais escuro que a sidebar** | **o mais escuro da tela** (mais que página e sidebar) |
 
-- **Light:** `--gommo-page`, `--gommo-surface`, `--gommo-content` — estrutura atual preservada.
-- **Dark:** bases `oklch` do tema DaisyUI `dark` — **não alterar** salvo pedido explícito.
+O rail ser mais escuro que o resto é intencional (decisão de produto). Não clareie.
 
-## Bordas
+### Bordas e sombras
 
-Sempre derivadas do primary **um pouco mais escuro** (`--gommo-primary-dark`):
+Bordas: `--gommo-border` (padrão), `--gommo-border-subtle` (divisores), `--gommo-border-strong` (hover), `--gommo-border-focus`.
+Sombras: `--gommo-shadow-xs|sm|md|lg` — apenas estes. Proibido sombra colorida/glow, blur exagerado.
 
-- `--gommo-border` — padrão (cards, inputs, header)
-- `--gommo-border-subtle` — divisores leves
-- `--gommo-border-strong` — hover / ênfase
-- `--gommo-border-focus` — foco (`--gommo-primary`)
+### Paleta categórica (gráficos/distribuições)
 
-**Nunca** usar borda cinza pura solta em UI nova — preferir os tokens acima.
-
-## Sombras
-
-Super suaves — usar apenas tokens:
-
-- `--gommo-shadow-xs` — breadcrumb, hints
-- `--gommo-shadow-sm` — cards, surfaces
-- `--gommo-shadow-md` — popovers, hover card
-- `--gommo-shadow-lg` — dropdowns elevados (dark)
-
-Proibido: sombras longas, coloridas ou com blur exagerado.
-
-## Regras de implementação
-
-1. Novos estilos: `border: 1px solid var(--gommo-border)` e `box-shadow: var(--gommo-shadow-sm)`.
-2. Focus input: `ring` suave com `color-mix` do primary (~14%), não glow azul forte.
-3. Ícone/link ativo: `var(--gommo-primary)` ou `text-primary`.
-4. Não duplicar hex em `.tsx` — usar classes Tailwind (`text-primary`, `border-base-300`) ou tokens CSS.
+Ordem: `--color-primary`, `--color-warning`, `--color-success`, `--color-error`, `--gommo-primary-300`, `base-content 30%`.
 
 ---
 
-# Layout
+## 2. Tipografia
 
-## Sidebar (padrão Stripe Dashboard)
+- Fonte: **Inter** (`--font-inter`); marca/logo: Outfit (`--font-outfit`).
+- `body`: `14px`, `line-height: 1.5`, `font-variation-settings: normal`, `font-feature-settings: "cv11", "calt"`.
+- Números em tabela/KPI: `font-variant-numeric: tabular-nums`.
 
-Referência visual obrigatória: sidebar do Stripe Dashboard (fundo claro, hierarquia por cor/indentação, grupos colapsáveis).
+| Elemento | Tamanho / peso |
+|---|---|
+| Título de página (dashboard) | `22px` / 600, `letter-spacing -0.025em` (`.gommo-dash-title`) |
+| Título de painel/seção | `14–15px` / 600 |
+| Título de `Card` compartilhado | `13px` / 600 |
+| Texto padrão / labels | `13–14px` |
+| Controles (input/botão) | `--gommo-control-font-size` (12.25px) |
+| Células de tabela | `13px` (`0.8125rem`) |
+| Título de coluna | `10.5px`, 600, uppercase, `letter-spacing .04em`, **sem quebra** (ellipsis) |
+| Small / hint | `12px` |
+| KPI | `32px` / 600 |
 
-### Estrutura (de cima para baixo)
-
-1. **Switcher de conta/contexto** (opcional no topo)
-   - Ícone quadrado pequeno (inicial ou logo) + nome em negrito + subtítulo em cinza + chevron para dropdown.
-   - Container com canto superior arredondado (`rounded-t-lg` / `rounded-xl` no bloco da sidebar).
-   - Padding horizontal confortável; altura compacta.
-
-2. **Links principais** (nível raiz)
-   - Ícone line (stroke fino) + rótulo.
-   - Espaçamento vertical generoso entre itens (respiração Stripe).
-   - Sem bordas entre itens.
-
-3. **Rótulo de seção**
-   - Texto pequeno, cinza, discreto (ex.: `PRODUTOS`, `ORGANIZAÇÃO`).
-   - `text-xs`, `uppercase` ou `tracking-wide`, cor slate-500.
-   - Margem superior antes do grupo.
-
-4. **Grupos colapsáveis (pai → filhos)**
-   - Linha pai: ícone + label + chevron à direita (`rotate-90` aberto, padrão fechado).
-   - Filhos **indentados** alinhados ao início do texto do pai (não ao ícone).
-   - Filhos com tipografia igual ou levemente mais suave que o pai.
-   - **Comportamento:** expansão só por clique do usuário; trocar aba/módulo **não** abre/fecha grupos — só muda o item ativo (background/cor).
-
-### Dimensões e layout
-
-- Largura: **240px–260px** (`--sidebar-width` ~16.25rem).
-- Fundo: **branco** (`#ffffff` / `bg-base-100`).
-- Sem borda vertical forte à direita; separação por espaço e contraste do conteúdo.
-- Ícones: line icons, ~16–18px, peso de traço consistente (lucide `strokeWidth` 2).
-
-### Estados visuais
-
-| Estado | Comportamento Stripe |
-|--------|----------------------|
-| **Ativo (link)** | Ícone + texto em `var(--gommo-primary)` (`#6d28d9`); sem pill pesado; pode usar fundo muito sutil se necessário |
-| **Inativo** | Texto `slate-700` / `base-content` ~88%; ícone cinza médio |
-| **Hover** | Fundo cinza muito leve (`slate-50`, `bg-base-200/50`); transição curta |
-| **Pai expandido** | Chevron para cima; filhos visíveis com indent |
-| **Pai recolhido** | Chevron para baixo; filhos ocultos |
-
-### Tokens de cor (sidebar clara — Stripe)
-
-| Token | Valor |
-|-------|--------|
-| Background | `#ffffff` |
-| Texto principal | `#1a1f36` / `slate-900` |
-| Texto secundário / rótulo seção | `#4f5b76` / `slate-500` |
-| Hover item | `slate-50` ou `rgba(0,0,0,0.04)` |
-| Ativo (accent) | `var(--gommo-primary)` / `#6d28d9` |
-| Banner topo (ambiente restrito) | `#0a2540` — só se houver barra de contexto |
-
-### O que NÃO fazer (anti-padrão)
-
-- Sidebar escura estilo “admin antigo” (salvo tema dark explícito do produto).
-- Item ativo com bloco colorido forte ou gradiente.
-- Bordas grossas entre cada link.
-- Ícones preenchidos pesados ou coloridos demais.
-- Grupos que abrem/fecham sozinhos ao mudar de rota/aba.
-- Subitens alinhados sob o ícone do pai (devem alinhar ao texto).
-- Chevron ausente em grupos com filhos.
-
-### Implementação no Gommo
-
-- Reutilizar `Sidebar.tsx`, `nav-item`, `nav-group-children`, `SidebarFlyout` (modo retraído).
-- Estado `openIds` manual; **não** derivar expansão de `activeParentIds` / aba ativa.
-- Destaque ativo via `nav-item-active` + `navActiveHref` da aba do workspace.
-- Flyout no sidebar colapsado: mesmo padrão compacto, sombra leve, `rounded-lg`.
+Ao usar `overflow: hidden` em texto uppercase, deixe `line-height ≥ 1.5` — senão os acentos (Í, Ç, Õ) são cortados.
 
 ---
 
-# Topbar
+## 3. Raios (escala única)
 
-- altura entre 56px e 64px
-- fundo branco
-- borda inferior sutil
-- elementos alinhados
-- ações compactas
-- sem excesso visual
+| Token | Valor | Onde |
+|---|---|---|
+| `--gommo-radius-badge` | **5px** | Badges, chips, pills de status |
+| `--gommo-tab-radius` | **6px** | Abas do workspace, itens, linhas com hover |
+| `--gommo-control-radius` | **7px** | Botões, inputs, selects, rail, nav item |
+| `--radius-gommo-card` / `-card-lg` | **8px** | Cards, painéis, `surface-card`, `gommo-form-section`, KPIs |
+| `--radius-gommo-modal` | **12px** | Modais |
 
-Border:
-`#e5e7eb`
-
----
-
-# Ícones (padrão Stripe)
-
-Referência: barra de utilidades do Stripe — ícones outline discretos + um CTA primário em círculo preenchido.
-
-## Biblioteca
-
-- **Lucide React** (`lucide-react`) — padrão do projeto.
-- Não misturar famílias (Heroicons + Lucide + SVG soltos) na mesma barra/tela.
-
-## Estilo geral
-
-| Tipo | Regra |
-|------|--------|
-| **Utilitários** (menu, ajuda, sino, engrenagem, ações secundárias) | **Outline/stroke**; traço fino e uniforme |
-| **Stroke** | `strokeWidth={2}` (padrão); `2.25` só em item ativo da sidebar se precisar de ênfase leve |
-| **Cantos** | Formas com cantos suaves (grid, engrenagem) — evitar geometria “dura” |
-| **Preenchimento** | Evitar ícones **solid/filled** pesados em toolbar e sidebar |
-| **CTA primário** (ex.: “+” criar) | Círculo **preenchido** na cor accent + ícone **branco** no centro |
-
-## Tamanhos
-
-| Contexto | Classe / tamanho |
-|----------|------------------|
-| Sidebar / nav item | `size-4` ou `size-4.25` (~16–17px) |
-| Topbar / ações utilitárias | `size-4` a `size-5` (16–20px) |
-| Botão ícone compacto (toolbar) | `size-3.5` a `size-4` dentro de hit area ≥ 32px |
-| CTA circular primário | container `size-8` (`w-8 h-8`); ícone `+` ~`size-4` branco |
-| Tabelas / ações de linha | `size-3.5` |
-
-Manter **um tamanho por contexto**; não variar aleatoriamente na mesma faixa visual.
-
-## Cores
-
-| Uso | Cor |
-|-----|-----|
-| Inativo / utilitário | `text-slate-600` ou `text-base-content/50` |
-| Hover utilitário | `text-slate-900` ou `text-base-content/70` |
-| Ativo (nav, aba) | `text-primary` / `#635bff` / `text-digital-blue-600` |
-| Sobre fundo escuro (sidebar dark, se usar) | `text-slate-300`; ativo `#ffffff` |
-| CTA círculo primário | `bg-primary` (ou `bg-indigo-600`) + `text-white` |
-
-Transição de cor: `transition-colors duration-150`.
-
-## Layout em grupos (topbar / header)
-
-- Container: `flex items-center gap-3` ou `gap-4`.
-- Ícones utilitários: botão ghost/icon-only, **sem** fundo até hover (`hover:bg-slate-50`).
-- Separador vertical opcional antes do cluster de ações (`h-5 w-px bg-slate-200`).
-- Ordem típica: utilitários outline → separador → CTA primário circular à direita.
-
-## Exemplos Lucide (mapeamento Stripe)
-
-| Função | Ícone sugerido |
-|--------|----------------|
-| Apps / grid | `LayoutGrid` |
-| Ajuda | `MessageCircleQuestion` ou `CircleHelp` |
-| Notificações | `Bell` |
-| Configurações | `Settings` |
-| Criar / adicionar (CTA) | `Plus` dentro de `rounded-full bg-primary` |
-
-## Anti-padrões
-
-- Ícones coloridos demais (verde/vermelho/azul forte) fora de status semântico.
-- Stroke grosso (`strokeWidth={3}+`) em UI densa.
-- Glow, sombra colorida ou gradiente no ícone.
-- Emoji como ícone de navegação.
-- `leftIcon` + texto com ícones de tamanhos diferentes na mesma linha de botões.
-
-## Implementação no Gommo
-
-- Reutilizar `Button` com `leftIcon` / `gommo-btn--icon-only`.
-- Header: `Bell`, `ThemeToggle`, ícones já existentes — alinhar tamanho e `strokeWidth`.
-- Sidebar: ícones das rotas em `routes.ts`; manter `size-4.25` e cor via `nav-item-active`.
-- Workspace tabs: `WorkspaceTabIcon` — outline, sem caixa colorida no ícone (só cor do traço).
+Tailwind mapeado: `rounded-sm` = 6 · `rounded-md`/`rounded-lg` = 7 · `rounded-xl` = 8 · `rounded-2xl` = 12. `rounded-full` só para círculos/pílulas.
+Exceção: `.crud-page-card` (painel da página CRUD) não tem raio — encosta na sidebar.
 
 ---
 
-# Border Radius
+## 4. Casca (shell)
 
-Use radius consistente no sistema inteiro.
+### Rail de sistemas (CTB / DP / RH / CFG)
+- Fundo `--system-rail-bg` (mais escuro que a sidebar, ver §1).
+- Item ativo `.system-rail-item--active`: cartão (`base-100` no claro / primário 16% no escuro), borda primária suave, ícone + sigla em `primary`.
+- Regras de domínio ativo (não derivar da URL etc.) seguem `gommo.mdc`.
 
-## Valores permitidos
+### Sidebar
+- Fundo `base-100`, largura `--sidebar-width`. Itens `.nav-item`: altura `--sidebar-nav-item-h` (2rem), `13px`, cor `base-content 68%`.
+- **Ativo** `.nav-item-active`: fundo `primary 8%`, texto `primary`, **barra indicadora de 3px à esquerda** (`::before`, entra animada). Sem gradiente, sem sombra.
+- Hover: `base-content 4%`. Rótulos de seção: `10.5px`, uppercase, `base-content 42%`.
+- Grupos abrem só por clique; filhos indentados alinhados ao texto do pai.
 
-- cards: `rounded-xl`
-- botões: `rounded-lg`
-- inputs: `rounded-lg`
-- dropdowns: `rounded-lg`
-- modals: `rounded-2xl`
+### Abas do workspace
+- `.gommo-workspace-tab`: `13px`, cor `base-content 58%`.
+- **Ativa**: cartão `base-100` com borda `--gommo-border`, `shadow-sm` e **sublinhado interno de 2px** (`inset 0 -2px 0 primary`).
+- Trocar de aba faz fade de opacidade no `.workspace-panel` (só opacidade — ver §12).
 
-Nunca misturar muitos radius diferentes.
+### Abas internas do CRUD (Listagem / Cadastro …)
+- `.gommo-crud-tab`: `13px`; ativa em `base-content` peso 580 com sublinhado primário de 2px animado (`gommo-tab-underline`).
 
----
-
-# Tipografia
-
-Fonte:
-Inter
-
-## Títulos
-
-- `font-semibold`
-- tracking leve
-- `text-slate-900`
-
-## Tamanho de fontes
-
-Page title:
-`text-2xl`
-
-Section title:
-`text-lg`
-
-Card title:
-`text-sm font-semibold`
-
-Labels:
-`text-sm`
-
-Body:
-`text-sm`
-
-Small text:
-`text-xs`
-
-Nunca usar fontes grandes demais.
+### Topbar
+- Fundo `base-100`, borda inferior sutil, ícones outline `size-4`, ações compactas.
 
 ---
 
-# Espaçamento
+## 5. Botões
 
-Usar spacing consistente:
-- 4
-- 6
-- 8
-- 12
-- 16
-- 24
+| Variante | Visual |
+|---|---|
+| `primary` | **Sólido** `--gommo-primary`, realce interno (`inset 0 1px 0 white 16%`) + contorno `primary-dark`. Hover escurece. **Sem gradiente, sem glow, sem translateY.** |
+| `secondary`/`outline` | `base-100`, borda `--gommo-border`, `shadow-xs`; hover `base-content 4%` + `border-strong` |
+| `ghost` | transparente; hover `base-content 7%` |
+| `danger`/`warning`/`success` | sólidos semânticos |
 
-Evitar espaçamentos aleatórios.
-
----
-
-# Cards
-
-Cards devem parecer Stripe:
-- brancos
-- discretos
-- sombra extremamente leve
-- borda sutil
-- muito respiro interno
-
-Classes preferidas:
-- `bg-white`
-- `border border-slate-200`
-- `shadow-sm`
-
-Nunca usar:
-- sombras fortes
-- gradientes
-- bordas pesadas
+Altura `--gommo-control-h` (36px). Use sempre o componente `Button` (`leftIcon`, `loading`, `size`).
 
 ---
 
-# Tabelas
+## 6. Inputs e formulários
 
-Tabelas devem parecer SaaS premium:
-- compactas
-- linhas bem alinhadas
-- hover suave
-- cabeçalho discreto
-- boa legibilidade
-
-Evitar:
-- linhas muito grossas
-- padding exagerado
-- excesso de cores
+- Altura 36px, raio 7px, borda `--gommo-border`, foco: `border primary` + ring `primary 14%` (3px). Sem outline nativo.
+- Labels `.gommo-label` 12px/600; hint 12px; erro `.gommo-error-text`.
+- Selects/autocomplete: só `InputSelect`, `InputSelectAutocomplete`, `InputAutocomplete`.
+- **Seções** `.gommo-form-section` (via `FormSection`): card `base-100` raio 8px, `shadow-sm`; cabeçalho neutro (`base-content 1.5%`) com **marcador primário de 3px à esquerda**; título 14px/600 em `base-content` (não azul); corpo com `gap 14px 16px`. Seção com foco interno ganha borda primária suave + `shadow-md`.
+- Rodapé fixo do form: `.crud-form-shell__footer`.
 
 ---
 
-# Botões
+## 7. Tabelas (`DataTable` / `QueryTablePanel`)
 
-## Primário
+- Densidade por tokens: `--gommo-table-cell-py: 0.5rem`, `--gommo-table-cell-px: 0.625rem`, `--gommo-table-header-py: 0.625rem`. Não aumente o padding horizontal: tabelas com 8+ colunas e filtros estouram a largura.
+- Cabeçalho com fundo `base-content 2.5%`, títulos conforme §2, filtros por coluna abaixo do título.
+- Hover de linha: `primary 3.5%`. Última linha sem borda inferior.
+- Ações de linha: botões quadrados 32px com tom semântico (abrir = info, editar = primary, excluir = error, baixar = success).
 
-- fundo escuro
-- hover suave
-- compacto
+## 8. Badges de status
 
-## Secundário
-
-- branco
-- borda sutil
-- hover cinza claro
-
-Nunca usar:
-- glow
-- neon
-- gradientes
+`.gommo-badge--success|warning|error|info|neutral`: fundo do tom 12%, texto no tom, **ponto de status** (`::before`, 6px, `currentColor`) e contorno interno `currentColor 16%`. Raio 5px, `white-space: nowrap`.
+Escolha o tom pelo significado (ativo/concluído = success; pendente = warning; reprovado/cancelado = error; rascunho = neutral).
 
 ---
 
-# Inputs
+## 9. Dashboard (`shared/workspace/views/DashboardView.tsx`)
 
-Inputs devem seguir padrão enterprise:
-- altura ~40px
-- borda sutil
-- foco elegante
-- sem glow azul exagerado
+Um único `DashboardView` atende DP, RH e CTB (filtro em `dashboard-system.util.ts`). Padrões:
 
-Focus:
-`ring-2 ring-slate-200`
+- Container `.gommo-dash` (fundo `--color-page`, `max-width 112rem`, padding 24px).
+- **Cabeçalho de página**: título (`.gommo-dash-title`), subtítulo com indicador "ao vivo" (`.gommo-dash-live`) + "Atualizado às HH:mm · N módulos", botão primário "Atualizar" à direita.
+- **KPIs** `.gommo-dash-kpi` em grid `auto-fit minmax(14.5rem, 1fr)`: rótulo + ícone (quadrado 36px, `primary 10%`), valor 32px com contagem animada (`AnimatedNumber`), dica com ícone no tom (`data-tone`). Hover: sobe 2px + filete primário inferior.
+- **Painéis** `Panel` / `.gommo-dash-panel`: cabeçalho (título 15px + subtítulo 12.5px + ação à direita), corpo com padding 20px.
+- Gráficos em **SVG/CSS próprios** (sem lib nova): barras com eixo/grade/tooltip e coluna "Hoje" destacada; donut; barra empilhada; barras horizontais; anel de progresso; medidor segmentado.
+- Estado vazio `.gommo-dash-empty` (ícone em círculo + texto). Legendas longas (> 6 categorias) mostram só itens com valor + "+N sem registros".
+- Layout: KPIs → linha `xl:grid-cols-12` (8 + 4) → linha de 3 colunas (`lg:2`, `2xl:3`).
 
----
+## 10. Login e telas de autenticação
 
-# Dropdowns
+Arquivos: `app/(auth)/layout.tsx`, `app/(auth)/template.tsx`, `shared/components/auth/LoginShell.tsx`, `LoginStage.tsx`.
 
-Dropdowns devem parecer Stripe:
-- compactos
-- leves
-- alinhados
-- sombra pequena
-- radius consistente
+- **Estrutura obrigatória**: o `LoginShell` é montado **uma vez no `layout.tsx` do grupo `(auth)`**, que persiste entre navegações. As páginas (`login`, `esqueci-senha`, `definir-senha`) renderizam **só o conteúdo**: `LoginHeading` + formulário. **Nunca** envolva uma página em `<LoginShell>` — isso recria o painel da marca a cada clique.
+- `template.tsx` (remonta a cada navegação) aplica o fade só no conteúdo do formulário.
+- **Layout**: duas colunas `marca | formulário` (≥1024px: 46fr / 54fr). Abaixo de 1024px o painel da marca some e o logo vai ao topo do formulário.
+- **Painel da marca** `.login-brand`: azul-marinho fixo (`--gommo-primary-950`) nos dois temas; logo branco + "Gestão Integrada"; eyebrow, headline, lead e cartões dos três sistemas (DP, RH, Contabilidade) com entrada escalonada; camada `LoginStage` (grade pontilhada, dois brilhos difusos animados, "G" metálico translúcido flutuando). Só CSS, respeita `prefers-reduced-motion`.
+- **Coluna do formulário** `.login-main`: `base-100`, conteúdo com `max-width 24rem`; título com `LoginHeading` (26px/600) — use-o também nos formulários de senha; campos 44px (`.gommo-field--login`), botão "Entrar" 44px, divisor "ou" + "Primeiro acesso? Definir senha".
 
-Nunca usar dropdown gigante.
+## 11. Telas de carregamento
 
----
-
-# UX
-
-Prioridades:
-1. Legibilidade
-2. Hierarquia
-3. Consistência
-4. Densidade equilibrada
-5. Velocidade visual
-
-Sempre prefira interfaces mais simples.
+- Use **sempre** `AppLoadingScreen` (`shared/components/layout/AppLoadingScreen.tsx`): monograma "G" em cartão, anel circular girando, mensagem e barra indeterminada.
+  - `variant="fullscreen"` (padrão): boot, sessão, validação de ambiente.
+  - `variant="inline"`: fallback de `Suspense` dentro do shell.
+- **Proibido** texto solto "Carregando..." ou spinner DaisyUI (`loading loading-ring`) em telas inteiras.
+- Dentro de listas/cards, carregamento é **skeleton** (`.skeleton-shimmer` / `SkeletonStack`) no formato do conteúdo final.
+- O overlay de logout (`shared/lib/logging-out-overlay.ts`) replica esse visual com estilos embutidos e paleta literal por tema (não pode depender de `globals.css`). Mudou um, mude o outro.
 
 ---
 
-# IMPORTANTÍSSIMO
+## 12. Animações
 
-Antes de gerar qualquer interface:
-1. Analise os componentes existentes
-2. Reutilize o design system atual
-3. Preserve consistência visual
-4. Refatore ao invés de reinventar
-5. Não crie estilos aleatórios
+- **Framer Motion** para entrada de componentes; **CSS transitions** para hover/foco.
+- Curva padrão: `ease-out` `[0.22, 1, 0.36, 1]` (`cubic-bezier(0.22, 1, 0.36, 1)` no CSS).
+- Durações: hover 150–250ms; entrada 350–500ms; gráficos/contagens 600–1000ms. Entrada escalonada com atraso de 50–80ms por item.
+- Entrada típica: `opacity 0 → 1` + `y 10–14px → 0`.
+- **Acessibilidade obrigatória**: envolva telas animadas em `<MotionConfig reducedMotion="user">` e adicione `@media (prefers-reduced-motion: reduce)` para animações CSS.
+- **Nunca** anime `transform` em container que tenha filhos `position: fixed` (modais, popovers): transform cria containing block e desloca o filho. Por isso o `.workspace-panel` anima só opacidade.
+- Proibido: animações longas/infinitas decorativas na área logada (exceção: indicadores de carregamento e o painel da marca do login).
 
-Sempre critique a interface antes de finalizar:
-- spacing
-- alinhamento
-- contraste
-- hierarquia
-- excesso visual
-- inconsistência
+---
+
+## 13. Ícones
+
+- **Lucide React** apenas; outline, `strokeWidth={2}` (2.25 só para ênfase leve em ícones pequenos).
+- Tamanhos: nav `size-4`; topbar `size-4`–`size-5`; ação de tabela `size-3.5`; dentro de quadrado de KPI `size-4`.
+- Ícone colorido só para status semântico ou dentro de quadrado tonal (`primary 10%`).
+
+---
+
+## 14. Validação visual (obrigatória para mudanças de UI)
+
+1. Rode backend (8081) e frontend (3000) — ver `README.md`.
+2. Faça login (usuário de dev `admGommo`, senha em `DEV_ADMIN_PASSWORD` do `.env` raiz).
+3. Confira a tela nos temas **claro e escuro** (`localStorage.theme` = `gommo` | `dark`), em ~1600px e em largura mobile se aplicável.
+4. Cheque: estouro horizontal de tabelas, textos cortados (acentos), contraste no dark, alinhamento de cabeçalhos/filtros.
+5. Lint (`npx eslint <arquivos>`) e tipos (`npx tsc --noEmit`) dos arquivos tocados.
+
+---
+
+## 15. Anti-padrões (não faça)
+
+- `font-variation-settings: "wght" …` em `body`/containers; `line-height: 2` global.
+- Gradiente ou glow em botão; sombra colorida; glassmorphism na área logada.
+- Raio fora da escala (§3) ou `rounded-none` em cards.
+- Rail mais claro que a sidebar.
+- Item ativo da sidebar com gradiente/pill pesado (use fundo 8% + barra de 3px).
+- Cabeçalho de `FormSection` com fundo azul/título azul.
+- "Carregando..." solto; spinner DaisyUI em tela cheia.
+- `<LoginShell>` dentro de página de `(auth)`.
+- Número/nome/data fictícios em tela; dependência nova de gráficos sem aprovação.
+- Hex direto em `.tsx`; nova família de ícones; `<select>` nativo.

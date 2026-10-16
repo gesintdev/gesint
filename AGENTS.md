@@ -14,6 +14,9 @@ Antes de implementar qualquer alteração:
 3. Explique o plano
 4. Só então implemente
 
+Mudanças visuais no frontend (telas, componentes, CSS) seguem fielmente o padrão de layout descrito em
+`.agents/rules/gommo-ui-system.mdc` e precisam ser conferidas rodando o app, nos temas claro e escuro.
+
 Regra máxima:
 
 Sempre seguir os padrões existentes do projeto.
