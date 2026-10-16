@@ -39,6 +39,20 @@ public class AssistantContextSelector {
                     + "\\b(menu|tela|rota|caminho|m[oó]dulo|se[cç][aã]o)\\b"
                     + ")");
 
+    /**
+     * Dúvida sobre o funcionamento da tela (lista vazia, sem botão Novo, por que não aparece, etc.).
+     */
+    private static final Pattern MODULE_GUIDANCE_PATTERN = Pattern.compile(
+            "(?i)("
+                    + "por\\s*que|porque|"
+                    + "n[aã]o\\s+(est[aá]\\s+)?(listando|aparecendo|mostrando|exibindo)|"
+                    + "lista\\s+vazia|"
+                    + "ningu[eé]m|"
+                    + "sem\\s+bot[aã]o|"
+                    + "n[aã]o\\s+(tem|h[aá])\\s+(novo|cadastro|bot[aã]o)|"
+                    + "como\\s+funciona"
+                    + ")");
+
     /** CPF com ou sem máscara (11 dígitos). */
     private static final Pattern CPF_PATTERN = Pattern.compile(
             "(?i)\\bcpf\\b|\\b\\d{3}\\.?\\d{3}\\.?\\d{3}-?\\d{2}\\b");
@@ -85,6 +99,21 @@ public class AssistantContextSelector {
             return false;
         }
         return NAVIGATION_PATTERN.matcher(normalized).find();
+    }
+
+    /**
+     * True quando a mensagem pergunta por que a tela está vazia / como o módulo funciona —
+     * deve usar o catálogo (guidance) em vez de inventar filtros ou permissões.
+     */
+    public boolean needsModuleGuidance(String latestUserMessage) {
+        if (!StringUtils.hasText(latestUserMessage)) {
+            return false;
+        }
+        String normalized = latestUserMessage.trim().toLowerCase(Locale.ROOT);
+        if (isSmallTalk(normalized) || looksLikeCpfLookup(normalized)) {
+            return false;
+        }
+        return MODULE_GUIDANCE_PATTERN.matcher(normalized).find();
     }
 
     /** Pedido de dado/resumo/lista — deve ir para LLM/skills, não para guia de menu. */

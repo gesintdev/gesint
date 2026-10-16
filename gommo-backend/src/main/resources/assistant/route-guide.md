@@ -52,6 +52,14 @@ Importante: o domínio ativo vem do rail, não da URL.
 - Candidatos → `/candidate`
 - Candidaturas → `/job-vacancy-application`
 
+### Experiência
+
+- Avaliação de experiência → `/experience`
+  - Fila automática (sem cadastro manual / sem botão Novo)
+  - Pessoas entram pela Admissão quando há período de experiência (45/90 dias)
+  - Lista vazia em "Em período" = ninguém em experiência no momento (ou admissão sem esse período)
+  - Abas: Em período / Decididos
+
 ### Outros
 
 - Férias (visão RH) → rota de férias do módulo Pessoas

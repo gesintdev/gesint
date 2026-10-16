@@ -1,7 +1,6 @@
 "use client";
 
 import clsx from "clsx";
-import {AnimatePresence, motion} from "framer-motion";
 import {
     CheckSquare,
     History,
@@ -138,6 +137,12 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
     const listRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const historySearchRef = useRef<HTMLInputElement>(null);
+    /** Mantem o painel montado apos a 1a abertura para reabrir sem remount pesado. */
+    const [shellMounted, setShellMounted] = useState(false);
+    /** Controla a slide: um frame off-screen antes de entrar (abre sem pular). */
+    const [panelEntered, setPanelEntered] = useState(false);
+    const openRef = useRef(open);
+    openRef.current = open;
 
     useEffect(() => {
         const stored = readStoredConversations();
@@ -152,6 +157,24 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
         }
         setHydrated(true);
     }, []);
+
+    useEffect(() => {
+        if (!open) {
+            setPanelEntered(false);
+            return;
+        }
+        setShellMounted(true);
+        let cancelled = false;
+        const frame = window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+                if (!cancelled && openRef.current) setPanelEntered(true);
+            });
+        });
+        return () => {
+            cancelled = true;
+            window.cancelAnimationFrame(frame);
+        };
+    }, [open]);
 
     useEffect(() => {
         if (!hydrated) return;
@@ -281,24 +304,31 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
         return () => document.removeEventListener("keydown", onKeyDown);
     }, [open, onClose, selectionMode, clearSelection]);
 
+    // Focus so apos a slide (~220ms) para nao competir com a animacao de abertura.
     useEffect(() => {
         if (!open || showHistory) return;
-        const timer = window.setTimeout(() => inputRef.current?.focus(), 180);
+        const timer = window.setTimeout(() => {
+            if (openRef.current) inputRef.current?.focus();
+        }, 240);
         return () => window.clearTimeout(timer);
     }, [open, showHistory, activeId]);
 
     useEffect(() => {
         if (!open || !showHistory) return;
-        const timer = window.setTimeout(() => historySearchRef.current?.focus(), 180);
+        const timer = window.setTimeout(() => {
+            if (openRef.current) historySearchRef.current?.focus();
+        }, 240);
         return () => window.clearTimeout(timer);
     }, [open, showHistory]);
 
     useEffect(() => {
-        if (!open || showHistory) return;
-        listRef.current?.scrollTo({top: listRef.current.scrollHeight, behavior: "smooth"});
+        if (!open || showHistory || !listRef.current) return;
+        // Instantaneo: scroll suave compete com a slide e gera travadinha.
+        listRef.current.scrollTop = listRef.current.scrollHeight;
     }, [messages, open, showHistory, activeId]);
 
     useEffect(() => {
+        if (!open) return;
         const el = inputRef.current;
         if (!el) return;
         el.style.height = "auto";
@@ -390,36 +420,38 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
         }
     };
 
+    if (!shellMounted) return null;
+
     return (
-        <AnimatePresence>
-            {open ? (
-                <>
-                    <motion.button
-                        type="button"
-                        aria-label="Fechar assistente"
-                        initial={{opacity: 0}}
-                        animate={{opacity: 1}}
-                        exit={{opacity: 0}}
-                        transition={{duration: 0.18}}
-                        className="fixed inset-x-0 bottom-0 z-40 bg-base-content/15 backdrop-blur-[2px] lg:bg-transparent lg:backdrop-blur-none lg:pointer-events-none"
-                        style={{top: "var(--header-height)"}}
-                        onClick={onClose}
-                    />
-                    <motion.aside
-                        id="ai-assistant-panel"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Assistente IA"
-                        initial={{x: "100%"}}
-                        animate={{x: 0}}
-                        exit={{x: "100%"}}
-                        transition={{duration: 0.28, ease: [0.22, 1, 0.36, 1]}}
-                        className="fixed right-0 bottom-0 z-50 flex w-full max-w-lg flex-col border-l bg-base-100 shadow-xl sm:max-w-xl"
-                        style={{
-                            top: "var(--header-height)",
-                            borderColor: "var(--sidebar-border)",
-                        }}
-                    >
+        <>
+            <button
+                type="button"
+                aria-label="Fechar assistente"
+                tabIndex={panelEntered ? 0 : -1}
+                className={clsx(
+                    "fixed inset-x-0 bottom-0 z-40 bg-base-content/15 transition-opacity duration-200 ease-out lg:bg-base-content/10",
+                    panelEntered ? "opacity-100" : "pointer-events-none opacity-0",
+                )}
+                style={{top: "var(--header-height)"}}
+                onClick={onClose}
+            />
+            <aside
+                id="ai-assistant-panel"
+                role="dialog"
+                aria-modal={panelEntered}
+                aria-label="Assistente IA"
+                aria-hidden={!panelEntered}
+                {...(!panelEntered ? {inert: true} : {})}
+                className={clsx(
+                    "fixed right-0 bottom-0 z-50 flex w-full max-w-md flex-col border-l bg-base-100 shadow-xl",
+                    "transform-gpu transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform",
+                    panelEntered ? "translate-x-0" : "pointer-events-none translate-x-full",
+                )}
+                style={{
+                    top: "var(--header-height)",
+                    borderColor: "var(--sidebar-border)",
+                }}
+            >
                         <header
                             className="flex h-12 shrink-0 items-center gap-1.5 border-b px-3 sm:gap-2 sm:px-4"
                             style={{borderColor: "var(--sidebar-border)"}}
@@ -749,9 +781,7 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                                 </footer>
                             </>
                         )}
-                    </motion.aside>
-                </>
-            ) : null}
-        </AnimatePresence>
+            </aside>
+        </>
     );
 }

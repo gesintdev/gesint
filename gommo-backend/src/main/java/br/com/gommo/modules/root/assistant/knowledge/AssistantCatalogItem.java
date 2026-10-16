@@ -31,4 +31,8 @@ public class AssistantCatalogItem {
 
     @Builder.Default
     private List<String> steps = new ArrayList<>();
+
+    /** Explicacoes em linguagem de negocio (por que a tela e assim, lista vazia, etc.). */
+    @Builder.Default
+    private List<String> guidance = new ArrayList<>();
 }

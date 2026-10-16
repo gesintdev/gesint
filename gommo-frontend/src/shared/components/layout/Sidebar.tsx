@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import {AnimatePresence, motion} from "framer-motion";
-import {ChevronRight, Search} from "lucide-react";
+import {ChevronRight, CopyMinus, CopyPlus, Search} from "lucide-react";
 import {usePathname} from "next/navigation";
 import {type MouseEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 
@@ -246,6 +246,25 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             return next;
         });
     };
+
+    const expandableGroupIds = useMemo(() => {
+        const ids: string[] = [];
+        for (const section of filteredSections) {
+            for (const route of section.routes) {
+                if (route.children?.length) ids.push(route.id);
+            }
+        }
+        return ids;
+    }, [filteredSections]);
+
+    const expandAllGroups = useCallback(() => {
+        setOpenIds(new Set(expandableGroupIds));
+    }, [expandableGroupIds]);
+
+    const collapseAllGroups = useCallback(() => {
+        setOpenIds(new Set());
+    }, []);
+
     /** Expansão só por clique do usuário (ou busca); troca de aba não abre/fecha grupos. */
     const isOpen = (id: string) => isSearching || openIds.has(id);
     const NavLink = ({route, nested}: { route: AppRoute; nested?: boolean }) => {
@@ -374,6 +393,41 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 query={query}
                 onQueryChange={setQuery}
             />
+            <div
+                className={clsx(
+                    "sidebar-group-actions",
+                    panelCollapsed && "sidebar-group-actions--collapsed",
+                )}
+                aria-hidden={panelCollapsed}
+            >
+                <button
+                    type="button"
+                    title="Expandir todos"
+                    aria-label="Expandir todos"
+                    disabled={
+                        panelCollapsed
+                        || isSearching
+                        || expandableGroupIds.length === 0
+                        || expandableGroupIds.every((id) => openIds.has(id))
+                    }
+                    tabIndex={panelCollapsed ? -1 : undefined}
+                    onClick={expandAllGroups}
+                    className="sidebar-group-actions__btn"
+                >
+                    <CopyPlus className="size-4 shrink-0" strokeWidth={2}/>
+                </button>
+                <button
+                    type="button"
+                    title="Recolher todos"
+                    aria-label="Recolher todos"
+                    disabled={panelCollapsed || isSearching || openIds.size === 0}
+                    tabIndex={panelCollapsed ? -1 : undefined}
+                    onClick={collapseAllGroups}
+                    className="sidebar-group-actions__btn"
+                >
+                    <CopyMinus className="size-4 shrink-0" strokeWidth={2}/>
+                </button>
+            </div>
             {/* Nav */}
             <div className="sidebar-nav-wrap min-h-0 flex-1">
                 <nav className="sidebar-nav space-y-3 py-1.5" aria-label="Navegacao principal">

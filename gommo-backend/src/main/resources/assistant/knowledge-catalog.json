@@ -217,11 +217,37 @@
       "routeId": "experience",
       "permission": "experience:read",
       "complexity": "GUIDE_ONLY",
-      "keywords": ["experiência", "experiencia", "período de experiência", "avaliação"],
+      "keywords": [
+        "experiência",
+        "experiencia",
+        "período de experiência",
+        "periodo de experiencia",
+        "avaliação de experiência",
+        "avaliacao de experiencia",
+        "45 dias",
+        "90 dias",
+        "lista vazia",
+        "não lista",
+        "nao lista",
+        "não listando",
+        "nao listando",
+        "ninguém",
+        "ninguem",
+        "sem botão novo",
+        "sem botao novo"
+      ],
+      "guidance": [
+        "Essa tela é uma fila de acompanhamento, não um cadastro manual. Por isso não há botão de Novo.",
+        "As pessoas aparecem automaticamente quando a admissão é concluída com período de experiência configurado (por exemplo 45 ou 90 dias).",
+        "Se a lista Em período estiver vazia, o motivo mais comum é não haver ninguém atualmente em período de experiência — ou a admissão não ter definido esse período.",
+        "A aba Decididos mostra quem já foi efetivado, prorrogado ou encerrado.",
+        "Para alguém entrar na fila, revise a Admissão do colaborador e o período de experiência do contrato."
+      ],
       "steps": [
         "Abra o sistema RH.",
         "Acesse Experiência.",
-        "Use as abas Em período / Decididos para acompanhar avaliações."
+        "Use a aba Em período para quem ainda está em avaliação e Decididos para o histórico.",
+        "Abra o registro para avaliar competências e registrar a decisão (efetivar, prorrogar ou encerrar)."
       ]
     },
     {

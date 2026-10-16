@@ -106,11 +106,24 @@ export function WorkspaceNavigationProvider({children}: { children: ReactNode })
     );
     const openFromHref = useCallback(
         (href: string) => {
-            const route = findRouteByHref(href);
+            const qIndex = href.indexOf("?");
+            const path = (qIndex >= 0 ? href.slice(0, qIndex) : href).trim();
+            const search = qIndex >= 0 ? href.slice(qIndex + 1) : "";
+            const route = findRouteByHref(path);
             if (!route?.href) return;
+            const params = new URLSearchParams(search);
+            const editingId = params.get("edit");
+            if (editingId) {
+                openRouteRecord(route, editingId);
+                return;
+            }
+            if (params.has("new")) {
+                openRouteCreate(route);
+                return;
+            }
             openRouteModule(route);
         },
-        [openRouteModule],
+        [openRouteCreate, openRouteModule, openRouteRecord],
     );
     const focusTabById = useCallback(
         (tabId: string) => {
