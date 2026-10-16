@@ -1845,6 +1845,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 
 /* Sidebar nav — sem scrollbar visível + fade inferior */
 .sidebar-nav-wrap {
+    --sidebar-nav-fade-h: 2.75rem;
     position: relative;
     display: flex;
     min-height: 0;
@@ -1859,7 +1860,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     bottom: 0;
     left: 0;
     z-index: 2;
-    height: 2.75rem;
+    height: var(--sidebar-nav-fade-h);
     pointer-events: none;
     background: linear-gradient(to top, var(--sidebar-bg) 15%, transparent);
 }
@@ -1869,7 +1870,8 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     overflow-x: hidden;
     overflow-y: auto;
     padding-inline: var(--sidebar-nav-pad-x);
-    padding-bottom: 0.75rem;
+    /* Respiro >= altura do fade: no fim do scroll o último item fica acima da sombra. */
+    padding-bottom: calc(var(--sidebar-nav-fade-h) + 0.5rem);
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
