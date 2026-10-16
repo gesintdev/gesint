@@ -149,6 +149,7 @@ public class AssistantKnowledgeCatalogLoader {
     private AssistantCatalogItem mapItem(JsonNode node) {
         List<String> keywords = readStringList(node.path("keywords"));
         List<String> steps = readStringList(node.path("steps"));
+        List<String> guidance = readStringList(node.path("guidance"));
         String complexityRaw = text(node, "complexity");
         AssistantCatalogComplexity complexity = "EXECUTABLE".equalsIgnoreCase(complexityRaw)
                 ? AssistantCatalogComplexity.EXECUTABLE
@@ -165,6 +166,7 @@ public class AssistantKnowledgeCatalogLoader {
                 .complexity(complexity)
                 .keywords(keywords)
                 .steps(steps)
+                .guidance(guidance)
                 .build();
     }
 

@@ -1,5 +1,7 @@
 package br.com.gommo.modules.root.assistant.skill;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,9 +24,13 @@ import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionPr
 import br.com.gommo.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gommo.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gommo.modules.root.assistant.dto.AssistantDeepLinkDto;
+import br.com.gommo.modules.root.search.service.provider.AdmissionGlobalSearchProvider;
 
 @Component
 public class SummarizeAdmissionSkill implements AssistantSkill {
+
+    private static final DateTimeFormatter DATE_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final String ADMISSION_HREF = AdmissionGlobalSearchProvider.HREF;
 
     private final AdmissionProcessRepository admissionProcessRepository;
     private final ObjectMapper objectMapper;
@@ -50,7 +56,8 @@ public class SummarizeAdmissionSkill implements AssistantSkill {
                 .name(name())
                 .description(
                         "Resume o status de admissão por nome, sem dados sensíveis (sem CPF/docs). "
-                                + "Exige permissão admission:read.")
+                                + "Exige permissão admission:read. Os campos já vêm em linguagem de negócio "
+                                + "(status e aprovação em português); use esses textos na resposta ao usuário.")
                 .parameters(Map.of(
                         "type", "object",
                         "properties", properties,
@@ -72,26 +79,25 @@ public class SummarizeAdmissionSkill implements AssistantSkill {
                 StatusEnum.DELETED, AdmissionStatusEnum.CANCELLED, pattern, PageRequest.of(0, 5));
         List<Map<String, Object>> summaries = new ArrayList<>();
         List<AssistantDeepLinkDto> links = new ArrayList<>();
+        boolean multiple = found.size() > 1;
         for (AdmissionProcess admission : found) {
+            String displayName = displayName(admission);
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("fullName", admission.getFullName());
+            row.put("fullName", displayName);
+            row.put("status", AdmissionGlobalSearchProvider.statusLabel(admission.getAdmissionStatus()));
+            row.put("expectedStartDate", formatDateBr(admission.getExpectedStartDate()));
+            row.put("startedAt", formatDateBr(admission.getStartedAt()));
             row.put(
-                    "status",
-                    admission.getAdmissionStatus() != null ? admission.getAdmissionStatus().name() : null);
-            row.put(
-                    "expectedStartDate",
-                    admission.getExpectedStartDate() != null ? admission.getExpectedStartDate().toString() : null);
-            row.put(
-                    "startedAt",
-                    admission.getStartedAt() != null ? admission.getStartedAt().toString() : null);
-            row.put("manuallyApproved", admission.getManuallyApprovedAt() != null);
+                    "manualApproval",
+                    admission.getManuallyApprovedAt() != null ? "Realizada" : "Pendente");
             summaries.add(row);
-        }
-        if (!summaries.isEmpty()) {
-            links.add(AssistantDeepLinkDto.builder()
-                    .label("Abrir Admissão")
-                    .href("/collaborator/admission")
-                    .build());
+            if (admission.getId() != null) {
+                String label = multiple ? "Abrir Admissão - " + displayName : "Abrir Admissão";
+                links.add(AssistantDeepLinkDto.builder()
+                        .label(label)
+                        .href(ADMISSION_HREF + "?edit=" + admission.getId())
+                        .build());
+            }
         }
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("count", summaries.size());
@@ -101,7 +107,10 @@ public class SummarizeAdmissionSkill implements AssistantSkill {
         } else {
             payload.put(
                     "message",
-                    "Resumo não sensível. Oriente o usuário a abrir a tela de Admissão para detalhes.");
+                    "Resumo não sensível com textos prontos para o usuário. "
+                            + "Repita status e aprovação exatamente como retornados (já em português). "
+                            + "Não cite códigos internos nem nomes de campos técnicos. "
+                            + "O deep link da admissão específica já está anexado.");
         }
         try {
             return AssistantSkillResult.builder()
@@ -112,6 +121,17 @@ public class SummarizeAdmissionSkill implements AssistantSkill {
         } catch (RuntimeException ex) {
             return failure("Falha ao montar resumo.");
         }
+    }
+
+    private static String displayName(AdmissionProcess admission) {
+        if (StringUtils.hasText(admission.getSocialName())) {
+            return admission.getSocialName().trim();
+        }
+        return admission.getFullName();
+    }
+
+    private static String formatDateBr(LocalDate date) {
+        return date != null ? DATE_BR.format(date) : null;
     }
 
     private boolean hasAdmissionRead() {

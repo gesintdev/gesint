@@ -71,6 +71,9 @@ public class RefuseComplexWriteSkill implements AssistantSkill {
             result.put("menu", item.getMenu());
             result.put("topic", item.getTopic());
             result.put("steps", item.getSteps());
+            if (item.getGuidance() != null && !item.getGuidance().isEmpty()) {
+                result.put("guidance", item.getGuidance());
+            }
             if (StringUtils.hasText(item.getHref())) {
                 result.put("href", item.getHref());
                 links.add(AssistantDeepLinkDto.builder()

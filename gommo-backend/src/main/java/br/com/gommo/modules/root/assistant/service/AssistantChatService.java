@@ -114,9 +114,15 @@ public class AssistantChatService implements IAssistantChatService {
             return sensitiveLookupReply();
         }
 
-        // Orientação de tela pelo catálogo (determinística): só intenção de navegação.
+        // Orientação de tela pelo catálogo (determinística): navegação ou "por que a tela é assim".
         if (contextSelector.needsRouteGuide(latestUser)) {
-            AssistantChatResponseDto catalogGuide = guideFromCatalog(latestUser, true);
+            AssistantChatResponseDto catalogGuide = guideFromCatalog(latestUser, true, false);
+            if (catalogGuide != null) {
+                return catalogGuide;
+            }
+        }
+        if (contextSelector.needsModuleGuidance(latestUser)) {
+            AssistantChatResponseDto catalogGuide = guideFromCatalog(latestUser, true, true);
             if (catalogGuide != null) {
                 return catalogGuide;
             }
@@ -146,7 +152,7 @@ public class AssistantChatService implements IAssistantChatService {
                                 .links(collectedLinks)
                                 .build();
                     }
-                    AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false);
+                    AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false, false);
                     if (catalogFallback != null) {
                         log.warn("Assistant LLM failed; using catalog guide fallback: {}", ex.getMessage());
                         return catalogFallback;
@@ -210,7 +216,7 @@ public class AssistantChatService implements IAssistantChatService {
             if (isAssistantGate(ex)) {
                 throw ex;
             }
-            AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false);
+            AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false, false);
             if (catalogFallback != null) {
                 log.warn("Assistant business failure; using catalog guide fallback: {}", ex.getMessage());
                 return catalogFallback;
@@ -218,7 +224,7 @@ public class AssistantChatService implements IAssistantChatService {
             logAndMask(ex);
             throw AssistantException.genericFailure();
         } catch (RuntimeException ex) {
-            AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false);
+            AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false, false);
             if (catalogFallback != null) {
                 log.warn("Assistant runtime failure; using catalog guide fallback: {}", ex.getMessage());
                 return catalogFallback;
@@ -252,8 +258,10 @@ public class AssistantChatService implements IAssistantChatService {
      * Resposta de orientação a partir do catálogo (Sistema → Menu → Tópico), com passos e deep link.
      *
      * @param guideOnly when true, ignora itens EXECUTABLE (skills) — só orientação de tela.
+     * @param requireGuidance when true, só responde se o item tiver explicações de negócio (guidance).
      */
-    private AssistantChatResponseDto guideFromCatalog(String query, boolean guideOnly) {
+    private AssistantChatResponseDto guideFromCatalog(
+            String query, boolean guideOnly, boolean requireGuidance) {
         if (!StringUtils.hasText(query)) {
             return null;
         }
@@ -271,29 +279,60 @@ public class AssistantChatService implements IAssistantChatService {
             }
         }
         AssistantCatalogItem primary = matches.getFirst();
+        boolean hasGuidance = primary.getGuidance() != null
+                && primary.getGuidance().stream().anyMatch(StringUtils::hasText);
+        if (requireGuidance && !hasGuidance) {
+            return null;
+        }
         List<AssistantDeepLinkDto> links = new ArrayList<>();
         StringBuilder reply = new StringBuilder();
-        reply.append("Para **")
-                .append(StringUtils.hasText(primary.getAction()) ? primary.getAction() : primary.getTopic())
-                .append("**, siga este caminho no Gesint:\n\n");
-        reply.append("- Sistema: **")
-                .append(nullToDash(primary.getSystem()))
-                .append("**\n");
-        reply.append("- Menu: **")
-                .append(nullToDash(primary.getMenu()))
-                .append("**\n");
-        reply.append("- Tela: **")
-                .append(nullToDash(primary.getTopic()))
-                .append("**\n");
-
-        if (primary.getSteps() != null && !primary.getSteps().isEmpty()) {
-            reply.append("\nPassos:\n");
-            int step = 1;
-            for (String line : primary.getSteps()) {
+        if (hasGuidance) {
+            reply.append("Sobre **")
+                    .append(nullToDash(primary.getTopic()))
+                    .append("** (")
+                    .append(nullToDash(primary.getSystem()))
+                    .append(" → ")
+                    .append(nullToDash(primary.getMenu()))
+                    .append("):\n\n");
+            for (String line : primary.getGuidance()) {
                 if (!StringUtils.hasText(line)) {
                     continue;
                 }
-                reply.append(step++).append(". ").append(line.trim()).append('\n');
+                reply.append("- ").append(line.trim()).append('\n');
+            }
+            if (primary.getSteps() != null && !primary.getSteps().isEmpty()) {
+                reply.append("\nComo usar:\n");
+                int step = 1;
+                for (String line : primary.getSteps()) {
+                    if (!StringUtils.hasText(line)) {
+                        continue;
+                    }
+                    reply.append(step++).append(". ").append(line.trim()).append('\n');
+                }
+            }
+        } else {
+            reply.append("Para **")
+                    .append(StringUtils.hasText(primary.getAction()) ? primary.getAction() : primary.getTopic())
+                    .append("**, siga este caminho no Gesint:\n\n");
+            reply.append("- Sistema: **")
+                    .append(nullToDash(primary.getSystem()))
+                    .append("**\n");
+            reply.append("- Menu: **")
+                    .append(nullToDash(primary.getMenu()))
+                    .append("**\n");
+            reply.append("- Tela: **")
+                    .append(nullToDash(primary.getTopic()))
+                    .append("**\n");
+
+            if (primary.getSteps() != null && !primary.getSteps().isEmpty()) {
+                reply.append("\nPassos:\n");
+                int step = 1;
+                for (String line : primary.getSteps()) {
+                    if (!StringUtils.hasText(line)) {
+                        continue;
+                    }
+                    reply.append(step++).append(". ").append(line.trim()).append('\n');
+                }
             }
         }
 

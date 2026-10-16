@@ -62,13 +62,14 @@ public class GuideFlowSkill implements AssistantSkill {
         List<Map<String, Object>> payload = new ArrayList<>();
         for (AssistantCatalogItem item : matches) {
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("id", item.getId());
             row.put("system", item.getSystem());
             row.put("menu", item.getMenu());
             row.put("topic", item.getTopic());
             row.put("action", item.getAction());
-            row.put("complexity", item.getComplexity() != null ? item.getComplexity().name() : "GUIDE_ONLY");
             row.put("steps", item.getSteps());
+            if (item.getGuidance() != null && !item.getGuidance().isEmpty()) {
+                row.put("guidance", item.getGuidance());
+            }
             if (StringUtils.hasText(item.getHref())) {
                 row.put("href", item.getHref());
                 links.add(AssistantDeepLinkDto.builder()
@@ -80,11 +81,12 @@ public class GuideFlowSkill implements AssistantSkill {
         }
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("matches", payload);
-        if (payload.isEmpty()) {
-            result.put(
-                    "message",
-                    "Nenhum fluxo encontrado com as permissões do usuário. Sugira a busca global do header.");
-        }
+        result.put(
+                "message",
+                payload.isEmpty()
+                        ? "Nenhum fluxo encontrado com as permissões do usuário. Sugira a busca global do header."
+                        : "Use system/menu/topic/steps/guidance em linguagem de negócio. "
+                                + "Não cite ids técnicos, códigos internos nem nomes de campos de sistema.");
         return AssistantSkillResult.builder()
                 .success(true)
                 .contentForModel(writeJson(result))
