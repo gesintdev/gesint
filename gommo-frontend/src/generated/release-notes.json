@@ -1,6 +1,28 @@
 {
   "releases": [
     {
+      "version": "1.98.2",
+      "hash": "f3a885ed",
+      "date": "2026-10-20T08:54:04-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Integra main",
+      "body": "**Commits incluídos**\n\n- chore(release): v1.98.0 [skip ci]",
+      "pullRequest": null
+    },
+    {
+      "version": "1.98.1",
+      "hash": "5f13c7f9",
+      "date": "2026-10-20T08:53:41-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (loading unificado)",
+      "body": "**Commits incluídos**\n\n- fix(frontend): unifica loading e alinha overlay de logout",
+      "pullRequest": null
+    },
+    {
       "version": "1.98.0",
       "hash": "68e5154b",
       "date": "2026-10-20T08:41:50-03:00",
