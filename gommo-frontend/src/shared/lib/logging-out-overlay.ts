@@ -1,7 +1,6 @@
 const LOGGING_OUT_OVERLAY_ID = "gommo-logging-out-overlay";
 const LOGGING_OUT_STYLES_ID = "gommo-logging-out-styles";
 const TITLE = "Encerrando sessão";
-const SUBTITLE = "Aguarde enquanto finalizamos com segurança...";
 const MONOGRAM_SRC = "/brand/logo-gesint-letterb-blue.svg";
 
 /**
@@ -12,16 +11,14 @@ const MONOGRAM_SRC = "/brand/logo-gesint-letterb-blue.svg";
 const PALETTES = {
     light: {
         page: "#f3f7f8",
-        text: "#0a1b2e",
-        muted: "rgba(10, 27, 46, 0.58)",
+        muted: "rgba(10, 27, 46, 0.62)",
         track: "rgba(10, 27, 46, 0.08)",
         primary: "#007bff",
         glow: "rgba(0, 123, 255, 0.06)",
     },
     dark: {
         page: "oklch(12% 0.018 260)",
-        text: "oklch(95% 0.008 260)",
-        muted: "rgba(235, 240, 248, 0.6)",
+        muted: "rgba(235, 240, 248, 0.62)",
         track: "rgba(255, 255, 255, 0.1)",
         primary: "#2da8f7",
         glow: "rgba(0, 123, 255, 0.07)",
@@ -90,6 +87,11 @@ function embeddedStyles(palette: Palette): string {
     height: 4rem;
     align-items: center;
     justify-content: center;
+    animation: logging-out-breathe 2.4s ease-in-out infinite;
+}
+@keyframes logging-out-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
 }
 .logging-out-screen__ring {
     position: absolute;
@@ -113,16 +115,8 @@ function embeddedStyles(palette: Palette): string {
 }
 .logging-out-screen__title {
     margin: 0;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: ${palette.text};
-}
-.logging-out-screen__subtitle {
-    margin: -0.75rem 0 0;
-    max-width: 18rem;
-    font-size: 0.8125rem;
-    line-height: 1.5;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: ${palette.muted};
 }
 .logging-out-screen__progress {
@@ -144,7 +138,8 @@ function embeddedStyles(palette: Palette): string {
     to { transform: translateX(260%); }
 }
 @media (prefers-reduced-motion: reduce) {
-    .logging-out-screen { animation: none; }
+    .logging-out-screen,
+    .logging-out-screen__mark { animation: none; }
     .logging-out-screen__ring,
     .logging-out-screen__progress-bar { animation-duration: 3s; }
 }
@@ -171,7 +166,6 @@ function buildLoggingOutOverlayMarkup(): string {
             <span class="logging-out-screen__logo"></span>
         </div>
         <p class="logging-out-screen__title">${TITLE}</p>
-        <p class="logging-out-screen__subtitle">${SUBTITLE}</p>
         <div class="logging-out-screen__progress" aria-hidden="true">
             <div class="logging-out-screen__progress-bar"></div>
         </div>

@@ -193,10 +193,10 @@ Arquivos: `app/(auth)/layout.tsx`, `app/(auth)/template.tsx`, `shared/components
 
 ## 11. Telas de carregamento
 
-- Use **sempre** `AppLoadingScreen` (`shared/components/layout/AppLoadingScreen.tsx`): monograma "G" em cartão, anel circular girando, mensagem e barra indeterminada.
+- Use **sempre** `AppLoadingScreen` (`shared/components/layout/AppLoadingScreen.tsx`): monograma "G" (sem fundo/borda no container), anel circular girando, mensagem e barra indeterminada. Mensagem padrão: `APP_LOADING_MESSAGE` ("Preparando seu ambiente...") — boot, sessão e validação de tenant usam a mesma tela/mensagem.
   - `variant="fullscreen"` (padrão): boot, sessão, validação de ambiente.
   - `variant="inline"`: fallback de `Suspense` dentro do shell.
-- **Proibido** texto solto "Carregando..." ou spinner DaisyUI (`loading loading-ring`) em telas inteiras.
+- **Proibido** segunda tela de loading paralela, texto solto "Carregando..."/"Validando..." em fullscreen, ou spinner DaisyUI (`loading loading-ring`) em telas inteiras.
 - Dentro de listas/cards, carregamento é **skeleton** (`.skeleton-shimmer` / `SkeletonStack`) no formato do conteúdo final.
 - O overlay de logout (`shared/lib/logging-out-overlay.ts`) replica esse visual com estilos embutidos e paleta literal por tema (não pode depender de `globals.css`). Mudou um, mude o outro.
 
