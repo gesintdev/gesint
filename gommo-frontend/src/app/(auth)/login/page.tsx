@@ -1,10 +1,14 @@
 import { LoginForm } from "@/app/(auth)/login/LoginForm";
-import { LoginShell } from "@/shared/components/auth/LoginShell";
+import { LoginHeading } from "@/shared/components/auth/LoginShell";
 
 export default function LoginPage() {
     return (
-        <LoginShell>
+        <>
+            <LoginHeading
+                title="Bem-vindo de volta"
+                subtitle="Entre com seu usuário ou e-mail para acessar o sistema."
+            />
             <LoginForm />
-        </LoginShell>
+        </>
     );
 }

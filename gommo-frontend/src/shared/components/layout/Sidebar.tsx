@@ -430,7 +430,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             </div>
             {/* Nav */}
             <div className="sidebar-nav-wrap min-h-0 flex-1">
-                <nav className="sidebar-nav space-y-3 py-1.5" aria-label="Navegacao principal">
+                <nav className="sidebar-nav space-y-3 pt-1.5" aria-label="Navegacao principal">
                     {filteredSections.map((section) => (
                         <div key={section.id}>
                             <div className="flex flex-col">

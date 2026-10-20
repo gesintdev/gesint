@@ -14,6 +14,7 @@ import {
 import type { SessionBootstrap } from "@/modules/root/auth/dto/session-bootstrap.dto";
 import { authKeys, authSessionService } from "@/modules/root/auth/services/auth-session.service";
 import { isPublicAppPath } from "@/shared/auth/public-app-path";
+import { AppLoadingScreen } from "@/shared/components/layout/AppLoadingScreen";
 import { useSessionReady } from "@/shared/components/providers/SessionGate";
 import type { Branch } from "@/shared/lib/branch";
 
@@ -31,12 +32,7 @@ type AppBootstrapContextValue = {
 const AppBootstrapContext = createContext<AppBootstrapContextValue | null>(null);
 
 function BootstrapLoading() {
-    return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-base-100 text-base-content">
-            <span className="loading loading-ring loading-xl text-primary" aria-hidden />
-            <p className="text-sm text-base-content/60">Preparando ambiente…</p>
-        </div>
-    );
+    return <AppLoadingScreen message="Preparando seu ambiente..." />;
 }
 
 function isLoginPath(pathname: string | null): boolean {
@@ -112,9 +108,13 @@ export function AppBootstrapProvider({ children }: { children: ReactNode }) {
 
     if (authenticated && query.isError) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center gap-2 bg-base-100 px-4 text-center">
-                <p className="text-sm text-error">Não foi possível carregar o ambiente do usuário.</p>
-                <button type="button" className="btn btn-sm btn-primary" onClick={() => void query.refetch()}>
+            <div className="app-loading" role="alert">
+                <p className="app-loading__message !text-error">Não foi possível carregar o ambiente do usuário.</p>
+                <button
+                    type="button"
+                    className="gommo-btn gommo-btn--primary mt-2"
+                    onClick={() => void query.refetch()}
+                >
                     Tentar novamente
                 </button>
             </div>

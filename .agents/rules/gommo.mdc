@@ -95,7 +95,8 @@ Novos módulos devem seguir o mesmo caminho do menu lateral. Exemplo: se a sideb
   - busca/autocomplete: `InputSelectAutocomplete` ou `InputAutocomplete`
   - nao usar `<select>` nativo nem criar novo componente quando ja existir equivalente compartilhado
 - Sidebar esquerda com expand/retract, busca, flyout no modo retraído.
-- Login em layout próprio; dark mode com `next-themes`.
+- Login em layout próprio (`LoginShell` persistente em `app/(auth)/layout.tsx`); dark mode com `next-themes`.
+- Qualquer mudança visual segue `.agents/rules/gommo-ui-system.mdc` (tokens, raios 5/6/7/8/12px, rail mais escuro que a sidebar, `AppLoadingScreen`, animações com `prefers-reduced-motion`) e deve ser conferida nos temas claro e escuro.
 - Inputs com foco por borda/ring suave; sem outline bruto.
 - Perguntar antes de adicionar dependência Maven/NPM não prevista.
 

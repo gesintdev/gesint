@@ -275,14 +275,16 @@ export function CrudScreen({
     const isListInstance = workspaceTabCtx == null || isModuleListTab(workspaceTabCtx.tab.entityKey);
     const syncWorkspace = useCallback(
         (crud: { editingId?: string | null; isNew?: boolean; titleSuffix?: string | null }) => {
-            if (!workspaceEnabled || !crudConfig || !workspaceTabCtx) return;
+            if (!workspaceEnabled || !workspaceTabCtx) return;
             const tabId = workspaceTabCtx.tab.id;
-            if (!isListInstance) return;
             if (crud.titleSuffix) setTitleSuffix(tabId, crud.titleSuffix);
             else clearTitleSuffix(tabId);
-            syncCrudUrl(tabId, { editingId: crud.editingId, isNew: crud.isNew });
+            // URL so espelha edit/new na aba de listagem do modulo; abas de registro mantem o modelo proprio.
+            if (isListInstance) {
+                syncCrudUrl(tabId, { editingId: crud.editingId, isNew: crud.isNew });
+            }
         },
-        [clearTitleSuffix, crudConfig, isListInstance, setTitleSuffix, syncCrudUrl, workspaceEnabled, workspaceTabCtx],
+        [clearTitleSuffix, isListInstance, setTitleSuffix, syncCrudUrl, workspaceEnabled, workspaceTabCtx],
     );
     const resolvedExtraTabs = overrideExtraTabs ?? extraTabs;
     const visibleExtraTabs = useMemo(

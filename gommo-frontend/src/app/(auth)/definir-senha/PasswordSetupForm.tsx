@@ -7,6 +7,7 @@ import { type FormEvent, Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { publicAuthService } from "@/modules/root/services/public-auth.service";
+import { LoginHeading } from "@/shared/components/auth/LoginShell";
 import { Button } from "@/shared/components/ui/Button";
 import { FormInput } from "@/shared/components/ui/FormInput";
 import { InputPassword } from "@/shared/components/ui/input/index";
@@ -122,16 +123,14 @@ function PasswordSetupForm() {
             className="login-form"
             noValidate
         >
-            <div className="mb-4 text-left">
-                <h1 className="text-lg font-semibold text-base-content">
-                    {welcome ? "Bem-vindo ao Gesint" : "Definir senha"}
-                </h1>
-                <p className="mt-1 text-sm text-base-content/60">
-                    {welcome
+            <LoginHeading
+                title={welcome ? "Bem-vindo ao Gesint" : "Definir senha"}
+                subtitle={
+                    welcome
                         ? "Informe o token recebido e escolha sua senha para concluir o primeiro acesso."
-                        : "Informe o token de acesso, a nova senha e a confirmação."}
-                </p>
-            </div>
+                        : "Informe o token de acesso, a nova senha e a confirmação."
+                }
+            />
             <FormInput
                 label="Token de acesso"
                 type="text"

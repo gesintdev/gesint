@@ -6,6 +6,7 @@ import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 
 import { publicAuthService } from "@/modules/root/services/public-auth.service";
+import { LoginHeading } from "@/shared/components/auth/LoginShell";
 import { Button } from "@/shared/components/ui/Button";
 import { FormInput } from "@/shared/components/ui/FormInput";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -45,12 +46,10 @@ export function ForgotPasswordForm() {
             className="login-form"
             noValidate
         >
-            <div className="mb-4 text-left">
-                <h1 className="text-lg font-semibold text-base-content">Esqueci minha senha</h1>
-                <p className="mt-1 text-sm text-base-content/60">
-                    Informe o e-mail da sua conta. Enviaremos um link para criar uma nova senha.
-                </p>
-            </div>
+            <LoginHeading
+                title="Esqueci minha senha"
+                subtitle="Informe o e-mail da sua conta. Enviaremos um link para criar uma nova senha."
+            />
             {submitted ? (
                 <p className="mb-4 text-left text-sm text-base-content/70">
                     Se o e-mail informado estiver cadastrado, você receberá as instruções em breve.
