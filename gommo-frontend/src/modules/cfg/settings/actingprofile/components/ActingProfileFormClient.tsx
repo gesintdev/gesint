@@ -25,6 +25,7 @@ import {
 import {useProfileScopeAccess} from "@/modules/cfg/settings/profile/hooks/useProfileScopeAccess";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
 import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
@@ -33,7 +34,7 @@ import {InputString} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
 
 export function ActingProfileFormClient() {
-    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
     const queryClient = useQueryClient();
     const {scopes: availableSystems} = useProfileScopeAccess();
     const [form, setForm] = useState<ActingProfileCreateDto>(() =>
@@ -139,19 +140,7 @@ export function ActingProfileFormClient() {
         <CrudFormShell
             onSubmit={handleSubmit}
             bodyClassName="!flex !min-h-0 !flex-1 !flex-col !overflow-hidden !p-0"
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar"}
-                    </Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection
                 id="atuacao"

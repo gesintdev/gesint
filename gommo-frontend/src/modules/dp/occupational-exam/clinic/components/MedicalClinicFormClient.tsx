@@ -14,6 +14,7 @@ import { medicalClinicKeys } from "@/modules/dp/occupational-exam/clinic/medical
 import { medicalClinicService } from "@/modules/dp/occupational-exam/clinic/services/medical-clinic.service";
 import { OCCUPATIONAL_EXAM_CLIENT_MESSAGES } from "@/modules/dp/occupational-exam/exceptions/occupational-exam.messages";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
@@ -27,7 +28,7 @@ import { isValidCnpj } from "@/shared/lib/input/cnpj";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "dados", label: "Clinica" }];
 
 export function MedicalClinicFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<MedicalClinicCreateDto>(emptyMedicalClinicForm);
     const [error, setError] = useState<string | null>(null);
@@ -128,19 +129,7 @@ export function MedicalClinicFormClient() {
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
             }}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar"}
-                    </Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Dados da clinica" description="Cadastro da clinica credenciada para exames.">
                 <InputString

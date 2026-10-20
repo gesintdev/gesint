@@ -21,7 +21,7 @@ class JobPositionSalaryTableService extends BaseService<
     findCurrentByJobPositionId(jobPositionId: string): Promise<JobPositionSalaryTable | null> {
         return apiFetch<JobPositionSalaryTable | null>(
             `${this.basePath}/by-job-position/${jobPositionId}/current`,
-        );
+        ).then((data) => data ?? null);
     }
 }
 

@@ -37,6 +37,7 @@ import {computeFilledAdmissionSteps} from "@/modules/rh/person/collaborators/adm
 import {addressService} from "@/modules/rh/person/collaborators/admission/services/address.service";
 import {admissionprocessService} from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
 import {storageService} from "@/modules/storage/services/storage.service";
+import {CrudFormFooterActions} from "@/shared/components/crud/CrudFormFooterActions";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
@@ -65,7 +66,7 @@ import {digitsOnly} from "@/shared/lib/input/digits";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 export function AdmissionProcessFormClient() {
-    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessCreateDto>(emptyAdmissionProcessForm);
     const [error, setError] = useState<string | null>(null);
@@ -344,17 +345,11 @@ export function AdmissionProcessFormClient() {
                 resetKey: editingId ?? "new",
             }}
             footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Nova admissão
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar admissão"}
-                    </Button>
-                </>
+                <CrudFormFooterActions
+                    isSubmitting={saveMutation.isPending}
+                    newLabel="Nova admissão"
+                    submitLabel={isEditing ? "Salvar" : "Cadastrar admissão"}
+                />
             }
         >
             <FormSection

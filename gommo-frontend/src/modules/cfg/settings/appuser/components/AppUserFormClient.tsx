@@ -5,6 +5,9 @@ import {KeyRound} from "lucide-react";
 import {type SubmitEvent, useCallback, useEffect, useMemo, useState} from "react";
 import {toast} from "sonner";
 
+import {actingProfileKeys} from "@/modules/cfg/settings/actingprofile/actingprofile.query";
+import type {ActingProfile} from "@/modules/cfg/settings/actingprofile/dto/acting-profile.dto";
+import {actingProfileService} from "@/modules/cfg/settings/actingprofile/services/acting-profile.service";
 import {appUserKeys} from "@/modules/cfg/settings/appuser/appuser.query";
 import {AppUserProfileAssignmentPanel} from "@/modules/cfg/settings/appuser/components/AppUserProfileAssignmentPanel";
 import type {AppUser, AppUserCreateDto, RoleIdsByBranch} from "@/modules/cfg/settings/appuser/dto/appuser.dto";
@@ -14,9 +17,6 @@ import {
     suggestUsernameFromCollaborator,
 } from "@/modules/cfg/settings/appuser/lib/collaborator-credentials";
 import {appUserService} from "@/modules/cfg/settings/appuser/services/appuser.service";
-import {actingProfileKeys} from "@/modules/cfg/settings/actingprofile/actingprofile.query";
-import type {ActingProfile} from "@/modules/cfg/settings/actingprofile/dto/acting-profile.dto";
-import {actingProfileService} from "@/modules/cfg/settings/actingprofile/services/acting-profile.service";
 import {
     ASSIGNABLE_SYSTEM_SCOPES,
     type SystemScope,
@@ -27,13 +27,14 @@ import {profileService} from "@/modules/cfg/settings/profile/services/profile.se
 import {collaboratorService} from "@/modules/rh/person/collaborators/people/services/collaborator.service";
 import {showAccessTokenReveal} from "@/shared/access-token-reveal";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
+import {CrudFormFooterActions} from "@/shared/components/crud/CrudFormFooterActions";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
-import {useFormDirtyByComparison} from "@/shared/components/crud/useFormDirtyByComparison";
 import {useCrudFormDirty} from "@/shared/components/crud/useCrudFormDirty";
+import {useFormDirtyByComparison} from "@/shared/components/crud/useFormDirtyByComparison";
 import {Button} from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {FormSection} from "@/shared/components/ui/FormSection";
+import {SkeletonStack} from "@/shared/components/ui/SkeletonStack";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputString} from "@/shared/components/ui/input/index";
 import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
@@ -335,14 +336,7 @@ export function AppUserFormClient() {
                 resetKey: editingId ?? "new",
             }}
             footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="submit" variant="primary" loading={saving}>
-                        Salvar usuário
-                    </Button>
-                </>
+                <CrudFormFooterActions hideNew isSubmitting={saving} submitLabel="Salvar usuário" />
             }
         >
             <FormSection id="dados" title="Dados do usuário">

@@ -48,7 +48,7 @@ function draftsFromDetail(detail: ExperienceEvaluation | undefined): Record<stri
 }
 
 export function ExperienceEvaluationFormClient() {
-    const { editingId, goToList } = useCrudScreen();
+    const { editingId, goToList, cancelAndClose } = useCrudScreen();
     const queryClient = useQueryClient();
     const { openRouteRecord } = useWorkspaceNavigation();
     const [drafts, setDrafts] = useState<Record<string, ScoreDraft>>({});
@@ -375,6 +375,9 @@ export function ExperienceEvaluationFormClient() {
             <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => void goToList()}>
                     Fechar
+                </Button>
+                <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                    Cancelar e Fechar
                 </Button>
             </div>
 

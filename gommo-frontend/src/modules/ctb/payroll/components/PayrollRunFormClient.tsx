@@ -14,6 +14,7 @@ import {
 } from "@/modules/ctb/payroll/lib/payroll-run-lifecycle";
 import { payrollrunKeys } from "@/modules/ctb/payroll/payroll.query";
 import { payrollrunService } from "@/modules/ctb/payroll/services/payroll-run.service";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
@@ -27,7 +28,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Competência" }];
 
 export function PayrollRunFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, cancelAndClose } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayrollRunCreateDto>(() => emptyPayrollRunForm());
     const [error, setError] = useState<string | null>(null);
@@ -116,21 +117,18 @@ export function PayrollRunFormClient() {
                 resetKey: editingId ?? "new",
             }}
             footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    {!readOnly ? (
-                        <Button type="button" variant="outline" onClick={startCreate}>
-                            Novo cadastro
+                readOnly ? (
+                    <>
+                        <Button type="button" variant="ghost" onClick={goToList}>
+                            Cancelar
                         </Button>
-                    ) : null}
-                    {!readOnly ? (
-                        <Button type="submit" loading={saveMutation.isPending}>
-                            {isEditing ? "Salvar" : "Cadastrar"}
+                        <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                            Cancelar e Fechar
                         </Button>
-                    ) : null}
-                </>
+                    </>
+                ) : (
+                    <CrudFormFooterActions isSubmitting={saveMutation.isPending} />
+                )
             }
         >
             <FormSection id="cadastro" title="Competência">

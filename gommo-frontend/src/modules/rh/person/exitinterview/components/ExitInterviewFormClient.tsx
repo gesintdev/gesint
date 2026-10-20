@@ -250,7 +250,7 @@ function validateBeforeComplete(form: ExitInterviewCreateDto): string | null {
 
 export function ExitInterviewFormClient() {
     const { data: session } = useSession();
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, startCreate, cancelAndClose } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<ExitInterviewCreateDto>(emptyExitInterviewForm);
     const [error, setError] = useState<string | null>(null);
@@ -637,6 +637,9 @@ export function ExitInterviewFormClient() {
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Voltar
+                    </Button>
+                    <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                        Cancelar e Fechar
                     </Button>
                     <Button type="button" variant="outline" onClick={startCreate}>
                         Novo cadastro

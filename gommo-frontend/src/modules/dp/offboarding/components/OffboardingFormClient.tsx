@@ -55,7 +55,7 @@ const OFFBOARDING_FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function OffboardingFormClient() {
-    const {editingId, isEditing, goToList, startCreate, showSavedRecord} = useCrudScreen();
+    const {editingId, isEditing, goToList, startCreate, showSavedRecord, cancelAndClose} = useCrudScreen();
     const queryClient = useQueryClient();
     const {openRouteRecord, openRouteCreate} = useWorkspaceNavigation();
     const [form, setForm] = useState<OffboardingCreateDto>(emptyOffboardingForm);
@@ -359,6 +359,9 @@ export function OffboardingFormClient() {
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
+                    </Button>
+                    <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                        Cancelar e Fechar
                     </Button>
                     <Button type="button" variant="outline" onClick={startCreate}>
                         Novo cadastro

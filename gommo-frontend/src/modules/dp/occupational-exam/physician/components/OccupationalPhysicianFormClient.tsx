@@ -19,6 +19,7 @@ import {
 import { occupationalPhysicianKeys } from "@/modules/dp/occupational-exam/physician/occupational-physician.query";
 import { occupationalPhysicianService } from "@/modules/dp/occupational-exam/physician/services/occupational-physician.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
@@ -34,7 +35,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function OccupationalPhysicianFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<OccupationalPhysicianCreateDto>(emptyOccupationalPhysicianForm);
     const [error, setError] = useState<string | null>(null);
@@ -148,19 +149,7 @@ export function OccupationalPhysicianFormClient() {
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
             }}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar"}
-                    </Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection
                 id="dados"

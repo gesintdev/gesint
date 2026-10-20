@@ -15,8 +15,8 @@ type CrudFormFooterActionsProps = {
 };
 
 /**
- * Rodapé padrão dos formulários CRUD: Cancelar | Novo cadastro | Salvar/Cadastrar.
- * "Novo cadastro" limpa o formulário via startCreate (sempre visível quando há create).
+ * Rodapé padrão dos formulários CRUD:
+ * Cancelar | Cancelar e Fechar | Novo cadastro | Salvar/Cadastrar.
  */
 export function CrudFormFooterActions({
     isSubmitting = false,
@@ -25,12 +25,15 @@ export function CrudFormFooterActions({
     hideNew = false,
     onCancel,
 }: CrudFormFooterActionsProps) {
-    const { isEditing, goToList, startCreate } = useCrudScreen();
+    const { isEditing, goToList, cancelAndClose, startCreate } = useCrudScreen();
 
     return (
         <>
             <Button type="button" variant="ghost" onClick={() => void (onCancel ?? goToList)()}>
                 Cancelar
+            </Button>
+            <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                Cancelar e Fechar
             </Button>
             {hideNew ? null : (
                 <Button type="button" variant="outline" onClick={() => void startCreate()}>

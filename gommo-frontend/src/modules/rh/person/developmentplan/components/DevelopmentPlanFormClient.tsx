@@ -32,6 +32,7 @@ import {
 import { developmentPlanService } from "@/modules/rh/person/developmentplan/services/development-plan.service";
 import { developmentPlanDomainOptionsService } from "@/modules/rh/person/developmentplan/services/development-plan-domain-options.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
@@ -109,7 +110,7 @@ const ORIGIN_OPTIONS = {
 } as const;
 
 export function DevelopmentPlanFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DevelopmentPlanFormDto>(emptyDevelopmentPlanForm);
     const [error, setError] = useState<string | null>(null);
@@ -276,15 +277,7 @@ export function DevelopmentPlanFormClient() {
         <CrudFormShell
             onSubmit={handleSubmit}
             stepper={{ steps: FORM_STEPS, entityCode: isEditing ? detailQuery.data?.code : undefined, resetKey: editingId ?? "new" }}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>{isEditing ? "Salvar" : "Cadastrar"}</Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="geral" title="Dados gerais">
                 <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={handleCollaboratorChange} wrapperClassName="sm:col-span-6" required />

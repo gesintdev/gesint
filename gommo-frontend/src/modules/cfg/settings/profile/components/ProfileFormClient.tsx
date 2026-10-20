@@ -101,7 +101,7 @@ function toProfileDirtySnapshot(drafts: ProfileDraftItem[]): ProfileDirtySnapsho
 const shownProfileDraftRestoreToasts = new Set<string>();
 
 export function ProfileFormClient() {
-    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord, startCreate, cancelAndClose} = useCrudScreen();
     const queryClient = useQueryClient();
     const {data: session} = useSession();
     const tenantSlug = session?.tenantSlug?.trim() || "default";
@@ -705,25 +705,33 @@ export function ProfileFormClient() {
             bodyClassName="!flex !min-h-0 !flex-1 !flex-col !overflow-hidden !p-0"
             footer={
                 isSystemAdminProfile ? (
-                    <Button type="button" variant="ghost" onClick={handleCancel}>
-                        Voltar
-                    </Button>
+                    <>
+                        <Button type="button" variant="ghost" onClick={handleCancel}>
+                            Voltar
+                        </Button>
+                        <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                            Cancelar e Fechar
+                        </Button>
+                    </>
                 ) : (
-                <>
-                    <Button type="button" variant="ghost" onClick={handleCancel}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={handleNewCadastro}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" variant="primary" loading={saveMutation.isPending}>
-                        {isEditing
-                            ? "Salvar perfil"
-                            : drafts.filter((draft) => draft.name.trim()).length > 1
-                              ? "Salvar perfis"
-                              : "Salvar perfil"}
-                    </Button>
-                </>
+                    <>
+                        <Button type="button" variant="ghost" onClick={handleCancel}>
+                            Cancelar
+                        </Button>
+                        <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                            Cancelar e Fechar
+                        </Button>
+                        <Button type="button" variant="outline" onClick={handleNewCadastro}>
+                            Novo cadastro
+                        </Button>
+                        <Button type="submit" variant="primary" loading={saveMutation.isPending}>
+                            {isEditing
+                                ? "Salvar perfil"
+                                : drafts.filter((draft) => draft.name.trim()).length > 1
+                                  ? "Salvar perfis"
+                                  : "Salvar perfil"}
+                        </Button>
+                    </>
                 )
             }
         >
