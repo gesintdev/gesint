@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.98.0",
+      "hash": "68e5154b",
+      "date": "2026-10-20T08:41:50-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (Cancelar e Fechar, tabela salarial, loading)",
+      "body": "**Commits incluídos**\n\n- feat(frontend): Cancelar e Fechar no CRUD e correções de loading/tabela salarial",
+      "pullRequest": null
+    },
+    {
       "version": "1.97.0",
       "hash": "37cbeb8e",
       "date": "2026-10-19T23:13:36-03:00",
