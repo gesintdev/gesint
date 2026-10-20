@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.97.0",
+      "hash": "37cbeb8e",
+      "date": "2026-10-19T23:13:36-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (layout + limpar título da aba ao cancelar)",
+      "body": "**Commits incluídos**\n\n- feat(frontend): repaginar layout do sistema, login e telas de carregamento\n- docs(agents): documentar o novo padrão de layout para ferramentas de IA\n- fix(frontend): último item do menu lateral não fica sob o fade inferior\n- fix(frontend): padding inferior do menu lateral só no CSS\n- fix(frontend): limpar título da aba ao cancelar edição",
+      "pullRequest": null
+    },
+    {
       "version": "1.96.1",
       "hash": "781d4d2c",
       "date": "2026-10-16T08:11:28-03:00",
