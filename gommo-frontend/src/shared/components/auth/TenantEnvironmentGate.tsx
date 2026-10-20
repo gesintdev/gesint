@@ -93,7 +93,7 @@ export function TenantEnvironmentGate({ children }: { children: ReactNode }) {
     }
 
     if (state.status === "checking") {
-        return <AppLoadingScreen message="Validando ambiente..." />;
+        return <AppLoadingScreen />;
     }
 
     return (

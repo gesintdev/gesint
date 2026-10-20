@@ -32,7 +32,7 @@ type AppBootstrapContextValue = {
 const AppBootstrapContext = createContext<AppBootstrapContextValue | null>(null);
 
 function BootstrapLoading() {
-    return <AppLoadingScreen message="Preparando seu ambiente..." />;
+    return <AppLoadingScreen />;
 }
 
 function isLoginPath(pathname: string | null): boolean {
