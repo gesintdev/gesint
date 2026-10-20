@@ -15,6 +15,7 @@ import { performanceReviewKeys } from "@/modules/rh/person/performance/performan
 import { performanceReviewService } from "@/modules/rh/person/performance/services/performance-review.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
@@ -27,7 +28,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Avaliação" }];
 
 export function PerformanceReviewFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PerformanceReviewCreateDto>(emptyPerformanceReviewForm);
     const [error, setError] = useState<string | null>(null);
@@ -115,19 +116,7 @@ export function PerformanceReviewFormClient() {
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
             }}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar"}
-                    </Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Avaliação">
                 <div className="sm:col-span-12">

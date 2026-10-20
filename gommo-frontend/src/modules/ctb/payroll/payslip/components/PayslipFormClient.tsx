@@ -14,6 +14,7 @@ import { payslipKeys } from "@/modules/ctb/payroll/payslip/payslip.query";
 import { payslipService } from "@/modules/ctb/payroll/payslip/services/payslip.service";
 import { payrollrunService } from "@/modules/ctb/payroll/services/payroll-run.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
@@ -28,7 +29,7 @@ import { ExceptionCapture } from "@/shared/exceptions";
 const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contracheque" }];
 
 export function PayslipFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, cancelAndClose } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PayslipCreateDto>(() => emptyPayslipForm());
     const [error, setError] = useState<string | null>(null);
@@ -134,21 +135,18 @@ export function PayslipFormClient() {
                 resetKey: editingId ?? "new",
             }}
             footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    {!readOnly ? (
-                        <Button type="button" variant="outline" onClick={startCreate}>
-                            Novo cadastro
+                readOnly ? (
+                    <>
+                        <Button type="button" variant="ghost" onClick={goToList}>
+                            Cancelar
                         </Button>
-                    ) : null}
-                    {!readOnly ? (
-                        <Button type="submit" loading={saveMutation.isPending}>
-                            {isEditing ? "Salvar" : "Cadastrar"}
+                        <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                            Cancelar e Fechar
                         </Button>
-                    ) : null}
-                </>
+                    </>
+                ) : (
+                    <CrudFormFooterActions isSubmitting={saveMutation.isPending} />
+                )
             }
         >
             <FormSection id="cadastro" title="Contracheque">

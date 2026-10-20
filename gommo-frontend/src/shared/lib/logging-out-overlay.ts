@@ -12,25 +12,19 @@ const MONOGRAM_SRC = "/brand/logo-gesint-letterb-blue.svg";
 const PALETTES = {
     light: {
         page: "#f3f7f8",
-        surface: "#ffffff",
-        border: "rgba(10, 27, 46, 0.08)",
         text: "#0a1b2e",
         muted: "rgba(10, 27, 46, 0.58)",
         track: "rgba(10, 27, 46, 0.08)",
         primary: "#007bff",
         glow: "rgba(0, 123, 255, 0.06)",
-        shadow: "0 2px 8px rgba(10, 27, 46, 0.06), 0 1px 3px rgba(10, 27, 46, 0.04)",
     },
     dark: {
         page: "oklch(12% 0.018 260)",
-        surface: "oklch(17% 0.015 260)",
-        border: "rgba(255, 255, 255, 0.08)",
         text: "oklch(95% 0.008 260)",
         muted: "rgba(235, 240, 248, 0.6)",
         track: "rgba(255, 255, 255, 0.1)",
         primary: "#2da8f7",
         glow: "rgba(0, 123, 255, 0.07)",
-        shadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
     },
 } as const;
 
@@ -96,9 +90,6 @@ function embeddedStyles(palette: Palette): string {
     height: 4rem;
     align-items: center;
     justify-content: center;
-    border-radius: 1.125rem;
-    background: ${palette.surface};
-    box-shadow: ${palette.shadow}, inset 0 0 0 1px ${palette.border};
 }
 .logging-out-screen__ring {
     position: absolute;

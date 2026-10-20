@@ -14,6 +14,7 @@ import {
 } from "@/modules/cfg/settings/admissionprocesskanban/lib/admission-process-kanban-column.mapper";
 import { admissionProcessKanbanColumnService } from "@/modules/cfg/settings/admissionprocesskanban/services/admission-process-kanban-column.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
@@ -47,7 +48,7 @@ function clampSlaBusinessDays(value: number | null | undefined): number {
 }
 
 export function AdmissionProcessKanbanColumnFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessKanbanColumnCreateDto>(
         emptyAdmissionProcessKanbanColumnForm,
@@ -160,19 +161,7 @@ export function AdmissionProcessKanbanColumnFormClient() {
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
             }}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar"}
-                    </Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection
                 id="cadastro"

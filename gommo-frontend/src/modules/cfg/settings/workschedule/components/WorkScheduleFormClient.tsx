@@ -20,6 +20,7 @@ import {workScheduleService} from "@/modules/cfg/settings/workschedule/services/
 import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule.query";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
 import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
@@ -39,7 +40,7 @@ type DayTimeField = keyof Pick<
 >;
 
 export function WorkScheduleFormClient() {
-    const {editingId, isEditing, goToList, startCreate, showSavedRecord} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<WorkScheduleCreateDto>(emptyWorkScheduleForm);
     const [error, setError] = useState<string | null>(null);
@@ -148,19 +149,7 @@ export function WorkScheduleFormClient() {
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
             }}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar"}
-                    </Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Dados da escala" description="Identificação da jornada.">
                 <InputString

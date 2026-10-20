@@ -13,10 +13,10 @@ import {
     DevelopmentPlanDomainService,
     type DomainFieldConfig
 } from "@/modules/cfg/settings/developmentplan/services/development-plan-domain.service";
+import {CrudFormFooterActions} from "@/shared/components/crud/CrudFormFooterActions";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
-import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputCheckbox, InputNumber, InputSelect, InputString} from "@/shared/components/ui/input/index";
@@ -24,7 +24,7 @@ import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFi
 import {ExceptionCapture} from "@/shared/exceptions";
 
 export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentPlanDomainConfig }) {
-    const {editingId, isEditing, goToList, showSavedRecord, startCreate} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
     const queryClient = useQueryClient();
     const service = useMemo(() => new DevelopmentPlanDomainService(config.endpoint), [config.endpoint]);
     const queryKey = ["development-plan-domain", config.id] as const;
@@ -85,13 +85,7 @@ export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentP
         <CrudFormShell
             onSubmit={handleSubmit}
             stepper={{steps, entityCode: isEditing ? detailQuery.data?.code : undefined, resetKey: editingId ?? "new"}}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>Cancelar</Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>Novo cadastro</Button>
-                    <Button type="submit" loading={saveMutation.isPending}>{isEditing ? "Salvar" : "Cadastrar"}</Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title={config.title}>
                 {config.fields.map((field) => renderField(field, form[field.name], update))}

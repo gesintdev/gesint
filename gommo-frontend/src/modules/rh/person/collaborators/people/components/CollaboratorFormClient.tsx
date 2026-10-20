@@ -45,7 +45,7 @@ const COLLABORATOR_FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function CollaboratorFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, cancelAndClose } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CollaboratorCreateDto>(emptyCollaboratorForm);
     const [error, setError] = useState<string | null>(null);
@@ -189,6 +189,9 @@ export function CollaboratorFormClient() {
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
+                    </Button>
+                    <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                        Cancelar e Fechar
                     </Button>
                     <Button
                         type="button"

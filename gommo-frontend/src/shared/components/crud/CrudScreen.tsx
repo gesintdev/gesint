@@ -73,6 +73,11 @@ type CrudScreenContextValue = {
     /** Volta à listagem com confirmação se houver alterações não salvas (cancelar, etc.). */
     goToList: () => void | Promise<void>;
     /**
+     * Cancela a edição/cadastro (com confirmação de dirty) e fecha a aba do workspace.
+     * Sem aba de workspace, equivale a {@link goToList}.
+     */
+    cancelAndClose: () => void | Promise<void>;
+    /**
      * Após salvar, mantém o formulário aberto em edição do registro retornado pela API —
      * sem voltar à listagem e sem confirmação de descarte.
      */
@@ -265,9 +270,10 @@ export function CrudScreen({
     const { activeBranchId } = useActiveBranch();
     const crudConfig = useTabbedCrudConfigOptional();
     const workspaceTabCtx = useWorkspaceTabOptional();
-    const { syncCrudUrl } = useWorkspaceNavigation();
+    const { syncCrudUrl, focusTabById } = useWorkspaceNavigation();
     const clearTitleSuffix = useWorkspaceStore((s) => s.clearTitleSuffix);
     const setTitleSuffix = useWorkspaceStore((s) => s.setTitleSuffix);
+    const closeTab = useWorkspaceStore((s) => s.closeTab);
     const isEditing = editingId != null;
     const workspaceRoute = workspaceTabCtx ? findRouteById(workspaceTabCtx.tab.routeId) : undefined;
     const canWrite = canWriteRoute(workspaceRoute, permissions, writePermission);
@@ -335,6 +341,19 @@ export function CrudScreen({
         if (!(await confirmDiscardFormChanges())) return;
         resetToList();
     }, [confirmDiscardFormChanges, resetToList]);
+    const cancelAndClose = useCallback(async () => {
+        const tabId = workspaceTabCtx?.tab.id;
+        if (!tabId) {
+            await goToList();
+            return;
+        }
+        if (!(await confirmDiscardFormChanges())) return;
+        closeTab(tabId);
+        const nextActiveId = useWorkspaceStore.getState().activeTabId;
+        if (nextActiveId) {
+            focusTabById(nextActiveId);
+        }
+    }, [closeTab, confirmDiscardFormChanges, focusTabById, goToList, workspaceTabCtx?.tab.id]);
     const goToForm = useCallback(() => setActiveTab(CRUD_TAB_FORM), []);
     const startCreate = useCallback(async () => {
         if (editOnly || !canWrite) return;
@@ -433,13 +452,25 @@ export function CrudScreen({
             editingId,
             isEditing,
             goToList,
+            cancelAndClose,
             showSavedRecord,
             goToForm,
             startCreate,
             startEdit,
             goToTab,
         }),
-        [activeTab, editingId, goToForm, goToList, goToTab, isEditing, showSavedRecord, startCreate, startEdit],
+        [
+            activeTab,
+            cancelAndClose,
+            editingId,
+            goToForm,
+            goToList,
+            goToTab,
+            isEditing,
+            showSavedRecord,
+            startCreate,
+            startEdit,
+        ],
     );
     const extraTabPanel = visibleExtraTabs.find((t) => t.id === activeTab)?.content ?? null;
 

@@ -4931,11 +4931,6 @@ html:has(.login-page) body {
     height: 4rem;
     align-items: center;
     justify-content: center;
-    border-radius: 1.125rem;
-    background: var(--color-base-100);
-    box-shadow:
-        var(--gommo-shadow-md),
-        inset 0 0 0 1px var(--gommo-border-subtle);
     animation: app-loading-breathe 2.4s ease-in-out infinite;
 }
 

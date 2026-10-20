@@ -31,6 +31,7 @@ import {
 } from "@/modules/rh/person/vacation/schemas/vacation-request.schema";
 import type { VacationPeriodContext } from "@/modules/rh/person/vacation/types/vacation.types";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useCrudFormDirty } from "@/shared/components/crud/useCrudFormDirty";
@@ -68,7 +69,7 @@ function formSteps(mode: VacationFormMode): FormStepNavItem[] {
 
 export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormClientProps) {
     const isRh = mode === "rh";
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<VacationFormState>(() => ({
         ...emptyVacationForm(),
@@ -340,19 +341,11 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
                 resetKey: isRh ? "new" : (editingId ?? "new"),
             }}
             footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    {!isRh ? (
-                        <Button type="button" variant="outline" onClick={startCreate}>
-                            Novo cadastro
-                        </Button>
-                    ) : null}
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isRh ? "Enviar solicitação" : isEditing ? "Salvar" : "Cadastrar férias"}
-                    </Button>
-                </>
+                <CrudFormFooterActions
+                    isSubmitting={saveMutation.isPending}
+                    hideNew={isRh}
+                    submitLabel={isRh ? "Enviar solicitação" : isEditing ? "Salvar" : "Cadastrar férias"}
+                />
             }
         >
             <FormSection

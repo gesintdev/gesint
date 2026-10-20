@@ -3,6 +3,7 @@ package br.com.gommo.modules.dp.organization.jobpositionsalarytable.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,10 +31,13 @@ public class JobPositionSalaryTableController
         return salaryTableService.findByJobPositionId(jobPositionId);
     }
 
+    /** Sem tabela vigente: 204 (mesmo padrao de Optional vazio no AuthController). */
     @GetMapping("/by-job-position/{jobPositionId}/current")
-    public JobPositionSalaryTableResponseDto currentByJobPosition(@PathVariable UUID jobPositionId) {
+    public ResponseEntity<JobPositionSalaryTableResponseDto> currentByJobPosition(
+            @PathVariable UUID jobPositionId) {
         return salaryTableService
                 .findCurrentByJobPositionId(jobPositionId)
-                .orElse(null);
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }

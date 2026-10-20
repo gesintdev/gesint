@@ -87,14 +87,23 @@ export function createHttpClient(config: HttpClientConfig) {
         return JSON.stringify(body);
     }
     async function parseResponse<T>(response: Response, responseType: DoRequestOptions["responseType"]): Promise<T> {
-        if (responseType === "void" || response.status === 204) {
+        if (responseType === "void") {
             return undefined as T;
+        }
+        // 204 / body vazio: null (nao undefined) — TanStack Query rejeita undefined no queryFn.
+        if (response.status === 204) {
+            return null as T;
         }
 
         if (responseType === "blob") {
             return (await response.blob()) as T;
         }
-        return (await response.json()) as T;
+        // Body vazio (ex.: controller Java retornando null) nao e JSON valido — trata como ausencia.
+        const text = await response.text();
+        if (!text.trim()) {
+            return null as T;
+        }
+        return JSON.parse(text) as T;
     }
     async function readErrorPayload(response: Response): Promise<ErrorResponseDto> {
         const fallback: ErrorResponseDto = {

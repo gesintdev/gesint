@@ -25,7 +25,7 @@ import { InputMonth, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 export function PaymentPeriodFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, cancelAndClose } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<PaymentPeriodCreateDto>(() => emptyPaymentPeriodForm());
     const [error, setError] = useState<string | null>(null);
@@ -99,6 +99,9 @@ export function PaymentPeriodFormClient() {
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         {periodId ? "Voltar para lista" : "Cancelar"}
+                    </Button>
+                    <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                        Cancelar e Fechar
                     </Button>
                     <Button type="submit" variant="primary" loading={saveMutation.isPending}>
                         Salvar período

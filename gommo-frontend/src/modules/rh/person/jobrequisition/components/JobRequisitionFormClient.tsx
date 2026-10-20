@@ -108,7 +108,7 @@ function offboardingLabel(name?: string | null, dismissalDate?: string | null, d
 }
 
 export function JobRequisitionFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord, cancelAndClose } = useCrudScreen();
     const { activeBranch, branches } = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<JobRequisitionFormDto>(emptyJobRequisitionForm);
@@ -376,6 +376,9 @@ export function JobRequisitionFormClient() {
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         {readOnly ? "Voltar" : "Cancelar"}
+                    </Button>
+                    <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                        Cancelar e Fechar
                     </Button>
                     {isEditing && isPending && canWrite ? (
                         <Button

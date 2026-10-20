@@ -18,6 +18,7 @@ import {
 import {documentTypeService} from "@/modules/cfg/settings/documenttype/services/document-type.service";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
@@ -50,7 +51,7 @@ function toFormDto(detail: DocumentType): DocumentTypeRequestDto {
 }
 
 export function DocumentTypeFormClient() {
-    const {editingId, isEditing, goToList, startCreate, showSavedRecord} = useCrudScreen();
+    const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<DocumentTypeRequestDto>(emptyForm);
     const [systemManaged, setSystemManaged] = useState(false);
@@ -149,19 +150,7 @@ export function DocumentTypeFormClient() {
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
             }}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar"}
-                    </Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection
                 id="cadastro"

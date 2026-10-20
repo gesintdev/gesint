@@ -15,6 +15,7 @@ import {
 } from "@/modules/rh/person/candidate/lib/candidate.mapper";
 import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { EntityAttachments } from "@/shared/components/storage/EntityAttachments";
@@ -32,7 +33,7 @@ const FORM_STEPS: FormStepNavItem[] = [
 ];
 
 export function CandidateFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CandidateCreateDto>(emptyCandidateForm);
     const [error, setError] = useState<string | null>(null);
@@ -124,19 +125,7 @@ export function CandidateFormClient() {
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
             }}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar"}
-                    </Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Dados do candidato">
                 <InputString

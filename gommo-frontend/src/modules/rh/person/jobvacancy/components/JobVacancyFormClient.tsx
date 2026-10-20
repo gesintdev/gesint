@@ -35,6 +35,7 @@ import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobva
 import { CollaboratorMultiPickerField } from "@/shared/components/crud/CollaboratorMultiPickerField";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
@@ -95,7 +96,7 @@ function buildWhatsAppShareText(jobTitle: string, url: string): string {
 }
 
 export function JobVacancyFormClient() {
-    const { editingId, isEditing, goToList, showSavedRecord, startCreate } = useCrudScreen();
+    const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setFormState] = useState<JobVacancyCreateDto>(emptyJobVacancyForm);
     const [error, setError] = useState<string | null>(null);
@@ -294,19 +295,7 @@ export function JobVacancyFormClient() {
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
             }}
-            footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={goToList}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={startCreate}>
-                        Novo cadastro
-                    </Button>
-                    <Button type="submit" loading={saveMutation.isPending}>
-                        {isEditing ? "Salvar" : "Cadastrar"}
-                    </Button>
-                </>
-            }
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Dados da vaga">
                 <JobPositionPickerField
