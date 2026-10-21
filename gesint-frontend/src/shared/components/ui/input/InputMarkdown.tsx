@@ -1,0 +1,332 @@
+"use client";
+
+import Placeholder from "@tiptap/extension-placeholder";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import clsx from "clsx";
+import {
+    Bold,
+    Code2,
+    Heading2,
+    Italic,
+    Link2,
+    List,
+    ListOrdered,
+} from "lucide-react";
+import { marked } from "marked";
+import { type ReactNode, useEffect, useMemo, useRef } from "react";
+import TurndownService from "turndown";
+
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
+import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+
+export type InputMarkdownProps = InputFieldChromeProps & {
+    value: string;
+    onValueChange: (value: string) => void;
+    placeholder?: string;
+    rows?: number;
+    className?: string;
+};
+
+type ToolbarAction = {
+    label: string;
+    icon: ReactNode;
+    active?: boolean;
+    disabled?: boolean;
+    onClick: () => void;
+};
+
+const turndown = new TurndownService({
+    headingStyle: "atx",
+    codeBlockStyle: "fenced",
+    bulletListMarker: "-",
+});
+
+marked.setOptions({
+    gfm: true,
+    breaks: true,
+});
+
+const EDITOR_CLASS = clsx(
+    "gesint-markdown px-3 py-2.5 text-sm leading-relaxed text-base-content outline-none",
+    "[&_h2]:mb-2.5 [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:text-base-content",
+    "[&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:text-base [&_h3]:text-base-content",
+    "[&_p]:mb-2.5 [&_p]:last:mb-0",
+    "[&_ul]:mb-2.5 [&_ul]:list-disc [&_ul]:ps-5",
+    "[&_ol]:mb-2.5 [&_ol]:list-decimal [&_ol]:ps-5",
+    "[&_li]:mb-1",
+    "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2",
+    "[&_code]:rounded [&_code]:bg-base-200 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[12px]",
+    "[&_pre]:mb-2.5 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-base-200 [&_pre]:p-3",
+    "[&_blockquote]:my-2.5 [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:ps-3 [&_blockquote]:text-base-content/65",
+    "[&_.is-empty:first-child::before]:pointer-events-none",
+    "[&_.is-empty:first-child::before]:float-left",
+    "[&_.is-empty:first-child::before]:h-0",
+    "[&_.is-empty:first-child::before]:text-base-content/35",
+    "[&_.is-empty:first-child::before]:content-[attr(data-placeholder)]",
+);
+
+function markdownToHtml(markdown: string): string {
+    const trimmed = markdown.trim();
+    if (!trimmed) return "";
+    return marked.parse(trimmed, { async: false }) as string;
+}
+
+function htmlToMarkdown(html: string): string {
+    return turndown.turndown(html ?? "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function readEditorMarkdown(editor: { isEmpty: boolean; getHTML: () => string }): string {
+    return editor.isEmpty ? "" : htmlToMarkdown(editor.getHTML());
+}
+
+export function InputMarkdown({
+    label,
+    hint,
+    error,
+    required,
+    disabled,
+    readOnly,
+    wrapperClassName,
+    sensitive,
+    sensitivePermission,
+    id: idProp,
+    value,
+    onValueChange,
+    placeholder,
+    rows = 10,
+    className,
+}: InputMarkdownProps) {
+    const editable = !disabled && !readOnly;
+    const minHeight = Math.max(180, rows * 18);
+    const lastEmittedRef = useRef((value ?? "").trim());
+    const valueRef = useRef(value);
+    const onValueChangeRef = useRef(onValueChange);
+    valueRef.current = value;
+    onValueChangeRef.current = onValueChange;
+
+    const emitMarkdown = (next: string) => {
+        lastEmittedRef.current = next;
+        onValueChangeRef.current(next);
+    };
+
+    const extensions = useMemo(
+        () => [
+            StarterKit.configure({
+                heading: { levels: [2, 3] },
+                link: {
+                    openOnClick: false,
+                    autolink: true,
+                    linkOnPaste: true,
+                },
+            }),
+            ...(placeholder
+                ? [
+                      Placeholder.configure({
+                          placeholder,
+                          showOnlyWhenEditable: true,
+                      }),
+                  ]
+                : []),
+        ],
+        [placeholder],
+    );
+
+    const editor = useEditor(
+        {
+            extensions,
+            // useEditor só aplica content na criação; valueRef evita fechar sobre value stale.
+            content: markdownToHtml(valueRef.current) || "",
+            editable,
+            immediatelyRender: false,
+            shouldRerenderOnTransaction: false,
+            editorProps: {
+                attributes: {
+                    ...(idProp ? { id: idProp } : {}),
+                    class: EDITOR_CLASS,
+                    style: `min-height: ${Math.min(120, minHeight)}px;`,
+                },
+            },
+            onUpdate: ({ editor: current }) => {
+                emitMarkdown(readEditorMarkdown(current));
+            },
+            onBlur: ({ editor: current }) => {
+                emitMarkdown(readEditorMarkdown(current));
+            },
+        },
+        [extensions, idProp, minHeight],
+    );
+
+    const toolbarState = useEditorState({
+        editor,
+        selector: ({ editor: current }) => {
+            if (!current) {
+                return {
+                    bold: false,
+                    italic: false,
+                    heading: false,
+                    bulletList: false,
+                    orderedList: false,
+                    link: false,
+                    code: false,
+                };
+            }
+            return {
+                bold: current.isActive("bold"),
+                italic: current.isActive("italic"),
+                heading: current.isActive("heading", { level: 2 }),
+                bulletList: current.isActive("bulletList"),
+                orderedList: current.isActive("orderedList"),
+                link: current.isActive("link"),
+                code: current.isActive("code"),
+            };
+        },
+    });
+
+    useEffect(() => {
+        if (!editor || editor.isDestroyed) return;
+        editor.setEditable(editable);
+    }, [editor, editable]);
+
+    useEffect(() => {
+        if (!editor || editor.isDestroyed) return;
+        const incoming = (value ?? "").trim();
+        const current = readEditorMarkdown(editor);
+        if (incoming === lastEmittedRef.current && incoming === current) return;
+        // Enquanto digita, o editor é a fonte da verdade — não sobrescrever pelo value atrasado do form.
+        if (editor.isFocused) return;
+        if (incoming === current) {
+            lastEmittedRef.current = incoming;
+            return;
+        }
+        editor.commands.setContent(markdownToHtml(incoming) || "", { emitUpdate: false });
+        lastEmittedRef.current = incoming;
+    }, [editor, value]);
+
+    if (!editor) {
+        return (
+            <InputFieldChrome
+                label={label}
+                error={error}
+                required={required}
+                disabled={disabled}
+                id={idProp}
+                labelFor={false}
+                wrapperClassName={wrapperClassName}
+                sensitive={sensitive}
+                sensitivePermission={sensitivePermission}
+            >
+                <div
+                    className="skeleton-shimmer rounded-[var(--gesint-control-radius)] border border-[var(--gesint-border)]"
+                    style={{ minHeight }}
+                />
+            </InputFieldChrome>
+        );
+    }
+
+    const setLink = () => {
+        const previous = editor.getAttributes("link").href as string | undefined;
+        const url = window.prompt("URL do link", previous ?? "https://");
+        if (url === null) return;
+        const trimmed = url.trim();
+        if (!trimmed) {
+            editor.chain().focus().extendMarkRange("link").unsetLink().run();
+            return;
+        }
+        editor.chain().focus().extendMarkRange("link").setLink({ href: trimmed }).run();
+    };
+
+    const actions: ToolbarAction[] = [
+        {
+            label: "Negrito",
+            icon: <Bold className="size-3.5" />,
+            active: toolbarState?.bold,
+            onClick: () => editor.chain().focus().toggleBold().run(),
+        },
+        {
+            label: "Itálico",
+            icon: <Italic className="size-3.5" />,
+            active: toolbarState?.italic,
+            onClick: () => editor.chain().focus().toggleItalic().run(),
+        },
+        {
+            label: "Título",
+            icon: <Heading2 className="size-3.5" />,
+            active: toolbarState?.heading,
+            onClick: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+        },
+        {
+            label: "Lista",
+            icon: <List className="size-3.5" />,
+            active: toolbarState?.bulletList,
+            onClick: () => editor.chain().focus().toggleBulletList().run(),
+        },
+        {
+            label: "Lista numerada",
+            icon: <ListOrdered className="size-3.5" />,
+            active: toolbarState?.orderedList,
+            onClick: () => editor.chain().focus().toggleOrderedList().run(),
+        },
+        {
+            label: "Link",
+            icon: <Link2 className="size-3.5" />,
+            active: toolbarState?.link,
+            onClick: setLink,
+        },
+        {
+            label: "Código",
+            icon: <Code2 className="size-3.5" />,
+            active: toolbarState?.code,
+            onClick: () => editor.chain().focus().toggleCode().run(),
+        },
+    ];
+
+    return (
+        <InputFieldChrome
+            label={label}
+            error={error}
+            required={required}
+            disabled={disabled}
+            id={idProp}
+            labelFor={false}
+            wrapperClassName={wrapperClassName}
+            sensitive={sensitive}
+            sensitivePermission={sensitivePermission}
+        >
+            <div
+                className={clsx(
+                    "overflow-hidden rounded-[var(--gesint-control-radius)] border border-[var(--gesint-border)] bg-base-100",
+                    fieldClass(disabled, readOnly, Boolean(error)),
+                    className,
+                )}
+            >
+                <div className="flex flex-wrap items-center gap-0.5 border-b border-[var(--gesint-border-subtle)] bg-base-200/40 px-2 py-1.5">
+                    {actions.map((action) => (
+                        <button
+                            key={action.label}
+                            type="button"
+                            title={action.label}
+                            aria-label={action.label}
+                            aria-pressed={action.active}
+                            disabled={!editable || action.disabled}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={action.onClick}
+                            className={clsx(
+                                "inline-flex size-7 items-center justify-center rounded-md transition-colors disabled:pointer-events-none disabled:opacity-35",
+                                action.active
+                                    ? "bg-primary/15 text-primary"
+                                    : "text-base-content/60 hover:bg-base-content/5 hover:text-base-content",
+                            )}
+                        >
+                            {action.icon}
+                        </button>
+                    ))}
+                </div>
+                <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: minHeight }}>
+                    <EditorContent editor={editor} className="gesint-markdown" />
+                </div>
+            </div>
+            {hint ? <p className="mt-1.5 text-[11px] text-base-content/45">{hint}</p> : null}
+        </InputFieldChrome>
+    );
+}

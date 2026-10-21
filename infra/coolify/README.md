@@ -1,4 +1,4 @@
-# Deploy Gommo com Coolify
+# Deploy Gesint com Coolify
 
 O [Coolify](https://coolify.io) roda na sua VPS e faz build + proxy HTTPS dos containers.
 
@@ -15,10 +15,10 @@ flowchart LR
   end
   subgraph vps [VPS + Coolify]
     C[Coolify / Traefik]
-    HR[gommo-frontend :3000]
-    ADM[gommo-admin-frontend :3001]
-    API[gommo-backend :8081]
-    AAPI[gommo-admin-backend :8082]
+    HR[gesint-frontend :3000]
+    ADM[gesint-admin-frontend :3001]
+    API[gesint-backend :8081]
+    AAPI[gesint-admin-backend :8082]
     PG[(PostgreSQL)]
   end
   U --> C
@@ -34,7 +34,7 @@ flowchart LR
   AAPI -.->|rede interna| API
 ```
 
-Monorepo único no GitHub (`gommo`). No Coolify você cria **vários recursos** apontando para pastas diferentes do mesmo repo.
+Monorepo único no GitHub (`gesint`). No Coolify você cria **vários recursos** apontando para pastas diferentes do mesmo repo.
 
 ## Simulação local (builds como no servidor)
 
@@ -42,10 +42,10 @@ Cada app tem um `.env` no próprio diretório (mesmo formato do Coolify). Copie 
 
 | App | Arquivo |
 |-----|---------|
-| Client backend | `gommo-backend/.env` |
-| Admin backend | `gommo-admin-backend/.env` |
-| Client frontend | `gommo-frontend/.env` |
-| Admin frontend | `gommo-admin-frontend/.env` |
+| Client backend | `gesint-backend/.env` |
+| Admin backend | `gesint-admin-backend/.env` |
+| Client frontend | `gesint-frontend/.env` |
+| Admin frontend | `gesint-admin-frontend/.env` |
 
 **Nativo (IDE / mvn / next):** localhost lê esses `.env` (perfil `prod` nos backends; Next carrega `.env` automaticamente).
 
@@ -55,13 +55,13 @@ Cada app tem um `.env` no próprio diretório (mesmo formato do Coolify). Copie 
 docker compose -f infra/coolify/docker-compose.local.yml --env-file .env up -d --build
 ```
 
-O compose usa `env_file` de cada pasta e só sobrescreve hostnames da rede (`DB_HOST=postgres`, `GOMMO_HR_BASE_URL=http://gommo-backend:8081`).
+O compose usa `env_file` de cada pasta e só sobrescreve hostnames da rede (`DB_HOST=postgres`, `GESINT_HR_BASE_URL=http://gesint-backend:8081`).
 
 Build de um serviço só (como watch path no Coolify):
 
 ```bash
-docker compose -f infra/coolify/docker-compose.local.yml build gommo-backend
-docker compose -f infra/coolify/docker-compose.local.yml up -d gommo-backend
+docker compose -f infra/coolify/docker-compose.local.yml build gesint-backend
+docker compose -f infra/coolify/docker-compose.local.yml up -d gesint-backend
 ```
 
 URLs: Client `http://localhost:3000` · Admin `http://localhost:3001` · APIs `:8081` / `:8082`.
@@ -103,29 +103,29 @@ Um push que muda só o Client **não rebuilda** o Admin (com watch paths). Build
 
 1. **+ Add Resource** → **Database** → **PostgreSQL** (16)
 2. Anote (Coolify mostra após criar):
-   - Host interno (ex.: `gommo-postgres` ou UUID do recurso)
+   - Host interno (ex.: `gesint-postgres` ou UUID do recurso)
    - Porta (`5432`)
    - User / Password / Database name
 3. **Não** exponha o Postgres na internet
 
-Sugestão de nomes no Coolify: `gommo-postgres`.
+Sugestão de nomes no Coolify: `gesint-postgres`.
 
 ### 3. Criar as 4 Applications
 
-Para **cada** app: **+ Add Resource** → **Application** → conecte o mesmo repositório Git do Gommo.
+Para **cada** app: **+ Add Resource** → **Application** → conecte o mesmo repositório Git do Gesint.
 
 | Coolify name (sugestão) | Base Directory | Dockerfile | Build target | Porta | Limite RAM (KVM 2) |
 |-------------------------|----------------|------------|--------------|-------|---------------------|
-| `gommo-backend` | `/gommo-backend` | `Dockerfile` | **`prod`** | 8081 | 1792M |
-| `gommo-admin-backend` | `/gommo-admin-backend` | `Dockerfile` | _(default)_ | 8082 | 640M |
-| `gommo-frontend` | `/gommo-frontend` | `Dockerfile` | _(default)_ | 3000 | 512M |
-| `gommo-admin-frontend` | `/gommo-admin-frontend` | `Dockerfile` | _(default)_ | 3001 | 256M |
+| `gesint-backend` | `/gesint-backend` | `Dockerfile` | **`prod`** | 8081 | 1792M |
+| `gesint-admin-backend` | `/gesint-admin-backend` | `Dockerfile` | _(default)_ | 8082 | 640M |
+| `gesint-frontend` | `/gesint-frontend` | `Dockerfile` | _(default)_ | 3000 | 512M |
+| `gesint-admin-frontend` | `/gesint-admin-frontend` | `Dockerfile` | _(default)_ | 3001 | 256M |
 
 Configuração comum a todas:
 
 | Campo | Valor |
 |-------|--------|
-| **Repository** | mesmo monorepo `gommo` |
+| **Repository** | mesmo monorepo `gesint` |
 | **Branch** | `main` (produção) |
 | **Build Pack** | Dockerfile |
 | **Base Directory** | pasta da tabela acima (sem `infra/coolify`) |
@@ -147,41 +147,41 @@ Em cada Application → Domains, use FQDN do Coolify (`*.sslip.io`) ou domínio 
 
 | App | Sugestão com domínio próprio |
 |-----|------------------------------|
-| `gommo-frontend` | `app.seudominio.com.br` |
-| `gommo-backend` | `api.seudominio.com.br` |
-| `gommo-admin-frontend` | `admin.seudominio.com.br` |
-| `gommo-admin-backend` | `admin-api.seudominio.com.br` |
+| `gesint-frontend` | `app.seudominio.com.br` |
+| `gesint-backend` | `api.seudominio.com.br` |
+| `gesint-admin-frontend` | `admin.seudominio.com.br` |
+| `gesint-admin-backend` | `admin-api.seudominio.com.br` |
 
 Anote as 4 URLs públicas — entram nas envs e nos **build args** dos Next.js.
 
 ### 5. Rede interna (Admin → Client)
 
-`GOMMO_HR_BASE_URL` **não** é a URL pública **nem** a URL do frontend (`https://gommo.local`).
+`GESINT_HR_BASE_URL` **não** é a URL pública **nem** a URL do frontend (`https://gesint.local`).
 
-1. Abra a Application `gommo-backend`
+1. Abra a Application `gesint-backend`
 2. Copie a **Internal URL** / hostname interno do Coolify (UUID do app ou nome fixo)
 3. No Admin backend:
 
 ```text
-GOMMO_HR_BASE_URL=http://<hostname-interno-do-gommo-backend>:8081
+GESINT_HR_BASE_URL=http://<hostname-interno-do-gesint-backend>:8081
 ```
 
-Exemplo típico: `http://gommo-backend:8081` (se o container name for esse).
+Exemplo típico: `http://gesint-backend:8081` (se o container name for esse).
 
 Os dois backends e o Postgres precisam estar no **mesmo servidor** Coolify (mesma Docker network).
 
-### 5.1 Lab LAN (`*.gommo.local`)
+### 5.1 Lab LAN (`*.gesint.local`)
 
-Template: [`env/lab-gommo.local.env.example`](env/lab-gommo.local.env.example).
-Copie para `env/lab-gommo.local.env` (gitignored) e preencha senhas/UUIDs reais — nunca versionar o arquivo preenchido.
+Template: [`env/lab-gesint.local.env.example`](env/lab-gesint.local.env.example).
+Copie para `env/lab-gesint.local.env` (gitignored) e preencha senhas/UUIDs reais — nunca versionar o arquivo preenchido.
 
 Checklist mínimo para o Admin logar do Windows:
 
-1. `AUTH_URL` / `NEXTAUTH_URL` do admin-frontend = `https://admin.gommo.local` (nunca `sslip.io`)
+1. `AUTH_URL` / `NEXTAUTH_URL` do admin-frontend = `https://admin.gesint.local` (nunca `sslip.io`)
 2. `NODE_TLS_REJECT_UNAUTHORIZED=0` no admin-frontend (cert self-signed; Auth.js chama a API no server)
 3. Ports Exposes do admin-frontend = `3001`
-4. Login: `https://admin.gommo.local` → `admGommo` / `GOMMO_PLATFORM_ADMIN_PASSWORD`
-5. IntelliJ: em `gommo-db` marque **Make it publicly available**, porta `5432`, host = IP LAN do Coolify (`LAB_LAN_HOST`)
+4. Login: `https://admin.gesint.local` → `admGesint` / `GESINT_PLATFORM_ADMIN_PASSWORD`
+5. IntelliJ: em `gesint-db` marque **Make it publicly available**, porta `5432`, host = IP LAN do Coolify (`LAB_LAN_HOST`)
 
 ### 6. Variáveis de ambiente
 
@@ -200,25 +200,25 @@ Gere segredos (PowerShell):
 [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }) -as [byte[]])
 ```
 
-Mínimo: `JWT_SECRET`, `NEXTAUTH_SECRET` / `AUTH_SECRET`, `GOMMO_INTERNAL_EVENT_SECRET`, senha do Postgres.
+Mínimo: `JWT_SECRET`, `NEXTAUTH_SECRET` / `AUTH_SECRET`, `GESINT_INTERNAL_EVENT_SECRET`, senha do Postgres.
 
 **Build-time (Next.js):** `NEXT_PUBLIC_*` precisam estar disponíveis no **build** (Build Arguments / Build Variables no Coolify), não só em runtime. Depois de mudar essas URLs, faça **Redeploy with rebuild**.
 
 | Build arg | App |
 |-----------|-----|
-| `NEXT_PUBLIC_API_URL` | `gommo-frontend` |
-| `NEXT_PUBLIC_ADMIN_API_URL` | `gommo-admin-frontend` |
-| `NEXT_PUBLIC_HR_API_URL` | `gommo-admin-frontend` |
+| `NEXT_PUBLIC_API_URL` | `gesint-frontend` |
+| `NEXT_PUBLIC_ADMIN_API_URL` | `gesint-admin-frontend` |
+| `NEXT_PUBLIC_HR_API_URL` | `gesint-admin-frontend` |
 
 ### 7. Ordem do primeiro deploy
 
 1. **Postgres** — healthy
-2. **gommo-backend** — healthcheck `/actuator/health` (Flyway `public`)
-3. **gommo-admin-backend** — Flyway schema `admin`; precisa de `GOMMO_HR_BASE_URL` interno
-4. **gommo-frontend** — com `NEXT_PUBLIC_API_URL` já apontando para a FQDN do backend
-5. **gommo-admin-frontend** — com as duas `NEXT_PUBLIC_*`
+2. **gesint-backend** — healthcheck `/actuator/health` (Flyway `public`)
+3. **gesint-admin-backend** — Flyway schema `admin`; precisa de `GESINT_HR_BASE_URL` interno
+4. **gesint-frontend** — com `NEXT_PUBLIC_API_URL` já apontando para a FQDN do backend
+5. **gesint-admin-frontend** — com as duas `NEXT_PUBLIC_*`
 
-No startup, defina `GOMMO_PLATFORM_ADMIN_PASSWORD` (ou `DEV_ADMIN_PASSWORD`) para o `PlatformAdminBootstrap` criar o sudo `admGommo` — revise antes de usar em produção.
+No startup, defina `GESINT_PLATFORM_ADMIN_PASSWORD` (ou `DEV_ADMIN_PASSWORD`) para o `PlatformAdminBootstrap` criar o sudo `admGesint` — revise antes de usar em produção.
 
 ### 8. Watch paths (deploys isolados)
 
@@ -226,15 +226,15 @@ Em cada Application → Advanced / Watch Paths (sintaxe pode variar por versão 
 
 | App | Watch path |
 |-----|------------|
-| `gommo-backend` | `gommo-backend/**` |
-| `gommo-admin-backend` | `gommo-admin-backend/**` |
-| `gommo-frontend` | `gommo-frontend/**` |
-| `gommo-admin-frontend` | `gommo-admin-frontend/**` |
+| `gesint-backend` | `gesint-backend/**` |
+| `gesint-admin-backend` | `gesint-admin-backend/**` |
+| `gesint-frontend` | `gesint-frontend/**` |
+| `gesint-admin-frontend` | `gesint-admin-frontend/**` |
 
 Com isso:
 
-- Push só em `gommo-frontend/` → rebuild só do Client web
-- Push só em `gommo-backend/` → rebuild só da Client API
+- Push só em `gesint-frontend/` → rebuild só do Client web
+- Push só em `gesint-backend/` → rebuild só da Client API
 - Admin permanece no ar sem restart
 
 Sem watch paths, o Coolify pode disparar deploy em todas as apps ligadas ao repo a cada push (mesmo com cache Docker). Configure os paths.
@@ -266,7 +266,7 @@ JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError
 Mais simples de subir a primeira vez; **pior** em VPS 8 GB (build paralelo dos 4 serviços).
 
 1. **+ Add Resource** → **Docker Compose**
-2. Repositório Git do Gommo
+2. Repositório Git do Gesint
 3. Configuração:
 
 | Campo | Valor |
@@ -277,7 +277,7 @@ Mais simples de subir a primeira vez; **pior** em VPS 8 GB (build paralelo dos 4
 
 4. Environment Variables: copie de [`.env.example`](.env.example)
 
-Cada serviço do Compose (exceto `postgres`) precisa de FQDN pública. `GOMMO_HR_BASE_URL` fica `http://gommo-backend:8081` (hostname do compose).
+Cada serviço do Compose (exceto `postgres`) precisa de FQDN pública. `GESINT_HR_BASE_URL` fica `http://gesint-backend:8081` (hostname do compose).
 
 Detalhes de URLs e troubleshooting gerais valem o mesmo espírito da secção de apps separados.
 
@@ -293,11 +293,11 @@ Na KVM 2, se o compose OOM no build: use swap + prefira o caminho de apps separa
 | CORS no browser | `CORS_ORIGINS` / `ADMIN_CORS_ORIGINS` com a FQDN **exata** do frontend (https, sem barra) |
 | NextAuth redirect | `NEXTAUTH_URL` / `AUTH_URL` = FQDN do frontend, sem barra final |
 | API aponta pro lugar errado | `NEXT_PUBLIC_*` no **build** + rebuild após mudar |
-| Admin não fala com Client | `GOMMO_HR_BASE_URL` = URL **interna**, não a pública |
+| Admin não fala com Client | `GESINT_HR_BASE_URL` = URL **interna**, não a pública |
 | 502 no proxy | Healthcheck; Postgres healthy; domínio no serviço certo |
 | Flyway error | Volume PG antigo vs senha nova; schemas `public` e `admin` |
 | Client backend sobe com stage errado | Docker Build Target = `prod` |
 | Push no Client rebuilda Admin | Configurar watch paths |
-| `STORAGE_UPLOAD_FAILED` no upload | Volume persistente em `/data/storage` no `gommo-backend`; env `STORAGE_LOCAL_PATH=/data/storage`; após deploy ver log `Storage local pronto` (ou erro de permissão no startup) |
+| `STORAGE_UPLOAD_FAILED` no upload | Volume persistente em `/data/storage` no `gesint-backend`; env `STORAGE_LOCAL_PATH=/data/storage`; após deploy ver log `Storage local pronto` (ou erro de permissão no startup) |
 | `JWT_SECRET` rejeitado | Mínimo 32 caracteres |
 | Mudei senha do Postgres e backend não conecta | Volume guarda senha antiga — alinhar senha ou recriar DB (apaga dados) |

@@ -16,15 +16,15 @@ A pasta `.agents/rules/` e a fonte canonica das regras compartilhadas entre agen
 
 | Arquivo | Escopo |
 |---------|--------|
-| `.agents/rules/gommo.mdc` | Padroes gerais do monolito |
-| `.agents/rules/gommo-frontend-ui.mdc` | Convencoes tecnicas do frontend |
-| `.agents/rules/gommo-ui-system.mdc` | Design system Stripe/Linear (UI) |
-| `.agents/rules/gommo-payroll-module.mdc` | Folha de Pagamento (CTB) |
+| `.agents/rules/gesint.mdc` | Padroes gerais do monolito |
+| `.agents/rules/gesint-frontend-ui.mdc` | Convencoes tecnicas do frontend |
+| `.agents/rules/gesint-ui-system.mdc` | Design system Stripe/Linear (UI) |
+| `.agents/rules/gesint-payroll-module.mdc` | Folha de Pagamento (CTB) |
 
-Edite `gommo-ui-system.mdc` nesta pasta e sincronize com `.agents/rules/gommo-ui-system.mdc` quando alterar.
+Edite `gesint-ui-system.mdc` nesta pasta e sincronize com `.agents/rules/gesint-ui-system.mdc` quando alterar.
 
 ## Campos do frontmatter
 
 - `alwaysApply: true` - aplica em toda conversa.
-- `globs: gommo-frontend/**/*.tsx` - aplica so ao abrir arquivos que batem o padrao.
+- `globs: gesint-frontend/**/*.tsx` - aplica so ao abrir arquivos que batem o padrao.
 - `description` - texto curto exibido no seletor/listagem de regras do agente.

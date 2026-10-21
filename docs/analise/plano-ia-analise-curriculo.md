@@ -1,4 +1,4 @@
-# Análise de currículo por IA + chat de atendimento no Gommo
+# Análise de currículo por IA + chat de atendimento no Gesint
 
 > **Status:** adiado — aguardando comando do usuário para iniciar a **interface gráfica**  
 > **Data:** 2026-07-27 (atualizado)  
@@ -44,24 +44,24 @@ flowchart LR
   Parse --> LlmClient
 ```
 
-## Decisão fechada para o Gommo
+## Decisão fechada para o Gesint
 
 ### Arquitetura: módulo no monólito, não microserviço no MVP
 
 ```text
-br.com.gommo.core.llm
+br.com.gesint.core.llm
   LlmClient                 // interface unica
   GeminiLlmClient           // default (free → pago)
   OpenAiLlmClient           // pronto no MVP para upgrade so com env
   LlmClientFactory          // le LLM_PROVIDER / LLM_MODEL / LLM_API_KEY
 
-br.com.gommo.modules.rh.person.recruiting.ai
+br.com.gesint.modules.rh.person.recruiting.ai
   ResumeTextExtractor
   ResumeParseService        // usa LlmClient → JSON estruturado
   VacancyFitScoringService  // rubrica deterministica
   ApplicationAiAnalysisJob  // @Async / fila
 
-br.com.gommo.modules.cfg.settings.assistant (ou similar)
+br.com.gesint.modules.cfg.settings.assistant (ou similar)
   SupportChatService        // usa o mesmo LlmClient
 ```
 
@@ -103,7 +103,7 @@ Não confiar só no "score do ChatGPT".
 ### Chat de atendimento
 
 - Mesmo `LlmClient`
-- Contexto: FAQs/ajuda do Gommo (depois: RAG leve se precisar)
+- Contexto: FAQs/ajuda do Gesint (depois: RAG leve se precisar)
 - UI própria (a definir nos comandos do usuário)
 - Sem decisão automática de RH; apenas suporte operacional
 

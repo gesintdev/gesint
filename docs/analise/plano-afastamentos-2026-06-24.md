@@ -360,8 +360,8 @@ A implementacao sera considerada correta quando:
 
 ## Validacoes executadas
 
-- [x] `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou.
-- [x] `npm.cmd run lint` em `gommo-frontend`: passou com avisos existentes.
+- [x] `npm.cmd exec -- tsc --noEmit` em `gesint-frontend`: passou.
+- [x] `npm.cmd run lint` em `gesint-frontend`: passou com avisos existentes.
 - [x] `git diff --check`: passou.
 - [~] Backend nao executado: `mvn` nao esta no PATH e `mvnw.cmd test` falha com
   `Cannot start maven from wrapper`.

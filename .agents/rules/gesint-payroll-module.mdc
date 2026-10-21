@@ -1,0 +1,63 @@
+---
+description: Folha de Pagamento — estado atual, decisões e padrões (CTB)
+globs: gesint-backend/src/main/java/br/com/gesint/modules/ctb/payroll/**/*,gesint-frontend/src/modules/ctb/payroll/**/*,docs/modulos/folha-de-pagamento.md
+alwaysApply: false
+---
+
+# Módulo Folha de Pagamento (Gesint)
+
+Documentação completa: `docs/modulos/folha-de-pagamento.md`
+
+Domínio atual no produto: **CTB / Contabilidade**.
+
+Observação: o menu **Pagamentos** permanece em **DP / Departamento Pessoal**.
+
+## Estado real do código
+
+Já existe no repositório:
+
+- Competência da folha: `PayrollRun`
+- Holerite individual: `Payslip`
+- Evento/rubrica: `PayrollEvent`
+- Lançamento do holerite: `PayslipEntry`
+- Processamento: `PayrollRunProcessingService` + strategies em `payroll/calculation/`
+- Lifecycle: `PayrollRunStateMachine` + `PayrollRunLifecycleService`
+- PDF de holerite: OpenPDF em `payroll/payslip/pdf/`
+
+Não recriar entidades paralelas como `CompetenciaFolha`, `FolhaPagamento` ou equivalentes.
+
+## Decisões fixas
+
+- Permissões eventos: `payrollevent:read/write/delete`
+- PDF: OpenPDF no backend
+- Cálculos: Strategy em `payroll/calculation/` + eventos parametrizáveis
+- Status competência: `OPEN -> PROCESSING -> PROCESSED -> REVIEWED -> CLOSED` (+ `CANCELLED`)
+- API principal: `/api/v1/payroll-runs`, `/api/v1/payroll-events`, `/api/v1/payslips`, `/api/v1/payslip-entries`
+- Endpoints lifecycle/processamento: `POST /api/v1/payroll-runs/{id}/process|review|close|reopen`
+
+## Padrões obrigatórios
+
+**Backend:** usar `BaseController` / `BaseService` / `IBaseRepository`; RBAC com `@PreAuthorize` no service; Flyway `V{n}__snake_case.sql`; DTOs como classes Lombok; mapper manual; regras de negócio em service/domain, nunca no controller.
+
+**Frontend:** usar `tabbedCrudRoute` em `payroll.routes.ts`; `{Entity}ListClient` + `{Entity}FormClient`; `BaseService`; mapper manual; `QueryTablePanel`; `CrudFormShell`; componentes compartilhados de UI.
+
+## Organização de módulos
+
+A arquitetura espelha o caminho visual da sidebar também nas pastas de frontend e backend.
+
+Exemplo:
+
+```text
+dp/organization/department
+ctb/payroll/payroll-run
+rh/person/leave
+```
+
+Folha de Pagamento deve permanecer em:
+
+- Backend: `br.com.gesint.modules.ctb.payroll`
+- Frontend: `gesint-frontend/src/modules/ctb/payroll`
+
+## Ao concluir alterações relevantes
+
+Listar arquivos criados/alterados, impactos em permissões, migrations e tenants. Para refatorações estruturais grandes, trabalhar em branch dedicada e validar frontend/backend antes de merge.

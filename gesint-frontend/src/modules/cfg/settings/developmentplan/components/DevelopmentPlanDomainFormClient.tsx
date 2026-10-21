@@ -1,0 +1,185 @@
+"use client";
+
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import clsx from "clsx";
+import {type SubmitEvent, useEffect, useId, useMemo, useState} from "react";
+import {toast} from "sonner";
+
+import {
+    type DevelopmentPlanDomainConfig
+} from "@/modules/cfg/settings/developmentplan/config/development-plan-domain.config";
+import {
+    DevelopmentPlanDomainRecord,
+    DevelopmentPlanDomainService,
+    type DomainFieldConfig
+} from "@/modules/cfg/settings/developmentplan/services/development-plan-domain.service";
+import {CrudFormFooterActions} from "@/shared/components/crud/CrudFormFooterActions";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
+import {InputCheckbox, InputNumber, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
+import {ExceptionCapture} from "@/shared/exceptions";
+
+export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentPlanDomainConfig }) {
+    const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
+    const queryClient = useQueryClient();
+    const service = useMemo(() => new DevelopmentPlanDomainService(config.endpoint), [config.endpoint]);
+    const queryKey = ["development-plan-domain", config.id] as const;
+    const detailKey = ["development-plan-domain", config.id, editingId ?? ""] as const;
+    const steps: FormStepNavItem[] = [{id: "cadastro", label: config.title}];
+    const [form, setForm] = useState<Record<string, unknown>>(() => emptyForm(config.fields));
+    const [error, setError] = useState<string | null>(null);
+    const detailQuery = useQuery({
+        queryKey: detailKey,
+        queryFn: () => service.getById(editingId!),
+        enabled: isEditing && Boolean(editingId),
+    });
+
+    useEffect(() => {
+        if (!isEditing) {
+            setForm(emptyForm(config.fields));
+            setError(null);
+            return;
+        }
+        if (detailQuery.data) {
+            setForm(toForm(detailQuery.data, config.fields));
+            setError(null);
+        }
+    }, [isEditing, detailQuery.data, config.fields]);
+
+    useTrackedCrudFormDirty({
+        form,
+        isEditing,
+        detailData: detailQuery.data,
+        toFormDto: (detail) => toForm(detail, config.fields),
+        getEmptyForm: () => emptyForm(config.fields),
+    });
+
+    const saveMutation = useMutation({
+        mutationFn: async (dto: Record<string, unknown>) => {
+            if (isEditing && editingId) return service.update(editingId, dto);
+            return service.create(dto);
+        },
+        onSuccess: async (saved) => {
+            await queryClient.invalidateQueries({queryKey});
+            toast.success(isEditing ? "Registro atualizado" : "Registro cadastrado");
+            void showSavedRecord(saved.id, saved);
+        },
+        onError: (err: unknown) => {
+            const ex = ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível salvar o registro."});
+            setError(ex.displayMessage);
+        },
+    });
+
+    const update = (field: string, value: unknown) => setForm((prev) => ({...prev, [field]: value}));
+    const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setError(null);
+        saveMutation.mutate(form);
+    };
+
+    return (
+        <CrudFormShell
+            onSubmit={handleSubmit}
+            stepper={{steps, entityCode: isEditing ? detailQuery.data?.code : undefined, resetKey: editingId ?? "new"}}
+            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
+        >
+            <FormSection id="cadastro" title={config.title}>
+                {config.fields.map((field) => renderField(field, form[field.name], update))}
+            </FormSection>
+            {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
+        </CrudFormShell>
+    );
+}
+
+function emptyForm(fields: DomainFieldConfig[]) {
+    return Object.fromEntries(fields.map((field) => [field.name, field.type === "checkbox" ? false : ""]));
+}
+
+function toForm(record: DevelopmentPlanDomainRecord, fields: DomainFieldConfig[]) {
+    const source = record as unknown as Record<string, unknown>;
+    return Object.fromEntries(fields.map((field) => [field.name, source[field.name] ?? (field.type === "checkbox" ? false : "")]));
+}
+
+function resolveWrapperClassName(field: DomainFieldConfig): string {
+    if (field.colSpan === 12) return "sm:col-span-12";
+    if (field.colSpan === 4) return "sm:col-span-4";
+    if (field.colSpan === 6) return "sm:col-span-6";
+    if (field.type === "checkbox") return "sm:col-span-4";
+    if (field.type === "textarea") return "sm:col-span-12";
+    if (field.name.toLowerCase().includes("description")) return "sm:col-span-12";
+    return "sm:col-span-6";
+}
+
+function DomainTextarea({
+    label,
+    value,
+    onValueChange,
+    required,
+    wrapperClassName,
+}: {
+    label: string;
+    value: string;
+    onValueChange: (value: string) => void;
+    required?: boolean;
+    wrapperClassName?: string;
+}) {
+    const autoId = useId();
+    const id = `domain-textarea-${autoId}`;
+
+    return (
+        <InputFieldChrome label={label} id={id} required={required} wrapperClassName={wrapperClassName}>
+            <textarea
+                id={id}
+                rows={4}
+                value={value}
+                onChange={(event) => onValueChange(event.target.value)}
+                className={clsx("gesint-control w-full resize-y px-3 py-2 text-sm", fieldClass())}
+            />
+        </InputFieldChrome>
+    );
+}
+
+function renderField(field: DomainFieldConfig, value: unknown, update: (_field: string, _value: unknown) => void) {
+    const wrapperClassName = resolveWrapperClassName(field);
+    if (field.type === "number") {
+        return <InputNumber key={field.name} label={field.label} value={typeof value === "number" ? value : null}
+                            onValueChange={(v) => update(field.name, v ?? undefined)} integer required={field.required}
+                            wrapperClassName={wrapperClassName}/>;
+    }
+    if (field.type === "select") {
+        return <InputSelect key={field.name} label={field.label} items={field.options ?? []} value={String(value ?? "")}
+                            onValueChange={(v) => update(field.name, v || undefined)} required={field.required}
+                            placeholder="Selecione" wrapperClassName={wrapperClassName}/>;
+    }
+    if (field.type === "checkbox") {
+        return (
+            <InputCheckbox
+                key={field.name}
+                size="sm"
+                checked={Boolean(value)}
+                onCheckedChange={(next) => update(field.name, next)}
+                label={field.label}
+                className="pt-7 sm:col-span-4"
+            />
+        );
+    }
+    if (field.type === "textarea") {
+        return (
+            <DomainTextarea
+                key={field.name}
+                label={field.label}
+                value={String(value ?? "")}
+                onValueChange={(v) => update(field.name, v)}
+                required={field.required}
+                wrapperClassName={wrapperClassName}
+            />
+        );
+    }
+    return <InputString key={field.name} label={field.label} value={String(value ?? "")}
+                        onValueChange={(v) => update(field.name, v)} required={field.required}
+                        wrapperClassName={wrapperClassName}/>;
+}

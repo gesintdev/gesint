@@ -3,7 +3,7 @@
 
 Versão 1.3 · 23 set 2026 · Leo Junio Gomes Silva
 *v1.3: correções da auditoria das telas (Portaria 671/2021, alçada, aviso prévio, competências e banco de talentos já existentes).*
-*v1.2: recalibrada após leitura do código (`gommo@cb764f67`). Ver a seção 6 e `gesint-RN-03-autorizacao.md`.*
+*v1.2: recalibrada após leitura do código (`gesint@cb764f67`). Ver a seção 6 e `gesint-RN-03-autorizacao.md`.*
 *v1.1: incorpora revisão adversarial de dependências, lacunas e afirmações regulatórias.*
 *Telas de cada regra: `gesint-telas-regras-de-negocio.html`.*
 

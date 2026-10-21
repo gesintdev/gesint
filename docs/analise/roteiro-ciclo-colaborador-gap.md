@@ -1,7 +1,7 @@
 # Análise de Gap — Roteiro "Ciclo completo de vida de uma colaboradora"
 
 > Documento de análise (somente leitura/planejamento). Não houve alteração de código.
-> Base: `Roteiro_Gommo_Ciclo_Colaborador.pdf` v1.0 (data-base 22/06/2026) x estado atual do monorepo.
+> Base: `Roteiro_Gesint_Ciclo_Colaborador.pdf` v1.0 (data-base 22/06/2026) x estado atual do monorepo.
 > Objetivo: mapear, etapa por etapa, **o que já existe e funciona**, **o que existe parcialmente** e **o que ainda não existe**, para planejar os próximos passos.
 
 ## Legenda de status
@@ -16,7 +16,7 @@
 
 ## 1. Sumário executivo
 
-O Gommo hoje é forte em **fundação multi-tenant** e em **CRUDs de cadastro** (colaborador, contrato, admissão, departamento, cargo, eventos de folha, holerite com PDF). O roteiro do PDF, porém, exige um sistema com **motores de regra de negócio** (apuração de ponto, vigência/histórico funcional, cálculo legal de folha por competência, férias, 13º, rescisão) e **governança** (auditoria com motivo, fechamento imutável, privacidade LGPD). É exatamente nessa camada de "motor" e "governança" que estão as maiores lacunas.
+O Gesint hoje é forte em **fundação multi-tenant** e em **CRUDs de cadastro** (colaborador, contrato, admissão, departamento, cargo, eventos de folha, holerite com PDF). O roteiro do PDF, porém, exige um sistema com **motores de regra de negócio** (apuração de ponto, vigência/histórico funcional, cálculo legal de folha por competência, férias, 13º, rescisão) e **governança** (auditoria com motivo, fechamento imutável, privacidade LGPD). É exatamente nessa camada de "motor" e "governança" que estão as maiores lacunas.
 
 ### Maturidade por domínio do roteiro
 
@@ -308,7 +308,7 @@ O roteiro exige a estrutura mínima antes da primeira admissão.
 
 ## 5. Mapa de entidades — candidatas x existentes
 
-| Domínio | Entidades sugeridas pelo roteiro | Existentes no Gommo | Faltantes |
+| Domínio | Entidades sugeridas pelo roteiro | Existentes no Gesint | Faltantes |
 |---|---|---|---|
 | Cliente/Tenant | empresa_cliente, unidade, configuracao_cliente, dominio_cliente, modulo_contratado | `admin.client`, `client_subscription`, routing fields | unidade, modulo_contratado (por plano) |
 | Organização | departamento, cargo, centro_custo, gestor, hierarquia | `Department` (com `parentId`, `costCenter` texto), `JobPosition` | `cost_center`, `gestor`, organograma, unidade |

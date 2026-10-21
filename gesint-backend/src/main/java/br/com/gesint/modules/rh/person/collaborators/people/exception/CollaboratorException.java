@@ -1,0 +1,36 @@
+package br.com.gesint.modules.rh.person.collaborators.people.exception;
+
+import org.springframework.http.HttpStatus;
+
+import br.com.gesint.core.exception.BusinessException;
+
+public final class CollaboratorException {
+
+    private CollaboratorException() {}
+
+    public static BusinessException notFound() {
+        return new BusinessException(
+                CollaboratorExceptions.NOT_FOUND_CODE, CollaboratorExceptions.NOT_FOUND_MSG, HttpStatus.NOT_FOUND);
+    }
+
+    public static BusinessException cpfAlreadyExists() {
+        return new BusinessException(
+                CollaboratorExceptions.CPF_ALREADY_EXISTS_CODE,
+                CollaboratorExceptions.CPF_ALREADY_EXISTS_MSG,
+                HttpStatus.CONFLICT);
+    }
+
+    public static BusinessException directCreateNotAllowed() {
+        return new BusinessException(
+                CollaboratorExceptions.DIRECT_CREATE_NOT_ALLOWED_CODE,
+                CollaboratorExceptions.DIRECT_CREATE_NOT_ALLOWED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException accessCodeGenerationFailed() {
+        return new BusinessException(
+                CollaboratorExceptions.ACCESS_CODE_GENERATION_FAILED_CODE,
+                CollaboratorExceptions.ACCESS_CODE_GENERATION_FAILED_MSG,
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}

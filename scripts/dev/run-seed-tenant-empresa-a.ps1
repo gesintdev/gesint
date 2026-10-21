@@ -21,7 +21,7 @@ Get-Content $envFile | ForEach-Object {
 $dbUser = if ($env:DB_USER) { $env:DB_USER } else { $env:POSTGRES_USER }
 $dbName = if ($env:DB_NAME) { $env:DB_NAME } else { $env:POSTGRES_DB }
 $dbPassword = if ($env:DB_PASSWORD) { $env:DB_PASSWORD } else { $env:POSTGRES_PASSWORD }
-$container = "gommo-postgres"
+$container = "gesint-postgres"
 
 if (-not $dbUser -or -not $dbName -or -not $dbPassword) {
     Write-Error "Defina DB_USER/DB_NAME/DB_PASSWORD (ou POSTGRES_*) no .env"

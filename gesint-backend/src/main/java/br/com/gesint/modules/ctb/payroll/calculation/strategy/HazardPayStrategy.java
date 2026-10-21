@@ -1,0 +1,16 @@
+package br.com.gesint.modules.ctb.payroll.calculation.strategy;
+
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
+import br.com.gesint.modules.ctb.payroll.calculation.PayrollCalculationContext;
+
+@Component
+@Order(50)
+public class HazardPayStrategy implements PayrollCalculationStrategy {
+
+    @Override
+    public void calculate(PayrollCalculationContext context) {
+        // Reservado: depende de parametrizacao futura no contrato ou evento manual.
+    }
+}

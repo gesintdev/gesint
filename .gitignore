@@ -5,7 +5,7 @@
 !**/.env.example
 **/.env.local
 **/.env.*.local
-infra/coolify/env/lab-gommo.local.env
+infra/coolify/env/lab-gesint.local.env
 *.pem
 *.key
 *.p12

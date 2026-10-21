@@ -15,4 +15,4 @@ if (Test-Path $destFile) {
 
 Write-Host "Baixando por.traineddata para $destFile ..."
 Invoke-WebRequest -Uri $url -OutFile $destFile -UseBasicParsing
-Write-Host "Concluido. Reinicie o gommo-backend (profile dev)."
+Write-Host "Concluido. Reinicie o gesint-backend (profile dev)."

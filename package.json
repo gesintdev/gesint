@@ -1,11 +1,11 @@
 {
-    "name": "gommo",
+    "name": "gesint",
     "private": true,
     "scripts": {
         "format": "npm run format:front && npm run format:java",
-        "lint:fix": "npm run lint:fix --prefix gommo-frontend && npm run lint:fix --prefix gommo-admin-frontend",
-        "format:front": "node scripts/dev/normalize-block-spacing.mjs && prettier --config prettier.config.mjs --ignore-path .prettierignore --write \"gommo-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\" \"gommo-admin-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\"",
-        "format:front:check": "prettier --config prettier.config.mjs --ignore-path .prettierignore --check \"gommo-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\" \"gommo-admin-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\"",
+        "lint:fix": "npm run lint:fix --prefix gesint-frontend && npm run lint:fix --prefix gesint-admin-frontend",
+        "format:front": "node scripts/dev/normalize-block-spacing.mjs && prettier --config prettier.config.mjs --ignore-path .prettierignore --write \"gesint-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\" \"gesint-admin-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\"",
+        "format:front:check": "prettier --config prettier.config.mjs --ignore-path .prettierignore --check \"gesint-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\" \"gesint-admin-frontend/**/*.{ts,tsx,js,mjs,json,css,md}\"",
         "format:java": "mvn -q spotless:apply"
     },
     "devDependencies": {

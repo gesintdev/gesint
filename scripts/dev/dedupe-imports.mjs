@@ -3,11 +3,11 @@ import path from "node:path";
 import { createRequire } from "node:module";
 
 const require = createRequire(
-    path.resolve("gommo-frontend/node_modules/typescript/package.json"),
+    path.resolve("gesint-frontend/node_modules/typescript/package.json"),
 );
 const ts = require("typescript");
 
-const roots = ["gommo-frontend", "gommo-admin-frontend"];
+const roots = ["gesint-frontend", "gesint-admin-frontend"];
 
 function walk(dir, files = []) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

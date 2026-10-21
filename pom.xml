@@ -3,16 +3,16 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>br.com.gommo</groupId>
-	<artifactId>gommo</artifactId>
+	<groupId>br.com.gesint</groupId>
+	<artifactId>gesint</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>gommo</name>
-	<description>Gommo — monorepo (HR + Admin)</description>
+	<name>gesint</name>
+	<description>Gesint — monorepo (HR + Admin)</description>
 
 	<modules>
-		<module>gommo-backend</module>
-		<module>gommo-admin-backend</module>
+		<module>gesint-backend</module>
+		<module>gesint-admin-backend</module>
 	</modules>
 
 	<build>

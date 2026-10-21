@@ -4,8 +4,8 @@
 --   - schema public (ambiente de desenvolvimento)
 --
 -- Executar no PostgreSQL do Docker:
---   docker cp scripts/dev/seed-fake-admissions.sql gommo-postgres:/tmp/seed-fake-admissions.sql
---   docker exec gommo-postgres psql -v ON_ERROR_STOP=1 -U gommo -d gommo -f /tmp/seed-fake-admissions.sql
+--   docker cp scripts/dev/seed-fake-admissions.sql gesint-postgres:/tmp/seed-fake-admissions.sql
+--   docker exec gesint-postgres psql -v ON_ERROR_STOP=1 -U gesint -d gesint -f /tmp/seed-fake-admissions.sql
 --
 -- Observacoes:
 --   - Cenarios de ferias pensados em torno da data 2026-06-17.
@@ -64,82 +64,82 @@ INSERT INTO _seed_fake_admission (
 ) VALUES
     (1, 'dddddddd-0001-4000-8000-000000000001', 'eeeeeeee-0001-4000-8000-000000000001', 'adadadad-0001-4000-8000-000000000001', 'cdcdcdcd-0001-4000-8000-000000000001', 'abababab-0001-4000-8000-000000000001',
      'Ana Ribeiro', '11144477735', '45123987', '1988-04-12', 'FEMALE', 'MARRIED', 'Marcia Ribeiro', 'Paulo Ribeiro', '12345678901',
-     'ana.ribeiro@gommo.test', '11991110001', '01311000', 'Avenida Paulista', '1000', 'Bela Vista', 'Sao Paulo', 'SP',
+     'ana.ribeiro@gesint.test', '11991110001', '01311000', 'Avenida Paulista', '1000', 'Bela Vista', 'Sao Paulo', 'SP',
      'bbbbbbbb-0001-4000-8000-000000000001', 'cccccccc-0001-4000-8000-000000000001', 'CLT', 6200.00, '44h semanais', 44.00,
      '2016-02-15', NULL, NULL, NULL, NULL, 'CLT antigo: varios ciclos aquisitivos ja percorridos.'),
     (2, 'dddddddd-0001-4000-8000-000000000002', 'eeeeeeee-0001-4000-8000-000000000002', 'adadadad-0001-4000-8000-000000000002', 'cdcdcdcd-0001-4000-8000-000000000002', 'abababab-0001-4000-8000-000000000002',
      'Bruno Carvalho', '22255588846', '50233190', '1991-09-03', 'MALE', 'SINGLE', 'Helena Carvalho', 'Roberto Carvalho', '12345678902',
-     'bruno.carvalho@gommo.test', '11991110002', '04094050', 'Rua Sena Madureira', '250', 'Vila Mariana', 'Sao Paulo', 'SP',
+     'bruno.carvalho@gesint.test', '11991110002', '04094050', 'Rua Sena Madureira', '250', 'Vila Mariana', 'Sao Paulo', 'SP',
      'bbbbbbbb-0001-4000-8000-000000000002', 'cccccccc-0001-4000-8000-000000000004', 'CLT', 9800.00, '44h semanais', 44.00,
      '2019-11-04', NULL, NULL, NULL, NULL, 'CLT antigo para testes de folha e ferias com historico longo.'),
     (3, 'dddddddd-0001-4000-8000-000000000003', 'eeeeeeee-0001-4000-8000-000000000003', 'adadadad-0001-4000-8000-000000000003', 'cdcdcdcd-0001-4000-8000-000000000003', 'abababab-0001-4000-8000-000000000003',
      'Carla Menezes', '33366699957', '33445566', '1995-01-28', 'FEMALE', 'SINGLE', 'Lucia Menezes', 'Sergio Menezes', '12345678903',
-     'carla.menezes@gommo.test', '11991110003', '30140071', 'Rua da Bahia', '777', 'Centro', 'Belo Horizonte', 'MG',
+     'carla.menezes@gesint.test', '11991110003', '30140071', 'Rua da Bahia', '777', 'Centro', 'Belo Horizonte', 'MG',
      'bbbbbbbb-0001-4000-8000-000000000003', 'cccccccc-0001-4000-8000-000000000007', 'CLT', 7100.00, '44h semanais', 44.00,
      '2024-06-18', NULL, NULL, NULL, NULL, 'CLT: periodo concessivo vence em 2026-06-17, util para teste limite.'),
     (4, 'dddddddd-0001-4000-8000-000000000004', 'eeeeeeee-0001-4000-8000-000000000004', 'adadadad-0001-4000-8000-000000000004', 'cdcdcdcd-0001-4000-8000-000000000004', 'abababab-0001-4000-8000-000000000004',
      'Diego Santos', '44477711168', '77889900', '1990-12-19', 'MALE', 'DIVORCED', 'Renata Santos', 'Carlos Santos', '12345678904',
-     'diego.santos@gommo.test', '11991110004', '20040002', 'Rua Mexico', '45', 'Centro', 'Rio de Janeiro', 'RJ',
+     'diego.santos@gesint.test', '11991110004', '20040002', 'Rua Mexico', '45', 'Centro', 'Rio de Janeiro', 'RJ',
      'bbbbbbbb-0001-4000-8000-000000000004', 'cccccccc-0001-4000-8000-000000000009', 'CLT', 5400.00, '44h semanais', 44.00,
      '2024-07-01', NULL, NULL, NULL, NULL, 'CLT: periodo concessivo a vencer em 2026-06-30.'),
     (5, 'dddddddd-0001-4000-8000-000000000005', 'eeeeeeee-0001-4000-8000-000000000005', 'adadadad-0001-4000-8000-000000000005', 'cdcdcdcd-0001-4000-8000-000000000005', 'abababab-0001-4000-8000-000000000005',
      'Elisa Almeida', '55588822279', '11223344', '1998-07-07', 'FEMALE', 'SINGLE', 'Patricia Almeida', 'Nelson Almeida', '12345678905',
-     'elisa.almeida@gommo.test', '11991110005', '80010000', 'Rua XV de Novembro', '345', 'Centro', 'Curitiba', 'PR',
+     'elisa.almeida@gesint.test', '11991110005', '80010000', 'Rua XV de Novembro', '345', 'Centro', 'Curitiba', 'PR',
      'bbbbbbbb-0001-4000-8000-000000000005', 'cccccccc-0001-4000-8000-000000000011', 'CLT', 4300.00, '44h semanais', 44.00,
      '2025-06-20', NULL, NULL, NULL, NULL, 'CLT: aquisicao prestes a encerrar em 2026-06-19.'),
     (6, 'dddddddd-0001-4000-8000-000000000006', 'eeeeeeee-0001-4000-8000-000000000006', 'adadadad-0001-4000-8000-000000000006', 'cdcdcdcd-0001-4000-8000-000000000006', 'abababab-0001-4000-8000-000000000006',
      'Felipe Costa', '66699933380', '66778899', '1986-03-16', 'MALE', 'MARRIED', 'Simone Costa', 'Jorge Costa', '12345678906',
-     'felipe.costa@gommo.test', '11991110006', '90570020', 'Avenida Goethe', '120', 'Rio Branco', 'Porto Alegre', 'RS',
+     'felipe.costa@gesint.test', '11991110006', '90570020', 'Avenida Goethe', '120', 'Rio Branco', 'Porto Alegre', 'RS',
      'bbbbbbbb-0001-4000-8000-000000000002', 'cccccccc-0001-4000-8000-000000000006', 'CLT', 7600.00, '44h semanais', 44.00,
      '2025-07-05', NULL, NULL, NULL, NULL, 'CLT: aquisicao ainda em andamento e proxima de vencer em julho.'),
     (7, 'dddddddd-0001-4000-8000-000000000007', 'eeeeeeee-0001-4000-8000-000000000007', 'adadadad-0001-4000-8000-000000000007', 'cdcdcdcd-0001-4000-8000-000000000007', 'abababab-0001-4000-8000-000000000007',
      'Gabriela Lima', '77711144491', '22334455', '2000-10-30', 'FEMALE', 'SINGLE', 'Cristina Lima', 'Daniel Lima', '12345678907',
-     'gabriela.lima@gommo.test', '11991110007', '41820020', 'Rua das Hortensias', '88', 'Pituba', 'Salvador', 'BA',
+     'gabriela.lima@gesint.test', '11991110007', '41820020', 'Rua das Hortensias', '88', 'Pituba', 'Salvador', 'BA',
      'bbbbbbbb-0001-4000-8000-000000000001', 'cccccccc-0001-4000-8000-000000000002', 'CLT', 3200.00, '44h semanais', 44.00,
      '2026-06-10', NULL, NULL, NULL, NULL, 'CLT recem-admitida: aquisicao acabou de iniciar.'),
     (8, 'dddddddd-0001-4000-8000-000000000008', 'eeeeeeee-0001-4000-8000-000000000008', 'adadadad-0001-4000-8000-000000000008', 'cdcdcdcd-0001-4000-8000-000000000008', 'abababab-0001-4000-8000-000000000008',
      'Hugo Martins', '88822255502', '99887766', '1984-05-22', 'MALE', 'MARRIED', 'Teresa Martins', 'Antonio Martins', '12345678908',
-     'hugo.martins@gommo.test', '11991110008', '60115000', 'Avenida Santos Dumont', '1510', 'Aldeota', 'Fortaleza', 'CE',
+     'hugo.martins@gesint.test', '11991110008', '60115000', 'Avenida Santos Dumont', '1510', 'Aldeota', 'Fortaleza', 'CE',
      'bbbbbbbb-0001-4000-8000-000000000004', 'cccccccc-0001-4000-8000-000000000010', 'CLT', 6800.00, '44h semanais', 44.00,
      '2023-01-10', NULL, NULL, NULL, NULL, 'CLT: ciclos anteriores ja vencidos para validar comportamento historico.'),
     (9, 'dddddddd-0001-4000-8000-000000000009', 'eeeeeeee-0001-4000-8000-000000000009', 'adadadad-0001-4000-8000-000000000009', 'cdcdcdcd-0001-4000-8000-000000000009', 'abababab-0001-4000-8000-000000000009',
      'Isabela Rocha', '99933366613', '55667788', '1993-11-11', 'FEMALE', 'OTHER', 'Vera Rocha', 'Eduardo Rocha', '12345678909',
-     'isabela.rocha@gommo.test', '11991110009', '52011000', 'Rua do Hospicio', '620', 'Boa Vista', 'Recife', 'PE',
+     'isabela.rocha@gesint.test', '11991110009', '52011000', 'Rua do Hospicio', '620', 'Boa Vista', 'Recife', 'PE',
      'bbbbbbbb-0001-4000-8000-000000000003', 'cccccccc-0001-4000-8000-000000000008', 'CLT', 4800.00, '44h semanais', 44.00,
      '2024-01-15', NULL, NULL, NULL, NULL, 'CLT: primeiro periodo concessivo ja passou; util para revelar regra de periodo ativo.'),
     (10, 'dddddddd-0001-4000-8000-000000000010', 'eeeeeeee-0001-4000-8000-000000000010', 'adadadad-0001-4000-8000-000000000010', 'cdcdcdcd-0001-4000-8000-000000000010', 'abababab-0001-4000-8000-000000000010',
      'Joao Pereira', '12345678909', '13572468', '1989-08-25', 'MALE', 'SINGLE', 'Fatima Pereira', 'Mario Pereira', '12345678910',
-     'joao.pereira@gommo.test', '11991110010', '70040900', 'SCS Quadra 2', '30', 'Asa Sul', 'Brasilia', 'DF',
+     'joao.pereira@gesint.test', '11991110010', '70040900', 'SCS Quadra 2', '30', 'Asa Sul', 'Brasilia', 'DF',
      'bbbbbbbb-0001-4000-8000-000000000005', 'cccccccc-0001-4000-8000-000000000012', 'CLT', 3900.00, '44h semanais', 44.00,
      '2022-09-01', NULL, NULL, NULL, NULL, 'CLT antigo para testes de elegibilidade e salario base.'),
     (11, 'dddddddd-0001-4000-8000-000000000011', 'eeeeeeee-0001-4000-8000-000000000011', 'adadadad-0001-4000-8000-000000000011', 'cdcdcdcd-0001-4000-8000-000000000011', 'abababab-0001-4000-8000-000000000011',
      'Larissa Teixeira', '98765432100', '86421357', '1999-02-14', 'FEMALE', 'SINGLE', 'Claudia Teixeira', 'Ronaldo Teixeira', '12345678911',
-     'larissa.teixeira@gommo.test', '11991110011', '04543011', 'Rua Funchal', '411', 'Vila Olimpia', 'Sao Paulo', 'SP',
+     'larissa.teixeira@gesint.test', '11991110011', '04543011', 'Rua Funchal', '411', 'Vila Olimpia', 'Sao Paulo', 'SP',
      'bbbbbbbb-0001-4000-8000-000000000002', 'cccccccc-0001-4000-8000-000000000005', 'CLT', 6700.00, '44h semanais', 44.00,
      '2026-07-01', NULL, NULL, NULL, NULL, 'CLT com inicio futuro proximo para testes de admissao e contrato a iniciar.'),
     (12, 'dddddddd-0001-4000-8000-000000000012', 'eeeeeeee-0001-4000-8000-000000000012', 'adadadad-0001-4000-8000-000000000012', 'cdcdcdcd-0001-4000-8000-000000000012', 'abababab-0001-4000-8000-000000000012',
      'Marcos Oliveira', '14725836910', '24681357', '1982-06-17', 'MALE', 'MARRIED', 'Odete Oliveira', 'Silvio Oliveira', '12345678912',
-     'marcos.oliveira@gommo.test', '11991110012', '38400002', 'Avenida Afonso Pena', '2020', 'Centro', 'Uberlandia', 'MG',
+     'marcos.oliveira@gesint.test', '11991110012', '38400002', 'Avenida Afonso Pena', '2020', 'Centro', 'Uberlandia', 'MG',
      'bbbbbbbb-0001-4000-8000-000000000001', 'cccccccc-0001-4000-8000-000000000003', 'CLT', 11200.00, '44h semanais', 44.00,
      '2021-06-17', NULL, NULL, NULL, NULL, 'CLT senior: referencia de longa contratacao com salario alto.'),
     (13, 'dddddddd-0001-4000-8000-000000000013', 'eeeeeeee-0001-4000-8000-000000000013', 'adadadad-0001-4000-8000-000000000013', 'cdcdcdcd-0001-4000-8000-000000000013', 'abababab-0001-4000-8000-000000000013',
      'Marina Duarte', '25836914721', '97531864', '1992-03-09', 'FEMALE', 'SINGLE', 'Regina Duarte', 'Afonso Duarte', NULL,
-     'marina.duarte@gommo.test', '11991110013', '88015000', 'Rua Felipe Schmidt', '90', 'Centro', 'Florianopolis', 'SC',
+     'marina.duarte@gesint.test', '11991110013', '88015000', 'Rua Felipe Schmidt', '90', 'Centro', 'Florianopolis', 'SC',
      'bbbbbbbb-0001-4000-8000-000000000002', 'cccccccc-0001-4000-8000-000000000005', 'PJ', 18500.00, NULL, NULL,
      '2022-04-01', NULL, '11222333000199', 'Marina Duarte Tecnologia Ltda', 'MD Tech', 'PJ antigo sem direito CLT de ferias.'),
     (14, 'dddddddd-0001-4000-8000-000000000014', 'eeeeeeee-0001-4000-8000-000000000014', 'adadadad-0001-4000-8000-000000000014', 'cdcdcdcd-0001-4000-8000-000000000014', 'abababab-0001-4000-8000-000000000014',
      'Rafael Nunes', '36914725832', '64289731', '1987-12-02', 'MALE', 'DIVORCED', 'Sueli Nunes', 'Fernando Nunes', NULL,
-     'rafael.nunes@gommo.test', '11991110014', '66055000', 'Avenida Nazare', '101', 'Nazare', 'Belem', 'PA',
+     'rafael.nunes@gesint.test', '11991110014', '66055000', 'Avenida Nazare', '101', 'Nazare', 'Belem', 'PA',
      'bbbbbbbb-0001-4000-8000-000000000004', 'cccccccc-0001-4000-8000-000000000009', 'PJ', 13200.00, NULL, NULL,
      '2024-12-01', NULL, '22333444000188', 'Rafael Nunes Consultoria Ltda', 'RN Consultoria', 'PJ em contrato ativo recente.'),
     (15, 'dddddddd-0001-4000-8000-000000000015', 'eeeeeeee-0001-4000-8000-000000000015', 'adadadad-0001-4000-8000-000000000015', 'cdcdcdcd-0001-4000-8000-000000000015', 'abababab-0001-4000-8000-000000000015',
      'Patricia Gomes', '74185296343', '31864297', '1996-06-01', 'FEMALE', 'SINGLE', 'Neide Gomes', 'Gilberto Gomes', NULL,
-     'patricia.gomes@gommo.test', '11991110015', '57020000', 'Rua do Comercio', '170', 'Centro', 'Maceio', 'AL',
+     'patricia.gomes@gesint.test', '11991110015', '57020000', 'Rua do Comercio', '170', 'Centro', 'Maceio', 'AL',
      'bbbbbbbb-0001-4000-8000-000000000003', 'cccccccc-0001-4000-8000-000000000007', 'PJ', 9800.00, NULL, NULL,
      '2026-06-24', NULL, '33444555000177', 'Patricia Gomes Servicos Contabeis Ltda', 'PG Contabil', 'PJ com inicio futuro proximo.'),
     (16, 'dddddddd-0001-4000-8000-000000000016', 'eeeeeeee-0001-4000-8000-000000000016', 'adadadad-0001-4000-8000-000000000016', 'cdcdcdcd-0001-4000-8000-000000000016', 'abababab-0001-4000-8000-000000000016',
      'Tiago Ferreira', '85296374154', '72918364', '1985-09-18', 'MALE', 'MARRIED', 'Ivone Ferreira', 'Luis Ferreira', NULL,
-     'tiago.ferreira@gommo.test', '11991110016', '29010001', 'Avenida Jeronimo Monteiro', '300', 'Centro', 'Vitoria', 'ES',
+     'tiago.ferreira@gesint.test', '11991110016', '29010001', 'Avenida Jeronimo Monteiro', '300', 'Centro', 'Vitoria', 'ES',
      'bbbbbbbb-0001-4000-8000-000000000005', 'cccccccc-0001-4000-8000-000000000011', 'PJ', 11500.00, NULL, NULL,
      '2025-03-15', NULL, '44555666000166', 'Tiago Ferreira Representacoes Ltda', 'TF Representacoes', 'PJ ativo para comparacao em telas de ferias.');
 
@@ -166,11 +166,11 @@ ON CONFLICT (id) DO UPDATE SET
 
 WITH rows(id, parent_id, name, cost_center, description, monthly_budget, location, phone, email) AS (
     VALUES
-        ('bbbbbbbb-0001-4000-8000-000000000001'::uuid, NULL::uuid, 'Pessoas e Cultura', 'RH-001', 'Departamento de RH e DP.', 120000.00, 'Sao Paulo - Matriz', '1130010001', 'pessoas@gommo.test'),
-        ('bbbbbbbb-0001-4000-8000-000000000002'::uuid, NULL::uuid, 'Engenharia', 'ENG-001', 'Produtos digitais e plataforma.', 280000.00, 'Sao Paulo - Hibrido', '1130010002', 'engenharia@gommo.test'),
-        ('bbbbbbbb-0001-4000-8000-000000000003'::uuid, NULL::uuid, 'Contabilidade', 'CTB-001', 'Contabilidade, folha e fiscal.', 90000.00, 'Belo Horizonte - Remoto', '1130010003', 'contabilidade@gommo.test'),
-        ('bbbbbbbb-0001-4000-8000-000000000004'::uuid, NULL::uuid, 'Operacoes', 'OPS-001', 'Operacao interna e suporte.', 150000.00, 'Rio de Janeiro - Hibrido', '1130010004', 'operacoes@gommo.test'),
-        ('bbbbbbbb-0001-4000-8000-000000000005'::uuid, NULL::uuid, 'Comercial', 'COM-001', 'Vendas e relacionamento.', 110000.00, 'Sao Paulo - Remoto', '1130010005', 'comercial@gommo.test')
+        ('bbbbbbbb-0001-4000-8000-000000000001'::uuid, NULL::uuid, 'Pessoas e Cultura', 'RH-001', 'Departamento de RH e DP.', 120000.00, 'Sao Paulo - Matriz', '1130010001', 'pessoas@gesint.test'),
+        ('bbbbbbbb-0001-4000-8000-000000000002'::uuid, NULL::uuid, 'Engenharia', 'ENG-001', 'Produtos digitais e plataforma.', 280000.00, 'Sao Paulo - Hibrido', '1130010002', 'engenharia@gesint.test'),
+        ('bbbbbbbb-0001-4000-8000-000000000003'::uuid, NULL::uuid, 'Contabilidade', 'CTB-001', 'Contabilidade, folha e fiscal.', 90000.00, 'Belo Horizonte - Remoto', '1130010003', 'contabilidade@gesint.test'),
+        ('bbbbbbbb-0001-4000-8000-000000000004'::uuid, NULL::uuid, 'Operacoes', 'OPS-001', 'Operacao interna e suporte.', 150000.00, 'Rio de Janeiro - Hibrido', '1130010004', 'operacoes@gesint.test'),
+        ('bbbbbbbb-0001-4000-8000-000000000005'::uuid, NULL::uuid, 'Comercial', 'COM-001', 'Vendas e relacionamento.', 110000.00, 'Sao Paulo - Remoto', '1130010005', 'comercial@gesint.test')
 ),
 numbered AS (
     SELECT rows.*, ROW_NUMBER() OVER (ORDER BY name) AS rn FROM rows
@@ -450,7 +450,7 @@ INSERT INTO storage_object (
     etag, storage_class, local_file_path, sha256_hex, metadata, code, created_at, updated_at
 )
 SELECT
-    id, 'ACTIVE', 'gommo-local', object_key, 'null', true, 'application/pdf', 0,
+    id, 'ACTIVE', 'gesint-local', object_key, 'null', true, 'application/pdf', 0,
     'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
     'STANDARD', NULL,
     'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',

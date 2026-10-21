@@ -1,0 +1,31 @@
+package br.com.gesint.admin.modules.adminuser.mapper;
+
+import org.springframework.stereotype.Component;
+
+import br.com.gesint.admin.modules.adminuser.dto.AdminUserRequestDto;
+import br.com.gesint.admin.modules.adminuser.dto.AdminUserResponseDto;
+import br.com.gesint.admin.modules.adminuser.entity.AdminUser;
+
+@Component
+public class AdminUserMapper {
+
+    public AdminUserResponseDto toResponse(AdminUser entity) {
+        return AdminUserResponseDto.builder()
+                .id(entity.getId())
+                .code(entity.getCode())
+                .status(entity.getStatus())
+                .username(entity.getUsername())
+                .email(entity.getEmail())
+                .fullName(entity.getFullName())
+                .firstAccessCompleted(entity.isFirstAccessCompleted())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .build();
+    }
+
+    public void updateEntity(AdminUser entity, AdminUserRequestDto dto) {
+        entity.setUsername(dto.getUsername());
+        entity.setEmail(dto.getEmail());
+        entity.setFullName(dto.getFullName());
+    }
+}

@@ -2,10 +2,10 @@
 
 Leia obrigatoriamente:
 
-- `.agents/rules/gommo.mdc`
-- `.agents/rules/gommo-frontend-ui.mdc`
-- `.agents/rules/gommo-ui-system.mdc`
-- `.agents/rules/gommo-payroll-module.mdc` quando tocar folha/payroll
+- `.agents/rules/gesint.mdc`
+- `.agents/rules/gesint-frontend-ui.mdc`
+- `.agents/rules/gesint-ui-system.mdc`
+- `.agents/rules/gesint-payroll-module.mdc` quando tocar folha/payroll
 
 Antes de implementar qualquer alteração:
 
@@ -15,7 +15,7 @@ Antes de implementar qualquer alteração:
 4. Só então implemente
 
 Mudanças visuais no frontend (telas, componentes, CSS) seguem fielmente o padrão de layout descrito em
-`.agents/rules/gommo-ui-system.mdc` e precisam ser conferidas rodando o app, nos temas claro e escuro.
+`.agents/rules/gesint-ui-system.mdc` e precisam ser conferidas rodando o app, nos temas claro e escuro.
 
 Regra máxima:
 

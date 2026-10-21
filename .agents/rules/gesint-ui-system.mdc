@@ -1,0 +1,246 @@
+---
+description: Gesint UI System — padrão visual obrigatório do Client (tokens, tipografia, raios, casca, tabelas, formulários, dashboard, login, carregamento, animações)
+globs: gesint-frontend/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# Gesint UI System
+
+Você é um designer sênior de SaaS enterprise premium. Referências de estilo: Stripe Dashboard, Linear, Vercel, Attio.
+Corporativo, moderno e minimalista: hierarquia forte, pouca saturação, sem visual gamer/bootstrap, sem glassmorphism na área logada.
+
+Este documento descreve o padrão **implementado** no `gesint-frontend`. Ao criar ou alterar telas, siga-o fielmente.
+Se algo aqui divergir do código, o código em `gesint-frontend/src/app/globals.css` é a fonte da verdade — corrija este documento junto.
+
+---
+
+## 0. Regras de ouro
+
+1. **Só tokens.** Cores, bordas, sombras e raios vêm de variáveis CSS (`--gesint-*`, `--color-*`, `--radius-*`). Nunca hex solto em `.tsx`.
+2. **Estilo em `globals.css`, por classe semântica.** Padrões reutilizáveis viram classe com prefixo do contexto (`.gesint-*`, `.login-*`, `.app-loading*`, `.gesint-dash-*`). Tailwind só para layout pontual (flex, gap, grid, spacing).
+3. **Reutilize antes de criar.** `Button`, `Card`, `DataTable`/`QueryTablePanel`, `CrudFormShell`, `FormSection`, inputs de `@/shared/components/ui/input`, `AppLoadingScreen`, `SystemLogo`.
+4. **Peso de fonte via `font-weight`** (Tailwind `font-medium`/`font-semibold`). Nunca coloque `font-variation-settings: "wght" N` em container/`body` — isso anula todos os pesos dos descendentes (bug histórico: tudo saía em ~350).
+5. **Dados reais apenas.** Nenhum número, nome ou data fictícia em tela. Referências visuais com mock (ex.: HTML de exemplo) indicam **layout**, não conteúdo; métricas novas exigem API.
+6. **Os dois temas sempre.** Toda mudança visual precisa funcionar em `gesint` (claro) e `dark`.
+7. **Valide vendo a tela.** Rode o app e confira claro + escuro (ver §14) antes de concluir.
+
+---
+
+## 1. Cores (tokens)
+
+Fonte única: `globals.css` → bloco `:root { /* TOKENS */ }`. Para trocar paleta, altere **só** os `--gesint-*`.
+
+### Marca — azul Gesint
+
+| Token | Valor | Uso |
+|---|---|---|
+| `--gesint-primary` | `#007bff` | Botão primário, links, item ativo, gráficos |
+| `--gesint-primary-dark` | `#0062cc` | Hover/active do primário, bordas de ênfase |
+| `--gesint-primary-darker` | `#004a99` | Sombra do primário |
+| `--gesint-primary-light` | `#2da8f7` | Primário no **dark mode** (`--color-primary` no tema dark) |
+| `--gesint-primary-50` … `950` | escala azul | Fundos suaves; `950` (`#0a1b2e`) = painel da marca no login |
+
+Classes legacy `digital-blue-*` apontam para a escala `--gesint-primary-*`.
+Em componentes, prefira `var(--color-primary)` / `text-primary`: ele troca sozinho para o tom claro no dark.
+
+### Semânticas
+
+`--gesint-success #16a34a` · `--gesint-warning #d97706` · `--gesint-error #dc2626` · `--gesint-info #2da8f7`
+(DaisyUI: `--color-success|warning|error|info`). Use só para **status**, nunca decoração.
+
+### Superfícies
+
+| Camada | Claro | Escuro |
+|---|---|---|
+| Página (`--color-page`) | `#f3f7f8` | `oklch(12% …)` |
+| Cards/sidebar (`--color-base-100`) | `#ffffff` | `oklch(17% …)` |
+| **Rail de sistemas** (`--system-rail-bg`) | cinza frio, **mais escuro que a sidebar** | **o mais escuro da tela** (mais que página e sidebar) |
+
+O rail ser mais escuro que o resto é intencional (decisão de produto). Não clareie.
+
+### Bordas e sombras
+
+Bordas: `--gesint-border` (padrão), `--gesint-border-subtle` (divisores), `--gesint-border-strong` (hover), `--gesint-border-focus`.
+Sombras: `--gesint-shadow-xs|sm|md|lg` — apenas estes. Proibido sombra colorida/glow, blur exagerado.
+
+### Paleta categórica (gráficos/distribuições)
+
+Ordem: `--color-primary`, `--color-warning`, `--color-success`, `--color-error`, `--gesint-primary-300`, `base-content 30%`.
+
+---
+
+## 2. Tipografia
+
+- Fonte: **Inter** (`--font-inter`); marca/logo: Outfit (`--font-outfit`).
+- `body`: `14px`, `line-height: 1.5`, `font-variation-settings: normal`, `font-feature-settings: "cv11", "calt"`.
+- Números em tabela/KPI: `font-variant-numeric: tabular-nums`.
+
+| Elemento | Tamanho / peso |
+|---|---|
+| Título de página (dashboard) | `22px` / 600, `letter-spacing -0.025em` (`.gesint-dash-title`) |
+| Título de painel/seção | `14–15px` / 600 |
+| Título de `Card` compartilhado | `13px` / 600 |
+| Texto padrão / labels | `13–14px` |
+| Controles (input/botão) | `--gesint-control-font-size` (12.25px) |
+| Células de tabela | `13px` (`0.8125rem`) |
+| Título de coluna | `10.5px`, 600, uppercase, `letter-spacing .04em`, **sem quebra** (ellipsis) |
+| Small / hint | `12px` |
+| KPI | `32px` / 600 |
+
+Ao usar `overflow: hidden` em texto uppercase, deixe `line-height ≥ 1.5` — senão os acentos (Í, Ç, Õ) são cortados.
+
+---
+
+## 3. Raios (escala única)
+
+| Token | Valor | Onde |
+|---|---|---|
+| `--gesint-radius-badge` | **5px** | Badges, chips, pills de status |
+| `--gesint-tab-radius` | **6px** | Abas do workspace, itens, linhas com hover |
+| `--gesint-control-radius` | **7px** | Botões, inputs, selects, rail, nav item |
+| `--radius-gesint-card` / `-card-lg` | **8px** | Cards, painéis, `surface-card`, `gesint-form-section`, KPIs |
+| `--radius-gesint-modal` | **12px** | Modais |
+
+Tailwind mapeado: `rounded-sm` = 6 · `rounded-md`/`rounded-lg` = 7 · `rounded-xl` = 8 · `rounded-2xl` = 12. `rounded-full` só para círculos/pílulas.
+Exceção: `.crud-page-card` (painel da página CRUD) não tem raio — encosta na sidebar.
+
+---
+
+## 4. Casca (shell)
+
+### Rail de sistemas (CTB / DP / RH / CFG)
+- Fundo `--system-rail-bg` (mais escuro que a sidebar, ver §1).
+- Item ativo `.system-rail-item--active`: cartão (`base-100` no claro / primário 16% no escuro), borda primária suave, ícone + sigla em `primary`.
+- Regras de domínio ativo (não derivar da URL etc.) seguem `gesint.mdc`.
+
+### Sidebar
+- Fundo `base-100`, largura `--sidebar-width`. Itens `.nav-item`: altura `--sidebar-nav-item-h` (2rem), `13px`, cor `base-content 68%`.
+- **Ativo** `.nav-item-active`: fundo `primary 8%`, texto `primary`, **barra indicadora de 3px à esquerda** (`::before`, entra animada). Sem gradiente, sem sombra.
+- Hover: `base-content 4%`. Rótulos de seção: `10.5px`, uppercase, `base-content 42%`.
+- Grupos abrem só por clique; filhos indentados alinhados ao texto do pai.
+
+### Abas do workspace
+- `.gesint-workspace-tab`: `13px`, cor `base-content 58%`.
+- **Ativa**: cartão `base-100` com borda `--gesint-border`, `shadow-sm` e **sublinhado interno de 2px** (`inset 0 -2px 0 primary`).
+- Trocar de aba faz fade de opacidade no `.workspace-panel` (só opacidade — ver §12).
+
+### Abas internas do CRUD (Listagem / Cadastro …)
+- `.gesint-crud-tab`: `13px`; ativa em `base-content` peso 580 com sublinhado primário de 2px animado (`gesint-tab-underline`).
+
+### Topbar
+- Fundo `base-100`, borda inferior sutil, ícones outline `size-4`, ações compactas.
+
+---
+
+## 5. Botões
+
+| Variante | Visual |
+|---|---|
+| `primary` | **Sólido** `--gesint-primary`, realce interno (`inset 0 1px 0 white 16%`) + contorno `primary-dark`. Hover escurece. **Sem gradiente, sem glow, sem translateY.** |
+| `secondary`/`outline` | `base-100`, borda `--gesint-border`, `shadow-xs`; hover `base-content 4%` + `border-strong` |
+| `ghost` | transparente; hover `base-content 7%` |
+| `danger`/`warning`/`success` | sólidos semânticos |
+
+Altura `--gesint-control-h` (36px). Use sempre o componente `Button` (`leftIcon`, `loading`, `size`).
+
+---
+
+## 6. Inputs e formulários
+
+- Altura 36px, raio 7px, borda `--gesint-border`, foco: `border primary` + ring `primary 14%` (3px). Sem outline nativo.
+- Labels `.gesint-label` 12px/600; hint 12px; erro `.gesint-error-text`.
+- Selects/autocomplete: só `InputSelect`, `InputSelectAutocomplete`, `InputAutocomplete`.
+- **Seções** `.gesint-form-section` (via `FormSection`): card `base-100` raio 8px, `shadow-sm`; cabeçalho neutro (`base-content 1.5%`) com **marcador primário de 3px à esquerda**; título 14px/600 em `base-content` (não azul); corpo com `gap 14px 16px`. Seção com foco interno ganha borda primária suave + `shadow-md`.
+- Rodapé fixo do form: `.crud-form-shell__footer`.
+
+---
+
+## 7. Tabelas (`DataTable` / `QueryTablePanel`)
+
+- Densidade por tokens: `--gesint-table-cell-py: 0.5rem`, `--gesint-table-cell-px: 0.625rem`, `--gesint-table-header-py: 0.625rem`. Não aumente o padding horizontal: tabelas com 8+ colunas e filtros estouram a largura.
+- Cabeçalho com fundo `base-content 2.5%`, títulos conforme §2, filtros por coluna abaixo do título.
+- Hover de linha: `primary 3.5%`. Última linha sem borda inferior.
+- Ações de linha: botões quadrados 32px com tom semântico (abrir = info, editar = primary, excluir = error, baixar = success).
+
+## 8. Badges de status
+
+`.gesint-badge--success|warning|error|info|neutral`: fundo do tom 12%, texto no tom, **ponto de status** (`::before`, 6px, `currentColor`) e contorno interno `currentColor 16%`. Raio 5px, `white-space: nowrap`.
+Escolha o tom pelo significado (ativo/concluído = success; pendente = warning; reprovado/cancelado = error; rascunho = neutral).
+
+---
+
+## 9. Dashboard (`shared/workspace/views/DashboardView.tsx`)
+
+Um único `DashboardView` atende DP, RH e CTB (filtro em `dashboard-system.util.ts`). Padrões:
+
+- Container `.gesint-dash` (fundo `--color-page`, `max-width 112rem`, padding 24px).
+- **Cabeçalho de página**: título (`.gesint-dash-title`), subtítulo com indicador "ao vivo" (`.gesint-dash-live`) + "Atualizado às HH:mm · N módulos", botão primário "Atualizar" à direita.
+- **KPIs** `.gesint-dash-kpi` em grid `auto-fit minmax(14.5rem, 1fr)`: rótulo + ícone (quadrado 36px, `primary 10%`), valor 32px com contagem animada (`AnimatedNumber`), dica com ícone no tom (`data-tone`). Hover: sobe 2px + filete primário inferior.
+- **Painéis** `Panel` / `.gesint-dash-panel`: cabeçalho (título 15px + subtítulo 12.5px + ação à direita), corpo com padding 20px.
+- Gráficos em **SVG/CSS próprios** (sem lib nova): barras com eixo/grade/tooltip e coluna "Hoje" destacada; donut; barra empilhada; barras horizontais; anel de progresso; medidor segmentado.
+- Estado vazio `.gesint-dash-empty` (ícone em círculo + texto). Legendas longas (> 6 categorias) mostram só itens com valor + "+N sem registros".
+- Layout: KPIs → linha `xl:grid-cols-12` (8 + 4) → linha de 3 colunas (`lg:2`, `2xl:3`).
+
+## 10. Login e telas de autenticação
+
+Arquivos: `app/(auth)/layout.tsx`, `app/(auth)/template.tsx`, `shared/components/auth/LoginShell.tsx`, `LoginStage.tsx`.
+
+- **Estrutura obrigatória**: o `LoginShell` é montado **uma vez no `layout.tsx` do grupo `(auth)`**, que persiste entre navegações. As páginas (`login`, `esqueci-senha`, `definir-senha`) renderizam **só o conteúdo**: `LoginHeading` + formulário. **Nunca** envolva uma página em `<LoginShell>` — isso recria o painel da marca a cada clique.
+- `template.tsx` (remonta a cada navegação) aplica o fade só no conteúdo do formulário.
+- **Layout**: duas colunas `marca | formulário` (≥1024px: 46fr / 54fr). Abaixo de 1024px o painel da marca some e o logo vai ao topo do formulário.
+- **Painel da marca** `.login-brand`: azul-marinho fixo (`--gesint-primary-950`) nos dois temas; logo branco + "Gestão Integrada"; eyebrow, headline, lead e cartões dos três sistemas (DP, RH, Contabilidade) com entrada escalonada; camada `LoginStage` (grade pontilhada, dois brilhos difusos animados, "G" metálico translúcido flutuando). Só CSS, respeita `prefers-reduced-motion`.
+- **Coluna do formulário** `.login-main`: `base-100`, conteúdo com `max-width 24rem`; título com `LoginHeading` (26px/600) — use-o também nos formulários de senha; campos 44px (`.gesint-field--login`), botão "Entrar" 44px, divisor "ou" + "Primeiro acesso? Definir senha".
+
+## 11. Telas de carregamento
+
+- Use **sempre** `AppLoadingScreen` (`shared/components/layout/AppLoadingScreen.tsx`): monograma "G" (sem fundo/borda no container), anel circular girando, mensagem e barra indeterminada. Mensagem padrão: `APP_LOADING_MESSAGE` ("Preparando seu ambiente...") — boot, sessão e validação de tenant usam a mesma tela/mensagem.
+  - `variant="fullscreen"` (padrão): boot, sessão, validação de ambiente.
+  - `variant="inline"`: fallback de `Suspense` dentro do shell.
+- **Proibido** segunda tela de loading paralela, texto solto "Carregando..."/"Validando..." em fullscreen, ou spinner DaisyUI (`loading loading-ring`) em telas inteiras.
+- Dentro de listas/cards, carregamento é **skeleton** (`.skeleton-shimmer` / `SkeletonStack`) no formato do conteúdo final.
+- O overlay de logout (`shared/lib/logging-out-overlay.ts`) replica esse visual com estilos embutidos e paleta literal por tema (não pode depender de `globals.css`). Mudou um, mude o outro.
+
+---
+
+## 12. Animações
+
+- **Framer Motion** para entrada de componentes; **CSS transitions** para hover/foco.
+- Curva padrão: `ease-out` `[0.22, 1, 0.36, 1]` (`cubic-bezier(0.22, 1, 0.36, 1)` no CSS).
+- Durações: hover 150–250ms; entrada 350–500ms; gráficos/contagens 600–1000ms. Entrada escalonada com atraso de 50–80ms por item.
+- Entrada típica: `opacity 0 → 1` + `y 10–14px → 0`.
+- **Acessibilidade obrigatória**: envolva telas animadas em `<MotionConfig reducedMotion="user">` e adicione `@media (prefers-reduced-motion: reduce)` para animações CSS.
+- **Nunca** anime `transform` em container que tenha filhos `position: fixed` (modais, popovers): transform cria containing block e desloca o filho. Por isso o `.workspace-panel` anima só opacidade.
+- Proibido: animações longas/infinitas decorativas na área logada (exceção: indicadores de carregamento e o painel da marca do login).
+
+---
+
+## 13. Ícones
+
+- **Lucide React** apenas; outline, `strokeWidth={2}` (2.25 só para ênfase leve em ícones pequenos).
+- Tamanhos: nav `size-4`; topbar `size-4`–`size-5`; ação de tabela `size-3.5`; dentro de quadrado de KPI `size-4`.
+- Ícone colorido só para status semântico ou dentro de quadrado tonal (`primary 10%`).
+
+---
+
+## 14. Validação visual (obrigatória para mudanças de UI)
+
+1. Rode backend (8081) e frontend (3000) — ver `README.md`.
+2. Faça login (usuário de dev `admGesint`, senha em `DEV_ADMIN_PASSWORD` do `.env` raiz).
+3. Confira a tela nos temas **claro e escuro** (`localStorage.theme` = `gesint` | `dark`), em ~1600px e em largura mobile se aplicável.
+4. Cheque: estouro horizontal de tabelas, textos cortados (acentos), contraste no dark, alinhamento de cabeçalhos/filtros.
+5. Lint (`npx eslint <arquivos>`) e tipos (`npx tsc --noEmit`) dos arquivos tocados.
+
+---
+
+## 15. Anti-padrões (não faça)
+
+- `font-variation-settings: "wght" …` em `body`/containers; `line-height: 2` global.
+- Gradiente ou glow em botão; sombra colorida; glassmorphism na área logada.
+- Raio fora da escala (§3) ou `rounded-none` em cards.
+- Rail mais claro que a sidebar.
+- Item ativo da sidebar com gradiente/pill pesado (use fundo 8% + barra de 3px).
+- Cabeçalho de `FormSection` com fundo azul/título azul.
+- "Carregando..." solto; spinner DaisyUI em tela cheia.
+- `<LoginShell>` dentro de página de `(auth)`.
+- Número/nome/data fictícios em tela; dependência nova de gráficos sem aprovação.
+- Hex direto em `.tsx`; nova família de ícones; `<select>` nativo.

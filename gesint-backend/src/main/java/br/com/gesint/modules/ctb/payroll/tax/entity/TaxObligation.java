@@ -1,0 +1,53 @@
+package br.com.gesint.modules.ctb.payroll.tax.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.envers.Audited;
+import org.hibernate.type.SqlTypes;
+
+import br.com.gesint.core.branch.BranchScopedEntity;
+
+@Entity
+@Audited
+@Table(name = "tax_obligation")
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+public class TaxObligation extends BranchScopedEntity {
+    @Column(name = "collaborator_id", nullable = false)
+    private UUID collaboratorId;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "obligation_type", nullable = false, columnDefinition = "tax_obligation_type_enum")
+    private TaxObligationTypeEnum obligationType;
+
+    @Column(name = "reference_code", length = 60)
+    private String referenceCode;
+
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "base_amount", precision = 14, scale = 2)
+    private BigDecimal baseAmount;
+
+    @Column(name = "rate_percent", precision = 5, scale = 2)
+    private BigDecimal ratePercent;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}

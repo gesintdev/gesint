@@ -1,0 +1,15 @@
+package br.com.gesint.modules.root.repository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import br.com.gesint.modules.root.entity.RefreshTokenBlacklist;
+
+public interface RefreshTokenBlacklistRepository extends JpaRepository<RefreshTokenBlacklist, UUID> {
+
+    boolean existsByTokenHash(String tokenHash);
+
+    Optional<RefreshTokenBlacklist> findByTokenHash(String tokenHash);
+}

@@ -1,0 +1,807 @@
+package br.com.gesint.modules.root.service;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HexFormat;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import br.com.gesint.core.audit.trail.AuditActionEnum;
+import br.com.gesint.core.audit.trail.AuditTrailEntry;
+import br.com.gesint.core.audit.trail.AuditTrailRecorder;
+import br.com.gesint.core.entity.StatusEnum;
+import br.com.gesint.core.security.JwtProperties;
+import br.com.gesint.core.security.JwtService;
+import br.com.gesint.core.tenant.AdminClientLookup;
+import br.com.gesint.core.tenant.MultiTenantProperties;
+import br.com.gesint.core.tenant.PlatformAdminUserLookup;
+import br.com.gesint.core.tenant.TenantAuthValidator;
+import br.com.gesint.core.tenant.TenantContext;
+import br.com.gesint.core.tenant.TenantContextHolder;
+import br.com.gesint.core.tenant.TenantContractedSystemsLookup;
+import br.com.gesint.core.tenant.TenantResolver;
+import br.com.gesint.modules.dp.organization.department.repository.DepartmentRepository;
+import br.com.gesint.modules.dp.organization.jobposition.entity.JobPosition;
+import br.com.gesint.modules.dp.organization.jobposition.repository.JobPositionRepository;
+import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
+import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
+import br.com.gesint.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
+import br.com.gesint.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
+import br.com.gesint.modules.rh.person.contract.entity.EmploymentContract;
+import br.com.gesint.modules.rh.person.contract.repository.EmploymentContractRepository;
+import br.com.gesint.modules.root.dto.ChangePasswordRequestDto;
+import br.com.gesint.modules.root.dto.ForgotPasswordRequestDto;
+import br.com.gesint.modules.root.dto.LoginRequestDto;
+import br.com.gesint.modules.root.dto.PasswordSetupRequestDto;
+import br.com.gesint.modules.root.dto.PasswordSetupValidateRequestDto;
+import br.com.gesint.modules.root.dto.PasswordSetupValidateResponseDto;
+import br.com.gesint.modules.root.dto.RefreshTokenRequestDto;
+import br.com.gesint.modules.root.dto.SessionBootstrapDto;
+import br.com.gesint.modules.root.dto.TenantInfoResponseDto;
+import br.com.gesint.modules.root.dto.TokenResponseDto;
+import br.com.gesint.modules.root.entity.AppUser;
+import br.com.gesint.modules.root.entity.Permission;
+import br.com.gesint.modules.root.entity.RefreshToken;
+import br.com.gesint.modules.root.entity.RefreshTokenBlacklist;
+import br.com.gesint.modules.root.entity.Role;
+import br.com.gesint.modules.root.exception.AuthException;
+import br.com.gesint.modules.root.repository.AppUserRepository;
+import br.com.gesint.modules.root.repository.PermissionRepository;
+import br.com.gesint.modules.root.repository.RefreshTokenBlacklistRepository;
+import br.com.gesint.modules.root.repository.RefreshTokenRepository;
+import br.com.gesint.modules.root.security.AccessTokenSupport;
+import br.com.gesint.modules.root.security.BranchAccessResolver;
+import br.com.gesint.modules.root.security.SystemAdminUsers;
+
+@Service
+public class AuthService implements IAuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    private static final ZoneId SESSION_ZONE = ZoneId.of("America/Sao_Paulo");
+    /**
+     * Janela em que o refresh token rotacionado continua aceito. Cobre respostas de rotacao que o
+     * cliente nao conseguiu persistir (abas paralelas, retry de rede, render RSC) e evita logout
+     * falso por token recem-substituido.
+     */
+    private static final long REFRESH_REPLAY_GRACE_SECONDS = 120;
+
+    private final AppUserRepository appUserRepository;
+    private final PermissionRepository permissionRepository;
+    private final CollaboratorRepository collaboratorRepository;
+    private final AdmissionProcessRepository admissionProcessRepository;
+    private final EmploymentContractRepository contractRepository;
+    private final DepartmentRepository departmentRepository;
+    private final JobPositionRepository jobPositionRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenBlacklistRepository blacklistRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final JwtProperties jwtProperties;
+    private final MultiTenantProperties multiTenantProperties;
+    private final TenantAuthValidator tenantAuthValidator;
+    private final TenantResolver tenantResolver;
+    private final PlatformAdminUserLookup platformAdminUserLookup;
+    private final TenantContractedSystemsLookup tenantContractedSystemsLookup;
+    private final AdminClientLookup adminClientLookup;
+    private final BranchAccessResolver branchAccessResolver;
+    private final AuditTrailRecorder auditTrail;
+
+    public AuthService(
+            AppUserRepository appUserRepository,
+            PermissionRepository permissionRepository,
+            CollaboratorRepository collaboratorRepository,
+            AdmissionProcessRepository admissionProcessRepository,
+            EmploymentContractRepository contractRepository,
+            DepartmentRepository departmentRepository,
+            JobPositionRepository jobPositionRepository,
+            RefreshTokenRepository refreshTokenRepository,
+            RefreshTokenBlacklistRepository blacklistRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService,
+            JwtProperties jwtProperties,
+            MultiTenantProperties multiTenantProperties,
+            TenantAuthValidator tenantAuthValidator,
+            TenantResolver tenantResolver,
+            PlatformAdminUserLookup platformAdminUserLookup,
+            TenantContractedSystemsLookup tenantContractedSystemsLookup,
+            AdminClientLookup adminClientLookup,
+            BranchAccessResolver branchAccessResolver,
+            AuditTrailRecorder auditTrail) {
+        this.appUserRepository = appUserRepository;
+        this.permissionRepository = permissionRepository;
+        this.collaboratorRepository = collaboratorRepository;
+        this.admissionProcessRepository = admissionProcessRepository;
+        this.contractRepository = contractRepository;
+        this.departmentRepository = departmentRepository;
+        this.jobPositionRepository = jobPositionRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.blacklistRepository = blacklistRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.jwtProperties = jwtProperties;
+        this.multiTenantProperties = multiTenantProperties;
+        this.tenantAuthValidator = tenantAuthValidator;
+        this.tenantResolver = tenantResolver;
+        this.platformAdminUserLookup = platformAdminUserLookup;
+        this.tenantContractedSystemsLookup = tenantContractedSystemsLookup;
+        this.adminClientLookup = adminClientLookup;
+        this.branchAccessResolver = branchAccessResolver;
+        this.auditTrail = auditTrail;
+    }
+
+    @Override
+    @Transactional
+    public TokenResponseDto login(LoginRequestDto request) {
+        resolveTenantFromCompanyCode(request);
+
+        String login = request.getUsername() != null ? request.getUsername().trim() : "";
+        if (!StringUtils.hasText(login)) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
+
+        AppUser user = appUserRepository.findActiveByLogin(login, StatusEnum.DELETED).orElse(null);
+        if (user == null) {
+            recordLoginFailure(null, login);
+            throw new BadCredentialsException("Invalid credentials");
+        }
+
+        if (!StringUtils.hasText(user.getPasswordHash())
+                || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            recordLoginFailure(user, login);
+            throw new BadCredentialsException("Invalid credentials");
+        }
+
+        try {
+            assertLoginAllowed(user.getId(), user.getUsername());
+            assertTenantHasActiveContractedSystem(user.getUsername());
+        } catch (RuntimeException ex) {
+            recordLoginFailure(user, login);
+            throw ex;
+        }
+
+        user.setLastLogin(OffsetDateTime.now());
+        appUserRepository.save(user);
+        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.LOGIN, user).actor(user.getId()));
+
+        return buildTokenResponse(user);
+    }
+
+    /**
+     * Transacao propria: a do login e desfeita pela BadCredentialsException. Falha ao gravar nao
+     * pode trocar a resposta de credencial invalida por erro 500.
+     */
+    private void recordLoginFailure(AppUser user, String login) {
+        AuditTrailEntry entry = user != null
+                ? AuditTrailEntry.of(AuditActionEnum.LOGIN_FAILED, user).actor(user.getId())
+                : AuditTrailEntry.of(AuditActionEnum.LOGIN_FAILED, AppUser.class, null)
+                        .detail("(login: " + login + ")");
+        try {
+            auditTrail.recordIsolated(entry);
+        } catch (RuntimeException ex) {
+            log.warn("Falha ao registrar tentativa de login recusada na trilha de auditoria", ex);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void assertRefreshSessionActive(RefreshTokenRequestDto request) {
+        String rawRefresh = request.getRefreshToken();
+        if (!jwtService.isRefreshToken(rawRefresh)) {
+            throw AuthException.invalidRefresh();
+        }
+
+        OffsetDateTime now = OffsetDateTime.now();
+        String tokenHash = hashToken(rawRefresh);
+        RefreshTokenBlacklist blacklisted = blacklistRepository.findByTokenHash(tokenHash).orElse(null);
+        boolean replayGrace = isWithinReplayGrace(blacklisted, now);
+        if (blacklisted != null && !replayGrace) {
+            throw AuthException.revokedRefresh();
+        }
+
+        // Mesma tolerância do /refresh: token recém-rotacionado permanece válido na grace window.
+        // Sem isso, session-check com token antigo (ainda no cache do NextAuth) provoca logout falso.
+        RefreshToken stored = refreshTokenRepository
+                .findByTokenHash(tokenHash)
+                .orElseThrow(AuthException::revokedRefresh);
+
+        if (stored.isRevoked() && !replayGrace) {
+            throw AuthException.revokedRefresh();
+        }
+
+        if (stored.getExpiresAt().isBefore(now)) {
+            throw AuthException.expiredRefresh();
+        }
+
+        UUID userId = jwtService.extractUserId(rawRefresh);
+        if (multiTenantProperties.isEnabled()) {
+            UUID tokenTenantId = jwtService.extractTenantId(rawRefresh).orElse(null);
+            try {
+                tenantAuthValidator.assertTokenMatchesCurrentTenant(tokenTenantId, userId);
+            } catch (RuntimeException ex) {
+                throw AuthException.invalidRefresh();
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public TokenResponseDto refresh(RefreshTokenRequestDto request) {
+        String rawRefresh = request.getRefreshToken();
+        if (!jwtService.isRefreshToken(rawRefresh)) {
+            throw AuthException.invalidRefresh();
+        }
+
+        OffsetDateTime now = OffsetDateTime.now();
+        String tokenHash = hashToken(rawRefresh);
+        RefreshTokenBlacklist blacklisted = blacklistRepository.findByTokenHash(tokenHash).orElse(null);
+        boolean replayGrace = isWithinReplayGrace(blacklisted, now);
+        if (blacklisted != null && !replayGrace) {
+            throw AuthException.revokedRefresh();
+        }
+
+        RefreshToken stored = refreshTokenRepository
+                .findByTokenHashForUpdate(tokenHash)
+                .orElseThrow(AuthException::invalidRefresh);
+
+        if (stored.isRevoked() && !replayGrace) {
+            blacklisted = blacklistRepository.findByTokenHash(tokenHash).orElse(null);
+            replayGrace = isWithinReplayGrace(blacklisted, now);
+            if (!replayGrace) {
+                throw AuthException.revokedRefresh();
+            }
+        }
+
+        if (stored.getExpiresAt().isBefore(now)) {
+            throw AuthException.expiredRefresh();
+        }
+
+        UUID userId = jwtService.extractUserId(rawRefresh);
+        if (multiTenantProperties.isEnabled()) {
+            UUID tokenTenantId = jwtService.extractTenantId(rawRefresh).orElse(null);
+            try {
+                tenantAuthValidator.assertTokenMatchesCurrentTenant(tokenTenantId, userId);
+            } catch (RuntimeException ex) {
+                throw AuthException.invalidRefresh();
+            }
+        }
+
+        AppUser user = appUserRepository
+                .findActiveByIdWithRoles(userId, StatusEnum.DELETED)
+                .orElseThrow(AuthException::userNotFound);
+
+        assertTenantUserAccess(user.getId());
+
+        if (stored.isRevoked()) {
+            return buildTokenResponse(user);
+        }
+
+        if (shouldRotateRefreshToken(stored, now)) {
+            revokeRefreshToken(stored, tokenHash, now);
+            return buildTokenResponse(user);
+        }
+
+        return buildTokenResponse(user, rawRefresh);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<TenantInfoResponseDto> currentTenant() {
+        if (!multiTenantProperties.isEnabled()) {
+            return Optional.empty();
+        }
+        return TenantContextHolder.getOptional()
+                .filter(tenant -> !tenant.isPlatformAccess())
+                .filter(tenant -> StringUtils.hasText(tenant.slug()) || StringUtils.hasText(tenant.name()))
+                .map(tenant -> TenantInfoResponseDto.builder()
+                        .slug(tenant.slug())
+                        .name(tenant.name())
+                        // Tenant sintético do localhost não tem contratos comerciais.
+                        .contractedSystemKeys(
+                                tenant.isDevelopmentPublic()
+                                        ? null
+                                        : resolveContractedSystemKeys(tenant.clientId()))
+                        .mobileLoginCode(resolveMobileLoginCode(tenant))
+                        .build());
+    }
+
+    private String resolveMobileLoginCode(TenantContext tenant) {
+        if (tenant.isDevelopmentPublic()) {
+            String code = multiTenantProperties.getDevPublicCompanyCode();
+            return StringUtils.hasText(code) ? code.trim() : null;
+        }
+        if (tenant.clientId() == null) {
+            return null;
+        }
+        return adminClientLookup.findMobileLoginCodeByClientId(tenant.clientId()).orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PasswordSetupValidateResponseDto validatePasswordSetupToken(PasswordSetupValidateRequestDto request) {
+        String token = request.getToken() != null ? request.getToken().trim() : "";
+        if (!StringUtils.hasText(token)) {
+            return PasswordSetupValidateResponseDto.builder().valid(false).firstAccessCompleted(false).build();
+        }
+        return appUserRepository
+                .findActiveByAccessTokenHash(AccessTokenSupport.hashToken(token), StatusEnum.DELETED)
+                .map(user -> PasswordSetupValidateResponseDto.builder()
+                        .valid(true)
+                        .firstAccessCompleted(user.isFirstAccessCompleted())
+                        .build())
+                .orElseGet(() ->
+                        PasswordSetupValidateResponseDto.builder().valid(false).firstAccessCompleted(false).build());
+    }
+
+    @Override
+    @Transactional
+    public void setupPassword(PasswordSetupRequestDto request) {
+        String token = request.getToken() != null ? request.getToken().trim() : "";
+        String password = request.getPassword();
+        String confirmation = request.getPasswordConfirmation();
+        if (!StringUtils.hasText(token)) {
+            throw AuthException.invalidAccessToken();
+        }
+        if (!StringUtils.hasText(password) || password.length() < 8) {
+            throw AuthException.passwordTooShort();
+        }
+        if (!password.equals(confirmation)) {
+            throw AuthException.passwordMismatch();
+        }
+
+        AppUser user = appUserRepository
+                .findActiveByAccessTokenHash(AccessTokenSupport.hashToken(token), StatusEnum.DELETED)
+                .orElseThrow(AuthException::invalidAccessToken);
+
+        user.setPasswordHash(passwordEncoder.encode(password));
+        user.setAccessTokenHash(null);
+        user.setFirstAccessCompleted(true);
+        appUserRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequestDto request) {
+        String email = request.getEmail() != null ? request.getEmail().trim() : "";
+        if (!StringUtils.hasText(email)) {
+            return;
+        }
+        appUserRepository
+                .findActiveByEmail(email, StatusEnum.DELETED)
+                .ifPresent(user -> {
+                    String plainToken = AccessTokenSupport.generatePlainToken();
+                    user.setPasswordHash(null);
+                    user.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
+                    appUserRepository.save(user);
+                    // TODO: enviar e-mail com o token/link de redefinição quando o disparo estiver disponível.
+                });
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequestDto request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof UUID userId)) {
+            throw AuthException.invalidCredentials();
+        }
+        String currentPassword = request.getCurrentPassword();
+        String newPassword = request.getNewPassword();
+        String confirmation = request.getNewPasswordConfirmation();
+        if (!StringUtils.hasText(newPassword) || newPassword.length() < 8) {
+            throw AuthException.passwordTooShort();
+        }
+        if (!newPassword.equals(confirmation)) {
+            throw AuthException.passwordMismatch();
+        }
+
+        AppUser user = appUserRepository
+                .findById(userId)
+                .filter(candidate -> candidate.getStatus() != StatusEnum.DELETED)
+                .orElseThrow(AuthException::userNotFound);
+        if (!StringUtils.hasText(user.getPasswordHash())
+                || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw AuthException.invalidCurrentPassword();
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        appUserRepository.save(user);
+    }
+
+    private void resolveTenantFromCompanyCode(LoginRequestDto request) {
+        if (!multiTenantProperties.isEnabled() || !StringUtils.hasText(request.getCompanyCode())) {
+            return;
+        }
+
+        TenantContext tenant = tenantResolver
+                .resolveByMobileLoginCode(request.getCompanyCode())
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        TenantContextHolder.set(tenant);
+    }
+
+    private TokenResponseDto buildTokenResponse(AppUser user) {
+        return buildTokenResponse(user, null);
+    }
+
+    private TokenResponseDto buildTokenResponse(AppUser user, String reusableRefreshToken) {
+        BranchAccessResolver.BranchAccess branchAccess = branchAccessResolver.resolve(user);
+        List<String> permissions = branchAccess.basePermissions();
+        UUID tenantId = null;
+        String tenantSlug = null;
+        String tenantName = null;
+        TenantContext tenant = null;
+        if (multiTenantProperties.isEnabled()) {
+            tenant = TenantContextHolder.require();
+            if (!tenant.isPlatformAccess() && !tenant.isDevelopmentPublic()) {
+                tenantId = tenant.clientId();
+                tenantSlug = tenant.slug();
+                tenantName = tenant.name();
+            } else if (tenant.isDevelopmentPublic()) {
+                tenantId = tenant.clientId();
+                tenantSlug = tenant.slug();
+                tenantName = tenant.name();
+            }
+        }
+
+        String accessToken = jwtService.generateAccessToken(
+                user.getId(),
+                user.getUsername(),
+                permissions,
+                tenantId,
+                tenantSlug,
+                branchAccess.branchPermissionOverrides(),
+                branchAccess.branchIds());
+        String refreshToken = reusableRefreshToken;
+        if (refreshToken == null) {
+            refreshToken = jwtService.generateRefreshToken(user.getId(), tenantId, tenantSlug);
+            persistRefreshToken(user.getId(), refreshToken);
+        }
+
+        boolean platformAdmin =
+                multiTenantProperties.isEnabled() && platformAdminUserLookup.isPlatformAdmin(user.getUsername());
+        CollaboratorOrganizationSnapshot organization = resolveCollaboratorOrganization(user);
+        String displayName = StringUtils.hasText(organization.collaboratorName)
+                ? organization.collaboratorName
+                : user.getUsername();
+
+        return TokenResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresInSeconds(jwtProperties.accessTokenMinutes() * 60)
+                .name(displayName)
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .tenantSlug(tenantSlug)
+                .tenantName(tenantName)
+                .collaboratorId(organization.collaboratorId)
+                .photoObjectId(organization.photoObjectId)
+                .platformAdmin(platformAdmin)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SessionBootstrapDto currentSession() {
+        UUID userId = SystemAdminUsers.currentUserId().orElseThrow(AuthException::invalidAccessToken);
+        AppUser user = appUserRepository
+                .findById(userId)
+                .filter(candidate -> candidate.getStatus() != StatusEnum.DELETED)
+                .orElseThrow(AuthException::userNotFound);
+        return buildSessionBootstrap(user);
+    }
+
+    private SessionBootstrapDto buildSessionBootstrap(AppUser user) {
+        BranchAccessResolver.BranchAccess branchAccess = branchAccessResolver.resolve(user);
+        List<String> permissions = branchAccess.basePermissions();
+        String tenantSlug = null;
+        String tenantName = null;
+        List<String> contractedSystemKeys = null;
+        Map<String, List<String>> contractedSystemKeyOverrides = null;
+        boolean assistantEnabled = !multiTenantProperties.isEnabled();
+        TenantContext tenant = null;
+        if (multiTenantProperties.isEnabled()) {
+            tenant = TenantContextHolder.getOptional().orElse(null);
+            if (tenant != null && !tenant.isPlatformAccess() && !tenant.isDevelopmentPublic()) {
+                tenantSlug = tenant.slug();
+                tenantName = tenant.name();
+                TenantContractedSystemsLookup.ContractedSystemScope scope =
+                        tenantContractedSystemsLookup.findActiveKeyScope(tenant.clientId());
+                contractedSystemKeys = scope.allBranchesKeys();
+                contractedSystemKeyOverrides = buildKeyOverrides(scope, branchAccess);
+                assistantEnabled = tenantContractedSystemsLookup.isAssistantEnabled(tenant.clientId());
+            } else if (tenant != null && tenant.isDevelopmentPublic()) {
+                tenantSlug = tenant.slug();
+                tenantName = tenant.name();
+                contractedSystemKeys = null;
+                assistantEnabled = true;
+            } else if (tenant != null && tenant.isPlatformAccess()) {
+                assistantEnabled = true;
+            }
+        }
+
+        boolean platformAdmin =
+                multiTenantProperties.isEnabled() && platformAdminUserLookup.isPlatformAdmin(user.getUsername());
+        if (platformAdmin && (tenant == null || tenant.isPlatformAccess())) {
+            contractedSystemKeys = null;
+            contractedSystemKeyOverrides = null;
+            assistantEnabled = true;
+        }
+
+        CollaboratorOrganizationSnapshot organization = resolveCollaboratorOrganization(user);
+        String displayName = StringUtils.hasText(organization.collaboratorName)
+                ? organization.collaboratorName
+                : user.getUsername();
+
+        return SessionBootstrapDto.builder()
+                .name(displayName)
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .tenantSlug(tenantSlug)
+                .tenantName(tenantName)
+                .platformAdmin(platformAdmin)
+                .collaboratorId(organization.collaboratorId)
+                .accessCode(organization.accessCode)
+                .photoObjectId(organization.photoObjectId)
+                .jobPositionId(organization.jobPositionId)
+                .jobPositionName(organization.jobPositionName)
+                .departmentId(organization.departmentId)
+                .departmentName(organization.departmentName)
+                .permissions(permissions)
+                .systemPermissions(branchAccess.permissionsBySystem())
+                .branches(branchAccess.branches())
+                .contractedSystemKeys(contractedSystemKeys)
+                .contractedSystemKeyOverrides(contractedSystemKeyOverrides)
+                .assistantEnabled(assistantEnabled)
+                .build();
+    }
+
+    /**
+     * So viajam as filiais que fogem da base. Com o contrato em modo ALL, que e o caso comum, o
+     * mapa sai vazio e a sessao fica do mesmo tamanho de antes.
+     */
+    private Map<String, List<String>> buildKeyOverrides(
+            TenantContractedSystemsLookup.ContractedSystemScope scope, BranchAccessResolver.BranchAccess branchAccess) {
+        if (scope.keysByCompanyId().isEmpty()) {
+            return Map.of();
+        }
+        List<String> base = scope.allBranchesKeys();
+        Map<String, List<String>> overrides = new LinkedHashMap<>();
+        for (BranchAccessResolver.BranchSummary branch : branchAccess.branches()) {
+            List<String> keys = scope.keysFor(branch.id());
+            if (!keys.equals(base)) {
+                overrides.put(branch.id().toString(), keys);
+            }
+        }
+        return overrides;
+    }
+
+    private List<String> resolveContractedSystemKeys(UUID clientId) {
+        if (clientId == null) {
+            return List.of();
+        }
+        return tenantContractedSystemsLookup.findActiveKeysByClientId(clientId);
+    }
+
+    private void assertLoginAllowed(UUID userId, String username) {
+        if (!multiTenantProperties.isEnabled()) {
+            return;
+        }
+        try {
+            tenantAuthValidator.assertLoginAllowed(userId, username);
+        } catch (RuntimeException ex) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
+    }
+
+    private void assertTenantHasActiveContractedSystem(String username) {
+        if (!multiTenantProperties.isEnabled()) {
+            return;
+        }
+        TenantContext tenant = TenantContextHolder.getOptional().orElse(null);
+        if (tenant == null
+                || tenant.isPlatformAccess()
+                || tenant.isDevelopmentPublic()
+                || tenant.clientId() == null) {
+            return;
+        }
+        if (platformAdminUserLookup.isPlatformAdmin(username)) {
+            return;
+        }
+        List<String> keys = resolveContractedSystemKeys(tenant.clientId());
+        if (keys == null || keys.isEmpty()) {
+            throw AuthException.noActiveSystem();
+        }
+    }
+
+    private void assertTenantUserAccess(UUID userId) {
+        if (!multiTenantProperties.isEnabled()) {
+            return;
+        }
+        try {
+            tenantAuthValidator.assertUserBelongsToCurrentTenant(userId);
+        } catch (RuntimeException ex) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
+    }
+
+
+    private CollaboratorOrganizationSnapshot resolveCollaboratorOrganization(AppUser user) {
+        if (user.getCollaboratorId() == null) {
+            return CollaboratorOrganizationSnapshot.empty();
+        }
+
+        CollaboratorOrganizationSnapshot snapshot = new CollaboratorOrganizationSnapshot();
+        collaboratorRepository
+                .findByIdAndStatusNot(user.getCollaboratorId(), StatusEnum.DELETED)
+                .ifPresentOrElse(
+                        collaborator -> {
+                            snapshot.collaboratorId = collaborator.getId();
+                            snapshot.collaboratorName = collaborator.getFullName();
+                            snapshot.photoObjectId = collaborator.getPhotoObjectId();
+                            snapshot.accessCode = StringUtils.hasText(collaborator.getAccessCode())
+                                    ? collaborator.getAccessCode().trim()
+                                    : null;
+                        },
+                        () -> snapshot.collaboratorId = null);
+        if (snapshot.collaboratorId == null) {
+            return snapshot;
+        }
+
+        contractRepository
+                .findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(
+                        snapshot.collaboratorId, StatusEnum.DELETED)
+                .ifPresent(contract -> applyContract(snapshot, contract));
+        latestCompletedAdmission(snapshot.collaboratorId)
+                .ifPresent(admission -> applyAdmissionFallback(snapshot, admission));
+        // Foto do perfil: prioriza a inserida na admissão (mesmo se a admissão ainda não estiver concluída).
+        resolveAdmissionPhoto(snapshot);
+        resolveOrganizationNames(snapshot);
+        return snapshot;
+    }
+
+    private void applyContract(CollaboratorOrganizationSnapshot snapshot, EmploymentContract contract) {
+        if (contract.getJobPositionId() != null) {
+            snapshot.jobPositionId = contract.getJobPositionId();
+        }
+    }
+
+    private Optional<AdmissionProcess> latestCompletedAdmission(UUID collaboratorId) {
+        return admissionProcessRepository
+                .findByCollaboratorIdAndAdmissionStatusAndStatusNot(
+                        collaboratorId, AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED)
+                .stream()
+                .max(Comparator.comparing((AdmissionProcess admission) -> {
+                            java.time.LocalDate date = admission.getContractStartDate() != null
+                                    ? admission.getContractStartDate()
+                                    : admission.getExpectedStartDate();
+                            return date == null ? java.time.LocalDate.MIN : date;
+                        })
+                        .thenComparing(admission ->
+                                admission.getCreatedAt() == null ? OffsetDateTime.MIN : admission.getCreatedAt()));
+    }
+
+    private void applyAdmissionFallback(CollaboratorOrganizationSnapshot snapshot, AdmissionProcess admission) {
+        if (admission.getPhotoObjectId() != null) {
+            snapshot.photoObjectId = admission.getPhotoObjectId();
+        }
+        if (snapshot.jobPositionId == null) {
+            snapshot.jobPositionId = admission.getJobPositionId();
+        }
+        if (snapshot.departmentId == null) {
+            snapshot.departmentId = admission.getDepartmentId();
+        }
+    }
+
+    private void resolveAdmissionPhoto(CollaboratorOrganizationSnapshot snapshot) {
+        if (snapshot.collaboratorId == null) {
+            return;
+        }
+        admissionProcessRepository
+                .findByCollaboratorIdAndStatusNot(snapshot.collaboratorId, StatusEnum.DELETED)
+                .map(AdmissionProcess::getPhotoObjectId)
+                .ifPresent(photoObjectId -> snapshot.photoObjectId = photoObjectId);
+    }
+
+    private void resolveOrganizationNames(CollaboratorOrganizationSnapshot snapshot) {
+        if (snapshot.jobPositionId != null) {
+            jobPositionRepository
+                    .findByIdAndStatusNot(snapshot.jobPositionId, StatusEnum.DELETED)
+                    .ifPresent(jobPosition -> applyJobPosition(snapshot, jobPosition));
+        }
+        if (snapshot.departmentId != null) {
+            departmentRepository
+                    .findByIdAndStatusNot(snapshot.departmentId, StatusEnum.DELETED)
+                    .ifPresent(department -> snapshot.departmentName = department.getName());
+        }
+    }
+
+    private void applyJobPosition(CollaboratorOrganizationSnapshot snapshot, JobPosition jobPosition) {
+        snapshot.jobPositionName = jobPosition.getTitle();
+        if (snapshot.departmentId == null) {
+            snapshot.departmentId = jobPosition.getDepartmentId();
+        }
+    }
+
+    private static final class CollaboratorOrganizationSnapshot {
+        private UUID collaboratorId;
+        private String collaboratorName;
+        private String accessCode;
+        private UUID photoObjectId;
+        private UUID jobPositionId;
+        private String jobPositionName;
+        private UUID departmentId;
+        private String departmentName;
+
+        private static CollaboratorOrganizationSnapshot empty() {
+            return new CollaboratorOrganizationSnapshot();
+        }
+    }
+
+    private void persistRefreshToken(UUID userId, String rawToken) {
+        OffsetDateTime now = OffsetDateTime.now();
+        refreshTokenRepository.save(RefreshToken.builder()
+                .userId(userId)
+                .tokenHash(hashToken(rawToken))
+                .expiresAt(nextSessionBoundary())
+                .revoked(false)
+                .createdAt(now)
+                .build());
+    }
+
+    private boolean shouldRotateRefreshToken(RefreshToken refreshToken, OffsetDateTime now) {
+        OffsetDateTime rotationAt = refreshToken.getCreatedAt().plusMinutes(jwtProperties.refreshTokenRotationMinutes());
+        return !now.isBefore(rotationAt);
+    }
+
+    private boolean isWithinReplayGrace(RefreshTokenBlacklist blacklisted, OffsetDateTime now) {
+        if (blacklisted == null) {
+            return false;
+        }
+        return !now.isAfter(blacklisted.getRevokedAt().plusSeconds(REFRESH_REPLAY_GRACE_SECONDS));
+    }
+
+    private void revokeRefreshToken(RefreshToken stored, String tokenHash, OffsetDateTime now) {
+        stored.setRevoked(true);
+        refreshTokenRepository.save(stored);
+        blacklistRepository.save(RefreshTokenBlacklist.builder()
+                .tokenHash(tokenHash)
+                .revokedAt(now)
+                .build());
+    }
+
+    private OffsetDateTime nextSessionBoundary() {
+        return ZonedDateTime.now(SESSION_ZONE)
+                .toLocalDate()
+                .plusDays(1)
+                .atStartOfDay(SESSION_ZONE)
+                .toOffsetDateTime();
+    }
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
+    }
+}

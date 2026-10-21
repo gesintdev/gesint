@@ -5,7 +5,7 @@
 --   WHERE reference_type = 'MOCK_NOTIFICATION';
 --
 -- Executar (na raiz do repo):
---   Get-Content scripts/dev/seed-mock-notifications.sql | docker compose exec -T postgres psql -U gommo -d gommo
+--   Get-Content scripts/dev/seed-mock-notifications.sql | docker compose exec -T postgres psql -U gesint -d gesint
 
 BEGIN;
 

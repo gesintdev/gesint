@@ -3,7 +3,7 @@
 > Base deste plano: `Parecer Tecnico e Especificacao de Referencia - Modulo de
 > Controle de Exames Ocupacionais` (elaborado para o sistema Lysian Pessoas) +
 > validacao normativa atualizada (agosto/2026) + leitura da arquitetura atual
-> do Gommo (`gommo-backend` e `gommo-frontend`; `gommo-admin-*` fora de escopo).
+> do Gesint (`gesint-backend` e `gesint-frontend`; `gesint-admin-*` fora de escopo).
 >
 > Este documento segue o mesmo formato de
 > `docs/analise/plano-afastamentos-2026-06-24.md`: primeiro o contexto e as
@@ -12,7 +12,7 @@
 
 ## 1. Objetivo
 
-Implementar, em `gommo-backend` e `gommo-frontend`, o modulo de Controle de
+Implementar, em `gesint-backend` e `gesint-frontend`, o modulo de Controle de
 Exames Ocupacionais como **motor de conformidade** (NR-7, eSocial, LGPD) e nao
 como simples agenda com anexo de PDF. O parecer tecnico deixa claro o
 diferencial: o valor do modulo esta em calcular obrigacoes, nao em apenas
@@ -39,7 +39,7 @@ de codigo ou textos de tela — nao usar os valores errados do parecer original:
 |---|---|---|
 | Excecao de periodicidade para condicoes hiperbaricas | "Anexo IV" da NR-7 | E o **Anexo 6 da NR-15** (Norma Regulamentadora 15), nao a NR-7. |
 | Base legal do prazo de dispensa do demissional (135/90 dias) | Cita "Portaria MTE 1.218/2024" | **Nao ha registro oficial dessa portaria** em in.gov.br ou gov.br. A regra de 135/90 dias existe e e valida, mas esta consolidada diretamente no **item 7.4.3.5 da NR-7 vigente**. Nao referenciar a portaria inexistente em codigo, exception ou UI; referenciar "NR-7, item 7.4.3.5". A lista de agentes criticos que impedem a dispensa (benzeno, chumbo, radiacoes ionizantes, biologicos classe 3-4) deve ser tratada como **parametro configuravel**, nao lista fixa em codigo, e revisada com um responsavel tecnico em SST antes de virar bloqueio automatico. |
-| PPP (Perfil Profissiografico Previdenciario) | Tratado como "futura integracao" | O PPP eletronico **ja e obrigatorio e exclusivo desde 01/jan/2023**, e e gerado pelo INSS/Meu INSS a partir dos eventos S-2210/S-2220/S-2240 — nao e o Gommo quem emite o PPP. **Nao ha entrega de PPP neste plano**; o que importa e manter S-2220/S-2240 consistentes, porque e disso que o PPP depende. |
+| PPP (Perfil Profissiografico Previdenciario) | Tratado como "futura integracao" | O PPP eletronico **ja e obrigatorio e exclusivo desde 01/jan/2023**, e e gerado pelo INSS/Meu INSS a partir dos eventos S-2210/S-2220/S-2240 — nao e o Gesint quem emite o PPP. **Nao ha entrega de PPP neste plano**; o que importa e manter S-2220/S-2240 consistentes, porque e disso que o PPP depende. |
 | Versao do leiaute eSocial | Nao especificada | Leiaute vigente em 2026 e o **S-1.3** (MOS consolidado ate 03/2025). O layout evolui; guardar a versao do leiaute usada em cada evento gerado (campo `layoutVersion`), nao assumir versao fixa no codigo. |
 | Codigos da Tabela 27 (procedimentos) | Lista fechada no texto (01, 03, 06, 14, 20...) | Os codigos citados existem na Tabela 27, mas **nao foram todos conferidos um a um** (ex.: "20 = ECG" nao confirmado). Nao codificar a tabela como enum fixo no Java — carregar como **tabela de referencia seedada por migration**, validada contra o MOS antes de ir para producao. |
 | Retencao de 20/40 anos | Citado como regra fechada | 20 anos (regra geral) e 40 anos (substancias cancerigenas) estao corretos. Regimes ">40 anos" para radiacao ionizante/asbesto **nao foram confirmados** como categoria separada — provavelmente ja caem na regra de 40 anos por serem cancerigenos. Modelar retencao como **campo configuravel por tipo de agente**, com 20/40 como default, nao like valor unico hardcoded. |
@@ -50,44 +50,44 @@ CLT/NR-1/NR-7/eSocial/LGPD, maquina de estados, motor de regras de
 periodicidade, indicadores) foi conferido e esta correto — usar como
 especificacao funcional de referencia.
 
-## 3. Onde o modulo entra na arquitetura do Gommo
+## 3. Onde o modulo entra na arquitetura do Gesint
 
-Levantamento feito em `gommo-backend/src/main/java/br/com/gommo/modules` e
-`gommo-frontend/src/modules`, e em `.agents/rules/gommo.mdc`:
+Levantamento feito em `gesint-backend/src/main/java/br/com/gesint/modules` e
+`gesint-frontend/src/modules`, e em `.agents/rules/gesint.mdc`:
 
 - O modulo mais proximo estruturalmente e `rh/person/leave` (`LeaveRequest`):
   colaborador, CID, medico/CRM, datas, maquina de estados, `AuditEntity`. E o
   padrao de referencia para tudo abaixo.
 - Upload/anexo (ASO, laudos) **nao deve ser reimplementado**: reaproveitar
-  `br.com.gommo.modules.storage` (`StorageObject` + `StorageObjectLink`, com
+  `br.com.gesint.modules.storage` (`StorageObject` + `StorageObjectLink`, com
   `sha256Hex` ja cobrindo o requisito de hash de integridade do parecer) e o
   componente `EntityAttachments` no frontend.
 - CRUD segue `BaseController` / `BaseService` / `IBaseRepository`. RBAC via
   `@PreAuthorize` no service, autoridades `{modulo}:{read|write|delete}`.
-- Migrations: proximo numero livre em `gommo-backend/src/main/resources/db/migration`
+- Migrations: proximo numero livre em `gesint-backend/src/main/resources/db/migration`
   e **V80** (confirmar o mais alto na hora de implementar, pois novas
   migrations podem ter sido criadas). Padrao: `V{n}__descricao_snake_case.sql`.
 - Enums Postgres nativos: seguir o padrao de `V43__leave_absence_rules_and_attendance_occurrence.sql`
   (`CREATE TYPE x_enum AS ENUM (...)`). Como o projeto mantem um espelho dos
-  enums em `gommo_types` (domains, ver `V78`/`V79`) para o `search_path`
+  enums em `gesint_types` (domains, ver `V78`/`V79`) para o `search_path`
   multi-tenant, **toda migration que criar um enum novo deve terminar com**
-  `CREATE DOMAIN gommo_types.<nome_do_enum> AS public.<nome_do_enum>;` (dentro
+  `CREATE DOMAIN gesint_types.<nome_do_enum> AS public.<nome_do_enum>;` (dentro
   de um bloco idempotente `IF NOT EXISTS`), mesmo que nenhuma migration depois
   de V79 tenha feito isso ainda — e a extensao natural do padrao existente.
 - Caminho de modulo (frontend e backend devem espelhar o menu lateral, regra
-  do `gommo.mdc`): o modulo fica em **RH > Pessoas**, ao lado de Ferias/Afastamento.
-  Pacote backend: `br.com.gommo.modules.dp.occupationalexam`. Pasta
+  do `gesint.mdc`): o modulo fica em **RH > Pessoas**, ao lado de Ferias/Afastamento.
+  Pacote backend: `br.com.gesint.modules.dp.occupationalexam`. Pasta
   frontend: `src/modules/dp/occupational-exam`. Novo item de menu
   "Exames Ocupacionais" em `organization.routes.ts (rail DP)`, permissao raiz `occupationalexam:read`.
-- Multi-tenant: toda tabela nova precisa (1) migration no `gommo-backend`, (2)
+- Multi-tenant: toda tabela nova precisa (1) migration no `gesint-backend`, (2)
   entrada em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin-backend, (3)
   espelhamento em `scripts/dev/seed-tenant-empresa-a.sql`. Isso esta fora do
-  escopo de "ignorar gommo-admin" porque e cadastro de catalogo, nao logica de
+  escopo de "ignorar gesint-admin" porque e cadastro de catalogo, nao logica de
   produto — os prompts abaixo cobram isso explicitamente.
 
 ### 3.1 Entidades novas (Fase 1)
 
-Pacote `br.com.gommo.modules.dp.occupationalexam`, uma subpasta por
+Pacote `br.com.gesint.modules.dp.occupationalexam`, uma subpasta por
 entidade (`clinic/`, `physician/`, `examrequirement/`, `exam/`,
 `complementaryexam/`), cada uma com `controller/dto/entity/exception/mapper/repository/service`,
 igual ao `leave`.
@@ -101,7 +101,7 @@ igual ao `leave`.
 | `ComplementaryExam` | Exame complementar (1:N de `OccupationalExam`) | occupationalExamId, procedureCode (FK para tabela de referencia da Tabela 27), performedDate, result (`NORMAL`/`ALTERED`/`NOT_PERFORMED`) |
 | `EsocialTable27Procedure` | Tabela de referencia (seed via migration, nao enum) | code, description, active |
 
-Nota sobre "Funcao/GHE": o Gommo ainda nao tem modulo de PGR/GRO (inventario
+Nota sobre "Funcao/GHE": o Gesint ainda nao tem modulo de PGR/GRO (inventario
 de riscos). `ExamRequirement.riskBasis` e um campo de texto para documentar
 manualmente a base da exigencia ate que exista um modulo de risco formal —
 isso e uma simplificacao deliberada do MVP, nao um erro; registrar como
@@ -132,14 +132,14 @@ do mes seguinte a `clinicalExamDate`) e alerta proprio.
 
 ## 4. RBAC — desvio de padrao que precisa de justificativa explicita
 
-O padrao atual do Gommo e autoridade unica por modulo (`modulo:read|write|delete`).
+O padrao atual do Gesint e autoridade unica por modulo (`modulo:read|write|delete`).
 O parecer exige, por LGPD (minimizacao + segregacao de acesso), que dado
 clinico (CID, resultado de complementares, observacoes) fique invisivel para o
 RH operacional e visivel so para o perfil de saude ocupacional/SESMT. Isso
 **nao cabe** no padrao de autoridade unica.
 
 Decisao proposta (documentar no PR como excecao justificada, conforme regra
-"nao criar padrao novo sem justificativa explicita" do `gommo.mdc`):
+"nao criar padrao novo sem justificativa explicita" do `gesint.mdc`):
 adicionar uma quarta autoridade **`occupationalexam:clinical`**, alem de
 `read/write/delete`. `OccupationalExamResponseDto` tera duas visoes montadas
 pelo mapper: campos operacionais (status, aptidao, vencimento, colaborador,
@@ -187,20 +187,20 @@ regras — onde esta o valor juridico do modulo) e um prompt de preparacao para
 a Fase 3 (schema pronto para eSocial, sem exigir a integracao de transmissao
 real agora).
 
-### 6.1 Certificado digital — por cliente (tenant), nao pelo Gommo
+### 6.1 Certificado digital — por cliente (tenant), nao pelo Gesint
 
 O certificado usado para assinar/enviar eventos eSocial e **do empregador
-(cliente do Gommo)**, nunca um certificado unico da plataforma.
+(cliente do Gesint)**, nunca um certificado unico da plataforma.
 
-Exemplo: Cliente A contrata o Gommo. Para haver envios ao eSocial, o Cliente A
+Exemplo: Cliente A contrata o Gesint. Para haver envios ao eSocial, o Cliente A
 precisa ja ter (ou obter) suas proprias credenciais no eSocial e um certificado
-digital ICP-Brasil valido (tipicamente e-CNPJ A1). O Gommo apenas armazena e
+digital ICP-Brasil valido (tipicamente e-CNPJ A1). O Gesint apenas armazena e
 usa esse certificado **no schema/tenant daquele cliente**, sem misturar com
 outros tenants.
 
 #### O que sistemas de mercado costumam oferecer
 
-| Campo / recurso | Mercado tipico | Essencial no Gommo? |
+| Campo / recurso | Mercado tipico | Essencial no Gesint? |
 |---|---|---|
 | Upload A1 (.pfx / .p12) + senha | Sim | **Sim** |
 | Alias / apelido do certificado | Sim | **Sim** |
@@ -243,16 +243,16 @@ de cada prompt, revisar o diff antes de seguir para o proximo.
 ```text
 Antes de qualquer alteracao, leia:
 - docs/analise/plano-exames-ocupacionais-2026-08-03.md (este arquivo completo)
-- .agents/rules/gommo.mdc
-- O modulo gommo-backend/src/main/java/br/com/gommo/modules/rh/person/leave
+- .agents/rules/gesint.mdc
+- O modulo gesint-backend/src/main/java/br/com/gesint/modules/rh/person/leave
   (entity, controller, service, repository, mapper, exception, domain) como
   padrao de referencia estrutural
-- gommo-backend/src/main/java/br/com/gommo/modules/storage (StorageObject,
+- gesint-backend/src/main/java/br/com/gesint/modules/storage (StorageObject,
   StorageObjectLink) e o componente frontend EntityAttachments
-- gommo-backend/src/main/resources/db/migration/V78__gommo_types_schema_for_tenant_search_path.sql,
-  V79__move_enums_to_gommo_types.sql e V43__leave_absence_rules_and_attendance_occurrence.sql
+- gesint-backend/src/main/resources/db/migration/V78__gesint_types_schema_for_tenant_search_path.sql,
+  V79__move_enums_to_gesint_types.sql e V43__leave_absence_rules_and_attendance_occurrence.sql
 - Confirme qual e o proximo numero de migration livre em
-  gommo-backend/src/main/resources/db/migration (o plano assume V80, mas
+  gesint-backend/src/main/resources/db/migration (o plano assume V80, mas
   pode ter mudado)
 - Confirme se ja existe qualquer coisa relacionada a "exame ocupacional",
   "ASO", "PCMSO" ou "eSocial" no codigo (schema.sql de dump, migrations,
@@ -262,7 +262,7 @@ Depois de ler, responda com um resumo curto (nao gere codigo ainda):
 1. proximo numero de migration a usar;
 2. se ha algo pre-existente sobre exames ocupacionais que deva ser reaproveitado
    em vez de recriado;
-3. confirmar se o pacote br.com.gommo.modules.dp.occupationalexam e o
+3. confirmar se o pacote br.com.gesint.modules.dp.occupationalexam e o
    caminho src/modules/dp/occupational-exam estao livres.
 ```
 
@@ -270,7 +270,7 @@ Depois de ler, responda com um resumo curto (nao gere codigo ainda):
 
 ```text
 Crie a migration Flyway V{N}__occupational_exam_module.sql em
-gommo-backend/src/main/resources/db/migration (N = proximo numero livre,
+gesint-backend/src/main/resources/db/migration (N = proximo numero livre,
 confirmado no Prompt 0), seguindo exatamente o estilo de
 V43__leave_absence_rules_and_attendance_occurrence.sql (CREATE TYPE ... AS ENUM,
 depois CREATE TABLE, indices no final, tudo idempotente onde fizer sentido).
@@ -289,9 +289,9 @@ Enums a criar:
 
 Ao final da migration, para cada enum criado acima, adicione (em bloco
 idempotente) o espelho:
-CREATE DOMAIN gommo_types.<nome_do_enum> AS public.<nome_do_enum>;
+CREATE DOMAIN gesint_types.<nome_do_enum> AS public.<nome_do_enum>;
 protegido por IF NOT EXISTS (verifique pg_type/pg_namespace, igual ao bloco de
-V78__gommo_types_schema_for_tenant_search_path.sql).
+V78__gesint_types_schema_for_tenant_search_path.sql).
 
 Tabelas a criar (todas com id UUID gerado, code INT sequencial unico, status
 status_enum default 'ACTIVE', created_by/created_at/updated_by/updated_at
@@ -349,7 +349,7 @@ Nao crie a tabela de evento eSocial (esocial_health_event) ainda — isso e Fase
 
 Depois de criar a migration:
 1. Adicione as 6 tabelas novas em TenantSchemaTableCatalog.HR_DATA_TABLES no
-   gommo-admin-backend (mesma lista onde estao leave_request, department etc.).
+   gesint-admin-backend (mesma lista onde estao leave_request, department etc.).
 2. Espelhe as tabelas em scripts/dev/seed-tenant-empresa-a.sql (tenant_tables),
    seguindo o mesmo formato das tabelas ja existentes.
 3. Rode (ou descreva como rodar, se nao houver banco disponivel no ambiente)
@@ -360,7 +360,7 @@ Depois de criar a migration:
 
 ```text
 Crie as entidades e a camada de dados para o modulo de Exames Ocupacionais em
-gommo-backend/src/main/java/br/com/gommo/modules/dp/occupationalexam,
+gesint-backend/src/main/java/br/com/gesint/modules/dp/occupationalexam,
 com uma subpasta por entidade (clinic/, physician/, examrequirement/, exam/,
 complementaryexam/), cada uma com controller/dto/entity/exception/mapper/repository/service,
 exatamente como o modulo rh/person/leave.
@@ -491,7 +491,7 @@ default.
 
 ```text
 Integre o upload de ASO e laudos de exames complementares ao mecanismo de
-storage ja existente (br.com.gommo.modules.storage: StorageObject +
+storage ja existente (br.com.gesint.modules.storage: StorageObject +
 StorageObjectLink), sem reimplementar upload/hash.
 
 Backend: ao vincular um documento a um OccupationalExam, crie
@@ -571,10 +571,10 @@ exigido na mudanca de funcao), no mesmo estilo de LeaveAbsenceRulesTest.
 
 ```text
 Crie as telas do modulo de Exames Ocupacionais em
-gommo-frontend/src/modules/dp/occupational-exam, seguindo a estrutura
+gesint-frontend/src/modules/dp/occupational-exam, seguindo a estrutura
 e as convencoes do modulo rh/person/leave (LeaveRequestRhListClient,
 LeaveVacationRequestFormClient, LeaveVacationWorkspacePage) e as regras
-obrigatorias de frontend do .agents/rules/gommo.mdc: services extends
+obrigatorias de frontend do .agents/rules/gesint.mdc: services extends
 BaseService, fetch nativo (api.client.ts/api.server.ts), rotas em
 .routes.ts tipadas via tabbedCrudRoute, listas com QueryTablePanel/DataTable,
 formularios com CrudFormShell + FormSection, campos de selecao usando
@@ -600,7 +600,7 @@ Na tela de OccupationalExam:
   severidade (ex.: VENCIDO_INADIMPLENTE em destaque de alerta).
 
 Registre o novo modulo em
-gommo-frontend/src/modules/rh/person/config/organization.routes.ts (rail DP), agrupado com os
+gesint-frontend/src/modules/rh/person/config/organization.routes.ts (rail DP), agrupado com os
 demais itens de DP, permission inicial "occupationalexam:read",
 icone do lucide-react coerente com saude ocupacional (ex.: Stethoscope ou
 HeartPulse - verifique quais icones ja estao disponiveis no projeto antes de
@@ -644,7 +644,7 @@ DEFAULT 'S-1.3', payload_json JSONB, protocol_number VARCHAR(60),
 receipt_number VARCHAR(60), transmission_status
 esocial_transmission_status_enum NOT NULL DEFAULT 'PENDING' (enum:
 'PENDING','GENERATED','TRANSMITTED','REJECTED'), transmission_deadline DATE,
-errors TEXT. Nao esqueca o espelho em gommo_types (mesmo padrao do Prompt 1) e
+errors TEXT. Nao esqueca o espelho em gesint_types (mesmo padrao do Prompt 1) e
 o cadastro em TenantSchemaTableCatalog + seed-tenant-empresa-a.sql.
 
 Regra de calculo: transmission_deadline = dia 15 do mes seguinte a
@@ -670,7 +670,7 @@ Rode a validacao completa do que foi implementado nos prompts anteriores:
 1. Backend: mvn (ou o wrapper configurado no projeto) compile, test, e o
    perfil de lint/formatacao usado no projeto (Spotless/palantirJavaFormat).
 2. Frontend: npm run lint, tsc --noEmit, e build.
-3. Confirme que toda migration nova tem o espelho em gommo_types e a entrada
+3. Confirme que toda migration nova tem o espelho em gesint_types e a entrada
    correspondente em TenantSchemaTableCatalog + seed-tenant-empresa-a.sql.
 4. Rode os testes unitarios criados nos Prompts 5 e 8.
 5. Revise manualmente: nenhum vencimento de exame e campo digitavel livre,
@@ -715,7 +715,7 @@ Branch: `feature/exames-ocupacionais`
 
 ### Fase 1
 - [x] Migration `V80__occupational_exam_module.sql` (enums, 6 tabelas, seed Tabela 27
-  com 01/03/06/14, espelho `gommo_types`, sync tenant).
+  com 01/03/06/14, espelho `gesint_types`, sync tenant).
 - [x] `TenantSchemaTableCatalog.HR_DATA_TABLES` + `seed-tenant-empresa-a.sql`.
 - [x] Entidades/DTOs/mappers/repos/exceptions/services/controllers do modulo.
 - [x] RBAC `occupationalexam:read|write|delete|clinical` em `V81__occupational_exam_permissions.sql`
@@ -763,7 +763,7 @@ Branch: `feature/exames-ocupacionais`
   sem erros novos no modulo occupational-exam.
 - [x] Catalogo tenant: `TenantSchemaTableCatalog.HR_DATA_TABLES` +
   `seed-tenant-empresa-a.sql` com as 7 tabelas do modulo.
-- [x] Enums novos em `gommo_types` (V80/V82).
+- [x] Enums novos em `gesint_types` (V80/V82).
 - [x] Revisao manual das regras-chave:
   - due_date somente leitura no FE (`InputInfo`); override com matriz vigente bloqueado no BE;
   - REGISTRADO exige medico com CRM+UF;
@@ -772,7 +772,7 @@ Branch: `feature/exames-ocupacionais`
   - base legal NR-7 item 7.4.3.5 (sem Portaria MTE 1.218/2024 no codigo/UI).
 
 ### Banco
-- [x] V80/V81/V82 aplicadas no Postgres local (enums em `gommo_types`).
+- [x] V80/V81/V82 aplicadas no Postgres local (enums em `gesint_types`).
 - [x] V83: `complementary_procedure_codes` TEXT[] -> JSONB (padrao List via JSON).
 - [x] V84: `occupational_physician.crm_state` CHAR(2) -> VARCHAR(2).
 - [x] Historico Flyway reparado apos ajustes de checksum da V80.

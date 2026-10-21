@@ -9,7 +9,7 @@
 ## 1. Objetivo
 
 Permitir que prestadores de serviço PJ tenham pausas contratuais controladas
-pelo Gommo sem aplicar automaticamente direitos, cálculos ou terminologia da
+pelo Gesint sem aplicar automaticamente direitos, cálculos ou terminologia da
 CLT.
 
 O produto deve distinguir explicitamente:
@@ -30,7 +30,7 @@ mas devem usar regras, saldos, validações e efeitos financeiros diferentes.
    vir da política contratual.
 5. Alterações de política devem ser versionadas e não podem modificar saldos ou
    solicitações históricas.
-6. A realidade da prestação prevalece sobre o nome dado ao contrato. O Gommo
+6. A realidade da prestação prevalece sobre o nome dado ao contrato. O Gesint
    não deve concluir automaticamente pela existência ou inexistência de vínculo
    empregatício.
 
@@ -41,7 +41,7 @@ e arts. 2º, 3º e 9º da
 
 ## 3. Padrão adotado
 
-O Gommo seguirá a separação comum em sistemas HCM:
+O Gesint seguirá a separação comum em sistemas HCM:
 
 - **tipo de ausência:** classifica o evento;
 - **plano ou política:** define elegibilidade e regras;
@@ -238,7 +238,7 @@ pagar, conforme a política:
 
 O cálculo final deve considerar o modelo comercial do contrato, por exemplo
 mensalidade fixa, diária, hora, entrega ou marco. Por isso, o modo `CUSTOM` é
-necessário enquanto o Gommo não modelar todos esses formatos.
+necessário enquanto o Gesint não modelar todos esses formatos.
 
 ## 10. Responsabilidades entre RH e DP
 

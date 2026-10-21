@@ -1,4 +1,4 @@
-# Infraestrutura Gommo
+# Infraestrutura Gesint
 
 Deploy em produção em VPS (Hostinger KVM, etc.) com **Coolify**.
 
@@ -23,7 +23,7 @@ infra/
 └── README.md
 ```
 
-Envs por app (simulacao = mesmo formato do servidor): `gommo-backend/.env`, `gommo-admin-backend/.env`, `gommo-frontend/.env`, `gommo-admin-frontend/.env`.
+Envs por app (simulacao = mesmo formato do servidor): `gesint-backend/.env`, `gesint-admin-backend/.env`, `gesint-frontend/.env`, `gesint-admin-frontend/.env`.
 
 ## Imagens Docker (produção)
 
@@ -31,10 +31,10 @@ Cada app tem `Dockerfile` na própria pasta:
 
 | App | Contexto build |
 |-----|----------------|
-| Client API | `gommo-backend/` (build target `prod`) |
-| Admin API | `gommo-admin-backend/` |
-| Client Web | `gommo-frontend/` |
-| Admin Web | `gommo-admin-frontend/` |
+| Client API | `gesint-backend/` (build target `prod`) |
+| Admin API | `gesint-admin-backend/` |
+| Client Web | `gesint-frontend/` |
+| Admin Web | `gesint-admin-frontend/` |
 
 Desenvolvimento local continua com `docker compose` na **raiz** do repositório (perfil dev com hot reload).
 

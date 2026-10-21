@@ -6,9 +6,9 @@ if (-not (Test-Path ".env")) {
   Write-Host ".env ja existe — nada alterado"
 }
 
-if (-not (Test-Path "gommo-frontend\.env.local")) {
-  Copy-Item "gommo-frontend\.env.example" "gommo-frontend\.env.local"
-  Write-Host "Arquivo gommo-frontend\.env.local criado"
+if (-not (Test-Path "gesint-frontend\.env.local")) {
+  Copy-Item "gesint-frontend\.env.example" "gesint-frontend\.env.local"
+  Write-Host "Arquivo gesint-frontend\.env.local criado"
 }
 
 Write-Host ""

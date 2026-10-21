@@ -1,23 +1,23 @@
-# Multi-tenant — plano de implementação
+# Multi-tenant ï¿½ plano de implementaï¿½ï¿½o
 
 Etapas ordenadas para ligar control plane (admin) ao data plane (ERP).
 
 **Documentos base:**
 
-- [multi-tenant.md](./multi-tenant.md) — arquitetura
-- [multi-tenant-dev.md](./multi-tenant-dev.md) — testes locais
+- [multi-tenant.md](./multi-tenant.md) ï¿½ arquitetura
+- [multi-tenant-dev.md](./multi-tenant-dev.md) ï¿½ testes locais
 
-**Branch sugerida:** `feat/multi-tenant` (a partir de `main` após merge da folha)
+**Branch sugerida:** `feat/multi-tenant` (a partir de `main` apï¿½s merge da folha)
 
 ---
 
-## Visão geral
+## Visï¿½o geral
 
 ```mermaid
 gantt
-  title Multi-tenant Gommo
+  title Multi-tenant Gesint
   dateFormat YYYY-MM-DD
-  section Fundação
+  section Fundaï¿½ï¿½o
   Etapa 1 Docs e contratos     :done, e1, 2026-06-06, 1d
   Etapa 2 Tenant resolver      :e2, after e1, 3d
   Etapa 3 Auth escopada        :e3, after e2, 3d
@@ -28,30 +28,30 @@ gantt
 
 ---
 
-## Etapa 1 — Fundação (documentação e contratos) ?
+## Etapa 1 ï¿½ Fundaï¿½ï¿½o (documentaï¿½ï¿½o e contratos) ?
 
-**Objetivo:** fixar decisões e contratos antes de código.
+**Objetivo:** fixar decisï¿½es e contratos antes de cï¿½digo.
 
-### Entregáveis
+### Entregï¿½veis
 
 - [x] `docs/arquitetura/multi-tenant.md`
 - [x] `docs/arquitetura/multi-tenant-dev.md`
 - [x] `docs/arquitetura/multi-tenant-implementacao.md` (este arquivo)
-- [x] README raiz — links para arquitetura
-- [x] `.env.example` — variáveis dev tenant
-- [ ] Regra de agente `.agents/rules/gommo-multi-tenant.mdc` (opcional, após Etapa 2)
+- [x] README raiz ï¿½ links para arquitetura
+- [x] `.env.example` ï¿½ variï¿½veis dev tenant
+- [ ] Regra de agente `.agents/rules/gesint-multi-tenant.mdc` (opcional, apï¿½s Etapa 2)
 
-### Decisões fechadas
+### Decisï¿½es fechadas
 
-| # | Decisão |
+| # | Decisï¿½o |
 |---|---------|
 | 1 | MVP: `DEDICATED_SCHEMA` por tenant |
-| 2 | Resolução primária: header HTTP `Host` |
-| 3 | Dev: `{slug}.localhost` + `GOMMO_DEV_TENANT_SLUG` + `X-Tenant-Slug` |
+| 2 | Resoluï¿½ï¿½o primï¿½ria: header HTTP `Host` |
+| 3 | Dev: `{slug}.localhost` + `GESINT_DEV_TENANT_SLUG` + `X-Tenant-Slug` |
 | 4 | 1 tenant = 1 `public.company` no seed |
 | 5 | Admin permanece URL fixa, sem tenant HR |
 
-### Contratos técnicos (para Etapa 2)
+### Contratos tï¿½cnicos (para Etapa 2)
 
 #### `TenantContext` (thread-local / request scope)
 
@@ -72,13 +72,13 @@ resolve(host: string, tenantHeader: string?): TenantContext
 Ordem em dev:
 
 1. Se `X-Tenant-Slug` presente e header habilitado ? buscar por slug
-2. Extrair subdomínio do Host
-3. Se Host = localhost sem subdomínio ? `GOMMO_DEV_TENANT_SLUG`
-4. Senão ? `CUSTOM_DOMAIN` lookup
+2. Extrair subdomï¿½nio do Host
+3. Se Host = localhost sem subdomï¿½nio ? `GESINT_DEV_TENANT_SLUG`
+4. Senï¿½o ? `CUSTOM_DOMAIN` lookup
 
-#### Exceções HTTP (HR)
+#### Exceï¿½ï¿½es HTTP (HR)
 
-| Código | HTTP | Quando |
+| Cï¿½digo | HTTP | Quando |
 |--------|------|--------|
 | `TENANT_NOT_FOUND` | 404 | Host/slug desconhecido |
 | `TENANT_NOT_READY` | 503 | Provisionamento pendente/erro |
@@ -87,44 +87,44 @@ Ordem em dev:
 
 ---
 
-## Etapa 2 — Tenant resolver (backend HR)
+## Etapa 2 ï¿½ Tenant resolver (backend HR)
 
-**Objetivo:** cada request HTTP ao `gommo-backend` conhece o tenant.
+**Objetivo:** cada request HTTP ao `gesint-backend` conhece o tenant.
 
-### Backend (`gommo-backend`)
+### Backend (`gesint-backend`)
 
-| Item | Descrição |
+| Item | Descriï¿½ï¿½o |
 |------|-----------|
 | `TenantContext` + `TenantContextHolder` | Request scope |
 | `TenantResolver` | Host ? consulta `admin.client` (read-only repo ou JDBC) |
 | `TenantResolutionFilter` | Antes do JWT; popula contexto |
 | `TenantDataSourceRouter` ou `SchemaSwitchingConnection` | `SET search_path TO tenant_*` |
-| Leitura `admin.client` | DataSource secundário ou same DB schema `admin` |
+| Leitura `admin.client` | DataSource secundï¿½rio ou same DB schema `admin` |
 | Testes | Filter + resolver com Testcontainers |
 
-### Frontend (`gommo-frontend`)
+### Frontend (`gesint-frontend`)
 
-| Item | Descrição |
+| Item | Descriï¿½ï¿½o |
 |------|-----------|
-| Middleware Next.js | Opcional: validar host, redirect se tenant inválido |
-| `api.client.ts` | Enviar Host implícito (browser); dev doc para slug.localhost |
-| Página erro tenant | “Ambiente não encontrado” |
+| Middleware Next.js | Opcional: validar host, redirect se tenant invï¿½lido |
+| `api.client.ts` | Enviar Host implï¿½cito (browser); dev doc para slug.localhost |
+| Pï¿½gina erro tenant | ï¿½Ambiente nï¿½o encontradoï¿½ |
 
-### Critério de aceite
+### Critï¿½rio de aceite
 
 - `GET empresa-a.localhost:8081/actuator/health` com contexto A
 - Logs mostram `tenant=empresa-a schema=tenant_empresa_a`
-- Request sem tenant válido ? 404/503 conforme tabela
+- Request sem tenant vï¿½lido ? 404/503 conforme tabela
 
 ---
 
-## Etapa 3 — Autenticação escopada
+## Etapa 3 ï¿½ Autenticaï¿½ï¿½o escopada
 
 **Objetivo:** login e JWT amarrados ao tenant.
 
 ### Backend
 
-| Item | Descrição |
+| Item | Descriï¿½ï¿½o |
 |------|-----------|
 | Login | Resolver tenant **antes** de buscar `app_user` no schema correto |
 | Validar `client_user` | `app_user_id` + `client_id` = tenant resolvido |
@@ -132,60 +132,60 @@ Ordem em dev:
 | Filtro JWT | Rejeitar mismatch tenant JWT vs contexto |
 | Refresh token | Escopado ao tenant (opcional: prefixo no storage) |
 
-### Critério de aceite
+### Critï¿½rio de aceite
 
-- Credenciais válidas em A falham em B (Host diferente)
-- Token emitido em A não funciona com Host de B
+- Credenciais vï¿½lidas em A falham em B (Host diferente)
+- Token emitido em A nï¿½o funciona com Host de B
 
 ---
 
-## Etapa 4 — Provisionamento automático
+## Etapa 4 ï¿½ Provisionamento automï¿½tico
 
-**Objetivo:** admin “Provisionar” cria ambiente real, não só testa conexão.
+**Objetivo:** admin ï¿½Provisionarï¿½ cria ambiente real, nï¿½o sï¿½ testa conexï¿½o.
 
 ### Admin backend
 
-| Passo | Ação |
+| Passo | Aï¿½ï¿½o |
 |-------|------|
 | 1 | `CREATE SCHEMA tenant_{slug}` |
 | 2 | Rodar Flyway HR no schema |
-| 3 | Seed: `company` a partir de `client`, roles, permissões do plano |
+| 3 | Seed: `company` a partir de `client`, roles, permissï¿½es do plano |
 | 4 | Status ? `READY` ou `ERROR` + notes |
 
 ### Script dev
 
-`scripts/provision-tenant-dev.mjs` — provisiona `empresa-a` / `empresa-b` para checklist local.
+`scripts/provision-tenant-dev.mjs` ï¿½ provisiona `empresa-a` / `empresa-b` para checklist local.
 
-### Critério de aceite
+### Critï¿½rio de aceite
 
-- Novo client no admin ? provisionar ? login HR funciona no subdomínio
-- Dois tenants isolados (colaborador criado em A invisível em B)
+- Novo client no admin ? provisionar ? login HR funciona no subdomï¿½nio
+- Dois tenants isolados (colaborador criado em A invisï¿½vel em B)
 
 ---
 
-## Etapa 5 — Infraestrutura DNS (produção)
+## Etapa 5 ï¿½ Infraestrutura DNS (produï¿½ï¿½o)
 
 **Objetivo:** wildcard e HTTPS.
 
 | Tarefa | Onde |
 |--------|------|
-| DNS `*.gommo.com.br` | Registrador / Cloudflare |
+| DNS `*.gesint.com.br` | Registrador / Cloudflare |
 | Coolify wildcard domain | Traefik |
-| CORS / env produção | `.env` Coolify |
+| CORS / env produï¿½ï¿½o | `.env` Coolify |
 | Documentar custom domain | `infra/coolify/README.md` |
 
 ---
 
-## Etapa 6 — UX ERP (empresa implícita)
+## Etapa 6 ï¿½ UX ERP (empresa implï¿½cita)
 
-**Objetivo:** remover fricção pós-tenant.
+**Objetivo:** remover fricï¿½ï¿½o pï¿½s-tenant.
 
-| Tarefa | Arquivo / área |
+| Tarefa | Arquivo / ï¿½rea |
 |--------|----------------|
-| Remover `CompanyPickerField` da competência | `PayrollRunFormClient` |
-| `companyId` automático no create | `PayrollRunService` — única `company` ativa |
+| Remover `CompanyPickerField` da competï¿½ncia | `PayrollRunFormClient` |
+| `companyId` automï¿½tico no create | `PayrollRunService` ï¿½ ï¿½nica `company` ativa |
 | Ocultar coluna empresa na listagem se sempre 1 | `PayrollRunListClient` |
-| Alinhar departamento / admissão | forms sem picker redundante |
+| Alinhar departamento / admissï¿½o | forms sem picker redundante |
 
 Depende de Etapa 3 + seed Etapa 4.
 
@@ -193,31 +193,31 @@ Depende de Etapa 3 + seed Etapa 4.
 
 ## Etapas futuras (backlog)
 
-- Pacotes de módulos por plano (`client permissions` UI)
+- Pacotes de mï¿½dulos por plano (`client permissions` UI)
 - Gateway de pagamento
-- `DEDICATED_DATABASE` automático
+- `DEDICATED_DATABASE` automï¿½tico
 - Multi-CNPJ dentro do mesmo tenant
-- Métricas por tenant (Grafana)
+- Mï¿½tricas por tenant (Grafana)
 
 ---
 
 ## Ordem de merge recomendada
 
-1. Etapa 2 (resolver) — PR isolado, feature flag `GOMMO_MULTI_TENANT_ENABLED`
-2. Etapa 3 (auth) — depende de 2
-3. Etapa 4 (provisionamento) — paralelo parcial a 3
-4. Etapa 6 (UX) — após 3+4
-5. Etapa 5 (infra) — quando houver domínio produção
+1. Etapa 2 (resolver) ï¿½ PR isolado, feature flag `GESINT_MULTI_TENANT_ENABLED`
+2. Etapa 3 (auth) ï¿½ depende de 2
+3. Etapa 4 (provisionamento) ï¿½ paralelo parcial a 3
+4. Etapa 6 (UX) ï¿½ apï¿½s 3+4
+5. Etapa 5 (infra) ï¿½ quando houver domï¿½nio produï¿½ï¿½o
 
 ---
 
 ## Feature flag
 
-Até estabilizar:
+Atï¿½ estabilizar:
 
 ```env
-GOMMO_MULTI_TENANT_ENABLED=false   # comportamento atual single-schema public
-GOMMO_MULTI_TENANT_ENABLED=true    # resolver + schema switch
+GESINT_MULTI_TENANT_ENABLED=false   # comportamento atual single-schema public
+GESINT_MULTI_TENANT_ENABLED=true    # resolver + schema switch
 ```
 
 Permite desenvolver em branch longa sem quebrar dev local legado.

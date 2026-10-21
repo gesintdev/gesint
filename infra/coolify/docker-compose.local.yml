@@ -5,24 +5,24 @@
 #   docker compose -f infra/coolify/docker-compose.local.yml --env-file .env up -d --build
 #
 # Build de um app sozinho (ex.: so Client backend):
-#   docker compose -f infra/coolify/docker-compose.local.yml build gommo-backend
-#   docker compose -f infra/coolify/docker-compose.local.yml up -d gommo-backend
+#   docker compose -f infra/coolify/docker-compose.local.yml build gesint-backend
+#   docker compose -f infra/coolify/docker-compose.local.yml up -d gesint-backend
 
-name: gommo-local-prod
+name: gesint-local-prod
 
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-gommo}
-      POSTGRES_USER: ${POSTGRES_USER:-gommo}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gommo_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-gesint}
+      POSTGRES_USER: ${POSTGRES_USER:-gesint}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gesint_dev}
       TZ: America/Sao_Paulo
     ports:
       - "5432:5432"
     volumes:
-      - gommo_local_pg_data:/var/lib/postgresql/data
+      - gesint_local_pg_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 10s
@@ -33,21 +33,21 @@ services:
         limits:
           memory: 768M
 
-  gommo-backend:
+  gesint-backend:
     build:
-      context: ../../gommo-backend
+      context: ../../gesint-backend
       dockerfile: Dockerfile
       target: prod
     restart: unless-stopped
     env_file:
-      - ../../gommo-backend/.env
+      - ../../gesint-backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: prod
       # Rede Docker (sobrescreve localhost do .env)
       DB_HOST: postgres
       STORAGE_LOCAL_PATH: /data/storage
     volumes:
-      - gommo_local_storage:/data/storage
+      - gesint_local_storage:/data/storage
     ports:
       - "8081:8081"
     depends_on:
@@ -58,67 +58,67 @@ services:
         limits:
           memory: 1792M
 
-  gommo-admin-backend:
+  gesint-admin-backend:
     build:
-      context: ../../gommo-admin-backend
+      context: ../../gesint-admin-backend
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
-      - ../../gommo-admin-backend/.env
+      - ../../gesint-admin-backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
-      GOMMO_HR_BASE_URL: http://gommo-backend:8081
+      GESINT_HR_BASE_URL: http://gesint-backend:8081
     ports:
       - "8082:8082"
     depends_on:
       postgres:
         condition: service_healthy
-      gommo-backend:
+      gesint-backend:
         condition: service_started
     deploy:
       resources:
         limits:
           memory: 640M
 
-  gommo-frontend:
+  gesint-frontend:
     build:
-      context: ../../gommo-frontend
+      context: ../../gesint-frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8081}
     restart: unless-stopped
     env_file:
-      - ../../gommo-frontend/.env
+      - ../../gesint-frontend/.env
     ports:
       - "3000:3000"
     depends_on:
-      - gommo-backend
+      - gesint-backend
     deploy:
       resources:
         limits:
           memory: 512M
 
-  gommo-admin-frontend:
+  gesint-admin-frontend:
     build:
-      context: ../../gommo-admin-frontend
+      context: ../../gesint-admin-frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_ADMIN_API_URL: ${NEXT_PUBLIC_ADMIN_API_URL:-http://localhost:8082}
         NEXT_PUBLIC_HR_API_URL: ${NEXT_PUBLIC_HR_API_URL:-http://localhost:8081}
     restart: unless-stopped
     env_file:
-      - ../../gommo-admin-frontend/.env
+      - ../../gesint-admin-frontend/.env
     ports:
       - "3001:3001"
     depends_on:
-      - gommo-admin-backend
-      - gommo-backend
+      - gesint-admin-backend
+      - gesint-backend
     deploy:
       resources:
         limits:
           memory: 256M
 
 volumes:
-  gommo_local_pg_data:
-  gommo_local_storage:
+  gesint_local_pg_data:
+  gesint_local_storage:

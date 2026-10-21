@@ -9,17 +9,17 @@ CERT_DIR=/data/coolify/proxy/certs
 DYN_DIR=/data/coolify/proxy/dynamic
 
 sudo install -d -m 700 "$CERT_DIR"
-sudo cp "$SRC/gommo.local.fullchain.crt" "$CERT_DIR/gommo.local.crt"
-sudo cp "$SRC/gommo.local.key" "$CERT_DIR/gommo.local.key"
-sudo chmod 600 "$CERT_DIR/gommo.local.key"
-sudo chmod 644 "$CERT_DIR/gommo.local.crt"
+sudo cp "$SRC/gesint.local.fullchain.crt" "$CERT_DIR/gesint.local.crt"
+sudo cp "$SRC/gesint.local.key" "$CERT_DIR/gesint.local.key"
+sudo chmod 600 "$CERT_DIR/gesint.local.key"
+sudo chmod 644 "$CERT_DIR/gesint.local.crt"
 
-sudo tee "$DYN_DIR/gommo-lab-certs.yaml" >/dev/null <<EOF
+sudo tee "$DYN_DIR/gesint-lab-certs.yaml" >/dev/null <<EOF
 tls:
   certificates:
-    - certFile: /traefik/certs/gommo.local.crt
-      keyFile: /traefik/certs/gommo.local.key
+    - certFile: /traefik/certs/gesint.local.crt
+      keyFile: /traefik/certs/gesint.local.key
 EOF
 
 echo "Certs installed. Restart the Coolify Proxy (Servers > localhost > Proxy > Restart)."
-echo "On Windows, trust gommo-lab-ca.cer (already attempted for Current User)."
+echo "On Windows, trust gesint-lab-ca.cer (already attempted for Current User)."

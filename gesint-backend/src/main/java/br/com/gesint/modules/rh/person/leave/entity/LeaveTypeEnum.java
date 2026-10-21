@@ -1,0 +1,23 @@
+package br.com.gesint.modules.rh.person.leave.entity;
+
+public enum LeaveTypeEnum {
+    VACATION,
+    MEDICAL,
+    MEDICAL_CERTIFICATE,
+    SICK_LEAVE_INSS,
+    OCCUPATIONAL_ACCIDENT,
+    MATERNITY,
+    PATERNITY,
+    BEREAVEMENT,
+    MARRIAGE,
+    BLOOD_DONATION,
+    ELECTORAL_SERVICE,
+    MILITARY_SERVICE,
+    JURY_DUTY,
+    UNION_REPRESENTATION,
+    UNPAID,
+    UNPAID_LEAVE,
+    SUSPENSION,
+    UNJUSTIFIED_ABSENCE,
+    OTHER
+}

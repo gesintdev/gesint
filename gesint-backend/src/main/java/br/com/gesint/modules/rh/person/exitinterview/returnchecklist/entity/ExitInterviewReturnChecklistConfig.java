@@ -1,0 +1,34 @@
+package br.com.gesint.modules.rh.person.exitinterview.returnchecklist.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
+import br.com.gesint.core.entity.AuditEntity;
+
+import org.hibernate.envers.Audited;
+
+@Entity
+@Audited
+@Table(name = "exit_interview_return_checklist_item")
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExitInterviewReturnChecklistConfig extends AuditEntity {
+
+    @Column(name = "item_key", nullable = false, length = 80)
+    private String itemKey;
+
+    @Column(nullable = false, length = 160)
+    private String description;
+
+    @Column(name = "display_order", nullable = false)
+    private Integer displayOrder;
+}

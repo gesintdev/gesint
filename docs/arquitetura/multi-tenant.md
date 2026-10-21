@@ -1,12 +1,12 @@
-# Arquitetura multi-tenant ? Gommo
+# Arquitetura multi-tenant ? Gesint
 
-Documenta??o oficial do modelo **control plane + data plane** do Gommo ERP.
+Documenta??o oficial do modelo **control plane + data plane** do Gesint ERP.
 
 **Status:** em implementa??o (resolver, JWT, schema por tenant e frontend multi-host).
 
 **Relacionado:**
 
-- Painel admin: [gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md](../../gommo-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md)
+- Painel admin: [gesint-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md](../../gesint-admin-frontend/docs/TUTORIAL-PAINEL-ADMIN.md)
 - Desenvolvimento local: [multi-tenant-dev.md](./multi-tenant-dev.md)
 - Plano de implementa??o: [multi-tenant-implementacao.md](./multi-tenant-implementacao.md)
 
@@ -14,13 +14,13 @@ Documenta??o oficial do modelo **control plane + data plane** do Gommo ERP.
 
 ## 1. Vis?o de neg?cio
 
-A **Gommo** vende licen?as de ERP de RH. Cada **cliente comprador** (tenant) opera o sistema de forma isolada:
+A **Gesint** vende licen?as de ERP de RH. Cada **cliente comprador** (tenant) opera o sistema de forma isolada:
 
 | Ator | Sistema | URL (exemplo) |
 |------|---------|---------------|
-| Equipe Gommo (vendas, suporte) | Admin | `https://admin.gommo.com.br` |
-| Cliente Empresa A (s?cios, RH, DP) | ERP HR | `https://empresa-a.gommo.com.br` |
-| Cliente Empresa B | ERP HR | `https://empresa-b.gommo.com.br` |
+| Equipe Gesint (vendas, suporte) | Admin | `https://admin.gesint.com.br` |
+| Cliente Empresa A (s?cios, RH, DP) | ERP HR | `https://empresa-a.gesint.com.br` |
+| Cliente Empresa B | ERP HR | `https://empresa-b.gesint.com.br` |
 
 O usu?rio do cliente **n?o escolhe empresa** ao usar folha, admiss?o ou departamentos. Ele j? est? no contexto da licen?a que comprou. A empresa do cadastro comercial (`admin.client`) coincide com o empregador legal (`company` no schema do tenant), criada no provisionamento.
 
@@ -50,8 +50,8 @@ flowchart TB
 
 | Plano | Schema / app | Conte?do |
 |-------|--------------|----------|
-| **Control plane** | `admin.*`, `gommo-admin-*` | Quem ? o cliente, subdom?nio, assinatura, operadores Gommo |
-| **Data plane** | `tenant_*` ou DB dedicado, `gommo-backend` + `gommo-frontend` | Colaboradores, folha, ponto, f?rias |
+| **Control plane** | `admin.*`, `gesint-admin-*` | Quem ? o cliente, subdom?nio, assinatura, operadores Gesint |
+| **Data plane** | `tenant_*` ou DB dedicado, `gesint-backend` + `gesint-frontend` | Colaboradores, folha, ponto, f?rias |
 
 O HR **nunca** consulta dados de RH de outro tenant no mesmo request. O admin **nunca** mistura metadados de clientes no data plane ? s? registra como conectar.
 
@@ -63,9 +63,9 @@ O HR **nunca** consulta dados de RH de outro tenant no mesmo request. O admin **
 |-------|------|-------------|
 | **Tenant** | `admin.client` | Cliente que comprou a licen?a (Empresa A) |
 | **Slug** | `admin.client.slug` | Identificador curto (`empresa-a`) |
-| **Subdom?nio** | `admin.client.subdomain` | Parte DNS (`empresa-a` ? `empresa-a.gommo.com.br`) |
+| **Subdom?nio** | `admin.client.subdomain` | Parte DNS (`empresa-a` ? `empresa-a.gesint.com.br`) |
 | **Empresa (RH)** | `company` no schema do tenant | CNPJ empregador ? holerite, eSocial, contratos |
-| **Operador plataforma** | `admin.admin_user` | Funcion?rio Gommo com `platform:admin` |
+| **Operador plataforma** | `admin.admin_user` | Funcion?rio Gesint com `platform:admin` |
 | **Usu?rio do tenant** | `admin.client_user` ? `public.app_user` | S?cio / admin inicial do cliente |
 
 **Regra:** 1 tenant (licen?a) = 1 empresa empregadora no MVP. V?rios CNPJs no mesmo tenant ? cen?rio futuro (holding).
@@ -79,13 +79,13 @@ Fluxo em cada request ao ERP:
 ```mermaid
 sequenceDiagram
   participant B as Browser
-  participant FE as gommo-frontend
-  participant API as gommo-backend
+  participant FE as gesint-frontend
+  participant API as gesint-backend
   participant ADM as admin.client
   participant DB as Schema tenant
 
-  B->>FE: GET https://empresa-a.gommo.com.br/payroll
-  FE->>API: API call Host empresa-a.gommo.com.br
+  B->>FE: GET https://empresa-a.gesint.com.br/payroll
+  FE->>API: API call Host empresa-a.gesint.com.br
   API->>ADM: Resolver por subdomain ou custom_domain
   ADM-->>API: clientId slug DB config status READY
   API->>API: Validar assinatura ACTIVE
@@ -97,20 +97,20 @@ sequenceDiagram
 
 | Modo | Campo | Exemplo |
 |------|-------|---------|
-| `SUBDOMAIN` | `subdomain` | `empresa-a.gommo.com.br` |
+| `SUBDOMAIN` | `subdomain` | `empresa-a.gesint.com.br` |
 | `CUSTOM_DOMAIN` | `custom_domain` | `rh.empresa-a.com.br` |
 
 ### 4.2 Algoritmo de resolu??o (contrato)
 
 1. Ler header `Host` (sem porta) ou `X-Tenant-Slug` (API separada / dev).
 2. Se host = dom?nio admin ? **n?o** aplicar tenant (rotas admin usam outro backend).
-3. Se host termina com `.gommo.com.br` ? extrair subdom?nio ? `WHERE subdomain = ?`.
+3. Se host termina com `.gesint.com.br` ? extrair subdom?nio ? `WHERE subdomain = ?`.
 4. Se n?o ? `WHERE custom_domain = ?`.
 5. Validar `provisioning_status = READY` e assinatura `ACTIVE` (ou equivalente).
 6. Publicar `TenantContext` (clientId, slug, schema) no thread/request.
-7. `SET search_path TO "tenant_*", gommo_types` (fail-closed para tabelas).
-   Enums vivem em `gommo_types` (sem tabelas). Sem tenant (`localhost` / platform) ?
-   `search_path` = `public, gommo_types`. Consultas ao control plane usam `admin.*` schema-qualified.
+7. `SET search_path TO "tenant_*", gesint_types` (fail-closed para tabelas).
+   Enums vivem em `gesint_types` (sem tabelas). Sem tenant (`localhost` / platform) ?
+   `search_path` = `public, gesint_types`. Consultas ao control plane usam `admin.*` schema-qualified.
 8. Limpar contexto ao fim do request.
 
 ---
@@ -128,7 +128,7 @@ sequenceDiagram
 Exemplo local:
 
 ```
-postgres / database gommo
+postgres / database gesint
 ??? admin                 (control plane)
 ??? public                (auth compartilhado + dev legado)
 ??? tenant_empresa_a      (RH Empresa A)
@@ -139,13 +139,13 @@ postgres / database gommo
 
 ## 6. Autentica??o e escopo
 
-### 6.1 Admin (`gommo-admin-backend`)
+### 6.1 Admin (`gesint-admin-backend`)
 
 - JWT com `principalType=PLATFORM_ADMIN`.
 - Acesso a `/api/v1/clients`, provisionamento, assinaturas.
-- URL fixa: `admin.gommo.com.br`.
+- URL fixa: `admin.gesint.com.br`.
 
-### 6.2 ERP (`gommo-backend`)
+### 6.2 ERP (`gesint-backend`)
 
 - JWT com `tenantId` (UUID do `admin.client`) ap?s login.
 - Login valida:
@@ -154,9 +154,9 @@ postgres / database gommo
   3. `admin.client_user` liga `app_user_id` ao `client_id` do tenant resolvido.
 - Request autenticado rejeitado se `JWT.tenantId` ? `TenantContext.clientId`.
 - **Host sem subdom?nio** (`localhost` em dev): modo *platform* ? s? usu?rios em `admin.admin_user`, schema `public`.
-- **Host com subdom?nio** (`empresa-a.gommo.com.br`): modo *tenant* ? dados de neg?cio no schema do cliente.
+- **Host com subdom?nio** (`empresa-a.gesint.com.br`): modo *tenant* ? dados de neg?cio no schema do cliente.
 
-### 6.3 Frontend HR (`gommo-frontend`) ? multi-host
+### 6.3 Frontend HR (`gesint-frontend`) ? multi-host
 
 Cada tenant acessa o **mesmo deploy** Next.js por URL diferente. Implica??es:
 
@@ -170,7 +170,7 @@ Cada tenant acessa o **mesmo deploy** Next.js por URL diferente. Implica??es:
 
 Padr?o v?lido em **dev e produ??o** enquanto houver m?ltiplos hosts e `AUTH_URL` fixo no Auth.js.
 
-**Produ??o (recomendado):** same-origin ? `https://empresa-a.gommo.com.br` serve UI e faz proxy de `/api` para o backend.
+**Produ??o (recomendado):** same-origin ? `https://empresa-a.gesint.com.br` serve UI e faz proxy de `/api` para o backend.
 
 Detalhes de dev local: [multi-tenant-dev.md](./multi-tenant-dev.md).
 
@@ -190,13 +190,13 @@ Detalhes de dev local: [multi-tenant-dev.md](./multi-tenant-dev.md).
 
 ## 7. Onboarding de novo cliente
 
-Fluxo operado pela equipe Gommo no admin:
+Fluxo operado pela equipe Gesint no admin:
 
 1. **Clientes ? Novo** ? nome, slug, CNPJ, contato, subdom?nio, schema (`tenant_empresa_a`).
 2. **Testar conex?o** ? **Executar provisionamento** (schema + tabelas; Flyway por tenant em evolu??o).
 3. **Assinatura** ? plano `PRO`, status `ACTIVE`.
 4. **Usu?rios administrativos** ? login inicial do s?cio.
-5. Cliente acessa `https://empresa-a.gommo.com.br` e completa cadastros.
+5. Cliente acessa `https://empresa-a.gesint.com.br` e completa cadastros.
 
 ### Seed no provisionamento (MVP)
 
@@ -223,11 +223,11 @@ sincronizacao, para alcancar os tenants ja provisionados.
 
 | Registro DNS | Destino |
 |--------------|---------|
-| `admin.gommo.com.br` | `gommo-admin-frontend` |
-| `admin-api.gommo.com.br` | `gommo-admin-backend` |
-| `*.gommo.com.br` | `gommo-frontend` (wildcard) |
-| API no **mesmo host** do app (recomendado) | `gommo-backend` via reverse proxy `/api` |
-| `api.gommo.com.br` (alternativa) | `gommo-backend` + CORS por origem |
+| `admin.gesint.com.br` | `gesint-admin-frontend` |
+| `admin-api.gesint.com.br` | `gesint-admin-backend` |
+| `*.gesint.com.br` | `gesint-frontend` (wildcard) |
+| API no **mesmo host** do app (recomendado) | `gesint-backend` via reverse proxy `/api` |
+| `api.gesint.com.br` (alternativa) | `gesint-backend` + CORS por origem |
 
 Traefik/Coolify encaminha todos os subdom?nios para o mesmo servi?o Next.js; **a aplica??o** resolve o tenant pelo `Host`.
 
@@ -235,12 +235,12 @@ Traefik/Coolify encaminha todos os subdom?nios para o mesmo servi?o Next.js; **a
 
 | | Dev | Produ??o |
 |---|-----|----------|
-| Subdom?nio tenant | `{slug}.localhost` | `{slug}.gommo.com.br` |
-| `GOMMO_TENANT_BASE_DOMAIN` | `localhost` | `gommo.com.br` |
+| Subdom?nio tenant | `{slug}.localhost` | `{slug}.gesint.com.br` |
+| `GESINT_TENANT_BASE_DOMAIN` | `localhost` | `gesint.com.br` |
 | API separada na porta | `:8081` / `:3000` | Preferir same-origin |
 | Schema `public` | Dev legado + auth | Auth/enums; dados novos no `tenant_*` |
 
-Dom?nio customizado: cliente configura CNAME `rh.cliente.com.br` ? `empresa-a.gommo.com.br`; registrar em `admin.client.custom_domain`.
+Dom?nio customizado: cliente configura CNAME `rh.cliente.com.br` ? `empresa-a.gesint.com.br`; registrar em `admin.client.custom_domain`.
 
 Detalhes de deploy: [infra/coolify/README.md](../../infra/coolify/README.md).
 
@@ -263,7 +263,7 @@ Detalhes de deploy: [infra/coolify/README.md](../../infra/coolify/README.md).
 |------|--------|
 | `admin.client` + DNS + DB metadata | Implementado |
 | CRUD assinatura / pagamento / client_user | Implementado |
-| Tenant resolver + `search_path` no `gommo-backend` | Implementado |
+| Tenant resolver + `search_path` no `gesint-backend` | Implementado |
 | JWT com `tenantId` + valida??o `client_user` | Implementado |
 | Provisionamento schema + clone tabelas (admin) | Implementado |
 | Frontend: header tenant + logout multi-host | Implementado |

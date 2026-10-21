@@ -1,0 +1,224 @@
+---
+description: Gesint — arquitetura, stack, convenções e regras absolutas (ERP RH/DP/CTB)
+alwaysApply: true
+---
+
+# Gesint — regras gerais do projeto
+
+Monorepo ERP com sistemas DP/RH/CTB/CFG e painel Admin. Dois lados da plataforma: **Admin** (operação Gesint) e **Client** (app do tenant). Arquitetura atual: monólito modular preparado para separação futura. Regra máxima: seguir padrões existentes; não criar novo padrão sem justificativa explícita.
+
+## Repositórios
+
+- Client Frontend: `gesint-frontend/` (Next.js App Router, `src/`, porta `3000`)
+- Client Backend: `gesint-backend/` (Spring Boot, pacote `br.com.gesint`, porta `8081`)
+- Admin Frontend: `gesint-admin-frontend/` (Next.js, porta `3001`)
+- Admin Backend: `gesint-admin-backend/` (Spring Boot, pacote `br.com.gesint.admin`, porta `8082`)
+
+Em conversas e docs, preferir **Admin** e **Client**. Não chamar o app do tenant de “HR” (HR/RH é só o sistema de Recursos Humanos dentro do Client).
+
+## Branches
+
+- `develop` é a branch de integração do desenvolvimento local. Toda atividade nasce dela (`feat/*`, `fix/*`, `chore/*`) e volta para ela.
+- `main` é produção: recebe merge apenas da `develop` em release. Nunca commitar, mergear ou abrir PR de feature direto na `main`.
+
+## Stack
+
+- Frontend: Next.js, TypeScript strict, Tailwind 4, DaisyUI, NextAuth, next-themes, Framer Motion, Sonner, TanStack Query
+- Backend: Spring Boot 4, Java 21, Spring Security, JPA, Flyway, PostgreSQL
+- Infra: Docker Compose, Nginx/Coolify, Prometheus/Grafana, timezone `America/Sao_Paulo`
+
+## Sistemas e menus atuais
+
+O sistema ativo vem do rail esquerdo e não da URL.
+
+| Sistema | Papel | Módulos atuais no frontend |
+|---|---|---|
+| DP | Departamento Pessoal | Organização (incl. Clínicas/Médicos e Matriz no Cargo), Pagamentos, Ponto, Férias, Afastamento, Desligamento; Exames na Admissão |
+| RH | Recursos Humanos | Dashboard, Pessoas/RH, Insights |
+| CTB | Contabilidade | Folha de Pagamento |
+| CFG | Configurações | Perfis, usuários e configurações |
+
+Folha de Pagamento foi movida de DP para CTB. O módulo Pagamentos permanece em DP.
+
+## Organização de módulos
+
+A estrutura de módulos deve espelhar o caminho visual da sidebar tanto no frontend quanto no backend.
+
+Exemplo:
+
+```text
+dp/organization/department
+dp/payment/...
+dp/occupational-exam/...
+rh/person/leave
+ctb/payroll/payroll-run
+ctb/payroll/payslip
+```
+
+Os agrupamentos funcionais atuais são:
+
+- DP: `dp/organization`, `dp/payment`, `dp/occupational-exam`, `dp/attendance`, `dp/offboarding`
+- RH: `rh/dashboard`, `rh/person` e `rh/insights`
+- CTB: `ctb/payroll`
+- CFG: `cfg/access` no backend e `cfg/settings` no frontend
+
+Novos módulos devem seguir o mesmo caminho do menu lateral. Exemplo: se a sidebar mostra `DP > Organização > Departamentos`, os arquivos devem ficar em `dp/organization/department` no frontend e em `br.com.gesint.modules.dp.organization.department` no backend.
+
+## Backend — obrigatório
+
+- CRUD via `BaseController` / `BaseService` / `IBaseRepository`.
+- Controllers filhos não redeclaram endpoints CRUD padrão.
+- RBAC com `@PreAuthorize` no service do módulo.
+- Entidades: `BaseEntity` (UUID, status) + `AuditEntity` (created/updated by/at).
+- Soft delete: `status = DELETED`; nunca DELETE físico para entidades de negócio.
+- Histórico obrigatório (Hibernate Envers): toda entidade com CRUD (e filhos do agregado) leva `@Audited`. Ver seção "Auditoria (Envers)".
+- Flyway para toda alteração de schema: `V{n}__descricao_snake_case.sql`.
+- API versionada: `/api/v1/...`.
+- DTOs sempre classes com Lombok; não usar records em DTO público.
+- Entidades JPA sem `@Data`; usar `@Getter`, `@Setter`, `@Builder`, `@NoArgsConstructor`, `@AllArgsConstructor` conforme padrão local.
+- Regras de negócio em service/use case/domain; nunca no controller.
+- Exceções por catálogo: `{Modulo}Exceptions` + `{Modulo}Exception`, integradas ao `GlobalExceptionHandler`.
+- Logs SLF4J; correlation id `X-Correlation-ID`.
+- JWT: access token curto, refresh token com rotação/blacklist.
+- Senha com BCrypt; RBAC por authority de módulo.
+- IDs UUID; timestamps `TIMESTAMPTZ`.
+
+## Frontend — obrigatório
+
+- Services devem estender `BaseService<T>` quando forem CRUD.
+- HTTP via fetch nativo (`api.client.ts` / `api.server.ts`); não usar axios.
+- Rotas e menus em arquivos `.routes.ts` tipados; não hardcoded em JSX.
+- Workspace por abas via `tabbedCrudRoute`, registry e componentes lazy.
+- Listas usam `QueryTablePanel`/`DataTable`; forms usam `CrudFormShell`, `FormSection` e inputs compartilhados.
+- Campos de selecao devem reutilizar os componentes existentes do sistema:
+  - escolha simples: `InputSelect`
+  - busca/autocomplete: `InputSelectAutocomplete` ou `InputAutocomplete`
+  - nao usar `<select>` nativo nem criar novo componente quando ja existir equivalente compartilhado
+- Sidebar esquerda com expand/retract, busca, flyout no modo retraído.
+- Login em layout próprio (`LoginShell` persistente em `app/(auth)/layout.tsx`); dark mode com `next-themes`.
+- Qualquer mudança visual segue `.agents/rules/gesint-ui-system.mdc` (tokens, raios 5/6/7/8/12px, rail mais escuro que a sidebar, `AppLoadingScreen`, animações com `prefers-reduced-motion`) e deve ser conferida nos temas claro e escuro.
+- Inputs com foco por borda/ring suave; sem outline bruto.
+- Perguntar antes de adicionar dependência Maven/NPM não prevista.
+
+## Sistema ativo (rail) — regra absoluta
+
+- O domínio ativo (DP/RH/CTB/CFG) vem somente da seleção no rail esquerdo.
+- Persistência: `gesint-active-system` e `gesint-settings-mode`.
+- Nunca derivar domínio ou menu lateral da URL, aba focada ou `href` aberto.
+- Trocar aba no workspace não recalcula menu lateral.
+- `isSettingsMode` muda apenas ao clicar CFG (`openSettings`) ou DP/RH/CTB (`selectSystem`).
+- É proibido usar `useEffect` em `pathname` para alternar domínio ativo.
+- Clicar em CFG troca o menu para configurações; não abre rota automaticamente.
+- Clicar em DP/RH/CTB persiste sistema, desliga CFG e foca dashboard.
+
+## Migrations por schema
+
+Dois backends compartilham um PostgreSQL, com históricos Flyway independentes.
+
+| App | Pasta migrations | Schema PG | Histórico Flyway |
+|---|---|---|---|
+| `gesint-backend` | `gesint-backend/src/main/resources/db/migration/` | `public` | `public.flyway_schema_history` |
+| `gesint-admin-backend` | `gesint-admin-backend/src/main/resources/db/migration/` | `admin` | `admin.flyway_schema_history` |
+
+Regras:
+
+- Próximo `V{n}` deve considerar apenas o backend/schema correspondente.
+- DDL do Client deve ir no `gesint-backend`.
+- DDL da plataforma Admin deve ir no `gesint-admin-backend`.
+- Integração cross-schema no código não substitui migration no backend dono do schema.
+- `application.yml` deve manter `flyway.schemas`, `default-schema` e `table` explícitos.
+
+## Multi-tenant
+
+MVP usa schema dedicado por cliente (ex.: `tenant_*` ou slug livre como `posto_sjb`), não coluna `tenant_id`.
+
+Ao criar tabela/entidade de negócio:
+
+1. Criar migration Flyway em `gesint-backend`.
+2. Na mesma migration, criar o histórico: `SELECT public.gesint_audit_sync_table('<tabela>');` (ver "Auditoria (Envers)").
+3. Incluir a tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin backend (a `<tabela>_aud` não entra no catálogo; o Admin replica toda `*_aud` de `public`).
+4. Espelhar em `scripts/dev/seed-tenant-empresa-a.sql` (`tenant_tables`).
+5. Sincronizar tenants existentes em dev quando necessário — **avisar o usuário explicitamente** (reinício do backend, sync Admin, SQL manual ou re-login).
+6. Nunca filtrar tenant manualmente no service; usar `TenantSchemaDataSource` + JWT/header (`X-Tenant-Slug`).
+7. Trabalho `@Async` deve usar `TenantContextTaskDecorator` no executor.
+
+Sync de migration para schemas de cliente: iterar **todos** os schemas com `permission`/`app_user` (exceto `public`, `admin`, `gesint_types`, `pg_*`), não só `tenant_%`.
+
+**Aviso obrigatório:** sempre que a entrega exigir reprovisionar, sync de schema de tenant, restart com Flyway, ou novo login para pegar authorities, dizer isso de forma clara ao usuário — não assumir que ele descubra sozinho.
+
+Frontend envia headers de tenant via `api.client.ts` / `tenant.ts`; não criar lógica extra por tela.
+
+## Auditoria (Envers) — obrigatório
+
+Duas camadas, ambas obrigatórias em tabela com CRUD:
+
+- **Colunas** (Spring Data Auditing): `created_by`, `created_at`, `updated_by`, `updated_at` via `AuditEntity` (ou `BranchScopedEntity`/`BranchCatalogEntity`). Usuário vem de `CurrentAuditor`.
+- **Histórico** (Hibernate Envers): `@Audited` na entidade concreta. Cada transação gera uma linha em `revinfo` (`rev`, `changed_at`, `changed_by`) e o estado completo da linha em `<tabela>_aud` (`rev`, `revtype`: 0 insert, 1 update, 2 delete físico). Soft delete aparece como update com `status = DELETED`.
+
+Ao criar entidade/tabela:
+
+1. `@Audited` na entidade concreta (as superclasses já são `@Audited`) e nos filhos do agregado.
+2. Relação com entidade não auditada (ex.: `City`, `State`, `Permission`): `@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)` no campo.
+3. Segredo/credencial/material criptográfico: `@NotAudited` no campo (ex.: `AppUser.passwordHash`, `DigitalCertificate.pkcs12Encrypted`).
+4. Migration: `SELECT public.gesint_audit_sync_table('<tabela>');` depois do `CREATE TABLE`. Para `@ManyToMany` auditado, chamar também para a tabela de junção.
+5. Coluna nova ou tipo alterado em tabela auditada: chamar `gesint_audit_sync_table('<tabela>')` de novo na mesma migration; senão o boot falha (`ddl-auto: validate`).
+
+A função cria/alinha `<tabela>_aud` em `public` e em **todos** os schemas de cliente, e garante `revinfo` neles. Tenants novos recebem `revinfo` e toda `*_aud` pelo `TenantSchemaStructureSynchronizer` (Admin); `TenantMissingTableRepair` (Client, startup) é a rede de segurança. Sem a `_aud` no schema do tenant, toda escrita na entidade falha.
+
+Exceção só com justificativa em `EnversAuditCoverageTest.NOT_AUDITED` (entidade técnica, catálogo somente leitura ou derivado). O teste quebra o build se entidade nova não for `@Audited` ou se faltar a migration da `_aud`.
+
+## Trilha de auditoria (CFG › Trilha de auditoria, RN-05) — obrigatório
+
+Envers guarda o estado da linha; a trilha (`audit_log`, pacote `core/audit/trail`) guarda **quem fez o quê** em linguagem de negócio, para LGPD (art. 18/20) e prova trabalhista. Registro imutável (`@Immutable`), sem editar nem excluir. Leitura exige `audit:read` (GLOBAL_ADMIN e perfil "Auditor"); o módulo `audit` fica em `PermissionModuleCatalog.EXPLICIT_GRANT_ONLY_MODULES`, então `ADM:CFG` não herda.
+
+- Ação = `AuditActionEnum` (verbo PT-BR + categoria fixa em `AuditCategoryEnum`: Cadastro, Dado sensível, Decisão, Acesso, Exportação). Ação nova entra no enum; não gravar texto livre na coluna `action`.
+- **Cadastro**: `CrudAuditTrailAspect` grava automaticamente create/update/delete/activate/deactivate de todo service que estende `BaseService`. Entidade nova precisa de rótulo em `AuditRecordLabels` (`AuditTrailCoverageTest` quebra o build). Service de CRUD fora do `BaseService` grava explicitamente com `AuditTrailRecorder.record(...)`.
+- **Decisão sobre pessoa** (aprovar, reprovar, devolver, desligar, concluir, cancelar, fechar/reabrir folha): `auditTrail.record(AuditTrailEntry.of(ação, entidade).detail(...).reason(motivo))` na mesma transação da decisão.
+- **Dado sensível** (leitura de CID, dados clínicos, download de anexo sensível/financeiro, holerite): `recordIsolated` (REQUIRES_NEW), porque leitura roda em transação `readOnly`.
+- **Acesso**: concessão/retirada de permissão, perfis do usuário, reset de senha, login e login recusado.
+- `detail` complementa o verbo ("Leu" + "CID"); `recordLabel` é "Rótulo #código". Nunca gravar nome de pessoa, CPF ou valor sensível na trilha (minimização LGPD).
+- Falha ao gravar a trilha derruba a operação (fail closed), exceto login recusado.
+
+## Encoding e textos PT-BR
+
+Regra prática atual:
+
+- Labels visíveis de UI, botões, abas, colunas e textos de tela devem usar português normal em UTF-8 válido.
+- Não duplicar labels de CRUD no JSX quando já houver arquivo central como `*.route-labels.ts` ou `*.routes.ts`.
+- Mensagens de exceptions/catálogos podem usar escapes `\uXXXX` quando necessário para evitar regressões de encoding no Windows.
+- Comentários e identificadores de código devem preferir ASCII.
+- Evitar caracteres decorativos em fonte (`…`, aspas curvas, travessões soltos) quando não houver necessidade.
+- Ao editar `.ts`, `.tsx`, `.java`, `.sql` ou `.mdc`, validar leitura UTF-8 se houver suspeita de encoding inválido.
+- Se aparecer `invalid utf-8 sequence` / `failed to convert rope into string`, reescrever o arquivo em UTF-8 válido.
+
+## Nomenclatura atual
+
+| Camada | Padrão |
+|---|---|
+| FE component | `CollaboratorFormClient.tsx`, `DepartmentListClient.tsx` |
+| FE hook | `useCollaborator.ts` |
+| FE service | `collaborator.service.ts` |
+| FE mapper | `collaborator.mapper.ts` |
+| BE entity | `Collaborator.java` |
+| BE service | `CollaboratorService.java` / `ICollaboratorService.java` |
+| BE DTO | `CollaboratorRequestDto.java` / `CollaboratorResponseDto.java` |
+| BE mapper | `CollaboratorMapper.java` |
+
+## Folha de Pagamento
+
+- Domínio atual: CTB / Contabilidade.
+- Documentação: `docs/modulos/folha-de-pagamento.md`.
+- Regra específica: `.agents/rules/gesint-payroll-module.mdc`.
+- Entidades existentes: `PayrollRun`, `PayrollEvent`, `Payslip`, `PayslipEntry`.
+- Processamento, lifecycle e PDF já existem no código.
+
+## Ao gerar código
+
+- Manter estrutura de pastas do módulo atual, salvo refatoração estrutural planejada.
+- Procurar implementação semelhante antes de criar arquivos novos.
+- Usar interface + implementação quando o módulo segue esse padrão.
+- Validar DTOs com Bean Validation no backend.
+- Criar migration junto com entidade/tabela nova.
+- Não quebrar contratos sem versionar API.
+- Preferir SOLID, DDD e linguagem ubíqua do módulo.
+- Strategy é o padrão para cálculos de folha/benefícios.

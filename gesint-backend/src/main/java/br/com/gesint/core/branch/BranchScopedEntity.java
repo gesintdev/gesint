@@ -1,0 +1,63 @@
+package br.com.gesint.core.branch;
+
+import java.util.UUID;
+
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+import org.hibernate.envers.Audited;
+
+import br.com.gesint.core.entity.AuditEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
+/**
+ * Entidade que pertence a uma filial (estabelecimento). A filial e a propria
+ * {@code company}: no Brasil filial e estabelecimento com CNPJ proprio, e folha, ponto,
+ * eSocial e FGTS sao todos apurados por estabelecimento.
+ *
+ * Cadastros estruturais compartilhados opcionalmente por filial (departamento, cargo) estendem
+ * {@link BranchCatalogEntity}. Demais cadastros estruturais do tenant (escalas, perfis, usuarios)
+ * nao carregam {@code company_id}.
+ *
+ * O Hibernate ignora {@code @Filter} declarado em {@code @MappedSuperclass}, entao cada
+ * entidade concreta precisa repetir a anotacao:
+ *
+ * <pre>
+ * &#64;Filter(name = BranchScopedEntity.FILTER_NAME, condition = BranchScopedEntity.FILTER_CONDITION)
+ * </pre>
+ *
+ * {@code BranchScopedEntityFilterTest} falha o build se alguma subclasse esquecer.
+ */
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@MappedSuperclass
+@Audited
+@FilterDef(
+        name = BranchScopedEntity.FILTER_NAME,
+        parameters = @ParamDef(name = BranchScopedEntity.FILTER_PARAM, type = UUID.class))
+public abstract class BranchScopedEntity extends AuditEntity {
+
+    public static final String FILTER_NAME = "branchScope";
+    public static final String FILTER_PARAM = "branchId";
+    public static final String FILTER_CONDITION = "company_id = :branchId";
+
+    @Column(name = "company_id")
+    private UUID companyId;
+
+    /** Escrita sempre nasce na filial ativa, sem depender de o chamador lembrar de preencher. */
+    @PrePersist
+    void applyActiveBranch() {
+        if (companyId == null) {
+            BranchContextHolder.getOptional().ifPresent(branchId -> this.companyId = branchId);
+        }
+    }
+}

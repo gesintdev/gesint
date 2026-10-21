@@ -2,7 +2,7 @@ import eslintConfigPrettier from "eslint-config-prettier";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import unusedImports from "eslint-plugin-unused-imports";
 
-/** Regras compartilhadas entre gommo-frontend e gommo-admin-frontend. */
+/** Regras compartilhadas entre gesint-frontend e gesint-admin-frontend. */
 export const sharedLintConfig = [
     eslintConfigPrettier,
     {

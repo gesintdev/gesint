@@ -4,7 +4,7 @@
 -- provisionados no schema tenant_empresa_a.
 --
 -- Pre-requisitos:
---   - Cliente "Empresa A" cadastrado no Gommo Admin (slug empresa-a)
+--   - Cliente "Empresa A" cadastrado no Gesint Admin (slug empresa-a)
 --   - Usuario(s) da empresa cadastrados em admin.client_user para esse cliente
 --   - Postgres local com migrations admin V5+ e public migrado
 --
@@ -116,9 +116,9 @@ BEGIN
         database_strategy   = 'DEDICATED_SCHEMA',
         database_host       = 'localhost',
         database_port       = 5432,
-        database_name       = 'gommo',
+        database_name       = 'gesint',
         database_schema     = v_schema,
-        database_user       = 'gommo',
+        database_user       = 'gesint',
         database_secret_ref = 'DB_PASSWORD',
         provisioning_status = 'READY',
         updated_at          = now()
@@ -171,7 +171,7 @@ BEGIN
         EXECUTE format($sql$
             CREATE TABLE %I.app_user (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                status gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
+                status gesint_types.status_enum NOT NULL DEFAULT 'ACTIVE',
                 collaborator_id UUID,
                 username VARCHAR(100) NOT NULL,
                 email VARCHAR(200) NOT NULL,
@@ -214,8 +214,8 @@ BEGIN
         EXECUTE format($sql$
             CREATE TABLE %I.role (
                 id UUID PRIMARY KEY, code INTEGER NOT NULL, name VARCHAR(50) NOT NULL, description TEXT,
-                system gommo_types.system_scope_enum NOT NULL DEFAULT 'RH',
-                status gommo_types.status_enum NOT NULL DEFAULT 'ACTIVE',
+                system gesint_types.system_scope_enum NOT NULL DEFAULT 'RH',
+                status gesint_types.status_enum NOT NULL DEFAULT 'ACTIVE',
                 is_system BOOLEAN NOT NULL DEFAULT false,
                 created_by UUID, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
                 updated_by UUID, updated_at TIMESTAMPTZ
@@ -257,12 +257,12 @@ BEGIN
     ON CONFLICT DO NOTHING;
 
     -- Perfil padrao Auditor (V122); role_type chega pela sincronizacao se o schema for antigo.
-    IF to_regprocedure('public.gommo_seed_auditor_profile(text)') IS NOT NULL
+    IF to_regprocedure('public.gesint_seed_auditor_profile(text)') IS NOT NULL
        AND EXISTS (
            SELECT 1 FROM information_schema.columns
            WHERE table_schema = v_schema AND table_name = 'role' AND column_name = 'role_type'
        ) THEN
-        PERFORM public.gommo_seed_auditor_profile(v_schema);
+        PERFORM public.gesint_seed_auditor_profile(v_schema);
     END IF;
 
     IF NOT EXISTS (

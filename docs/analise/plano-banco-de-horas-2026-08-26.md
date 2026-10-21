@@ -25,7 +25,7 @@ Levantamento feito no código em 2026-08-26.
 
 | Peça | Caminho | Observação |
 |---|---|---|
-| Ponto oficial | `gommo-backend/.../rh/person/attendance/entity/AttendanceRecord.java` | 1 registro por (colaborador, dia); já tem `expectedHours`, `workedHours`, `breakMinutes` e as flags `impactsHourBank` / `impactsPayroll` |
+| Ponto oficial | `gesint-backend/.../rh/person/attendance/entity/AttendanceRecord.java` | 1 registro por (colaborador, dia); já tem `expectedHours`, `workedHours`, `breakMinutes` e as flags `impactsHourBank` / `impactsPayroll` |
 | Solicitação/ajuste | `.../attendance/entity/AttendanceRequest.java` | snapshot antes/depois, `reviewedAt/By/Reason`, idempotência por `clientRequestId` |
 | Destino da compensação | `AttendanceCompensationTypeEnum` (`HOUR_BANK` / `OVERTIME`) + `V74__attendance_request_compensation_type.sql` | já é escolhido na aprovação de batida fora da escala |
 | Aprovação | `AttendanceRecordService.review` / `applyApprovedRequest` / `applyCompensationDestination` | fluxo gestor → aprova/rejeita já existe, com `attendance:write` |
@@ -36,7 +36,7 @@ Levantamento feito no código em 2026-08-26.
 | Parâmetros por chave | `SystemSetting` (padrão `ATTENDANCE_REQUIRE_PHOTO`) | serve para flags globais, **não** para o cadastro de banco de horas |
 | Auditoria base | `core/entity/AuditEntity.java` | `createdBy/At`, `updatedBy/At`, soft delete por `StatusEnum.DELETED` |
 | Notificações | `cfg/settings/notification/service/SystemNotificationService.java` | já notifica revisão de solicitação de ponto |
-| Frontend ponto | `gommo-frontend/src/modules/dp/attendance/` | abas Ponto + Solicitações; modal de revisão já tem o seletor Banco de horas x Hora extra |
+| Frontend ponto | `gesint-frontend/src/modules/dp/attendance/` | abas Ponto + Solicitações; modal de revisão já tem o seletor Banco de horas x Hora extra |
 
 ### 2.2 O que falta (e é pré-requisito real)
 
@@ -144,7 +144,7 @@ bruta recalculada.
 
 ## 4. Modelo de dados proposto
 
-Todas as tabelas em `gommo-backend` (schema do tenant), com migration Flyway
+Todas as tabelas em `gesint-backend` (schema do tenant), com migration Flyway
 `V{n}__...` e inclusão obrigatória em `TenantSchemaTableCatalog` e no seed
 `scripts/dev/seed-tenant-empresa-a.sql`.
 

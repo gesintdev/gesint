@@ -2,7 +2,7 @@
 ### Diagnóstico do código atual, decisões propostas e matriz de permissões
 
 Versão 1.2 · 23 set 2026 · Leo Junio Gomes Silva
-Base: repositório `flaviohenriquedev/gommo`, commit `cb764f67` (main)
+Base: repositório `flaviohenriquedev/gesint`, commit `cb764f67` (main)
 Método: leitura de código e migrations, com **auditoria independente** de cada afirmação feita por um segundo agente (arquivo:linha). **Nada foi executado.** "Confirmado" nesta versão significa confirmado **por leitura de código por duas fontes independentes**. A prova definitiva é o teste de reprodução previsto em cada achado.
 
 *v1.2: segunda auditoria. Corrigido o dado de nascimento na conversão, SEG-04 com perda de dado e perfil Auditor na matriz.*

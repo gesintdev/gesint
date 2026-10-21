@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - "gommo-frontend/src/generated/**"
+      - "gesint-frontend/src/generated/**"
   workflow_dispatch:
 
 concurrency:
@@ -28,18 +28,18 @@ jobs:
           node-version: 22
 
       - name: Gerar notas de versao
-        run: node gommo-frontend/scripts/generate-release-notes.mjs HEAD
+        run: node gesint-frontend/scripts/generate-release-notes.mjs HEAD
 
       - name: Commit, tag e push
         run: |
-          if git diff --quiet -- gommo-frontend/src/generated; then
+          if git diff --quiet -- gesint-frontend/src/generated; then
             echo "Notas de versao ja atualizadas."
             exit 0
           fi
-          VERSION=$(node -p "require('./gommo-frontend/src/generated/release-version.json').version")
+          VERSION=$(node -p "require('./gesint-frontend/src/generated/release-version.json').version")
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add gommo-frontend/src/generated
+          git add gesint-frontend/src/generated
           git commit -m "chore(release): v${VERSION} [skip ci]"
           git pull --rebase origin main
           git tag -f "v${VERSION}"

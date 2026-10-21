@@ -9,7 +9,7 @@
 
 ## 1. Escopo e linguagem do domínio
 
-O Gommo atende dois regimes com naturezas diferentes:
+O Gesint atende dois regimes com naturezas diferentes:
 
 - **CLT:** férias anuais remuneradas são direito trabalhista obrigatório.
 - **PJ:** não existe direito legal automático a férias remuneradas. Pode existir
@@ -44,7 +44,7 @@ dependem do contrato.
    que provoque perda e reinício da contagem.
 4. Adquirido o direito, o empregador tem os 12 meses seguintes para conceder as
    férias.
-5. Para controle preventivo, o Gommo deve considerar o período integral de gozo
+5. Para controle preventivo, o Gesint deve considerar o período integral de gozo
    dentro do limite concessivo. Situações que atravessem o limite devem ser
    bloqueadas ou encaminhadas para análise explícita do DP.
 6. A concessão depois do prazo do art. 134 gera pagamento em dobro da
@@ -213,7 +213,7 @@ Base legal: arts. 593 a 609 do
 ### 3.2 Prática contratual recomendada
 
 O mercado pode negociar um recesso para continuidade saudável da relação
-comercial. O Gommo deve tratar essas regras como parâmetros do contrato, nunca
+comercial. O Gesint deve tratar essas regras como parâmetros do contrato, nunca
 como direito CLT presumido:
 
 - quantidade de dias por ciclo contratual;
@@ -241,10 +241,10 @@ nulos.
 Base legal: arts. 2, 3 e 9 da
 [CLT consolidada](https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm).
 
-O Gommo pode alertar sobre a diferença de regime, mas não deve emitir conclusão
+O Gesint pode alertar sobre a diferença de regime, mas não deve emitir conclusão
 automática sobre existência ou inexistência de vínculo empregatício.
 
-## 4. Separação funcional entre RH e DP no Gommo
+## 4. Separação funcional entre RH e DP no Gesint
 
 Os dois módulos tratam o mesmo ciclo, mas possuem responsabilidades diferentes.
 

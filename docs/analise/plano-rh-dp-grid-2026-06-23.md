@@ -130,8 +130,8 @@ Impacto: grande.
 - [x] Desligamento movido para DP:
   - removido do menu RH/Pessoas;
   - adicionado como menu direto em DP, ao lado de Ferias e Afastamento;
-  - pacote frontend movido para `gommo-frontend/src/modules/dp/offboarding/**`;
-  - pacote backend movido para `br.com.gommo.modules.dp.offboarding`;
+  - pacote frontend movido para `gesint-frontend/src/modules/dp/offboarding/**`;
+  - pacote backend movido para `br.com.gesint.modules.dp.offboarding`;
   - permissao `offboarding:*` passou para o escopo DP no catalogo de permissoes.
 - [~] Ponto movido para DP:
   - removido do menu RH/Pessoas;
@@ -139,11 +139,11 @@ Impacto: grande.
   - pacote fisico/backend ainda permanece em `rh/person/attendance` para evitar
     quebra ampla sem validacao Java completa.
 - [~] Validacoes executadas:
-  - `npm.cmd run lint --prefix gommo-frontend`: passou com avisos existentes;
-  - `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou;
-  - backend nao compilado porque `mvn` nao esta no PATH e o wrapper `gommo-backend/mvnw.cmd`
+  - `npm.cmd run lint --prefix gesint-frontend`: passou com avisos existentes;
+  - `npm.cmd exec -- tsc --noEmit` em `gesint-frontend`: passou;
+  - backend nao compilado porque `mvn` nao esta no PATH e o wrapper `gesint-backend/mvnw.cmd`
     falhou com `Cannot start maven from wrapper`;
-  - `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou apos ajuste de Tipos de Afastamento.
+  - `npm.cmd exec -- tsc --noEmit` em `gesint-frontend`: passou apos ajuste de Tipos de Afastamento.
 - [x] Configuracoes/notificacoes de ferias a vencer implementadas:
   - tabela/configuracao `system_setting` para antecedencia de ferias a vencer;
   - tabela `system_notification` para notificacoes do sistema;
@@ -151,16 +151,16 @@ Impacto: grande.
   - tela CFG > Notificacoes para ajustar antecedencia;
   - sino do header com popover, contador, marcar como lida e animacao a cada 2 segundos quando houver nao lidas.
 - [~] Validacoes executadas apos notificacoes:
-  - `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou;
-  - `npm.cmd run lint` em `gommo-frontend`: passou com avisos existentes;
-  - backend nao compilado porque `mvn` nao esta no PATH e o wrapper `gommo-backend/mvnw.cmd`
+  - `npm.cmd exec -- tsc --noEmit` em `gesint-frontend`: passou;
+  - `npm.cmd run lint` em `gesint-frontend`: passou com avisos existentes;
+  - backend nao compilado porque `mvn` nao esta no PATH e o wrapper `gesint-backend/mvnw.cmd`
     falhou com `Cannot start maven from wrapper`.
 - [x] Autenticacao/sessao investigada:
   - expiracao configurada segue em 15 minutos para access token e 7 dias para refresh token;
   - causa provavel do logout curto era refresh manual em `api.client.ts`, que rotacionava o refresh token no backend sem persistir o novo refresh token no JWT do NextAuth;
   - cliente HTTP passou a delegar refresh para `getSession()`/NextAuth, evitando invalidar a sessao por refresh token antigo;
-  - `npm.cmd exec -- tsc --noEmit` em `gommo-frontend`: passou;
-  - `npm.cmd run lint` em `gommo-frontend`: passou com avisos existentes.
+  - `npm.cmd exec -- tsc --noEmit` em `gesint-frontend`: passou;
+  - `npm.cmd run lint` em `gesint-frontend`: passou com avisos existentes.
 
 ## Pendencias importantes
 
@@ -179,14 +179,14 @@ Impacto: grande.
 
 ## Arquivos ja identificados
 
-- `gommo-frontend/src/modules/rh/person/collaborators/admission/**`
-- `gommo-backend/src/main/java/br/com/gommo/modules/rh/person/collaborators/admission/**`
-- `gommo-frontend/src/modules/rh/person/collaborators/people/**`
-- `gommo-backend/src/main/java/br/com/gommo/modules/rh/person/collaborators/people/**`
-- `gommo-frontend/src/modules/dp/offboarding/**`
-- `gommo-backend/src/main/java/br/com/gommo/modules/dp/offboarding/**`
-- `gommo-frontend/src/shared/components/ui/DataTable.tsx`
-- `gommo-frontend/src/shared/components/data/QueryPanel.tsx`
-- `gommo-backend/src/main/java/br/com/gommo/core/base/**`
-- `gommo-frontend/src/auth.ts`
-- `gommo-frontend/src/auth/refresh-token.ts`
+- `gesint-frontend/src/modules/rh/person/collaborators/admission/**`
+- `gesint-backend/src/main/java/br/com/gesint/modules/rh/person/collaborators/admission/**`
+- `gesint-frontend/src/modules/rh/person/collaborators/people/**`
+- `gesint-backend/src/main/java/br/com/gesint/modules/rh/person/collaborators/people/**`
+- `gesint-frontend/src/modules/dp/offboarding/**`
+- `gesint-backend/src/main/java/br/com/gesint/modules/dp/offboarding/**`
+- `gesint-frontend/src/shared/components/ui/DataTable.tsx`
+- `gesint-frontend/src/shared/components/data/QueryPanel.tsx`
+- `gesint-backend/src/main/java/br/com/gesint/core/base/**`
+- `gesint-frontend/src/auth.ts`
+- `gesint-frontend/src/auth/refresh-token.ts`

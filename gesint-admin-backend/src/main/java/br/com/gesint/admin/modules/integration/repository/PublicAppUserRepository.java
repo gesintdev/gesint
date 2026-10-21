@@ -1,0 +1,18 @@
+package br.com.gesint.admin.modules.integration.repository;
+
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import br.com.gesint.admin.core.entity.StatusEnum;
+import br.com.gesint.admin.modules.integration.entity.PublicAppUser;
+
+public interface PublicAppUserRepository extends JpaRepository<PublicAppUser, UUID> {
+
+    @Query("SELECT COUNT(u) > 0 FROM PublicAppUser u WHERE u.username = :username AND u.status <> :deleted")
+    boolean existsActiveByUsername(String username, StatusEnum deleted);
+
+    @Query("SELECT COUNT(u) > 0 FROM PublicAppUser u WHERE u.email = :email AND u.status <> :deleted")
+    boolean existsActiveByEmail(String email, StatusEnum deleted);
+}

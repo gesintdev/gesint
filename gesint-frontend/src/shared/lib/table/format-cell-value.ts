@@ -1,0 +1,199 @@
+import { TableDataType } from "@/shared/types/table.types";
+
+const digitsOnly = (value: string) => value.replace(/\D/g, "");
+
+export function formatCpf(value: string): string {
+    const d = digitsOnly(value).slice(0, 11);
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
+    if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+    return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+}
+
+export function formatCnpj(value: string): string {
+    const d = digitsOnly(value).slice(0, 14);
+    if (d.length <= 2) return d;
+    if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
+    if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
+    if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
+    return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+}
+
+export function formatPhone(value: string): string {
+    const d = digitsOnly(value);
+    if (d.length <= 2) return d.length ? `(${d}` : "";
+    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
+}
+
+function parseDateInput(value: unknown, localDateOnly = false): Date | null {
+    if (value == null || value === "") return null;
+    if (localDateOnly && typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [year, month, day] = value.split("-").map(Number);
+        return new Date(year, month - 1, day);
+    }
+    const date = new Date(String(value));
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function formatCep(value: string): string {
+    const d = digitsOnly(value).slice(0, 8);
+    if (d.length <= 5) return d;
+    return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
+
+export function formatCellValue(value: unknown, dataType: TableDataType = TableDataType.TEXT): string {
+    if (value == null || value === "") return "—";
+    switch (dataType) {
+        case TableDataType.UUID:
+            return String(value).slice(0, 8).concat("…");
+        case TableDataType.CPF:
+            return formatCpf(String(value));
+        case TableDataType.CNPJ:
+            return formatCnpj(String(value));
+        case TableDataType.CEP:
+            return formatCep(String(value));
+        case TableDataType.PHONE:
+            return formatPhone(String(value));
+        case TableDataType.EMAIL:
+            return String(value);
+        case TableDataType.DATE: {
+            const date = parseDateInput(value, true);
+            if (!date) return String(value);
+            return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(date);
+        }
+
+        case TableDataType.DATETIME: {
+            const date = parseDateInput(value);
+            if (!date) return String(value);
+            return new Intl.DateTimeFormat("pt-BR", {
+                dateStyle: "short",
+                timeStyle: "short",
+            }).format(date);
+        }
+
+        case TableDataType.INTEGER: {
+            const num = Number(value);
+            if (Number.isNaN(num)) return String(value);
+            return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(num);
+        }
+
+        case TableDataType.DECIMAL:
+        case TableDataType.FLOAT: {
+            const num = Number(value);
+            if (Number.isNaN(num)) return String(value);
+            return new Intl.NumberFormat("pt-BR", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 4,
+            }).format(num);
+        }
+
+        case TableDataType.MONEY:
+        case TableDataType.CURRENCY: {
+            const num = Number(value);
+            if (Number.isNaN(num)) return String(value);
+            return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(num);
+        }
+
+        case TableDataType.PERCENT: {
+            const num = Number(value);
+            if (Number.isNaN(num)) return String(value);
+            return new Intl.NumberFormat("pt-BR", {
+                style: "percent",
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            }).format(num / 100);
+        }
+
+        case TableDataType.BOOLEAN:
+            return value === true || value === "true" || value === 1 ? "Sim" : "Não";
+        case TableDataType.BADGE:
+        case TableDataType.SELECT:
+            return formatBadgeLabel(value);
+        case TableDataType.STRING:
+        case TableDataType.TEXT:
+        default:
+            return String(value);
+    }
+}
+
+const BADGE_LABELS: Record<string, string> = {
+    ACTIVE: "Ativo",
+    INACTIVE: "Inativo",
+    DELETED: "Excluído",
+    DRAFT: "Rascunho",
+    IN_PROGRESS: "Em andamento",
+    COMPLETED: "Concluída",
+    CANCELLED: "Cancelada",
+    VACATION: "Férias",
+    MEDICAL: "Afastamento médico",
+    MEDICAL_CERTIFICATE: "Atestado médico",
+    SICK_LEAVE_INSS: "Auxílio-doença / INSS",
+    OCCUPATIONAL_ACCIDENT: "Acidente de trabalho",
+    MATERNITY: "Licença-maternidade",
+    PATERNITY: "Licença-paternidade",
+    BEREAVEMENT: "Falecimento",
+    MARRIAGE: "Casamento",
+    BLOOD_DONATION: "Doação de sangue",
+    ELECTORAL_SERVICE: "Serviço eleitoral",
+    MILITARY_SERVICE: "Serviço militar",
+    JURY_DUTY: "Júri / audiência",
+    UNION_REPRESENTATION: "Representação sindical",
+    UNPAID: "Não remunerado",
+    UNPAID_LEAVE: "Licença não remunerada",
+    SUSPENSION: "Suspensão do contrato",
+    UNJUSTIFIED_ABSENCE: "Falta injustificada",
+    OTHER: "Outro",
+    PENDING: "Pendente",
+    VALIDATED: "Validado",
+    REFERRED_INSS: "Encaminhado ao INSS",
+    APPROVED_INSS: "Aprovado pelo INSS",
+    FINALIZED: "Finalizado",
+    NORMAL_WORK: "Trabalho normal",
+    TIME_ADJUSTMENT: "Ajuste de ponto",
+    LEAVE_ABSENCE: "Afastamento",
+    LATE_ARRIVAL: "Atraso",
+    LICENSE: "Licença",
+    MANUAL: "Manual",
+    LEAVE_REQUEST: "Afastamento",
+};
+
+function formatBadgeLabel(value: unknown, labels?: Record<string, string>): string {
+    const raw = String(value);
+    const map = labels ?? BADGE_LABELS;
+    if (map !== BADGE_LABELS) {
+        return map[raw] ?? map[raw.toLowerCase()] ?? map[raw.toUpperCase()] ?? raw;
+    }
+    const key = raw.toUpperCase();
+    return map[key] ?? BADGE_LABELS[key] ?? raw;
+}
+
+export function formatBadgeCellValue(value: unknown, labels?: Record<string, string>): string {
+    if (value == null || value === "") return "—";
+    return formatBadgeLabel(value, labels);
+}
+
+export function badgeClassForStatus(value: unknown, labels?: Record<string, string>): string {
+    const normalized = String(value).toUpperCase();
+    if (labels && labels !== BADGE_LABELS) {
+        if (normalized === "IN_VACATION") return "gesint-badge--success";
+        if (normalized === "COMPLETED" || normalized === "VALIDATED" || normalized === "FINALIZED")
+            return "gesint-badge--success";
+        if (normalized === "REFERRED_INSS" || normalized === "APPROVED_INSS") return "gesint-badge--warning";
+        if (normalized === "CANCELLED" || normalized === "DELETED") return "gesint-badge--error";
+        if (normalized === "DRAFT" || normalized === "IN_PROGRESS" || normalized === "PENDING")
+            return "gesint-badge--info";
+        return "gesint-badge--neutral";
+    }
+
+    if (normalized === "ACTIVE") return "gesint-badge--success";
+    if (normalized === "INACTIVE") return "gesint-badge--warning";
+    if (normalized === "DELETED") return "gesint-badge--error";
+    if (normalized === "DRAFT" || normalized === "IN_PROGRESS" || normalized === "PENDING") return "gesint-badge--info";
+    if (normalized === "COMPLETED" || normalized === "VALIDATED" || normalized === "FINALIZED")
+        return "gesint-badge--success";
+    if (normalized === "REFERRED_INSS" || normalized === "APPROVED_INSS") return "gesint-badge--warning";
+    if (normalized === "CANCELLED") return "gesint-badge--error";
+    return "gesint-badge--neutral";
+}

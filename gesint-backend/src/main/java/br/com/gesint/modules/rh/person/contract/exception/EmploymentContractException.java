@@ -1,0 +1,16 @@
+package br.com.gesint.modules.rh.person.contract.exception;
+
+import org.springframework.http.HttpStatus;
+
+import br.com.gesint.core.exception.BusinessException;
+
+public final class EmploymentContractException {
+    private EmploymentContractException() {}
+
+    public static BusinessException notFound() {
+        return new BusinessException(
+                EmploymentContractExceptions.NOT_FOUND_CODE,
+                EmploymentContractExceptions.NOT_FOUND_MSG,
+                HttpStatus.NOT_FOUND);
+    }
+}

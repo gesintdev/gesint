@@ -7,14 +7,14 @@
 
 Evoluir o modulo existente de Entrevista de Desligamento para permitir ao RH
 registrar, acompanhar, concluir, cancelar e consultar entrevistas de
-colaboradores CLT e prestadores PJ, respeitando os padroes atuais do Gommo e
+colaboradores CLT e prestadores PJ, respeitando os padroes atuais do Gesint e
 sem misturar avaliacao de gestor nem revogacao de acessos de TI.
 
 ## Regras obrigatorias lidas
 
-- `.agents/rules/gommo.mdc`
-- `.agents/rules/gommo-frontend-ui.mdc`
-- `.agents/rules/gommo-ui-system.mdc`
+- `.agents/rules/gesint.mdc`
+- `.agents/rules/gesint-frontend-ui.mdc`
+- `.agents/rules/gesint-ui-system.mdc`
 
 A regra especifica de folha/payroll nao se aplica porque esta tarefa nao altera
 folha de pagamento.
@@ -25,7 +25,7 @@ folha de pagamento.
 
 Ja existe um modulo minimo em:
 
-- `br.com.gommo.modules.rh.person.exitinterview.entity.ExitInterview`
+- `br.com.gesint.modules.rh.person.exitinterview.entity.ExitInterview`
 - `dto/ExitInterviewRequestDto.java`
 - `dto/ExitInterviewResponseDto.java`
 - `mapper/ExitInterviewMapper.java`
@@ -53,8 +53,8 @@ criar um modulo paralelo.
 
 Ja existe tela CRUD em:
 
-- `gommo-frontend/src/modules/rh/person/exitinterview/components/ExitInterviewListClient.tsx`
-- `gommo-frontend/src/modules/rh/person/exitinterview/components/ExitInterviewFormClient.tsx`
+- `gesint-frontend/src/modules/rh/person/exitinterview/components/ExitInterviewListClient.tsx`
+- `gesint-frontend/src/modules/rh/person/exitinterview/components/ExitInterviewFormClient.tsx`
 - `dto/exit-interview.dto.ts`
 - `services/exit-interview.service.ts`
 - `lib/exit-interview.mapper.ts`

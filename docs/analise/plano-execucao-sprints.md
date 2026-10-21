@@ -1,14 +1,14 @@
-# Plano de Execução por Sprints — Ciclo de vida do colaborador (Gommo)
+# Plano de Execução por Sprints — Ciclo de vida do colaborador (Gesint)
 
 > Documento de planejamento. Não houve alteração de código.
-> Base: `docs/analise/roteiro-ciclo-colaborador-gap.md` + `Roteiro_Gommo_Ciclo_Colaborador.pdf`.
+> Base: `docs/analise/roteiro-ciclo-colaborador-gap.md` + `Roteiro_Gesint_Ciclo_Colaborador.pdf`.
 > Objetivo: transformar o backlog priorizado em um plano executável por sprints, respeitando dependências técnicas e os padrões do projeto (`BaseController`/`BaseService`, Flyway, RBAC por módulo, multi-tenant por schema, frontend `tabbedCrudRoute`).
 
 ## Premissas do plano
 
 - Sprint = 2 semanas. Estimativa total: **Sprint 0 + 15 sprints (~8 meses)** para 1 time full-stack pequeno. Ajustar conforme capacity real.
-- Toda tabela nova segue o protocolo multi-tenant: migration Flyway no `gommo-backend` + inclusão em `TenantSchemaTableCatalog.HR_DATA_TABLES` + espelho no `seed-tenant-empresa-a.sql`.
-- Toda tabela nova com CRUD nasce auditada: entidade `@Audited` (Hibernate Envers) + `SELECT public.gommo_audit_sync_table('<tabela>')` na migration (histórico em `<tabela>_aud` + `revinfo`). Regra completa em `.agents/rules/gommo.mdc` ("Auditoria (Envers)").
+- Toda tabela nova segue o protocolo multi-tenant: migration Flyway no `gesint-backend` + inclusão em `TenantSchemaTableCatalog.HR_DATA_TABLES` + espelho no `seed-tenant-empresa-a.sql`.
+- Toda tabela nova com CRUD nasce auditada: entidade `@Audited` (Hibernate Envers) + `SELECT public.gesint_audit_sync_table('<tabela>')` na migration (histórico em `<tabela>_aud` + `revinfo`). Regra completa em `.agents/rules/gesint.mdc` ("Auditoria (Envers)").
 - Regra de ouro do PDF: **tudo que muda no tempo tem vigência**; **folha fechada é imutável**; **mudança crítica gera trilha de auditoria com motivo**.
 - "Pronto" = backend (entidade + migration + service + RBAC) + frontend (rota + lista + form) + teste da regra pura + critério de aceite do roteiro validado.
 - Navegacao atual: no DP, Ferias, Afastamento e Desligamento sao menus diretos e separados; no RH fica a solicitacao/visao de ferias e a entrevista de desligamento.

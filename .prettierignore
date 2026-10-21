@@ -12,7 +12,7 @@
 **/package-lock.json
 **/tsconfig.tsbuildinfo
 **/.mvn/**
-gommo-frontend/src/generated/**
+gesint-frontend/src/generated/**
 
 # Binaries & assets
 **/*.svg

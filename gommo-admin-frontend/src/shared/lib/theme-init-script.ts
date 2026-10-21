@@ -1,1 +1,0 @@
-export const GOMMO_THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem("theme")||"light";if(t!=="light"&&t!=="dark")t="light";document.documentElement.classList.toggle("dark",t==="dark");document.documentElement.style.colorScheme=t}catch(e){document.documentElement.classList.remove("dark")}})();`;

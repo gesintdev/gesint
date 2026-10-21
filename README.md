@@ -1,13 +1,15 @@
-# Gommo
+# Gesint
 
 Monorepo ERP para RH, Departamento Pessoal e Contabilidade, com backends Spring Boot, frontends Next.js, painel admin da plataforma e infra Docker/Coolify.
 
 | Projeto | Pasta | Porta |
 |---|---|---|
-| API HR | `gommo-backend/` | 8081 |
-| Web HR | `gommo-frontend/` | 3000 |
-| API Admin | `gommo-admin-backend/` | 8082 |
-| Web Admin | `gommo-admin-frontend/` | 3001 |
+| Client API | `gesint-backend/` | 8081 |
+| Client Web | `gesint-frontend/` | 3000 |
+| Admin API | `gesint-admin-backend/` | 8082 |
+| Admin Web | `gesint-admin-frontend/` | 3001 |
+
+Produção (domínios, secrets, boot): [`docs/ops/producao-gesint.md`](docs/ops/producao-gesint.md).
 
 ## Sistemas do produto
 
@@ -22,7 +24,7 @@ O domínio ativo no frontend vem do rail esquerdo, não da URL. Trocar abas no w
 
 ## Arquitetura multi-tenant
 
-O Gommo usa control plane + data plane.
+O Gesint usa control plane + data plane.
 
 | Documento | Conteúdo |
 |---|---|
@@ -34,7 +36,7 @@ MVP multi-tenant: schema dedicado por cliente (`tenant_*`), não `tenant_id` em 
 
 Ao criar tabela de negócio no HR:
 
-1. Criar migration em `gommo-backend/src/main/resources/db/migration/`.
+1. Criar migration em `gesint-backend/src/main/resources/db/migration/`.
 2. Incluir a tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin backend.
 3. Espelhar em `scripts/dev/seed-tenant-empresa-a.sql`.
 4. Sincronizar tenants existentes quando necessário.
@@ -72,14 +74,14 @@ docker compose up -d
 3. HR backend:
 
 ```bash
-cd gommo-backend
+cd gesint-backend
 mvn spring-boot:run
 ```
 
 4. HR frontend:
 
 ```bash
-cd gommo-frontend
+cd gesint-frontend
 npm install
 npm run dev
 ```
@@ -87,14 +89,14 @@ npm run dev
 5. Admin backend:
 
 ```bash
-cd gommo-admin-backend
+cd gesint-admin-backend
 mvn spring-boot:run
 ```
 
 6. Admin frontend:
 
 ```bash
-cd gommo-admin-frontend
+cd gesint-admin-frontend
 npm install
 npm run dev
 ```
@@ -105,8 +107,8 @@ Cada backend aplica migrations no seu schema PostgreSQL, com histórico separado
 
 | Backend | Schema | Histórico | Pasta |
 |---|---|---|---|
-| `gommo-backend` | `public` | `public.flyway_schema_history` | `gommo-backend/src/main/resources/db/migration/` |
-| `gommo-admin-backend` | `admin` | `admin.flyway_schema_history` | `gommo-admin-backend/src/main/resources/db/migration/` |
+| `gesint-backend` | `public` | `public.flyway_schema_history` | `gesint-backend/src/main/resources/db/migration/` |
+| `gesint-admin-backend` | `admin` | `admin.flyway_schema_history` | `gesint-admin-backend/src/main/resources/db/migration/` |
 
 O próximo `V{n}` deve ser calculado apenas dentro do backend/schema correspondente.
 
@@ -158,9 +160,9 @@ As regras ativas ficam em `.agents/rules/`.
 
 Leitura obrigatória antes de alterações:
 
-- `.agents/rules/gommo.mdc`
-- `.agents/rules/gommo-frontend-ui.mdc`
-- `.agents/rules/gommo-ui-system.mdc` quando tocar UI/frontend
-- `.agents/rules/gommo-payroll-module.mdc` quando tocar folha/payroll
+- `.agents/rules/gesint.mdc`
+- `.agents/rules/gesint-frontend-ui.mdc`
+- `.agents/rules/gesint-ui-system.mdc` quando tocar UI/frontend
+- `.agents/rules/gesint-payroll-module.mdc` quando tocar folha/payroll
 
 Antes de implementar: analisar arquitetura, procurar implementação semelhante, explicar o plano e só então alterar.

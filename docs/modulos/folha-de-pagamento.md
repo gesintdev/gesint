@@ -1,6 +1,6 @@
-﻿# Módulo Folha de Pagamento
+# Módulo Folha de Pagamento
 
-Documentação oficial do módulo de Folha de Pagamento do Gommo ERP.
+Documentação oficial do módulo de Folha de Pagamento do Gesint ERP.
 
 **Domínio atual:** CTB — Contabilidade
 
@@ -32,7 +32,7 @@ Não criar entidades paralelas como `CompetenciaFolha`, `FolhaPagamento` ou equi
 
 ### 2.1 Backend existente
 
-Pacote atual: `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/`
+Pacote atual: `gesint-backend/src/main/java/br/com/gesint/modules/ctb/payroll/`
 
 Já existe:
 
@@ -58,7 +58,7 @@ Componentes principais:
 
 ### 2.2 Frontend existente
 
-Pasta atual: `gommo-frontend/src/modules/ctb/payroll/`
+Pasta atual: `gesint-frontend/src/modules/ctb/payroll/`
 
 Já existe:
 
@@ -88,7 +88,7 @@ O módulo **Folha de Pagamento** está no domínio **CTB / Contabilidade**.
 
 O módulo **Pagamentos** permanece no domínio **DP / Departamento Pessoal**.
 
-Essa separação aparece no frontend em `gommo-frontend/src/config/routes.ts`:
+Essa separação aparece no frontend em `gesint-frontend/src/config/routes.ts`:
 
 | Sistema | Módulos atuais |
 |---|---|
@@ -108,7 +108,7 @@ Essa separação aparece no frontend em `gommo-frontend/src/config/routes.ts`:
 - RBAC fica no service com `@PreAuthorize`.
 - DTOs são classes com Lombok, não records.
 - Mappers são manuais e anotados como componentes.
-- Toda alteração de schema usa Flyway em `gommo-backend/src/main/resources/db/migration/`.
+- Toda alteração de schema usa Flyway em `gesint-backend/src/main/resources/db/migration/`.
 - Soft delete via `status = DELETED`.
 - Regras de negócio ficam em service/domain/lifecycle/calculation, nunca no controller.
 
@@ -185,7 +185,7 @@ O processamento:
 
 Novas tabelas de negócio relacionadas à folha devem seguir o checklist multi-tenant:
 
-1. Criar migration Flyway no `gommo-backend`, com `SELECT public.gommo_audit_sync_table('<tabela>');` e entidade `@Audited` (histórico Envers, ver `.agents/rules/gommo.mdc`).
+1. Criar migration Flyway no `gesint-backend`, com `SELECT public.gesint_audit_sync_table('<tabela>');` e entidade `@Audited` (histórico Envers, ver `.agents/rules/gesint.mdc`).
 2. Incluir a tabela em `TenantSchemaTableCatalog.HR_DATA_TABLES` no admin backend.
 3. Espelhar a tabela em `scripts/dev/seed-tenant-empresa-a.sql`.
 4. Sincronizar tenants já provisionados em dev quando necessário.
@@ -217,8 +217,8 @@ ctb/payroll/payslip
 Folha de Pagamento fica em:
 
 ```text
-gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll
-gommo-frontend/src/modules/ctb/payroll
+gesint-backend/src/main/java/br/com/gesint/modules/ctb/payroll
+gesint-frontend/src/modules/ctb/payroll
 ```
 
 Novos submódulos devem continuar seguindo o agrupamento da sidebar. Exemplo: `CTB > Folha de Pagamento > Holerites` deve permanecer sob `ctb/payroll/payslip`.
@@ -238,17 +238,17 @@ Novos submódulos devem continuar seguindo o agrupamento da sidebar. Exemplo: `C
 
 Backend:
 
-- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/controller/PayrollRunController.java`
-- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/service/PayrollRunProcessingService.java`
-- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/service/PayrollRunLifecycleService.java`
-- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/lifecycle/PayrollRunStateMachine.java`
-- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/calculation/`
-- `gommo-backend/src/main/java/br/com/gommo/modules/ctb/payroll/payslip/pdf/`
+- `gesint-backend/src/main/java/br/com/gesint/modules/ctb/payroll/controller/PayrollRunController.java`
+- `gesint-backend/src/main/java/br/com/gesint/modules/ctb/payroll/service/PayrollRunProcessingService.java`
+- `gesint-backend/src/main/java/br/com/gesint/modules/ctb/payroll/service/PayrollRunLifecycleService.java`
+- `gesint-backend/src/main/java/br/com/gesint/modules/ctb/payroll/lifecycle/PayrollRunStateMachine.java`
+- `gesint-backend/src/main/java/br/com/gesint/modules/ctb/payroll/calculation/`
+- `gesint-backend/src/main/java/br/com/gesint/modules/ctb/payroll/payslip/pdf/`
 
 Frontend:
 
-- `gommo-frontend/src/config/routes.ts`
-- `gommo-frontend/src/modules/ctb/payroll/config/payroll.routes.ts`
-- `gommo-frontend/src/modules/ctb/payroll/components/PayrollRunListClient.tsx`
-- `gommo-frontend/src/modules/ctb/payroll/payroll-event/components/PayrollEventListClient.tsx`
-- `gommo-frontend/src/modules/ctb/payroll/payslip/components/PayslipListClient.tsx`
+- `gesint-frontend/src/config/routes.ts`
+- `gesint-frontend/src/modules/ctb/payroll/config/payroll.routes.ts`
+- `gesint-frontend/src/modules/ctb/payroll/components/PayrollRunListClient.tsx`
+- `gesint-frontend/src/modules/ctb/payroll/payroll-event/components/PayrollEventListClient.tsx`
+- `gesint-frontend/src/modules/ctb/payroll/payslip/components/PayslipListClient.tsx`

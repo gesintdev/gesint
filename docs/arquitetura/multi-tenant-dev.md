@@ -10,14 +10,14 @@ Como testar isolamento por tenant **sem DNS real** de producao.
 
 | Conceito | Desenvolvimento | Producao |
 |----------|-----------------|----------|
-| Host do tenant | `empresa-a.localhost:3000` | `empresa-a.gommo.com.br` |
+| Host do tenant | `empresa-a.localhost:3000` | `empresa-a.gesint.com.br` |
 | Resolver tenant | `Host` + `X-Tenant-Slug` | `Host` (+ header se API separada) |
 | Schema de dados | `tenant_empresa_a` | `tenant_empresa_a` |
 | Lookup metadados | `admin.client` | `admin.client` |
 | JWT com `tenantId` | Sim | Sim |
 | Usuario do cliente | So no subdominio do tenant | So no subdominio do tenant |
-| Operador Gommo (platform) | `localhost:3000` (schema `public`) | Host dedicado ou admin separado |
-| Sessao / cookies | Por host (`empresa-a.localhost`) | Por host (`empresa-a.gommo.com.br`) |
+| Operador Gesint (platform) | `localhost:3000` (schema `public`) | Host dedicado ou admin separado |
+| Sessao / cookies | Por host (`empresa-a.localhost`) | Por host (`empresa-a.gesint.com.br`) |
 
 O modelo de **control plane + data plane** e o mesmo. O que muda em dev e principalmente o **hostname** e portas separadas (frontend `:3000`, API `:8081`).
 
@@ -40,23 +40,23 @@ Browsers modernos resolvem `*.localhost` para `127.0.0.1` **sem** editar `hosts`
 
 ## 3. Variaveis de ambiente
 
-### Raiz do monorepo (`gommo/.env`) — backend HR + compose
+### Raiz do monorepo (`gesint/.env`) — backend HR + compose
 
 ```env
-GOMMO_MULTI_TENANT_ENABLED=true
-GOMMO_TENANT_HEADER_ENABLED=true
-GOMMO_TENANT_BASE_DOMAIN=localhost
+GESINT_MULTI_TENANT_ENABLED=true
+GESINT_TENANT_HEADER_ENABLED=true
+GESINT_TENANT_BASE_DOMAIN=localhost
 
 CORS_ORIGINS=http://localhost:3000,http://*.localhost:3000,http://localhost:3001
 ```
 
 | Variavel | Descricao |
 |----------|-----------|
-| `GOMMO_MULTI_TENANT_ENABLED` | Liga resolver + troca de schema no HR |
-| `GOMMO_TENANT_HEADER_ENABLED` | Aceita `X-Tenant-Slug` (browser e Postman) |
-| `GOMMO_TENANT_BASE_DOMAIN` | Sufixo DNS local (`localhost`; em prod: `gommo.com.br`) |
+| `GESINT_MULTI_TENANT_ENABLED` | Liga resolver + troca de schema no HR |
+| `GESINT_TENANT_HEADER_ENABLED` | Aceita `X-Tenant-Slug` (browser e Postman) |
+| `GESINT_TENANT_BASE_DOMAIN` | Sufixo DNS local (`localhost`; em prod: `gesint.com.br`) |
 
-### `gommo-frontend/.env.local` — frontend HR
+### `gesint-frontend/.env.local` — frontend HR
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8081
@@ -82,7 +82,7 @@ Com subdominio no browser (`empresa-a.localhost:3000`), o frontend envia o heade
 ## 4. Banco local — schemas
 
 ```
-postgres / database gommo
+postgres / database gesint
 ├── admin                 (control plane)
 ├── public                (dev legado + auth compartilhado)
 ├── tenant_empresa_a      (RH Empresa A)
@@ -105,11 +105,11 @@ Script manual alternativo: `scripts/dev/seed-tenant-empresa-a.sql`
 
 ### Por que nao usar `signOut({ callbackUrl: "/login" })`?
 
-O Auth.js usa `AUTH_URL` fixo no `.env` (`http://localhost:3000`). Em multi-tenant cada licenca tem **host proprio** (`empresa-a.localhost`, depois `empresa-a.gommo.com.br`). O `signOut` client-side redirecionaria para o host errado.
+O Auth.js usa `AUTH_URL` fixo no `.env` (`http://localhost:3000`). Em multi-tenant cada licenca tem **host proprio** (`empresa-a.localhost`, depois `empresa-a.gesint.com.br`). O `signOut` client-side redirecionaria para o host errado.
 
 ### Padrao adotado (dev e producao)
 
-Funcao `signOutToTenantLogin()` em `gommo-frontend/src/shared/lib/tenant.ts`:
+Funcao `signOutToTenantLogin()` em `gesint-frontend/src/shared/lib/tenant.ts`:
 
 1. Mostra overlay "Saindo..." (evita card de usuario vazio)
 2. `signOut({ redirect: false })` via POST (sem tela de confirmacao do Auth.js)
@@ -151,11 +151,11 @@ Em **producao**, preferir **same-origin** (frontend + API no mesmo host via prox
 ### Arquivo hosts
 
 ```
-127.0.0.1 empresa-a.gommo.test
-127.0.0.1 empresa-b.gommo.test
+127.0.0.1 empresa-a.gesint.test
+127.0.0.1 empresa-b.gesint.test
 ```
 
-`GOMMO_TENANT_BASE_DOMAIN=gommo.test` e acesse `http://empresa-a.gommo.test:3000`.
+`GESINT_TENANT_BASE_DOMAIN=gesint.test` e acesse `http://empresa-a.gesint.test:3000`.
 
 ---
 

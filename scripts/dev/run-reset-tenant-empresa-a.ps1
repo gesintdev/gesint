@@ -21,7 +21,7 @@ Get-Content $envFile | ForEach-Object {
 $dbUser = if ($env:DB_USER) { $env:DB_USER } else { $env:POSTGRES_USER }
 $dbName = if ($env:DB_NAME) { $env:DB_NAME } else { $env:POSTGRES_DB }
 $dbPassword = if ($env:DB_PASSWORD) { $env:DB_PASSWORD } else { $env:POSTGRES_PASSWORD }
-$container = "gommo-postgres"
+$container = "gesint-postgres"
 
 if (-not $dbUser -or -not $dbName -or -not $dbPassword) {
     Write-Error "Defina DB_USER/DB_NAME/DB_PASSWORD (ou POSTGRES_*) no .env"
@@ -46,6 +46,6 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host ""
 Write-Host "Reset concluido. Base limpa para validar o fluxo:" -ForegroundColor Green
-Write-Host "  1. Gommo Admin: cadastrar usuario da empresa"
-Write-Host "  2. Gommo Admin: Provisionar o cliente"
+Write-Host "  1. Gesint Admin: cadastrar usuario da empresa"
+Write-Host "  2. Gesint Admin: Provisionar o cliente"
 Write-Host "  3. Login em http://empresa-a.localhost:3000 com o usuario cadastrado"

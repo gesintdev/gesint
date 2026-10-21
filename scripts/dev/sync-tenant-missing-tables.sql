@@ -1,9 +1,9 @@
 -- Sync missing HR tables into all dedicated tenant schemas.
--- Run after adding new Flyway migrations in gommo-backend (public template tables).
+-- Run after adding new Flyway migrations in gesint-backend (public template tables).
 --
 -- Usage (repo root):
---   docker compose exec -T postgres psql -U gommo -d gommo -f /scripts/dev/sync-tenant-missing-tables.sql
---   (mount scripts or pipe: Get-Content scripts/dev/sync-tenant-missing-tables.sql | docker compose exec -T postgres psql -U gommo -d gommo)
+--   docker compose exec -T postgres psql -U gesint -d gesint -f /scripts/dev/sync-tenant-missing-tables.sql
+--   (mount scripts or pipe: Get-Content scripts/dev/sync-tenant-missing-tables.sql | docker compose exec -T postgres psql -U gesint -d gesint)
 
 BEGIN;
 

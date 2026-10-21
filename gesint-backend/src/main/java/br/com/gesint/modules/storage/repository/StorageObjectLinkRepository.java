@@ -1,0 +1,22 @@
+package br.com.gesint.modules.storage.repository;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+import br.com.gesint.core.base.repository.IBaseRepository;
+import br.com.gesint.core.entity.StatusEnum;
+import br.com.gesint.modules.storage.entity.StorageObjectLink;
+
+@Repository
+public interface StorageObjectLinkRepository extends IBaseRepository<StorageObjectLink> {
+
+    List<StorageObjectLink> findAllByEntityTypeAndEntityIdAndStatusNot(
+            String entityType, UUID entityId, StatusEnum status);
+
+    List<StorageObjectLink> findAllByEntityTypeAndEntityIdInAndStatusNot(
+            String entityType, List<UUID> entityIds, StatusEnum status);
+
+    List<StorageObjectLink> findAllByStorageObjectIdAndStatusNot(UUID storageObjectId, StatusEnum status);
+}
