@@ -101,7 +101,7 @@ export function AssistantErrorLogModule() {
                                 { key: "clientName", label: "Cliente", width: 160 },
                                 { key: "userName", label: "Usuário", width: 140 },
                                 { key: "errorClass", label: "Classe", width: 160 },
-                                { key: "summary", label: "Resumo", dataType: DataType.TEXT },
+                                { key: "summary", label: "Resumo", dataType: DataType.STRING },
                             ]}
                             rows={rows as Array<AssistantErrorLog & Record<string, unknown>>}
                             emptyMsg={loading ? "Carregando…" : "Nenhum erro registrado."}

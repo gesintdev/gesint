@@ -5,13 +5,22 @@ import { InputBase } from "@/shared/components/ui/input/InputBase";
 
 export type InputStringProps = InputFieldChromeProps & {
     value: string;
-    onValueChange: (value: string) => void;
+    onValueChange?: (value: string) => void;
     placeholder?: string;
     maxLength?: number;
     leftIcon?: React.ReactNode;
     className?: string;
+    autoComplete?: string;
+    type?: "text" | "email" | "tel" | "url" | "search";
 };
 
 export function InputString({ value, onValueChange, maxLength, ...chrome }: InputStringProps) {
-    return <InputBase {...chrome} displayValue={value} maxLength={maxLength} onDisplayChange={onValueChange} />;
+    return (
+        <InputBase
+            {...chrome}
+            displayValue={value}
+            maxLength={maxLength}
+            onDisplayChange={onValueChange ?? (() => undefined)}
+        />
+    );
 }

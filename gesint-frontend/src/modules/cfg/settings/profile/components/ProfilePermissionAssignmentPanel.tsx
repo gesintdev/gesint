@@ -36,7 +36,7 @@ type ProfilePermissionAssignmentPanelProps = {
     onDescriptionChange: (value: string) => void;
     navSections: NavSection[];
     selectedRoute: AppRoute | null;
-    markedRouteIds: ReadonlySet<string>;
+    markedRouteIds?: ReadonlySet<string>;
     routeAccessStateById: ReadonlyMap<string, CheckboxState>;
     onRouteAccessToggle: (route: AppRoute) => void;
     onSelectAllMenus: () => void;

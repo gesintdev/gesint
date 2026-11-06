@@ -19,7 +19,10 @@ import { apiFetch } from "@/shared/lib/api.client";
 const AUTH_BASE = "/api/v1/public/candidate/auth";
 const PORTAL_BASE = "/api/v1/candidate-portal";
 
-async function withCandidateToken<T>(path: string, init: RequestInit & { method?: string; body?: unknown } = {}): Promise<T> {
+async function withCandidateToken<T>(
+    path: string,
+    init: Omit<RequestInit, "body"> & { method?: string; body?: unknown } = {},
+): Promise<T> {
     const session = await ensureFreshSession();
     if (!session) {
         throw new Error("CANDIDATE_PORTAL_UNAUTHORIZED");

@@ -101,8 +101,9 @@ export function DevEnvironmentModule() {
     return (
         <div className="flex min-h-0 flex-1 flex-col">
             <AdminModuleToolbar
-                title="Ambiente de desenvolvimento"
-                subtitle="Edicao exclusiva do usuario admGesint (schema public). Indisponivel em producao."
+                tabs={[{ key: "dev", label: "Ambiente de desenvolvimento" }]}
+                active="dev"
+                onSelect={() => undefined}
                 actions={
                     <AdminBtn variant="primary" onClick={handleSave} disabled={saving}>
                         {saving ? "Salvando…" : "Salvar"}
@@ -110,6 +111,9 @@ export function DevEnvironmentModule() {
                 }
             />
             <div className="flex-1 overflow-auto p-4 sm:p-6">
+                <p className="mb-4 text-sm text-base-content/60">
+                    Edição exclusiva do usuário admGesint. Indisponível fora do perfil DEV.
+                </p>
                 <AdminSection title="Usuario da plataforma (DEV)">
                     <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-base-content/70">
                         <span>
@@ -128,26 +132,26 @@ export function DevEnvironmentModule() {
                         <AdminInput
                             label="Nome completo"
                             value={form.fullName}
-                            onChange={(e) => update("fullName", e.target.value)}
+                            onChange={(value) => update("fullName", value)}
                         />
                         <AdminInput
                             label="E-mail"
                             type="email"
                             value={form.email}
-                            onChange={(e) => update("email", e.target.value)}
+                            onChange={(value) => update("email", value)}
                         />
                         <AdminInput
                             label="Nova senha (opcional)"
                             type="password"
                             value={form.newPassword}
-                            onChange={(e) => update("newPassword", e.target.value)}
+                            onChange={(value) => update("newPassword", value)}
                             autoComplete="new-password"
                         />
                         <AdminInput
                             label="Confirmar nova senha"
                             type="password"
                             value={form.confirmPassword}
-                            onChange={(e) => update("confirmPassword", e.target.value)}
+                            onChange={(value) => update("confirmPassword", value)}
                             autoComplete="new-password"
                         />
                     </AdminFormGrid>

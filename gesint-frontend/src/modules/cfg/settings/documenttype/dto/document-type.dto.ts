@@ -1,4 +1,4 @@
-import type {StatusEnum} from "@/shared/types/status.types";
+type StatusEnum = "ACTIVE" | "INACTIVE" | "DELETED";
 
 /** Classes de dado da RN-02 aplicadas ao tipo de documento (SEG-01 · D5). */
 export type DocumentDataClass = "COMUM" | "PESSOAL" | "SENSIVEL" | "FINANCEIRO";

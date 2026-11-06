@@ -52,6 +52,7 @@ export function AdminInput({
     placeholder = "",
     required = false,
     disabled = false,
+    autoComplete,
 }: {
     label: string;
     value: string;
@@ -60,6 +61,7 @@ export function AdminInput({
     placeholder?: string;
     required?: boolean;
     disabled?: boolean;
+    autoComplete?: string;
 }) {
     return (
         <div className="flex flex-col gap-1">
@@ -69,6 +71,7 @@ export function AdminInput({
                 value={value}
                 onChange={(e) => onChange?.(e.target.value)}
                 placeholder={placeholder}
+                autoComplete={autoComplete}
                 disabled={disabled}
                 style={{
                     ...controlStyle,

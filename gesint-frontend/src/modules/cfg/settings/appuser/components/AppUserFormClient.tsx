@@ -88,7 +88,7 @@ function roleIdsFromProfilesByBranch(
     for (const [branchId, rolesBySystem] of Object.entries(rolesByBranch ?? {})) {
         const bySystem = emptyRoleIdsBySystem();
         for (const scope of ASSIGNABLE_SYSTEM_SCOPES) {
-            bySystem[scope] = rolesBySystem?.[scope]?.map((profile) => profile.id) ?? [];
+            bySystem[scope] = rolesBySystem?.[scope]?.map((profile: { id: string }) => profile.id) ?? [];
         }
         roleIdsByBranch[branchId] = bySystem;
     }
