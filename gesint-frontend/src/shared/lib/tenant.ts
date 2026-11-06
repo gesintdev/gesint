@@ -1,6 +1,6 @@
 const LOCALHOST_SUFFIX = ".localhost";
 /** Prefixo de host que nunca é slug de tenant (API/Admin/apex utilitários). */
-const RESERVED_SUBDOMAINS = new Set(["www", "api", "admin", "ponto"]);
+const RESERVED_SUBDOMAINS = new Set(["www", "api", "admin", "app", "ponto"]);
 
 /**
  * Domínios base onde `{slug}.{domain}` identifica o tenant.
