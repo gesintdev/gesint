@@ -1,6 +1,28 @@
 {
   "releases": [
     {
+      "version": "1.98.8",
+      "hash": "3563c532",
+      "date": "2026-11-06T01:11:20-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Release v1.98.6 da main",
+      "body": "**Commits incluídos**\n\n- chore(release): v1.98.6 [skip ci]",
+      "pullRequest": null
+    },
+    {
+      "version": "1.98.7",
+      "hash": "1aa7df46",
+      "date": "2026-11-06T01:10:48-03:00",
+      "type": "fix",
+      "scope": null,
+      "breaking": false,
+      "title": "Trata app.gesint.com.br como host da plataforma, nao como tenant",
+      "body": "",
+      "pullRequest": null
+    },
+    {
       "version": "1.98.6",
       "hash": "e7563619",
       "date": "2026-11-06T00:59:36-03:00",
