@@ -1,6 +1,39 @@
 {
   "releases": [
     {
+      "version": "1.98.6",
+      "hash": "e7563619",
+      "date": "2026-11-06T00:59:36-03:00",
+      "type": "fix",
+      "scope": null,
+      "breaking": false,
+      "title": "Desbloqueia o typecheck dos frontends no build de producao",
+      "body": "",
+      "pullRequest": null
+    },
+    {
+      "version": "1.98.5",
+      "hash": "cc66a2ed",
+      "date": "2026-10-21T14:05:55-03:00",
+      "type": "chore",
+      "scope": null,
+      "breaking": false,
+      "title": "Rebrand Gommo to Gesint for production cutover",
+      "body": "Rename packages, apps, tokens, env and domains to Gesint; squash Flyway baselines with catalog seeds; gate public schema login to DEV with admGesint Admin UI.",
+      "pullRequest": null
+    },
+    {
+      "version": "1.98.4",
+      "hash": "5c5d7f7f",
+      "date": "2026-10-21T07:56:14-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (remove infra Oracle)",
+      "body": "**Commits incluídos**\n\n- chore(infra): remove Terraform da Oracle (OCI) e referencias",
+      "pullRequest": null
+    },
+    {
       "version": "1.98.3",
       "hash": "1f5071a0",
       "date": "2026-10-21T07:51:22-03:00",
@@ -327,7 +360,7 @@
       "scope": "audit",
       "breaking": false,
       "title": "Historico Envers e rotulo de trilha para requisicao de vaga apos merge",
-      "body": "Integra feat/envers-audit-history com feat/job-requisition: @Audited em JobRequisition, rotulo em AuditRecordLabels e V124 com gesint_audit_sync_table('job_requisition').",
+      "body": "Integra feat/envers-audit-history com feat/job-requisition: @Audited em JobRequisition, rotulo em AuditRecordLabels e V124 com gommo_audit_sync_table('job_requisition').",
       "pullRequest": null
     },
     {
@@ -646,7 +679,7 @@
       "scope": "storage",
       "breaking": false,
       "title": "Corrigir upload em producao sem permissao no volume",
-      "body": "- Entrypoint ajusta owner de /data/storage antes de dropar para usuario gesint\n\n- Log de diagnostico no startup e no upload; README de troubleshooting",
+      "body": "- Entrypoint ajusta owner de /data/storage antes de dropar para usuario gommo\n\n- Log de diagnostico no startup e no upload; README de troubleshooting",
       "pullRequest": null
     },
     {
@@ -689,7 +722,7 @@
       "type": "feat",
       "scope": null,
       "breaking": false,
-      "title": "Rebrand de textos visiveis de Gesint para Gesint",
+      "title": "Rebrand de textos visiveis de Gommo para Gesint",
       "body": "Atualiza labels, toasts, alertas, docs internas, assistente IA, holerite PDF e bootstrap do admin da plataforma nos quatro apps, sem alterar nomenclatura de codigo.",
       "pullRequest": null
     },
@@ -1020,7 +1053,7 @@
       "scope": null,
       "breaking": false,
       "title": "Integrar esteira de admissao e correcao da busca global",
-      "body": "Merge --no-ff de proposito: o commit de merge concentra tudo num ponto unico,\nentao um `git revert -m 1` desfaz a entrega inteira de uma vez. Para reverter\nso uma parte, os commits da branch sao independentes entre si.\n\nRollback do banco: gesint-backend/scripts/rollback-admission-pipeline.sql\nPonto de retorno do codigo: tag pre-admission-pipeline\n\n**Commits incluídos**\n\n- feat(dp): esteira de acompanhamento de admissao\n- fix(search): tornar unaccent resolvivel nos schemas de tenant\n- chore(dev): scripts de seed demo e rollback das migrations da esteira\n- docs: adicionar documentacao funcional do Gesint",
+      "body": "Merge --no-ff de proposito: o commit de merge concentra tudo num ponto unico,\nentao um `git revert -m 1` desfaz a entrega inteira de uma vez. Para reverter\nso uma parte, os commits da branch sao independentes entre si.\n\nRollback do banco: gommo-backend/scripts/rollback-admission-pipeline.sql\nPonto de retorno do codigo: tag pre-admission-pipeline\n\n**Commits incluídos**\n\n- feat(dp): esteira de acompanhamento de admissao\n- fix(search): tornar unaccent resolvivel nos schemas de tenant\n- chore(dev): scripts de seed demo e rollback das migrations da esteira\n- docs: adicionar documentacao funcional do Gesint",
       "pullRequest": null
     },
     {
@@ -1053,7 +1086,7 @@
       "scope": "admin-fe",
       "breaking": false,
       "title": "Adotar a marca Gesint e ajustar o título da aba",
-      "body": "O Admin estava inteiro na marca antiga: wordmark \"gesint\", monograma \"g\"\nminúsculo e um favicon próprio com o selo \"Adm\" sobre o \"g\" velho.\n\n- Copiados do gesint-frontend: gesint-logo-blue.svg (wordmark \"gesint\"),\n  logo-gesint-letterb-blue.svg (monograma \"G\") e gesint-logo-favicon-blue.svg.\n- GesintLogo passa a usar o monograma novo; alt \"Gesint\" -> \"Gesint\".\n  A caixa quadrada de markSize não distorce: o preserveAspectRatio padrão\n  centraliza o \"G\" (proporção 0,70) dentro dela, igual ao antigo.\n- Título da aba \"Gesint Admin\" -> \"Gesint - Adm\".\n- Removidos órfãos sem referência: gesint-login-bg-{dark,light}.png\n  (2,6 MB) e gesint-logo-letter-g.svg (monograma da marca antiga).\n\nO favicon do Admin perde o selo \"Adm\" — passa a ser o mesmo \"G\" do app\nClient, porque não existe uma versão do selo na marca nova. O arquivo\nantigo (gesint-admin-logo-favicon-blue.svg) fica no repositório, sem\nreferência, como base para refazer o selo sobre o \"G\" novo.",
+      "body": "O Admin estava inteiro na marca antiga: wordmark \"gommo\", monograma \"g\"\nminúsculo e um favicon próprio com o selo \"Adm\" sobre o \"g\" velho.\n\n- Copiados do gommo-frontend: gommo-logo-blue.svg (wordmark \"gesint\"),\n  logo-gesint-letterb-blue.svg (monograma \"G\") e gommo-logo-favicon-blue.svg.\n- GommoLogo passa a usar o monograma novo; alt \"Gommo\" -> \"Gesint\".\n  A caixa quadrada de markSize não distorce: o preserveAspectRatio padrão\n  centraliza o \"G\" (proporção 0,70) dentro dela, igual ao antigo.\n- Título da aba \"Gommo Admin\" -> \"Gesint - Adm\".\n- Removidos órfãos sem referência: gommo-login-bg-{dark,light}.png\n  (2,6 MB) e gommo-logo-letter-g.svg (monograma da marca antiga).\n\nO favicon do Admin perde o selo \"Adm\" — passa a ser o mesmo \"G\" do app\nClient, porque não existe uma versão do selo na marca nova. O arquivo\nantigo (gommo-admin-logo-favicon-blue.svg) fica no repositório, sem\nreferência, como base para refazer o selo sobre o \"G\" novo.",
       "pullRequest": null
     },
     {
@@ -1064,7 +1097,7 @@
       "scope": "frontend",
       "breaking": false,
       "title": "Título da aba passa a ser Gesint",
-      "body": "Era \"Gesint — Departamento Pessoal\".",
+      "body": "Era \"Gommo — Departamento Pessoal\".",
       "pullRequest": null
     },
     {
@@ -1075,7 +1108,7 @@
       "scope": "brand",
       "breaking": false,
       "title": "Converter arte do login para AVIF e remover assets órfãos",
-      "body": "A tela de login baixava 12 MB de PNG. Os arquivos eram gradientes suaves,\nque é o pior caso para PNG — daí a desproporção.\n\n- background-light  5.006 KB -> 35 KB\n- background-dark   6.414 KB -> 51 KB\n- logo-metalic        618 KB -> 35 KB\n\nMedido no browser: assets de brand no /login caem de 12.038 KB para 127 KB\nno desktop e 92 KB no mobile. A pasta public/brand vai de ~26 MB para\n152 KB.\n\nAVIF e não WebP: os fundos são gradientes escuros, e em WebP@88 a\nestrutura de macroblocos fica visível em 1:1 — subir para @95 custaria\n287 KB e ainda assim perderia para AVIF@60 com 51 KB. Conferido recorte a\nrecorte contra o PNG: fundos e o metal escovado do \"G\" ficam\nindistinguíveis, e o alpha do \"G\" é preservado.\n\nSem fallback WebP de propósito: AVIF (Chrome 85+, Firefox 93+, Safari\n16.4+) é suporte mais amplo do que o Tailwind v4 já exige do projeto\n(Safari 16.4+), então o fallback nunca seria usado.\n\nRemovidos os órfãos confirmados sem referência: gesint-login-bg-*\n(11,4 MB, substituídos pela arte nova), gesint-logo-3d.png (2,2 MB),\ngesint-logo-letter-g.svg (monograma da marca antiga) e os *-old.",
+      "body": "A tela de login baixava 12 MB de PNG. Os arquivos eram gradientes suaves,\nque é o pior caso para PNG — daí a desproporção.\n\n- background-light  5.006 KB -> 35 KB\n- background-dark   6.414 KB -> 51 KB\n- logo-metalic        618 KB -> 35 KB\n\nMedido no browser: assets de brand no /login caem de 12.038 KB para 127 KB\nno desktop e 92 KB no mobile. A pasta public/brand vai de ~26 MB para\n152 KB.\n\nAVIF e não WebP: os fundos são gradientes escuros, e em WebP@88 a\nestrutura de macroblocos fica visível em 1:1 — subir para @95 custaria\n287 KB e ainda assim perderia para AVIF@60 com 51 KB. Conferido recorte a\nrecorte contra o PNG: fundos e o metal escovado do \"G\" ficam\nindistinguíveis, e o alpha do \"G\" é preservado.\n\nSem fallback WebP de propósito: AVIF (Chrome 85+, Firefox 93+, Safari\n16.4+) é suporte mais amplo do que o Tailwind v4 já exige do projeto\n(Safari 16.4+), então o fallback nunca seria usado.\n\nRemovidos os órfãos confirmados sem referência: gommo-login-bg-*\n(11,4 MB, substituídos pela arte nova), gommo-logo-3d.png (2,2 MB),\ngommo-logo-letter-g.svg (monograma da marca antiga) e os *-old.",
       "pullRequest": null
     },
     {
@@ -1108,7 +1141,7 @@
       "scope": "brand",
       "breaking": false,
       "title": "Marca Gesint com componente SystemLogo reutilizável",
-      "body": "O logo era usado como <img> em quatro lugares, e o do login reusava\n.gesint-logo__icon — a classe da sidebar, com height fixo em 1.5rem. Isso\ntravava o tamanho do logo do login: mexer nela quebraria a sidebar.\n\n- shared/components/brand/SystemLogo: componente único com props variant,\n  size, color e title. Aplica o SVG como máscara CSS, então\n  /public/brand/*.svg segue sendo a fonte única da arte — trocar o arquivo\n  troca o logo em todo o sistema, sem path duplicado em componente.\n  Tamanho, cor e máscara vão em style inline de propósito: o logo não\n  depende da ordem nem do frescor do globals.css.\n- Cor segue o tema via --system-logo-color: azul no claro, branco no dark.\n  Cadeia de fallback até o literal para o logo aparecer mesmo sem o CSS.\n- LoginShell: lockup logo · bolinha · \"Gestão Integrada\" (fonte Outfit, a\n  mesma de .gesint-logo__client). clamp() no logo e no texto para o lockup\n  não estourar a largura no mobile.\n- Sidebar: monograma passa a ser logo-gesint-letterb-blue (G maiúsculo da\n  marca nova); o letter-g antigo era o \"g\" minúsculo da marca anterior.\n- CareersShell e CareersApplyClient migrados para o componente; somem os\n  <img> duplicados e os eslint-disable de no-img-element.",
+      "body": "O logo era usado como <img> em quatro lugares, e o do login reusava\n.gommo-logo__icon — a classe da sidebar, com height fixo em 1.5rem. Isso\ntravava o tamanho do logo do login: mexer nela quebraria a sidebar.\n\n- shared/components/brand/SystemLogo: componente único com props variant,\n  size, color e title. Aplica o SVG como máscara CSS, então\n  /public/brand/*.svg segue sendo a fonte única da arte — trocar o arquivo\n  troca o logo em todo o sistema, sem path duplicado em componente.\n  Tamanho, cor e máscara vão em style inline de propósito: o logo não\n  depende da ordem nem do frescor do globals.css.\n- Cor segue o tema via --system-logo-color: azul no claro, branco no dark.\n  Cadeia de fallback até o literal para o logo aparecer mesmo sem o CSS.\n- LoginShell: lockup logo · bolinha · \"Gestão Integrada\" (fonte Outfit, a\n  mesma de .gommo-logo__client). clamp() no logo e no texto para o lockup\n  não estourar a largura no mobile.\n- Sidebar: monograma passa a ser logo-gesint-letterb-blue (G maiúsculo da\n  marca nova); o letter-g antigo era o \"g\" minúsculo da marca anterior.\n- CareersShell e CareersApplyClient migrados para o componente; somem os\n  <img> duplicados e os eslint-disable de no-img-element.",
       "pullRequest": null
     },
     {
@@ -1119,7 +1152,7 @@
       "scope": "auth",
       "breaking": false,
       "title": "Refresh server→API com fallback de bases e diagnóstico real",
-      "body": "O refresh falhava sempre em produção com \"UNKNOWN\" desde a primeira\ntentativa, enquanto o login funcionava. Causa: os dois caminhos\nserver→API divergiam.\n\n- client-login: tentava API_INTERNAL_URL, GESINT_BACKEND_INTERNAL_URL e\n  NEXT_PUBLIC_API_URL, e relaxava TLS.\n- refresh: usava uma base única (API_INTERNAL_URL || NEXT_PUBLIC_API_URL),\n  sem fallback e sem TLS relaxado.\n\nNo lab, API_INTERNAL_URL=http://192.168.1.67:8081. Quando essa base não\nresponde de dentro do container, o login cai para https://api.gesint.local\ne funciona; o refresh morria na primeira base a cada tentativa. O erro era\nde rede (sem corpo JSON), então virava code \"UNKNOWN\" e o log não dizia\nnada.\n\n- shared/lib/server-api: ponto único de saída server→API. Tenta as bases\n  em ordem, trata erro estruturado da API como conclusivo (não faz retry\n  em outra base, para AUTH_REVOKED_REFRESH continuar deslogando), e segue\n  para a base seguinte em falha de rede ou HTML de proxy. Esgotadas as\n  bases, lança erro nomeando cada base e o motivo (inclui error.cause, que\n  é onde o undici guarda ECONNREFUSED/DNS/TLS em vez de \"fetch failed\").\n- refresh-token, client-login e loginAgainstHrApi passam a usar esse\n  helper; some a triplicação de resolução de base.\n- refresh-token: log passa a incluir o motivo real da falha.",
+      "body": "O refresh falhava sempre em produção com \"UNKNOWN\" desde a primeira\ntentativa, enquanto o login funcionava. Causa: os dois caminhos\nserver→API divergiam.\n\n- client-login: tentava API_INTERNAL_URL, GOMMO_BACKEND_INTERNAL_URL e\n  NEXT_PUBLIC_API_URL, e relaxava TLS.\n- refresh: usava uma base única (API_INTERNAL_URL || NEXT_PUBLIC_API_URL),\n  sem fallback e sem TLS relaxado.\n\nNo lab, API_INTERNAL_URL=http://192.168.1.67:8081. Quando essa base não\nresponde de dentro do container, o login cai para https://api.gommo.local\ne funciona; o refresh morria na primeira base a cada tentativa. O erro era\nde rede (sem corpo JSON), então virava code \"UNKNOWN\" e o log não dizia\nnada.\n\n- shared/lib/server-api: ponto único de saída server→API. Tenta as bases\n  em ordem, trata erro estruturado da API como conclusivo (não faz retry\n  em outra base, para AUTH_REVOKED_REFRESH continuar deslogando), e segue\n  para a base seguinte em falha de rede ou HTML de proxy. Esgotadas as\n  bases, lança erro nomeando cada base e o motivo (inclui error.cause, que\n  é onde o undici guarda ECONNREFUSED/DNS/TLS em vez de \"fetch failed\").\n- refresh-token, client-login e loginAgainstHrApi passam a usar esse\n  helper; some a triplicação de resolução de base.\n- refresh-token: log passa a incluir o motivo real da falha.",
       "pullRequest": null
     },
     {
@@ -1140,7 +1173,7 @@
       "type": "chore",
       "scope": "coolify",
       "breaking": false,
-      "title": "Versionar certs e scripts TLS do lab gesint.local",
+      "title": "Versionar certs e scripts TLS do lab gommo.local",
       "body": "Inclui CA pública, fullchain e helpers de instalação; chave privada permanece fora do git.",
       "pullRequest": null
     },
@@ -1152,7 +1185,7 @@
       "scope": "frontend",
       "breaking": false,
       "title": "Login Client direto na API no browser",
-      "body": "No Coolify lab o proxy server→API ainda falhava; o browser já alcança api.gesint.local com CORS/TLS ok, como no definir-senha.",
+      "body": "No Coolify lab o proxy server→API ainda falhava; o browser já alcança api.gommo.local com CORS/TLS ok, como no definir-senha.",
       "pullRequest": null
     },
     {
@@ -1163,7 +1196,7 @@
       "scope": "frontend",
       "breaking": false,
       "title": "Proxy login Client no Coolify lab",
-      "body": "O authorize do Auth.js falhava com fetch failed ao chamar api.gesint.local de dentro do container; login passa pelo proxy same-origin e API_INTERNAL_URL.",
+      "body": "O authorize do Auth.js falhava com fetch failed ao chamar api.gommo.local de dentro do container; login passa pelo proxy same-origin e API_INTERNAL_URL.",
       "pullRequest": null
     },
     {
@@ -1173,8 +1206,8 @@
       "type": "fix",
       "scope": "frontend",
       "breaking": false,
-      "title": "Resolve tenant slug em *.gesint.local no lab",
-      "body": "Sem o X-Tenant-Slug, a API do apex retornava TENANT_NOT_FOUND em hosts como teste.gesint.local.",
+      "title": "Resolve tenant slug em *.gommo.local no lab",
+      "body": "Sem o X-Tenant-Slug, a API do apex retornava TENANT_NOT_FOUND em hosts como teste.gommo.local.",
       "pullRequest": null
     },
     {
@@ -1185,7 +1218,7 @@
       "scope": "admin-fe",
       "breaking": false,
       "title": "Proxy same-origin do login Admin no Coolify lab",
-      "body": "Browser autentica via /api/auth/admin-login no mesmo host, evitando cert self-signed de api.admin.gesint.local.",
+      "body": "Browser autentica via /api/auth/admin-login no mesmo host, evitando cert self-signed de api.admin.gommo.local.",
       "pullRequest": null
     },
     {
@@ -1217,7 +1250,7 @@
       "type": "fix",
       "scope": "coolify",
       "breaking": false,
-      "title": "Lab TLS/auth and env docs for gesint.local",
+      "title": "Lab TLS/auth and env docs for gommo.local",
       "body": "Allow Auth.js server-side calls against self-signed *.local certs and prefer an internal admin API URL on the server, with Coolify lab env examples for Windows LAN access.",
       "pullRequest": null
     },
@@ -1228,7 +1261,7 @@
       "type": "feat",
       "scope": "admin",
       "breaking": false,
-      "title": "Bootstrap do sudo admGesint no startup",
+      "title": "Bootstrap do sudo admGommo no startup",
       "body": "Substitui o seed fragil do admin por PlatformAdminBootstrap, espelha o usuario no public para o Client/dev, desativa o legado e bloqueia acesso a tenants comerciais.",
       "pullRequest": null
     },
@@ -1295,7 +1328,7 @@
       "scope": "admin-backend",
       "breaking": false,
       "title": "Allow Coolify prod without DEV_ADMIN_PASSWORD",
-      "body": "Unset placeholder crashed Spring at startup; empty default matches DevAdminInitializer.\nAlso cap Maven/Next heap and pin gesint-backend compose target for Coolify builds.",
+      "body": "Unset placeholder crashed Spring at startup; empty default matches DevAdminInitializer.\nAlso cap Maven/Next heap and pin gommo-backend compose target for Coolify builds.",
       "pullRequest": null
     },
     {
@@ -1977,7 +2010,7 @@
       "scope": "format",
       "breaking": false,
       "title": "Aplicar normalize-block-spacing em todo o frontend",
-      "body": "Completa o passo do pipeline `npm run format` que ficara de fora por causa dos\nbugs do script (agora corrigidos): linha em branco entre blocos logicos em\ngesint-frontend e gesint-admin-frontend.\n\nApenas linhas em branco — nenhuma linha de codigo, comentario ou import foi\nalterada. Verificado: tsc, eslint (0 erros), prettier --check e next build\npassam nos dois frontends. `npm run format` agora e idempotente.\n\n@",
+      "body": "Completa o passo do pipeline `npm run format` que ficara de fora por causa dos\nbugs do script (agora corrigidos): linha em branco entre blocos logicos em\ngommo-frontend e gommo-admin-frontend.\n\nApenas linhas em branco — nenhuma linha de codigo, comentario ou import foi\nalterada. Verificado: tsc, eslint (0 erros), prettier --check e next build\npassam nos dois frontends. `npm run format` agora e idempotente.\n\n@",
       "pullRequest": null
     },
     {
@@ -2010,7 +2043,7 @@
       "scope": "format",
       "breaking": false,
       "title": "Aplicar prettier e spotless em todo o repositório",
-      "body": "Normaliza a formatação de todo o codebase com as ferramentas oficiais do\nprojeto:\n- prettier --write nos frontends (gesint-frontend e gesint-admin-frontend)\n- spotless:apply (palantir-java) nos backends\n\nApenas mudanças de formatação — sem alteração de comportamento. Verificado:\nmvn compile, tsc e next build passam nos quatro módulos.\n\n@",
+      "body": "Normaliza a formatação de todo o codebase com as ferramentas oficiais do\nprojeto:\n- prettier --write nos frontends (gommo-frontend e gommo-admin-frontend)\n- spotless:apply (palantir-java) nos backends\n\nApenas mudanças de formatação — sem alteração de comportamento. Verificado:\nmvn compile, tsc e next build passam nos quatro módulos.\n\n@",
       "pullRequest": null
     },
     {
@@ -2571,7 +2604,7 @@
       "scope": null,
       "breaking": false,
       "title": "Plataforma admin, login premium HR e ajustes de infra",
-      "body": "Adiciona gesint-admin-backend e gesint-admin-frontend com auth JWT, clientes e billing; refatora login e shell do HR com UI premium; atualiza Docker Compose, env e migrations.",
+      "body": "Adiciona gommo-admin-backend e gommo-admin-frontend com auth JWT, clientes e billing; refatora login e shell do HR com UI premium; atualiza Docker Compose, env e migrations.",
       "pullRequest": null
     },
     {
@@ -2702,8 +2735,8 @@
       "type": "feat",
       "scope": null,
       "breaking": false,
-      "title": "Fase 01 Gesint (backend, frontend, infra) com hardening de segredos",
-      "body": "Monorepo Departamento Pessoal — primeira versao publicavel.\n\nInfra e governanca:\n- docker-compose PostgreSQL 16 com senha apenas via arquivo .env (nao versionado)\n- .gitignore raiz reforçado: .env, .env.local, chaves, target, node_modules, .next, HashGen.java\n- .env.example na raiz, backend e frontend (apenas placeholders, sem valores reais)\n- Regras Cursor (.cursor/rules/) e README sem credenciais em texto claro\n\nBackend (Java 21, Spring Boot 4):\n- Core: BaseEntity, AuditEntity, BaseController/Service, excecoes globais, CORS, JWT\n- Modulo root: auth login/refresh, RBAC, DevAdminInitializer via DEV_ADMIN_PASSWORD (obrigatorio em dev)\n- Modulo Person: CRUD /api/v1/persons com @PreAuthorize no service\n- Flyway V1/V2, porta 8081, testes de integracao (senha de teste isolada em profile test)\n- Removido HashGen.java (utilitario local com senha em plaintext)\n\nFrontend (Next.js 16, tema DaisyUI gesint):\n- Login NextAuth, shell sidebar acordeao, dashboard, listagem Person (React Query)\n- UI alinhada ao theme generator (gesint-card, gesint-nav, primary em CTAs)\n- .env.local ignorado; hint de login sem expor senha fixa\n\nSeguranca:\n- Historico git anterior descartado neste commit unico (sem vazamento de Admin@123/gesint_dev nos arquivos atuais)\n- JWT_SECRET e senhas de banco somente por variavel de ambiente",
+      "title": "Fase 01 Gommo (backend, frontend, infra) com hardening de segredos",
+      "body": "Monorepo Departamento Pessoal — primeira versao publicavel.\n\nInfra e governanca:\n- docker-compose PostgreSQL 16 com senha apenas via arquivo .env (nao versionado)\n- .gitignore raiz reforçado: .env, .env.local, chaves, target, node_modules, .next, HashGen.java\n- .env.example na raiz, backend e frontend (apenas placeholders, sem valores reais)\n- Regras Cursor (.cursor/rules/) e README sem credenciais em texto claro\n\nBackend (Java 21, Spring Boot 4):\n- Core: BaseEntity, AuditEntity, BaseController/Service, excecoes globais, CORS, JWT\n- Modulo root: auth login/refresh, RBAC, DevAdminInitializer via DEV_ADMIN_PASSWORD (obrigatorio em dev)\n- Modulo Person: CRUD /api/v1/persons com @PreAuthorize no service\n- Flyway V1/V2, porta 8081, testes de integracao (senha de teste isolada em profile test)\n- Removido HashGen.java (utilitario local com senha em plaintext)\n\nFrontend (Next.js 16, tema DaisyUI gommo):\n- Login NextAuth, shell sidebar acordeao, dashboard, listagem Person (React Query)\n- UI alinhada ao theme generator (gommo-card, gommo-nav, primary em CTAs)\n- .env.local ignorado; hint de login sem expor senha fixa\n\nSeguranca:\n- Historico git anterior descartado neste commit unico (sem vazamento de Admin@123/gommo_dev nos arquivos atuais)\n- JWT_SECRET e senhas de banco somente por variavel de ambiente",
       "pullRequest": null
     }
   ]
