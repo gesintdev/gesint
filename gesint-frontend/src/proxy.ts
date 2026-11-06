@@ -3,6 +3,7 @@ import type { NextAuthRequest } from "next-auth";
 
 import { auth } from "@/auth";
 import { HR_SESSION_COOKIE_NAME } from "@/auth/cookies";
+import { retargetCanonicalRedirect } from "@/auth/incoming-origin";
 
 /**
  * O Auth.js reescreve o cookie de sessão em toda resposta, inclusive aqui. Como o Proxy roda
@@ -18,21 +19,22 @@ const authorizeRequest = auth((_request: NextAuthRequest, _event: NextFetchEvent
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
     const response = await authorizeRequest(request, event);
-    return response instanceof Response ? dropSessionCookieWrites(response) : response;
+    return response instanceof Response ? finalizeProxyResponse(request, response) : response;
 }
 
-function dropSessionCookieWrites(response: Response): Response {
+function finalizeProxyResponse(request: NextRequest, response: Response): Response {
     const setCookies = response.headers.getSetCookie();
-    if (setCookies.length === 0) {
-        return response;
-    }
     const kept = setCookies.filter((cookie) => !isSessionCookieWrite(cookie));
-    if (kept.length === setCookies.length) {
+    const cookiesChanged = kept.length !== setCookies.length;
+    const headers = new Headers(response.headers);
+    const locationChanged = retargetCanonicalRedirect(request, response.status, headers);
+    if (!locationChanged && !cookiesChanged) {
         return response;
     }
-    const headers = new Headers(response.headers);
+    // Recoloca os cookies a partir da lista original. `new Headers` junta vários
+    // Set-Cookie num valor só e corromperia a sessão no redirect.
     headers.delete("set-cookie");
-    for (const cookie of kept) {
+    for (const cookie of cookiesChanged ? kept : setCookies) {
         headers.append("set-cookie", cookie);
     }
     return new Response(response.body, {

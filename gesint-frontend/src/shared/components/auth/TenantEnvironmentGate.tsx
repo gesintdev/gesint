@@ -6,7 +6,7 @@ import { LoginShell } from "@/shared/components/auth/LoginShell";
 import { AppLoadingScreen } from "@/shared/components/layout/AppLoadingScreen";
 import { AppException } from "@/shared/exceptions";
 import { apiFetch } from "@/shared/lib/api.client";
-import { resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
+import { isProductionHostWithoutTenant, resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
 
 type GateState =
     | { status: "checking" }
@@ -26,6 +26,16 @@ export function TenantEnvironmentGate({ children }: { children: ReactNode }) {
     useEffect(() => {
         const tenantSlug = resolveTenantSlugFromHostname();
         if (!tenantSlug) {
+            if (isProductionHostWithoutTenant()) {
+                setState({
+                    status: "error",
+                    title: "Nenhum ambiente neste endereço",
+                    message:
+                        "O sistema de cada empresa abre no endereço dela, com o nome da empresa na frente de gesint.com.br.",
+                    tenantSlug: null,
+                });
+                return;
+            }
             setState({ status: "ok" });
             return;
         }

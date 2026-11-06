@@ -27,6 +27,26 @@ function singleLabelPrefix(host: string, suffix: string): string | null {
 }
 
 /**
+ * Host de produção sem slug de tenant (`app.gesint.com.br`, `www`, apex).
+ * Não há schema de cliente nesse endereço. Localhost e o lab continuam com login.
+ */
+export function isProductionHostWithoutTenant(hostname?: string): boolean {
+    if (resolveTenantSlugFromHostname(hostname)) {
+        return false;
+    }
+    const host = (hostname ?? (typeof window !== "undefined" ? window.location.hostname : ""))
+        .trim()
+        .toLowerCase();
+    const base = (process.env.NEXT_PUBLIC_TENANT_PRODUCTION_BASE_DOMAIN || "gesint.com.br")
+        .trim()
+        .toLowerCase();
+    if (!host || !base) {
+        return false;
+    }
+    return host === base || host.endsWith(`.${base}`);
+}
+
+/**
  * Extrai o slug do tenant a partir do hostname do browser.
  * Exemplos: `posto-sjb.localhost` → `posto-sjb`; `teste.gesint.local` → `teste`.
  * Apex (`gesint.local`) e hosts de API (`api.gesint.local`) retornam null.
