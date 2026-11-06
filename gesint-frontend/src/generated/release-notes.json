@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.98.9",
+      "hash": "54212978",
+      "date": "2026-11-06T08:03:54-03:00",
+      "type": "fix",
+      "scope": null,
+      "breaking": false,
+      "title": "Mantem o primeiro acesso no host do tenant",
+      "body": "O Auth.js reescrevia o Location para NEXTAUTH_URL, entao o primeiro acesso ao tenant ia para app.gesint.com.br.",
+      "pullRequest": null
+    },
+    {
       "version": "1.98.8",
       "hash": "3563c532",
       "date": "2026-11-06T01:11:20-03:00",
