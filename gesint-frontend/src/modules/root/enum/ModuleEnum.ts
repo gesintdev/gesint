@@ -63,7 +63,8 @@ export enum ModuleEnum {
     PAYROLL = "payroll",
     PAYMENTS = "payments",
     INSIGHTS = "insights",
-    REPORTS = "reports",
+    REPORTS_DP = "reports-dp",
+    REPORTS_RH = "reports-rh",
     SETTINGS = "settings",
     SETTINGS_ACCESS = "settings-access",
     SETTINGS_DP = "settings-dp",
@@ -131,8 +132,14 @@ export class ModuleEnumHelper implements IModuleHelper {
             shortName: "INS",
             order: 5,
         },
-        [ModuleEnum.REPORTS]: {
-            id: "reports",
+        [ModuleEnum.REPORTS_DP]: {
+            id: "reports-dp",
+            name: "Relatórios",
+            shortName: "REL",
+            order: 6,
+        },
+        [ModuleEnum.REPORTS_RH]: {
+            id: "reports-rh",
             name: "Relatórios",
             shortName: "REL",
             order: 6,

@@ -7,7 +7,7 @@ import { personModule } from "@/modules/rh/person/person.module";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnum, type TSystemModuleGroup } from "@/modules/root/enum/SystemEnum";
-import { reportsModule } from "@/modules/shared/reports/reports.module";
+import { dpReportsModule, rhReportsModule } from "@/modules/shared/reports/reports.module";
 import { isCtbSystemEnabled } from "@/shared/lib/system-availability";
 /**
  * routes.ts - ponto de entrada de navegacao do sistema.
@@ -31,12 +31,12 @@ export { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 export const systemModuleGroups: TSystemModuleGroup[] = [
     {
         system: SystemEnum.DP,
-        modules: [organizationModule, paymentsModule, reportsModule],
+        modules: [organizationModule, paymentsModule, dpReportsModule],
     },
     {
         system: SystemEnum.RH,
         /** Painel é aba fixa do workspace (não entra no menu lateral). */
-        modules: [personModule, reportsModule],
+        modules: [personModule, rhReportsModule],
     },
     ...(isCtbSystemEnabled()
         ? [

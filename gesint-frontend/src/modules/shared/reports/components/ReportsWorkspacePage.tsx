@@ -7,7 +7,6 @@ import {
     FileChartColumn,
     Filter,
     Lightbulb,
-    ReceiptText,
     Search,
     Sparkles,
     Stethoscope,
@@ -32,7 +31,6 @@ import { WorkspacePage } from "@/shared/components/layout/WorkspacePage";
 import { Button } from "@/shared/components/ui/Button";
 import { InputDate } from "@/shared/components/ui/input/InputDate";
 import { InputString } from "@/shared/components/ui/input/InputString";
-import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
 import { closeReservedPdfWindow, deliverPdf, reservePdfWindow } from "@/shared/lib/pdf/pdf-delivery";
 
 type ReportDefinition = ReportCatalogItem & {
@@ -42,7 +40,9 @@ type ReportDefinition = ReportCatalogItem & {
     requiresPeriod?: boolean;
 };
 
-const REPORTS: ReportDefinition[] = [
+type ReportSystem = SystemEnum.DP | SystemEnum.RH;
+
+const DP_REPORTS: ReportDefinition[] = [
     {
         id: "employee-roster",
         reportKey: "EMPLOYEE_ROSTER",
@@ -54,16 +54,6 @@ const REPORTS: ReportDefinition[] = [
         icon: Users,
     },
     {
-        id: "payslip",
-        title: "Recibo de Pagamento",
-        description: "Recibos de pagamento do período selecionado.",
-        category: "Folha de pagamento",
-        permission: "payslip:read",
-        filename: () => "recibos-pagamento.pdf",
-        icon: ReceiptText,
-        development: true,
-    },
-    {
         id: "time-sheet",
         title: "Espelho de Ponto",
         description: "Detalhamento das marcações de ponto dos colaboradores.",
@@ -71,6 +61,16 @@ const REPORTS: ReportDefinition[] = [
         permission: "attendance:read",
         filename: () => "espelho-ponto.pdf",
         icon: Clock3,
+        development: true,
+    },
+    {
+        id: "occupational-exams",
+        title: "Exames Ocupacionais",
+        description: "Relação de exames realizados no período selecionado.",
+        category: "SST",
+        permission: "occupationalexam:read",
+        filename: () => "exames-ocupacionais.pdf",
+        icon: Stethoscope,
         development: true,
     },
     {
@@ -84,6 +84,9 @@ const REPORTS: ReportDefinition[] = [
         icon: CalendarOff,
         requiresPeriod: true,
     },
+];
+
+const RH_REPORTS: ReportDefinition[] = [
     {
         id: "people-movements",
         reportKey: "ADMISSIONS",
@@ -106,19 +109,9 @@ const REPORTS: ReportDefinition[] = [
         development: true,
     },
     {
-        id: "occupational-exams",
-        title: "Exames Ocupacionais",
-        description: "Relação de exames realizados no período selecionado.",
-        category: "SST",
-        permission: "occupationalexam:read",
-        filename: () => "exames-ocupacionais.pdf",
-        icon: Stethoscope,
-        development: true,
-    },
-    {
         id: "indicator-summary",
         title: "Resumo de Indicadores",
-        description: "Principais indicadores de RH e Departamento Pessoal.",
+        description: "Principais indicadores operacionais de Recursos Humanos.",
         category: "Indicadores",
         permission: "dashboard:read",
         filename: () => "resumo-indicadores.pdf",
@@ -126,6 +119,11 @@ const REPORTS: ReportDefinition[] = [
         development: true,
     },
 ];
+
+const REPORTS_BY_SYSTEM: Record<ReportSystem, ReportDefinition[]> = {
+    [SystemEnum.DP]: DP_REPORTS,
+    [SystemEnum.RH]: RH_REPORTS,
+};
 
 function todayIso(): string {
     const today = new Date();
@@ -141,9 +139,8 @@ function monthStartIso(): string {
     return [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), "01"].join("-");
 }
 
-export function ReportsWorkspacePage() {
-    const { activeSystem } = useActiveSystem();
-    const permissions = usePermissionsForSystem(activeSystem);
+export function ReportsWorkspacePage({ system }: { system: ReportSystem }) {
+    const permissions = usePermissionsForSystem(system);
     const preferences = useAccountPreferences();
     const [draftPeriod, setDraftPeriod] = useState<PeriodReportFilter>({
         startDate: monthStartIso(),
@@ -155,21 +152,17 @@ export function ReportsWorkspacePage() {
 
     const reports = useMemo(() => {
         const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
-        return REPORTS.filter((report) => {
+        return REPORTS_BY_SYSTEM[system].filter((report) => {
             if (!report.development && !hasPermission(permissions, report.permission)) return false;
             if (!normalizedQuery) return true;
             return [report.title, report.description, report.category].some((value) =>
                 value.toLocaleLowerCase("pt-BR").includes(normalizedQuery),
             );
         });
-    }, [permissions, query]);
+    }, [permissions, query, system]);
 
-    const systemName =
-        activeSystem === SystemEnum.CONTABILIDADE
-            ? "Contabilidade"
-            : activeSystem === SystemEnum.RH
-              ? "Recursos Humanos"
-              : "Departamento Pessoal";
+    const systemName = system === SystemEnum.RH ? "Recursos Humanos" : "Departamento Pessoal";
+    const idPrefix = `${system}-reports`;
 
     const periodIsValid = (period: PeriodReportFilter) =>
         Boolean(period.startDate && period.endDate && period.endDate >= period.startDate);
@@ -246,13 +239,13 @@ export function ReportsWorkspacePage() {
                         </div>
                     </header>
 
-                    <section className="gesint-report-filters" aria-labelledby="report-filters-title">
+                    <section className="gesint-report-filters" aria-labelledby={`${idPrefix}-filters-title`}>
                         <div className="gesint-report-filters__heading">
                             <span className="gesint-report-filters__icon" aria-hidden="true">
                                 <Filter className="size-4" />
                             </span>
                             <div>
-                                <h2 id="report-filters-title">Filtros globais (opcional)</h2>
+                                <h2 id={`${idPrefix}-filters-title`}>Filtros globais (opcional)</h2>
                                 <p>
                                     Use estas opções nos relatórios compatíveis. A filial ativa já é considerada
                                     automaticamente.
@@ -297,24 +290,24 @@ export function ReportsWorkspacePage() {
                         </div>
                     </section>
 
-                    <section className="gesint-report-catalog" aria-labelledby="report-catalog-title">
+                    <section className="gesint-report-catalog" aria-labelledby={`${idPrefix}-catalog-title`}>
                         <div className="gesint-report-catalog__heading">
                             <div className="gesint-report-catalog__title">
                                 <span aria-hidden="true">
                                     <BarChart3 className="size-4" />
                                 </span>
                                 <div>
-                                    <h2 id="report-catalog-title">Nossos relatórios</h2>
+                                    <h2 id={`${idPrefix}-catalog-title`}>Nossos relatórios</h2>
                                     <p>Escolha um relatório para visualizar ou gerar o PDF.</p>
                                 </div>
                             </div>
 
                             <div className="gesint-report-catalog__search">
-                                <label className="sr-only" htmlFor="report-search">
+                                <label className="sr-only" htmlFor={`${idPrefix}-search`}>
                                     Buscar relatórios
                                 </label>
                                 <InputString
-                                    id="report-search"
+                                    id={`${idPrefix}-search`}
                                     type="search"
                                     value={query}
                                     onValueChange={setQuery}
@@ -364,5 +357,3 @@ export function ReportsWorkspacePage() {
         </WorkspacePage>
     );
 }
-
-export default ReportsWorkspacePage;

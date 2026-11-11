@@ -1,7 +1,12 @@
 import { ModuleEnum, ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
-import { reportRoutes } from "@/modules/shared/reports/config/reports.routes";
+import { dpReportRoutes, rhReportRoutes } from "@/modules/shared/reports/config/reports.routes";
 
-export const reportsModule: TModule = {
-    infos: ModuleEnumHelper.getById(ModuleEnum.REPORTS),
-    routes: reportRoutes,
+export const dpReportsModule: TModule = {
+    infos: ModuleEnumHelper.getById(ModuleEnum.REPORTS_DP),
+    routes: dpReportRoutes,
+};
+
+export const rhReportsModule: TModule = {
+    infos: ModuleEnumHelper.getById(ModuleEnum.REPORTS_RH),
+    routes: rhReportRoutes,
 };
