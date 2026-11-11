@@ -63,6 +63,7 @@ export enum ModuleEnum {
     PAYROLL = "payroll",
     PAYMENTS = "payments",
     INSIGHTS = "insights",
+    REPORTS = "reports",
     SETTINGS = "settings",
     SETTINGS_ACCESS = "settings-access",
     SETTINGS_DP = "settings-dp",
@@ -129,6 +130,12 @@ export class ModuleEnumHelper implements IModuleHelper {
             name: "Insights",
             shortName: "INS",
             order: 5,
+        },
+        [ModuleEnum.REPORTS]: {
+            id: "reports",
+            name: "Relatórios",
+            shortName: "REL",
+            order: 6,
         },
         [ModuleEnum.SETTINGS]: {
             id: "settings",

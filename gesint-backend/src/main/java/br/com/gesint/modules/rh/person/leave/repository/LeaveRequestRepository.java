@@ -21,6 +21,23 @@ public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
             """
             SELECT l FROM LeaveRequest l
             WHERE l.status <> :deletedStatus
+              AND l.leaveType <> :vacationType
+              AND (l.absenceStatus IS NULL OR l.absenceStatus <> :cancelledStatus)
+              AND l.startDate <= :periodEnd
+              AND l.endDate >= :periodStart
+            ORDER BY l.startDate, l.endDate
+            """)
+    List<LeaveRequest> findAbsencesForReport(
+            @Param("periodStart") LocalDate periodStart,
+            @Param("periodEnd") LocalDate periodEnd,
+            @Param("vacationType") LeaveTypeEnum vacationType,
+            @Param("cancelledStatus") LeaveAbsenceStatusEnum cancelledStatus,
+            @Param("deletedStatus") StatusEnum deletedStatus);
+
+    @Query(
+            """
+            SELECT l FROM LeaveRequest l
+            WHERE l.status <> :deletedStatus
               AND l.collaboratorId = :collaboratorId
               AND l.approved = TRUE
               AND l.leaveType = :leaveType

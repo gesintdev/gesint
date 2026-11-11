@@ -3,11 +3,11 @@ import { payrollModule } from "@/modules/ctb/payroll/payroll.module";
 import { organizationModule } from "@/modules/dp/organization/organization.module";
 import { paymentsModule } from "@/modules/dp/payment/payment.module";
 import { dashboardModule } from "@/modules/rh/dashboard/dashboard.module";
-import { insightsModule } from "@/modules/rh/insights/insights.module";
 import { personModule } from "@/modules/rh/person/person.module";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
 import { ModuleEnumHelper, type TModule } from "@/modules/root/enum/ModuleEnum";
 import { SystemEnum, type TSystemModuleGroup } from "@/modules/root/enum/SystemEnum";
+import { reportsModule } from "@/modules/shared/reports/reports.module";
 import { isCtbSystemEnabled } from "@/shared/lib/system-availability";
 /**
  * routes.ts - ponto de entrada de navegacao do sistema.
@@ -31,12 +31,12 @@ export { SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 export const systemModuleGroups: TSystemModuleGroup[] = [
     {
         system: SystemEnum.DP,
-        modules: [organizationModule, paymentsModule],
+        modules: [organizationModule, paymentsModule, reportsModule],
     },
     {
         system: SystemEnum.RH,
         /** Painel é aba fixa do workspace (não entra no menu lateral). */
-        modules: [personModule, insightsModule],
+        modules: [personModule, reportsModule],
     },
     ...(isCtbSystemEnabled()
         ? [
@@ -54,10 +54,15 @@ export const SETTINGS_NAV_SECTIONS = ModuleEnumHelper.toNavSections(settingsModu
  * `dashboardModule` fica fora do rail: rota `/dashboard` + aba Painel fixa.
  * `settingsModule` agrega rotas CFG + aliases legados (não entra no menu de domínio).
  */
-export const modules: TModule[] = [dashboardModule, ...systemModuleGroups.flatMap((g) => g.modules), settingsModule];
+const domainModules = [
+    ...new Map(
+        systemModuleGroups.flatMap((group) => group.modules).map((module) => [module.infos.id, module]),
+    ).values(),
+];
+export const modules: TModule[] = [dashboardModule, ...domainModules, settingsModule];
 /** Seções de domínio + CFG (breadcrumbs, busca global de menu). */
 export const ALL_NAV_SECTIONS: NavSection[] = [
-    ...ModuleEnumHelper.toNavSections([dashboardModule, ...systemModuleGroups.flatMap((g) => g.modules)]),
+    ...ModuleEnumHelper.toNavSections([dashboardModule, ...domainModules]),
     ...SETTINGS_NAV_SECTIONS,
 ];
 

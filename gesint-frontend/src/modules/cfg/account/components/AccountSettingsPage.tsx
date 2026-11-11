@@ -1,9 +1,10 @@
 "use client";
 
-import {AccountMobileAccessCard} from "@/modules/cfg/account/components/AccountMobileAccessCard";
-import {AccountPasswordCard} from "@/modules/cfg/account/components/AccountPasswordCard";
-import {AccountProfileCard} from "@/modules/cfg/account/components/AccountProfileCard";
-import {AccountThemeCard} from "@/modules/cfg/account/components/AccountThemeCard";
+import { AccountMobileAccessCard } from "@/modules/cfg/account/components/AccountMobileAccessCard";
+import { AccountPasswordCard } from "@/modules/cfg/account/components/AccountPasswordCard";
+import { AccountPdfPreferenceCard } from "@/modules/cfg/account/components/AccountPdfPreferenceCard";
+import { AccountProfileCard } from "@/modules/cfg/account/components/AccountProfileCard";
+import { AccountThemeCard } from "@/modules/cfg/account/components/AccountThemeCard";
 
 export function AccountSettingsPage() {
     return (
@@ -18,6 +19,7 @@ export function AccountSettingsPage() {
                 <AccountProfileCard />
                 <AccountMobileAccessCard />
                 <AccountThemeCard />
+                <AccountPdfPreferenceCard />
                 <AccountPasswordCard />
             </div>
         </div>
