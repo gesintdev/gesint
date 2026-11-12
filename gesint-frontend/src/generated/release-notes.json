@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.99.1",
+      "hash": "c91ca303",
+      "date": "2026-11-12T08:05:14-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (deploy do Coolify no commit de release)",
+      "body": "**Commits incluídos**\n\n- fix(ci): deixa o commit de release disparar o deploy do Coolify",
+      "pullRequest": null
+    },
+    {
       "version": "1.99.0",
       "hash": "cf8ff790",
       "date": "2026-11-12T07:53:44-03:00",
