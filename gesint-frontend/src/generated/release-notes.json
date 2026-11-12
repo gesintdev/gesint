@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.99.0",
+      "hash": "cf8ff790",
+      "date": "2026-11-12T07:53:44-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (importacao Excel e relatorios)",
+      "body": "**Commits incluídos**\n\n- fix: mantem o primeiro acesso no host do tenant\n- fix: corrige ambiente local do admin backend\n- feat: adiciona catálogo e geração de relatórios\n- fix: separa as telas de relatórios de DP e RH\n- feat: adiciona importação Excel e reutiliza o container das telas de relatório",
+      "pullRequest": null
+    },
+    {
       "version": "1.98.9",
       "hash": "54212978",
       "date": "2026-11-06T08:03:54-03:00",
