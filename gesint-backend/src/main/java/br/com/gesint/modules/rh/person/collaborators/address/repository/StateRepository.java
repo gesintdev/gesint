@@ -12,6 +12,8 @@ import br.com.gesint.modules.rh.person.collaborators.address.entity.State;
 
 public interface StateRepository extends JpaRepository<State, UUID> {
 
+    java.util.Optional<State> findByAbbreviationIgnoreCase(String abbreviation);
+
     @Query(
             """
             SELECT s FROM State s

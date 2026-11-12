@@ -63,10 +63,13 @@ export enum ModuleEnum {
     PAYROLL = "payroll",
     PAYMENTS = "payments",
     INSIGHTS = "insights",
+    REPORTS_DP = "reports-dp",
+    REPORTS_RH = "reports-rh",
     SETTINGS = "settings",
     SETTINGS_ACCESS = "settings-access",
     SETTINGS_DP = "settings-dp",
     SETTINGS_RH = "settings-rh",
+    SETTINGS_IMPORT = "settings-import",
 }
 
 export interface IModuleHelper {
@@ -130,6 +133,18 @@ export class ModuleEnumHelper implements IModuleHelper {
             shortName: "INS",
             order: 5,
         },
+        [ModuleEnum.REPORTS_DP]: {
+            id: "reports-dp",
+            name: "Relatórios",
+            shortName: "REL",
+            order: 6,
+        },
+        [ModuleEnum.REPORTS_RH]: {
+            id: "reports-rh",
+            name: "Relatórios",
+            shortName: "REL",
+            order: 6,
+        },
         [ModuleEnum.SETTINGS]: {
             id: "settings",
             name: "Configurações",
@@ -153,6 +168,12 @@ export class ModuleEnumHelper implements IModuleHelper {
             name: "Recursos Humanos",
             shortName: "RH",
             order: 3,
+        },
+        [ModuleEnum.SETTINGS_IMPORT]: {
+            id: "settings-import",
+            name: "Importação",
+            shortName: "IMP",
+            order: 4,
         },
     };
     // ── Static API (primary usage) ───────────────

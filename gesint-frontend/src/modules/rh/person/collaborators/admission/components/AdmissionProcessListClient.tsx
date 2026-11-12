@@ -6,6 +6,8 @@ import { Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { EntityImportLockNotice } from "@/modules/cfg/settings/dataimport/components/EntityImportLockNotice";
+import { useEntityImportLock } from "@/modules/cfg/settings/dataimport/hooks/useEntityImportLock";
 import { admissionprocessKeys } from "@/modules/rh/person/collaborators/admission/admission.query";
 import { AdmissionDetailModal } from "@/modules/rh/person/collaborators/admission/components/AdmissionDetailModal";
 import { ADMISSION_TABLE_COLUMNS } from "@/modules/rh/person/collaborators/admission/config/admission-process.table-columns";
@@ -58,6 +60,7 @@ function admissionRowClassName(row: AdmissionListingRow) {
 export function AdmissionProcessListClient() {
     const { startEdit } = useCrudScreen();
     const queryClient = useQueryClient();
+    const { locked } = useEntityImportLock("ADMISSION");
     const [selected, setSelected] = useState<AdmissionProcess | null>(null);
     const [profileFilter, setProfileFilter] = useState<AdmissionProfileFilter>("ACTIVE");
     const listQueryKey = useBranchScopedQueryKey([...admissionprocessKeys.all, profileFilter]);
@@ -82,6 +85,10 @@ export function AdmissionProcessListClient() {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);
     };
+
+    if (locked) {
+        return <EntityImportLockNotice entityLabel="admissões" />;
+    }
 
     return (
         <>

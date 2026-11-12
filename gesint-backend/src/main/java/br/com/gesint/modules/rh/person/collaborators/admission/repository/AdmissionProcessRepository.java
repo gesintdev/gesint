@@ -1,5 +1,6 @@
 package br.com.gesint.modules.rh.person.collaborators.admission.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +21,8 @@ public interface AdmissionProcessRepository extends IBaseRepository<AdmissionPro
     Optional<AdmissionProcess> findByCpfAndStatusNot(String cpf, StatusEnum status);
 
     Optional<AdmissionProcess> findByCpfAndStatusNotAndIdNot(String cpf, StatusEnum status, UUID id);
+
+    Optional<AdmissionProcess> findByProviderCnpjAndStatusNot(String providerCnpj, StatusEnum status);
 
     Optional<AdmissionProcess> findByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
 
@@ -45,6 +48,21 @@ public interface AdmissionProcessRepository extends IBaseRepository<AdmissionPro
 
     List<AdmissionProcess> findByAdmissionStatusAndCollaboratorIdIsNotNullAndStatusNot(
             AdmissionStatusEnum admissionStatus, StatusEnum status);
+
+    @Query(
+            """
+            SELECT a FROM AdmissionProcess a
+            WHERE a.status <> :deleted
+              AND a.admissionStatus <> :cancelled
+              AND COALESCE(a.contractStartDate, a.expectedStartDate, a.completedAt, a.startedAt)
+                  BETWEEN :startDate AND :endDate
+            ORDER BY COALESCE(a.contractStartDate, a.expectedStartDate, a.completedAt, a.startedAt), a.fullName
+            """)
+    List<AdmissionProcess> findForReport(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("cancelled") AdmissionStatusEnum cancelled,
+            @Param("deleted") StatusEnum deleted);
 
     @Query(
             """

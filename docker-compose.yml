@@ -51,7 +51,10 @@ services:
     command: sh -c "mvn -q spring-boot:run -Dspring-boot.run.profiles=dev"
 
   gesint-admin-backend:
-    image: eclipse-temurin:21-jdk-alpine
+    build:
+      context: ./gesint-admin-backend
+      dockerfile: Dockerfile
+      target: dev
     container_name: gesint-admin-backend
     working_dir: /app
     volumes:

@@ -6206,3 +6206,675 @@ html:has(.ponto-landing) body {
     }
 }
 
+/* ──────────────────────────────────────────────
+   Página com hero (relatórios, importação)
+   ────────────────────────────────────────────── */
+.gesint-hero-page {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+    padding: 1rem;
+    background: var(--color-page);
+}
+
+.gesint-hero-page__inner {
+    display: flex;
+    width: 100%;
+    max-width: 96rem;
+    margin-inline: auto;
+    flex-direction: column;
+    gap: 0.875rem;
+}
+
+.gesint-hero-page__hero {
+    position: relative;
+    display: flex;
+    min-height: 8.25rem;
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--gesint-primary) 14%, var(--gesint-border-subtle));
+    border-radius: var(--radius-gesint-card);
+    background:
+        radial-gradient(
+            circle at 78% 8%,
+            color-mix(in srgb, var(--gesint-primary-light) 20%, transparent),
+            transparent 33%
+        ),
+        linear-gradient(
+            112deg,
+            color-mix(in srgb, var(--color-base-100) 95%, var(--gesint-primary-50)),
+            color-mix(in srgb, var(--color-page) 78%, var(--gesint-primary-100))
+        );
+    box-shadow: var(--gesint-shadow-sm);
+    isolation: isolate;
+}
+
+.gesint-hero-page__hero::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+        linear-gradient(
+            118deg,
+            transparent 58%,
+            color-mix(in srgb, var(--gesint-primary) 7%, transparent) 58%,
+            transparent 78%
+        ),
+        radial-gradient(circle at 88% 100%, color-mix(in srgb, var(--gesint-primary) 13%, transparent), transparent 38%);
+    content: "";
+}
+
+[data-theme="dark"] .gesint-hero-page__hero {
+    border-color: color-mix(in srgb, var(--gesint-primary-light) 18%, var(--gesint-border-subtle));
+    background:
+        radial-gradient(
+            circle at 78% 8%,
+            color-mix(in srgb, var(--gesint-primary-light) 16%, transparent),
+            transparent 34%
+        ),
+        linear-gradient(
+            112deg,
+            color-mix(in srgb, var(--color-base-100) 94%, var(--gesint-primary-950)),
+            color-mix(in srgb, var(--color-page) 86%, var(--gesint-primary-900))
+        );
+}
+
+.gesint-hero-page__content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    max-width: 44rem;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+}
+
+.gesint-hero-page__icon {
+    display: flex;
+    width: 3.25rem;
+    height: 3.25rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--gesint-primary) 16%, transparent);
+    border-radius: var(--radius-gesint-card);
+    background: color-mix(in srgb, var(--gesint-primary) 10%, var(--color-base-100));
+    color: var(--color-primary);
+    box-shadow: var(--gesint-shadow-xs);
+}
+
+.gesint-hero-page__title {
+    color: var(--color-base-content);
+    font-size: 1.625rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+}
+
+.gesint-hero-page__subtitle {
+    margin-top: 0.375rem;
+    color: color-mix(in srgb, var(--color-base-content) 56%, transparent);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.gesint-hero-page__art {
+    position: absolute;
+    top: 50%;
+    right: 7%;
+    width: 12rem;
+    height: 8rem;
+    transform: translateY(-50%);
+}
+
+.gesint-hero-page__sheet {
+    position: absolute;
+    inset: 0.25rem 1.5rem 0.25rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 1rem 1.25rem;
+    transform: rotate(7deg);
+    border: 1px solid color-mix(in srgb, var(--gesint-primary) 17%, var(--gesint-border-subtle));
+    border-radius: var(--radius-gesint-card);
+    background: color-mix(in srgb, var(--color-base-100) 88%, transparent);
+    color: var(--color-primary);
+    box-shadow: var(--gesint-shadow-md);
+}
+
+.gesint-hero-page__sheet > span {
+    display: block;
+    width: 54%;
+    height: 0.35rem;
+    border-radius: var(--gesint-radius-badge);
+    background: color-mix(in srgb, var(--gesint-primary) 16%, transparent);
+}
+
+.gesint-hero-page__sheet > span:nth-child(2) {
+    width: 72%;
+}
+
+.gesint-hero-page__sheet > span:nth-child(3) {
+    width: 43%;
+}
+
+.gesint-hero-page__sheet > svg {
+    position: absolute;
+    right: 1rem;
+    bottom: 0.75rem;
+}
+
+.gesint-hero-page__badge {
+    position: absolute;
+    right: 0;
+    bottom: 0.75rem;
+    display: flex;
+    width: 2.4rem;
+    height: 2.4rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--gesint-control-radius);
+    background: var(--color-primary);
+    color: var(--color-primary-content);
+    box-shadow: var(--gesint-shadow-md);
+}
+
+.gesint-report-filters,
+.gesint-report-catalog {
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: var(--radius-gesint-card);
+    background: var(--color-base-100);
+    box-shadow: var(--gesint-shadow-sm);
+}
+
+.gesint-report-filters__heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem 0.625rem;
+}
+
+.gesint-report-filters__heading h2,
+.gesint-report-catalog__heading h2 {
+    color: var(--color-base-content);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.gesint-report-filters__heading p,
+.gesint-report-catalog__heading p {
+    margin-top: 0.1rem;
+    color: color-mix(in srgb, var(--color-base-content) 48%, transparent);
+    font-size: 0.6875rem;
+    line-height: 1.45;
+}
+
+.gesint-report-filters__icon,
+.gesint-report-catalog__title > span {
+    display: flex;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--gesint-control-radius);
+    background: color-mix(in srgb, var(--gesint-primary) 9%, transparent);
+    color: var(--color-primary);
+}
+
+.gesint-report-filters__body {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--gesint-border-subtle);
+    padding: 0.75rem 1rem 0.875rem;
+}
+
+.gesint-report-filters__fields {
+    display: grid;
+    width: min(100%, 34rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.gesint-report-filters__actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0.5rem;
+}
+
+.gesint-report-catalog {
+    padding: 0.75rem;
+}
+
+.gesint-report-catalog__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 0.125rem 0.75rem;
+}
+
+.gesint-report-catalog__title {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.gesint-report-catalog__search {
+    width: min(100%, 16rem);
+}
+
+.gesint-report-catalog__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.625rem;
+}
+
+.gesint-report-card {
+    display: flex;
+    min-width: 0;
+    min-height: 12.25rem;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: var(--radius-gesint-card);
+    background: var(--color-base-100);
+    box-shadow: var(--gesint-shadow-xs);
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.gesint-report-card:hover {
+    border-color: var(--gesint-border-strong);
+    box-shadow: var(--gesint-shadow-sm);
+}
+
+.gesint-report-card__content {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
+.gesint-report-card__topline {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.gesint-report-card__icon {
+    display: flex;
+    width: 2.35rem;
+    height: 2.35rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--gesint-control-radius);
+    background: color-mix(in srgb, var(--gesint-primary) 9%, transparent);
+    color: var(--color-primary);
+}
+
+.gesint-report-card__category,
+.gesint-report-card__status {
+    display: inline-flex;
+    min-height: 1.15rem;
+    align-items: center;
+    border-radius: var(--gesint-radius-badge);
+    padding: 0.1rem 0.35rem;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.gesint-report-card__category {
+    background: color-mix(in srgb, var(--gesint-primary) 9%, transparent);
+    color: var(--color-primary);
+}
+
+.gesint-report-card__status {
+    border: 1px solid var(--gesint-border-subtle);
+    background: color-mix(in srgb, var(--color-base-content) 3%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
+    font-weight: 500;
+}
+
+.gesint-report-card__menu {
+    display: flex;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: color-mix(in srgb, var(--color-base-content) 38%, transparent);
+}
+
+.gesint-report-card__title {
+    color: var(--color-base-content);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+}
+
+.gesint-report-card__description {
+    margin-top: 0.25rem;
+    color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
+    font-size: 0.6875rem;
+    line-height: 1.45;
+}
+
+.gesint-report-card__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.375rem;
+    border-top: 1px solid var(--gesint-border-subtle);
+    padding: 0.5rem 0.625rem;
+}
+
+.gesint-report-card__actions .gesint-btn {
+    min-height: 2rem;
+    height: 2rem;
+    gap: 0.3rem;
+    padding-inline: 0.45rem;
+    font-size: 0.625rem;
+}
+
+.gesint-report-card__preview {
+    min-width: 0;
+    justify-content: flex-start;
+    color: color-mix(in srgb, var(--color-base-content) 68%, transparent);
+}
+
+.gesint-report-card__generate {
+    white-space: nowrap;
+}
+
+.gesint-report-catalog__empty {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
+    font-size: 0.75rem;
+}
+
+.gesint-report-tip {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    border: 1px solid color-mix(in srgb, var(--gesint-primary) 13%, var(--gesint-border-subtle));
+    border-radius: var(--radius-gesint-card);
+    padding: 0.625rem 0.875rem;
+    background: color-mix(in srgb, var(--gesint-primary) 4%, var(--color-base-100));
+    color: color-mix(in srgb, var(--color-base-content) 54%, transparent);
+    font-size: 0.6875rem;
+}
+
+.gesint-report-tip > span {
+    display: flex;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--gesint-primary) 14%, transparent);
+    border-radius: 50%;
+    background: var(--color-base-100);
+    color: var(--color-primary);
+}
+
+.gesint-report-tip p {
+    display: flex;
+    flex-direction: column;
+}
+
+.gesint-report-tip strong {
+    color: var(--color-base-content);
+    font-weight: 600;
+}
+
+@media (max-width: 900px) {
+    .gesint-report-catalog__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gesint-report-filters__body {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .gesint-report-filters__fields {
+        width: 100%;
+    }
+
+    .gesint-report-filters__actions {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 639px) {
+    .gesint-hero-page {
+        padding: 0.75rem;
+    }
+
+    .gesint-hero-page__hero {
+        min-height: 7.5rem;
+    }
+
+    .gesint-hero-page__content {
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1.25rem;
+    }
+
+    .gesint-hero-page__icon {
+        width: 2.75rem;
+        height: 2.75rem;
+    }
+
+    .gesint-hero-page__title {
+        font-size: 1.375rem;
+    }
+
+    .gesint-hero-page__art {
+        display: none;
+    }
+
+    .gesint-report-filters__fields,
+    .gesint-report-catalog__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .gesint-report-filters__actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gesint-report-filters__actions .gesint-btn {
+        justify-content: center;
+    }
+
+    .gesint-report-catalog__heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .gesint-report-catalog__search {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gesint-report-card {
+        transition: none;
+    }
+}
+
+/* ──────────────────────────────────────────────
+   Importação Excel
+   ────────────────────────────────────────────── */
+.gesint-import-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.125rem;
+}
+
+.gesint-import-empty {
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: var(--radius-gesint-card);
+    background: var(--color-base-100);
+    padding: 1.5rem;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    font-size: 0.8125rem;
+}
+
+.gesint-import-entity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    border: 1px solid var(--gesint-border);
+    border-radius: var(--radius-gesint-card);
+    background: var(--color-base-100);
+    box-shadow: var(--gesint-shadow-sm);
+    padding: 1rem 1.125rem 1.125rem;
+}
+
+[data-theme="dark"] .gesint-import-entity {
+    border-color: color-mix(in srgb, var(--color-base-content) 14%, transparent);
+}
+
+.gesint-import-entity__header {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.gesint-import-entity__icon,
+.gesint-import-mode__icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--gesint-control-radius);
+    background: color-mix(in srgb, var(--gesint-primary) 10%, var(--color-base-100));
+    color: var(--color-primary);
+}
+
+.gesint-import-entity__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.gesint-import-entity__title {
+    color: var(--color-base-content);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+.gesint-import-entity__subtitle,
+.gesint-import-mode__description {
+    margin-top: 0.15rem;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+.gesint-import-entity__modes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.gesint-import-mode {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.875rem;
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: var(--radius-gesint-card);
+    background: color-mix(in srgb, var(--color-base-content) 2.75%, var(--color-page));
+    padding: 0.875rem;
+}
+
+.gesint-import-mode__intro {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 0.625rem;
+}
+
+.gesint-import-mode__icon {
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+.gesint-import-mode__title {
+    color: var(--color-base-content);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.gesint-import-mode__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gesint-import-mode__result {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--color-base-content);
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.gesint-import-mode__result[data-tone="success"] > svg {
+    color: var(--color-success);
+}
+
+.gesint-import-mode__result[data-tone="warning"] > svg {
+    color: var(--color-warning);
+}
+
+.gesint-import-mode__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.gesint-import-mode__progress-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    color: color-mix(in srgb, var(--color-base-content) 70%, transparent);
+    font-size: 0.75rem;
+}
+
+.gesint-import-mode__errors {
+    max-height: 14rem;
+    overflow: auto;
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: var(--gesint-control-radius);
+}
+
+@media (max-width: 900px) {
+    .gesint-import-entity__modes {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

@@ -3,6 +3,7 @@ import {
     CalendarClock,
     ClipboardList,
     Columns3,
+    FileSpreadsheet,
     FileText,
     Globe,
     GraduationCap,
@@ -362,12 +363,31 @@ const rhRoutes: AppRoute[] = [
     }),
 ];
 
+const importRoutes: AppRoute[] = [
+    customWorkspaceRoute({
+        id: "settings-data-import",
+        href: "/settings/data-import",
+        label: "Importação Excel",
+        icon: FileSpreadsheet,
+        permissionsAny: [
+            "department:write",
+            "jobposition:write",
+            "admission:write",
+            "department:read",
+            "jobposition:read",
+            "admission:read",
+        ],
+        load: () => import("@/modules/cfg/settings/dataimport/components/DataImportPage"),
+    }),
+];
+
 export const settingsAccessRoutes = accessRoutes;
 export const settingsDpRoutes = dpRoutes;
 export const settingsRhRoutes = rhRoutes;
+export const settingsImportRoutes = importRoutes;
 
 /** Lista plana de todas as rotas de configurações (rail, permissões, workspace). */
-export const settingsRoutes: AppRoute[] = [...accessRoutes, ...dpRoutes, ...rhRoutes];
+export const settingsRoutes: AppRoute[] = [...accessRoutes, ...dpRoutes, ...rhRoutes, ...importRoutes];
 
 /** @deprecated Mantido para abas antigas apontando para /settings/attendance */
 export const settingsAttendanceLegacyRoute = customWorkspaceRoute({

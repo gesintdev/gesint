@@ -23,6 +23,7 @@ DECLARE
     tbl           text;
     tenant_tables constant text[] := ARRAY[
         'company',
+        'data_import_job',
         'department',
         'job_position',
         'job_position_salary_table',
@@ -178,6 +179,7 @@ BEGIN
                 password_hash VARCHAR(255),
                 access_token_hash VARCHAR(64),
                 first_access_completed BOOLEAN NOT NULL DEFAULT false,
+                report_pdf_delivery_mode VARCHAR(20) NOT NULL DEFAULT 'DOWNLOAD',
                 last_login TIMESTAMPTZ,
                 created_by UUID,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -194,6 +196,11 @@ BEGIN
             v_schema, v_schema);
         EXECUTE format('CREATE UNIQUE INDEX uk_%s_app_user_code ON %I.app_user (code)', v_schema, v_schema);
     END IF;
+
+    EXECUTE format(
+        'ALTER TABLE %I.app_user ADD COLUMN IF NOT EXISTS report_pdf_delivery_mode VARCHAR(20) NOT NULL DEFAULT ''DOWNLOAD''',
+        v_schema
+    );
 
     IF NOT EXISTS (
         SELECT 1 FROM information_schema.tables WHERE table_schema = v_schema AND table_name = 'permission'

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="employee_roster" pageWidth="595" pageHeight="842" columnWidth="539"
+              leftMargin="28" rightMargin="28" topMargin="28" bottomMargin="28"
+              whenNoDataType="AllSectionsNoDetail">
+    <property name="net.sf.jasperreports.default.font.name" value="SansSerif"/>
+    <style name="Base" fontName="SansSerif" fontSize="9" forecolor="#0B1F3A"/>
+    <style name="Cell" style="Base">
+        <box>
+            <pen lineWidth="0.4" lineColor="#CBD5E1"/>
+            <leftPen lineWidth="0.4" lineColor="#CBD5E1"/>
+            <bottomPen lineWidth="0.4" lineColor="#CBD5E1"/>
+            <rightPen lineWidth="0.4" lineColor="#CBD5E1"/>
+        </box>
+    </style>
+    <parameter name="REPORT_TITLE" class="java.lang.String"/>
+    <parameter name="SYSTEM_LOGO" class="java.awt.Image"/>
+    <parameter name="COMPANY_NAME" class="java.lang.String"/>
+    <parameter name="BRANCH_NAME" class="java.lang.String"/>
+    <parameter name="GENERATED_BY" class="java.lang.String"/>
+    <parameter name="GENERATED_AT" class="java.time.OffsetDateTime"/>
+    <parameter name="TOTAL_RECORDS" class="java.lang.Integer"/>
+    <field name="code" class="java.lang.Integer"/>
+    <field name="employeeName" class="java.lang.String"/>
+    <field name="department" class="java.lang.String"/>
+    <field name="jobPosition" class="java.lang.String"/>
+    <field name="admissionDate" class="java.time.LocalDate"/>
+    <field name="status" class="java.lang.String"/>
+    <title>
+        <band height="170">
+            <image scaleImage="RetainShape" hAlign="Left" vAlign="Middle">
+                <reportElement x="0" y="5" width="36" height="48"/>
+                <imageExpression><![CDATA[$P{SYSTEM_LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="44" y="11" width="105" height="20" forecolor="#0B1F3A"/>
+                <textElement><font size="16" isBold="true"/></textElement>
+                <text><![CDATA[Gesint]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="44" y="32" width="115" height="14" forecolor="#475569"/>
+                <textElement><font size="7"/></textElement>
+                <text><![CDATA[Gestão de DP e RH]]></text>
+            </staticText>
+            <line>
+                <reportElement x="165" y="8" width="1" height="41" forecolor="#0062CC"/>
+            </line>
+            <staticText>
+                <reportElement x="350" y="7" width="48" height="14" forecolor="#334155"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Empresa:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="400" y="7" width="139" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{COMPANY_NAME}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="350" y="23" width="48" height="14" forecolor="#334155"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Filial:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="400" y="23" width="139" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{BRANCH_NAME}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="350" y="39" width="48" height="14" forecolor="#334155"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Data/Hora:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="400" y="39" width="139" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm").format($P{GENERATED_AT})]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="0" y="62" width="539" height="1" forecolor="#0062CC"/>
+            </line>
+            <textField>
+                <reportElement x="0" y="80" width="539" height="28" forecolor="#0B1F3A"/>
+                <textElement><font size="18" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{REPORT_TITLE}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="109" width="350" height="17" forecolor="#475569"/>
+                <textElement><font size="9"/></textElement>
+                <text><![CDATA[Resumo cadastral e informações da equipe]]></text>
+            </staticText>
+            <line>
+                <reportElement x="0" y="134" width="539" height="1" forecolor="#64748B"/>
+            </line>
+            <rectangle>
+                <reportElement x="0" y="148" width="539" height="22" backcolor="#E8EDF3"/>
+                <graphicElement><pen lineWidth="0"/></graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="8" y="152" width="300" height="15" forecolor="#0B1F3A"/>
+                <textElement><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA["Total de funcionários: " + $P{TOTAL_RECORDS}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+    <columnHeader>
+        <band height="28">
+            <rectangle>
+                <reportElement x="0" y="0" width="539" height="28" backcolor="#E8EDF3"/>
+                <graphicElement><pen lineWidth="0.4" lineColor="#CBD5E1"/></graphicElement>
+            </rectangle>
+            <staticText><reportElement x="0" y="0" width="42" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement><text><![CDATA[Código]]></text></staticText>
+            <staticText><reportElement x="42" y="0" width="145" height="28"/><textElement verticalAlignment="Middle"><font size="8" isBold="true"/></textElement><text><![CDATA[Funcionário]]></text></staticText>
+            <staticText><reportElement x="187" y="0" width="100" height="28"/><textElement verticalAlignment="Middle"><font size="8" isBold="true"/></textElement><text><![CDATA[Departamento]]></text></staticText>
+            <staticText><reportElement x="287" y="0" width="100" height="28"/><textElement verticalAlignment="Middle"><font size="8" isBold="true"/></textElement><text><![CDATA[Cargo]]></text></staticText>
+            <staticText><reportElement x="387" y="0" width="82" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement><text><![CDATA[Admissão]]></text></staticText>
+            <staticText><reportElement x="469" y="0" width="70" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement><text><![CDATA[Situação]]></text></staticText>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="24">
+            <textField isBlankWhenNull="true"><reportElement style="Cell" x="0" y="0" width="42" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{code}]]></textFieldExpression></textField>
+            <textField><reportElement style="Cell" x="42" y="0" width="145" height="24"/><textElement verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{employeeName}]]></textFieldExpression></textField>
+            <textField><reportElement style="Cell" x="187" y="0" width="100" height="24"/><textElement verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{department}]]></textFieldExpression></textField>
+            <textField><reportElement style="Cell" x="287" y="0" width="100" height="24"/><textElement verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{jobPosition}]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true"><reportElement style="Cell" x="387" y="0" width="82" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{admissionDate} == null ? "-" : java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy").format($F{admissionDate})]]></textFieldExpression></textField>
+            <textField><reportElement style="Cell" x="469" y="0" width="70" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{status}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+    <pageFooter>
+        <band height="28">
+            <line><reportElement x="0" y="2" width="539" height="1" forecolor="#0062CC"/></line>
+            <textField><reportElement x="0" y="8" width="300" height="14" forecolor="#475569"/><textElement><font size="7"/></textElement><textFieldExpression><![CDATA["Gesint - Gestão Integrada para sua empresa · Gerado por " + $P{GENERATED_BY}]]></textFieldExpression></textField>
+            <textField><reportElement x="420" y="8" width="119" height="14" forecolor="#475569"/><textElement textAlignment="Right"><font size="7"/></textElement><textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression></textField>
+        </band>
+    </pageFooter>
+</jasperReport>

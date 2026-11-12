@@ -212,8 +212,9 @@ export function ActiveSystemProvider({
             if (unrestrictedPlatformAdmin) {
                 return SETTINGS_NAV_SECTIONS;
             }
-            const cfgScoped = permissionsForSystem(permissions, systemPermissions, "CFG");
-            return filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, cfgScoped);
+            // Flat: Importação Excel e afins usam permissões de DP/RH (department/jobposition/admission),
+            // que não entram no escopo CFG puro e sumiriam do menu / gerariam navegação inconsistente.
+            return filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, permissions);
         }
         if (systems.length === 0) {
             return [];
@@ -248,11 +249,10 @@ export function ActiveSystemProvider({
         if (!permissionsReady || !isSettingsMode || unrestrictedPlatformAdmin) {
             return;
         }
-        const cfgScoped = permissionsForSystem(permissions, systemPermissions, "CFG");
-        if (filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, cfgScoped).length === 0) {
+        if (filterSectionsByPermissions(SETTINGS_NAV_SECTIONS, permissions).length === 0) {
             persistSettingsMode(false);
         }
-    }, [isSettingsMode, permissions, systemPermissions, permissionsReady, unrestrictedPlatformAdmin]);
+    }, [isSettingsMode, permissions, permissionsReady, unrestrictedPlatformAdmin]);
     const value = useMemo(
         () => ({
             activeSystem: resolvedActiveSystem,

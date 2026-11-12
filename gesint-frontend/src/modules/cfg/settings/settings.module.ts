@@ -1,12 +1,13 @@
+import {accountSettingsRoute} from "@/modules/cfg/account/config/account.routes";
 import {
     settingsAccessRoutes,
     settingsAttendanceLegacyRoute,
     settingsDpRoutes,
+    settingsImportRoutes,
     settingsNotificationsLegacyRoute,
     settingsRhRoutes,
     settingsRoutes,
 } from "@/modules/cfg/settings/config/settings.routes";
-import {accountSettingsRoute} from "@/modules/cfg/account/config/account.routes";
 import {ModuleEnum, ModuleEnumHelper, type TModule} from "@/modules/root/enum/ModuleEnum";
 
 export const settingsAccessModule: TModule = {
@@ -24,8 +25,18 @@ export const settingsRhModule: TModule = {
     routes: settingsRhRoutes,
 };
 
+export const settingsImportModule: TModule = {
+    infos: ModuleEnumHelper.getById(ModuleEnum.SETTINGS_IMPORT),
+    routes: settingsImportRoutes,
+};
+
 /** Seções do menu CFG (rail de configurações). */
-export const settingsModules: TModule[] = [settingsAccessModule, settingsDpModule, settingsRhModule];
+export const settingsModules: TModule[] = [
+    settingsAccessModule,
+    settingsDpModule,
+    settingsRhModule,
+    settingsImportModule,
+];
 
 /**
  * Módulo agregado (workspace / APP_ROUTES).

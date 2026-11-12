@@ -11,7 +11,12 @@ RUN mvn -q -B -DskipTests dependency:go-offline
 COPY src ./src
 RUN mvn -q -B -DskipTests package
 
-FROM eclipse-temurin:21-jre-alpine
+# Dev local (docker compose): JDK + Maven
+FROM eclipse-temurin:21-jdk-alpine AS dev
+RUN apk add --no-cache maven curl
+WORKDIR /app
+
+FROM eclipse-temurin:21-jre-alpine AS prod
 WORKDIR /app
 
 RUN apk add --no-cache curl \

@@ -13,6 +13,7 @@ DECLARE
     tbl text;
     tenant_tables constant text[] := ARRAY[
         'company',
+        'data_import_job',
         'department',
         'job_position',
         'job_position_salary_table',

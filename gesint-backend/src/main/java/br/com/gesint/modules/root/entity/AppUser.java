@@ -6,6 +6,8 @@ import org.hibernate.envers.NotAudited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -62,6 +64,11 @@ public class AppUser extends AuditEntity {
     @NotAudited
     @Column(name = "last_login")
     private OffsetDateTime lastLogin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "report_pdf_delivery_mode", nullable = false, length = 20)
+    @Builder.Default
+    private PdfDeliveryModeEnum reportPdfDeliveryMode = PdfDeliveryModeEnum.DOWNLOAD;
 
     /**
      * Perfis do usuario em qualquer filial, somente leitura.
