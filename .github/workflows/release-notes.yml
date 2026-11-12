@@ -40,7 +40,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add gesint-frontend/src/generated
-          git commit -m "chore(release): v${VERSION} [skip ci]"
+          # Sem [skip ci]: o Coolify cancela o deploy ainda na fila do push
+          # anterior e ignora o push de release se todos os commits tiverem
+          # esse marcador. O loop deste workflow ja e cortado pelo paths-ignore
+          # de gesint-frontend/src/generated.
+          git commit -m "chore(release): v${VERSION}"
           git pull --rebase origin main
           git tag -f "v${VERSION}"
           git push origin HEAD:main
