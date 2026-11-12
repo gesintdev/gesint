@@ -18,6 +18,8 @@ import br.com.gesint.modules.dp.organization.workschedule.entity.WorkSchedule;
 @Repository
 public interface WorkScheduleRepository extends IBaseRepository<WorkSchedule> {
 
+    Optional<WorkSchedule> findByCodeAndStatusNot(Integer code, StatusEnum status);
+
     List<WorkSchedule> findByStatusOrderByNameAsc(StatusEnum status);
 
     @Query(

@@ -27,7 +27,7 @@ import {
     reportService,
 } from "@/modules/shared/reports/services/report.service";
 import { hasPermission, usePermissionsForSystem } from "@/shared/auth/permissions";
-import { WorkspacePage } from "@/shared/components/layout/WorkspacePage";
+import { WorkspaceHeroArt, WorkspaceHeroPage } from "@/shared/components/layout/WorkspaceHeroPage";
 import { Button } from "@/shared/components/ui/Button";
 import { InputDate } from "@/shared/components/ui/input/InputDate";
 import { InputString } from "@/shared/components/ui/input/InputString";
@@ -210,150 +210,130 @@ export function ReportsWorkspacePage({ system }: { system: ReportSystem }) {
     };
 
     return (
-        <WorkspacePage>
-            <main className="gesint-reports-page">
-                <div className="gesint-reports-page__inner">
-                    <header className="gesint-reports-hero">
-                        <div className="gesint-reports-hero__content">
-                            <span className="gesint-reports-hero__icon" aria-hidden="true">
-                                <FileChartColumn className="size-6" strokeWidth={2} />
+        <WorkspaceHeroPage
+            title="Relatórios"
+            subtitle={`Acesse e gere relatórios de ${systemName} de forma rápida, prática e segura.`}
+            icon={<FileChartColumn className="size-6" strokeWidth={2} />}
+            art={
+                <WorkspaceHeroArt
+                    icon={<BarChart3 className="size-12" strokeWidth={1.7} />}
+                    badge={<FileChartColumn className="size-5" />}
+                />
+            }
+        >
+                <section className="gesint-report-filters" aria-labelledby={`${idPrefix}-filters-title`}>
+                    <div className="gesint-report-filters__heading">
+                        <span className="gesint-report-filters__icon" aria-hidden="true">
+                            <Filter className="size-4" />
+                        </span>
+                        <div>
+                            <h2 id={`${idPrefix}-filters-title`}>Filtros globais (opcional)</h2>
+                            <p>
+                                Use estas opções nos relatórios compatíveis. A filial ativa já é considerada
+                                automaticamente.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="gesint-report-filters__body">
+                        <div className="gesint-report-filters__fields">
+                            <InputDate
+                                label="Data inicial"
+                                value={draftPeriod.startDate}
+                                max={draftPeriod.endDate || undefined}
+                                onValueChange={(startDate) =>
+                                    setDraftPeriod((current) => ({ ...current, startDate }))
+                                }
+                            />
+                            <InputDate
+                                label="Data final"
+                                value={draftPeriod.endDate}
+                                min={draftPeriod.startDate || undefined}
+                                onValueChange={(endDate) => setDraftPeriod((current) => ({ ...current, endDate }))}
+                            />
+                        </div>
+
+                        <div className="gesint-report-filters__actions">
+                            <Button
+                                variant="secondary"
+                                leftIcon={<X className="size-3.5" />}
+                                onClick={clearFilters}
+                            >
+                                Limpar
+                            </Button>
+                            <Button
+                                variant="primary"
+                                leftIcon={<Filter className="size-3.5" />}
+                                onClick={applyFilters}
+                            >
+                                Aplicar filtros
+                            </Button>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="gesint-report-catalog" aria-labelledby={`${idPrefix}-catalog-title`}>
+                    <div className="gesint-report-catalog__heading">
+                        <div className="gesint-report-catalog__title">
+                            <span aria-hidden="true">
+                                <BarChart3 className="size-4" />
                             </span>
                             <div>
-                                <h1 className="gesint-reports-hero__title">Relatórios</h1>
-                                <p className="gesint-reports-hero__subtitle">
-                                    Acesse e gere relatórios de {systemName} de forma rápida, prática e segura.
-                                </p>
+                                <h2 id={`${idPrefix}-catalog-title`}>Nossos relatórios</h2>
+                                <p>Escolha um relatório para visualizar ou gerar o PDF.</p>
                             </div>
                         </div>
 
-                        <div className="gesint-reports-hero__art" aria-hidden="true">
-                            <div className="gesint-reports-hero__sheet">
-                                <span />
-                                <span />
-                                <span />
-                                <BarChart3 className="size-12" strokeWidth={1.7} />
-                            </div>
-                            <span className="gesint-reports-hero__download">
-                                <FileChartColumn className="size-5" />
-                            </span>
+                        <div className="gesint-report-catalog__search">
+                            <label className="sr-only" htmlFor={`${idPrefix}-search`}>
+                                Buscar relatórios
+                            </label>
+                            <InputString
+                                id={`${idPrefix}-search`}
+                                type="search"
+                                value={query}
+                                onValueChange={setQuery}
+                                placeholder="Buscar relatórios..."
+                                leftIcon={<Search className="size-4" />}
+                            />
                         </div>
-                    </header>
+                    </div>
 
-                    <section className="gesint-report-filters" aria-labelledby={`${idPrefix}-filters-title`}>
-                        <div className="gesint-report-filters__heading">
-                            <span className="gesint-report-filters__icon" aria-hidden="true">
-                                <Filter className="size-4" />
-                            </span>
-                            <div>
-                                <h2 id={`${idPrefix}-filters-title`}>Filtros globais (opcional)</h2>
-                                <p>
-                                    Use estas opções nos relatórios compatíveis. A filial ativa já é considerada
-                                    automaticamente.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="gesint-report-filters__body">
-                            <div className="gesint-report-filters__fields">
-                                <InputDate
-                                    label="Data inicial"
-                                    value={draftPeriod.startDate}
-                                    max={draftPeriod.endDate || undefined}
-                                    onValueChange={(startDate) =>
-                                        setDraftPeriod((current) => ({ ...current, startDate }))
+                    <div className="gesint-report-catalog__grid">
+                        {reports.map((report) => {
+                            const isLoading = generating === report.id;
+                            const isDisabled = preferences.isLoading || (generating !== null && !isLoading);
+                            return (
+                                <ReportCatalogCard
+                                    key={report.id}
+                                    report={report}
+                                    loading={isLoading}
+                                    disabled={isDisabled}
+                                    onPreview={() => void generate(report, "NEW_TAB")}
+                                    onGenerate={() =>
+                                        void generate(report, preferences.data?.reportPdfDeliveryMode ?? "DOWNLOAD")
                                     }
                                 />
-                                <InputDate
-                                    label="Data final"
-                                    value={draftPeriod.endDate}
-                                    min={draftPeriod.startDate || undefined}
-                                    onValueChange={(endDate) => setDraftPeriod((current) => ({ ...current, endDate }))}
-                                />
-                            </div>
+                            );
+                        })}
+                    </div>
 
-                            <div className="gesint-report-filters__actions">
-                                <Button
-                                    variant="secondary"
-                                    leftIcon={<X className="size-3.5" />}
-                                    onClick={clearFilters}
-                                >
-                                    Limpar
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    leftIcon={<Filter className="size-3.5" />}
-                                    onClick={applyFilters}
-                                >
-                                    Aplicar filtros
-                                </Button>
-                            </div>
+                    {reports.length === 0 && (
+                        <div className="gesint-report-catalog__empty">
+                            Nenhum relatório corresponde à sua busca.
                         </div>
-                    </section>
+                    )}
+                </section>
 
-                    <section className="gesint-report-catalog" aria-labelledby={`${idPrefix}-catalog-title`}>
-                        <div className="gesint-report-catalog__heading">
-                            <div className="gesint-report-catalog__title">
-                                <span aria-hidden="true">
-                                    <BarChart3 className="size-4" />
-                                </span>
-                                <div>
-                                    <h2 id={`${idPrefix}-catalog-title`}>Nossos relatórios</h2>
-                                    <p>Escolha um relatório para visualizar ou gerar o PDF.</p>
-                                </div>
-                            </div>
-
-                            <div className="gesint-report-catalog__search">
-                                <label className="sr-only" htmlFor={`${idPrefix}-search`}>
-                                    Buscar relatórios
-                                </label>
-                                <InputString
-                                    id={`${idPrefix}-search`}
-                                    type="search"
-                                    value={query}
-                                    onValueChange={setQuery}
-                                    placeholder="Buscar relatórios..."
-                                    leftIcon={<Search className="size-4" />}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="gesint-report-catalog__grid">
-                            {reports.map((report) => {
-                                const isLoading = generating === report.id;
-                                const isDisabled = preferences.isLoading || (generating !== null && !isLoading);
-                                return (
-                                    <ReportCatalogCard
-                                        key={report.id}
-                                        report={report}
-                                        loading={isLoading}
-                                        disabled={isDisabled}
-                                        onPreview={() => void generate(report, "NEW_TAB")}
-                                        onGenerate={() =>
-                                            void generate(report, preferences.data?.reportPdfDeliveryMode ?? "DOWNLOAD")
-                                        }
-                                    />
-                                );
-                            })}
-                        </div>
-
-                        {reports.length === 0 && (
-                            <div className="gesint-report-catalog__empty">
-                                Nenhum relatório corresponde à sua busca.
-                            </div>
-                        )}
-                    </section>
-
-                    <aside className="gesint-report-tip">
-                        <span aria-hidden="true">
-                            <Lightbulb className="size-4" />
-                        </span>
-                        <p>
-                            <strong>Dica</strong>
-                            Você pode ajustar os filtros de cada relatório individualmente quando necessário.
-                        </p>
-                    </aside>
-                </div>
-            </main>
-        </WorkspacePage>
+                <aside className="gesint-report-tip">
+                    <span aria-hidden="true">
+                        <Lightbulb className="size-4" />
+                    </span>
+                    <p>
+                        <strong>Dica</strong>
+                        Você pode ajustar os filtros de cada relatório individualmente quando necessário.
+                    </p>
+                </aside>
+        </WorkspaceHeroPage>
     );
 }

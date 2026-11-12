@@ -29,6 +29,7 @@ public final class AuditRecordLabels {
             Map.entry("Company", "Empresa"),
             Map.entry("Competency", "Competência"),
             Map.entry("ComplementaryExam", "Exame complementar"),
+            Map.entry("DataImportJob", "Importação Excel"),
             Map.entry("Department", "Departamento"),
             Map.entry("DevelopmentActionTemplate", "Modelo de ação de PDI"),
             Map.entry("DevelopmentPlan", "PDI"),

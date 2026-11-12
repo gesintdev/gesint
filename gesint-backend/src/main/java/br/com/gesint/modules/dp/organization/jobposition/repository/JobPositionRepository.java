@@ -1,5 +1,6 @@
 package br.com.gesint.modules.dp.organization.jobposition.repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -15,6 +16,8 @@ import br.com.gesint.modules.dp.organization.jobposition.entity.JobPositionNatur
 
 @Repository
 public interface JobPositionRepository extends IBaseRepository<JobPosition> {
+
+    Optional<JobPosition> findByCodeAndStatusNot(Integer code, StatusEnum status);
 
     @Query(
             """

@@ -13,6 +13,8 @@ import br.com.gesint.modules.dp.organization.company.entity.Company;
 @Repository
 public interface CompanyRepository extends IBaseRepository<Company> {
 
+    Optional<Company> findByCodeAndStatusNot(Integer code, StatusEnum status);
+
     Optional<Company> findByCnpjAndStatusNot(String cnpj, StatusEnum status);
 
     Optional<Company> findByHeadquartersTrueAndStatusNot(StatusEnum status);

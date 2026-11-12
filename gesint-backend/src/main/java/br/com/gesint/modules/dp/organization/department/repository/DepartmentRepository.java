@@ -1,5 +1,7 @@
 package br.com.gesint.modules.dp.organization.department.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +14,8 @@ import br.com.gesint.modules.dp.organization.department.entity.Department;
 
 @Repository
 public interface DepartmentRepository extends IBaseRepository<Department> {
+
+    Optional<Department> findByCodeAndStatusNot(Integer code, StatusEnum status);
 
     @Query(
             """

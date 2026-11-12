@@ -10,6 +10,7 @@ public final class TenantSchemaTableCatalog {
 
     public static final List<String> HR_DATA_TABLES = List.of(
             "company",
+            "data_import_job",
             "department",
             "job_position",
             "job_position_salary_table",

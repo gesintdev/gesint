@@ -3,6 +3,8 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {toast} from "sonner";
 
+import {EntityImportLockNotice} from "@/modules/cfg/settings/dataimport/components/EntityImportLockNotice";
+import {useEntityImportLock} from "@/modules/cfg/settings/dataimport/hooks/useEntityImportLock";
 import {DEPARTMENT_TABLE_COLUMNS} from "@/modules/dp/organization/department/config/department.table-columns";
 import {departmentKeys} from "@/modules/dp/organization/department/department.query";
 import type {Department} from "@/modules/dp/organization/department/dto/department.dto";
@@ -12,20 +14,21 @@ import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudTableActions} from "@/shared/components/crud/CrudTableActions";
 import {useCrudStatusActions} from "@/shared/components/crud/useCrudStatusActions";
 import {QueryPagedTablePanel} from "@/shared/components/data/DataPanel";
+import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {withCatalogAvailabilityLabel} from "@/shared/lib/branch-catalog-availability";
 import {
     CATALOG_STATUS_INITIAL_FILTERS,
     loadActiveAndInactiveRows,
     paginateCatalogRows,
 } from "@/shared/lib/table/paginate-catalog-rows";
-import {ExceptionCapture} from "@/shared/exceptions";
-import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
-import {withCatalogAvailabilityLabel} from "@/shared/lib/branch-catalog-availability";
 import {SystemAlert} from "@/shared/system-alert";
 
 export function DepartmentListClient() {
     const {startEdit} = useCrudScreen();
     const {branches} = useActiveBranch();
     const queryClient = useQueryClient();
+    const {locked} = useEntityImportLock("DEPARTMENT");
     const {activateMutation, deactivateMutation, handleActivate, handleDeactivate} = useCrudStatusActions({
         service: departmentService,
         queryKey: departmentKeys.all,
@@ -44,6 +47,10 @@ export function DepartmentListClient() {
         if (!(await SystemAlert.confirmDelete())) return;
         deleteMutation.mutate(row.id);
     };
+
+    if (locked) {
+        return <EntityImportLockNotice entityLabel="departamentos" />;
+    }
 
     return (
         <QueryPagedTablePanel<Department & {availabilityLabel: string}>

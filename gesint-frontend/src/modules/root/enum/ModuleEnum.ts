@@ -69,6 +69,7 @@ export enum ModuleEnum {
     SETTINGS_ACCESS = "settings-access",
     SETTINGS_DP = "settings-dp",
     SETTINGS_RH = "settings-rh",
+    SETTINGS_IMPORT = "settings-import",
 }
 
 export interface IModuleHelper {
@@ -167,6 +168,12 @@ export class ModuleEnumHelper implements IModuleHelper {
             name: "Recursos Humanos",
             shortName: "RH",
             order: 3,
+        },
+        [ModuleEnum.SETTINGS_IMPORT]: {
+            id: "settings-import",
+            name: "Importação",
+            shortName: "IMP",
+            order: 4,
         },
     };
     // ── Static API (primary usage) ───────────────

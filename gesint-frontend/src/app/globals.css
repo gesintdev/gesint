@@ -6207,9 +6207,9 @@ html:has(.ponto-landing) body {
 }
 
 /* ──────────────────────────────────────────────
-   Catálogo de relatórios
+   Página com hero (relatórios, importação)
    ────────────────────────────────────────────── */
-.gesint-reports-page {
+.gesint-hero-page {
     min-height: 0;
     flex: 1;
     overflow: auto;
@@ -6217,7 +6217,7 @@ html:has(.ponto-landing) body {
     background: var(--color-page);
 }
 
-.gesint-reports-page__inner {
+.gesint-hero-page__inner {
     display: flex;
     width: 100%;
     max-width: 96rem;
@@ -6226,7 +6226,7 @@ html:has(.ponto-landing) body {
     gap: 0.875rem;
 }
 
-.gesint-reports-hero {
+.gesint-hero-page__hero {
     position: relative;
     display: flex;
     min-height: 8.25rem;
@@ -6249,7 +6249,7 @@ html:has(.ponto-landing) body {
     isolation: isolate;
 }
 
-.gesint-reports-hero::after {
+.gesint-hero-page__hero::after {
     position: absolute;
     inset: 0;
     z-index: -1;
@@ -6264,7 +6264,7 @@ html:has(.ponto-landing) body {
     content: "";
 }
 
-[data-theme="dark"] .gesint-reports-hero {
+[data-theme="dark"] .gesint-hero-page__hero {
     border-color: color-mix(in srgb, var(--gesint-primary-light) 18%, var(--gesint-border-subtle));
     background:
         radial-gradient(
@@ -6279,7 +6279,7 @@ html:has(.ponto-landing) body {
         );
 }
 
-.gesint-reports-hero__content {
+.gesint-hero-page__content {
     position: relative;
     z-index: 1;
     display: flex;
@@ -6289,7 +6289,7 @@ html:has(.ponto-landing) body {
     padding: 1.5rem 2rem;
 }
 
-.gesint-reports-hero__icon {
+.gesint-hero-page__icon {
     display: flex;
     width: 3.25rem;
     height: 3.25rem;
@@ -6303,7 +6303,7 @@ html:has(.ponto-landing) body {
     box-shadow: var(--gesint-shadow-xs);
 }
 
-.gesint-reports-hero__title {
+.gesint-hero-page__title {
     color: var(--color-base-content);
     font-size: 1.625rem;
     font-weight: 600;
@@ -6311,14 +6311,14 @@ html:has(.ponto-landing) body {
     line-height: 1.15;
 }
 
-.gesint-reports-hero__subtitle {
+.gesint-hero-page__subtitle {
     margin-top: 0.375rem;
     color: color-mix(in srgb, var(--color-base-content) 56%, transparent);
     font-size: 0.78rem;
     line-height: 1.5;
 }
 
-.gesint-reports-hero__art {
+.gesint-hero-page__art {
     position: absolute;
     top: 50%;
     right: 7%;
@@ -6327,7 +6327,7 @@ html:has(.ponto-landing) body {
     transform: translateY(-50%);
 }
 
-.gesint-reports-hero__sheet {
+.gesint-hero-page__sheet {
     position: absolute;
     inset: 0.25rem 1.5rem 0.25rem 0;
     display: flex;
@@ -6342,7 +6342,7 @@ html:has(.ponto-landing) body {
     box-shadow: var(--gesint-shadow-md);
 }
 
-.gesint-reports-hero__sheet > span {
+.gesint-hero-page__sheet > span {
     display: block;
     width: 54%;
     height: 0.35rem;
@@ -6350,21 +6350,21 @@ html:has(.ponto-landing) body {
     background: color-mix(in srgb, var(--gesint-primary) 16%, transparent);
 }
 
-.gesint-reports-hero__sheet > span:nth-child(2) {
+.gesint-hero-page__sheet > span:nth-child(2) {
     width: 72%;
 }
 
-.gesint-reports-hero__sheet > span:nth-child(3) {
+.gesint-hero-page__sheet > span:nth-child(3) {
     width: 43%;
 }
 
-.gesint-reports-hero__sheet > svg {
+.gesint-hero-page__sheet > svg {
     position: absolute;
     right: 1rem;
     bottom: 0.75rem;
 }
 
-.gesint-reports-hero__download {
+.gesint-hero-page__badge {
     position: absolute;
     right: 0;
     bottom: 0.75rem;
@@ -6661,30 +6661,30 @@ html:has(.ponto-landing) body {
 }
 
 @media (max-width: 639px) {
-    .gesint-reports-page {
+    .gesint-hero-page {
         padding: 0.75rem;
     }
 
-    .gesint-reports-hero {
+    .gesint-hero-page__hero {
         min-height: 7.5rem;
     }
 
-    .gesint-reports-hero__content {
+    .gesint-hero-page__content {
         align-items: flex-start;
         gap: 0.75rem;
         padding: 1.25rem;
     }
 
-    .gesint-reports-hero__icon {
+    .gesint-hero-page__icon {
         width: 2.75rem;
         height: 2.75rem;
     }
 
-    .gesint-reports-hero__title {
+    .gesint-hero-page__title {
         font-size: 1.375rem;
     }
 
-    .gesint-reports-hero__art {
+    .gesint-hero-page__art {
         display: none;
     }
 
@@ -6715,5 +6715,166 @@ html:has(.ponto-landing) body {
 @media (prefers-reduced-motion: reduce) {
     .gesint-report-card {
         transition: none;
+    }
+}
+
+/* ──────────────────────────────────────────────
+   Importação Excel
+   ────────────────────────────────────────────── */
+.gesint-import-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.125rem;
+}
+
+.gesint-import-empty {
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: var(--radius-gesint-card);
+    background: var(--color-base-100);
+    padding: 1.5rem;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    font-size: 0.8125rem;
+}
+
+.gesint-import-entity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    border: 1px solid var(--gesint-border);
+    border-radius: var(--radius-gesint-card);
+    background: var(--color-base-100);
+    box-shadow: var(--gesint-shadow-sm);
+    padding: 1rem 1.125rem 1.125rem;
+}
+
+[data-theme="dark"] .gesint-import-entity {
+    border-color: color-mix(in srgb, var(--color-base-content) 14%, transparent);
+}
+
+.gesint-import-entity__header {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.gesint-import-entity__icon,
+.gesint-import-mode__icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--gesint-control-radius);
+    background: color-mix(in srgb, var(--gesint-primary) 10%, var(--color-base-100));
+    color: var(--color-primary);
+}
+
+.gesint-import-entity__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.gesint-import-entity__title {
+    color: var(--color-base-content);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+.gesint-import-entity__subtitle,
+.gesint-import-mode__description {
+    margin-top: 0.15rem;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+.gesint-import-entity__modes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.gesint-import-mode {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.875rem;
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: var(--radius-gesint-card);
+    background: color-mix(in srgb, var(--color-base-content) 2.75%, var(--color-page));
+    padding: 0.875rem;
+}
+
+.gesint-import-mode__intro {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 0.625rem;
+}
+
+.gesint-import-mode__icon {
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+.gesint-import-mode__title {
+    color: var(--color-base-content);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.gesint-import-mode__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gesint-import-mode__result {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--color-base-content);
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.gesint-import-mode__result[data-tone="success"] > svg {
+    color: var(--color-success);
+}
+
+.gesint-import-mode__result[data-tone="warning"] > svg {
+    color: var(--color-warning);
+}
+
+.gesint-import-mode__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.gesint-import-mode__progress-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    color: color-mix(in srgb, var(--color-base-content) 70%, transparent);
+    font-size: 0.75rem;
+}
+
+.gesint-import-mode__errors {
+    max-height: 14rem;
+    overflow: auto;
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: var(--gesint-control-radius);
+}
+
+@media (max-width: 900px) {
+    .gesint-import-entity__modes {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
