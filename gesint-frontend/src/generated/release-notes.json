@@ -1,6 +1,28 @@
 {
   "releases": [
     {
+      "version": "1.99.3",
+      "hash": "61891dd6",
+      "date": "2026-11-12T17:16:07-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Origin/main into main (release v1.99.1)",
+      "body": "**Commits incluídos**\n\n- chore(release): v1.99.1",
+      "pullRequest": null
+    },
+    {
+      "version": "1.99.2",
+      "hash": "a9099506",
+      "date": "2026-11-12T17:09:56-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (aba Painel e rodape do usuario)",
+      "body": "**Commits incluídos**\n\n- fix: destaca a aba Painel e alinha o rodape do usuario",
+      "pullRequest": null
+    },
+    {
       "version": "1.99.1",
       "hash": "c91ca303",
       "date": "2026-11-12T08:05:14-03:00",
