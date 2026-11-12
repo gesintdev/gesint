@@ -53,7 +53,7 @@ export function TablePagination({
     if (mode === "load-more") {
         return (
             <div
-                className="gesint-table-pagination flex flex-wrap items-center justify-between gap-3 border-t border-(--gesint-border-subtle) bg-base-100 px-3 py-3 text-sm text-base-content/65 sm:px-4">
+                className="gesint-table-pagination flex flex-wrap items-center justify-between gap-3 border-t border-(--gesint-border-subtle) bg-base-100 px-3 text-sm text-base-content/65 sm:px-4">
                 <span className="min-w-0">
                     <span className="sm:hidden">{end}/{totalElements}</span>
                     <span className="hidden sm:inline">Mostrando {end} de {totalElements} registros</span>
@@ -74,7 +74,7 @@ export function TablePagination({
 
     return (
         <div
-            className="gesint-table-pagination flex flex-col gap-3 border-t border-(--gesint-border-subtle) bg-base-100 px-3 py-3 text-sm text-base-content/65 sm:px-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between lg:gap-4">
+            className="gesint-table-pagination flex flex-col gap-3 border-t border-(--gesint-border-subtle) bg-base-100 px-3 text-sm text-base-content/65 sm:px-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between lg:gap-4">
             <span className="min-w-0 text-center lg:flex-1 lg:text-start">
                 <span className="sm:hidden">{start}-{end} de {totalElements}</span>
                 <span className="hidden sm:inline">Mostrando {start}-{end} de {totalElements} registros</span>

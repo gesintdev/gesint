@@ -207,6 +207,9 @@
     /* Controles — aba 6px; botões/inputs 7px */
     --gesint-tab-radius: 6px;
     --gesint-control-h: 36px;
+    /* Rodapé de ações do cadastro e rodapé do usuário na sidebar — mesma caixa (borda inclusa). */
+    --gesint-shell-footer-pad-y: 0.625rem;
+    --gesint-shell-footer-h: calc(var(--gesint-control-h) + (var(--gesint-shell-footer-pad-y) * 2) + 1px);
     --gesint-control-px: 12px;
     --gesint-control-font-size: 12.25px;
     --gesint-control-radius: 7px;
@@ -1876,18 +1879,18 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     -ms-overflow-style: none;
 }
 
-/* Conta do usuário — mesma coluna de ícones do nav; altura fixa nos dois modos. */
+/* Conta do usuário — mesma coluna de ícones do nav; altura = rodapé de ações da página. */
 .sidebar-user-menu {
-    --sidebar-user-menu-h: 3.5rem;
-    --sidebar-user-menu-pad-y: 0.625rem;
+    --sidebar-user-menu-pad-y: 0.3125rem;
     position: relative;
     z-index: 3;
     box-sizing: border-box;
     display: flex;
     width: 100%;
-    height: calc(var(--sidebar-user-menu-h) + (var(--sidebar-user-menu-pad-y) * 2));
-    min-height: calc(var(--sidebar-user-menu-h) + (var(--sidebar-user-menu-pad-y) * 2));
-    max-height: calc(var(--sidebar-user-menu-h) + (var(--sidebar-user-menu-pad-y) * 2));
+    /* +2px: a paginação fica acima da borda do card da página e da borda do painel da tabela. */
+    height: calc(var(--gesint-shell-footer-h) + 2px);
+    min-height: calc(var(--gesint-shell-footer-h) + 2px);
+    max-height: calc(var(--gesint-shell-footer-h) + 2px);
     flex-shrink: 0;
     align-items: center;
     padding-inline: var(--sidebar-nav-pad-x);
@@ -1906,9 +1909,9 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     display: flex;
     width: 100%;
     min-width: 0;
-    height: calc(var(--sidebar-user-menu-h) - 0.5rem);
-    min-height: calc(var(--sidebar-user-menu-h) - 0.5rem);
-    max-height: calc(var(--sidebar-user-menu-h) - 0.5rem);
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
     align-items: center;
     gap: 0.25rem;
     margin-inline: var(--sidebar-nav-list-pad-x);
@@ -1950,7 +1953,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     align-items: center;
     gap: 0.75rem;
     margin: 0;
-    padding: 0.375rem 0.5rem 0.375rem var(--sidebar-nav-item-pl);
+    padding: 0.125rem 0.5rem 0.125rem var(--sidebar-nav-item-pl);
     border: 0;
     appearance: none;
     background: transparent;
@@ -2999,10 +3002,21 @@ kbd {
 }
 
 .crud-form-shell__footer {
+    box-sizing: border-box;
+    display: flex;
     flex-shrink: 0;
+    align-items: center;
+    min-height: var(--gesint-shell-footer-h);
     border-top: 1px solid var(--gesint-border-subtle);
     background: var(--color-base-100);
-    padding: 0.625rem 0.875rem;
+    padding: var(--gesint-shell-footer-pad-y) 0.875rem;
+}
+
+@media (min-width: 1024px) {
+    .crud-form-shell__footer {
+        height: var(--gesint-shell-footer-h);
+        max-height: var(--gesint-shell-footer-h);
+    }
 }
 
 [data-theme="dark"] .crud-form-shell__footer {
@@ -3017,6 +3031,14 @@ kbd {
     align-items: center;
     gap: 0.5rem;
     width: 100%;
+}
+
+/* Paginação da listagem — mesma faixa do rodapé de ações quando cabe numa linha. */
+.gesint-table-pagination {
+    box-sizing: border-box;
+    align-items: center;
+    min-height: var(--gesint-shell-footer-h);
+    padding-block: var(--gesint-shell-footer-pad-y);
 }
 
 /* ──────────────────────────────────────────────
@@ -3365,6 +3387,77 @@ button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay.gesint-workspace-
     background: var(--color-base-100);
     border-color: var(--gesint-border);
     box-shadow: inset 0 -2px 0 var(--gesint-primary-light);
+}
+
+/* Aba fixa do Painel — âncora permanente, distinta das abas de módulo. */
+.gesint-workspace-tab--home {
+    gap: 0.4375rem;
+    padding-inline: 0.4rem 0.7rem;
+    border-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+    color: var(--color-primary);
+    font-variation-settings: "wght" 560;
+}
+
+.gesint-workspace-tab--home:hover:not(.gesint-workspace-tab--active) {
+    border-color: color-mix(in srgb, var(--color-primary) 32%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 13%, transparent);
+    color: var(--color-primary);
+}
+
+.gesint-workspace-tab--home.gesint-workspace-tab--active {
+    border-color: color-mix(in srgb, var(--color-primary) 42%, var(--gesint-border));
+    background: color-mix(in srgb, var(--color-primary) 10%, var(--color-base-100));
+    color: var(--color-primary);
+    box-shadow:
+        var(--gesint-shadow-sm),
+        inset 0 -2px 0 var(--color-primary);
+}
+
+.workspace-tab-home-mark {
+    display: inline-flex;
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--gesint-radius-badge);
+    background: color-mix(in srgb, var(--color-primary) 16%, var(--color-base-100));
+    color: var(--color-primary);
+}
+
+.gesint-workspace-tab--home.gesint-workspace-tab--active .workspace-tab-home-mark {
+    background: var(--color-primary);
+    color: var(--color-primary-content);
+}
+
+[data-theme="dark"] .gesint-workspace-tab--home {
+    border-color: color-mix(in srgb, var(--color-primary) 28%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+    color: var(--gesint-primary-light);
+}
+
+[data-theme="dark"] .gesint-workspace-tab--home:hover:not(.gesint-workspace-tab--active) {
+    border-color: color-mix(in srgb, var(--color-primary) 42%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+    color: var(--gesint-primary-light);
+}
+
+[data-theme="dark"] .gesint-workspace-tab--home.gesint-workspace-tab--active {
+    border-color: color-mix(in srgb, var(--color-primary) 48%, var(--gesint-border));
+    background: color-mix(in srgb, var(--color-primary) 16%, var(--color-base-100));
+    color: var(--gesint-primary-light);
+    box-shadow: inset 0 -2px 0 var(--gesint-primary-light);
+}
+
+[data-theme="dark"] .workspace-tab-home-mark {
+    background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+    color: var(--gesint-primary-light);
+}
+
+[data-theme="dark"] .gesint-workspace-tab--home.gesint-workspace-tab--active .workspace-tab-home-mark {
+    background: var(--color-primary);
+    color: var(--color-primary-content);
 }
 
 .workspace-tab-close {

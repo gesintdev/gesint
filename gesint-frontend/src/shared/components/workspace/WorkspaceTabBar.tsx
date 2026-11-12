@@ -73,6 +73,8 @@ const TAB_MOUNT_TRANSITION = {
 type WorkspaceTabFaceProps = {
     tab: WorkspaceTab;
     active: boolean;
+    /** Aba fixa do Painel — não fecha e tem estilo próprio. */
+    home?: boolean;
     className?: string;
     style?: CSSProperties;
     showClose?: boolean;
@@ -87,6 +89,7 @@ type WorkspaceTabFaceProps = {
 function WorkspaceTabFace({
     tab,
     active,
+    home = false,
     className,
     style,
     showClose,
@@ -116,21 +119,28 @@ function WorkspaceTabFace({
             className={clsx(
                 "gesint-workspace-tab group/tab max-w-36 sm:max-w-48 lg:max-w-60",
                 active && "gesint-workspace-tab--active",
+                home && "gesint-workspace-tab--home",
                 pinned && "gesint-workspace-tab--pinned",
                 className,
             )}
             {...rest}
         >
-            <WorkspaceTabIcon
-                tab={tab}
-                className={clsx(
-                    "size-3.5 shrink-0 transition-colors",
-                    active ? "text-primary" : "text-base-content/40 group-hover/tab:text-base-content/60",
-                )}
-            />
-            <WorkspaceTabSystemBadge href={tab.href} />
+            {home ? (
+                <span className="workspace-tab-home-mark" aria-hidden>
+                    <WorkspaceTabIcon tab={tab} className="size-3 shrink-0" />
+                </span>
+            ) : (
+                <WorkspaceTabIcon
+                    tab={tab}
+                    className={clsx(
+                        "size-3.5 shrink-0 transition-colors",
+                        active ? "text-primary" : "text-base-content/40 group-hover/tab:text-base-content/60",
+                    )}
+                />
+            )}
+            {home ? null : <WorkspaceTabSystemBadge href={tab.href} />}
             <span className="min-w-0 flex-1 truncate text-left tracking-tight">{title}</span>
-            {pinned ? (
+            {pinned && !home ? (
                 <Pin className="size-3 shrink-0 text-primary/70" strokeWidth={2.25} aria-label="Aba fixada" />
             ) : null}
             {showClose && onClose ? (
@@ -228,6 +238,7 @@ function DashboardTabButton({
         <WorkspaceTabFace
             tab={tab}
             active={active}
+            home
             onSelect={onSelect}
             onContextMenu={onContextMenu}
         />

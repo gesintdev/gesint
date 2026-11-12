@@ -105,7 +105,7 @@ function TableSkeleton() {
 
 function TablePanelShell({children, footer}: {children: ReactNode; footer?: ReactNode}) {
     return (
-        <div className="flex min-h-0 flex-1 flex-col p-1.5">
+        <div className="flex min-h-0 flex-1 flex-col px-1.5 pt-1.5">
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-(--gesint-border-subtle) bg-base-100 shadow-sm">
                 <div className="min-h-0 flex-1 overflow-auto">{children}</div>
                 {footer}
