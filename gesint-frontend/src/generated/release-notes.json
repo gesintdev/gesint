@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.99.4",
+      "hash": "509d37e1",
+      "date": "2026-11-12T22:23:03-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (altura dos botoes)",
+      "body": "**Commits incluídos**\n\n- fix: iguala a altura dos botoes primario e outline",
+      "pullRequest": null
+    },
+    {
       "version": "1.99.3",
       "hash": "61891dd6",
       "date": "2026-11-12T17:16:07-03:00",
