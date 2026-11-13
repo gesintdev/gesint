@@ -836,6 +836,7 @@ body {
 }
 
 .gesint-btn {
+    box-sizing: border-box;
     display: inline-flex;
     width: auto;
     align-items: center;
@@ -845,7 +846,8 @@ body {
     min-height: var(--gesint-control-h);
     padding: 0 var(--gesint-control-px);
     border-radius: var(--gesint-control-radius);
-    border: 0;
+    /* 1px em todas as variantes, para o contorno não mudar a altura. */
+    border: 1px solid transparent;
     font-family: inherit;
     font-size: var(--gesint-control-font-size);
     font-variation-settings: "wght" 500;
@@ -873,29 +875,25 @@ body {
 .gesint-btn--primary {
     background: var(--gesint-primary);
     color: #fff;
-    border-color: transparent;
+    border-color: color-mix(in srgb, var(--gesint-primary-dark) 70%, transparent);
     box-shadow:
         inset 0 1px 0 color-mix(in srgb, white 16%, transparent),
-        0 0 0 1px color-mix(in srgb, var(--gesint-primary-dark) 70%, transparent),
         0 1px 2px color-mix(in srgb, var(--gesint-primary-darker) 22%, transparent);
 }
 
 .gesint-btn--primary:hover:not(:disabled) {
     background: color-mix(in srgb, var(--gesint-primary) 90%, var(--gesint-primary-darker));
-    border-color: transparent;
+    border-color: var(--gesint-primary-dark);
     box-shadow:
         inset 0 1px 0 color-mix(in srgb, white 14%, transparent),
-        0 0 0 1px var(--gesint-primary-dark),
         0 2px 6px color-mix(in srgb, var(--gesint-primary-darker) 22%, transparent);
 }
 
 .gesint-btn--primary:active:not(:disabled) {
     background: var(--gesint-primary-dark);
-    border-color: transparent;
+    border-color: var(--gesint-primary-dark);
     transform: translateY(0.5px);
-    box-shadow:
-        inset 0 1px 2px color-mix(in srgb, black 18%, transparent),
-        0 0 0 1px var(--gesint-primary-dark);
+    box-shadow: inset 0 1px 2px color-mix(in srgb, black 18%, transparent);
 }
 
 .gesint-btn--primary:focus-visible {
