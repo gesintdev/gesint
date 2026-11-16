@@ -422,6 +422,9 @@ public class AdmissionProcessService
         if (entity.getNationality() == null || entity.getNationality().isBlank()) {
             entity.setNationality("Brasileiro");
         }
+        if (!StringUtils.hasText(entity.getExperienceStatus())) {
+            entity.setExperienceStatus("NONE");
+        }
     }
 
     private void applyCompletionDates(AdmissionProcess entity) {

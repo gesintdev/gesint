@@ -50,7 +50,10 @@ public class ContractRecessProvisioningService {
         contract.setExperienceExtensionUsed(admission.isExperienceExtensionUsed());
         contract.setExperienceMilestoneDays(admission.getExperienceMilestoneDays());
         contract.setExperienceDueDate(admission.getExperienceDueDate());
-        contract.setExperienceStatus(admission.getExperienceStatus());
+        contract.setExperienceStatus(
+                admission.getExperienceStatus() != null && !admission.getExperienceStatus().isBlank()
+                        ? admission.getExperienceStatus()
+                        : "NONE");
         contract = contractRepository.save(contract);
 
         if (admission.getContractType() != br.com.gesint.modules.rh.person.contract.entity.ContractTypeEnum.PJ) {

@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -201,8 +202,10 @@ public class AdmissionProcess extends BranchScopedEntity {
     @Column(name = "experience_due_date")
     private LocalDate experienceDueDate;
 
-    @Column(name = "experience_status", length = 32)
-    private String experienceStatus;
+    /** NONE enquanto não há período de experiência vigente. */
+    @Builder.Default
+    @Column(name = "experience_status", nullable = false, length = 32)
+    private String experienceStatus = "NONE";
 
     /** CNPJ da empresa prestadora (quando contract_type = PJ). */
     @Column(name = "provider_cnpj", length = 14)
