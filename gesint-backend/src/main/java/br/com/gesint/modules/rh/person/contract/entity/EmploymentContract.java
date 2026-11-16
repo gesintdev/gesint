@@ -59,8 +59,9 @@ public class EmploymentContract extends BranchScopedEntity {
     @Column(name = "experience_due_date")
     private LocalDate experienceDueDate;
 
-    @Column(name = "experience_status", length = 32)
-    private String experienceStatus;
+    @Builder.Default
+    @Column(name = "experience_status", nullable = false, length = 32)
+    private String experienceStatus = "NONE";
 
     @Column(name = "base_salary", precision = 14, scale = 2)
     private BigDecimal baseSalary;
