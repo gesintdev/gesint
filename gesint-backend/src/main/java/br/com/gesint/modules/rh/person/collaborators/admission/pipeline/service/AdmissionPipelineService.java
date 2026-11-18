@@ -140,9 +140,11 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
         if (admission == null) {
             return;
         }
+        Map<UUID, UUID> companyByAdmission = new HashMap<>();
+        companyByAdmission.put(admissionId, admission.getCompanyId());
         List<AdmissionStep> steps = alignStepBranchScope(
                 stepRepository.findActiveByAdmissionIdUnscoped(admissionId),
-                Map.of(admissionId, admission.getCompanyId()));
+                companyByAdmission);
         Set<AdmissionStepKeyEnum> existing =
                 steps.stream().map(AdmissionStep::getStepKey).collect(Collectors.toSet());
         List<AdmissionStep> missing = new ArrayList<>();
@@ -207,8 +209,10 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                 .stream()
                 .collect(Collectors.groupingBy(StorageObjectLink::getEntityId));
 
-        Map<UUID, UUID> companyIdByAdmission = admissions.stream()
-                .collect(Collectors.toMap(AdmissionProcess::getId, AdmissionProcess::getCompanyId, (first, second) -> first));
+        Map<UUID, UUID> companyIdByAdmission = new HashMap<>();
+        for (AdmissionProcess admission : admissions) {
+            companyIdByAdmission.put(admission.getId(), admission.getCompanyId());
+        }
         Map<UUID, List<AdmissionStep>> stepsByAdmission = alignStepBranchScope(
                         stepRepository.findActiveByAdmissionIdInUnscoped(admissionIds), companyIdByAdmission)
                 .stream()

@@ -161,7 +161,10 @@ public class AdmissionProcessMapper {
         entity.setComplement(dto.getComplement());
         entity.setDistrict(dto.getDistrict());
         entity.setExpectedStartDate(dto.getExpectedStartDate());
-        entity.setCompanyId(dto.getCompanyId());
+        // companyId nulo no payload não apaga a filial gravada no create (@PrePersist).
+        if (dto.getCompanyId() != null) {
+            entity.setCompanyId(dto.getCompanyId());
+        }
         entity.setDepartmentId(dto.getDepartmentId());
         entity.setJobPositionId(dto.getJobPositionId());
         if (dto.getContractType() != null) {
