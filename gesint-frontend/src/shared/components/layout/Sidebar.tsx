@@ -5,6 +5,8 @@ import {usePathname} from "next/navigation";
 import {type MouseEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 import {type AppRoute, flattenRoutes} from "@/config/routes";
+import {NavRouteContextMenu, type NavRouteContextMenuState} from "@/shared/components/layout/NavRouteContextMenu";
+import {RouteLinkedProfilesModal} from "@/shared/components/layout/RouteLinkedProfilesModal";
 import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
 import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
 import {SidebarUserMenu} from "@/shared/components/layout/SidebarUserMenu";
@@ -103,6 +105,10 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     const [query, setQuery] = useState("");
     const [openIds, setOpenIds] = useState<Set<string>>(new Set());
     const [flyout, setFlyout] = useState<{ route: AppRoute; top: number } | null>(null);
+    const [navContextMenu, setNavContextMenu] = useState<NavRouteContextMenuState | null>(null);
+    const [linkedProfilesRoute, setLinkedProfilesRoute] = useState<AppRoute | null>(null);
+    /** Botão dispara click também no direito (Firefox). Esse clique não pode navegar. */
+    const secondaryPointerRef = useRef(false);
     const savedOpenIdsRef = useRef<Set<string>>(new Set());
     const toggleLockedRef = useRef(false);
     const flyoutOpenTimerRef = useRef<number | null>(null);
@@ -269,25 +275,65 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
 
     /** Expansão só por clique do usuário (ou busca); troca de aba não abre/fecha grupos. */
     const isOpen = (id: string) => isSearching || openIds.has(id);
-    const NavLink = ({route, nested}: { route: AppRoute; nested?: boolean }) => {
+    const notePointerButton = (event: MouseEvent) => {
+        secondaryPointerRef.current = event.button !== 0;
+    };
+    const isSecondaryActivation = (event: MouseEvent) => {
+        const secondary = secondaryPointerRef.current || event.button !== 0;
+        secondaryPointerRef.current = false;
+        return secondary;
+    };
+    const openNavContextMenu = (route: AppRoute, event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setNavContextMenu({route, x: event.clientX, y: event.clientY});
+    };
+    const renderNavLink = (route: AppRoute, contextMenu: boolean, nested = false) => {
         const Icon = route.icon;
         const active = route.id === navHighlightRouteId;
+        const linked = linkedProfilesRoute?.id === route.id;
+        const menuOpen = navContextMenu?.route.id === route.id;
+        const canContextMenu = Boolean(contextMenu && route.href);
 
         return (
             <button
                 type="button"
                 title={route.label}
-                onClick={(e) => openRouteFromMenu(route, e)}
+                onMouseDown={notePointerButton}
+                onClick={(event) => {
+                    if (isSecondaryActivation(event)) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        return;
+                    }
+                    openRouteFromMenu(route, event);
+                }}
+                onContextMenu={
+                    canContextMenu
+                        ? (event) => openNavContextMenu(route, event)
+                        : contextMenu
+                            ? (event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }
+                            : undefined
+                }
                 className={clsx(
                     "nav-item group w-full",
                     nested && "nav-item-child",
                     active && "nav-item-active",
+                    linked && "nav-item-linked",
+                    menuOpen && "nav-item-hover",
                 )}
             >
                 <Icon
                     className={clsx(
                         "size-4.25 shrink-0 transition-colors duration-150",
-                        active ? "text-primary" : "text-base-content/38 group-hover:text-base-content/65",
+                        active
+                            ? "text-primary"
+                            : menuOpen
+                                ? "text-base-content/65"
+                                : "text-base-content/38 group-hover:text-base-content/65",
                     )}
                     strokeWidth={active ? 2.25 : 2}
                 />
@@ -295,7 +341,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             </button>
         );
     };
-    const renderRoute = (route: AppRoute) => {
+    const renderRoute = (route: AppRoute, contextMenu: boolean) => {
         const Icon = route.icon;
         const hasChildren = Boolean(route.children?.length);
         const active = routeIsActive(route, navHighlightRouteId);
@@ -304,7 +350,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         if (!hasChildren) {
             return (
                 <li key={route.id}>
-                    <NavLink route={route}/>
+                    {renderNavLink(route, contextMenu)}
                 </li>
             );
         }
@@ -316,13 +362,27 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                     type="button"
                     aria-label={route.label}
                     aria-expanded={expanded}
-                    onClick={(e) => {
+                    onMouseDown={notePointerButton}
+                    onClick={(event) => {
+                        if (isSecondaryActivation(event)) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            return;
+                        }
                         if (panelCollapsed) {
-                            openFlyoutAt(route, e.currentTarget);
+                            openFlyoutAt(route, event.currentTarget);
                             return;
                         }
                         toggleGroup(route.id);
                     }}
+                    onContextMenu={
+                        contextMenu
+                            ? (event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }
+                            : undefined
+                    }
                     onMouseEnter={(e) => {
                         if (!panelCollapsed) return;
                         scheduleFlyoutOpen(route, e.currentTarget);
@@ -373,7 +433,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                             <ul className="nav-group-children flex flex-col gap-0.5">
                                 {route.children?.map((child) => (
                                     <li key={child.id}>
-                                        <NavLink route={child} nested/>
+                                        {renderNavLink(child, contextMenu, true)}
                                     </li>
                                 ))}
                             </ul>
@@ -443,7 +503,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                                     </p>
                                 </div>
                                 <ul className="space-y-0.5 px-(--sidebar-nav-list-pad-x)">
-                                    {section.routes.map(renderRoute)}
+                                    {section.routes.map((route) => renderRoute(route, opts.desktop))}
                                 </ul>
                             </div>
                         </div>
@@ -533,11 +593,23 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                     route={flyout.route}
                     anchorTop={flyout.top}
                     highlightRouteId={navHighlightRouteId}
+                    linkedRouteId={linkedProfilesRoute?.id ?? null}
+                    contextRouteId={navContextMenu?.route.id ?? null}
                     onSelectRoute={(route) => setHighlightRouteId(route.id)}
                     onMouseEnterFlyout={clearFlyoutCloseTimer}
                     onClose={closeFlyout}
+                    onContextMenu={openNavContextMenu}
                 />
             )}
+            <NavRouteContextMenu
+                state={navContextMenu}
+                onClose={() => setNavContextMenu(null)}
+                onLinkedProfiles={setLinkedProfilesRoute}
+            />
+            <RouteLinkedProfilesModal
+                route={linkedProfilesRoute}
+                onClose={() => setLinkedProfilesRoute(null)}
+            />
         </>
     );
 }

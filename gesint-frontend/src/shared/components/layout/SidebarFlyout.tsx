@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
+import { type MouseEvent, useRef } from "react";
 
 import type { AppRoute } from "@/config/routes";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
@@ -8,20 +9,27 @@ type SidebarFlyoutProps = {
     route: AppRoute;
     anchorTop: number;
     highlightRouteId: string | null;
+    linkedRouteId?: string | null;
+    contextRouteId?: string | null;
     onSelectRoute: (route: AppRoute) => void;
     onClose: () => void;
     onMouseEnterFlyout?: () => void;
+    onContextMenu?: (route: AppRoute, event: MouseEvent) => void;
 };
 
 export function SidebarFlyout({
     route,
     anchorTop,
     highlightRouteId,
+    linkedRouteId = null,
+    contextRouteId = null,
     onSelectRoute,
     onClose,
     onMouseEnterFlyout,
+    onContextMenu,
 }: SidebarFlyoutProps) {
     const { openRouteModule } = useWorkspaceNavigation();
+    const secondaryPointerRef = useRef(false);
 
     return (
         <AnimatePresence>
@@ -42,23 +50,52 @@ export function SidebarFlyout({
                     {route.children?.map((child) => {
                         const ChildIcon = child.icon;
                         const active = child.id === highlightRouteId;
+                        const linked = child.id === linkedRouteId;
+                        const menuOpen = child.id === contextRouteId;
                         return (
                             <li key={child.id}>
                                 <button
                                     type="button"
-                                    onClick={() => {
+                                    onMouseDown={(event) => {
+                                        secondaryPointerRef.current = event.button !== 0;
+                                    }}
+                                    onContextMenu={
+                                        child.href && onContextMenu
+                                            ? (event) => onContextMenu(child, event)
+                                            : (event) => {
+                                                event.preventDefault();
+                                                event.stopPropagation();
+                                            }
+                                    }
+                                    onClick={(event) => {
+                                        const secondary = secondaryPointerRef.current || event.button !== 0;
+                                        secondaryPointerRef.current = false;
+                                        if (secondary) {
+                                            event.preventDefault();
+                                            event.stopPropagation();
+                                            return;
+                                        }
                                         if (child.href) {
                                             onSelectRoute(child);
                                             openRouteModule(child);
                                         }
                                         onClose();
                                     }}
-                                    className={clsx("nav-item w-full", active && "nav-item-active")}
+                                    className={clsx(
+                                        "nav-item group w-full",
+                                        active && "nav-item-active",
+                                        linked && "nav-item-linked",
+                                        menuOpen && "nav-item-hover",
+                                    )}
                                 >
                                     <ChildIcon
                                         className={clsx(
-                                            "size-4.25 shrink-0",
-                                            active ? "text-primary" : "text-base-content/38",
+                                            "size-4.25 shrink-0 transition-colors duration-150",
+                                            active
+                                                ? "text-primary"
+                                                : menuOpen
+                                                    ? "text-base-content/65"
+                                                    : "text-base-content/38 group-hover:text-base-content/65",
                                         )}
                                         strokeWidth={active ? 2.25 : 2}
                                     />

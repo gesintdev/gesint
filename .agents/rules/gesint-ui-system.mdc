@@ -116,7 +116,8 @@ Exceção: `.crud-page-card` (painel da página CRUD) não tem raio — encosta 
 ### Sidebar
 - Fundo `base-100`, largura `--sidebar-width`. Itens `.nav-item`: altura `--sidebar-nav-item-h` (2rem), `13px`, cor `base-content 68%`.
 - **Ativo** `.nav-item-active`: fundo `primary 8%`, texto `primary`, **barra indicadora de 3px à esquerda** (`::before`, entra animada). Sem gradiente, sem sombra.
-- Hover: `base-content 4%`. Rótulos de seção: `10.5px`, uppercase, `base-content 42%`.
+- **Modal de perfis** `.nav-item-linked`: anel interno `base-content`, sem barra. Se a rota também é a aba aberta, a barra permanece e o anel se soma.
+- Hover: `base-content 4%`. Com o menu de contexto aberto, `.nav-item-hover` mantém esse hover. Rótulos de seção: `10.5px`, uppercase, `base-content 42%`.
 - Grupos abrem só por clique; filhos indentados alinhados ao texto do pai.
 
 ### Abas do workspace

@@ -2051,7 +2051,8 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 }
 
 .nav-item-expanded,
-.nav-item:hover {
+.nav-item:hover,
+.nav-item-hover {
     background: color-mix(in srgb, var(--color-base-content) 4%, transparent);
     color: color-mix(in srgb, var(--color-base-content) 88%, transparent);
 }
@@ -2097,20 +2098,41 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     }
 }
 
-[data-theme="dark"] .nav-item:hover {
+[data-theme="dark"] .nav-item:hover,
+[data-theme="dark"] .nav-item-hover {
     background: color-mix(in srgb, var(--color-base-content) 6%, transparent);
 }
 
 [data-theme="dark"] .nav-item-active,
-[data-theme="dark"] .nav-item-active:hover {
+[data-theme="dark"] .nav-item-active:hover,
+[data-theme="dark"] .nav-item-active.nav-item-hover {
     background: color-mix(in srgb, var(--gesint-primary) 14%, transparent);
     color: var(--gesint-primary-light);
 }
 
-.nav-item-active:hover {
+.nav-item-active:hover,
+.nav-item-active.nav-item-hover {
     background: color-mix(in srgb, var(--gesint-primary) 11%, var(--color-base-100));
     color: var(--gesint-primary);
     border-color: transparent;
+}
+
+/* Rota aberta no modal de perfis. Anel interno: a barra azul fica só para a aba. */
+.nav-item-linked {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-base-content) 34%, transparent);
+}
+
+.nav-item-linked:not(.nav-item-active) {
+    background: color-mix(in srgb, var(--color-base-content) 6%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 90%, transparent);
+}
+
+[data-theme="dark"] .nav-item-linked {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-base-content) 46%, transparent);
+}
+
+[data-theme="dark"] .nav-item-linked:not(.nav-item-active) {
+    background: color-mix(in srgb, var(--color-base-content) 9%, transparent);
 }
 
 /*
