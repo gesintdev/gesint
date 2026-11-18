@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.100.2",
+      "hash": "9a2c3264",
+      "date": "2026-11-18T19:40:16-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (salvamento da admissao)",
+      "body": "**Commits incluídos**\n\n- fix: conclui o salvamento da admissão sem apagar a filial",
+      "pullRequest": null
+    },
+    {
       "version": "1.100.1",
       "hash": "b25340e4",
       "date": "2026-11-18T19:27:00-03:00",
