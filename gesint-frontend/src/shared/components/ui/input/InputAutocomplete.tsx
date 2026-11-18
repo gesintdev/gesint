@@ -1,7 +1,8 @@
 import clsx from "clsx";
-import { Loader2, Search, X } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
@@ -36,7 +37,6 @@ export function InputAutocomplete({
     onSearch,
     placeholder = "Buscar...",
     minChars = 0,
-    clearable = true,
     label,
     hint,
     error,
@@ -242,22 +242,17 @@ export function InputAutocomplete({
                         onBlur={handleBlur}
                         onKeyDown={handleKeyDown}
                     />
-                    {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}
-                    {clearable && value && !disabled && !loading && (
-                        <button
-                            type="button"
-                            className="text-base-content/40 hover:text-base-content"
-                            aria-label="Limpar"
+                    {canClearOptionalField({ required, disabled, loading, value }) ? (
+                        <FieldClearButton
                             onClick={() => {
                                 onValueChange("");
                                 setSelectedLabel("");
                                 setQuery("");
                                 setItems([]);
                             }}
-                        >
-                            <X className="size-3.5" />
-                        </button>
-                    )}
+                        />
+                    ) : null}
+                    {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}
                     {trailingAction}
                 </div>
                 {open && (

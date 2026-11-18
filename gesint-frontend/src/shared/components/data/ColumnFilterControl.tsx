@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import { InputDate } from "@/shared/components/ui/input/InputDate";
 import { InputSelect } from "@/shared/components/ui/input/InputSelect";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
@@ -126,6 +127,14 @@ export function ColumnFilterControl({ column, options, value, onChange }: Column
                     }
                 }}
             />
+            {draft.trim() ? (
+                <FieldClearButton
+                    onClick={() => {
+                        setDraft("");
+                        onChange([]);
+                    }}
+                />
+            ) : null}
         </label>
     );
 }

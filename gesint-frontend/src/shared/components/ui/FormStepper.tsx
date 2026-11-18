@@ -12,22 +12,90 @@ export type FormStepNavItem = {
 
 type FormStepperProps = {
     steps: FormStepNavItem[];
+    /** Quando omitido, o stepper marca a seção que já tem algum dado preenchido. */
     filledStepIds?: readonly string[];
     entityCode?: number | null;
     children: ReactNode;
 };
 
-export function FormStepper({ steps, filledStepIds = [], entityCode, children }: FormStepperProps) {
+function sameIds(left: readonly string[], right: readonly string[]): boolean {
+    return left.length === right.length && left.every((id, index) => id === right[index]);
+}
+
+function sectionIsFilled(section: HTMLElement): boolean {
+    if (section.querySelector("[data-step-filled='true'], [data-has-value='true']")) return true;
+    if (section.querySelector("input[type='checkbox']:checked, input[type='radio']:checked")) return true;
+    const editable = section.querySelector<HTMLElement>("[contenteditable='true']");
+    if (editable?.textContent?.trim()) return true;
+
+    const fields = section.querySelectorAll<HTMLElement>(".gesint-field");
+    for (const field of fields) {
+        if (field.classList.contains("gesint-field--restricted")) continue;
+        if (field.classList.contains("gesint-select-trigger--placeholder")) continue;
+        const input = field.querySelector("input, textarea");
+        if (input instanceof HTMLInputElement) {
+            const type = input.type;
+            if (type === "hidden" || type === "file" || type === "button" || type === "submit" || type === "checkbox" || type === "radio") {
+                continue;
+            }
+            if (input.value.trim()) return true;
+            continue;
+        }
+        if (input instanceof HTMLTextAreaElement && input.value.trim()) return true;
+        const text = field.textContent?.replace(/\s+/g, " ").trim() ?? "";
+        if (text) return true;
+    }
+    return false;
+}
+
+export function FormStepper({ steps, filledStepIds, entityCode, children }: FormStepperProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const pinnedIdRef = useRef<string | null>(null);
     const scrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [activeId, setActiveId] = useState(steps[0]?.id ?? "");
-    const filledSet = new Set(filledStepIds);
+    const [autoFilledIds, setAutoFilledIds] = useState<string[]>([]);
+    const filledSet = new Set(filledStepIds ?? autoFilledIds);
 
     useEffect(() => {
         setActiveId(steps[0]?.id ?? "");
         pinnedIdRef.current = null;
     }, [steps]);
+
+    useEffect(() => {
+        if (filledStepIds) return;
+        const root = scrollRef.current;
+        if (!root) return;
+        let frame = 0;
+        const compute = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                const next = steps
+                    .filter((step) => {
+                        const section = root.querySelector<HTMLElement>(`#${CSS.escape(step.id)}`);
+                        return section ? sectionIsFilled(section) : false;
+                    })
+                    .map((step) => step.id);
+                setAutoFilledIds((current) => (sameIds(current, next) ? current : next));
+            });
+        };
+        compute();
+        root.addEventListener("input", compute);
+        root.addEventListener("change", compute);
+        const observer = new MutationObserver(compute);
+        observer.observe(root, {
+            subtree: true,
+            childList: true,
+            characterData: true,
+            attributes: true,
+            attributeFilter: ["class", "value", "data-has-value", "data-step-filled"],
+        });
+        return () => {
+            cancelAnimationFrame(frame);
+            root.removeEventListener("input", compute);
+            root.removeEventListener("change", compute);
+            observer.disconnect();
+        };
+    }, [children, filledStepIds, steps]);
 
     useEffect(() => {
         const root = scrollRef.current;

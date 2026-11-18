@@ -17,6 +17,7 @@ import { marked } from "marked";
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import TurndownService from "turndown";
 
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 
@@ -321,6 +322,15 @@ export function InputMarkdown({
                             {action.icon}
                         </button>
                     ))}
+                    {canClearOptionalField({ required, disabled, readOnly, value }) ? (
+                        <FieldClearButton
+                            className="ml-auto"
+                            onClick={() => {
+                                editor.commands.clearContent();
+                                emitMarkdown("");
+                            }}
+                        />
+                    ) : null}
                 </div>
                 <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: minHeight }}>
                     <EditorContent editor={editor} className="gesint-markdown" />

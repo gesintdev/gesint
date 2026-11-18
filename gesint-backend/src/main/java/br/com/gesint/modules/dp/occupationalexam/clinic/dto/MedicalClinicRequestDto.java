@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -21,7 +22,19 @@ public class MedicalClinicRequestDto {
 
     @NotBlank @Size(max = 20) private String cnpj;
 
-    @Size(max = 255) private String address;
+    @Size(max = 10) private String zipCode;
+
+    @Size(max = 200) private String street;
+
+    @Size(max = 20) private String number;
+
+    @Size(max = 100) private String complement;
+
+    @Size(max = 100) private String district;
+
+    private UUID stateId;
+
+    private UUID cityId;
 
     @Size(max = 30) private String phone;
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { serverApiPost } from "@/shared/lib/server-api";
+import { AUTH_CLIENT_MESSAGES } from "@/modules/root/exceptions/auth.messages";
+import { serverApiPost, ServerApiUnreachableError } from "@/shared/lib/server-api";
 import { buildTenantRequestHeaders } from "@/shared/lib/tenant";
 
 type LoginBody = {
@@ -40,6 +41,15 @@ export async function POST(request: Request) {
         });
     } catch (error) {
         console.error("[client-login proxy] falhou:", error instanceof Error ? error.message : error);
-        return NextResponse.json({ message: "Falha ao autenticar na API" }, { status: 502 });
+        const unavailable = error instanceof ServerApiUnreachableError;
+        return NextResponse.json(
+            {
+                code: "AUTH_API_UNAVAILABLE",
+                message: unavailable
+                    ? AUTH_CLIENT_MESSAGES.AUTH_API_UNAVAILABLE
+                    : "Falha ao autenticar na API",
+            },
+            { status: 503 },
+        );
     }
 }

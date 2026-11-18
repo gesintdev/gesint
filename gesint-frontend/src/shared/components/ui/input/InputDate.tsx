@@ -11,6 +11,7 @@ import {
     useRef,
 } from "react";
 
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import { DatePickerPanel } from "@/shared/components/ui/input/DatePickerPanel";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
@@ -141,6 +142,9 @@ export function InputDate({
                         onBlur={(e) => field.handleBlur(e.target.value)}
                         onKeyDown={handleKeyDown}
                     />
+                    {canClearOptionalField({ required, disabled, readOnly, value: field.display }) ? (
+                        <FieldClearButton onClick={() => onValueChange("")} />
+                    ) : null}
                     {!readOnly && (
                         <button
                             type="button"

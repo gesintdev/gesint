@@ -17,4 +17,5 @@ export const AUTH_MESSAGES = {
 /** Exclusivas do frontend */
 export const AUTH_CLIENT_MESSAGES = {
     AUTH_SESSION_EXPIRED: "Sess\u00e3o expirada. Fa\u00e7a login novamente",
+    AUTH_API_UNAVAILABLE: "O sistema est\u00e1 fora do ar. Tente novamente em instantes.",
 } as const;

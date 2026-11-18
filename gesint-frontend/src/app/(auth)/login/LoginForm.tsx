@@ -7,11 +7,16 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { AUTH_CLIENT_MESSAGES } from "@/modules/root/exceptions/auth.messages";
 import { Button } from "@/shared/components/ui/Button";
 import { FormInput } from "@/shared/components/ui/FormInput";
 import { InputCheckbox, InputPassword } from "@/shared/components/ui/input/index";
 import { buildTenantRequestHeaders, resolveTenantSlugFromHostname } from "@/shared/lib/tenant";
 import { applyDocumentTheme, resolveThemePreference } from "@/shared/lib/theme-preference";
+
+function isSystemUnavailable(status: number, code: string): boolean {
+    return code === "AUTH_API_UNAVAILABLE" || status === 502 || status === 503 || status === 504;
+}
 
 export function LoginForm() {
     const router = useRouter();
@@ -82,7 +87,9 @@ export function LoginForm() {
                 } catch {
                     // sem JSON
                 }
-                if (code === "AUTH_NO_ACTIVE_SYSTEM" || (loginResponse.status >= 500 && tenantSlug)) {
+                if (isSystemUnavailable(loginResponse.status, code)) {
+                    toast.error(AUTH_CLIENT_MESSAGES.AUTH_API_UNAVAILABLE);
+                } else if (code === "AUTH_NO_ACTIVE_SYSTEM" || (loginResponse.status >= 500 && tenantSlug)) {
                     toast.error(
                         "Não foi possível acessar o sistema. Entre em contato com seu departamento administrativo",
                     );
@@ -134,7 +141,7 @@ export function LoginForm() {
             // Mantém loading no botão; AppBootstrap cobre até sair de /login.
             router.replace("/dashboard");
         } catch {
-            toast.error("Usuário ou senha inválidos");
+            toast.error(AUTH_CLIENT_MESSAGES.AUTH_API_UNAVAILABLE);
             setLoading(false);
         }
     }

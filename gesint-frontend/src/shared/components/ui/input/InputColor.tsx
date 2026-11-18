@@ -4,11 +4,12 @@ import clsx from "clsx";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { ColorPickerPanel } from "@/shared/components/ui/input/ColorPickerPanel";
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
+import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import {
     fieldClass,
     InputFieldChrome,
 } from "@/shared/components/ui/input/InputFieldChrome";
-import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { useClickOutside } from "@/shared/components/ui/input/use-listbox-keyboard";
 
 /** Cor secundária do layout (`--color-secondary` / `--gesint-primary-dark`). */
@@ -39,6 +40,7 @@ export function InputColor({
     className,
     disabled,
     readOnly,
+    required,
     error,
     id: idProp,
     ...chrome
@@ -54,7 +56,9 @@ export function InputColor({
     const swatchRef = useRef<HTMLButtonElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
     const onValueChangeRef = useRef(onValueChange);
-    onValueChangeRef.current = onValueChange;
+    useEffect(() => {
+        onValueChangeRef.current = onValueChange;
+    }, [onValueChange]);
 
     const close = useCallback(() => setOpen(false), []);
     useClickOutside([rootRef, panelRef], close, open);
@@ -75,7 +79,7 @@ export function InputColor({
     }, []);
 
     return (
-        <InputFieldChrome {...chrome} id={id} error={error} disabled={disabled} readOnly={readOnly}>
+        <InputFieldChrome {...chrome} id={id} error={error} required={required} disabled={disabled} readOnly={readOnly}>
             <div ref={rootRef} className="relative">
                 <div
                     className={clsx(
@@ -113,18 +117,18 @@ export function InputColor({
                         onChange={(event) => onValueChange(normalizeHex(event.target.value))}
                         onFocus={close}
                     />
-                    {allowClear && normalized ? (
-                        <button
-                            type="button"
-                            className="shrink-0 text-xs font-medium text-base-content/45 transition hover:text-base-content/70"
-                            disabled={disabled || readOnly}
+                    {canClearOptionalField({
+                        required,
+                        disabled,
+                        readOnly,
+                        value: allowClear ? normalized : "",
+                    }) ? (
+                        <FieldClearButton
                             onClick={() => {
                                 onValueChange("");
                                 setOpen(false);
                             }}
-                        >
-                            Padrão
-                        </button>
+                        />
                     ) : null}
                 </div>
                 {open ? (

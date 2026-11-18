@@ -12,6 +12,7 @@ import {
     useState,
 } from "react";
 
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import { HourPickerPanel } from "@/shared/components/ui/input/HourPickerPanel";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
@@ -138,6 +139,15 @@ export function InputHour({
                             setIsEditing(false);
                         }}
                     />
+                    {canClearOptionalField({ required, disabled, readOnly, value: display }) ? (
+                        <FieldClearButton
+                            onClick={() => {
+                                setLocalError(undefined);
+                                setIsEditing(false);
+                                onValueChange("");
+                            }}
+                        />
+                    ) : null}
                     {!readOnly && (
                         <button
                             type="button"

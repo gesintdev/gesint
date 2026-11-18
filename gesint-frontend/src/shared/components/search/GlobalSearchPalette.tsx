@@ -18,6 +18,7 @@ import { APP_ROUTES, flattenRoutes, type AppRoute } from "@/config/routes";
 import type { GlobalSearchGroup, GlobalSearchItem } from "@/modules/root/search/dto/global-search.dto";
 import { globalSearchService } from "@/modules/root/search/services/global-search.service";
 import { useSessionPermissions } from "@/shared/auth/permissions";
+import { FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import { canAccessRoute } from "@/shared/auth/route-access";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { defaultShortLabel, findRouteByHref } from "@/shared/workspace/workspace-routes";
@@ -285,6 +286,7 @@ export function GlobalSearchPalette() {
                                     }
                                 }}
                             />
+                            {query.trim() ? <FieldClearButton onClick={() => setQuery("")} /> : null}
                             <kbd className="ms-auto hidden shrink-0 sm:flex">Alt+S</kbd>
                             <span className="w-6 shrink-0" aria-hidden />
                         </label>

@@ -718,6 +718,31 @@ body {
     font-variation-settings: "wght" 400;
 }
 
+.gesint-field input[type="search"]::-webkit-search-cancel-button,
+.gesint-field input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.gesint-field__clear {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
+    cursor: pointer;
+}
+
+.gesint-field__clear:hover {
+    color: var(--color-base-content);
+}
+
 /* Multi-value — altura mínima de input; cresce ao quebrar linha; chips centralizados */
 .gesint-field.gesint-field--multi {
     height: auto;
@@ -2973,6 +2998,66 @@ kbd {
     .gesint-form-section__body {
         grid-template-columns: repeat(12, minmax(0, 1fr));
     }
+}
+
+.gesint-photo-card {
+    display: flex;
+    height: 100%;
+    min-height: 16.5rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 1rem 1.125rem;
+    border-radius: var(--radius-gesint-card);
+    border: 1px solid var(--gesint-border-subtle);
+    background: color-mix(in srgb, var(--color-base-content) 3%, var(--color-base-100));
+}
+
+.gesint-photo-card__frame {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    flex-shrink: 0;
+}
+
+.gesint-photo-card__trigger {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-gesint-card);
+    background: color-mix(in srgb, var(--color-base-content) 4%, var(--color-base-100));
+}
+
+.gesint-photo-card__trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gesint-primary) 14%, transparent);
+}
+
+.gesint-photo-card__remove {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 2;
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-error) 22%, var(--gesint-border));
+    background: var(--color-base-100);
+    color: var(--color-error);
+    box-shadow: var(--gesint-shadow-sm);
+    cursor: pointer;
+}
+
+.gesint-photo-card__remove:hover {
+    background: color-mix(in srgb, var(--color-error) 8%, var(--color-base-100));
+}
+
+[data-theme="dark"] .gesint-photo-card {
+    background: color-mix(in srgb, var(--color-base-content) 8%, var(--color-base-100));
 }
 
 /* Formulário CRUD — scroll interno + rodapé fixo */

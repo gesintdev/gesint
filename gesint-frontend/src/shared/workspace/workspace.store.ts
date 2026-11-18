@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+import { notifyTabClosed } from "@/shared/workspace/dirty-tab-guard";
 import type { OpenWorkspaceRecordInput, OpenWorkspaceTabInput, WorkspaceTab } from "@/shared/workspace/workspace.types";
 import {
     DASHBOARD_ROUTE_ID,
@@ -10,7 +11,6 @@ import {
     isDashboardTabId,
     stripDashboardTabs,
 } from "@/shared/workspace/workspace-dashboard";
-import { notifyTabClosed } from "@/shared/workspace/dirty-tab-guard";
 import { defaultShortLabel, findRouteById } from "@/shared/workspace/workspace-routes";
 import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
 
@@ -221,7 +221,11 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                 const existing = get().tabs.find(
                     (t) => t.id === buildWorkspaceTabId(input.routeId, "list"),
                 );
-                const tab = buildTab({ ...input, entityKey: "list", titleSuffix: undefined }, existing);
+                if (existing) {
+                    set({ activeTabId: existing.id });
+                    return;
+                }
+                const tab = buildTab({ ...input, entityKey: "list" });
                 set({
                     tabs: upsertTab(get().tabs, tab),
                     activeTabId: tab.id,

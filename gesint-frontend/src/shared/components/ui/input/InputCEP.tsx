@@ -14,9 +14,10 @@ export type InputCEPProps = InputFieldChromeProps & {
     /** Exibe spinner enquanto uma busca assíncrona (ex.: ViaCEP) está em andamento. */
     loading?: boolean;
     onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
+    onBlur?: () => void;
 };
 
-export function InputCEP({ value, onValueChange, validate = true, ...chrome }: InputCEPProps) {
+export function InputCEP({ value, onValueChange, validate = true, onBlur, ...chrome }: InputCEPProps) {
     const [localError, setLocalError] = useState<string | undefined>();
 
     return (
@@ -31,9 +32,10 @@ export function InputCEP({ value, onValueChange, validate = true, ...chrome }: I
             onBlur={() => {
                 if (!validate || !value) {
                     setLocalError(undefined);
-                    return;
+                } else {
+                    setLocalError(isValidCep(value) ? undefined : "CEP inválido");
                 }
-                setLocalError(isValidCep(value) ? undefined : "CEP inválido");
+                onBlur?.();
             }}
         />
     );

@@ -9,6 +9,7 @@ import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapse
 import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
 import {SidebarUserMenu} from "@/shared/components/layout/SidebarUserMenu";
 import {SystemRail} from "@/shared/components/layout/SystemRail";
+import {FieldClearButton} from "@/shared/components/ui/input/FieldClearButton";
 import {useActiveSystem, useActiveSystemRoutes} from "@/shared/context/ActiveSystemContext";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 import {findRouteByHref} from "@/shared/workspace/workspace-routes";
@@ -83,6 +84,7 @@ function SidebarToolbar({
                         tabIndex={panelCollapsed ? -1 : undefined}
                         className="pe-2 placeholder:text-base-content/32"
                     />
+                    {query.trim() ? <FieldClearButton onClick={() => onQueryChange("")} /> : null}
                 </label>
             </div>
             <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle}/>

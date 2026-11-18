@@ -64,10 +64,20 @@ export function WorkspaceNavigationProvider({children}: { children: ReactNode })
     const openRouteModule = useCallback(
         (route: AppRoute, shortLabel?: string) => {
             const input = routeToInput(route, shortLabel);
+            const listTabId = buildWorkspaceTabId(input.routeId, "list");
+            const state = useWorkspaceStore.getState();
+            const existing = state.tabs.find((tab) => tab.id === listTabId);
+            if (existing) {
+                if (state.activeTabId !== existing.id) {
+                    focusTab(existing.id);
+                    syncUrl(existing.href);
+                }
+                return;
+            }
             openModuleTab(input);
             syncUrl(input.href);
         },
-        [openModuleTab, syncUrl],
+        [focusTab, openModuleTab, syncUrl],
     );
     const openRouteRecord = useCallback(
         (route: AppRoute, entityId: string, options?: { titleSuffix?: string; shortLabel?: string }) => {

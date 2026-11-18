@@ -6,6 +6,7 @@ import { useId, useRef } from "react";
 
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import { MonthPickerPanel } from "@/shared/components/ui/input/MonthPickerPanel";
 import { useClickOutside } from "@/shared/components/ui/input/use-listbox-keyboard";
 import { useMonthField } from "@/shared/components/ui/input/useMonthField";
@@ -78,6 +79,9 @@ export function InputMonth({
                         onChange={(e) => field.onChangeEdit(e.target.value)}
                         onBlur={(e) => field.handleBlur(e.target.value)}
                     />
+                    {canClearOptionalField({ required, disabled, readOnly, value: field.display }) ? (
+                        <FieldClearButton onClick={() => onValueChange("")} />
+                    ) : null}
                     {!readOnly && (
                         <button
                             type="button"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import type { MedicalClinicCreateDto } from "@/modules/dp/occupational-exam/clinic/dto/medical-clinic.dto";
@@ -13,24 +13,31 @@ import {
 import { medicalClinicKeys } from "@/modules/dp/occupational-exam/clinic/medical-clinic.query";
 import { medicalClinicService } from "@/modules/dp/occupational-exam/clinic/services/medical-clinic.service";
 import { OCCUPATIONAL_EXAM_CLIENT_MESSAGES } from "@/modules/dp/occupational-exam/exceptions/occupational-exam.messages";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
+import { AddressFormSection } from "@/shared/components/form/AddressFormSection";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
 import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCNPJ, InputDate, InputPhone, InputString } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
+import { isStepFilled } from "@/shared/lib/form-step.util";
 import { isValidCnpj } from "@/shared/lib/input/cnpj";
 
-const FORM_STEPS: FormStepNavItem[] = [{ id: "dados", label: "Clinica" }];
+const FORM_STEPS: FormStepNavItem[] = [
+    { id: "dados", label: "Clínica" },
+    { id: "endereco", label: "Endereço" },
+];
 
 export function MedicalClinicFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<MedicalClinicCreateDto>(emptyMedicalClinicForm);
+    const [stateLabel, setStateLabel] = useState("");
+    const [cityLabel, setCityLabel] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     const detailQuery = useQuery({
@@ -42,11 +49,15 @@ export function MedicalClinicFormClient() {
     useEffect(() => {
         if (!isEditing) {
             setForm(emptyMedicalClinicForm());
+            setStateLabel("");
+            setCityLabel("");
             setError(null);
             return;
         }
         if (detailQuery.data) {
             setForm(medicalClinicToFormDto(detailQuery.data));
+            setStateLabel(detailQuery.data.stateCode ?? "");
+            setCityLabel(detailQuery.data.cityName ?? "");
             setError(null);
         }
     }, [isEditing, detailQuery.data]);
@@ -98,6 +109,22 @@ export function MedicalClinicFormClient() {
         }
         saveMutation.mutate(form);
     };
+    const filledStepIds = useMemo(() => {
+        const filled: string[] = [];
+        if (isStepFilled([{ value: form.corporateName }, { value: form.cnpj }])) filled.push("dados");
+        if (
+            isStepFilled([
+                { value: form.zipCode },
+                { value: form.stateId },
+                { value: form.street },
+                { value: form.number },
+                { value: form.cityId },
+            ])
+        ) {
+            filled.push("endereco");
+        }
+        return filled;
+    }, [form]);
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -126,12 +153,13 @@ export function MedicalClinicFormClient() {
             onSubmit={handleSubmit}
             stepper={{
                 steps: FORM_STEPS,
+                filledStepIds,
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
                 resetKey: editingId ?? "new",
             }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
-            <FormSection id="dados" title="Dados da clinica" description="Cadastro da clinica credenciada para exames.">
+            <FormSection id="dados" title="Dados da clínica" description="Cadastro da clínica credenciada para exames.">
                 <InputString
                     label="Razao social"
                     value={form.corporateName}
@@ -145,12 +173,6 @@ export function MedicalClinicFormClient() {
                     onValueChange={(v) => update("cnpj", v)}
                     required
                     wrapperClassName="sm:col-span-4"
-                />
-                <InputString
-                    label="Endereco"
-                    value={form.address ?? ""}
-                    onValueChange={(v) => update("address", v)}
-                    wrapperClassName="sm:col-span-12"
                 />
                 <InputPhone
                     label="Telefone"
@@ -177,6 +199,26 @@ export function MedicalClinicFormClient() {
                     wrapperClassName="sm:col-span-12"
                 />
             </FormSection>
+            <AddressFormSection
+                id="endereco"
+                value={{
+                    zipCode: form.zipCode,
+                    stateId: form.stateId,
+                    cityId: form.cityId,
+                    street: form.street,
+                    number: form.number,
+                    district: form.district,
+                    complement: form.complement,
+                }}
+                stateLabel={stateLabel}
+                cityLabel={cityLabel}
+                disabled={saveMutation.isPending}
+                onChange={(address, labels) => {
+                    setStateLabel(labels.stateLabel);
+                    setCityLabel(labels.cityLabel);
+                    setForm((prev) => ({ ...prev, ...address }));
+                }}
+            />
             {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         </CrudFormShell>
     );

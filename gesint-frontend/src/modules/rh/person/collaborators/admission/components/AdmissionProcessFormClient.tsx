@@ -4,11 +4,11 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {type SubmitEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {toast} from "sonner";
 
-import {DepartmentPickerField} from "@/modules/dp/organization/department/components/DepartmentPickerField";
-import {JobPositionPickerField} from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
+import {useDocumentTypeItems} from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
 import {workScheduleService} from "@/modules/cfg/settings/workschedule/services/work-schedule.service";
 import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule.query";
-import {useDocumentTypeItems} from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
+import {DepartmentPickerField} from "@/modules/dp/organization/department/components/DepartmentPickerField";
+import {JobPositionPickerField} from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
 import {admissionprocessKeys} from "@/modules/rh/person/collaborators/admission/admission.query";
 import {
     AdmissionEmergencyContactsField
@@ -17,6 +17,7 @@ import type {AdmissionProcessCreateDto} from "@/modules/rh/person/collaborators/
 import {
     ADMISSION_CLIENT_MESSAGES
 } from "@/modules/rh/person/collaborators/admission/exceptions/admission-process.messages";
+import {consumeAdmissionCandidatePrefill} from "@/modules/rh/person/collaborators/admission/lib/admission-candidate-prefill";
 import {isAdmissionPj} from "@/modules/rh/person/collaborators/admission/lib/admission-contract.util";
 import {
     ADMISSION_FORM_STEPS,
@@ -27,40 +28,37 @@ import {
     WORKLOAD_SCHEDULE_ITEMS,
     YES_NO_ITEMS,
 } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
-import {consumeAdmissionCandidatePrefill} from "@/modules/rh/person/collaborators/admission/lib/admission-candidate-prefill";
 import {
     admissionFormToPayload,
     admissionprocessToFormDto,
     emptyAdmissionProcessForm,
 } from "@/modules/rh/person/collaborators/admission/lib/admission-process.mapper";
 import {computeFilledAdmissionSteps} from "@/modules/rh/person/collaborators/admission/lib/admission-status.util";
-import {addressService} from "@/modules/rh/person/collaborators/admission/services/address.service";
 import {admissionprocessService} from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
 import {storageService} from "@/modules/storage/services/storage.service";
 import {CrudFormFooterActions} from "@/shared/components/crud/CrudFormFooterActions";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
+import {AddressFormSection} from "@/shared/components/form/AddressFormSection";
 import {
     EntityAttachments,
     flushPendingAttachments,
     type PendingAttachment,
 } from "@/shared/components/storage/EntityAttachments";
 import {Button} from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {
-    InputCEP,
     InputCNPJ,
     InputCPF,
     InputCurrency,
     InputDate,
     InputPhone,
     InputSelect,
-    InputSelectAutocomplete,
     InputString,
 } from "@/shared/components/ui/input/index";
 import {ProfilePhotoField} from "@/shared/components/ui/ProfilePhotoField";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {digitsOnly} from "@/shared/lib/input/digits";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
@@ -125,7 +123,6 @@ export function AdmissionProcessFormClient() {
         });
         setPendingPhotoBlob(null);
     }, []);
-    const lookedUpZipRef = useRef("");
     /** Mantém anexos pendentes ao continuar edição após save parcial (create ok, upload falhou). */
     const keepPendingAfterPartialRef = useRef(false);
     const update = <K extends keyof AdmissionProcessCreateDto>(field: K, value: AdmissionProcessCreateDto[K]) => {
@@ -138,29 +135,6 @@ export function AdmissionProcessFormClient() {
             contractStartDate: prev.contractStartDate || value,
         }));
     };
-    const cepLookupMutation = useMutation({
-        mutationFn: (postalCode: string) => addressService.findByPostalCode(postalCode),
-        onSuccess: (address) => {
-            lookedUpZipRef.current = address.zipCode;
-            setForm((prev) => ({
-                ...prev,
-                zipCode: address.zipCode,
-                street: address.street ?? prev.street,
-                complement: address.complement || prev.complement,
-                district: address.district ?? prev.district,
-                stateId: address.stateId,
-                cityId: address.cityId,
-            }));
-            setStateLabel(address.stateCode);
-            setCityLabel(address.cityName);
-        },
-        onError: (err: unknown) => {
-            ExceptionCapture.handle(err, {
-                fallbackMessage: ADMISSION_CLIENT_MESSAGES.ADDRESS_LOOKUP_FAILED,
-            });
-        },
-    });
-
     useEffect(() => {
         if (!isEditing) {
             const prefill = consumeAdmissionCandidatePrefill();
@@ -358,9 +332,10 @@ export function AdmissionProcessFormClient() {
                 description="Tipo de contrato, identificação pessoal e contato do colaborador."
                 bodyClassName="!block"
             >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-                    <div className="lg:max-w-60 lg:shrink-0">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+                    <div className="flex lg:w-60 lg:shrink-0">
                         <ProfilePhotoField
+                            className="w-full flex-1"
                             photoObjectId={form.photoObjectId || undefined}
                             pendingPreviewUrl={pendingPreviewUrl}
                             onCropComplete={handlePhotoCropComplete}
@@ -549,88 +524,27 @@ export function AdmissionProcessFormClient() {
                     onChange={(emergencyContacts) => update("emergencyContacts", emergencyContacts)}
                 />
             </FormSection>
-            <FormSection
+            <AddressFormSection
                 id="endereco"
                 title="Endereço"
-                description="Residência principal informada na admissão. O CEP preenche os dados automaticamente."
-                bodyClassName="sm:!grid-cols-12"
-            >
-                <InputCEP
-                    label="CEP"
-                    value={form.zipCode ?? ""}
-                    onValueChange={(v) => update("zipCode", v)}
-                    loading={cepLookupMutation.isPending}
-                    onKeyDown={(e) => {
-                        if (e.key !== "Tab" || e.shiftKey) return;
-                        if (cepLookupMutation.isPending) {
-                            e.preventDefault();
-                            return;
-                        }
-                        const zip = form.zipCode ?? "";
-                        if (zip.length === 8 && zip !== lookedUpZipRef.current) {
-                            e.preventDefault();
-                            cepLookupMutation.mutate(zip);
-                        }
-                    }}
-                    wrapperClassName="sm:col-span-3"
-                />
-                <InputSelectAutocomplete
-                    label="UF"
-                    value={form.stateId ?? ""}
-                    selectedLabel={stateLabel}
-                    onSearch={(query, page) => addressService.searchStates(query, page)}
-                    onValueChange={(value, item) => {
-                        const stateChanged = value !== (form.stateId ?? "");
-                        setForm((prev) => ({
-                            ...prev,
-                            stateId: value,
-                            cityId: stateChanged ? "" : prev.cityId,
-                        }));
-                        setStateLabel(item?.label ?? "");
-                        if (stateChanged) setCityLabel("");
-                    }}
-                    remoteMinChars={0}
-                    disabled={cepLookupMutation.isPending}
-                    wrapperClassName="sm:col-span-3"
-                />
-                <InputSelectAutocomplete
-                    label="Cidade"
-                    value={form.cityId ?? ""}
-                    selectedLabel={cityLabel}
-                    onSearch={(query, page) => addressService.searchCities(form.stateId ?? "", query, page)}
-                    onValueChange={(value, item) => {
-                        update("cityId", value);
-                        setCityLabel(item?.label ?? "");
-                    }}
-                    remoteMinChars={0}
-                    disabled={!form.stateId || cepLookupMutation.isPending}
-                    wrapperClassName="sm:col-span-6"
-                />
-                <InputString
-                    label="Logradouro"
-                    value={form.street ?? ""}
-                    onValueChange={(v) => update("street", v)}
-                    wrapperClassName="sm:col-span-8"
-                />
-                <InputString
-                    label="Número"
-                    value={form.number ?? ""}
-                    onValueChange={(v) => update("number", v)}
-                    wrapperClassName="sm:col-span-4"
-                />
-                <InputString
-                    label="Bairro"
-                    value={form.district ?? ""}
-                    onValueChange={(v) => update("district", v)}
-                    wrapperClassName="sm:col-span-6"
-                />
-                <InputString
-                    label="Complemento"
-                    value={form.complement ?? ""}
-                    onValueChange={(v) => update("complement", v)}
-                    wrapperClassName="sm:col-span-6"
-                />
-            </FormSection>
+                description="Residência principal informada na admissão. O CEP preenche os dados automaticamente. Se o CEP não for encontrado, o endereço pode ser informado manualmente."
+                value={{
+                    zipCode: form.zipCode,
+                    stateId: form.stateId,
+                    cityId: form.cityId,
+                    street: form.street,
+                    number: form.number,
+                    district: form.district,
+                    complement: form.complement,
+                }}
+                stateLabel={stateLabel}
+                cityLabel={cityLabel}
+                onChange={(address, labels) => {
+                    setStateLabel(labels.stateLabel);
+                    setCityLabel(labels.cityLabel);
+                    setForm((prev) => ({ ...prev, ...address }));
+                }}
+            />
             <FormSection
                 id="documentos"
                 title="Documentos"

@@ -5,6 +5,16 @@ export class MedicalClinic {
     corporateName!: string;
     cnpj!: string;
     address?: string;
+    zipCode?: string;
+    street?: string;
+    number?: string;
+    complement?: string;
+    district?: string;
+    stateId?: string;
+    stateCode?: string;
+    stateName?: string;
+    cityId?: string;
+    cityName?: string;
     phone?: string;
     email?: string;
     examsOffered?: string;
@@ -14,7 +24,13 @@ export class MedicalClinic {
 export class MedicalClinicCreateDto {
     corporateName!: string;
     cnpj!: string;
-    address?: string;
+    zipCode?: string;
+    street?: string;
+    number?: string;
+    complement?: string;
+    district?: string;
+    stateId?: string;
+    cityId?: string;
     phone?: string;
     email?: string;
     examsOffered?: string;
