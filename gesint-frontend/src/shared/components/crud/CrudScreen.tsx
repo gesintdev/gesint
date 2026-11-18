@@ -246,6 +246,14 @@ export function CrudScreen({
     const [activeTab, setActiveTab] = useState(defaultTab);
     const [editingId, setEditingId] = useState<string | null>(initialEditingId);
     const [formEpoch, setFormEpoch] = useState(0);
+    /**
+     * Cadastro novo não tem editingId. Sem este latch, sair da aba Cadastro tornava
+     * formSessionActive falso e desmontava o formulário — o que foi digitado sumia.
+     * Só solta em resetToList (Cancelar, troca de filial). Novo cadastro remonta pela epoch.
+     */
+    const [formSessionLatched, setFormSessionLatched] = useState(
+        () => initialEditingId != null || defaultTab === CRUD_TAB_FORM,
+    );
     const [overrideExtraTabs, setOverrideExtraTabs] = useState<CrudExtraTab[] | null>(null);
     const [listToolbarContent, setListToolbarContent] = useState<ReactNode | null>(null);
     const [initialExtraTabResolved, setInitialExtraTabResolved] = useState(false);
@@ -277,7 +285,14 @@ export function CrudScreen({
     const isEditing = editingId != null;
     const workspaceRoute = workspaceTabCtx ? findRouteById(workspaceTabCtx.tab.routeId) : undefined;
     const canWrite = canWriteRoute(workspaceRoute, permissions, writePermission);
-    const formSessionActive = canWrite && (isEditing || activeTab === CRUD_TAB_FORM);
+    const formSessionActive =
+        canWrite && (formSessionLatched || isEditing || activeTab === CRUD_TAB_FORM);
+    useLayoutEffect(() => {
+        if (!canWrite) return;
+        if (isEditing || activeTab === CRUD_TAB_FORM) {
+            setFormSessionLatched(true);
+        }
+    }, [activeTab, canWrite, isEditing]);
     const isListInstance = workspaceTabCtx == null || isModuleListTab(workspaceTabCtx.tab.entityKey);
     const syncWorkspace = useCallback(
         (crud: { editingId?: string | null; isNew?: boolean; titleSuffix?: string | null }) => {
@@ -333,6 +348,7 @@ export function CrudScreen({
         return confirmDiscardUnsavedChanges(tabId);
     }, [workspaceTabCtx?.tab.id]);
     const resetToList = useCallback(() => {
+        setFormSessionLatched(false);
         setEditingId(null);
         setActiveTab(CRUD_TAB_LIST);
         syncWorkspace({});
