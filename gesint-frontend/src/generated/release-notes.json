@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.100.0",
+      "hash": "404d4a27",
+      "date": "2026-11-18T12:00:28-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (cadastros alinhados a admissao)",
+      "body": "**Commits incluídos**\n\n- feat: alinha os cadastros ao fluxo da admissão",
+      "pullRequest": null
+    },
+    {
       "version": "1.99.5",
       "hash": "aa894473",
       "date": "2026-11-16T17:40:04-03:00",
