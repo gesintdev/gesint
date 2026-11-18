@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { Calendar } from "lucide-react";
 import { useId, useRef, useState } from "react";
 
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import { DatetimePickerPanel } from "@/shared/components/ui/input/DatetimePickerPanel";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
@@ -73,6 +74,9 @@ export function InputDatetime({
                     onClick={() => !disabled && !readOnly && setOpen((v) => !v)}
                 >
                     <span className="min-w-0 flex-1 truncate">{display || "DD/MM/AAAA HH:mm"}</span>
+                    {canClearOptionalField({ required, disabled, readOnly, value: display }) ? (
+                        <FieldClearButton embedded onClick={() => onValueChange("")} />
+                    ) : null}
                     <Calendar className="size-4 shrink-0 text-base-content/40" aria-hidden />
                 </button>
                 {open && !readOnly && !disabled && (

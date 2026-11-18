@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { Loader2 } from "lucide-react";
 import { useId } from "react";
 
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputBaseProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 
@@ -40,6 +41,13 @@ export function InputBase({
 }: InputBaseProps) {
     const autoId = useId();
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
+    const showClear = canClearOptionalField({
+        required,
+        disabled,
+        readOnly,
+        loading,
+        value: displayValue,
+    });
 
     return (
         <InputFieldChrome
@@ -82,6 +90,7 @@ export function InputBase({
                     onFocus={onFocus}
                     onKeyDown={onKeyDown}
                 />
+                {showClear ? <FieldClearButton onClick={() => onDisplayChange("")} /> : null}
                 {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}
                 {rightSlot}
             </div>

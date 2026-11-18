@@ -8,6 +8,7 @@ import type { ActingProfile, SystemScope } from "@/modules/cfg/settings/actingpr
 import { DATA_SCOPE_OPTIONS } from "@/modules/cfg/settings/actingprofile/services/acting-profile.service";
 import { ActingProfileDetailModal } from "@/modules/cfg/settings/appuser/components/ActingProfileDetailModal";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
+import { FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import { InputCheckbox } from "@/shared/components/ui/input/index";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
@@ -89,6 +90,7 @@ export function ActingProfileRolePicker({
                         placeholder="Buscar por nome ou abrangência…"
                         className="text-sm!"
                     />
+                    {search.trim() ? <FieldClearButton onClick={() => setSearch("")} /> : null}
                 </label>
                 <ul
                     className={clsx(

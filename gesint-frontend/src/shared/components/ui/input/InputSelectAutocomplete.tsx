@@ -1,9 +1,10 @@
 "use client";
 
 import clsx from "clsx";
-import { ChevronDown, Loader2, X } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
@@ -21,9 +22,9 @@ function normalizeText(value: string): string {
         .toLowerCase();
 }
 
-function filterItems(items: SelectItem[], query: string): SelectItem[] {
+function filterItems(items: SelectItem[], query: string, limit: number): SelectItem[] {
     const q = normalizeText(query.trim());
-    if (!q) return items.slice(0, MAX_VISIBLE);
+    if (!q) return items.slice(0, limit);
     return items
         .filter(
             (item) =>
@@ -31,7 +32,7 @@ function filterItems(items: SelectItem[], query: string): SelectItem[] {
                 (item.description ? normalizeText(item.description).includes(q) : false) ||
                 normalizeText(item.value).includes(q),
         )
-        .slice(0, MAX_VISIBLE);
+        .slice(0, limit);
 }
 
 function mergeVisibleItems(staticFiltered: SelectItem[], remote: SelectItem[]): SelectItem[] {
@@ -52,6 +53,8 @@ export type InputSelectAutocompleteProps = InputFieldChromeProps & {
     placeholder?: string;
     clearable?: boolean;
     remoteMinChars?: number;
+    /** Quantos itens locais mostrar de uma vez. A lista rola quando passa da altura do painel. */
+    visibleLimit?: number;
     className?: string;
 };
 
@@ -62,8 +65,8 @@ export function InputSelectAutocomplete({
     selectedLabel,
     onValueChange,
     placeholder = "Selecione ou busque...",
-    clearable = true,
     remoteMinChars = REMOTE_MIN_CHARS,
+    visibleLimit = MAX_VISIBLE,
     label,
     hint,
     error,
@@ -88,7 +91,10 @@ export function InputSelectAutocomplete({
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(false);
-    const filteredStatic = useMemo(() => filterItems(staticItems, query), [staticItems, query]);
+    const filteredStatic = useMemo(
+        () => filterItems(staticItems, query, visibleLimit),
+        [query, staticItems, visibleLimit],
+    );
     const visibleItems = useMemo(() => {
         const q = query.trim();
         if (!onSearch || q.length < remoteMinChars) return filteredStatic;
@@ -240,22 +246,17 @@ export function InputSelectAutocomplete({
                         onFocus={openPanel}
                         onKeyDown={handleKeyDown}
                     />
-                    {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}
-                    {clearable && value && !disabled && !loading && (
-                        <button
-                            type="button"
-                            className="text-base-content/40 hover:text-base-content"
-                            aria-label="Limpar"
+                    {canClearOptionalField({ required, disabled, loading, value }) ? (
+                        <FieldClearButton
                             onClick={() => {
                                 setPickedItem(undefined);
                                 onValueChange("");
                                 setQuery("");
                                 setRemoteItems([]);
                             }}
-                        >
-                            <X className="size-3.5" />
-                        </button>
-                    )}
+                        />
+                    ) : null}
+                    {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}
                     <button
                         type="button"
                         tabIndex={-1}

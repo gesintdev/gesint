@@ -1,10 +1,11 @@
 "use client";
 
 import clsx from "clsx";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
@@ -26,7 +27,6 @@ export function InputSelect({
     value,
     onValueChange,
     placeholder = "Selecione...",
-    clearable = false,
     label,
     hint,
     error,
@@ -127,15 +127,9 @@ export function InputSelect({
                 >
                     <span className="min-w-0 flex-1 truncate">{selected?.label ?? placeholder}</span>
                     <span className="flex shrink-0 items-center gap-1 text-base-content/40">
-                        {clearable && value && !disabled && (
-                            <X
-                                className="size-3.5 hover:text-base-content"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onValueChange("");
-                                }}
-                            />
-                        )}
+                        {canClearOptionalField({ required, disabled, value }) ? (
+                            <FieldClearButton embedded onClick={() => onValueChange("")} />
+                        ) : null}
                         <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")} />
                     </span>
                 </button>

@@ -1,9 +1,10 @@
 "use client";
 
 import clsx from "clsx";
-import { FileUp, X } from "lucide-react";
+import { FileUp } from "lucide-react";
 import { useId, useRef } from "react";
 
+import { FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 
@@ -31,7 +32,6 @@ export function InputFile({
     accept,
     onFileChange,
     placeholder = "Nenhum arquivo escolhido",
-    clearable = true,
     className,
 }: InputFileProps) {
     const autoId = useId();
@@ -77,6 +77,7 @@ export function InputFile({
                 }}
             />
             <div
+                data-has-value={hasFile ? "true" : undefined}
                 className={clsx(
                     "gesint-field",
                     fieldClass(disabled, false, Boolean(error)),
@@ -104,18 +105,7 @@ export function InputFile({
                 >
                     {hasFile ? fileName : placeholder}
                 </button>
-                {clearable && hasFile ? (
-                    <button
-                        type="button"
-                        tabIndex={-1}
-                        disabled={disabled}
-                        className="gesint-password-toggle"
-                        aria-label="Remover arquivo"
-                        onClick={clearFile}
-                    >
-                        <X className="size-4" strokeWidth={2} />
-                    </button>
-                ) : null}
+                {!required && hasFile && !disabled ? <FieldClearButton onClick={clearFile} /> : null}
             </div>
             {hint && !error ? <p className="gesint-hint">{hint}</p> : null}
         </InputFieldChrome>

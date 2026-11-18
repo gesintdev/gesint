@@ -72,5 +72,5 @@ export function computeFilledAdmissionSteps(
     context: AdmissionStepContext,
     stepIds: string[],
 ): string[] {
-    return stepIds.filter((stepId) => stepId !== "observacoes" && isAdmissionStepComplete(stepId, form, context));
+    return stepIds.filter((stepId) => isAdmissionStepComplete(stepId, form, context));
 }

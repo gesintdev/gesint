@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { X } from "lucide-react";
 import { type ClipboardEvent, type KeyboardEvent, useId, useRef, useState } from "react";
 
+import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 
@@ -175,6 +176,19 @@ export function InputMultiValue({
                     onPaste={handlePaste}
                     onBlur={commitDraft}
                 />
+                {canClearOptionalField({
+                    required,
+                    disabled,
+                    readOnly,
+                    value: items.length > 0 ? value : "",
+                }) ? (
+                    <FieldClearButton
+                        onClick={() => {
+                            setDraft("");
+                            onValueChange("");
+                        }}
+                    />
+                ) : null}
             </div>
             {hint ? <p className="mt-1.5 text-[11px] text-base-content/45">{hint}</p> : null}
         </InputFieldChrome>

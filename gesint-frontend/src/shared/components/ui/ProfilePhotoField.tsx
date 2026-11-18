@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Camera, Loader2, X } from "lucide-react";
+import { Camera, Loader2, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -228,35 +228,43 @@ export function ProfilePhotoField({
     const hasPhoto = Boolean(pendingPreviewUrl || photoObjectId);
 
     return (
-        <div className={clsx("flex shrink-0 flex-col items-center gap-2", className)}>
-            <button
-                type="button"
-                disabled={disabled}
-                onClick={() => inputRef.current?.click()}
-                className={clsx(
-                    "group relative overflow-hidden rounded-2xl ring-1 ring-base-content/10 transition-shadow",
-                    "hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                    disabled && "pointer-events-none opacity-60",
-                )}
-                style={{ width: PROFILE_PHOTO_DISPLAY_PX, height: PROFILE_PHOTO_DISPLAY_PX }}
-                aria-label={hasPhoto ? "Alterar foto" : "Adicionar foto"}
-            >
-                {pendingPreviewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={pendingPreviewUrl} alt={displayName} className="h-full w-full rounded-2xl object-cover" />
-                ) : (
-                    <ProfileAvatar
-                        name={displayName}
-                        photoObjectId={photoObjectId}
-                        size="xl"
-                        shape="rounded"
-                        className="h-full w-full"
-                    />
-                )}
-                <span className="absolute inset-0 flex items-center justify-center bg-base-content/0 transition-colors group-hover:bg-base-content/25">
-                    <Camera className="size-7 text-white opacity-0 drop-shadow transition-opacity group-hover:opacity-100" />
-                </span>
-            </button>
+        <div className={clsx("gesint-photo-card", disabled && "pointer-events-none opacity-60", className)}>
+            <div className="gesint-photo-card__frame">
+                <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => inputRef.current?.click()}
+                    className="gesint-photo-card__trigger group relative"
+                    aria-label={hasPhoto ? "Alterar foto" : "Adicionar foto"}
+                >
+                    {pendingPreviewUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={pendingPreviewUrl} alt={displayName} className="h-full w-full object-cover" />
+                    ) : (
+                        <ProfileAvatar
+                            name={displayName}
+                            photoObjectId={photoObjectId}
+                            size="xl"
+                            shape="rounded"
+                            className="h-full w-full"
+                        />
+                    )}
+                    <span className="absolute inset-0 flex items-center justify-center bg-base-content/0 transition-colors group-hover:bg-base-content/25">
+                        <Camera className="size-7 text-white opacity-0 drop-shadow transition-opacity group-hover:opacity-100" />
+                    </span>
+                </button>
+                {hasPhoto ? (
+                    <button
+                        type="button"
+                        className="gesint-photo-card__remove"
+                        aria-label="Remover foto"
+                        disabled={disabled}
+                        onClick={onClear}
+                    >
+                        <Trash2 className="size-4" strokeWidth={2} />
+                    </button>
+                ) : null}
+            </div>
             <input
                 ref={inputRef}
                 type="file"
@@ -268,22 +276,10 @@ export function ProfilePhotoField({
                 }}
             />
             <div className="flex flex-col items-center gap-1">
-                <p className="text-center text-xs font-medium text-base-content/70">Foto do colaborador</p>
+                <p className="gesint-label mb-0 text-center">Foto do colaborador</p>
                 {pendingPreviewUrl ? (
                     <p className="text-center text-[11px] text-warning">Pendente — salve a admissão</p>
                 ) : null}
-                {hasPhoto ? (
-                    <button
-                        type="button"
-                        className="text-[11px] text-error/80 hover:text-error"
-                        onClick={onClear}
-                        disabled={disabled}
-                    >
-                        Remover foto
-                    </button>
-                ) : (
-                    <p className="text-center text-[11px] text-base-content/40">Clique para enviar</p>
-                )}
             </div>
             {pendingFile && (
                 <ProfilePhotoCropModal
