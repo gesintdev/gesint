@@ -1,12 +1,11 @@
 import {ChevronLeft, ChevronRight, Loader2, Plus, Search} from "lucide-react";
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {createPortal} from "react-dom";
+import {useCallback, useEffect, useMemo, useState} from "react";
 
 import {Button} from "@/shared/components/ui/Button";
 import {DataTable} from "@/shared/components/ui/DataTable";
 import {InputString} from "@/shared/components/ui/input/InputString";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
-import {ModalHeader} from "@/shared/components/ui/ModalHeader";
+import {Modal} from "@/shared/components/ui/Modal";
 import {ExceptionCapture} from "@/shared/exceptions/exception-capture";
 import type {
     EntityPickerAdvancedSearch,
@@ -38,9 +37,7 @@ export function EntitySearchModal<T extends object>({
                                                         onSelect,
                                                         fixedFilters,
                                                     }: EntitySearchModalProps<T>) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const pageSize = config.pageSize ?? 10;
-    const [mounted, setMounted] = useState(false);
     const [filters, setFilters] = useState<Record<string, string>>(() => emptyFilters(config.filters));
     const [appliedFilters, setAppliedFilters] = useState<Record<string, string>>(() => emptyFilters(config.filters));
     const [page, setPage] = useState(0);
@@ -51,17 +48,6 @@ export function EntitySearchModal<T extends object>({
     const [searched, setSearched] = useState(false);
     const mergedFilters = useMemo(() => ({...appliedFilters, ...fixedFilters}), [appliedFilters, fixedFilters]);
     const actionLabel = hasFilledFilter(filters) ? "Buscar" : "Listar todos";
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) dialog.showModal();
-        else if (dialog.open) dialog.close();
-    }, [open]);
 
     const runSearch = useCallback(
         async (nextPage: number, nextFilters: Record<string, string>) => {
@@ -115,24 +101,54 @@ export function EntitySearchModal<T extends object>({
         onClose();
     };
 
-    if (!mounted) return null;
-
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal"
+    return (
+        <Modal
+            open={open}
             onClose={onClose}
-            onClick={(e) => {
-                if (e.target === e.currentTarget) onClose();
-            }}
+            title={config.title}
+            subtitle={config.selectHint ?? "Dê duplo clique na linha para selecionar"}
+            size="2xl"
+            padded={false}
+            scroll={false}
+            bodyClassName="flex flex-col overflow-hidden"
+            footer={
+                <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs text-base-content/45">
+                        {totalElements > 0
+                            ? `${totalElements} registro(s) · página ${page + 1} de ${Math.max(totalPages, 1)}`
+                            : searched
+                                ? "Nenhum resultado"
+                                : "Nenhuma busca executada"}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={loading || !searched || page <= 0}
+                            leftIcon={<ChevronLeft className="size-3.5"/>}
+                            onClick={() => void runSearch(page - 1, mergedFilters)}
+                        >
+                            Anterior
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={loading || !searched || page + 1 >= totalPages}
+                            leftIcon={<ChevronRight className="size-3.5"/>}
+                            onClick={() => void runSearch(page + 1, mergedFilters)}
+                        >
+                            Próxima
+                        </Button>
+                        <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+                            Cancelar
+                        </Button>
+                    </div>
+                </div>
+            }
         >
-            <div className="modal-box flex max-h-[90vh] w-full max-w-3xl flex-col gap-0 p-0">
-                <ModalHeader
-                    title={config.title}
-                    subtitle={config.selectHint ?? "Dê duplo clique na linha para selecionar"}
-                    onClose={onClose}
-                />
-                <div
+            <div
                     role="search"
                     className="border-b border-base-content/8 px-5 py-4"
                     onKeyDown={(e) => {
@@ -201,43 +217,6 @@ export function EntitySearchModal<T extends object>({
                         />
                     )}
                 </div>
-                <div className="flex items-center justify-between gap-3 border-t border-base-content/8 px-5 py-3">
-                    <p className="text-xs text-base-content/45">
-                        {totalElements > 0
-                            ? `${totalElements} registro(s) · página ${page + 1} de ${Math.max(totalPages, 1)}`
-                            : searched
-                                ? "Nenhum resultado"
-                                : "Nenhuma busca executada"}
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={loading || !searched || page <= 0}
-                            leftIcon={<ChevronLeft className="size-3.5"/>}
-                            onClick={() => void runSearch(page - 1, mergedFilters)}
-                        >
-                            Anterior
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={loading || !searched || page + 1 >= totalPages}
-                            leftIcon={<ChevronRight className="size-3.5"/>}
-                            onClick={() => void runSearch(page + 1, mergedFilters)}
-                        >
-                            Próxima
-                        </Button>
-                        <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-                            Cancelar
-                        </Button>
-                    </div>
-                </div>
-            </div>
-            <button type="button" className="modal-backdrop" aria-label="Fechar modal" onClick={onClose}/>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-
 import {
     formatPeriodRange,
     type VacationHistoryRow,
 } from "@/modules/rh/person/leave/lib/leave-history.enrich";
 import { inclusiveDays } from "@/modules/rh/person/vacation/lib/vacation-rules";
-import { Button } from "@/shared/components/ui/Button";
-import { ModalHeader } from "@/shared/components/ui/ModalHeader";
+import { Modal } from "@/shared/components/ui/Modal";
 
 const STATUS_LABEL: Record<string, string> = {
     PENDING: "Aguardando DP",
@@ -61,24 +57,7 @@ type VacationHistoryDetailModalProps = {
 };
 
 export function VacationHistoryDetailModal({ row, open, onClose }: VacationHistoryDetailModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open]);
-
-    if (!mounted || !row) {
+    if (!row) {
         return null;
     }
 
@@ -90,32 +69,24 @@ export function VacationHistoryDetailModal({ row, open, onClose }: VacationHisto
         siblings.find((item) => item.vacationDaysEntitled != null)?.vacationDaysEntitled ??
         row.vacationDaysEntitled;
 
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal"
+    return (
+        <Modal
+            open={open}
             onClose={onClose}
-            onClick={(event) => {
-                if (event.target === event.currentTarget) onClose();
-            }}
+            title={`Férias #${row.code}`}
+            subtitle={
+                <span className="grid gap-1.5">
+                    <span className="text-sm text-base-content/65">
+                        {row.collaboratorName ?? "Colaborador"} · {row.gozoPeriodLabel}
+                    </span>
+                    <span className="badge badge-ghost w-fit">
+                        {STATUS_LABEL[row.rhVacationStatus] ?? row.rhVacationStatus}
+                    </span>
+                </span>
+            }
+            size="2xl"
+            actions={[{ title: "Fechar", variant: "ghost", onClick: onClose }]}
         >
-            <div className="modal-box flex max-h-[92vh] w-full max-w-3xl flex-col gap-0 p-0">
-                <ModalHeader
-                    title={`Férias #${row.code}`}
-                    subtitle={
-                        <span className="grid gap-1.5">
-                            <span className="text-sm text-base-content/65">
-                                {row.collaboratorName ?? "Colaborador"} · {row.gozoPeriodLabel}
-                            </span>
-                            <span className="badge badge-ghost w-fit">
-                                {STATUS_LABEL[row.rhVacationStatus] ?? row.rhVacationStatus}
-                            </span>
-                        </span>
-                    }
-                    onClose={onClose}
-                />
-
-                <div className="overflow-y-auto px-5 py-4">
                     <section className="grid gap-2 sm:grid-cols-2">
                         <DetailField label="Período aquisitivo" value={row.acquisitionPeriodLabel} />
                         <DetailField label="Período concessivo" value={row.concessivePeriodLabel} />
@@ -229,16 +200,6 @@ export function VacationHistoryDetailModal({ row, open, onClose }: VacationHisto
                             </>
                         ) : null}
                     </section>
-                </div>
-
-                <div className="flex items-center justify-end gap-2 border-t border-base-content/10 px-5 py-4">
-                    <Button type="button" variant="ghost" onClick={onClose}>
-                        Fechar
-                    </Button>
-                </div>
-            </div>
-            <button type="button" className="modal-backdrop" aria-label="Fechar" onClick={onClose} />
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

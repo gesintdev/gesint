@@ -1,7 +1,6 @@
 "use client";
 
-import {useEffect, useRef, useState} from "react";
-import {createPortal} from "react-dom";
+import {useEffect, useState} from "react";
 
 import type {
     AttendanceCompensationType,
@@ -10,7 +9,7 @@ import type {
 import {Button} from "@/shared/components/ui/Button";
 import {InputSelect} from "@/shared/components/ui/input/InputSelect";
 import {PopoverPortalProvider} from "@/shared/components/ui/input/popover-portal";
-import {ModalHeader} from "@/shared/components/ui/ModalHeader";
+import {Modal} from "@/shared/components/ui/Modal";
 
 const REQUEST_TYPE_LABEL: Record<string, string> = {
     TIME_ADJUSTMENT: "Ajuste de ponto",
@@ -72,27 +71,11 @@ export function AttendanceRequestDetailModal({
                                                  onApprove,
                                                  onReject,
                                              }: AttendanceRequestDetailModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
-    const [mounted, setMounted] = useState(false);
     const [rejectMode, setRejectMode] = useState(false);
     const [reason, setReason] = useState("");
     const [compensationType, setCompensationType] = useState<AttendanceCompensationType | "">("");
     const [compensationError, setCompensationError] = useState<string | undefined>();
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open]);
 
     useEffect(() => {
         if (!open) {
@@ -103,7 +86,7 @@ export function AttendanceRequestDetailModal({
         }
     }, [open]);
 
-    if (!mounted || !request) {
+    if (!request) {
         return null;
     }
 
@@ -130,36 +113,77 @@ export function AttendanceRequestDetailModal({
         onApprove?.();
     };
 
-    return createPortal(
-        <dialog
-            ref={(node) => {
-                dialogRef.current = node;
-                if (node !== portalRoot) {
-                    setPortalRoot(node);
-                }
-            }}
-            className="modal"
+    return (
+        <Modal
+            open={open}
             onClose={onClose}
+            title={`Solicitação #${request.code}`}
+            subtitle={
+                <span className="grid gap-1.5">
+                    <span className="text-sm text-base-content/65">
+                        {request.collaboratorName ?? "Colaborador"} · {formatDate(request.workDate)} ·{" "}
+                        {REQUEST_TYPE_LABEL[request.requestType] ?? request.requestType}
+                    </span>
+                    <span className="badge badge-ghost w-fit">
+                        {STATUS_LABEL[request.requestStatus] ?? request.requestStatus}
+                    </span>
+                </span>
+            }
+            size="2xl"
+            dialogRef={(node) => {
+                if (node !== portalRoot) setPortalRoot(node);
+            }}
+            footer={
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Button type="button" variant="ghost" onClick={onClose}>
+                        Fechar
+                    </Button>
+                    {isPending && !rejectMode ? (
+                        <>
+                            <Button
+                                type="button"
+                                variant="danger"
+                                onClick={() => setRejectMode(true)}
+                                disabled={reviewing}
+                            >
+                                Reprovar
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="success"
+                                loading={reviewing}
+                                onClick={handleApprove}
+                            >
+                                Aprovar
+                            </Button>
+                        </>
+                    ) : null}
+                    {isPending && rejectMode ? (
+                        <>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => {
+                                    setRejectMode(false);
+                                    setReason("");
+                                }}
+                            >
+                                Voltar
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="danger"
+                                loading={reviewing}
+                                onClick={() => onReject?.(reason)}
+                            >
+                                Confirmar reprovação
+                            </Button>
+                        </>
+                    ) : null}
+                </div>
+            }
         >
             <PopoverPortalProvider container={portalRoot}>
-                <div className="modal-box flex max-h-[92vh] w-full max-w-3xl flex-col gap-0 p-0">
-                    <ModalHeader
-                        title={`Solicitação #${request.code}`}
-                        subtitle={
-                            <span className="grid gap-1.5">
-                                <span className="text-sm text-base-content/65">
-                                    {request.collaboratorName ?? "Colaborador"} · {formatDate(request.workDate)} ·{" "}
-                                    {REQUEST_TYPE_LABEL[request.requestType] ?? request.requestType}
-                                </span>
-                                <span className="badge badge-ghost w-fit">
-                                    {STATUS_LABEL[request.requestStatus] ?? request.requestStatus}
-                                </span>
-                            </span>
-                        }
-                        onClose={onClose}
-                    />
-
-                    <div className="overflow-y-auto px-5 py-4">
                         <div className="overflow-hidden rounded-xl border border-base-300">
                             <table className="table table-sm">
                                 <thead>
@@ -261,60 +285,7 @@ export function AttendanceRequestDetailModal({
                                 />
                             </div>
                         ) : null}
-                    </div>
-
-                    <div
-                        className="flex flex-wrap items-center justify-end gap-2 border-t border-base-content/10 px-5 py-4">
-                        <Button type="button" variant="ghost" onClick={onClose}>
-                            Fechar
-                        </Button>
-                        {isPending && !rejectMode ? (
-                            <>
-                                <Button
-                                    type="button"
-                                    variant="danger"
-                                    onClick={() => setRejectMode(true)}
-                                    disabled={reviewing}
-                                >
-                                    Reprovar
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="success"
-                                    loading={reviewing}
-                                    onClick={handleApprove}
-                                >
-                                    Aprovar
-                                </Button>
-                            </>
-                        ) : null}
-                        {isPending && rejectMode ? (
-                            <>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={() => {
-                                        setRejectMode(false);
-                                        setReason("");
-                                    }}
-                                >
-                                    Voltar
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="danger"
-                                    loading={reviewing}
-                                    onClick={() => onReject?.(reason)}
-                                >
-                                    Confirmar reprovação
-                                </Button>
-                            </>
-                        ) : null}
-                    </div>
-                </div>
             </PopoverPortalProvider>
-            <button type="button" className="modal-backdrop" aria-label="Fechar" onClick={onClose}/>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

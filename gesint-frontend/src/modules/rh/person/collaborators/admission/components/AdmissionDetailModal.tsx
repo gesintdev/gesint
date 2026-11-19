@@ -1,8 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { type ReactNode } from "react";
 
 import { jobpositionService } from "@/modules/dp/organization/jobposition/services/jobposition.service";
 import type { AdmissionProcess } from "@/modules/rh/person/collaborators/admission/dto/admission-process.dto";
@@ -12,7 +11,7 @@ import {
     ADMISSION_STATUS_LABELS,
     contractTypeLabel,
 } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
-import { ModalHeader } from "@/shared/components/ui/ModalHeader";
+import { Modal } from "@/shared/components/ui/Modal";
 import { formatCnpj, formatCpf } from "@/shared/lib/table/format-cell-value";
 
 /** Etapas obrigatórias do progresso de admissão (alinhado ao backend). */
@@ -69,62 +68,36 @@ type AdmissionDetailModalProps = {
 };
 
 export function AdmissionDetailModal({ row, open, onClose }: AdmissionDetailModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const [mounted, setMounted] = useState(false);
-
     const jobPositionQuery = useQuery({
         queryKey: ["job-position-summary", row?.jobPositionId],
         queryFn: () => jobpositionService.getById(row!.jobPositionId!),
         enabled: open && Boolean(row?.jobPositionId?.trim()),
     });
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open]);
-
-    if (!mounted || !row) {
+    if (!row) {
         return null;
     }
 
     const isPj = isAdmissionPj(row.contractType);
     const pendingSteps = missingAdmissionStepLabels(row.completedStepIds);
 
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal"
+    return (
+        <Modal
+            open={open}
             onClose={onClose}
-            onClick={(event) => {
-                if (event.target === event.currentTarget) onClose();
-            }}
+            title={`Admissão #${row.code}`}
+            subtitle={
+                <span className="grid gap-1.5">
+                    <span className="truncate text-sm text-base-content/65">
+                        {row.fullName?.trim() || "Colaborador"}
+                    </span>
+                    <span className="badge badge-ghost w-fit">
+                        {ADMISSION_STATUS_LABELS[row.admissionStatus] ?? row.admissionStatus}
+                    </span>
+                </span>
+            }
+            size="xl"
         >
-            <div className="modal-box flex max-h-[92vh] w-full max-w-2xl flex-col gap-0 p-0">
-                <ModalHeader
-                    title={`Admissão #${row.code}`}
-                    subtitle={
-                        <span className="grid gap-1.5">
-                            <span className="truncate text-sm text-base-content/65">
-                                {row.fullName?.trim() || "Colaborador"}
-                            </span>
-                            <span className="badge badge-ghost w-fit">
-                                {ADMISSION_STATUS_LABELS[row.admissionStatus] ?? row.admissionStatus}
-                            </span>
-                        </span>
-                    }
-                    onClose={onClose}
-                />
-
-                <div className="overflow-y-auto px-5 py-4">
                     <section className="grid gap-2 sm:grid-cols-2">
                         <DetailField label="Etapas pendentes" className="sm:col-span-2">
                             <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -163,9 +136,6 @@ export function AdmissionDetailModal({ row, open, onClose }: AdmissionDetailModa
                         />
                         <DetailField label="Data início" value={formatDateBr(row.expectedStartDate)} />
                     </section>
-                </div>
-            </div>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

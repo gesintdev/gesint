@@ -3,8 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { ShieldCheck } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useMemo, useState } from "react";
 
 import { applicationAiScore } from "@/modules/rh/person/jobvacancy/lib/application-match-score";
 import {
@@ -16,10 +15,9 @@ import type {
 } from "@/modules/rh/person/jobvacancyapplication/dto/job-vacancy-application.dto";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
-import { Button } from "@/shared/components/ui/Button";
 import { InputCheckbox, InputSelect, type SelectItem } from "@/shared/components/ui/input/index";
 import { fieldClass } from "@/shared/components/ui/input/InputFieldChrome";
-import { ModalHeader } from "@/shared/components/ui/ModalHeader";
+import { Modal } from "@/shared/components/ui/Modal";
 
 type JobVacancyApplicationRejectModalProps = {
     open: boolean;
@@ -38,8 +36,6 @@ export function JobVacancyApplicationRejectModal({
     onCancel,
     onConfirm,
 }: JobVacancyApplicationRejectModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const [mounted, setMounted] = useState(false);
     const [reason, setReason] = useState("");
     const [requirement, setRequirement] = useState("");
     const [note, setNote] = useState("");
@@ -70,20 +66,6 @@ export function JobVacancyApplicationRejectModal({
         [requirementOptions],
     );
     const hasEmail = Boolean(application?.candidateEmail?.trim());
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            if (!dialog.open) dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open]);
 
     useEffect(() => {
         if (!open) return;
@@ -126,26 +108,25 @@ export function JobVacancyApplicationRejectModal({
         });
     };
 
-    if (!mounted) return null;
-
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal"
-            onClose={(event) => {
-                event.stopPropagation();
-                if (event.target !== dialogRef.current) return;
-                onCancel();
-            }}
+    return (
+        <Modal
+            open={open}
+            onClose={onCancel}
+            title="Encerrar candidato"
+            subtitle={application?.candidateFullName ?? "Candidato"}
+            size="md"
+            actions={[
+                { title: "Cancelar", variant: "ghost", onClick: onCancel, disabled: loading },
+                {
+                    title: "Confirmar encerramento",
+                    variant: "danger",
+                    onClick: handleConfirm,
+                    loading,
+                    disabled: assessmentBlocked,
+                },
+            ]}
         >
-            <div className="modal-box flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden p-0">
-                <ModalHeader
-                    title="Encerrar candidato"
-                    subtitle={application?.candidateFullName ?? "Candidato"}
-                    onClose={onCancel}
-                />
-
-                <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto px-5 py-4">
+            <div className="grid gap-4">
                     <InputSelect
                         label="Motivo"
                         items={reasonItems}
@@ -225,28 +206,6 @@ export function JobVacancyApplicationRejectModal({
                         A decisão será registrada em seu nome na trilha de auditoria.
                     </p>
                 </div>
-
-                <div className="flex flex-wrap justify-end gap-2 border-t border-base-content/10 px-5 py-3">
-                    <Button type="button" variant="ghost" disabled={loading} onClick={onCancel}>
-                        Cancelar
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="danger"
-                        loading={loading}
-                        disabled={assessmentBlocked}
-                        onClick={handleConfirm}
-                    >
-                        Confirmar encerramento
-                    </Button>
-                </div>
-            </div>
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" aria-label="Fechar">
-                    close
-                </button>
-            </form>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

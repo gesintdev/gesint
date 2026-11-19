@@ -3,8 +3,7 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import clsx from "clsx";
 import {ChevronDown, Gauge, Trash2, UserRound} from "lucide-react";
-import {useEffect, useMemo, useRef, useState} from "react";
-import {createPortal} from "react-dom";
+import {useEffect, useMemo, useState} from "react";
 import {toast} from "sonner";
 
 import type {
@@ -32,7 +31,7 @@ import {TableActionButton} from "@/shared/components/crud/TableActionButton";
 import {resolveKanbanColumnColor} from "@/shared/components/kanban";
 import {Button} from "@/shared/components/ui/Button";
 import {fieldClass} from "@/shared/components/ui/input/InputFieldChrome";
-import {ModalHeader} from "@/shared/components/ui/ModalHeader";
+import {Modal} from "@/shared/components/ui/Modal";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {formatCellValue} from "@/shared/lib/table/format-cell-value";
 import {SystemAlert} from "@/shared/system-alert";
@@ -308,9 +307,7 @@ export function JobVacancyApplicationKanbanDetailModal({
                                                            onConfirmHire,
                                                            confirmHireLoading = false,
                                                        }: JobVacancyApplicationKanbanDetailModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const queryClient = useQueryClient();
-    const [mounted, setMounted] = useState(false);
     const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
     const [activeTab, setActiveTab] = useState<DetailTab>("comments");
 
@@ -358,20 +355,6 @@ export function JobVacancyApplicationKanbanDetailModal({
         () => editableStages.map((stage) => stage.columnKey),
         [editableStages],
     );
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            if (!dialog.open) dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open]);
 
     useEffect(() => {
         if (!open || !application) return;
@@ -461,38 +444,54 @@ export function JobVacancyApplicationKanbanDetailModal({
         !confirmHireLoading;
     const busy = saveMutation.isPending || deleteMutation.isPending || confirmHireLoading;
 
-    if (!mounted) return null;
-
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal"
-            onClose={(event) => {
-                event.stopPropagation();
-                if (event.target !== dialogRef.current) return;
-                onClose();
-            }}
-            onCancel={(event) => {
-                event.stopPropagation();
-                if (event.target !== dialogRef.current) {
-                    event.preventDefault();
-                    return;
-                }
-                const openDialogs = document.querySelectorAll("dialog[open]");
-                const topmost = openDialogs[openDialogs.length - 1];
-                if (topmost && topmost !== dialogRef.current) {
-                    event.preventDefault();
-                }
-            }}
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Detalhe do card"
+            subtitle={`${application?.candidateFullName ?? "Candidato"}${currentColumnName ? ` · ${currentColumnName}` : ""}`}
+            size="3xl"
+            footer={
+                <div className="flex flex-wrap justify-end gap-2">
+                    <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>
+                        Fechar
+                    </Button>
+                    {(!isInterviewColumn || activeTab === "comments") ? (
+                        <Button
+                            type="button"
+                            variant={showConfirmHire || alreadyHired ? "outline" : undefined}
+                            loading={saveMutation.isPending}
+                            disabled={!canSave}
+                            onClick={() => saveMutation.mutate()}
+                        >
+                            Salvar
+                        </Button>
+                    ) : null}
+                    {alreadyHired && application?.admissionProcessId ? (
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                window.location.href = `/collaborator/admission?edit=${encodeURIComponent(
+                                    application.admissionProcessId!,
+                                )}`;
+                            }}
+                        >
+                            Admissão criada
+                        </Button>
+                    ) : null}
+                    {showConfirmHire ? (
+                        <Button
+                            type="button"
+                            loading={confirmHireLoading}
+                            disabled={busy || !application?.candidateId}
+                            onClick={onConfirmHire}
+                        >
+                            Criar Admissão
+                        </Button>
+                    ) : null}
+                </div>
+            }
         >
-            <div className="modal-box flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-0">
-                <ModalHeader
-                    title="Detalhe do card"
-                    subtitle={`${application?.candidateFullName ?? "Candidato"}${currentColumnName ? ` · ${currentColumnName}` : ""}`}
-                    onClose={onClose}
-                />
-
-                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
                     {application ? (
                         <div className="grid gap-5">
                             <section className="grid gap-3 sm:grid-cols-2">
@@ -646,53 +645,6 @@ export function JobVacancyApplicationKanbanDetailModal({
                             ) : null}
                         </div>
                     ) : null}
-                </div>
-
-                <div className="flex flex-wrap justify-end gap-2 border-t border-base-content/10 px-5 py-3">
-                    <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>
-                        Fechar
-                    </Button>
-                    {(!isInterviewColumn || activeTab === "comments") ? (
-                        <Button
-                            type="button"
-                            variant={showConfirmHire || alreadyHired ? "outline" : undefined}
-                            loading={saveMutation.isPending}
-                            disabled={!canSave}
-                            onClick={() => saveMutation.mutate()}
-                        >
-                            Salvar
-                        </Button>
-                    ) : null}
-                    {alreadyHired && application?.admissionProcessId ? (
-                        <Button
-                            type="button"
-                            onClick={() => {
-                                window.location.href = `/collaborator/admission?edit=${encodeURIComponent(
-                                    application.admissionProcessId!,
-                                )}`;
-                            }}
-                        >
-                            Admissão criada
-                        </Button>
-                    ) : null}
-                    {showConfirmHire ? (
-                        <Button
-                            type="button"
-                            loading={confirmHireLoading}
-                            disabled={busy || !application?.candidateId}
-                            onClick={onConfirmHire}
-                        >
-                            Criar Admissão
-                        </Button>
-                    ) : null}
-                </div>
-            </div>
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" aria-label="Fechar">
-                    close
-                </button>
-            </form>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

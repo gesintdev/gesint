@@ -2,8 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useMemo } from "react";
 import { toast } from "sonner";
 
 import { candidateKeys } from "@/modules/rh/person/candidate/candidate.query";
@@ -26,7 +25,7 @@ import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplica
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { Button } from "@/shared/components/ui/Button";
 import { MarkdownContent } from "@/shared/components/ui/MarkdownContent";
-import { ModalHeader } from "@/shared/components/ui/ModalHeader";
+import { Modal } from "@/shared/components/ui/Modal";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 export type CandidateMatchScoreDetailTarget = {
@@ -76,8 +75,6 @@ export function CandidateMatchScoreDetailModal({
     target,
     onClose,
 }: CandidateMatchScoreDetailModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const [mounted, setMounted] = useState(false);
     const queryClient = useQueryClient();
 
     const vacancyQuery = useQuery({
@@ -124,22 +121,6 @@ export function CandidateMatchScoreDetailModal({
             ExceptionCapture.handle(err, { fallbackMessage: "Não foi possível reanalisar." }),
     });
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            if (!dialog.open) dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open]);
-
-    if (!mounted) return null;
-
     const vacancy = vacancyQuery.data;
     const requirements = splitLines(vacancy?.requirements);
     const activities = splitLines(vacancy?.activities);
@@ -155,54 +136,32 @@ export function CandidateMatchScoreDetailModal({
 
     const candidateName = target?.candidateName ?? candidateQuery.data?.fullName ?? "Candidato";
 
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal"
-            onClose={(event) => {
-                event.stopPropagation();
-                if (event.target !== dialogRef.current) return;
-                onClose();
-            }}
-            onCancel={(event) => {
-                event.stopPropagation();
-                if (event.target !== dialogRef.current) {
-                    event.preventDefault();
-                    return;
-                }
-                const openDialogs = document.querySelectorAll("dialog[open]");
-                const topmost = openDialogs[openDialogs.length - 1];
-                if (topmost && topmost !== dialogRef.current) {
-                    event.preventDefault();
-                }
-            }}
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={
+                <span className="inline-flex flex-wrap items-center gap-2">
+                    Análise de compatibilidade
+                    <CandidateMatchScoreTag score={breakdown?.totalScore} pending={pending} />
+                </span>
+            }
+            subtitle={`${candidateName}${vacancy?.jobTitle ? ` · ${vacancy.jobTitle}` : ""}`}
+            headerActions={
+                <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={<RefreshCw className="size-3.5" strokeWidth={2.25} />}
+                    loading={reanalyzeMutation.isPending}
+                    disabled={!target?.applicationId || pending}
+                    onClick={() => reanalyzeMutation.mutate()}
+                >
+                    Reanalisar
+                </Button>
+            }
+            size="3xl"
         >
-            <div className="modal-box flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-0">
-                <ModalHeader
-                    title={
-                        <span className="inline-flex flex-wrap items-center gap-2">
-                            Análise de compatibilidade
-                            <CandidateMatchScoreTag score={breakdown?.totalScore} pending={pending} />
-                        </span>
-                    }
-                    subtitle={`${candidateName}${vacancy?.jobTitle ? ` · ${vacancy.jobTitle}` : ""}`}
-                    actions={
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            leftIcon={<RefreshCw className="size-3.5" strokeWidth={2.25} />}
-                            loading={reanalyzeMutation.isPending}
-                            disabled={!target?.applicationId || pending}
-                            onClick={() => reanalyzeMutation.mutate()}
-                        >
-                            Reanalisar
-                        </Button>
-                    }
-                    onClose={onClose}
-                />
-
-                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
                     {vacancyQuery.isLoading || applicationsQuery.isLoading ? (
                         <div className="grid gap-3">
                             {Array.from({ length: 4 }).map((_, i) => (
@@ -340,14 +299,6 @@ export function CandidateMatchScoreDetailModal({
                             </section>
                         </div>
                     ) : null}
-                </div>
-            </div>
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" aria-label="Fechar">
-                    close
-                </button>
-            </form>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

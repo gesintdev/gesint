@@ -1,7 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { type ReactNode } from "react";
 
 import type { AppUser } from "@/modules/cfg/settings/appuser/dto/appuser.dto";
 import {
@@ -10,7 +9,7 @@ import {
     systemScopeLabel,
 } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import type { Profile } from "@/modules/cfg/settings/profile/dto/profile.dto";
-import { ModalHeader } from "@/shared/components/ui/ModalHeader";
+import { Modal } from "@/shared/components/ui/Modal";
 import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
 
 function DetailField({
@@ -57,25 +56,9 @@ type AppUserDetailModalProps = {
 };
 
 export function AppUserDetailModal({ row, open, onClose }: AppUserDetailModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const [mounted, setMounted] = useState(false);
     const { branches } = useActiveBranch();
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open]);
-
-    if (!mounted || !row) {
+    if (!row) {
         return null;
     }
 
@@ -93,30 +76,21 @@ export function AppUserDetailModal({ row, open, onClose }: AppUserDetailModalPro
         .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
     const singleBranch = branches.length <= 1;
 
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal"
+    return (
+        <Modal
+            open={open}
             onClose={onClose}
-            onClick={(event) => {
-                if (event.target === event.currentTarget) onClose();
-            }}
+            title={row.code != null ? `Usuário #${row.code}` : "Usuário"}
+            subtitle={
+                <span className="grid gap-0.5">
+                    <span className="truncate text-sm text-base-content/65">{row.username}</span>
+                    {row.collaboratorName ? (
+                        <span className="truncate text-base-content/45">{row.collaboratorName}</span>
+                    ) : null}
+                </span>
+            }
+            size="xl"
         >
-            <div className="modal-box flex max-h-[92vh] w-full max-w-2xl flex-col gap-0 p-0">
-                <ModalHeader
-                    title={row.code != null ? `Usuário #${row.code}` : "Usuário"}
-                    subtitle={
-                        <span className="grid gap-0.5">
-                            <span className="truncate text-sm text-base-content/65">{row.username}</span>
-                            {row.collaboratorName ? (
-                                <span className="truncate text-base-content/45">{row.collaboratorName}</span>
-                            ) : null}
-                        </span>
-                    }
-                    onClose={onClose}
-                />
-
-                <div className="overflow-y-auto px-5 py-4">
                     <section className="grid gap-2 sm:grid-cols-2">
                         <DetailField label="Colaborador" value={row.collaboratorName} />
                         <DetailField label="Nome de usuário" value={row.username} />
@@ -175,9 +149,6 @@ export function AppUserDetailModal({ row, open, onClose }: AppUserDetailModalPro
                             </div>
                         )}
                     </section>
-                </div>
-            </div>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

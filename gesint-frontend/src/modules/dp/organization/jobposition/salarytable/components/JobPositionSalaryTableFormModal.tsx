@@ -2,8 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { type FormEvent, useCallback, useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
@@ -29,7 +28,7 @@ import { useFormDirtyByComparison } from "@/shared/components/crud/useFormDirtyB
 import { Button } from "@/shared/components/ui/Button";
 import { InputCurrency, InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { PopoverPortalProvider } from "@/shared/components/ui/input/popover-portal";
-import { ModalHeader } from "@/shared/components/ui/ModalHeader";
+import { Modal } from "@/shared/components/ui/Modal";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -48,11 +47,10 @@ export function JobPositionSalaryTableFormModal({
     tableId,
     onSaved,
 }: JobPositionSalaryTableFormModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+    const formId = useId();
     const queryClient = useQueryClient();
     const isEditing = Boolean(tableId);
-    const [mounted, setMounted] = useState(false);
     const [form, setForm] = useState<JobPositionSalaryTableCreateDto>(() =>
         emptyJobPositionSalaryTableForm(jobPositionId),
     );
@@ -65,20 +63,6 @@ export function JobPositionSalaryTableFormModal({
         queryFn: () => jobPositionSalaryTableService.getById(tableId!),
         enabled: open && isEditing && Boolean(tableId),
     });
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog || !mounted) return;
-        if (open) {
-            if (!dialog.open) dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open, mounted]);
 
     useEffect(() => {
         if (!open) return;
@@ -227,40 +211,30 @@ export function JobPositionSalaryTableFormModal({
         return "Vigência na tabela; cadastre um ou mais níveis (I, II, III).";
     }, [isEditing, versionNumber]);
 
-    if (!mounted) return null;
-
-    return createPortal(
-        <dialog
-            ref={(node) => {
-                dialogRef.current = node;
+    return (
+        <Modal
+            open={open}
+            onClose={() => void requestClose()}
+            title={isEditing ? "Nova versão da tabela salarial" : "Nova tabela salarial"}
+            subtitle={subtitle}
+            layoutClassName="max-h-[90vh] w-[min(44rem,92vw)] max-w-[min(44rem,92vw)]"
+            dialogRef={(node) => {
                 if (node !== portalRoot) setPortalRoot(node);
             }}
-            className="modal"
-            onCancel={(event) => {
-                event.preventDefault();
-                void requestClose();
-            }}
-            onClick={(event) => {
-                if (event.target === event.currentTarget) {
-                    void requestClose();
-                }
-            }}
+            footer={
+                <div className="flex items-center justify-end gap-2">
+                    <Button type="button" variant="ghost" onClick={() => void requestClose()}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" form={formId} loading={saveMutation.isPending}>
+                        {isEditing ? "Criar nova versão" : "Cadastrar"}
+                    </Button>
+                </div>
+            }
         >
             <PopoverPortalProvider container={portalRoot}>
-                <div className="modal-box flex max-h-[90vh] w-[min(44rem,92vw)] max-w-[min(44rem,92vw)] flex-col gap-0 overflow-hidden p-0">
-                    <ModalHeader
-                        title={isEditing ? "Nova versão da tabela salarial" : "Nova tabela salarial"}
-                        subtitle={subtitle}
-                        onClose={() => void requestClose()}
-                    />
-
-                    <form
-                        className="flex min-h-0 flex-1 flex-col"
-                        onSubmit={handleSubmit}
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
-                            {isEditing && detailQuery.isLoading ? (
+                <form id={formId} onSubmit={handleSubmit}>
+                    {isEditing && detailQuery.isLoading ? (
                                 <div className="grid gap-2">
                                     {Array.from({ length: 4 }).map((_, i) => (
                                         <div key={i} className="skeleton-shimmer h-10 w-full" />
@@ -352,25 +326,8 @@ export function JobPositionSalaryTableFormModal({
                                     ) : null}
                                 </div>
                             )}
-                        </div>
-                        <div className="flex items-center justify-end gap-2 border-t border-base-content/8 px-5 py-3">
-                            <Button type="button" variant="ghost" onClick={() => void requestClose()}>
-                                Cancelar
-                            </Button>
-                            <Button type="submit" loading={saveMutation.isPending}>
-                                {isEditing ? "Criar nova versão" : "Cadastrar"}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
-                <button
-                    type="button"
-                    className="modal-backdrop"
-                    aria-label="Fechar modal"
-                    onClick={() => void requestClose()}
-                />
+                </form>
             </PopoverPortalProvider>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

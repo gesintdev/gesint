@@ -2,8 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Gauge } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 
 import { candidateKeys } from "@/modules/rh/person/candidate/candidate.query";
 import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
@@ -19,8 +18,7 @@ import {
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
-import { Button } from "@/shared/components/ui/Button";
-import { ModalHeader } from "@/shared/components/ui/ModalHeader";
+import { Modal } from "@/shared/components/ui/Modal";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 type CandidateAnalysisModalProps = {
@@ -40,8 +38,6 @@ export function CandidateAnalysisModal({
     candidateName,
     onClose,
 }: CandidateAnalysisModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const [mounted, setMounted] = useState(false);
     const [scoreDetailOpen, setScoreDetailOpen] = useState(false);
 
     const detailQuery = useQuery({
@@ -59,24 +55,8 @@ export function CandidateAnalysisModal({
     const application = (applicationsQuery.data ?? []).find((row) => row.id === applicationId) ?? null;
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
         if (!open) setScoreDetailOpen(false);
     }, [open]);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            if (!dialog.open) dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open]);
-
-    if (!mounted) return null;
 
     const candidate = detailQuery.data;
     const canOpenScore = Boolean(jobVacancyId && applicationId && candidateId);
@@ -91,39 +71,16 @@ export function CandidateAnalysisModal({
               }
             : null;
 
-    return createPortal(
+    return (
         <>
-            <dialog
-                ref={dialogRef}
-                className="modal"
-                onClose={(event) => {
-                    // close de dialog aninhado (ex.: preview PDF via portal) sobe na árvore React —
-                    // ignore se o alvo não for este dialog.
-                    event.stopPropagation();
-                    if (event.target !== dialogRef.current) return;
-                    onClose();
-                }}
-                onCancel={(event) => {
-                    event.stopPropagation();
-                    if (event.target !== dialogRef.current) {
-                        event.preventDefault();
-                        return;
-                    }
-                    const openDialogs = document.querySelectorAll("dialog[open]");
-                    const topmost = openDialogs[openDialogs.length - 1];
-                    if (topmost && topmost !== dialogRef.current) {
-                        event.preventDefault();
-                    }
-                }}
+            <Modal
+                open={open}
+                onClose={onClose}
+                title="Perfil do candidato"
+                subtitle={candidate?.fullName ?? "Carregando dados do candidato…"}
+                size="3xl"
+                actions={[{ title: "Fechar", variant: "ghost", onClick: onClose }]}
             >
-                <div className="modal-box flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-0">
-                    <ModalHeader
-                        title="Perfil do candidato"
-                        subtitle={candidate?.fullName ?? "Carregando dados do candidato…"}
-                        onClose={onClose}
-                    />
-
-                    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
                         {detailQuery.isLoading ? (
                             <div className="grid gap-3 sm:grid-cols-2">
                                 {Array.from({ length: 6 }).map((_, i) => (
@@ -169,20 +126,7 @@ export function CandidateAnalysisModal({
                                 }
                             />
                         ) : null}
-                    </div>
-
-                    <div className="flex justify-end border-t border-base-content/10 px-5 py-3">
-                        <Button type="button" variant="ghost" onClick={onClose}>
-                            Fechar
-                        </Button>
-                    </div>
-                </div>
-                <form method="dialog" className="modal-backdrop">
-                    <button type="submit" aria-label="Fechar">
-                        close
-                    </button>
-                </form>
-            </dialog>
+            </Modal>
 
             <CandidateMatchScoreDetailModal
                 open={scoreDetailOpen && Boolean(scoreTarget)}
@@ -190,7 +134,6 @@ export function CandidateAnalysisModal({
                 target={scoreTarget}
                 onClose={() => setScoreDetailOpen(false)}
             />
-        </>,
-        document.body,
+        </>
     );
 }
