@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -8,6 +8,7 @@ import type { PaymentSlip } from "@/modules/dp/payment/dto/payment.dto";
 import { formatPersonName } from "@/modules/dp/payment/lib/format-person-name";
 import { storageService } from "@/modules/storage/services/storage.service";
 import { Button } from "@/shared/components/ui/Button";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 
 type PaymentSlipReviewDialogProps = {
     slip: PaymentSlip | null;
@@ -69,17 +70,15 @@ export function PaymentSlipReviewDialog({
     return createPortal(
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
             <div className="modal-box flex max-h-[92vh] w-full max-w-5xl flex-col gap-4 p-0">
-                <div className="flex items-center justify-between gap-3 border-b border-base-content/10 px-4 py-3">
-                    <div className="min-w-0">
-                        <h4 className="truncate text-base font-semibold">{title}</h4>
-                        {slip?.collaboratorNameDisplay ? (
-                            <p className="truncate text-sm text-base-content/70">
-                                Encontrado: {slip.collaboratorNameDisplay}
-                            </p>
-                        ) : null}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {canValidate && onValidate ? (
+                <ModalHeader
+                    title={title}
+                    subtitle={
+                        slip?.collaboratorNameDisplay
+                            ? `Encontrado: ${slip.collaboratorNameDisplay}`
+                            : undefined
+                    }
+                    actions={
+                        canValidate && onValidate ? (
                             <Button
                                 type="button"
                                 variant="primary"
@@ -90,17 +89,10 @@ export function PaymentSlipReviewDialog({
                             >
                                 Validar
                             </Button>
-                        ) : null}
-                        <button
-                            type="button"
-                            className="btn btn-ghost btn-sm btn-square"
-                            aria-label="Fechar"
-                            onClick={onClose}
-                        >
-                            <X className="size-4" />
-                        </button>
-                    </div>
-                </div>
+                        ) : null
+                    }
+                    onClose={onClose}
+                />
                 <div className="min-h-[60vh] flex-1 bg-base-200">
                     {pdfUrl ? (
                         <iframe title="Holerite" src={pdfUrl} className="h-[70vh] w-full border-0" />

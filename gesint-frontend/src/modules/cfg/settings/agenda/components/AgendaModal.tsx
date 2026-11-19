@@ -1,7 +1,7 @@
 "use client";
 
 import {useQuery} from "@tanstack/react-query";
-import {ChevronLeft, ChevronRight, Plus, X} from "lucide-react";
+import {Calendar, ChevronLeft, ChevronRight} from "lucide-react";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 
@@ -19,6 +19,7 @@ import {
 } from "@/modules/cfg/settings/agenda/lib/agenda-calendar.util";
 import {agendaEventService} from "@/modules/cfg/settings/agenda/services/agenda-event.service";
 import {Button} from "@/shared/components/ui/Button";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 import {AppException} from "@/shared/exceptions";
 
 type AgendaModalProps = {
@@ -81,20 +82,12 @@ export function AgendaModal({open, onClose}: AgendaModalProps) {
         <>
             <dialog ref={dialogRef} className="modal" onClose={onClose}>
                 <div className="modal-box flex h-[92dvh] max-h-[92dvh] w-[min(100vw-1rem,72rem)] max-w-6xl flex-col overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">
-                    <div className="flex items-center justify-between gap-3 border-b border-base-content/10 px-4 py-3">
-                        <div>
-                            <h3 className="text-base font-semibold">Agenda</h3>
-                            <p className="text-xs text-base-content/55">Registros pessoais</p>
-                        </div>
-                        <button
-                            type="button"
-                            aria-label="Fechar"
-                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/50"
-                            onClick={onClose}
-                        >
-                            <X className="size-4" strokeWidth={2} />
-                        </button>
-                    </div>
+                    <ModalHeader
+                        title="Agenda"
+                        subtitle="Registros pessoais"
+                        icon={<Calendar className="size-4" strokeWidth={2} />}
+                        onClose={onClose}
+                    />
 
                     <div className="flex min-h-0 flex-1">
                         <AgendaSidebar
@@ -109,7 +102,7 @@ export function AgendaModal({open, onClose}: AgendaModalProps) {
                         />
 
                         <div className="flex min-w-0 flex-1 flex-col">
-                            <div className="flex flex-wrap items-center gap-2 border-b border-base-content/10 px-3 py-2">
+                            <div className="flex flex-wrap items-center gap-2 border-b border-base-content/8 px-3 py-2.5">
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -134,14 +127,18 @@ export function AgendaModal({open, onClose}: AgendaModalProps) {
                                 >
                                     <ChevronRight className="size-4" />
                                 </button>
-                                <p className="text-sm font-medium">{workWeekRangeLabel(anchorDate)}</p>
+                                <p className="text-[13px] font-semibold text-base-content">{workWeekRangeLabel(anchorDate)}</p>
                                 <div className="ms-auto flex items-center gap-2">
-                                    <span className="rounded-md border border-base-content/10 px-2 py-1 text-xs text-base-content/60">
+                                    <span className="inline-flex h-9 items-center rounded-lg border border-base-content/10 bg-base-100 px-3 text-xs font-medium text-base-content/70">
                                         Semana de trabalho
                                     </span>
-                                    <Button type="button" size="sm" onClick={() => openCreate()}>
-                                        <Plus className="size-4" />
-                                        Novo
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        leftIcon={<Calendar className="size-4" strokeWidth={2} />}
+                                        onClick={() => openCreate()}
+                                    >
+                                        Novo evento
                                     </Button>
                                 </div>
                             </div>

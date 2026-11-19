@@ -19,6 +19,7 @@ import {Button} from "@/shared/components/ui/Button";
 import {InputHour, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import {PopoverPortalProvider} from "@/shared/components/ui/input/popover-portal";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 import {ExceptionCapture} from "@/shared/exceptions";
 
 type PunchSlot = {
@@ -248,19 +249,21 @@ export function AttendanceAdjustmentRequestModal({
             }}
         >
             <PopoverPortalProvider container={portalRoot}>
-                <div className="modal-box max-w-xl" onClick={(event) => event.stopPropagation()}>
-                    <div>
-                        <h3 className="text-base font-semibold">Solicitar ajuste de ponto</h3>
-                        <p className="mt-1 text-sm text-base-content/65">
-                            {workDate
+                <div className="modal-box flex max-w-xl flex-col gap-0 p-0" onClick={(event) => event.stopPropagation()}>
+                    <ModalHeader
+                        title="Solicitar ajuste de ponto"
+                        subtitle={
+                            workDate
                                 ? `Registros do dia · ${toDisplayDate(workDate)}`
-                                : "Selecione um dia no histórico."}
-                        </p>
-                    </div>
-
+                                : "Selecione um dia no histórico."
+                        }
+                        onClose={onClose}
+                        closeDisabled={submitMutation.isPending}
+                    />
+                    <div className="px-4 py-4">
                     <div
                         key={formSessionKey}
-                        className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2"
+                        className="grid grid-cols-1 gap-3 sm:grid-cols-2"
                     >
                         {PUNCH_SLOTS.map((slot) => {
                             const value = punches[slot.key];
@@ -303,7 +306,7 @@ export function AttendanceAdjustmentRequestModal({
                         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
                     </div>
 
-                    <div className="modal-action">
+                    <div className="modal-action mt-0">
                         <Button
                             type="button"
                             variant="ghost"
@@ -323,6 +326,7 @@ export function AttendanceAdjustmentRequestModal({
                         >
                             Enviar solicitação
                         </Button>
+                    </div>
                     </div>
                 </div>
             </PopoverPortalProvider>

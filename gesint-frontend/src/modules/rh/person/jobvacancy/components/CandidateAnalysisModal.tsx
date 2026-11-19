@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Gauge, X } from "lucide-react";
+import { Gauge } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -20,6 +20,7 @@ import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplica
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { Button } from "@/shared/components/ui/Button";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 type CandidateAnalysisModalProps = {
@@ -116,25 +117,11 @@ export function CandidateAnalysisModal({
                 }}
             >
                 <div className="modal-box flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-0">
-                    <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
-                        <div className="min-w-0">
-                            <h3 className="text-base font-semibold text-base-content">Perfil do candidato</h3>
-                            <p className="mt-0.5 truncate text-sm text-base-content/55">
-                                {candidate?.fullName ?? "Carregando dados do candidato…"}
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            aria-label="Fechar"
-                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50"
-                            onClick={(event) => {
-                                event.stopPropagation();
-                                onClose();
-                            }}
-                        >
-                            <X className="size-4" strokeWidth={2} />
-                        </button>
-                    </div>
+                    <ModalHeader
+                        title="Perfil do candidato"
+                        subtitle={candidate?.fullName ?? "Carregando dados do candidato…"}
+                        onClose={onClose}
+                    />
 
                     <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
                         {detailQuery.isLoading ? (

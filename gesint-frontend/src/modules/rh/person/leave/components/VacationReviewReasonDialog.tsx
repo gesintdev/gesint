@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";
 import { Button } from "@/shared/components/ui/Button";
 import { InputString } from "@/shared/components/ui/input/index";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 
 type Props = {
     open: boolean;
@@ -61,10 +62,9 @@ export function VacationReviewReasonDialog({
     // Portal + backdrop em button: evita <form> aninhado no CrudFormShell.
     return createPortal(
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box max-w-md">
-                <h3 className="text-base font-semibold">{title}</h3>
-                <p className="mt-1 text-sm text-base-content/65">{hint}</p>
-                <div className="mt-4">
+            <div className="modal-box flex max-w-md flex-col gap-0 p-0">
+                <ModalHeader title={title} subtitle={hint} onClose={onClose} closeDisabled={loading} />
+                <div className="px-4 py-4">
                     <InputString
                         label="Motivo"
                         value={reason}
@@ -76,7 +76,7 @@ export function VacationReviewReasonDialog({
                         error={error ?? undefined}
                     />
                 </div>
-                <div className="modal-action">
+                <div className="modal-action mt-0 px-4 pb-4">
                     <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
                         Cancelar
                     </Button>

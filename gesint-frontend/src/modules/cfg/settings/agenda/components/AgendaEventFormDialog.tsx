@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {X} from "lucide-react";
+import {AlignLeft, Calendar, Check, MapPin} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {toast} from "sonner";
@@ -16,6 +16,7 @@ import {
 import {agendaEventService} from "@/modules/cfg/settings/agenda/services/agenda-event.service";
 import {Button} from "@/shared/components/ui/Button";
 import {InputDatetime, InputString} from "@/shared/components/ui/input/index";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 import {AppException, ExceptionCapture} from "@/shared/exceptions";
 
 type AgendaEventFormDialogProps = {
@@ -157,20 +158,14 @@ export function AgendaEventFormDialog({
 
     return createPortal(
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box max-w-lg p-0">
-                <div className="flex items-center justify-between border-b border-base-content/10 px-4 py-3">
-                    <h3 className="text-base font-semibold">{isEditing ? "Editar evento" : "Novo evento"}</h3>
-                    <button
-                        type="button"
-                        aria-label="Fechar"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/50"
-                        onClick={onClose}
-                        disabled={busy}
-                    >
-                        <X className="size-4" strokeWidth={2} />
-                    </button>
-                </div>
-                <div className="grid gap-3 px-4 py-4">
+            <div className="modal-box w-full max-w-xl p-0">
+                <ModalHeader
+                    title={isEditing ? "Editar evento" : "Novo evento"}
+                    icon={<Calendar className="size-4" strokeWidth={2} />}
+                    onClose={onClose}
+                    closeDisabled={busy}
+                />
+                <div className="grid gap-3.5 px-4 py-4">
                     <InputString
                         label="Título"
                         value={form.title}
@@ -178,36 +173,45 @@ export function AgendaEventFormDialog({
                         required
                         placeholder="Adicionar título"
                     />
-                    <InputDatetime
-                        label="Início"
-                        value={form.startsAt}
-                        onValueChange={(value) => setForm((prev) => ({...prev, startsAt: value}))}
-                        required
-                    />
-                    <InputDatetime
-                        label="Término"
-                        value={form.endsAt}
-                        onValueChange={(value) => setForm((prev) => ({...prev, endsAt: value}))}
-                        required
-                    />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <InputDatetime
+                            label="Início"
+                            value={form.startsAt}
+                            onValueChange={(value) => setForm((prev) => ({...prev, startsAt: value}))}
+                            required
+                        />
+                        <InputDatetime
+                            label="Término"
+                            value={form.endsAt}
+                            onValueChange={(value) => setForm((prev) => ({...prev, endsAt: value}))}
+                            required
+                        />
+                    </div>
                     <InputString
                         label="Local"
                         value={form.location}
                         onValueChange={(value) => setForm((prev) => ({...prev, location: value}))}
-                        placeholder="Adicionar uma sala ou local"
+                        placeholder="Sala de reuniões ou link da reunião"
+                        leftIcon={<MapPin className="size-4" strokeWidth={2} />}
                     />
-                    <label className="gesint-field grid gap-1.5">
-                        <span className="text-xs font-medium text-base-content/70">Descrição</span>
-                        <textarea
-                            className="min-h-24 w-full resize-y rounded-lg border border-base-content/15 bg-base-100 px-3 py-2 text-sm outline-none focus:border-primary/50"
-                            value={form.description}
-                            onChange={(e) => setForm((prev) => ({...prev, description: e.target.value}))}
-                            placeholder="Adicionar notas"
-                        />
+                    <label className="grid gap-1.5">
+                        <span className="gesint-label">
+                            Descrição
+                            <span className="ms-1 font-normal text-base-content/45">(opcional)</span>
+                        </span>
+                        <span className="gesint-field !h-auto !min-h-24 items-start py-2">
+                            <AlignLeft className="mt-0.5 size-4 shrink-0 text-base-content/40" strokeWidth={2} />
+                            <textarea
+                                className="min-h-16 resize-y"
+                                value={form.description}
+                                onChange={(e) => setForm((prev) => ({...prev, description: e.target.value}))}
+                                placeholder="Adicionar uma descrição"
+                            />
+                        </span>
                     </label>
                     {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
                 </div>
-                <div className="flex items-center justify-between gap-2 border-t border-base-content/10 px-4 py-3">
+                <div className="flex items-center justify-between gap-2 border-t border-base-content/8 px-4 py-3">
                     <div>
                         {isEditing ? (
                             <Button
@@ -223,11 +227,12 @@ export function AgendaEventFormDialog({
                         ) : null}
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>
+                        <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
                             Cancelar
                         </Button>
                         <Button
                             type="button"
+                            leftIcon={<Check className="size-4" strokeWidth={2} />}
                             onClick={() => {
                                 setError(null);
                                 saveMutation.mutate();

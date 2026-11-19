@@ -8,6 +8,7 @@ import {AgendaModal} from "@/modules/cfg/settings/agenda/components/AgendaModal"
 import {AttendanceClockModal} from "@/modules/dp/attendance/components/AttendanceClockModal";
 import type {SystemEnum} from "@/modules/root/enum/SystemEnum";
 import {AiAssistantPanel} from "@/shared/components/assistant/AiAssistantPanel";
+import {AssistantChatProvider} from "@/shared/components/assistant/assistant-chat";
 import {AppLoadingScreen} from "@/shared/components/layout/AppLoadingScreen";
 import {GesintLogo} from "@/shared/components/layout/GesintLogo";
 import {HeaderAiAssistant} from "@/shared/components/layout/HeaderAiAssistant";
@@ -89,6 +90,7 @@ export function SystemShell({
             */}
             <Suspense fallback={<AppLoadingScreen variant="inline" />}>
                 <WorkspaceNavigationProvider>
+                    <AssistantChatProvider>
                     <ActiveBranchProvider initialBranchId={initialBranchId}>
                     <ActiveSystemProvider
                         initialStoredSystem={initialStoredSystem}
@@ -191,6 +193,7 @@ export function SystemShell({
                         ) : null}
                     </ActiveSystemProvider>
                     </ActiveBranchProvider>
+                    </AssistantChatProvider>
                 </WorkspaceNavigationProvider>
             </Suspense>
             <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal}/>

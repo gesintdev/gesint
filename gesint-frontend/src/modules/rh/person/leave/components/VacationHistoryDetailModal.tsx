@@ -1,6 +1,5 @@
 "use client";
 
-import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -10,6 +9,7 @@ import {
 } from "@/modules/rh/person/leave/lib/leave-history.enrich";
 import { inclusiveDays } from "@/modules/rh/person/vacation/lib/vacation-rules";
 import { Button } from "@/shared/components/ui/Button";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 
 const STATUS_LABEL: Record<string, string> = {
     PENDING: "Aguardando DP",
@@ -100,27 +100,20 @@ export function VacationHistoryDetailModal({ row, open, onClose }: VacationHisto
             }}
         >
             <div className="modal-box flex max-h-[92vh] w-full max-w-3xl flex-col gap-0 p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
-                    <div className="min-w-0">
-                        <h4 className="text-base font-semibold text-base-content">
-                            Férias #{row.code}
-                        </h4>
-                        <p className="mt-1 text-sm text-base-content/65">
-                            {row.collaboratorName ?? "Colaborador"} · {row.gozoPeriodLabel}
-                        </p>
-                        <span className="badge badge-ghost mt-2">
-                            {STATUS_LABEL[row.rhVacationStatus] ?? row.rhVacationStatus}
+                <ModalHeader
+                    title={`Férias #${row.code}`}
+                    subtitle={
+                        <span className="grid gap-1.5">
+                            <span className="text-sm text-base-content/65">
+                                {row.collaboratorName ?? "Colaborador"} · {row.gozoPeriodLabel}
+                            </span>
+                            <span className="badge badge-ghost w-fit">
+                                {STATUS_LABEL[row.rhVacationStatus] ?? row.rhVacationStatus}
+                            </span>
                         </span>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn btn-ghost btn-sm btn-square"
-                        aria-label="Fechar"
-                        onClick={onClose}
-                    >
-                        <X className="size-4" />
-                    </button>
-                </div>
+                    }
+                    onClose={onClose}
+                />
 
                 <div className="overflow-y-auto px-5 py-4">
                     <section className="grid gap-2 sm:grid-cols-2">

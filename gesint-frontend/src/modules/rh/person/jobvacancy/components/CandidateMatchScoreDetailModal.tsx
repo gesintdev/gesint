@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, X } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -14,18 +14,19 @@ import {
     buildMatchBreakdownFromApplication,
     isApplicationAiPending,
 } from "@/modules/rh/person/jobvacancy/lib/application-match-score";
+import { splitLines } from "@/modules/rh/person/jobvacancy/lib/careers-form.util";
 import {
     JOB_VACANCY_CONTRACT_TYPE_LABELS,
     JOB_VACANCY_SENIORITY_LABELS,
     JOB_VACANCY_WORK_MODALITY_LABELS,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.options";
-import { splitLines } from "@/modules/rh/person/jobvacancy/lib/careers-form.util";
 import type { MatchScoreCriterion } from "@/modules/rh/person/jobvacancy/lib/mock-match-score-breakdown";
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import { jobVacancyApplicationKeys } from "@/modules/rh/person/jobvacancyapplication/job-vacancy-application.query";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
 import { Button } from "@/shared/components/ui/Button";
 import { MarkdownContent } from "@/shared/components/ui/MarkdownContent";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 export type CandidateMatchScoreDetailTarget = {
@@ -177,23 +178,15 @@ export function CandidateMatchScoreDetailModal({
             }}
         >
             <div className="modal-box flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
-                    <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-base font-semibold text-base-content">
-                                Análise de compatibilidade
-                            </h3>
-                            <CandidateMatchScoreTag
-                                score={breakdown?.totalScore}
-                                pending={pending}
-                            />
-                        </div>
-                        <p className="mt-0.5 truncate text-sm text-base-content/55">
-                            {candidateName}
-                            {vacancy?.jobTitle ? ` · ${vacancy.jobTitle}` : ""}
-                        </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1">
+                <ModalHeader
+                    title={
+                        <span className="inline-flex flex-wrap items-center gap-2">
+                            Análise de compatibilidade
+                            <CandidateMatchScoreTag score={breakdown?.totalScore} pending={pending} />
+                        </span>
+                    }
+                    subtitle={`${candidateName}${vacancy?.jobTitle ? ` · ${vacancy.jobTitle}` : ""}`}
+                    actions={
                         <Button
                             type="button"
                             size="sm"
@@ -205,19 +198,9 @@ export function CandidateMatchScoreDetailModal({
                         >
                             Reanalisar
                         </Button>
-                        <button
-                            type="button"
-                            aria-label="Fechar"
-                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/50"
-                            onClick={(event) => {
-                                event.stopPropagation();
-                                onClose();
-                            }}
-                        >
-                            <X className="size-4" strokeWidth={2} />
-                        </button>
-                    </div>
-                </div>
+                    }
+                    onClose={onClose}
+                />
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
                     {vacancyQuery.isLoading || applicationsQuery.isLoading ? (

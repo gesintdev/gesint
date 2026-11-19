@@ -1,4 +1,4 @@
-import {ChevronLeft, ChevronRight, Loader2, Plus, Search, X} from "lucide-react";
+import {ChevronLeft, ChevronRight, Loader2, Plus, Search} from "lucide-react";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 
@@ -6,6 +6,7 @@ import {Button} from "@/shared/components/ui/Button";
 import {DataTable} from "@/shared/components/ui/DataTable";
 import {InputString} from "@/shared/components/ui/input/InputString";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 import {ExceptionCapture} from "@/shared/exceptions/exception-capture";
 import type {
     EntityPickerAdvancedSearch,
@@ -126,22 +127,11 @@ export function EntitySearchModal<T extends object>({
             }}
         >
             <div className="modal-box flex max-h-[90vh] w-full max-w-3xl flex-col gap-0 p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/8 px-5 py-4">
-                    <div>
-                        <h3 className="text-base font-semibold text-base-content">{config.title}</h3>
-                        <p className="mt-0.5 text-xs text-base-content/50">
-                            {config.selectHint ?? "Dê duplo clique na linha para selecionar"}
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50"
-                        aria-label="Fechar"
-                        onClick={onClose}
-                    >
-                        <X className="size-4" strokeWidth={2}/>
-                    </button>
-                </div>
+                <ModalHeader
+                    title={config.title}
+                    subtitle={config.selectHint ?? "Dê duplo clique na linha para selecionar"}
+                    onClose={onClose}
+                />
                 <div
                     role="search"
                     className="border-b border-base-content/8 px-5 py-4"

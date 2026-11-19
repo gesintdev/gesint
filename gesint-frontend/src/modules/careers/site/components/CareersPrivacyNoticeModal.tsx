@@ -1,11 +1,10 @@
 "use client";
 
-import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { Button } from "@/shared/components/ui/Button";
 import { MarkdownContent } from "@/shared/components/ui/MarkdownContent";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 
 type CareersPrivacyNoticeModalProps = {
     open: boolean;
@@ -44,19 +43,7 @@ export function CareersPrivacyNoticeModal({ open, notice, version, onClose }: Ca
             }}
         >
             <div className="modal-box flex max-h-[85vh] w-[min(94vw,40rem)] flex-col overflow-hidden p-0">
-                <div className="flex items-center justify-between gap-3 border-b border-base-content/10 px-5 py-3">
-                    <div>
-                        <h2 className="text-base font-semibold text-base-content">Aviso de privacidade</h2>
-                        <p className="text-xs text-base-content/50">Versão {version}</p>
-                    </div>
-                    <Button
-                        variant="ghost"
-                        className="text-base-content/50"
-                        aria-label="Fechar"
-                        onClick={onClose}
-                        leftIcon={<X className="size-4" strokeWidth={2} />}
-                    />
-                </div>
+                <ModalHeader title="Aviso de privacidade" subtitle={`Versão ${version}`} onClose={onClose} />
                 <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
                     <MarkdownContent value={notice} />
                 </div>

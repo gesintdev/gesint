@@ -26,14 +26,8 @@ export function AdmissionPipelineTab() {
     const queryClient = useQueryClient();
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(DEFAULT_PAGE_SIZE);
-    const summaryQueryKey = useBranchScopedQueryKey([...admissionprocessKeys.all, "pipeline", "summary"]);
-    const pageQueryKey = useBranchScopedQueryKey([
-        ...admissionprocessKeys.all,
-        "pipeline",
-        "page",
-        page,
-        size,
-    ]);
+    const summaryQueryKey = useBranchScopedQueryKey([...admissionprocessKeys.pipeline, "summary"]);
+    const pageQueryKey = useBranchScopedQueryKey([...admissionprocessKeys.pipeline, "page", page, size]);
 
     const summaryQuery = useQuery({
         queryKey: summaryQueryKey,

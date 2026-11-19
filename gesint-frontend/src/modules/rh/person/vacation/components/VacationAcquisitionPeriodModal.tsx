@@ -1,12 +1,12 @@
 "use client";
 
 import clsx from "clsx";
-import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import type { AcquisitionPeriodOption } from "@/modules/rh/person/vacation/lib/vacation-rules";
 import type { VacationPeriodStatus } from "@/modules/rh/person/vacation/types/vacation.types";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 
 const STATUS_LABEL: Record<VacationPeriodStatus, string> = {
     ACQUIRING: "Em aquisição",
@@ -67,23 +67,11 @@ export function VacationAcquisitionPeriodModal({
             }}
         >
             <div className="modal-box flex max-h-[85vh] w-full max-w-lg flex-col gap-0 p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/8 px-5 py-4">
-                    <div className="min-w-0">
-                        <h3 className="text-base font-semibold text-base-content">Período aquisitivo</h3>
-                        <p className="mt-0.5 text-xs text-base-content/50">
-                            Escolha em qual período aquisitivo as férias serão lançadas. Faltas, saldo e concessivo serão
-                            recalculados.
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn btn-ghost btn-sm btn-circle shrink-0"
-                        aria-label="Fechar"
-                        onClick={onClose}
-                    >
-                        <X className="size-4" />
-                    </button>
-                </div>
+                <ModalHeader
+                    title="Período aquisitivo"
+                    subtitle="Escolha em qual período aquisitivo as férias serão lançadas. Faltas, saldo e concessivo serão recalculados."
+                    onClose={onClose}
+                />
                 <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
                     <div className="grid gap-2">
                         {options.map((option) => {

@@ -24,6 +24,7 @@ import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionP
 import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gesint.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gesint.modules.root.assistant.dto.AssistantDeepLinkDto;
+import br.com.gesint.modules.root.assistant.service.AdmissionDeadlineAssistant;
 import br.com.gesint.modules.root.search.service.provider.AdmissionGlobalSearchProvider;
 
 @Component
@@ -33,11 +34,15 @@ public class SummarizeAdmissionSkill implements AssistantSkill {
     private static final String ADMISSION_HREF = AdmissionGlobalSearchProvider.HREF;
 
     private final AdmissionProcessRepository admissionProcessRepository;
+    private final AdmissionDeadlineAssistant admissionDeadlineAssistant;
     private final ObjectMapper objectMapper;
 
     public SummarizeAdmissionSkill(
-            AdmissionProcessRepository admissionProcessRepository, ObjectMapper objectMapper) {
+            AdmissionProcessRepository admissionProcessRepository,
+            AdmissionDeadlineAssistant admissionDeadlineAssistant,
+            ObjectMapper objectMapper) {
         this.admissionProcessRepository = admissionProcessRepository;
+        this.admissionDeadlineAssistant = admissionDeadlineAssistant;
         this.objectMapper = objectMapper;
     }
 
@@ -55,9 +60,10 @@ public class SummarizeAdmissionSkill implements AssistantSkill {
         return LlmTool.builder()
                 .name(name())
                 .description(
-                        "Resume o status de admissão por nome, sem dados sensíveis (sem CPF/docs). "
-                                + "Exige permissão admission:read. Os campos já vêm em linguagem de negócio "
-                                + "(status e aprovação em português); use esses textos na resposta ao usuário.")
+                        "Resume o status de admissão por nome e explica prazo vencido ou ASO em atraso, "
+                                + "sem dados sensíveis (sem CPF/docs). Exige permissão admission:read. "
+                                + "O campo explanation já está em português e deve ser usado na resposta. "
+                                + "Não reinterpretar as datas do exame como se fossem o prazo da esteira.")
                 .parameters(Map.of(
                         "type", "object",
                         "properties", properties,
@@ -90,6 +96,7 @@ public class SummarizeAdmissionSkill implements AssistantSkill {
             row.put(
                     "manualApproval",
                     admission.getManuallyApprovedAt() != null ? "Realizada" : "Pendente");
+            row.put("explanation", admissionDeadlineAssistant.explanationOf(admission));
             summaries.add(row);
             if (admission.getId() != null) {
                 String label = multiple ? "Abrir Admissão - " + displayName : "Abrir Admissão";
@@ -108,7 +115,8 @@ public class SummarizeAdmissionSkill implements AssistantSkill {
             payload.put(
                     "message",
                     "Resumo não sensível com textos prontos para o usuário. "
-                            + "Repita status e aprovação exatamente como retornados (já em português). "
+                            + "Repita status, aprovação e explanation exatamente como retornados (já em português). "
+                            + "explanation diz por que a esteira marca ou não ASO em atraso. "
                             + "Não cite códigos internos nem nomes de campos técnicos. "
                             + "O deep link da admissão específica já está anexado.");
         }

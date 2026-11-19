@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {CameraOff, Loader2, X} from "lucide-react";
+import {CameraOff, Loader2} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
 import {toast} from "sonner";
 
@@ -16,6 +16,7 @@ import {
 import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
 import {storageService} from "@/modules/storage/services/storage.service";
 import {Button} from "@/shared/components/ui/Button";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 import {AppException, ExceptionCapture} from "@/shared/exceptions";
 
 type AttendanceClockModalProps = {
@@ -312,23 +313,12 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
     return (
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
             <div className="modal-box flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden p-0">
-                <div className="flex shrink-0 items-center justify-between border-b border-base-content/8 px-4 py-3">
-                    <div>
-                        <h3 className="text-base font-semibold">Registro de ponto</h3>
-                        <p className="text-xs text-base-content/55">
-                            {contextQuery.data?.collaboratorName ?? "Colaborador logado"}
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        aria-label="Fechar"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/50"
-                        onClick={onClose}
-                        disabled={clockMutation.isPending}
-                    >
-                        <X className="size-4" strokeWidth={2}/>
-                    </button>
-                </div>
+                <ModalHeader
+                    title="Registro de ponto"
+                    subtitle={contextQuery.data?.collaboratorName ?? "Colaborador logado"}
+                    onClose={onClose}
+                    closeDisabled={clockMutation.isPending}
+                />
 
                 <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
                     <div className="flex min-h-0 flex-col border-b border-base-content/8 lg:border-r lg:border-b-0">

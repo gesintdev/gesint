@@ -1,6 +1,5 @@
 "use client";
 
-import {X} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 
@@ -11,6 +10,7 @@ import type {
 import {Button} from "@/shared/components/ui/Button";
 import {InputSelect} from "@/shared/components/ui/input/InputSelect";
 import {PopoverPortalProvider} from "@/shared/components/ui/input/popover-portal";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 
 const REQUEST_TYPE_LABEL: Record<string, string> = {
     TIME_ADJUSTMENT: "Ajuste de ponto",
@@ -143,28 +143,21 @@ export function AttendanceRequestDetailModal({
         >
             <PopoverPortalProvider container={portalRoot}>
                 <div className="modal-box flex max-h-[92vh] w-full max-w-3xl flex-col gap-0 p-0">
-                    <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
-                        <div className="min-w-0">
-                            <h4 className="text-base font-semibold text-base-content">
-                                Solicitação #{request.code}
-                            </h4>
-                            <p className="mt-1 text-sm text-base-content/65">
-                                {request.collaboratorName ?? "Colaborador"} · {formatDate(request.workDate)} ·{" "}
-                                {REQUEST_TYPE_LABEL[request.requestType] ?? request.requestType}
-                            </p>
-                            <span className="badge badge-ghost mt-2">
-                                {STATUS_LABEL[request.requestStatus] ?? request.requestStatus}
+                    <ModalHeader
+                        title={`Solicitação #${request.code}`}
+                        subtitle={
+                            <span className="grid gap-1.5">
+                                <span className="text-sm text-base-content/65">
+                                    {request.collaboratorName ?? "Colaborador"} · {formatDate(request.workDate)} ·{" "}
+                                    {REQUEST_TYPE_LABEL[request.requestType] ?? request.requestType}
+                                </span>
+                                <span className="badge badge-ghost w-fit">
+                                    {STATUS_LABEL[request.requestStatus] ?? request.requestStatus}
+                                </span>
                             </span>
-                        </div>
-                        <button
-                            type="button"
-                            className="btn btn-ghost btn-sm btn-square"
-                            aria-label="Fechar"
-                            onClick={onClose}
-                        >
-                            <X className="size-4"/>
-                        </button>
-                    </div>
+                        }
+                        onClose={onClose}
+                    />
 
                     <div className="overflow-y-auto px-5 py-4">
                         <div className="overflow-hidden rounded-xl border border-base-300">

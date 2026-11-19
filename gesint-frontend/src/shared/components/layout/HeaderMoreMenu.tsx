@@ -74,7 +74,7 @@ export function HeaderMoreMenu({
                         animate={{opacity: 1, y: 0, scale: 1}}
                         exit={{opacity: 0, y: -4, scale: 0.98}}
                         transition={{duration: 0.14, ease: [0.22, 1, 0.36, 1]}}
-                        className="absolute end-0 top-[calc(100%+0.35rem)] z-50 w-52 overflow-hidden rounded-xl border border-(--gesint-border) bg-base-100 py-1 shadow-(--gesint-shadow-md)"
+                        className="absolute inset-e-0 top-[calc(100%+0.35rem)] z-50 w-52 overflow-hidden rounded-xl border border-(--gesint-border) bg-base-100 py-1 shadow-(--gesint-shadow-md)"
                     >
                         <button
                             type="button"

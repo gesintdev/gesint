@@ -53,9 +53,28 @@ public class AssistantContextSelector {
                     + "como\\s+funciona"
                     + ")");
 
-    /** CPF com ou sem máscara (11 dígitos). */
+    /** CPF com ou sem máscara (11 dígitos), ou a palavra CPF. */
     private static final Pattern CPF_PATTERN = Pattern.compile(
             "(?i)\\bcpf\\b|\\b\\d{3}\\.?\\d{3}\\.?\\d{3}-?\\d{2}\\b");
+
+    /** Número no formato de CPF, sem depender da palavra. */
+    private static final Pattern CPF_NUMBER_PATTERN = Pattern.compile("\\b\\d{3}\\.?\\d{3}\\.?\\d{3}-?\\d{2}\\b");
+
+    /**
+     * Dúvida sobre prazo da esteira. Não inclui a palavra solta "admissão", para não capturar
+     * "como faço uma admissão".
+     */
+    private static final Pattern ADMISSION_DEADLINE_PATTERN = Pattern.compile(
+            "(?i)("
+                    + "prazo\\s+vencido|"
+                    + "aso\\s+em\\s+atraso|"
+                    + "esteira\\s+de\\s+admiss|"
+                    + "\\baso\\b.{0,40}atras|"
+                    + "atras.{0,40}\\baso\\b"
+                    + ")");
+
+    private static final Pattern ADMISSION_PERSON_PATTERN = Pattern.compile(
+            "(?i)\\b(colaborador(?:a|es)?|candidat[oa]s?|funcion[aá]ri[oa]s?)\\b");
 
     private static final Set<String> SMALL_TALK = Set.of(
             "oi",
@@ -131,6 +150,33 @@ public class AssistantContextSelector {
             return false;
         }
         return CPF_PATTERN.matcher(latestUserMessage.trim()).find();
+    }
+
+    /** A mensagem traz um número de CPF, não só a palavra. */
+    public boolean hasCpfNumber(String latestUserMessage) {
+        if (!StringUtils.hasText(latestUserMessage)) {
+            return false;
+        }
+        return CPF_NUMBER_PATTERN.matcher(latestUserMessage).find();
+    }
+
+    /**
+     * Pergunta por que a esteira mostra prazo vencido ou ASO em atraso.
+     * Diferente de um pedido para abrir o cadastro pelo CPF.
+     */
+    public boolean isAdmissionDeadlineQuestion(String latestUserMessage) {
+        if (!StringUtils.hasText(latestUserMessage)) {
+            return false;
+        }
+        return ADMISSION_DEADLINE_PATTERN.matcher(latestUserMessage).find();
+    }
+
+    /** A frase fala de uma pessoa concreta na admissão, não só da regra da tela. */
+    public boolean mentionsAdmissionPerson(String latestUserMessage) {
+        if (!StringUtils.hasText(latestUserMessage)) {
+            return false;
+        }
+        return ADMISSION_PERSON_PATTERN.matcher(latestUserMessage).find();
     }
 
     public boolean isSmallTalk(String latestUserMessage) {

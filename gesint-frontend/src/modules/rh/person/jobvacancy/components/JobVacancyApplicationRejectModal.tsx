@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { ShieldCheck, X } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -19,6 +19,7 @@ import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyappl
 import { Button } from "@/shared/components/ui/Button";
 import { InputCheckbox, InputSelect, type SelectItem } from "@/shared/components/ui/input/index";
 import { fieldClass } from "@/shared/components/ui/input/InputFieldChrome";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 
 type JobVacancyApplicationRejectModalProps = {
     open: boolean;
@@ -138,22 +139,11 @@ export function JobVacancyApplicationRejectModal({
             }}
         >
             <div className="modal-box flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
-                    <div className="min-w-0">
-                        <h3 className="text-base font-semibold text-base-content">Encerrar candidato</h3>
-                        <p className="mt-0.5 truncate text-sm text-base-content/55">
-                            {application?.candidateFullName ?? "Candidato"}
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        aria-label="Fechar"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50"
-                        onClick={onCancel}
-                    >
-                        <X className="size-4" strokeWidth={2} />
-                    </button>
-                </div>
+                <ModalHeader
+                    title="Encerrar candidato"
+                    subtitle={application?.candidateFullName ?? "Candidato"}
+                    onClose={onCancel}
+                />
 
                 <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto px-5 py-4">
                     <InputSelect

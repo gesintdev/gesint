@@ -4,6 +4,7 @@ import {useEffect, useRef, useState} from "react";
 
 import {Button} from "@/shared/components/ui/Button";
 import {InputString} from "@/shared/components/ui/input/index";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 
 type AttendanceRequestRejectDialogProps = {
     open: boolean;
@@ -45,12 +46,14 @@ export function AttendanceRequestRejectDialog({
 
     return (
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box max-w-md">
-                <h3 className="text-base font-semibold">Recusar solicitação</h3>
-                <p className="mt-1 text-sm text-base-content/65">
-                    Informe o motivo para manter o histórico de auditoria.
-                </p>
-                <div className="mt-4">
+            <div className="modal-box flex max-w-md flex-col gap-0 p-0">
+                <ModalHeader
+                    title="Recusar solicitação"
+                    subtitle="Informe o motivo para manter o histórico de auditoria."
+                    onClose={onClose}
+                    closeDisabled={loading}
+                />
+                <div className="px-4 py-4">
                     <InputString
                         label="Motivo"
                         value={reason}
@@ -62,7 +65,7 @@ export function AttendanceRequestRejectDialog({
                         error={error ?? undefined}
                     />
                 </div>
-                <div className="modal-action">
+                <div className="modal-action mt-0 px-4 pb-4">
                     <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
                         Cancelar
                     </Button>

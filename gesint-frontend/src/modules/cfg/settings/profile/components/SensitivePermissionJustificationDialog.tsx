@@ -5,6 +5,7 @@ import {createPortal} from "react-dom";
 
 import {Button} from "@/shared/components/ui/Button";
 import {InputString} from "@/shared/components/ui/input/index";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 
 type SensitivePermissionJustificationDialogProps = {
     open: boolean;
@@ -51,12 +52,13 @@ export function SensitivePermissionJustificationDialog({
 
     return createPortal(
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box max-w-md">
-                <h3 className="text-base font-semibold">Conceder dado sensível / financeiro</h3>
-                <p className="mt-1 text-sm text-base-content/65">
-                    Informe a justificativa para liberar este acesso. A concessão poderá ser auditada.
-                </p>
-                <div className="mt-4">
+            <div className="modal-box flex max-w-md flex-col gap-0 p-0">
+                <ModalHeader
+                    title="Conceder dado sensível / financeiro"
+                    subtitle="Informe a justificativa para liberar este acesso. A concessão poderá ser auditada."
+                    onClose={onClose}
+                />
+                <div className="px-4 py-4">
                     <InputString
                         label="Justificativa"
                         value={justification}
@@ -68,7 +70,7 @@ export function SensitivePermissionJustificationDialog({
                         error={error ?? undefined}
                     />
                 </div>
-                <div className="modal-action">
+                <div className="modal-action mt-0 px-4 pb-4">
                     <Button type="button" variant="ghost" onClick={onClose}>
                         Cancelar
                     </Button>

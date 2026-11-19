@@ -1,11 +1,12 @@
 "use client";
 
 import clsx from "clsx";
-import {Check, Clock, X, Zap} from "lucide-react";
+import {Check, Clock, Zap} from "lucide-react";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 
 import {Button} from "@/shared/components/ui/Button";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 import {joinTime, splitTime} from "@/shared/lib/input/date";
 
 /**
@@ -179,22 +180,11 @@ export function AttendanceTimePickerModal({
             }}
         >
             <div className="modal-box gesint-time-picker flex w-full max-w-[34rem] flex-col gap-0 p-0">
-                <header className="flex items-center justify-between gap-3 border-b border-[var(--gesint-border-subtle)] px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                        <span className="inline-flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <Clock className="size-4" strokeWidth={2}/>
-                        </span>
-                        <h3 className="text-base font-semibold text-base-content">Horário</h3>
-                    </div>
-                    <button
-                        type="button"
-                        className="inline-flex size-8 items-center justify-center rounded-full text-base-content/50 transition-colors hover:bg-base-200 hover:text-base-content"
-                        aria-label="Fechar"
-                        onClick={onClose}
-                    >
-                        <X className="size-4"/>
-                    </button>
-                </header>
+                <ModalHeader
+                    title="Horário"
+                    icon={<Clock className="size-4" strokeWidth={2} />}
+                    onClose={onClose}
+                />
 
                 <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_11.5rem]">
                     <section className="flex flex-col items-center gap-4 px-5 py-5">

@@ -1,4 +1,5 @@
 import {accountSettingsRoute} from "@/modules/cfg/account/config/account.routes";
+import {assistantWorkspaceRoute} from "@/shared/components/assistant/assistant.routes";
 import {
     settingsAccessRoutes,
     settingsAttendanceLegacyRoute,
@@ -48,6 +49,7 @@ export const settingsModule: TModule = {
     routes: [
         ...settingsRoutes,
         accountSettingsRoute,
+        assistantWorkspaceRoute,
         settingsAttendanceLegacyRoute,
         settingsNotificationsLegacyRoute,
     ],

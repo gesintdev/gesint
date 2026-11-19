@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -19,6 +18,7 @@ import { OCCUPATIONAL_EXAM_CLIENT_MESSAGES } from "@/modules/dp/occupational-exa
 import { useFormDirtyByComparison } from "@/shared/components/crud/useFormDirtyByComparison";
 import { Button } from "@/shared/components/ui/Button";
 import { PopoverPortalProvider } from "@/shared/components/ui/input/popover-portal";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -180,24 +180,11 @@ export function ExamRequirementFormModal({
         >
             <PopoverPortalProvider container={portalRoot}>
                 <div className="modal-box flex h-[95vh] w-[95vw] max-w-[95vw] flex-col gap-0 overflow-hidden p-0">
-                    <div className="flex items-start justify-between gap-3 border-b border-base-content/8 px-5 py-4">
-                        <div>
-                            <h3 className="text-base font-semibold text-base-content">
-                                {isEditing ? "Editar matriz de exames" : "Nova matriz de exames"}
-                            </h3>
-                            <p className="mt-0.5 text-xs text-base-content/50">
-                                Cargo herdado do cadastro selecionado.
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50"
-                            aria-label="Fechar"
-                            onClick={() => void requestClose()}
-                        >
-                            <X className="size-4" strokeWidth={2} />
-                        </button>
-                    </div>
+                    <ModalHeader
+                        title={isEditing ? "Editar matriz de exames" : "Nova matriz de exames"}
+                        subtitle="Cargo herdado do cadastro selecionado."
+                        onClose={() => void requestClose()}
+                    />
 
                     <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
                         <div className="min-h-0 flex-1 overflow-auto px-5 py-4">

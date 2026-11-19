@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -13,6 +12,7 @@ import {
     ADMISSION_STATUS_LABELS,
     contractTypeLabel,
 } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 import { formatCnpj, formatCpf } from "@/shared/lib/table/format-cell-value";
 
 /** Etapas obrigatórias do progresso de admissão (alinhado ao backend). */
@@ -109,27 +109,20 @@ export function AdmissionDetailModal({ row, open, onClose }: AdmissionDetailModa
             }}
         >
             <div className="modal-box flex max-h-[92vh] w-full max-w-2xl flex-col gap-0 p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
-                    <div className="min-w-0">
-                        <h4 className="text-base font-semibold text-base-content">
-                            Admissão #{row.code}
-                        </h4>
-                        <p className="mt-1 truncate text-sm text-base-content/65">
-                            {row.fullName?.trim() || "Colaborador"}
-                        </p>
-                        <span className="badge badge-ghost mt-2">
-                            {ADMISSION_STATUS_LABELS[row.admissionStatus] ?? row.admissionStatus}
+                <ModalHeader
+                    title={`Admissão #${row.code}`}
+                    subtitle={
+                        <span className="grid gap-1.5">
+                            <span className="truncate text-sm text-base-content/65">
+                                {row.fullName?.trim() || "Colaborador"}
+                            </span>
+                            <span className="badge badge-ghost w-fit">
+                                {ADMISSION_STATUS_LABELS[row.admissionStatus] ?? row.admissionStatus}
+                            </span>
                         </span>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn btn-ghost btn-sm btn-square"
-                        aria-label="Fechar"
-                        onClick={onClose}
-                    >
-                        <X className="size-4" />
-                    </button>
-                </div>
+                    }
+                    onClose={onClose}
+                />
 
                 <div className="overflow-y-auto px-5 py-4">
                     <section className="grid gap-2 sm:grid-cols-2">

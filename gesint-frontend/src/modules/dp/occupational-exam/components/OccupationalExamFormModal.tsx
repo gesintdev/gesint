@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -23,6 +22,7 @@ import { occupationalExamKeys } from "@/modules/dp/occupational-exam/occupationa
 import { occupationalPhysicianKeys } from "@/modules/dp/occupational-exam/physician/occupational-physician.query";
 import { occupationalPhysicianService } from "@/modules/dp/occupational-exam/physician/services/occupational-physician.service";
 import { occupationalExamService } from "@/modules/dp/occupational-exam/services/occupational-exam.service";
+import { admissionprocessKeys } from "@/modules/rh/person/collaborators/admission/admission.query";
 import { useHasPermission } from "@/shared/auth/permissions";
 import { useFormDirtyByComparison } from "@/shared/components/crud/useFormDirtyByComparison";
 import {
@@ -30,8 +30,9 @@ import {
     type PendingAttachment,
 } from "@/shared/components/storage/EntityAttachments";
 import { Button } from "@/shared/components/ui/Button";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { PopoverPortalProvider } from "@/shared/components/ui/input/popover-portal";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -196,6 +197,8 @@ export function OccupationalExamFormModal({
             clearPendingAttachments();
             await queryClient.invalidateQueries({ queryKey: occupationalExamKeys.all });
             await queryClient.invalidateQueries({ queryKey: occupationalExamKeys.detail(savedId) });
+            // A esteira deriva o ASO deste exame. Sem isso, Acompanhamento fica no cache de 60s.
+            await queryClient.invalidateQueries({ queryKey: admissionprocessKeys.pipeline });
             await queryClient.invalidateQueries({
                 queryKey: ["storage-links", OCCUPATIONAL_EXAM_ENTITY_TYPE, savedId],
             });
@@ -243,24 +246,11 @@ export function OccupationalExamFormModal({
         >
             <PopoverPortalProvider container={portalRoot}>
                 <div className="modal-box flex h-[95vh] w-[95vw] max-w-[95vw] flex-col gap-0 overflow-hidden p-0">
-                    <div className="flex items-start justify-between gap-3 border-b border-base-content/8 px-5 py-4">
-                        <div>
-                            <h3 className="text-base font-semibold text-base-content">
-                                {isEditing ? "Editar exame ocupacional" : "Novo exame ocupacional"}
-                            </h3>
-                            <p className="mt-0.5 text-xs text-base-content/50">
-                                Colaborador e cargo herdados da admissão selecionada.
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50"
-                            aria-label="Fechar"
-                            onClick={() => void requestClose()}
-                        >
-                            <X className="size-4" strokeWidth={2} />
-                        </button>
-                    </div>
+                    <ModalHeader
+                        title={isEditing ? "Editar exame ocupacional" : "Novo exame ocupacional"}
+                        subtitle="Colaborador e cargo herdados da admissão selecionada."
+                        onClose={() => void requestClose()}
+                    />
 
                     <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
                         <div className="min-h-0 flex-1 overflow-auto px-5 py-4">

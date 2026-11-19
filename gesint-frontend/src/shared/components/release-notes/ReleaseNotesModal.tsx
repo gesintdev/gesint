@@ -2,13 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { ChevronRight, X } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { loadReleaseNotes, releaseNotesKeys } from "@/shared/components/release-notes/release-notes.query";
 import { type ReleaseNote, releaseTypeMeta } from "@/shared/components/release-notes/release-notes.types";
 import { MarkdownContent } from "@/shared/components/ui/MarkdownContent";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 
 type ReleaseNotesModalProps = {
     open: boolean;
@@ -101,22 +102,11 @@ export function ReleaseNotesModal({ open, currentVersion, onClose }: ReleaseNote
     return createPortal(
         <dialog ref={dialogRef} className="modal" onClose={onClose}>
             <div className="modal-box flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl p-0">
-                <div className="flex items-center justify-between gap-3 border-b border-base-content/10 px-4 py-3">
-                    <div>
-                        <h3 className="text-base font-semibold">Novidades do sistema</h3>
-                        <p className="text-xs text-base-content/55">
-                            Versão atual <span className="font-mono">v{currentVersion}</span>
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        aria-label="Fechar"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/50"
-                        onClick={onClose}
-                    >
-                        <X className="size-4" strokeWidth={2} />
-                    </button>
-                </div>
+                <ModalHeader
+                    title="Novidades do sistema"
+                    subtitle={<>Versão atual <span className="font-mono">v{currentVersion}</span></>}
+                    onClose={onClose}
+                />
 
                 <div className="min-h-0 flex-1 overflow-y-auto">
                     {notesQuery.isPending ? (

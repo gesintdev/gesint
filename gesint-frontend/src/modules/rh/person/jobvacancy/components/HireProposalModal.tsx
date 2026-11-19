@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { AlertTriangle, CheckCircle2, Circle, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Circle } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ import {
     InputString,
     type SelectItem,
 } from "@/shared/components/ui/input/index";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 type HireProposalModalProps = {
@@ -340,26 +341,12 @@ export function HireProposalModal({
             }}
         >
             <div className="modal-box flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
-                    <div className="min-w-0">
-                        <h3 className="text-base font-semibold text-base-content">
-                            Contratar {preview?.candidateFullName ?? "candidato"}
-                            {preview?.jobVacancyTitle ? ` · ${preview.jobVacancyTitle}` : ""}
-                        </h3>
-                        <p className="mt-0.5 text-xs text-base-content/50">
-                            Proposta de contratação · RN-37 / RN-38
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        aria-label="Fechar"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50"
-                        onClick={onClose}
-                        disabled={hireMutation.isPending}
-                    >
-                        <X className="size-4" strokeWidth={2} />
-                    </button>
-                </div>
+                <ModalHeader
+                    title={`Contratar ${preview?.candidateFullName ?? "candidato"}${preview?.jobVacancyTitle ? ` · ${preview.jobVacancyTitle}` : ""}`}
+                    subtitle="Proposta de contratação · RN-37 / RN-38"
+                    onClose={onClose}
+                    closeDisabled={hireMutation.isPending}
+                />
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
                     {previewQuery.isLoading ? (

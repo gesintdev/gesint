@@ -88,6 +88,38 @@
       ]
     },
     {
+      "id": "dp-admission-pipeline",
+      "system": "DP",
+      "menu": "Admissão",
+      "topic": "Esteira de admissão",
+      "action": "Entender prazo vencido e ASO em atraso",
+      "href": "/collaborator/admission",
+      "routeId": "collaborator-admission",
+      "permission": "admission:read",
+      "complexity": "GUIDE_ONLY",
+      "keywords": [
+        "esteira",
+        "esteira de admissão",
+        "prazo vencido",
+        "aso em atraso",
+        "aso admissional",
+        "exame amanhã"
+      ],
+      "guidance": [
+        "Prazo vencido com a frase ASO em atraso não usa as datas digitadas no cadastro de Exames.",
+        "O prazo do ASO na esteira é a véspera do início previsto das atividades. Se esse dia já passou e o exame admissional ainda não está Apto com ciclo Registrado, Transmitido ou Arquivado, a etapa fica em atraso.",
+        "Data agendada, exame clínico, emissão do ASO e vencimento podem estar no futuro e o status continuar prazo vencido. Essas datas só registram o agendamento e a validade.",
+        "A esteira só considera o exame do tipo admissional. Periódico ou outro tipo não fecha a etapa.",
+        "Para sair de ASO em atraso: registre o resultado Apto e o ciclo Registrado, Transmitido ou Arquivado, ou adie o início previsto para que a véspera ainda não tenha passado.",
+        "Se a pergunta for sobre uma pessoa, informe o nome. O assistente explica o caso sem repetir CPF."
+      ],
+      "steps": [
+        "Abra o sistema DP.",
+        "Acesse Admissão e a aba da esteira.",
+        "Confira o início previsto da admissão e, no cadastro de Exames, o resultado e o status do ciclo do exame admissional."
+      ]
+    },
+    {
       "id": "dp-people",
       "system": "DP",
       "menu": "Pessoas",
@@ -446,10 +478,17 @@
       "routeId": "collaborator-admission",
       "permission": "admission:read",
       "complexity": "EXECUTABLE",
-      "keywords": ["resumo admissão", "status admissão", "como está a admissão", "andamento admissão"],
+      "keywords": [
+        "resumo admissão",
+        "status admissão",
+        "como está a admissão",
+        "andamento admissão",
+        "por que prazo vencido",
+        "por que aso em atraso"
+      ],
       "steps": [
         "Informe o nome do colaborador/candidato.",
-        "O assistente devolve um resumo não sensível (sem CPF/documentos)."
+        "O assistente devolve um resumo não sensível (sem CPF/documentos) e explica o prazo do ASO na esteira."
       ]
     }
   ]

@@ -2,11 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { X } from "lucide-react";
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
+import { DevelopmentPlanDomainService } from "@/modules/cfg/settings/developmentplan/services/development-plan-domain.service";
 import type {
     JobPositionCompetencyCreateDto,
     JobPositionCompetencyExpectedLevel,
@@ -24,7 +24,6 @@ import {
 } from "@/modules/dp/organization/jobposition/competency/lib/job-position-competency.options";
 import { jobPositionCompetencyService } from "@/modules/dp/organization/jobposition/competency/services/job-position-competency.service";
 import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
-import { DevelopmentPlanDomainService } from "@/modules/cfg/settings/developmentplan/services/development-plan-domain.service";
 import { developmentPlanDomainOptionsService } from "@/modules/rh/person/developmentplan/services/development-plan-domain-options.service";
 import { useFormDirtyByComparison } from "@/shared/components/crud/useFormDirtyByComparison";
 import { Button } from "@/shared/components/ui/Button";
@@ -34,8 +33,9 @@ import {
     InputDate,
     InputSelect,
 } from "@/shared/components/ui/input/index";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { PopoverPortalProvider } from "@/shared/components/ui/input/popover-portal";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -245,26 +245,15 @@ export function JobPositionCompetencyFormModal({
         >
             <PopoverPortalProvider container={portalRoot}>
                 <div className="modal-box flex max-h-[90vh] w-[min(48rem,92vw)] max-w-[min(48rem,92vw)] flex-col gap-0 overflow-hidden p-0">
-                    <div className="flex items-start justify-between gap-3 border-b border-base-content/8 px-5 py-4">
-                        <div>
-                            <h3 className="text-base font-semibold text-base-content">
-                                {isEditing ? "Editar competência exigida" : "Adicionar competência"}
-                            </h3>
-                            <p className="mt-0.5 text-xs text-base-content/50">
-                                {isEditing
-                                    ? `Versão atual v${versionNumber ?? "—"}. Salvar cria uma nova versão.`
-                                    : "Vinda do catálogo. O nível esperado orienta seleção, experiência e desempenho."}
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50"
-                            aria-label="Fechar"
-                            onClick={() => void requestClose()}
-                        >
-                            <X className="size-4" strokeWidth={2} />
-                        </button>
-                    </div>
+                    <ModalHeader
+                        title={isEditing ? "Editar competência exigida" : "Adicionar competência"}
+                        subtitle={
+                            isEditing
+                                ? `Versão atual v${versionNumber ?? "—"}. Salvar cria uma nova versão.`
+                                : "Vinda do catálogo. O nível esperado orienta seleção, experiência e desempenho."
+                        }
+                        onClose={() => void requestClose()}
+                    />
 
                     <form
                         className="flex min-h-0 flex-1 flex-col"

@@ -1,10 +1,11 @@
 import clsx from "clsx";
-import { Camera, Loader2, Trash2, X } from "lucide-react";
+import { Camera, Loader2, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/shared/components/ui/Button";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { ExceptionCapture } from "@/shared/exceptions";
 import {
@@ -127,24 +128,13 @@ function ProfilePhotoCropModal({
                 if (e.target === e.currentTarget) onCancel();
             }}
         >
-            <div className="modal-box max-w-md">
-                <div className="mb-4 flex items-start justify-between gap-3">
-                    <div>
-                        <h3 className="text-base font-semibold text-base-content">Recortar foto</h3>
-                        <p className="mt-0.5 text-xs text-base-content/50">
-                            Ajuste zoom e posição. A área de recorte tem a mesma dimensão da prévia.
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn btn-ghost btn-sm btn-circle"
-                        aria-label="Fechar"
-                        onClick={onCancel}
-                    >
-                        <X className="size-4" />
-                    </button>
-                </div>
-                <div className="flex flex-col items-center gap-4">
+            <div className="modal-box flex max-w-md flex-col gap-0 p-0">
+                <ModalHeader
+                    title="Recortar foto"
+                    subtitle="Ajuste zoom e posição. A área de recorte tem a mesma dimensão da prévia."
+                    onClose={onCancel}
+                />
+                <div className="flex flex-col items-center gap-4 px-4 pt-4">
                     <div
                         className="relative touch-none overflow-hidden rounded-2xl bg-base-300/40 ring-1 ring-base-content/10"
                         style={{ width: viewport, height: viewport }}
@@ -186,7 +176,7 @@ function ProfilePhotoCropModal({
                         />
                     </label>
                 </div>
-                <div className="modal-action">
+                <div className="modal-action px-4 pb-4">
                     <Button type="button" variant="ghost" onClick={onCancel} disabled={processing}>
                         Cancelar
                     </Button>

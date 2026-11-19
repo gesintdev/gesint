@@ -1,6 +1,6 @@
 import {useQuery} from "@tanstack/react-query";
 import clsx from "clsx";
-import {Loader2, X} from "lucide-react";
+import {Loader2} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 
@@ -9,6 +9,7 @@ import type {Profile, SystemScope} from "@/modules/cfg/settings/profile/dto/prof
 import {profileKeys} from "@/modules/cfg/settings/profile/profile.query";
 import {profileService} from "@/modules/cfg/settings/profile/services/profile.service";
 import {Button} from "@/shared/components/ui/Button";
+import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 
 type ProfileDetailModalProps = {
     open: boolean;
@@ -52,22 +53,7 @@ export function ProfileDetailModal({open, profile, system, onClose}: ProfileDeta
             }}
         >
             <div className="modal-box flex max-h-[85vh] w-full max-w-lg flex-col gap-0 p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/8 px-4 py-3">
-                    <div className="min-w-0">
-                        <h3 className="truncate text-base font-semibold text-base-content">{data.name}</h3>
-                        {data.description ? (
-                            <p className="mt-0.5 text-xs text-base-content/55">{data.description}</p>
-                        ) : null}
-                    </div>
-                    <button
-                        type="button"
-                        className="btn btn-ghost btn-sm btn-circle shrink-0"
-                        aria-label="Fechar"
-                        onClick={onClose}
-                    >
-                        <X className="size-4"/>
-                    </button>
-                </div>
+                <ModalHeader title={data.name} subtitle={data.description || undefined} onClose={onClose} />
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
                     {detailQuery.isLoading ? (
                         <div className="flex items-center justify-center gap-2 py-8 text-sm text-base-content/50">

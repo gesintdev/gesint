@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -14,6 +13,7 @@ import { profileService } from "@/modules/cfg/settings/profile/services/profile.
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { menuDependsOnProfile, profileGrantsMenu } from "@/shared/auth/profile-route-access";
 import { Button } from "@/shared/components/ui/Button";
+import { ModalHeader } from "@/shared/components/ui/ModalHeader";
 import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -67,24 +67,11 @@ export function RouteLinkedProfilesModal({ route, onClose }: RouteLinkedProfiles
             }}
         >
             <div className="modal-box flex max-h-[85vh] w-full max-w-lg flex-col gap-0 p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/8 px-4 py-3">
-                    <div className="min-w-0">
-                        <h3 className="truncate text-base font-semibold text-base-content">Perfis vinculados</h3>
-                        <p className="mt-0.5 truncate text-xs text-base-content/55">
-                            {route.label}
-                            {" · "}
-                            {systemScopeLabel(system)}
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn btn-ghost btn-sm btn-circle shrink-0"
-                        aria-label="Fechar"
-                        onClick={onClose}
-                    >
-                        <X className="size-4" />
-                    </button>
-                </div>
+                <ModalHeader
+                    title="Perfis vinculados"
+                    subtitle={`${route.label} · ${systemScopeLabel(system)}`}
+                    onClose={onClose}
+                />
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
                     {!dependsOnProfile ? (
                         <p className="py-6 text-center text-sm text-base-content/55">
