@@ -2,8 +2,14 @@ import { apiFetch } from "@/shared/lib/api.client";
 
 export type PdfDeliveryMode = "DOWNLOAD" | "NEW_TAB";
 
+export type AssistantOpenMode = "SIDE" | "MODAL" | "TAB";
+
+export const DEFAULT_PDF_DELIVERY_MODE: PdfDeliveryMode = "DOWNLOAD";
+export const DEFAULT_ASSISTANT_OPEN_MODE: AssistantOpenMode = "SIDE";
+
 export type AccountPreferences = {
     reportPdfDeliveryMode: PdfDeliveryMode;
+    assistantOpenMode: AssistantOpenMode;
 };
 
 export type ChangePasswordRequest = {

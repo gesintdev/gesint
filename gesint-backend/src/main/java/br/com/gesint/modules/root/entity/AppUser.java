@@ -70,6 +70,11 @@ public class AppUser extends AuditEntity {
     @Builder.Default
     private PdfDeliveryModeEnum reportPdfDeliveryMode = PdfDeliveryModeEnum.DOWNLOAD;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "assistant_open_mode", nullable = false, length = 20)
+    @Builder.Default
+    private AssistantOpenModeEnum assistantOpenMode = AssistantOpenModeEnum.SIDE;
+
     /**
      * Perfis do usuario em qualquer filial, somente leitura.
      *

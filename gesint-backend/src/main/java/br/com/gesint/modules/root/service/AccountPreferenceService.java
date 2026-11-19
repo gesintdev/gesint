@@ -10,6 +10,7 @@ import br.com.gesint.core.audit.trail.AuditTrailRecorder;
 import br.com.gesint.core.entity.StatusEnum;
 import br.com.gesint.modules.root.dto.AccountPreferencesDto;
 import br.com.gesint.modules.root.entity.AppUser;
+import br.com.gesint.modules.root.entity.AssistantOpenModeEnum;
 import br.com.gesint.modules.root.exception.AuthException;
 import br.com.gesint.modules.root.repository.AppUserRepository;
 
@@ -34,10 +35,19 @@ public class AccountPreferenceService implements IAccountPreferenceService {
     @Transactional
     public AccountPreferencesDto updatePreferences(AccountPreferencesDto request) {
         AppUser user = currentUser();
+        boolean pdfChanged = user.getReportPdfDeliveryMode() != request.getReportPdfDeliveryMode();
+        boolean assistantChanged = user.getAssistantOpenMode() != request.getAssistantOpenMode();
         user.setReportPdfDeliveryMode(request.getReportPdfDeliveryMode());
+        user.setAssistantOpenMode(request.getAssistantOpenMode());
         AppUser saved = appUserRepository.save(user);
-        auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, saved)
-                .detail("preferência de abertura de relatórios PDF"));
+        if (pdfChanged) {
+            auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, saved)
+                    .detail("preferência de abertura de relatórios PDF"));
+        }
+        if (assistantChanged) {
+            auditTrail.record(AuditTrailEntry.of(AuditActionEnum.UPDATE, saved)
+                    .detail("preferência de abertura do assistente"));
+        }
         return toDto(saved);
     }
 
@@ -51,6 +61,9 @@ public class AccountPreferenceService implements IAccountPreferenceService {
     private AccountPreferencesDto toDto(AppUser user) {
         return AccountPreferencesDto.builder()
                 .reportPdfDeliveryMode(user.getReportPdfDeliveryMode())
+                .assistantOpenMode(user.getAssistantOpenMode() == null
+                        ? AssistantOpenModeEnum.SIDE
+                        : user.getAssistantOpenMode())
                 .build();
     }
 }

@@ -9,16 +9,24 @@ import {AssistantEmptyState} from "@/shared/components/assistant/AssistantEmptyS
 import {AssistantHistoryList} from "@/shared/components/assistant/AssistantHistoryList";
 import {AssistantTranscript} from "@/shared/components/assistant/AssistantTranscript";
 import {useAssistantChat} from "@/shared/components/assistant/assistant-chat";
-import {assistantWorkspaceRoute} from "@/shared/components/assistant/assistant.routes";
-import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 
 type AiAssistantPanelProps = {
-    open: boolean;
-    onClose: () => void;
+    sideOpen: boolean;
+    modalOpen: boolean;
+    onSideClose: () => void;
+    onModalClose: () => void;
+    onOpenModal: () => void;
+    onOpenTab: () => void;
 };
 
-export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
-    const {openFromHref} = useWorkspaceNavigation();
+export function AiAssistantPanel({
+    sideOpen,
+    modalOpen,
+    onSideClose,
+    onModalClose,
+    onOpenModal,
+    onOpenTab,
+}: AiAssistantPanelProps) {
     const {
         activeId,
         activeConversation,
@@ -30,17 +38,16 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
         startNewConversation,
     } = useAssistantChat();
     const [showHistory, setShowHistory] = useState(false);
-    const [modalOpen, setModalOpen] = useState(false);
     const listRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const historySearchRef = useRef<HTMLInputElement>(null);
     const [shellMounted, setShellMounted] = useState(false);
     const [panelEntered, setPanelEntered] = useState(false);
-    const openRef = useRef(open);
-    openRef.current = open;
+    const openRef = useRef(sideOpen);
+    openRef.current = sideOpen;
 
     useEffect(() => {
-        if (!open) {
+        if (!sideOpen) {
             setPanelEntered(false);
             return;
         }
@@ -55,51 +62,48 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
             cancelled = true;
             window.cancelAnimationFrame(frame);
         };
-    }, [open]);
+    }, [sideOpen]);
 
     useEffect(() => {
-        if (!open) return;
+        if (!sideOpen) return;
         const onKeyDown = (event: KeyboardEvent) => {
             if (event.key !== "Escape") return;
             if (selectionMode) {
                 clearSelection();
                 return;
             }
-            onClose();
+            onSideClose();
         };
         document.addEventListener("keydown", onKeyDown);
         return () => document.removeEventListener("keydown", onKeyDown);
-    }, [open, onClose, selectionMode, clearSelection]);
+    }, [sideOpen, onSideClose, selectionMode, clearSelection]);
 
     useEffect(() => {
-        if (!open || showHistory || modalOpen) return;
+        if (!sideOpen || showHistory || modalOpen) return;
         const timer = window.setTimeout(() => {
             if (openRef.current) inputRef.current?.focus();
         }, 240);
         return () => window.clearTimeout(timer);
-    }, [open, showHistory, activeId, modalOpen, newSession]);
+    }, [sideOpen, showHistory, activeId, modalOpen, newSession]);
 
     useEffect(() => {
-        if (!open || !showHistory) return;
+        if (!sideOpen || !showHistory) return;
         const timer = window.setTimeout(() => {
             if (openRef.current) historySearchRef.current?.focus();
         }, 240);
         return () => window.clearTimeout(timer);
-    }, [open, showHistory]);
+    }, [sideOpen, showHistory]);
 
     const openInModal = () => {
         setShowHistory(false);
         clearSelection();
-        setModalOpen(true);
-        onClose();
+        onOpenModal();
     };
 
     const openInTab = () => {
         setShowHistory(false);
         clearSelection();
-        setModalOpen(false);
-        openFromHref(assistantWorkspaceRoute.href ?? "/assistant");
-        onClose();
+        onOpenTab();
     };
 
     if (!shellMounted && !modalOpen) return null;
@@ -116,7 +120,7 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
 
     return (
         <>
-            <AssistantChatModal open={modalOpen} onClose={() => setModalOpen(false)}/>
+            <AssistantChatModal open={modalOpen} onClose={onModalClose}/>
             {shellMounted ? (
                 <>
                     <button
@@ -128,7 +132,7 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                             panelEntered ? "opacity-100" : "pointer-events-none opacity-0",
                         )}
                         style={{top: "var(--header-height)"}}
-                        onClick={onClose}
+                        onClick={onSideClose}
                     />
                     <aside
                         id="ai-assistant-panel"
@@ -222,7 +226,7 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                             <button
                                 type="button"
                                 aria-label="Fechar"
-                                onClick={onClose}
+                                onClick={onSideClose}
                                 className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/50"
                             >
                                 <X className="size-4" strokeWidth={2}/>
@@ -238,7 +242,7 @@ export function AiAssistantPanel({open, onClose}: AiAssistantPanelProps) {
                         ) : newSession && !selectionMode ? (
                             <AssistantEmptyState inputRef={inputRef}/>
                         ) : (
-                            <AssistantTranscript listRef={listRef} inputRef={inputRef} onOpenLink={onClose}/>
+                            <AssistantTranscript listRef={listRef} inputRef={inputRef} onOpenLink={onSideClose}/>
                         )}
                     </aside>
                 </>

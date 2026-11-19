@@ -7,16 +7,18 @@ import {type ReactNode, Suspense, useCallback, useEffect, useState} from "react"
 import {AgendaModal} from "@/modules/cfg/settings/agenda/components/AgendaModal";
 import {AttendanceClockModal} from "@/modules/dp/attendance/components/AttendanceClockModal";
 import type {SystemEnum} from "@/modules/root/enum/SystemEnum";
-import {AiAssistantPanel} from "@/shared/components/assistant/AiAssistantPanel";
 import {AssistantChatProvider} from "@/shared/components/assistant/assistant-chat";
+import {
+    AssistantHeaderButton,
+    AssistantLaunchProvider,
+    AssistantOverflowMenu,
+    AssistantSurfaceHost,
+} from "@/shared/components/assistant/assistant-launch";
 import {AppLoadingScreen} from "@/shared/components/layout/AppLoadingScreen";
 import {GesintLogo} from "@/shared/components/layout/GesintLogo";
-import {HeaderAiAssistant} from "@/shared/components/layout/HeaderAiAssistant";
 import {HeaderBranchSelector} from "@/shared/components/layout/HeaderBranchSelector";
-import {HeaderMoreMenu} from "@/shared/components/layout/HeaderMoreMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
-import {useAppBootstrap} from "@/shared/components/providers/AppBootstrapProvider";
 import {useSessionReady} from "@/shared/components/providers/SessionGate";
 import {HeaderReleaseVersion} from "@/shared/components/release-notes/HeaderReleaseVersion";
 import {GlobalSearchPalette} from "@/shared/components/search/GlobalSearchPalette";
@@ -40,25 +42,12 @@ export function SystemShell({
     const [mobileNav, setMobileNav] = useState(false);
     const [clockModalOpen, setClockModalOpen] = useState(false);
     const [agendaModalOpen, setAgendaModalOpen] = useState(false);
-    const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
     const {data: session} = useSession();
     const sessionReady = useSessionReady();
-    const {assistantEnabled} = useAppBootstrap();
     const closeMobileNav = useCallback(() => setMobileNav(false), []);
     const toggleMobileNav = useCallback(() => setMobileNav((open) => !open), []);
     const closeClockModal = useCallback(() => setClockModalOpen(false), []);
     const closeAgendaModal = useCallback(() => setAgendaModalOpen(false), []);
-    const closeAiAssistant = useCallback(() => setAiAssistantOpen(false), []);
-    const toggleAiAssistant = useCallback(() => {
-        if (!assistantEnabled) return;
-        setAiAssistantOpen((open) => !open);
-    }, [assistantEnabled]);
-
-    useEffect(() => {
-        if (!assistantEnabled) {
-            setAiAssistantOpen(false);
-        }
-    }, [assistantEnabled]);
 
     useEffect(() => {
         setAuthToken(session?.accessToken ?? null);
@@ -90,6 +79,7 @@ export function SystemShell({
             */}
             <Suspense fallback={<AppLoadingScreen variant="inline" />}>
                 <WorkspaceNavigationProvider>
+                    <AssistantLaunchProvider>
                     <AssistantChatProvider>
                     <ActiveBranchProvider initialBranchId={initialBranchId}>
                     <ActiveSystemProvider
@@ -152,20 +142,10 @@ export function SystemShell({
                                     <div className="flex items-center gap-0.5 sm:gap-1">
                                         <HeaderNotifications/>
                                         <GlobalSearchPalette/>
-                                        {assistantEnabled ? (
-                                            <div className="hidden lg:block">
-                                                <HeaderAiAssistant
-                                                    open={aiAssistantOpen}
-                                                    onClick={toggleAiAssistant}
-                                                />
-                                            </div>
-                                        ) : null}
-                                        <HeaderMoreMenu
+                                        <AssistantHeaderButton/>
+                                        <AssistantOverflowMenu
                                             onAgenda={() => setAgendaModalOpen(true)}
                                             onClock={() => setClockModalOpen(true)}
-                                            onAiAssistant={assistantEnabled ? toggleAiAssistant : undefined}
-                                            aiAssistantOpen={aiAssistantOpen}
-                                            showAiAssistant={assistantEnabled}
                                         />
                                     </div>
                                 </div>
@@ -188,12 +168,11 @@ export function SystemShell({
                                 </main>
                             </div>
                         </div>
-                        {assistantEnabled ? (
-                            <AiAssistantPanel open={aiAssistantOpen} onClose={closeAiAssistant}/>
-                        ) : null}
+                        <AssistantSurfaceHost/>
                     </ActiveSystemProvider>
                     </ActiveBranchProvider>
                     </AssistantChatProvider>
+                    </AssistantLaunchProvider>
                 </WorkspaceNavigationProvider>
             </Suspense>
             <AttendanceClockModal open={clockModalOpen} onClose={closeClockModal}/>

@@ -7,6 +7,7 @@ import {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 
@@ -115,6 +116,17 @@ export function isNewSession(conversation: Conversation | null): boolean {
     return !conversation.messages.some((message) => message.role === "user");
 }
 
+function findEmptyConversation(conversations: Conversation[]): Conversation | null {
+    let empty: Conversation | null = null;
+    for (const conversation of conversations) {
+        if (!isNewSession(conversation)) continue;
+        if (!empty || conversation.updatedAt > empty.updatedAt) {
+            empty = conversation;
+        }
+    }
+    return empty;
+}
+
 type AssistantChatContextValue = {
     hydrated: boolean;
     conversations: Conversation[];
@@ -156,6 +168,10 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
     const [usage, setUsage] = useState<AssistantLlmUsage | null>(null);
     const [selectionMode, setSelectionMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+    const conversationsRef = useRef(conversations);
+    const activeIdRef = useRef(activeId);
+    conversationsRef.current = conversations;
+    activeIdRef.current = activeId;
 
     useEffect(() => {
         const stored = readStoredConversations();
@@ -201,9 +217,22 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
     }, []);
 
     const startNewConversation = useCallback(() => {
+        const empty = findEmptyConversation(conversationsRef.current);
+        if (empty) {
+            if (empty.id !== activeIdRef.current) {
+                setActiveId(empty.id);
+                activeIdRef.current = empty.id;
+                setDraft("");
+            }
+            setHistoryQuery("");
+            clearSelection();
+            return;
+        }
         const next = createConversation();
-        setConversations((prev) => [next, ...prev]);
+        conversationsRef.current = [next, ...conversationsRef.current];
+        setConversations((prev) => (findEmptyConversation(prev) ? prev : [next, ...prev]));
         setActiveId(next.id);
+        activeIdRef.current = next.id;
         setDraft("");
         setHistoryQuery("");
         clearSelection();

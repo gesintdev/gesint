@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import br.com.gesint.modules.root.entity.AssistantOpenModeEnum;
 import br.com.gesint.modules.root.entity.PdfDeliveryModeEnum;
 
 @Getter
@@ -18,4 +19,7 @@ public class AccountPreferencesDto {
 
     @NotNull
     private PdfDeliveryModeEnum reportPdfDeliveryMode;
+
+    @NotNull
+    private AssistantOpenModeEnum assistantOpenMode;
 }

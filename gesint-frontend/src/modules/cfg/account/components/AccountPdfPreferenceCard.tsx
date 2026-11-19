@@ -10,6 +10,7 @@ import { useAccountPreferences } from "@/modules/cfg/account/hooks/useAccountPre
 import {
     type AccountPreferences,
     accountService,
+    DEFAULT_ASSISTANT_OPEN_MODE,
     type PdfDeliveryMode,
 } from "@/modules/cfg/account/services/account.service";
 import { Card } from "@/shared/components/ui/Card";
@@ -39,8 +40,13 @@ export function AccountPdfPreferenceCard() {
     const preferences = useAccountPreferences();
     const selected = preferences.data?.reportPdfDeliveryMode ?? "DOWNLOAD";
     const mutation = useMutation({
-        mutationFn: (reportPdfDeliveryMode: PdfDeliveryMode) =>
-            accountService.updatePreferences({ reportPdfDeliveryMode }),
+        mutationFn: (reportPdfDeliveryMode: PdfDeliveryMode) => {
+            const current = queryClient.getQueryData<AccountPreferences>(accountPreferencesQueryKey);
+            return accountService.updatePreferences({
+                reportPdfDeliveryMode,
+                assistantOpenMode: current?.assistantOpenMode ?? DEFAULT_ASSISTANT_OPEN_MODE,
+            });
+        },
         onSuccess: (data) => {
             queryClient.setQueryData<AccountPreferences>(accountPreferencesQueryKey, data);
             toast.success("Preferência de relatórios atualizada");
