@@ -20,6 +20,7 @@ type AssistantLaunchContextValue = {
     modalOpen: boolean;
     highlighted: boolean;
     request: () => void;
+    open: () => void;
     closeSide: () => void;
     closeModal: () => void;
     presentModal: () => void;
@@ -56,23 +57,29 @@ export function AssistantLaunchProvider({children}: {children: ReactNode}) {
         return true;
     }, [focusTabById]);
 
-    const request = useCallback(() => {
-        if (!assistantEnabled) return;
-        if (focusOpenAssistantTab()) return;
-        if (mode === "TAB") {
-            setSideOpen(false);
+    const present = useCallback(
+        (forceOpen: boolean) => {
+            if (!assistantEnabled) return;
+            if (focusOpenAssistantTab()) return;
+            if (mode === "TAB") {
+                setSideOpen(false);
+                setModalOpen(false);
+                openFromHref(assistantWorkspaceRoute.href ?? "/assistant");
+                return;
+            }
+            if (mode === "MODAL") {
+                setSideOpen(false);
+                setModalOpen((current) => (forceOpen ? true : !current));
+                return;
+            }
             setModalOpen(false);
-            openFromHref(assistantWorkspaceRoute.href ?? "/assistant");
-            return;
-        }
-        if (mode === "MODAL") {
-            setSideOpen(false);
-            setModalOpen((open) => !open);
-            return;
-        }
-        setModalOpen(false);
-        setSideOpen((open) => !open);
-    }, [assistantEnabled, focusOpenAssistantTab, mode, openFromHref]);
+            setSideOpen((current) => (forceOpen ? true : !current));
+        },
+        [assistantEnabled, focusOpenAssistantTab, mode, openFromHref],
+    );
+
+    const request = useCallback(() => present(false), [present]);
+    const open = useCallback(() => present(true), [present]);
 
     const closeSide = useCallback(() => setSideOpen(false), []);
     const closeModal = useCallback(() => setModalOpen(false), []);
@@ -92,12 +99,13 @@ export function AssistantLaunchProvider({children}: {children: ReactNode}) {
             modalOpen,
             highlighted: sideOpen || modalOpen,
             request,
+            open,
             closeSide,
             closeModal,
             presentModal,
             presentTab,
         }),
-        [closeModal, closeSide, modalOpen, presentModal, presentTab, request, sideOpen],
+        [closeModal, closeSide, modalOpen, open, presentModal, presentTab, request, sideOpen],
     );
 
     return <AssistantLaunchContext.Provider value={value}>{children}</AssistantLaunchContext.Provider>;

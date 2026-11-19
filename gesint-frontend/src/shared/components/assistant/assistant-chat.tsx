@@ -12,9 +12,9 @@ import {
 } from "react";
 
 import {
-    assistantService,
     type AssistantDeepLink,
     type AssistantLlmUsage,
+    assistantService,
 } from "@/shared/components/assistant/assistant.service";
 import {ExceptionCapture} from "@/shared/exceptions";
 
@@ -146,6 +146,7 @@ type AssistantChatContextValue = {
     filteredConversations: Conversation[];
     newSession: boolean;
     startNewConversation: () => void;
+    startConversationAbout: (prompt: string) => void;
     openConversation: (id: string) => void;
     deleteConversation: (id: string) => void;
     toggleSelectionMode: () => void;
@@ -170,8 +171,12 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
     const conversationsRef = useRef(conversations);
     const activeIdRef = useRef(activeId);
-    conversationsRef.current = conversations;
-    activeIdRef.current = activeId;
+    const sendingRef = useRef(false);
+
+    useEffect(() => {
+        conversationsRef.current = conversations;
+        activeIdRef.current = activeId;
+    }, [activeId, conversations]);
 
     useEffect(() => {
         const stored = readStoredConversations();
@@ -315,41 +320,46 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
         clearSelection();
     }, [activeId, clearSelection, selectedIds]);
 
-    const sendMessage = useCallback(
-        async (override?: string) => {
-            const text = (override ?? draft).trim();
-            if (!text || !activeId || sending) return;
+    const appendConversationMessage = useCallback((conversationId: string, message: ChatMessage, rename: boolean) => {
+        setConversations((prev) => {
+            const next = prev.map((conversation) => {
+                if (conversation.id !== conversationId) return conversation;
+                const nextMessages = [...conversation.messages, message];
+                return {
+                    ...conversation,
+                    title:
+                        rename && conversation.title === "Nova conversa"
+                            ? titleFromMessages(nextMessages)
+                            : conversation.title,
+                    updatedAt: Date.now(),
+                    messages: nextMessages,
+                };
+            });
+            conversationsRef.current = next;
+            return next;
+        });
+    }, []);
+
+    const deliverMessage = useCallback(
+        async (conversationId: string, priorMessages: ChatMessage[], text: string) => {
+            if (!text || sendingRef.current) return;
 
             const userMessage: ChatMessage = {
                 id: `user-${Date.now()}`,
                 role: "user",
                 content: text,
             };
-            const conversationId = activeId;
             const historyForApi = [
-                ...(activeConversation?.messages ?? [])
+                ...priorMessages
                     .filter((message) => message.role === "user" || message.role === "assistant")
                     .map((message) => ({role: message.role, content: message.content})),
                 {role: "user" as const, content: text},
             ];
 
+            sendingRef.current = true;
             setDraft("");
             setSending(true);
-            setConversations((prev) =>
-                prev.map((conversation) => {
-                    if (conversation.id !== conversationId) return conversation;
-                    const nextMessages = [...conversation.messages, userMessage];
-                    return {
-                        ...conversation,
-                        title:
-                            conversation.title === "Nova conversa"
-                                ? titleFromMessages(nextMessages)
-                                : conversation.title,
-                        updatedAt: Date.now(),
-                        messages: nextMessages,
-                    };
-                }),
-            );
+            appendConversationMessage(conversationId, userMessage, true);
 
             try {
                 const response = await assistantService.chat(historyForApi);
@@ -366,41 +376,69 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
                 if (response.usage) {
                     setUsage(response.usage);
                 }
-                setConversations((prev) =>
-                    prev.map((conversation) => {
-                        if (conversation.id !== conversationId) return conversation;
-                        return {
-                            ...conversation,
-                            updatedAt: Date.now(),
-                            messages: [...conversation.messages, assistantMessage],
-                        };
-                    }),
-                );
+                appendConversationMessage(conversationId, assistantMessage, false);
             } catch (error) {
                 const fallback = ExceptionCapture.displayMessage(
                     error,
                     "Não foi possível falar com o assistente agora.",
                 );
-                const assistantMessage: ChatMessage = {
+                appendConversationMessage(conversationId, {
                     id: `assistant-error-${Date.now()}`,
                     role: "assistant",
                     content: fallback,
-                };
-                setConversations((prev) =>
-                    prev.map((conversation) => {
-                        if (conversation.id !== conversationId) return conversation;
-                        return {
-                            ...conversation,
-                            updatedAt: Date.now(),
-                            messages: [...conversation.messages, assistantMessage],
-                        };
-                    }),
-                );
+                }, false);
             } finally {
+                sendingRef.current = false;
                 setSending(false);
             }
         },
-        [activeConversation?.messages, activeId, draft, sending],
+        [appendConversationMessage],
+    );
+
+    const sendMessage = useCallback(
+        async (override?: string) => {
+            const text = (override ?? draft).trim();
+            const conversationId = activeIdRef.current;
+            if (!text || !conversationId || sendingRef.current) return;
+            const prior =
+                conversationsRef.current.find((conversation) => conversation.id === conversationId)?.messages ?? [];
+            await deliverMessage(conversationId, prior, text);
+        },
+        [deliverMessage, draft],
+    );
+
+    const startConversationAbout = useCallback(
+        (prompt: string) => {
+            const text = prompt.trim();
+            if (!text) return;
+
+            const current = conversationsRef.current;
+            const empty = findEmptyConversation(current);
+            let conversationId: string;
+            let prior: ChatMessage[];
+            if (empty) {
+                conversationId = empty.id;
+                prior = empty.messages;
+            } else {
+                const next = createConversation();
+                conversationId = next.id;
+                prior = next.messages;
+                conversationsRef.current = [next, ...current];
+                setConversations((prev) => (findEmptyConversation(prev) ? prev : [next, ...prev]));
+            }
+
+            setActiveId(conversationId);
+            activeIdRef.current = conversationId;
+            setHistoryQuery("");
+            clearSelection();
+
+            if (sendingRef.current) {
+                setDraft(text);
+                return;
+            }
+            void deliverMessage(conversationId, prior, text);
+        },
+        [clearSelection, deliverMessage],
     );
 
     const value = useMemo(
@@ -423,6 +461,7 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
             filteredConversations,
             newSession,
             startNewConversation,
+            startConversationAbout,
             openConversation,
             deleteConversation,
             toggleSelectionMode,
@@ -452,6 +491,7 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
             selectionMode,
             sendMessage,
             sending,
+            startConversationAbout,
             startNewConversation,
             toggleMessageSelected,
             toggleSelectAllMessages,

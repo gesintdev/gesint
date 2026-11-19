@@ -1,6 +1,6 @@
 "use client";
 
-import { Users } from "lucide-react";
+import { Sparkles, Users } from "lucide-react";
 
 import type { AppRoute } from "@/modules/root/enum/ModuleEnum";
 import { ContextMenu } from "@/shared/components/ui/ContextMenu";
@@ -15,9 +15,15 @@ type NavRouteContextMenuProps = {
     state: NavRouteContextMenuState | null;
     onClose: () => void;
     onLinkedProfiles: (route: AppRoute) => void;
+    onAskAssistant?: (route: AppRoute) => void;
 };
 
-export function NavRouteContextMenu({ state, onClose, onLinkedProfiles }: NavRouteContextMenuProps) {
+export function NavRouteContextMenu({
+    state,
+    onClose,
+    onLinkedProfiles,
+    onAskAssistant,
+}: NavRouteContextMenuProps) {
     if (!state) return null;
 
     return (
@@ -38,6 +44,22 @@ export function NavRouteContextMenu({ state, onClose, onLinkedProfiles }: NavRou
                         onSelect: () => onLinkedProfiles(state.route),
                     },
                 },
+                ...(onAskAssistant
+                    ? [
+                          { type: "separator" as const },
+                          {
+                              type: "item" as const,
+                              item: {
+                                  id: "ask-assistant",
+                                  label: "Conversar sobre este menu",
+                                  icon: (
+                                      <Sparkles className="size-3.5 shrink-0 text-base-content/45" strokeWidth={2} />
+                                  ),
+                                  onSelect: () => onAskAssistant(state.route),
+                              },
+                          },
+                      ]
+                    : []),
             ]}
         />
     );
