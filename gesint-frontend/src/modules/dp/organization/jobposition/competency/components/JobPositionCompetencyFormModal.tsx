@@ -2,11 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { X } from "lucide-react";
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { type FormEvent, useCallback, useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { DevelopmentPlanDomainService } from "@/modules/cfg/settings/developmentplan/services/development-plan-domain.service";
 import type {
     JobPositionCompetencyCreateDto,
     JobPositionCompetencyExpectedLevel,
@@ -24,7 +23,6 @@ import {
 } from "@/modules/dp/organization/jobposition/competency/lib/job-position-competency.options";
 import { jobPositionCompetencyService } from "@/modules/dp/organization/jobposition/competency/services/job-position-competency.service";
 import { JOBPOSITION_CLIENT_MESSAGES } from "@/modules/dp/organization/jobposition/exceptions/jobposition.messages";
-import { DevelopmentPlanDomainService } from "@/modules/cfg/settings/developmentplan/services/development-plan-domain.service";
 import { developmentPlanDomainOptionsService } from "@/modules/rh/person/developmentplan/services/development-plan-domain-options.service";
 import { useFormDirtyByComparison } from "@/shared/components/crud/useFormDirtyByComparison";
 import { Button } from "@/shared/components/ui/Button";
@@ -34,8 +32,9 @@ import {
     InputDate,
     InputSelect,
 } from "@/shared/components/ui/input/index";
-import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { PopoverPortalProvider } from "@/shared/components/ui/input/popover-portal";
+import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { Modal } from "@/shared/components/ui/Modal";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
 
@@ -62,11 +61,10 @@ export function JobPositionCompetencyFormModal({
     requirementId,
     onSaved,
 }: JobPositionCompetencyFormModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+    const formId = useId();
     const queryClient = useQueryClient();
     const isEditing = Boolean(requirementId);
-    const [mounted, setMounted] = useState(false);
     const [form, setForm] = useState<JobPositionCompetencyCreateDto>(() =>
         emptyJobPositionCompetencyForm(jobPositionId),
     );
@@ -99,20 +97,6 @@ export function JobPositionCompetencyFormModal({
         }
         return buildExpectedLevelSelectItems(catalogByOrder);
     }, [proficiencyLevelsQuery.data]);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog || !mounted) return;
-        if (open) {
-            if (!dialog.open) dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open, mounted]);
 
     useEffect(() => {
         if (!open) return;
@@ -224,55 +208,34 @@ export function JobPositionCompetencyFormModal({
         saveMutation.mutate(form);
     };
 
-    if (!mounted) return null;
-
-    return createPortal(
-        <dialog
-            ref={(node) => {
-                dialogRef.current = node;
+    return (
+        <Modal
+            open={open}
+            onClose={() => void requestClose()}
+            title={isEditing ? "Editar competência exigida" : "Adicionar competência"}
+            subtitle={
+                isEditing
+                    ? `Versão atual v${versionNumber ?? "—"}. Salvar cria uma nova versão.`
+                    : "Vinda do catálogo. O nível esperado orienta seleção, experiência e desempenho."
+            }
+            layoutClassName="max-h-[90vh] w-[min(48rem,92vw)] max-w-[min(48rem,92vw)]"
+            dialogRef={(node) => {
                 if (node !== portalRoot) setPortalRoot(node);
             }}
-            className="modal"
-            onCancel={(event) => {
-                event.preventDefault();
-                void requestClose();
-            }}
-            onClick={(event) => {
-                if (event.target === event.currentTarget) {
-                    void requestClose();
-                }
-            }}
+            footer={
+                <div className="flex items-center justify-end gap-2">
+                    <Button type="button" variant="ghost" onClick={() => void requestClose()}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" form={formId} loading={saveMutation.isPending}>
+                        {isEditing ? "Criar nova versão" : "Cadastrar"}
+                    </Button>
+                </div>
+            }
         >
             <PopoverPortalProvider container={portalRoot}>
-                <div className="modal-box flex max-h-[90vh] w-[min(48rem,92vw)] max-w-[min(48rem,92vw)] flex-col gap-0 overflow-hidden p-0">
-                    <div className="flex items-start justify-between gap-3 border-b border-base-content/8 px-5 py-4">
-                        <div>
-                            <h3 className="text-base font-semibold text-base-content">
-                                {isEditing ? "Editar competência exigida" : "Adicionar competência"}
-                            </h3>
-                            <p className="mt-0.5 text-xs text-base-content/50">
-                                {isEditing
-                                    ? `Versão atual v${versionNumber ?? "—"}. Salvar cria uma nova versão.`
-                                    : "Vinda do catálogo. O nível esperado orienta seleção, experiência e desempenho."}
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50"
-                            aria-label="Fechar"
-                            onClick={() => void requestClose()}
-                        >
-                            <X className="size-4" strokeWidth={2} />
-                        </button>
-                    </div>
-
-                    <form
-                        className="flex min-h-0 flex-1 flex-col"
-                        onSubmit={handleSubmit}
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
-                            {isEditing && detailQuery.isLoading ? (
+                <form id={formId} onSubmit={handleSubmit}>
+                    {isEditing && detailQuery.isLoading ? (
                                 <div className="grid gap-2">
                                     {Array.from({ length: 4 }).map((_, i) => (
                                         <div key={i} className="skeleton-shimmer h-10 w-full" />
@@ -353,25 +316,8 @@ export function JobPositionCompetencyFormModal({
                                     ) : null}
                                 </div>
                             )}
-                        </div>
-                        <div className="flex items-center justify-end gap-2 border-t border-base-content/8 px-5 py-3">
-                            <Button type="button" variant="ghost" onClick={() => void requestClose()}>
-                                Cancelar
-                            </Button>
-                            <Button type="submit" loading={saveMutation.isPending}>
-                                {isEditing ? "Criar nova versão" : "Cadastrar"}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
-                <button
-                    type="button"
-                    className="modal-backdrop"
-                    aria-label="Fechar modal"
-                    onClick={() => void requestClose()}
-                />
+                </form>
             </PopoverPortalProvider>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

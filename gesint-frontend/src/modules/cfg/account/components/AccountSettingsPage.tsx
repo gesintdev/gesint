@@ -1,12 +1,16 @@
 "use client";
 
+import { AccountAssistantPreferenceCard } from "@/modules/cfg/account/components/AccountAssistantPreferenceCard";
 import { AccountMobileAccessCard } from "@/modules/cfg/account/components/AccountMobileAccessCard";
 import { AccountPasswordCard } from "@/modules/cfg/account/components/AccountPasswordCard";
 import { AccountPdfPreferenceCard } from "@/modules/cfg/account/components/AccountPdfPreferenceCard";
 import { AccountProfileCard } from "@/modules/cfg/account/components/AccountProfileCard";
 import { AccountThemeCard } from "@/modules/cfg/account/components/AccountThemeCard";
+import { useAppBootstrap } from "@/shared/components/providers/AppBootstrapProvider";
 
 export function AccountSettingsPage() {
+    const { assistantEnabled } = useAppBootstrap();
+
     return (
         <div className="flex min-h-0 flex-1 flex-col overflow-auto p-4 md:p-6">
             <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
@@ -19,6 +23,7 @@ export function AccountSettingsPage() {
                 <AccountProfileCard />
                 <AccountMobileAccessCard />
                 <AccountThemeCard />
+                {assistantEnabled ? <AccountAssistantPreferenceCard /> : null}
                 <AccountPdfPreferenceCard />
                 <AccountPasswordCard />
             </div>

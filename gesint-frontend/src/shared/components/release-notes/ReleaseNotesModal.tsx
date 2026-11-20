@@ -2,13 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { ChevronRight, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { loadReleaseNotes, releaseNotesKeys } from "@/shared/components/release-notes/release-notes.query";
 import { type ReleaseNote, releaseTypeMeta } from "@/shared/components/release-notes/release-notes.types";
 import { MarkdownContent } from "@/shared/components/ui/MarkdownContent";
+import { Modal } from "@/shared/components/ui/Modal";
 
 type ReleaseNotesModalProps = {
     open: boolean;
@@ -68,8 +68,6 @@ function ReleaseNoteItem({ note, expanded, onToggle }: { note: ReleaseNote; expa
 }
 
 export function ReleaseNotesModal({ open, currentVersion, onClose }: ReleaseNotesModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const [mounted, setMounted] = useState(false);
     const [expandedHash, setExpandedHash] = useState<string | null>(null);
 
     const notesQuery = useQuery({
@@ -80,75 +78,42 @@ export function ReleaseNotesModal({ open, currentVersion, onClose }: ReleaseNote
     });
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            if (!dialog.open) dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-            setExpandedHash(null);
-        }
-    }, [open, mounted]);
-
-    if (!mounted) return null;
+        if (!open) setExpandedHash(null);
+    }, [open]);
 
     const notes = notesQuery.data ?? [];
 
-    return createPortal(
-        <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl p-0">
-                <div className="flex items-center justify-between gap-3 border-b border-base-content/10 px-4 py-3">
-                    <div>
-                        <h3 className="text-base font-semibold">Novidades do sistema</h3>
-                        <p className="text-xs text-base-content/55">
-                            Versão atual <span className="font-mono">v{currentVersion}</span>
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        aria-label="Fechar"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/50"
-                        onClick={onClose}
-                    >
-                        <X className="size-4" strokeWidth={2} />
-                    </button>
-                </div>
-
-                <div className="min-h-0 flex-1 overflow-y-auto">
-                    {notesQuery.isPending ? (
-                        <p className="px-4 py-6 text-sm text-base-content/50">Carregando...</p>
-                    ) : notesQuery.isError ? (
-                        <p className="px-4 py-6 text-sm font-medium text-error">
-                            Não foi possível carregar as novidades.
-                        </p>
-                    ) : notes.length === 0 ? (
-                        <p className="px-4 py-6 text-sm text-base-content/50">Nenhuma alteração registrada.</p>
-                    ) : (
-                        <ul>
-                            {notes.map((note) => (
-                                <ReleaseNoteItem
-                                    key={note.hash}
-                                    note={note}
-                                    expanded={expandedHash === note.hash}
-                                    onToggle={() =>
-                                        setExpandedHash((current) => (current === note.hash ? null : note.hash))
-                                    }
-                                />
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            </div>
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" aria-label="Fechar">
-                    fechar
-                </button>
-            </form>
-        </dialog>,
-        document.body,
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Novidades do sistema"
+            subtitle={<>Versão atual <span className="font-mono">v{currentVersion}</span></>}
+            size="xl"
+            padded={false}
+        >
+            {notesQuery.isPending ? (
+                <p className="px-4 py-6 text-sm text-base-content/50">Carregando...</p>
+            ) : notesQuery.isError ? (
+                <p className="px-4 py-6 text-sm font-medium text-error">
+                    Não foi possível carregar as novidades.
+                </p>
+            ) : notes.length === 0 ? (
+                <p className="px-4 py-6 text-sm text-base-content/50">Nenhuma alteração registrada.</p>
+            ) : (
+                <ul>
+                    {notes.map((note) => (
+                        <ReleaseNoteItem
+                            key={note.hash}
+                            note={note}
+                            expanded={expandedHash === note.hash}
+                            onToggle={() =>
+                                setExpandedHash((current) => (current === note.hash ? null : note.hash))
+                            }
+                        />
+                    ))}
+                </ul>
+            )}
+        </Modal>
     );
 }

@@ -60,6 +60,7 @@ public class AssistantChatService implements IAssistantChatService {
     private final AssistantErrorLogWriter errorLogWriter;
     private final TenantContractedSystemsLookup contractedSystemsLookup;
     private final MultiTenantProperties multiTenantProperties;
+    private final AdmissionDeadlineAssistant admissionDeadlineAssistant;
 
     public AssistantChatService(
             LlmClient llmClient,
@@ -71,7 +72,8 @@ public class AssistantChatService implements IAssistantChatService {
             AssistantJailbreakDetector jailbreakDetector,
             AssistantErrorLogWriter errorLogWriter,
             TenantContractedSystemsLookup contractedSystemsLookup,
-            MultiTenantProperties multiTenantProperties) {
+            MultiTenantProperties multiTenantProperties,
+            AdmissionDeadlineAssistant admissionDeadlineAssistant) {
         this.llmClient = llmClient;
         this.knowledgeLoader = knowledgeLoader;
         this.catalogLoader = catalogLoader;
@@ -82,6 +84,7 @@ public class AssistantChatService implements IAssistantChatService {
         this.errorLogWriter = errorLogWriter;
         this.contractedSystemsLookup = contractedSystemsLookup;
         this.multiTenantProperties = multiTenantProperties;
+        this.admissionDeadlineAssistant = admissionDeadlineAssistant;
     }
 
     @Override
@@ -109,19 +112,28 @@ public class AssistantChatService implements IAssistantChatService {
                     .build();
         }
 
+        // Prazo da esteira com CPF: explica o caso sem mandar o documento ao modelo e sem repeti-lo.
+        if (contextSelector.hasCpfNumber(latestUser) && contextSelector.isAdmissionDeadlineQuestion(latestUser)) {
+            return admissionDeadlineReply(latestUser);
+        }
+
         // Consulta por CPF: não devolve dado sensível no chat; orienta a tela certa.
         if (contextSelector.looksLikeCpfLookup(latestUser)) {
             return sensitiveLookupReply();
         }
 
+        // Caso de uma pessoa (pelo nome) segue para a skill. Regra geral da tela fica no catálogo.
+        boolean specificAdmissionCase = contextSelector.isAdmissionDeadlineQuestion(latestUser)
+                && contextSelector.mentionsAdmissionPerson(latestUser);
+
         // Orientação de tela pelo catálogo (determinística): navegação ou "por que a tela é assim".
-        if (contextSelector.needsRouteGuide(latestUser)) {
+        if (!specificAdmissionCase && contextSelector.needsRouteGuide(latestUser)) {
             AssistantChatResponseDto catalogGuide = guideFromCatalog(latestUser, true, false);
             if (catalogGuide != null) {
                 return catalogGuide;
             }
         }
-        if (contextSelector.needsModuleGuidance(latestUser)) {
+        if (!specificAdmissionCase && contextSelector.needsModuleGuidance(latestUser)) {
             AssistantChatResponseDto catalogGuide = guideFromCatalog(latestUser, true, true);
             if (catalogGuide != null) {
                 return catalogGuide;
@@ -232,6 +244,15 @@ public class AssistantChatService implements IAssistantChatService {
             logAndMask(ex);
             throw AssistantException.genericFailure();
         }
+    }
+
+    private AssistantChatResponseDto admissionDeadlineReply(String latestUser) {
+        AssistantSkillResult result = admissionDeadlineAssistant.explainByDocument(latestUser);
+        List<AssistantDeepLinkDto> links = result.getLinks() == null ? List.of() : result.getLinks();
+        String reply = StringUtils.hasText(result.getContentForModel())
+                ? result.getContentForModel().trim()
+                : "Não consegui explicar o prazo desta admissão.";
+        return AssistantChatResponseDto.builder().reply(reply).links(links).build();
     }
 
     /**

@@ -1,9 +1,8 @@
 "use client";
 
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {X} from "lucide-react";
-import {useEffect, useRef, useState} from "react";
-import {createPortal} from "react-dom";
+import {Calendar, Check, MapPin} from "lucide-react";
+import {useEffect, useState} from "react";
 import {toast} from "sonner";
 
 import {agendaKeys} from "@/modules/cfg/settings/agenda/agenda.query";
@@ -15,7 +14,8 @@ import {
 } from "@/modules/cfg/settings/agenda/lib/agenda-calendar.util";
 import {agendaEventService} from "@/modules/cfg/settings/agenda/services/agenda-event.service";
 import {Button} from "@/shared/components/ui/Button";
-import {InputDatetime, InputString} from "@/shared/components/ui/input/index";
+import {InputDatetime, InputMarkdown, InputString} from "@/shared/components/ui/input/index";
+import {Modal} from "@/shared/components/ui/Modal";
 import {AppException, ExceptionCapture} from "@/shared/exceptions";
 
 type AgendaEventFormDialogProps = {
@@ -60,27 +60,15 @@ export function AgendaEventFormDialog({
     initialSlotStart,
     onClose,
 }: AgendaEventFormDialogProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const queryClient = useQueryClient();
-    const [mounted, setMounted] = useState(false);
     const [form, setForm] = useState<FormState>(() => emptyForm());
     const [error, setError] = useState<string | null>(null);
     const isEditing = Boolean(event?.id);
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            setForm(event ? fromEvent(event) : emptyForm(initialSlotStart));
-            setError(null);
-            if (!dialog.open) dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
+        if (!open) return;
+        setForm(event ? fromEvent(event) : emptyForm(initialSlotStart));
+        setError(null);
     }, [open, event, initialSlotStart]);
 
     const saveMutation = useMutation({
@@ -151,63 +139,18 @@ export function AgendaEventFormDialog({
         },
     });
 
-    if (!mounted) return null;
-
     const busy = saveMutation.isPending || deleteMutation.isPending;
 
-    return createPortal(
-        <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box max-w-lg p-0">
-                <div className="flex items-center justify-between border-b border-base-content/10 px-4 py-3">
-                    <h3 className="text-base font-semibold">{isEditing ? "Editar evento" : "Novo evento"}</h3>
-                    <button
-                        type="button"
-                        aria-label="Fechar"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/50"
-                        onClick={onClose}
-                        disabled={busy}
-                    >
-                        <X className="size-4" strokeWidth={2} />
-                    </button>
-                </div>
-                <div className="grid gap-3 px-4 py-4">
-                    <InputString
-                        label="Título"
-                        value={form.title}
-                        onValueChange={(value) => setForm((prev) => ({...prev, title: value}))}
-                        required
-                        placeholder="Adicionar título"
-                    />
-                    <InputDatetime
-                        label="Início"
-                        value={form.startsAt}
-                        onValueChange={(value) => setForm((prev) => ({...prev, startsAt: value}))}
-                        required
-                    />
-                    <InputDatetime
-                        label="Término"
-                        value={form.endsAt}
-                        onValueChange={(value) => setForm((prev) => ({...prev, endsAt: value}))}
-                        required
-                    />
-                    <InputString
-                        label="Local"
-                        value={form.location}
-                        onValueChange={(value) => setForm((prev) => ({...prev, location: value}))}
-                        placeholder="Adicionar uma sala ou local"
-                    />
-                    <label className="gesint-field grid gap-1.5">
-                        <span className="text-xs font-medium text-base-content/70">Descrição</span>
-                        <textarea
-                            className="min-h-24 w-full resize-y rounded-lg border border-base-content/15 bg-base-100 px-3 py-2 text-sm outline-none focus:border-primary/50"
-                            value={form.description}
-                            onChange={(e) => setForm((prev) => ({...prev, description: e.target.value}))}
-                            placeholder="Adicionar notas"
-                        />
-                    </label>
-                    {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
-                </div>
-                <div className="flex items-center justify-between gap-2 border-t border-base-content/10 px-4 py-3">
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={isEditing ? "Editar evento" : "Novo evento"}
+            icon={<Calendar className="size-4" strokeWidth={2} />}
+            size="lg"
+            closeDisabled={busy}
+            footer={
+                <div className="flex items-center justify-between gap-2">
                     <div>
                         {isEditing ? (
                             <Button
@@ -223,11 +166,12 @@ export function AgendaEventFormDialog({
                         ) : null}
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>
+                        <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
                             Cancelar
                         </Button>
                         <Button
                             type="button"
+                            leftIcon={<Check className="size-4" strokeWidth={2} />}
                             onClick={() => {
                                 setError(null);
                                 saveMutation.mutate();
@@ -239,13 +183,48 @@ export function AgendaEventFormDialog({
                         </Button>
                     </div>
                 </div>
+            }
+        >
+            <div className="grid gap-3.5">
+                <InputString
+                    label="Título"
+                    value={form.title}
+                    onValueChange={(value) => setForm((prev) => ({...prev, title: value}))}
+                    required
+                    placeholder="Adicionar título"
+                />
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <InputDatetime
+                        label="Início"
+                        value={form.startsAt}
+                        onValueChange={(value) => setForm((prev) => ({...prev, startsAt: value}))}
+                        required
+                    />
+                    <InputDatetime
+                        label="Término"
+                        value={form.endsAt}
+                        onValueChange={(value) => setForm((prev) => ({...prev, endsAt: value}))}
+                        required
+                    />
+                </div>
+                <InputString
+                    label="Local"
+                    value={form.location}
+                    onValueChange={(value) => setForm((prev) => ({...prev, location: value}))}
+                    placeholder="Sala de reuniões ou link da reunião"
+                    leftIcon={<MapPin className="size-4" strokeWidth={2} />}
+                />
+                <InputMarkdown
+                    key={event?.id ?? "new"}
+                    label="Descrição"
+                    hint="Opcional"
+                    value={form.description}
+                    onValueChange={(value) => setForm((prev) => ({...prev, description: value}))}
+                    placeholder="Adicionar uma descrição"
+                    rows={6}
+                />
+                {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
             </div>
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" aria-label="Fechar">
-                    fechar
-                </button>
-            </form>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

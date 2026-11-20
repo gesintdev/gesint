@@ -1,11 +1,9 @@
 "use client";
 
 import clsx from "clsx";
-import {Check, Clock, X, Zap} from "lucide-react";
+import {Check, Clock, Zap} from "lucide-react";
 import {useEffect, useMemo, useRef, useState} from "react";
-import {createPortal} from "react-dom";
-
-import {Button} from "@/shared/components/ui/Button";
+import {Modal} from "@/shared/components/ui/Modal";
 import {joinTime, splitTime} from "@/shared/lib/input/date";
 
 /**
@@ -120,32 +118,22 @@ export function AttendanceTimePickerModal({
     onApply,
     onClose,
 }: AttendanceTimePickerModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const dialRef = useRef<HTMLDivElement>(null);
     const draggingRef = useRef(false);
-    const [mounted, setMounted] = useState(false);
+    const wasOpenRef = useRef(false);
     const [mode, setMode] = useState<ClockMode>("hour");
     const [hour, setHour] = useState(8);
     const [minute, setMinute] = useState(0);
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open && !dialog.open) {
+        if (open && !wasOpenRef.current) {
             const initial = parseInitial(value);
             setHour(initial.hour);
             setMinute(initial.minute);
             setMode("hour");
-            dialog.showModal();
         }
-        if (!open && dialog.open) {
-            dialog.close();
-        }
-    }, [open, value, mounted]);
+        wasOpenRef.current = open;
+    }, [open, value]);
 
     const draft = useMemo(() => joinTime(pad2(hour), pad2(minute)), [hour, minute]);
     const handRadius = mode === "hour" ? (hour >= 12 ? 88 : 58) : 88;
@@ -162,41 +150,21 @@ export function AttendanceTimePickerModal({
         }
     };
 
-    // Portal fora da tabela: `.gesint-table .gesint-btn` encolhe botões para --gesint-table-action-size.
-    if (!mounted) return null;
-
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal gesint-time-picker-modal"
+    return (
+        <Modal
+            open={open}
             onClose={onClose}
-            onCancel={(event) => {
-                event.preventDefault();
-                onClose();
-            }}
-            onClick={(event) => {
-                event.stopPropagation();
-            }}
+            title="Horário"
+            icon={<Clock className="size-4" strokeWidth={2} />}
+            layoutClassName="gesint-time-picker w-full max-w-[34rem]"
+            padded={false}
+            scroll={false}
+            actions={[
+                {title: "Cancelar", variant: "outline", onClick: onClose},
+                {title: "Aplicar", onClick: () => onApply(draft)},
+            ]}
         >
-            <div className="modal-box gesint-time-picker flex w-full max-w-[34rem] flex-col gap-0 p-0">
-                <header className="flex items-center justify-between gap-3 border-b border-[var(--gesint-border-subtle)] px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                        <span className="inline-flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <Clock className="size-4" strokeWidth={2}/>
-                        </span>
-                        <h3 className="text-base font-semibold text-base-content">Horário</h3>
-                    </div>
-                    <button
-                        type="button"
-                        className="inline-flex size-8 items-center justify-center rounded-full text-base-content/50 transition-colors hover:bg-base-200 hover:text-base-content"
-                        aria-label="Fechar"
-                        onClick={onClose}
-                    >
-                        <X className="size-4"/>
-                    </button>
-                </header>
-
-                <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_11.5rem]">
+            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_11.5rem]">
                     <section className="flex flex-col items-center gap-4 px-5 py-5">
                         <div className="flex items-center gap-1.5" role="group" aria-label="Hora e minuto">
                             <button
@@ -374,28 +342,6 @@ export function AttendanceTimePickerModal({
                         </ul>
                     </aside>
                 </div>
-
-                <footer className="modal-action mt-0 border-t border-[var(--gesint-border-subtle)] px-4 py-3">
-                    <Button type="button" variant="outline" onClick={onClose}>
-                        Cancelar
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="primary"
-                        onClick={() => {
-                            onApply(draft);
-                        }}
-                    >
-                        Aplicar
-                    </Button>
-                </footer>
-            </div>
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" aria-label="Fechar">
-                    fechar
-                </button>
-            </form>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

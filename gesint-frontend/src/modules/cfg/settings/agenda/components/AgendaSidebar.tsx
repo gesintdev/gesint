@@ -1,6 +1,6 @@
 "use client";
 
-import {ChevronLeft, ChevronRight} from "lucide-react";
+import {ChevronLeft, ChevronRight, Plus} from "lucide-react";
 import {useMemo} from "react";
 
 import {
@@ -39,10 +39,10 @@ export function AgendaSidebar({
     const isInVisibleWeek = (day: Date) => highlightedWeek.some((item) => isSameDay(item, day));
 
     return (
-        <aside className="flex w-56 shrink-0 flex-col gap-4 border-r border-base-content/10 bg-base-200/40 p-3">
+        <aside className="flex w-60 shrink-0 flex-col gap-4 border-r border-base-content/8 bg-base-200/35 p-3.5">
             <div>
-                <h4 className="text-sm font-semibold">Calendário</h4>
-                <div className="mt-3 rounded-xl border border-base-content/10 bg-base-100 p-2">
+                <h4 className="text-[13px] font-semibold text-base-content">Calendário</h4>
+                <div className="mt-3 rounded-xl border border-base-content/8 bg-base-100 p-2.5">
                     <div className="mb-2 flex items-center justify-between gap-1">
                         <button
                             type="button"
@@ -82,11 +82,11 @@ export function AgendaSidebar({
                                         "aspect-square rounded-full text-xs transition-colors",
                                         inMonth ? "text-base-content" : "text-base-content/30",
                                         selected
-                                            ? "bg-primary text-primary-content"
-                                            : inWeek
-                                              ? "bg-primary/15 text-primary"
-                                              : isToday
-                                                ? "ring-1 ring-primary text-primary"
+                                            ? "bg-primary font-semibold text-primary-content"
+                                            : isToday
+                                              ? "font-semibold text-primary ring-1 ring-primary"
+                                              : inWeek
+                                                ? "bg-primary/8"
                                                 : "hover:bg-base-200",
                                     ].join(" ")}
                                 >
@@ -98,30 +98,32 @@ export function AgendaSidebar({
                 </div>
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-3">
                 <button
                     type="button"
-                    className="gesint-btn gesint-btn--ghost justify-start gap-2 px-2 text-sm text-base-content/55"
+                    className="flex items-center gap-2 px-1 py-1 text-[13px] text-base-content/45"
                     disabled
                 >
-                    <span className="text-lg leading-none">+</span>
+                    <Plus className="size-3.5" strokeWidth={2} />
                     Adicionar calendário
                 </button>
                 <div>
-                    <p className="px-1 text-xs font-semibold text-base-content/55">Meus calendários</p>
+                    <p className="px-1 text-xs font-semibold text-base-content/70">Meus calendários</p>
                     <InputCheckbox
                         checked
                         readOnly
                         size="xs"
-                        label="Calendário"
+                        label={
+                            <span className="inline-flex items-center gap-2">
+                                <span className="size-2 rounded-full bg-primary" aria-hidden />
+                                Calendário
+                            </span>
+                        }
                         className="mt-2 rounded-lg px-1 py-1.5"
-                        labelClassName="text-sm"
+                        labelClassName="text-[13px]"
                     />
                 </div>
             </div>
-            <button type="button" className="mt-auto px-1 text-left text-xs text-primary" disabled>
-                Exibir tudo
-            </button>
         </aside>
     );
 }

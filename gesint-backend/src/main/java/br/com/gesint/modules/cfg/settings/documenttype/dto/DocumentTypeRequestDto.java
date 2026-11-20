@@ -38,5 +38,8 @@ public class DocumentTypeRequestDto {
     @Builder.Default
     private List<String> contexts = new ArrayList<>();
 
+    @Builder.Default
+    private Boolean requiredForAdmission = false;
+
     private Integer sortOrder;
 }

@@ -5,12 +5,16 @@ import {usePathname} from "next/navigation";
 import {type MouseEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 import {type AppRoute, flattenRoutes} from "@/config/routes";
+import {useAssistantChat} from "@/shared/components/assistant/assistant-chat";
+import {useAssistantLaunch} from "@/shared/components/assistant/assistant-launch";
+import {buildAssistantMenuPrompt} from "@/shared/components/assistant/assistant-menu-prompt";
 import {NavRouteContextMenu, type NavRouteContextMenuState} from "@/shared/components/layout/NavRouteContextMenu";
 import {RouteLinkedProfilesModal} from "@/shared/components/layout/RouteLinkedProfilesModal";
 import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
 import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
 import {SidebarUserMenu} from "@/shared/components/layout/SidebarUserMenu";
 import {SystemRail} from "@/shared/components/layout/SystemRail";
+import {useAppBootstrap} from "@/shared/components/providers/AppBootstrapProvider";
 import {FieldClearButton} from "@/shared/components/ui/input/FieldClearButton";
 import {useActiveSystem, useActiveSystemRoutes} from "@/shared/context/ActiveSystemContext";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
@@ -96,6 +100,9 @@ function SidebarToolbar({
 
 export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMobileCloseAction}: SidebarProps) {
     const pathname = usePathname();
+    const {assistantEnabled} = useAppBootstrap();
+    const {open: openAssistant} = useAssistantLaunch();
+    const {startConversationAbout} = useAssistantChat();
     const {navSections} = useActiveSystem();
     const activeSystemRoutes = useActiveSystemRoutes();
     const {openRouteModule} = useWorkspaceNavigation();
@@ -165,6 +172,16 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         clearFlyoutCloseTimer();
         setFlyout(null);
     }, [clearFlyoutCloseTimer, clearFlyoutOpenTimer]);
+
+    const askAssistantAboutMenu = useCallback(
+        (route: AppRoute) => {
+            closeFlyout();
+            onMobileCloseAction?.();
+            startConversationAbout(buildAssistantMenuPrompt(route));
+            openAssistant();
+        },
+        [closeFlyout, onMobileCloseAction, openAssistant, startConversationAbout],
+    );
 
     useEffect(() => {
         return () => {
@@ -605,6 +622,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 state={navContextMenu}
                 onClose={() => setNavContextMenu(null)}
                 onLinkedProfiles={setLinkedProfilesRoute}
+                onAskAssistant={assistantEnabled ? askAssistantAboutMenu : undefined}
             />
             <RouteLinkedProfilesModal
                 route={linkedProfilesRoute}

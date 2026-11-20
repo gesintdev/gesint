@@ -1,5 +1,8 @@
 package br.com.gesint.modules.rh.person.collaborators.people.service;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -103,7 +106,6 @@ public class CollaboratorProfileService {
 
         Collaborator collaborator = collaboratorMapper.toEntity(toCollaboratorDto(request));
         collaborator.setStatus(StatusEnum.ACTIVE);
-        collaborator.setAccessCode(allocateAccessCode());
         applyBranchScope(collaborator, request.getCompanyId());
         return collaboratorRepository.save(collaborator).getId();
     }
@@ -136,12 +138,41 @@ public class CollaboratorProfileService {
         collaborator.setNationality(dto.getNationality());
         collaborator.setPisPasep(dto.getPisPasep());
         collaborator.setPhotoObjectId(dto.getPhotoObjectId());
-        if (collaborator.getAccessCode() == null || collaborator.getAccessCode().isBlank()) {
-            collaborator.setAccessCode(allocateAccessCode());
-        }
         applyBranchScope(collaborator, request.getCompanyId());
         collaboratorRepository.save(collaborator);
         return collaboratorId;
+    }
+
+    /**
+     * Garante o codigo de ponto do colaborador. Idempotente: nao troca um codigo ja emitido.
+     */
+    @Transactional
+    public String ensureAccessCode(UUID collaboratorId) {
+        if (collaboratorId == null) {
+            return null;
+        }
+        Collaborator collaborator = collaboratorRepository
+                .findById(collaboratorId)
+                .filter(c -> c.getStatus() != StatusEnum.DELETED)
+                .orElseThrow(CollaboratorException::notFound);
+        if (collaborator.getAccessCode() == null || collaborator.getAccessCode().isBlank()) {
+            collaborator.setAccessCode(allocateAccessCode());
+            collaboratorRepository.save(collaborator);
+        }
+        return collaborator.getAccessCode();
+    }
+
+    @Transactional
+    public Map<UUID, String> accessCodesById(Collection<UUID> collaboratorIds) {
+        if (collaboratorIds == null || collaboratorIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<UUID, String> codes = new HashMap<>();
+        collaboratorRepository.findAllById(collaboratorIds).stream()
+                .filter(collaborator -> collaborator.getStatus() != StatusEnum.DELETED)
+                .filter(collaborator -> collaborator.getAccessCode() != null && !collaborator.getAccessCode().isBlank())
+                .forEach(collaborator -> codes.put(collaborator.getId(), collaborator.getAccessCode()));
+        return codes;
     }
 
     private String allocateAccessCode() {

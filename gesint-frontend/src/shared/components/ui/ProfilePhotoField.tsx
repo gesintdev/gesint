@@ -1,10 +1,9 @@
 import clsx from "clsx";
-import { Camera, Loader2, Trash2, X } from "lucide-react";
+import { Camera, Loader2, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
-import { Button } from "@/shared/components/ui/Button";
+import { Modal } from "@/shared/components/ui/Modal";
 import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { ExceptionCapture } from "@/shared/exceptions";
 import {
@@ -40,23 +39,12 @@ function ProfilePhotoCropModal({
     onConfirm: (blob: Blob) => void;
     onCancel: () => void;
 }) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
-    const [mounted, setMounted] = useState(false);
     const [image, setImage] = useState<HTMLImageElement | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [crop, setCrop] = useState<ProfilePhotoCropState>(INITIAL_CROP);
     const [processing, setProcessing] = useState(false);
     const viewport = PROFILE_PHOTO_DISPLAY_PX;
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (!mounted) return;
-        dialogRef.current?.showModal();
-    }, [mounted]);
 
     useEffect(() => {
         let cancelled = false;
@@ -116,35 +104,19 @@ function ProfilePhotoCropModal({
         }
     };
 
-    if (!mounted) return null;
-
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal"
+    return (
+        <Modal
+            open
             onClose={onCancel}
-            onClick={(e) => {
-                if (e.target === e.currentTarget) onCancel();
-            }}
+            title="Recortar foto"
+            subtitle="Ajuste zoom e posição. A área de recorte tem a mesma dimensão da prévia."
+            size="sm"
+            actions={[
+                { title: "Cancelar", variant: "ghost", onClick: onCancel, disabled: processing },
+                { title: "OK", onClick: () => void handleConfirm(), loading: processing, disabled: !image },
+            ]}
         >
-            <div className="modal-box max-w-md">
-                <div className="mb-4 flex items-start justify-between gap-3">
-                    <div>
-                        <h3 className="text-base font-semibold text-base-content">Recortar foto</h3>
-                        <p className="mt-0.5 text-xs text-base-content/50">
-                            Ajuste zoom e posição. A área de recorte tem a mesma dimensão da prévia.
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn btn-ghost btn-sm btn-circle"
-                        aria-label="Fechar"
-                        onClick={onCancel}
-                    >
-                        <X className="size-4" />
-                    </button>
-                </div>
-                <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-4">
                     <div
                         className="relative touch-none overflow-hidden rounded-2xl bg-base-300/40 ring-1 ring-base-content/10"
                         style={{ width: viewport, height: viewport }}
@@ -185,19 +157,8 @@ function ProfilePhotoCropModal({
                             className="range range-primary range-xs flex-1"
                         />
                     </label>
-                </div>
-                <div className="modal-action">
-                    <Button type="button" variant="ghost" onClick={onCancel} disabled={processing}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" onClick={handleConfirm} loading={processing} disabled={!image}>
-                        OK
-                    </Button>
-                </div>
             </div>
-            <button type="button" className="modal-backdrop" aria-label="Fechar modal" onClick={onCancel} />
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }
 

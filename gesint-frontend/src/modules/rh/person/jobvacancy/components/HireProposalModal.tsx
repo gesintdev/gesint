@@ -2,9 +2,8 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { AlertTriangle, CheckCircle2, Circle, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { AlertTriangle, CheckCircle2, Circle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { workScheduleService } from "@/modules/cfg/settings/workschedule/services/work-schedule.service";
@@ -27,6 +26,7 @@ import {
     InputString,
     type SelectItem,
 } from "@/shared/components/ui/input/index";
+import { Modal } from "@/shared/components/ui/Modal";
 import { ExceptionCapture } from "@/shared/exceptions";
 
 type HireProposalModalProps = {
@@ -86,8 +86,6 @@ export function HireProposalModal({
     onClose,
     onSuccess,
 }: HireProposalModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const [mounted, setMounted] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
     const [contractType, setContractType] = useState<AdmissionContractType>("CLT");
@@ -146,20 +144,6 @@ export function HireProposalModal({
     }, [salaryBand, salaryNumber]);
 
     const isClt = contractType === "CLT";
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open) {
-            if (!dialog.open) dialog.showModal();
-        } else if (dialog.open) {
-            dialog.close();
-        }
-    }, [open]);
 
     useEffect(() => {
         if (!open) return;
@@ -315,53 +299,61 @@ export function HireProposalModal({
         offerMutation.mutate();
     };
 
-    if (!mounted) return null;
-
-    return createPortal(
-        <dialog
-            ref={dialogRef}
-            className="modal"
-            onClose={(event) => {
-                event.stopPropagation();
-                if (event.target !== dialogRef.current) return;
-                onClose();
-            }}
-            onCancel={(event) => {
-                event.stopPropagation();
-                if (event.target !== dialogRef.current) {
-                    event.preventDefault();
-                    return;
-                }
-                const openDialogs = document.querySelectorAll("dialog[open]");
-                const topmost = openDialogs[openDialogs.length - 1];
-                if (topmost && topmost !== dialogRef.current) {
-                    event.preventDefault();
-                }
-            }}
-        >
-            <div className="modal-box flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden p-0">
-                <div className="flex items-start justify-between gap-3 border-b border-base-content/10 px-5 py-4">
-                    <div className="min-w-0">
-                        <h3 className="text-base font-semibold text-base-content">
-                            Contratar {preview?.candidateFullName ?? "candidato"}
-                            {preview?.jobVacancyTitle ? ` · ${preview.jobVacancyTitle}` : ""}
-                        </h3>
-                        <p className="mt-0.5 text-xs text-base-content/50">
-                            Proposta de contratação · RN-37 / RN-38
-                        </p>
-                    </div>
-                    <button
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={`Contratar ${preview?.candidateFullName ?? "candidato"}${preview?.jobVacancyTitle ? ` · ${preview.jobVacancyTitle}` : ""}`}
+            subtitle="Proposta de contratação · RN-37 / RN-38"
+            size="xl"
+            closeDisabled={hireMutation.isPending}
+            footer={
+                <div className="flex flex-wrap justify-end gap-2">
+                    <Button
                         type="button"
-                        aria-label="Fechar"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50"
+                        variant="ghost"
+                        disabled={hireMutation.isPending || offerMutation.isPending}
                         onClick={onClose}
-                        disabled={hireMutation.isPending}
                     >
-                        <X className="size-4" strokeWidth={2} />
-                    </button>
+                        Cancelar
+                    </Button>
+                    {waitingPortalAccept || offerPending || portalDeclined ? (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            loading={offerMutation.isPending}
+                            disabled={
+                                offerMutation.isPending ||
+                                hireMutation.isPending ||
+                                alreadyHired ||
+                                portalAccepted ||
+                                offerPending ||
+                                previewQuery.isLoading ||
+                                previewQuery.isError
+                            }
+                            onClick={handleSendOffer}
+                        >
+                            {offerPending ? "Proposta já enviada" : "Enviar proposta ao portal"}
+                        </Button>
+                    ) : null}
+                    <Button
+                        type="button"
+                        loading={hireMutation.isPending}
+                        disabled={
+                            hireMutation.isPending ||
+                            offerMutation.isPending ||
+                            alreadyHired ||
+                            waitingPortalAccept ||
+                            previewQuery.isLoading ||
+                            previewQuery.isError
+                        }
+                        onClick={handleConfirm}
+                    >
+                        Confirmar contratação
+                    </Button>
                 </div>
-
-                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            }
+        >
                     {previewQuery.isLoading ? (
                         <div className="grid gap-2">
                             {Array.from({ length: 4 }).map((_, i) => (
@@ -599,59 +591,6 @@ export function HireProposalModal({
                             </section>
                         </div>
                     )}
-                </div>
-
-                <div className="flex flex-wrap justify-end gap-2 border-t border-base-content/10 px-5 py-3">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        disabled={hireMutation.isPending || offerMutation.isPending}
-                        onClick={onClose}
-                    >
-                        Cancelar
-                    </Button>
-                    {waitingPortalAccept || offerPending || portalDeclined ? (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            loading={offerMutation.isPending}
-                            disabled={
-                                offerMutation.isPending ||
-                                hireMutation.isPending ||
-                                alreadyHired ||
-                                portalAccepted ||
-                                offerPending ||
-                                previewQuery.isLoading ||
-                                previewQuery.isError
-                            }
-                            onClick={handleSendOffer}
-                        >
-                            {offerPending ? "Proposta já enviada" : "Enviar proposta ao portal"}
-                        </Button>
-                    ) : null}
-                    <Button
-                        type="button"
-                        loading={hireMutation.isPending}
-                        disabled={
-                            hireMutation.isPending ||
-                            offerMutation.isPending ||
-                            alreadyHired ||
-                            waitingPortalAccept ||
-                            previewQuery.isLoading ||
-                            previewQuery.isError
-                        }
-                        onClick={handleConfirm}
-                    >
-                        Confirmar contratação
-                    </Button>
-                </div>
-            </div>
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" aria-label="Fechar">
-                    close
-                </button>
-            </form>
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

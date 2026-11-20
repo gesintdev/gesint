@@ -1,8 +1,7 @@
 "use client";
 
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {useEffect, useRef, useState} from "react";
-import {createPortal} from "react-dom";
+import {useState} from "react";
 import {toast} from "sonner";
 
 import type {
@@ -15,10 +14,10 @@ import {
     formatAttendancePunch,
 } from "@/modules/dp/attendance/lib/attendance-clock.util";
 import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
-import {Button} from "@/shared/components/ui/Button";
 import {InputHour, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import {PopoverPortalProvider} from "@/shared/components/ui/input/popover-portal";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+import {Modal} from "@/shared/components/ui/Modal";
 import {ExceptionCapture} from "@/shared/exceptions";
 
 type PunchSlot = {
@@ -122,9 +121,7 @@ export function AttendanceAdjustmentRequestModal({
                                                      target,
                                                      onClose,
                                                  }: AttendanceAdjustmentRequestModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const queryClient = useQueryClient();
-    const [mounted, setMounted] = useState(false);
     const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
     const [draftPunches, setDraftPunches] = useState<PunchValues | null>(null);
     const [formSession, setFormSession] = useState("closed");
@@ -150,26 +147,6 @@ export function AttendanceAdjustmentRequestModal({
     }
 
     const punches = draftPunches ?? target?.initialPunches ?? EMPTY_PUNCHES;
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog || !mounted) return;
-        if (open && !dialog.open) {
-            dialog.showModal();
-        }
-        if (!open && dialog.open) {
-            dialog.close();
-        }
-    }, [open, mounted]);
-
-    const closeOnlyThisModal = (event?: { stopPropagation?: () => void }) => {
-        event?.stopPropagation?.();
-        onClose();
-    };
 
     const submitMutation = useMutation({
         mutationFn: (payload: AttendanceSubmissionPayload) => attendancerecordService.submit(payload),
@@ -224,44 +201,41 @@ export function AttendanceAdjustmentRequestModal({
         submitMutation.mutate(payload);
     };
 
-    if (!mounted) return null;
-
-    return createPortal(
-        <dialog
-            ref={(node) => {
-                dialogRef.current = node;
-                if (node !== portalRoot) {
-                    setPortalRoot(node);
-                }
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Solicitar ajuste de ponto"
+            subtitle={
+                workDate
+                    ? `Registros do dia · ${toDisplayDate(workDate)}`
+                    : "Selecione um dia no histórico."
+            }
+            size="lg"
+            closeDisabled={submitMutation.isPending}
+            dialogRef={(node) => {
+                if (node !== portalRoot) setPortalRoot(node);
             }}
-            className="modal"
-            onClose={(event) => {
-                event.stopPropagation();
-                onClose();
-            }}
-            onCancel={(event) => {
-                event.stopPropagation();
-            }}
-            onClick={(event) => {
-                event.stopPropagation();
-                if (event.target === event.currentTarget) closeOnlyThisModal(event);
-            }}
+            actions={[
+                {
+                    title: "Cancelar",
+                    variant: "ghost",
+                    onClick: onClose,
+                    disabled: submitMutation.isPending,
+                },
+                {
+                    title: "Enviar solicitação",
+                    onClick: handleSubmit,
+                    loading: submitMutation.isPending,
+                    disabled: submitMutation.isPending || !workDate,
+                },
+            ]}
         >
             <PopoverPortalProvider container={portalRoot}>
-                <div className="modal-box max-w-xl" onClick={(event) => event.stopPropagation()}>
-                    <div>
-                        <h3 className="text-base font-semibold">Solicitar ajuste de ponto</h3>
-                        <p className="mt-1 text-sm text-base-content/65">
-                            {workDate
-                                ? `Registros do dia · ${toDisplayDate(workDate)}`
-                                : "Selecione um dia no histórico."}
-                        </p>
-                    </div>
-
-                    <div
-                        key={formSessionKey}
-                        className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2"
-                    >
+                <div
+                    key={formSessionKey}
+                    className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                >
                         {PUNCH_SLOTS.map((slot) => {
                             const value = punches[slot.key];
                             const original = target?.initialPunches[slot.key] ?? "";
@@ -302,37 +276,7 @@ export function AttendanceAdjustmentRequestModal({
                         />
                         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
                     </div>
-
-                    <div className="modal-action">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={(event) => closeOnlyThisModal(event)}
-                            disabled={submitMutation.isPending}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="button"
-                            onClick={(event) => {
-                                event.stopPropagation();
-                                handleSubmit();
-                            }}
-                            loading={submitMutation.isPending}
-                            disabled={submitMutation.isPending || !workDate}
-                        >
-                            Enviar solicitação
-                        </Button>
-                    </div>
-                </div>
             </PopoverPortalProvider>
-            <button
-                type="button"
-                className="modal-backdrop"
-                aria-label="Fechar"
-                onClick={(event) => closeOnlyThisModal(event)}
-            />
-        </dialog>,
-        document.body,
+        </Modal>
     );
 }

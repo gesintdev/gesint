@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 
 import { LEAVE_VACATION_CRUD_LABELS } from "@/modules/rh/person/leave/config/leave-vacation.route-labels";
-import { Button } from "@/shared/components/ui/Button";
 import { InputString } from "@/shared/components/ui/input/index";
+import { Modal } from "@/shared/components/ui/Modal";
 
 type Props = {
     open: boolean;
@@ -26,26 +25,13 @@ export function VacationReviewReasonDialog({
     onConfirm,
     loading,
 }: Props) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-    const [mounted, setMounted] = useState(false);
     const [reason, setReason] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        if (open && !dialog.open) {
-            setReason("");
-            setError(null);
-            dialog.showModal();
-        }
-        if (!open && dialog.open) {
-            dialog.close();
-        }
+        if (!open) return;
+        setReason("");
+        setError(null);
     }, [open]);
 
     const handleConfirm = () => {
@@ -56,37 +42,29 @@ export function VacationReviewReasonDialog({
         onConfirm(reason.trim());
     };
 
-    if (!mounted) return null;
-
-    // Portal + backdrop em button: evita <form> aninhado no CrudFormShell.
-    return createPortal(
-        <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box max-w-md">
-                <h3 className="text-base font-semibold">{title}</h3>
-                <p className="mt-1 text-sm text-base-content/65">{hint}</p>
-                <div className="mt-4">
-                    <InputString
-                        label="Motivo"
-                        value={reason}
-                        onValueChange={(v) => {
-                            setReason(v);
-                            if (error) setError(null);
-                        }}
-                        required
-                        error={error ?? undefined}
-                    />
-                </div>
-                <div className="modal-action">
-                    <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="primary" onClick={handleConfirm} loading={loading}>
-                        {confirmLabel}
-                    </Button>
-                </div>
-            </div>
-            <button type="button" className="modal-backdrop" aria-label="Fechar" onClick={onClose} />
-        </dialog>,
-        document.body,
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={title}
+            subtitle={hint}
+            size="sm"
+            closeDisabled={loading}
+            actions={[
+                { title: "Cancelar", variant: "ghost", onClick: onClose, disabled: loading },
+                { title: confirmLabel, onClick: handleConfirm, loading, disabled: loading },
+            ]}
+        >
+            <InputString
+                label="Motivo"
+                value={reason}
+                onValueChange={(value) => {
+                    setReason(value);
+                    if (error) setError(null);
+                }}
+                required
+                error={error ?? undefined}
+            />
+        </Modal>
     );
 }

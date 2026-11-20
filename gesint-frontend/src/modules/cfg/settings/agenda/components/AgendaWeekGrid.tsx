@@ -27,6 +27,10 @@ type AgendaWeekGridProps = {
 
 const GRID_COLS = "grid-cols-[56px_repeat(5,minmax(0,1fr))]";
 
+function formatClock(iso: string) {
+    return new Date(iso).toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
+}
+
 export function AgendaWeekGrid({anchorDate, events, onSlotClick, onEventClick}: AgendaWeekGridProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const days = useMemo(() => workWeekDays(anchorDate), [anchorDate]);
@@ -48,21 +52,21 @@ export function AgendaWeekGrid({anchorDate, events, onSlotClick, onEventClick}: 
     return (
         <div ref={scrollRef} className="min-h-0 min-w-0 flex-1 overflow-auto">
             {/* Header sticky dentro do mesmo scroll => colunas alinhadas com a grade */}
-            <div className={`sticky top-0 z-30 grid ${GRID_COLS} border-b border-base-content/10 bg-base-100`}>
-                <div className="border-b-2 border-transparent" />
-                {days.map((day, index) => {
+            <div className={`sticky top-0 z-30 grid ${GRID_COLS} border-b border-base-content/8 bg-base-100`}>
+                <div />
+                {days.map((day) => {
                     const active = isSameDay(day, today);
                     return (
                         <div
                             key={localDateKey(day)}
                             className={[
-                                "relative border-l border-base-content/10 px-2 pb-2 pt-2 text-center",
-                                index === 0 ? "border-l-base-content/10" : "",
+                                "border-l border-base-content/8 px-2 py-2.5 text-center",
+                                active ? "bg-primary/8" : "",
                             ].join(" ")}
                         >
                             <p
                                 className={[
-                                    "mx-auto flex size-8 items-center justify-center text-lg font-semibold leading-none",
+                                    "mx-auto flex size-8 items-center justify-center text-[15px] font-semibold leading-none",
                                     active
                                         ? "rounded-full bg-primary text-primary-content"
                                         : "text-base-content",
@@ -73,18 +77,11 @@ export function AgendaWeekGrid({anchorDate, events, onSlotClick, onEventClick}: 
                             <p
                                 className={[
                                     "mt-1 text-[11px] leading-tight",
-                                    active ? "font-medium text-primary" : "text-base-content/55",
+                                    active ? "font-medium text-primary" : "text-base-content/50",
                                 ].join(" ")}
                             >
                                 {dayWeekdayLabel(day)}
                             </p>
-                            <span
-                                className={[
-                                    "pointer-events-none absolute inset-x-0 bottom-0 h-0.5",
-                                    active ? "bg-primary" : "bg-primary/35",
-                                ].join(" ")}
-                                aria-hidden
-                            />
                         </div>
                     );
                 })}
@@ -95,10 +92,10 @@ export function AgendaWeekGrid({anchorDate, events, onSlotClick, onEventClick}: 
                     {hours.map((hour) => (
                         <div
                             key={hour}
-                            className="absolute right-2 -translate-y-1/2 text-[11px] text-base-content/40"
+                            className="absolute right-2 -translate-y-1/2 text-[11px] tabular-nums text-base-content/40"
                             style={{top: (hour - AGENDA_HOUR_START) * AGENDA_SLOT_PX}}
                         >
-                            {String(hour).padStart(2, "0")}
+                            {String(hour).padStart(2, "0")}:00
                         </div>
                     ))}
                 </div>
@@ -108,7 +105,13 @@ export function AgendaWeekGrid({anchorDate, events, onSlotClick, onEventClick}: 
                     const showNow = isSameDay(day, today);
                     const dayKey = localDateKey(day);
                     return (
-                        <div key={dayKey} className="relative border-l border-base-content/10">
+                        <div
+                            key={dayKey}
+                            className={[
+                                "relative border-l border-base-content/8",
+                                showNow ? "bg-primary/4" : "",
+                            ].join(" ")}
+                        >
                             {hours.map((hour) => (
                                 <button
                                     key={`${dayKey}-${hour}`}
@@ -136,20 +139,20 @@ export function AgendaWeekGrid({anchorDate, events, onSlotClick, onEventClick}: 
                                 <button
                                     key={event.id}
                                     type="button"
-                                    className="absolute inset-x-1 z-10 overflow-hidden rounded-md border border-primary/30 bg-primary/20 px-1.5 py-1 text-left shadow-sm hover:bg-primary/30"
+                                    className="absolute inset-x-1.5 z-10 overflow-hidden rounded-lg border border-primary/20 bg-primary/10 px-2 py-1 text-left hover:bg-primary/16"
                                     style={{
                                         top: eventTopPx(event.startsAt),
-                                        height: Math.max(22, eventHeightPx(event.startsAt, event.endsAt)),
+                                        height: Math.max(36, eventHeightPx(event.startsAt, event.endsAt)),
                                     }}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onEventClick(event);
                                     }}
                                 >
-                                    <p className="truncate text-[11px] font-semibold text-primary">{event.title}</p>
-                                    {event.location ? (
-                                        <p className="truncate text-[10px] text-base-content/60">{event.location}</p>
-                                    ) : null}
+                                    <p className="truncate text-[12px] font-semibold leading-tight text-primary">{event.title}</p>
+                                    <p className="truncate text-[11px] leading-tight text-base-content/55">
+                                        {formatClock(event.startsAt)} – {formatClock(event.endsAt)}
+                                    </p>
                                 </button>
                             ))}
 

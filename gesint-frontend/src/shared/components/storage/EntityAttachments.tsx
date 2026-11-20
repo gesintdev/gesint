@@ -386,7 +386,16 @@ export function EntityAttachments({
         return <p className="text-sm text-base-content/50">Salve o registro para anexar documentos.</p>;
     }
 
+    const linksError = deferUpload ? serverLinksQuery.error : linksQuery.error;
     const isLoading = deferUpload ? serverLinksQuery.isLoading : linksQuery.isLoading;
+
+    if (linksError) {
+        return (
+            <p className="text-sm font-medium text-error">
+                {ExceptionCapture.displayMessage(linksError, "Não foi possível carregar os documentos.")}
+            </p>
+        );
+    }
 
     return (
         <div className="grid gap-4">

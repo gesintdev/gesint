@@ -56,6 +56,11 @@ public class DocumentType extends AuditEntity {
     @Builder.Default
     private Boolean systemManaged = false;
 
+    /** Quando true, o tipo aparece como obrigatório no select de documentos da admissão. */
+    @Column(name = "required_for_admission", nullable = false)
+    @Builder.Default
+    private Boolean requiredForAdmission = false;
+
     @Column(name = "sort_order", nullable = false)
     @Builder.Default
     private Integer sortOrder = 0;

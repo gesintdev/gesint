@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {CameraOff, Loader2, X} from "lucide-react";
+import {CameraOff, Loader2} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
 import {toast} from "sonner";
 
@@ -15,7 +15,7 @@ import {
 } from "@/modules/dp/attendance/lib/attendance-clock.util";
 import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
 import {storageService} from "@/modules/storage/services/storage.service";
-import {Button} from "@/shared/components/ui/Button";
+import {Modal} from "@/shared/components/ui/Modal";
 import {AppException, ExceptionCapture} from "@/shared/exceptions";
 
 type AttendanceClockModalProps = {
@@ -100,12 +100,10 @@ function stopMediaStream(stream: MediaStream | null, video: HTMLVideoElement | n
 }
 
 export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps) {
-    const dialogRef = useRef<HTMLDialogElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const cameraRequestIdRef = useRef(0);
     const queryClient = useQueryClient();
-    const [mounted, setMounted] = useState(false);
     const [now, setNow] = useState<Date | null>(null);
     const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -113,37 +111,25 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
     const contextQuery = useQuery({
         queryKey: ["attendance", "mobile-context"],
         queryFn: () => attendancerecordService.getMobileContext(),
-        enabled: open && mounted,
+        enabled: open,
         staleTime: 30_000,
         retry: false,
     });
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
+        if (!open) return;
+        setSubmitError(null);
+    }, [open]);
 
     useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog || !mounted) return;
-        if (open && !dialog.open) {
-            setSubmitError(null);
-            setCameraStatus("requesting");
-            dialog.showModal();
-        }
-        if (!open && dialog.open) {
-            dialog.close();
-        }
-    }, [open, mounted]);
-
-    useEffect(() => {
-        if (!open || !mounted) {
+        if (!open) {
             setNow(null);
             return;
         }
         setNow(new Date());
         const timer = window.setInterval(() => setNow(new Date()), 1000);
         return () => window.clearInterval(timer);
-    }, [open, mounted]);
+    }, [open]);
 
     useEffect(() => {
         if (!open) {
@@ -307,30 +293,36 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                 : "Não foi possível carregar o contexto de ponto."
             : null;
 
-    if (!mounted) return null;
-
     return (
-        <dialog ref={dialogRef} className="modal" onClose={onClose}>
-            <div className="modal-box flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden p-0">
-                <div className="flex shrink-0 items-center justify-between border-b border-base-content/8 px-4 py-3">
-                    <div>
-                        <h3 className="text-base font-semibold">Registro de ponto</h3>
-                        <p className="text-xs text-base-content/55">
-                            {contextQuery.data?.collaboratorName ?? "Colaborador logado"}
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        aria-label="Fechar"
-                        className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/50"
-                        onClick={onClose}
-                        disabled={clockMutation.isPending}
-                    >
-                        <X className="size-4" strokeWidth={2}/>
-                    </button>
-                </div>
-
-                <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Registro de ponto"
+            subtitle={contextQuery.data?.collaboratorName ?? "Colaborador logado"}
+            size="3xl"
+            closeDisabled={clockMutation.isPending}
+            padded={false}
+            scroll={false}
+            bodyClassName="flex flex-col overflow-hidden"
+            actions={[
+                {
+                    title: "Cancelar",
+                    variant: "ghost",
+                    onClick: onClose,
+                    disabled: clockMutation.isPending,
+                },
+                {
+                    title: "Registrar",
+                    onClick: () => {
+                        setSubmitError(null);
+                        clockMutation.mutate();
+                    },
+                    loading: clockMutation.isPending,
+                    disabled: !canRegister || clockMutation.isPending,
+                },
+            ]}
+        >
+            <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
                     <div className="flex min-h-0 flex-col border-b border-base-content/8 lg:border-r lg:border-b-0">
                         <div className="grid gap-4 overflow-y-auto px-4 py-4">
                             <div className="text-center">
@@ -392,32 +384,9 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
                     </div>
 
                     <div className="flex min-h-0 min-w-0 flex-col bg-base-200/20">
-                        <AttendanceWeekHistoryPanel enabled={open && mounted}/>
+                        <AttendanceWeekHistoryPanel enabled={open}/>
                     </div>
                 </div>
-
-                <div className="flex shrink-0 items-center justify-end gap-2 border-t border-base-content/8 px-4 py-3">
-                    <Button type="button" variant="ghost" onClick={onClose} disabled={clockMutation.isPending}>
-                        Cancelar
-                    </Button>
-                    <Button
-                        type="button"
-                        onClick={() => {
-                            setSubmitError(null);
-                            clockMutation.mutate();
-                        }}
-                        loading={clockMutation.isPending}
-                        disabled={!canRegister || clockMutation.isPending}
-                    >
-                        Registrar
-                    </Button>
-                </div>
-            </div>
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" aria-label="Fechar">
-                    fechar
-                </button>
-            </form>
-        </dialog>
+        </Modal>
     );
 }

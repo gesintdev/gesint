@@ -180,6 +180,7 @@ BEGIN
                 access_token_hash VARCHAR(64),
                 first_access_completed BOOLEAN NOT NULL DEFAULT false,
                 report_pdf_delivery_mode VARCHAR(20) NOT NULL DEFAULT 'DOWNLOAD',
+                assistant_open_mode VARCHAR(20) NOT NULL DEFAULT 'SIDE',
                 last_login TIMESTAMPTZ,
                 created_by UUID,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -199,6 +200,10 @@ BEGIN
 
     EXECUTE format(
         'ALTER TABLE %I.app_user ADD COLUMN IF NOT EXISTS report_pdf_delivery_mode VARCHAR(20) NOT NULL DEFAULT ''DOWNLOAD''',
+        v_schema
+    );
+    EXECUTE format(
+        'ALTER TABLE %I.app_user ADD COLUMN IF NOT EXISTS assistant_open_mode VARCHAR(20) NOT NULL DEFAULT ''SIDE''',
         v_schema
     );
 

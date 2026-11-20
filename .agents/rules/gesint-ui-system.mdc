@@ -101,6 +101,8 @@ Ao usar `overflow: hidden` em texto uppercase, deixe `line-height ≥ 1.5` — s
 | `--radius-gesint-card` / `-card-lg` | **8px** | Cards, painéis, `surface-card`, `gesint-form-section`, KPIs |
 | `--radius-gesint-modal` | **12px** | Modais |
 
+Modal de conteúdo: só `Modal` (`shared/components/ui/Modal.tsx`). Ele define caixa, título, Fechar (`ModalHeader` + `gesint-btn--icon-only`) e rodapé com `Button`. Não monte outro `<dialog className="modal">`, nem outro X com `btn-circle`, `btn-square` ou botão solto. Alerta do sistema (`SystemAlertHost`) não é esse modal.
+
 Tailwind mapeado: `rounded-sm` = 6 · `rounded-md`/`rounded-lg` = 7 · `rounded-xl` = 8 · `rounded-2xl` = 12. `rounded-full` só para círculos/pílulas.
 Exceção: `.crud-page-card` (painel da página CRUD) não tem raio — encosta na sidebar.
 

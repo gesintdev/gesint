@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +65,22 @@ public class EsocialS2220Service {
                 .transmissionDeadline(calculateTransmissionDeadline(exam.getClinicalExamDate()))
                 .build();
         return repository.save(event);
+    }
+
+    /** Evento ainda nao transmitido deixa de valer quando o exame e excluido. */
+    @Transactional
+    public void discardUnsent(UUID occupationalExamId) {
+        if (occupationalExamId == null) {
+            return;
+        }
+        repository
+                .findFirstByOccupationalExamIdAndStatusNotOrderByCreatedAtDesc(
+                        occupationalExamId, StatusEnum.DELETED)
+                .filter(event -> event.getTransmissionStatus() != EsocialTransmissionStatusEnum.TRANSMITTED)
+                .ifPresent(event -> {
+                    event.setStatus(StatusEnum.DELETED);
+                    repository.save(event);
+                });
     }
 
     /**

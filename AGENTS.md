@@ -21,3 +21,4 @@ Regra máxima:
 
 Sempre seguir os padrões existentes do projeto.
 Nunca criar novos padrões sem justificativa explícita.
+Tudo que for usado mais de uma vez vira componente dedicado. Modal de conteúdo é `Modal`.

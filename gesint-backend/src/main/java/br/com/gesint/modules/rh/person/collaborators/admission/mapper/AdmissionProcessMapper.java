@@ -238,7 +238,8 @@ public class AdmissionProcessMapper {
                 null,
                 false,
                 false,
-                false);
+                false,
+                null);
     }
 
     public AdmissionProcessResponseDto toResponse(
@@ -251,13 +252,15 @@ public class AdmissionProcessMapper {
             StatusEnum collaboratorStatus,
             boolean inVacation,
             boolean onLeave,
-            boolean onLeaveActive) {
+            boolean onLeaveActive,
+            String collaboratorAccessCode) {
         return AdmissionProcessResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
                 .status(entity.getStatus())
                 .collaboratorId(entity.getCollaboratorId())
                 .collaboratorStatus(collaboratorStatus)
+                .collaboratorAccessCode(collaboratorAccessCode)
                 .photoObjectId(entity.getPhotoObjectId())
                 .admissionStatus(admissionStatus)
                 .inVacation(inVacation)

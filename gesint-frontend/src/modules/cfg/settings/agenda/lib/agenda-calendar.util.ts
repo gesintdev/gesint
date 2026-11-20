@@ -57,9 +57,9 @@ export function workWeekRangeLabel(anchor: Date) {
     const first = days[0];
     const last = days[days.length - 1];
     if (first.getMonth() === last.getMonth()) {
-        return `${first.getDate()} - ${last.getDate()} de ${MONTH_LONG[first.getMonth()]} de ${first.getFullYear()}`;
+        return `${first.getDate()} – ${last.getDate()} de ${MONTH_LONG[first.getMonth()]} de ${first.getFullYear()}`;
     }
-    return `${first.getDate()} de ${MONTH_LONG[first.getMonth()]} - ${last.getDate()} de ${MONTH_LONG[last.getMonth()]} de ${last.getFullYear()}`;
+    return `${first.getDate()} de ${MONTH_LONG[first.getMonth()]} – ${last.getDate()} de ${MONTH_LONG[last.getMonth()]} de ${last.getFullYear()}`;
 }
 
 export function dayHeaderLabel(date: Date) {

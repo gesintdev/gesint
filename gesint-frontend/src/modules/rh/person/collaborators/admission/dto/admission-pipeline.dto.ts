@@ -34,6 +34,7 @@ export class AdmissionPipelineStep {
 export class AdmissionPipelineRow {
     admissionId!: string;
     collaboratorId?: string;
+    collaboratorAccessCode?: string;
     photoObjectId?: string;
     fullName!: string;
     departmentName?: string;

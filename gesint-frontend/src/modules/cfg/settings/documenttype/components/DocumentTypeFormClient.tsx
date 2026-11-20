@@ -35,6 +35,7 @@ function emptyForm(): DocumentTypeRequestDto {
         description: "",
         dataClass: "COMUM",
         contexts: [],
+        requiredForAdmission: false,
         sortOrder: 0,
     };
 }
@@ -46,6 +47,7 @@ function toFormDto(detail: DocumentType): DocumentTypeRequestDto {
         description: detail.description ?? "",
         dataClass: detail.dataClass ?? "COMUM",
         contexts: detail.contexts ?? [],
+        requiredForAdmission: Boolean(detail.requiredForAdmission),
         sortOrder: detail.sortOrder ?? 0,
     };
 }
@@ -92,6 +94,7 @@ export function DocumentTypeFormClient() {
                 description: dto.description?.trim() || undefined,
                 dataClass: dto.dataClass,
                 contexts: dto.contexts,
+                requiredForAdmission: Boolean(dto.requiredForAdmission),
                 sortOrder: dto.sortOrder ?? 0,
             };
             if (isEditing && editingId) return documentTypeService.update(editingId, payload);
@@ -186,8 +189,15 @@ export function DocumentTypeFormClient() {
                     value={form.sortOrder ?? 0}
                     onValueChange={(v) => update("sortOrder", v ?? 0)}
                     integer
-                    wrapperClassName="sm:col-span-6"
+                    wrapperClassName="sm:col-span-3"
                 />
+                <div className="sm:col-span-3 flex items-end pb-2">
+                    <InputCheckbox
+                        label="Obrigatório para admissão"
+                        checked={Boolean(form.requiredForAdmission)}
+                        onCheckedChange={(checked) => update("requiredForAdmission", checked)}
+                    />
+                </div>
                 <InputString
                     label="Descrição"
                     value={form.description ?? ""}
