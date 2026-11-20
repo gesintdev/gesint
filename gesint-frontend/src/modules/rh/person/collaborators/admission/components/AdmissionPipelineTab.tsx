@@ -52,13 +52,13 @@ export function AdmissionPipelineTab() {
 
     if (loading) {
         return (
-            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                    {Array.from({length: 5}).map((_, index) => (
-                        <div key={index} className="skeleton-shimmer h-[104px] rounded-xl" />
+            <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden p-1.5">
+                <div className="grid shrink-0 gap-2 sm:grid-cols-2 xl:grid-cols-5">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                        <div key={index} className="skeleton-shimmer h-(--gesint-control-h) rounded-[length:var(--gesint-control-radius)]" />
                     ))}
                 </div>
-                <div className="skeleton-shimmer h-64 w-full rounded-xl" />
+                <div className="skeleton-shimmer min-h-0 flex-1 rounded-xl" />
             </div>
         );
     }
@@ -78,27 +78,28 @@ export function AdmissionPipelineTab() {
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {/* Mesmas classes da toolbar da Listagem para o botão cair na altura do "Novo cadastro". */}
             <div className="crud-list-toolbar flex flex-wrap items-center justify-end gap-2 border-b px-4 py-1.5">
-                <Button size="sm" leftIcon={<Plus className="size-3.5" strokeWidth={2.5} />} onClick={startCreate}>
+                <Button leftIcon={<Plus className="size-4" strokeWidth={2} />} onClick={startCreate}>
                     Nova admissão
                 </Button>
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-1.5">
+            <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden p-1.5">
                 {summary ? (
-                    <AdmissionPipelineKpis kpis={summary.kpis} />
+                    <div className="shrink-0">
+                        <AdmissionPipelineKpis kpis={summary.kpis} />
+                    </div>
                 ) : (
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                    <div className="grid shrink-0 gap-2 sm:grid-cols-2 xl:grid-cols-5">
                         {Array.from({ length: 5 }).map((_, index) => (
-                            <div key={index} className="skeleton-shimmer h-[104px] rounded-xl" />
+                            <div
+                                key={index}
+                                className="skeleton-shimmer h-(--gesint-control-h) rounded-[length:var(--gesint-control-radius)]"
+                            />
                         ))}
                     </div>
                 )}
 
-                {/*
-                  `items-start` deixa cada coluna com a própria altura: a esteira não estica para
-                  acompanhar os painéis nem o contrário. Cada painel se limita sozinho.
-                */}
-                <div className="grid items-start gap-3 xl:grid-cols-[minmax(0,1fr)_23rem]">
+                <div className="grid min-h-0 flex-1 items-stretch gap-3 xl:grid-cols-[minmax(0,1fr)_18rem]">
                     <AdmissionPipelineTrack
                         rows={pageData?.content ?? []}
                         page={pageData?.page ?? page}
@@ -114,7 +115,7 @@ export function AdmissionPipelineTab() {
                         onOpen={(row) => startEdit(row.admissionId, { fullName: row.fullName })}
                         onApprove={handleApprove}
                     />
-                    <div className="flex flex-col gap-3">
+                    <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
                         <AdmissionPipelineDeadlines deadlines={summary?.deadlines ?? []} />
                         <AdmissionPipelineBlocks blocks={summary?.blocks ?? []} />
                     </div>

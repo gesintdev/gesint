@@ -24,16 +24,15 @@ const VALUE_CLASS: Record<PipelineTone, string> = {
 function KpiTile({ label, value, hint, tone }: { label: string; value: number; hint: string; tone: PipelineTone }) {
     return (
         <div
+            title={`${label}: ${value} — ${hint}`}
             className={clsx(
-                "rounded-xl border border-l-[3px] border-(--gesint-border-subtle) bg-base-100 px-4 py-3.5 shadow-(--gesint-shadow-sm)",
+                "admission-pipeline-kpi flex h-(--gesint-control-h) min-h-(--gesint-control-h) items-center gap-2 overflow-hidden rounded-[length:var(--gesint-control-radius)] border border-l-[3px] border-(--gesint-border-subtle) px-2.5 shadow-(--gesint-shadow-xs)",
                 ACCENT_CLASS[tone],
             )}
         >
-            <p className="text-[10px] font-semibold tracking-wide text-base-content/55 uppercase">{label}</p>
-            <p className={clsx("mt-2 text-[28px] leading-none font-bold tracking-tight tabular-nums", VALUE_CLASS[tone])}>
-                {value}
-            </p>
-            <p className="mt-2 text-[11px] leading-snug text-base-content/45">{hint}</p>
+            <p className="shrink-0 text-[10px] font-semibold tracking-wide text-base-content/55 uppercase">{label}</p>
+            <p className={clsx("shrink-0 text-sm leading-none font-bold tabular-nums", VALUE_CLASS[tone])}>{value}</p>
+            <p className="min-w-0 flex-1 truncate text-[10px] leading-none text-base-content/45">{hint}</p>
         </div>
     );
 }
@@ -44,7 +43,7 @@ function pluralize(count: number, singular: string, plural: string): string {
 
 export function AdmissionPipelineKpis({ kpis }: { kpis: Kpis }) {
     return (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
             <KpiTile
                 label="Em andamento"
                 value={kpis.inProgress}

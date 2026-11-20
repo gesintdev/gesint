@@ -124,7 +124,7 @@ export function AssistantHeaderButton() {
     const {highlighted, request} = useAssistantLaunch();
     if (!assistantEnabled) return null;
     return (
-        <div className="hidden lg:block">
+        <div className="contents max-lg:hidden">
             <HeaderAiAssistant open={highlighted} onClick={request}/>
         </div>
     );

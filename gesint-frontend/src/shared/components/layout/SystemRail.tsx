@@ -17,6 +17,10 @@ function canAccessAnySettingsRoute(permissions: readonly string[]): boolean {
     return walk(settingsRoutes);
 }
 
+/**
+ * Rail de domínios (CTB / DP / RH / CFG) — cápsula arredondada espaçada do menu,
+ * no modelo ClickUp: ícones menores e mais quadrados.
+ */
 export function SystemRail() {
     const [mounted, setMounted] = useState(false);
     const { activeSystem, systems, selectSystem, isSettingsMode, openSettings } = useActiveSystem();
@@ -38,14 +42,10 @@ export function SystemRail() {
 
     return (
         <nav
-            className="flex h-full w-(--system-rail-width) shrink-0 flex-col overflow-x-hidden border-r"
-            style={{
-                background: "var(--system-rail-bg)",
-                borderColor: "var(--system-rail-border)",
-            }}
+            className="system-rail flex h-full w-(--system-rail-width) shrink-0 flex-col overflow-hidden border-0 bg-(--sidebar-bg) pt-(--system-rail-pad-top) ps-(--system-rail-pad) pe-(--system-rail-gap) pb-(--system-rail-pad)"
             aria-label="Dominios do sistema"
         >
-            <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-1.5 overflow-x-hidden overflow-y-auto px-1 py-3">
+            <div className="system-rail__track flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto rounded-[length:var(--system-rail-radius)] bg-(--system-rail-bg) px-1 pb-1.5 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {systems.map((system) => {
                     const Icon = system.icon;
                     const selected = mounted && !isSettingsMode && system.id === activeSystem;
@@ -57,7 +57,10 @@ export function SystemRail() {
                             aria-label={system.name}
                             aria-current={selected ? "true" : undefined}
                             onClick={() => handleSelect(system.id)}
-                            className={clsx("system-rail-item", selected && "system-rail-item--active")}
+                            className={clsx(
+                                "system-rail-item rounded-[length:var(--system-rail-radius)]",
+                                selected && "system-rail-item--active",
+                            )}
                         >
                             <Icon className="size-4 shrink-0" strokeWidth={selected ? 2.25 : 2} />
                             <span className="system-rail-acronym">{system.acronym}</span>
@@ -68,8 +71,7 @@ export function SystemRail() {
                 {canOpenSettings ? (
                     <>
                         <div
-                            className="mx-1 my-0.5 h-px shrink-0"
-                            style={{ background: "var(--system-rail-border)" }}
+                            className="mx-1.5 my-1 h-px shrink-0 bg-(--system-rail-border)"
                             aria-hidden
                         />
                         <button
@@ -78,7 +80,10 @@ export function SystemRail() {
                             aria-label="Configurações do sistema"
                             aria-current={settingsSelected ? "true" : undefined}
                             onClick={handleOpenSettings}
-                            className={clsx("system-rail-item", settingsSelected && "system-rail-item--active")}
+                            className={clsx(
+                                "system-rail-item rounded-[length:var(--system-rail-radius)]",
+                                settingsSelected && "system-rail-item--active",
+                            )}
                         >
                             <Settings className="size-4 shrink-0" strokeWidth={settingsSelected ? 2.25 : 2} />
                             <span className="system-rail-acronym">CFG</span>

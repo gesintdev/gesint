@@ -22,6 +22,8 @@ type ProfilePhotoFieldProps = {
     onCropComplete: (blob: Blob) => void;
     onClear: () => void;
     displayName?: string;
+    /** Código do colaborador exibido no lugar do rótulo da foto */
+    collaboratorCode?: string | null;
     disabled?: boolean;
     className?: string;
 };
@@ -168,6 +170,7 @@ export function ProfilePhotoField({
     onCropComplete,
     onClear,
     displayName = "Colaborador",
+    collaboratorCode,
     disabled = false,
     className,
 }: ProfilePhotoFieldProps) {
@@ -237,7 +240,9 @@ export function ProfilePhotoField({
                 }}
             />
             <div className="flex flex-col items-center gap-1">
-                <p className="gesint-label mb-0 text-center">Foto do colaborador</p>
+                <p className="gesint-label mb-0 text-center tabular-nums">
+                    Código: {collaboratorCode?.trim() ? collaboratorCode : "—"}
+                </p>
                 {pendingPreviewUrl ? (
                     <p className="text-center text-[11px] text-warning">Pendente — salve a admissão</p>
                 ) : null}

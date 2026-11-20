@@ -229,7 +229,7 @@ export function GlobalSearchPalette() {
     const hasResults = entries.length > 0;
 
     return (
-        <div ref={rootRef} className="relative shrink-0">
+        <div ref={rootRef} className="relative inline-flex shrink-0 items-center">
             <button
                 type="button"
                 aria-label="Buscar no sistema"
@@ -238,7 +238,7 @@ export function GlobalSearchPalette() {
                 aria-controls="global-search-palette"
                 onClick={toggleSearch}
                 className={clsx(
-                    "gesint-btn gesint-btn--ghost gesint-btn--icon-only relative z-20 text-base-content/55",
+                    "gesint-btn gesint-btn--ghost gesint-btn--icon-only relative z-20",
                     open && "!bg-transparent text-primary hover:!bg-transparent active:!bg-transparent",
                 )}
             >

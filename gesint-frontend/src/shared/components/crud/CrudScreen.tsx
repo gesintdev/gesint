@@ -196,23 +196,20 @@ function CrudListToolbarActions({
         <div className="flex shrink-0 items-center gap-2">
             {queryRefresh ? (
                 <Button
-                    size="sm"
                     aria-label="Atualizar lista"
-                    className="gesint-btn--icon-only"
                     disabled={queryRefresh.isFetching}
                     onClick={() => queryRefresh.refetch()}
                     leftIcon={
                         <RefreshCw
-                            className={clsx("size-3.5", queryRefresh.isFetching && "animate-spin")}
-                            strokeWidth={2.25}
+                            className={clsx("size-4", queryRefresh.isFetching && "animate-spin")}
+                            strokeWidth={2}
                         />
                     }
                 />
             ) : null}
             {showListToFormButton && canWrite ? (
                 <Button
-                    size="sm"
-                    leftIcon={<Plus className="size-3.5" strokeWidth={2.5} />}
+                    leftIcon={<Plus className="size-4" strokeWidth={2} />}
                     onClick={() => void onStartCreate()}
                 >
                     {listToFormLabel}
@@ -561,7 +558,7 @@ export function CrudScreen({
                                     {listToolbarContent ? (
                                         <div className="min-w-0 flex-1">{listToolbarContent}</div>
                                     ) : (
-                                        <div className="hidden min-w-0 flex-1 text-[13px] text-base-content/50 lg:block">
+                                        <div className="hidden min-w-0 flex-1 text-xs text-base-content/55 lg:block">
                                             {listToolbar ??
                                                 "Consulte os registros ou inicie um novo cadastro."}
                                         </div>
