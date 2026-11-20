@@ -39,6 +39,7 @@ import br.com.gesint.modules.dp.occupationalexam.exam.dto.OccupationalExamSchedu
 import br.com.gesint.modules.dp.occupationalexam.exam.entity.OccupationalExam;
 import br.com.gesint.modules.dp.occupationalexam.exam.entity.OccupationalExamLifecycleStatusEnum;
 import br.com.gesint.modules.dp.occupationalexam.exam.entity.OccupationalExamResultEnum;
+import br.com.gesint.modules.dp.occupationalexam.exam.entity.OccupationalExamTypeEnum;
 import br.com.gesint.modules.dp.occupationalexam.exam.exception.OccupationalExamException;
 import br.com.gesint.modules.dp.occupationalexam.exam.exception.OccupationalExamExceptions;
 import br.com.gesint.modules.dp.occupationalexam.exam.mapper.OccupationalExamMapper;
@@ -48,6 +49,7 @@ import br.com.gesint.modules.dp.occupationalexam.examrequirement.repository.Exam
 import br.com.gesint.modules.dp.occupationalexam.physician.entity.OccupationalPhysician;
 import br.com.gesint.modules.dp.occupationalexam.physician.exception.OccupationalPhysicianException;
 import br.com.gesint.modules.dp.occupationalexam.physician.repository.OccupationalPhysicianRepository;
+import br.com.gesint.modules.rh.person.collaborators.admission.service.IAdmissionProcessService;
 import br.com.gesint.modules.rh.person.collaborators.people.entity.Collaborator;
 import br.com.gesint.modules.rh.person.collaborators.people.repository.CollaboratorRepository;
 
@@ -77,6 +79,7 @@ public class OccupationalExamService
     private final OccupationalExamIndicatorsService indicatorsService;
     private final EsocialS2220Service esocialS2220Service;
     private final AuditTrailRecorder auditTrail;
+    private final IAdmissionProcessService admissionProcessService;
 
     public OccupationalExamService(
             OccupationalExamRepository repository,
@@ -89,7 +92,8 @@ public class OccupationalExamService
             OccupationalExamTriggerService triggerService,
             OccupationalExamIndicatorsService indicatorsService,
             EsocialS2220Service esocialS2220Service,
-            AuditTrailRecorder auditTrail) {
+            AuditTrailRecorder auditTrail,
+            IAdmissionProcessService admissionProcessService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -102,6 +106,7 @@ public class OccupationalExamService
         this.indicatorsService = indicatorsService;
         this.esocialS2220Service = esocialS2220Service;
         this.auditTrail = auditTrail;
+        this.admissionProcessService = admissionProcessService;
     }
 
     @Override
@@ -204,6 +209,7 @@ public class OccupationalExamService
         }
         OccupationalExam saved = repository.save(entity);
         syncComplementaryExams(saved, request.getComplementaryExams());
+        grantAdmissionClockAccess(saved);
         return toSecureResponse(saved);
     }
 
@@ -229,6 +235,7 @@ public class OccupationalExamService
         mapper.updateEntity(entity, request);
         OccupationalExam saved = repository.save(entity);
         syncComplementaryExams(saved, request.getComplementaryExams());
+        grantAdmissionClockAccess(saved);
         return toSecureResponse(saved);
     }
 
@@ -294,7 +301,21 @@ public class OccupationalExamService
         entity.setLifecycleStatus(OccupationalExamLifecycleStatusEnum.REGISTRADO);
         OccupationalExam saved = repository.save(entity);
         esocialS2220Service.ensurePendingEvent(saved);
+        grantAdmissionClockAccess(saved);
         return toSecureResponse(saved);
+    }
+
+    private void grantAdmissionClockAccess(OccupationalExam exam) {
+        if (exam.getExamType() != OccupationalExamTypeEnum.ADMISSIONAL || exam.getResult() != OccupationalExamResultEnum.FIT) {
+            return;
+        }
+        OccupationalExamLifecycleStatusEnum lifecycle = exam.getLifecycleStatus();
+        if (lifecycle != OccupationalExamLifecycleStatusEnum.REGISTRADO
+                && lifecycle != OccupationalExamLifecycleStatusEnum.TRANSMITIDO
+                && lifecycle != OccupationalExamLifecycleStatusEnum.ARQUIVADO) {
+            return;
+        }
+        admissionProcessService.grantClockAccessAfterAdmissionalExam(exam.getCollaboratorId());
     }
 
     @Override
@@ -319,7 +340,17 @@ public class OccupationalExamService
         if (entity.getLifecycleStatus() == OccupationalExamLifecycleStatusEnum.ARQUIVADO) {
             throw OccupationalExamException.immutable();
         }
+        complementaryExamRepository
+                .findByOccupationalExamIdAndStatusNotOrderByCreatedAtAsc(entity.getId(), StatusEnum.DELETED)
+                .forEach(item -> {
+                    item.setStatus(StatusEnum.DELETED);
+                    complementaryExamRepository.save(item);
+                });
+        esocialS2220Service.discardUnsent(entity.getId());
         super.delete(id);
+        if (entity.getExamType() == OccupationalExamTypeEnum.ADMISSIONAL) {
+            admissionProcessService.revertAdmissionAfterAdmissionalExamRemoval(entity.getCollaboratorId());
+        }
     }
 
     @Override

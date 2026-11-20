@@ -1611,10 +1611,35 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 0.75rem;
     padding-right: 0.75rem;
     margin-right: 0.125rem;
     border-right: 1px solid color-mix(in srgb, var(--gesint-primary) 14%, var(--gesint-border-subtle));
     min-height: 1.875rem;
+}
+
+.form-stepper__access-code {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.form-stepper__access-code-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--color-base-content) 45%, transparent);
+}
+
+.form-stepper__access-code-value {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--color-base-content);
 }
 
 [data-theme="dark"] .form-stepper__code {
@@ -2500,6 +2525,13 @@ div:has(> .skeleton-shimmer):not(:has(> :not(.skeleton-shimmer))) {
     align-items: center;
     justify-content: flex-end;
     gap: 0.3125rem;
+}
+
+.gesint-table .gesint-table-actions .admission-access-code-button {
+    width: auto;
+    min-width: max-content;
+    padding-inline: 0.6rem;
+    white-space: nowrap;
 }
 
 .job-vacancy-candidates-scroll {

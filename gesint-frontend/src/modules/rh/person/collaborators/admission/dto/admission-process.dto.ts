@@ -20,6 +20,7 @@ export class AdmissionProcess {
     status!: "ACTIVE" | "INACTIVE" | "DELETED";
     collaboratorId?: string;
     collaboratorStatus?: "ACTIVE" | "INACTIVE" | "DELETED";
+    collaboratorAccessCode?: string;
     photoObjectId?: string;
     admissionStatus!: AdmissionStatus;
     inVacation?: boolean;

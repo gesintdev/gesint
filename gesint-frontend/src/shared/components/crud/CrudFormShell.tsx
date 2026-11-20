@@ -7,6 +7,8 @@ export type CrudFormStepperConfig = {
     steps: FormStepNavItem[];
     filledStepIds?: readonly string[];
     entityCode?: number | null;
+    accessCode?: string | null;
+    accessCodeAction?: ReactNode;
     resetKey?: string | null;
 };
 
@@ -35,6 +37,8 @@ export function CrudFormShell({
             steps={stepper.steps}
             filledStepIds={stepper.filledStepIds}
             entityCode={stepper.entityCode}
+            accessCode={stepper.accessCode}
+            accessCodeAction={stepper.accessCodeAction}
         >
             {children}
         </FormStepper>

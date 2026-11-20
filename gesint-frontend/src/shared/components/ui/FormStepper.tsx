@@ -15,6 +15,10 @@ type FormStepperProps = {
     /** Quando omitido, o stepper marca a seção que já tem algum dado preenchido. */
     filledStepIds?: readonly string[];
     entityCode?: number | null;
+    /** Codigo de ponto do colaborador, ao lado do codigo do cadastro. */
+    accessCode?: string | null;
+    /** Acao exibida no lugar do codigo de ponto, quando ele ainda nao existe. */
+    accessCodeAction?: ReactNode;
     children: ReactNode;
 };
 
@@ -48,7 +52,14 @@ function sectionIsFilled(section: HTMLElement): boolean {
     return false;
 }
 
-export function FormStepper({ steps, filledStepIds, entityCode, children }: FormStepperProps) {
+export function FormStepper({
+    steps,
+    filledStepIds,
+    entityCode,
+    accessCode,
+    accessCodeAction,
+    children,
+}: FormStepperProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const pinnedIdRef = useRef<string | null>(null);
     const scrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -153,12 +164,20 @@ export function FormStepper({ steps, filledStepIds, entityCode, children }: Form
                 <div
                     className={clsx(
                         "gesint-form-section form-stepper__toolbar",
-                        entityCode == null && "form-stepper__toolbar--no-code",
+                        entityCode == null && !accessCode && !accessCodeAction && "form-stepper__toolbar--no-code",
                     )}
                 >
-                    {entityCode != null ? (
+                    {entityCode != null || accessCode || accessCodeAction ? (
                         <div className="form-stepper__code">
-                            <EntityCodeField code={entityCode} codeOnly />
+                            {entityCode != null ? <EntityCodeField code={entityCode} codeOnly /> : null}
+                            {accessCode ? (
+                                <span className="form-stepper__access-code" title="Código do colaborador">
+                                    <span className="form-stepper__access-code-label">Cod. Colab.</span>
+                                    <span className="form-stepper__access-code-value tabular-nums">{accessCode}</span>
+                                </span>
+                            ) : (
+                                accessCodeAction
+                            )}
                         </div>
                     ) : null}
                     <nav className="gesint-form-stepper" aria-label="Seções do formulário">

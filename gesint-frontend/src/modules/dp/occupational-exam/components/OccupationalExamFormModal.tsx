@@ -160,8 +160,24 @@ export function OccupationalExamFormModal({
             }
             let savedId = examId ?? null;
             if (isEditing && examId) {
-                const updated = await occupationalExamService.update(examId, payload);
-                savedId = updated.id;
+                if (pendingAttachments.length > 0) {
+                    await flushPendingAttachments({
+                        entityType: OCCUPATIONAL_EXAM_ENTITY_TYPE,
+                        entityId: examId,
+                        linkRole: OCCUPATIONAL_EXAM_LINK_ROLE,
+                        items: pendingAttachments,
+                    });
+                }
+                try {
+                    const updated = await occupationalExamService.update(examId, payload);
+                    savedId = updated.id;
+                } catch (err: unknown) {
+                    const immutable = ExceptionCapture.fromUnknown(err).code === "OCCUPATIONAL_EXAM_IMMUTABLE";
+                    if (!immutable || pendingAttachments.length === 0) {
+                        throw err;
+                    }
+                    savedId = examId;
+                }
             } else {
                 const created = await occupationalExamService.create(payload);
                 savedId = created.id;
@@ -169,12 +185,14 @@ export function OccupationalExamFormModal({
             if (!savedId) {
                 throw new Error("Nao foi possivel identificar o registro salvo.");
             }
-            await flushPendingAttachments({
-                entityType: OCCUPATIONAL_EXAM_ENTITY_TYPE,
-                entityId: savedId,
-                linkRole: OCCUPATIONAL_EXAM_LINK_ROLE,
-                items: pendingAttachments,
-            });
+            if (!(isEditing && examId)) {
+                await flushPendingAttachments({
+                    entityType: OCCUPATIONAL_EXAM_ENTITY_TYPE,
+                    entityId: savedId,
+                    linkRole: OCCUPATIONAL_EXAM_LINK_ROLE,
+                    items: pendingAttachments,
+                });
+            }
             return savedId;
         },
         onSuccess: async (savedId) => {

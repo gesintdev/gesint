@@ -14,4 +14,7 @@ public final class AdmissionProcessExceptions {
     public static final String ADMISSIONAL_EXAM_REQUIRED_CODE = "ADMISSION_ADMISSIONAL_EXAM_REQUIRED";
     public static final String ADMISSIONAL_EXAM_REQUIRED_MSG =
             "Para concluir a admissão, registre o exame admissional (ASO) com resultado APTA.";
+    public static final String CLOCK_ACCESS_IDENTITY_REQUIRED_CODE = "ADMISSION_CLOCK_ACCESS_IDENTITY_REQUIRED";
+    public static final String CLOCK_ACCESS_IDENTITY_REQUIRED_MSG =
+            "Para gerar o código do colaborador informe nome completo, CPF e data de nascimento.";
 }

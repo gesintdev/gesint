@@ -10,6 +10,7 @@ import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule
 import {DepartmentPickerField} from "@/modules/dp/organization/department/components/DepartmentPickerField";
 import {JobPositionPickerField} from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
 import {admissionprocessKeys} from "@/modules/rh/person/collaborators/admission/admission.query";
+import {GenerateAdmissionAccessCodeButton} from "@/modules/rh/person/collaborators/admission/components/GenerateAdmissionAccessCodeButton";
 import {
     AdmissionEmergencyContactsField
 } from "@/modules/rh/person/collaborators/admission/components/AdmissionEmergencyContactsField";
@@ -192,10 +193,7 @@ export function AdmissionProcessFormClient() {
             }
             let savedId = editingId ?? null;
             let createdInThisRequest = false;
-            if (isEditing && editingId) {
-                await admissionprocessService.update(editingId, payload);
-                savedId = editingId;
-            } else {
+            if (!(isEditing && editingId)) {
                 const created = await admissionprocessService.create(payload);
                 savedId = created.id;
                 createdInThisRequest = true;
@@ -217,8 +215,10 @@ export function AdmissionProcessFormClient() {
                     linkRole: "CONTRACT",
                     items: pendingContractAttachments,
                 });
-                await admissionprocessService.update(savedId, payload);
             } catch (err: unknown) {
+                if (!createdInThisRequest) {
+                    keepPendingAfterPartialRef.current = true;
+                }
                 if (createdInThisRequest) {
                     const partialError = new Error("ADMISSION_PARTIAL_SAVE");
                     (partialError as Error & {cause?: unknown; partialAdmissionId?: string}).cause = err;
@@ -227,6 +227,7 @@ export function AdmissionProcessFormClient() {
                 }
                 throw err;
             }
+            await admissionprocessService.update(savedId, payload);
             return savedId;
         },
         onSuccess: async (savedId) => {
@@ -316,6 +317,11 @@ export function AdmissionProcessFormClient() {
                 steps: admissionFormSteps,
                 filledStepIds,
                 entityCode: isEditing ? detailQuery.data?.code : undefined,
+                accessCode: isEditing ? detailQuery.data?.collaboratorAccessCode : undefined,
+                accessCodeAction:
+                    isEditing && editingId && !detailQuery.data?.collaboratorAccessCode ? (
+                        <GenerateAdmissionAccessCodeButton admissionId={editingId} />
+                    ) : undefined,
                 resetKey: editingId ?? "new",
             }}
             footer={

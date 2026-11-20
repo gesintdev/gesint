@@ -23,6 +23,8 @@ public class AdmissionPipelineRowDto {
 
     private UUID admissionId;
     private UUID collaboratorId;
+    /** Codigo para bater ponto no link publico. */
+    private String collaboratorAccessCode;
     private UUID photoObjectId;
     private String fullName;
     private String departmentName;

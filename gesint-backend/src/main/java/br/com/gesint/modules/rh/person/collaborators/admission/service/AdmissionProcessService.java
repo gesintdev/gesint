@@ -71,6 +71,7 @@ public class AdmissionProcessService
     private final OccupationalExamTriggerService occupationalExamTriggerService;
     private final IAdmissionPipelineService admissionPipelineService;
     private final IExperienceEvaluationService experienceEvaluationService;
+    private final AdmissionClockAccessService clockAccessService;
 
     public AdmissionProcessService(
             AdmissionProcessRepository repository,
@@ -86,7 +87,8 @@ public class AdmissionProcessService
             ISearchDocumentIndexer searchDocumentIndexer,
             OccupationalExamTriggerService occupationalExamTriggerService,
             IAdmissionPipelineService admissionPipelineService,
-            IExperienceEvaluationService experienceEvaluationService) {
+            IExperienceEvaluationService experienceEvaluationService,
+            AdmissionClockAccessService clockAccessService) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
@@ -102,6 +104,7 @@ public class AdmissionProcessService
         this.occupationalExamTriggerService = occupationalExamTriggerService;
         this.admissionPipelineService = admissionPipelineService;
         this.experienceEvaluationService = experienceEvaluationService;
+        this.clockAccessService = clockAccessService;
     }
 
     @Override
@@ -118,6 +121,7 @@ public class AdmissionProcessService
     public AdmissionProcessResponseDto findById(UUID id) {
         AdmissionProcess entity = findEntity(id);
         ensureCollaboratorLinked(entity);
+        issueClockAccessIfEligible(entity);
         return toEnrichedResponse(entity);
     }
 
@@ -175,6 +179,7 @@ public class AdmissionProcessService
         contractRecessProvisioningService.sync(saved);
         syncExperiencePeriod(saved, request.getExperiencePeriod());
         admissionPipelineService.ensureSteps(saved.getId());
+        issueClockAccessIfEligible(saved);
         indexAdmission(saved);
         return toEnrichedResponse(saved);
     }
@@ -203,6 +208,7 @@ public class AdmissionProcessService
                         ? request.getExperiencePeriod()
                         : saved.getExperiencePeriod());
         admissionPipelineService.ensureSteps(saved.getId());
+        issueClockAccessIfEligible(saved);
         indexAdmission(saved);
         return toEnrichedResponse(saved);
     }
@@ -231,6 +237,11 @@ public class AdmissionProcessService
 
     private void assertAdmissionalExamIfCompleting(AdmissionProcess entity) {
         if (entity.getAdmissionStatus() != AdmissionStatusEnum.COMPLETED) {
+            return;
+        }
+        // Aprovacao manual, ou ASO ja registrado, nao pode impedir editar o cadastro.
+        if (entity.getManuallyApprovedAt() != null
+                || occupationalExamTriggerService.hasRegisteredAdmissional(entity.getCollaboratorId())) {
             return;
         }
         if (!occupationalExamTriggerService.hasAdmissionalFit(entity.getCollaboratorId())) {
@@ -514,7 +525,8 @@ public class AdmissionProcessService
                             entity.getCollaboratorId() != null
                                     && absenceFlags.registered().contains(entity.getCollaboratorId()),
                             entity.getCollaboratorId() != null
-                                    && absenceFlags.active().contains(entity.getCollaboratorId()));
+                                    && absenceFlags.active().contains(entity.getCollaboratorId()),
+                            collaboratorAccessCode(entity, collaborators));
                 })
                 .toList();
     }
@@ -539,7 +551,98 @@ public class AdmissionProcessService
                 entity.getCollaboratorId() != null
                         && absenceFlags.registered().contains(entity.getCollaboratorId()),
                 entity.getCollaboratorId() != null
-                        && absenceFlags.active().contains(entity.getCollaboratorId()));
+                        && absenceFlags.active().contains(entity.getCollaboratorId()),
+                collaboratorAccessCode(entity, collaborators));
+    }
+
+    @Override
+    @Transactional
+    public void grantClockAccessAfterAdmissionalExam(UUID collaboratorId) {
+        if (collaboratorId == null) {
+            return;
+        }
+        List<AdmissionProcess> admissions =
+                repository.findAllByCollaboratorIdAndStatusNot(collaboratorId, StatusEnum.DELETED);
+        for (AdmissionProcess admission : admissions) {
+            if (admission.getAdmissionStatus() == AdmissionStatusEnum.CANCELLED) {
+                continue;
+            }
+            AdmissionAttachmentCounts counts = loadAttachmentCounts(admission.getId());
+            AdmissionStatusEnum next = resolveComputedStatus(
+                    admission, counts.documentCount(), counts.contractDocumentCount());
+            if (next == AdmissionStatusEnum.COMPLETED
+                    && admission.getAdmissionStatus() != AdmissionStatusEnum.COMPLETED) {
+                admission.setAdmissionStatus(AdmissionStatusEnum.COMPLETED);
+                applyCompletionDates(admission);
+                repository.save(admission);
+            }
+            issueClockAccessIfEligible(admission);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void revertAdmissionAfterAdmissionalExamRemoval(UUID collaboratorId) {
+        if (collaboratorId == null
+                || occupationalExamTriggerService.hasRegisteredAdmissional(collaboratorId)) {
+            return;
+        }
+        List<AdmissionProcess> admissions =
+                repository.findAllByCollaboratorIdAndStatusNot(collaboratorId, StatusEnum.DELETED);
+        for (AdmissionProcess admission : admissions) {
+            if (admission.getAdmissionStatus() == AdmissionStatusEnum.CANCELLED) {
+                continue;
+            }
+            boolean changed = false;
+            if (admission.getManuallyApprovedAt() != null || admission.getManuallyApprovedBy() != null) {
+                admission.setManuallyApprovedAt(null);
+                admission.setManuallyApprovedBy(null);
+                changed = true;
+            }
+            AdmissionAttachmentCounts counts = loadAttachmentCounts(admission.getId());
+            AdmissionStatusEnum next = resolveComputedStatus(
+                    admission, counts.documentCount(), counts.contractDocumentCount());
+            if (admission.getAdmissionStatus() != next) {
+                admission.setAdmissionStatus(next);
+                changed = true;
+            }
+            if (!changed) {
+                continue;
+            }
+            applyCompletionDates(admission);
+            repository.save(admission);
+            indexAdmission(admission);
+        }
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('admission:write', 'admission:pipeline')")
+    public String issueClockAccess(UUID admissionId) {
+        AdmissionProcess admission = findEntity(admissionId);
+        String code = clockAccessService.issue(admission);
+        if (!StringUtils.hasText(code)) {
+            throw AdmissionProcessException.clockAccessIdentityRequired();
+        }
+        return code;
+    }
+
+    private void issueClockAccessIfEligible(AdmissionProcess admission) {
+        if (admission.getManuallyApprovedAt() != null
+                || admission.getAdmissionStatus() == AdmissionStatusEnum.COMPLETED) {
+            clockAccessService.issue(admission);
+        }
+    }
+
+    private static String collaboratorAccessCode(AdmissionProcess entity, Map<UUID, Collaborator> collaborators) {
+        if (entity.getCollaboratorId() == null) {
+            return null;
+        }
+        Collaborator collaborator = collaborators.get(entity.getCollaboratorId());
+        if (collaborator == null || collaborator.getAccessCode() == null || collaborator.getAccessCode().isBlank()) {
+            return null;
+        }
+        return collaborator.getAccessCode();
     }
 
     private Map<String, List<String>> admissionFilterOptions(List<AdmissionProcessResponseDto> rows) {
