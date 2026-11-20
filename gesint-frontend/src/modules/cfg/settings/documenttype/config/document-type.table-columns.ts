@@ -5,15 +5,15 @@ import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types"
 export const DOCUMENT_TYPE_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {
-        id: "typeCode",
-        columnName: "Código",
-        fieldValue: "typeCode",
-        dataType: TableDataType.TEXT,
-    },
-    {
         id: "name",
         columnName: "Nome",
         fieldValue: "name",
+        dataType: TableDataType.TEXT,
+    },
+    {
+        id: "typeCode",
+        columnName: "Código",
+        fieldValue: "typeCode",
         dataType: TableDataType.TEXT,
     },
     {
@@ -22,6 +22,13 @@ export const DOCUMENT_TYPE_TABLE_COLUMNS: TableColumnConfig[] = [
         fieldValue: "dataClass",
         dataType: TableDataType.BADGE,
         badgeLabels: DOCUMENT_DATA_CLASS_LABELS,
+    },
+    {
+        id: "requiredForAdmission",
+        columnName: "Obrig. admissão",
+        fieldValue: "requiredForAdmission",
+        dataType: TableDataType.BOOLEAN,
+        align: "center",
     },
     {
         id: "status",

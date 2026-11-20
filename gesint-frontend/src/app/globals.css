@@ -1452,6 +1452,25 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     color: var(--gesint-primary-dark);
 }
 
+.gesint-listbox-option--emphasized {
+    box-shadow: inset 2px 0 0 color-mix(in srgb, var(--gesint-primary) 70%, transparent);
+    font-variation-settings: "wght" 560;
+    color: color-mix(in srgb, var(--color-base-content) 88%, transparent);
+}
+
+.gesint-listbox-option__badge {
+    margin-top: 0.1rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    font-size: 10px;
+    line-height: 1.35;
+    font-variation-settings: "wght" 600;
+    letter-spacing: 0.01em;
+    color: var(--gesint-primary-dark);
+    background: color-mix(in srgb, var(--gesint-primary) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--gesint-primary) 28%, transparent);
+}
+
 [data-theme="dark"] .gesint-listbox-option:hover {
     background: color-mix(in srgb, var(--color-primary) 14%, transparent);
     color: var(--color-base-content);
@@ -1461,6 +1480,16 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 [data-theme="dark"] .gesint-listbox-option--selected {
     background: color-mix(in srgb, var(--color-primary) 18%, transparent);
     color: var(--color-primary);
+}
+
+[data-theme="dark"] .gesint-listbox-option--emphasized {
+    box-shadow: inset 2px 0 0 color-mix(in srgb, var(--color-primary) 75%, transparent);
+}
+
+[data-theme="dark"] .gesint-listbox-option__badge {
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+    border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 /* CRUD list toolbar */

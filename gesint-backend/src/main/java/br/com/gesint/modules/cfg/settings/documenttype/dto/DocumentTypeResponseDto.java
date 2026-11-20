@@ -22,6 +22,7 @@ public class DocumentTypeResponseDto {
     private final DocumentDataClassEnum dataClass;
     private final List<String> contexts;
     private final Boolean systemManaged;
+    private final Boolean requiredForAdmission;
     private final Integer sortOrder;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;

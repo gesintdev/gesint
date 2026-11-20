@@ -57,6 +57,7 @@ export const InputSelectPanel = forwardRef<HTMLDivElement, InputSelectPanelProps
                                 className={clsx(
                                     "gesint-listbox-option",
                                     item.disabled && "pointer-events-none opacity-45",
+                                    item.emphasized && "gesint-listbox-option--emphasized",
                                     active && "gesint-listbox-option--active",
                                     selected && "gesint-listbox-option--selected",
                                 )}
@@ -72,6 +73,9 @@ export const InputSelectPanel = forwardRef<HTMLDivElement, InputSelectPanelProps
                                         </span>
                                     )}
                                 </span>
+                                {item.badge ? (
+                                    <span className="gesint-listbox-option__badge shrink-0">{item.badge}</span>
+                                ) : null}
                                 {selected && <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />}
                             </li>
                         );
