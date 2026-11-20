@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.com.gesint.core.branch.BranchContextHolder;
 import br.com.gesint.core.audit.trail.AuditActionEnum;
 import br.com.gesint.core.audit.trail.AuditTrailEntry;
 import br.com.gesint.core.audit.trail.AuditTrailRecorder;
@@ -117,7 +118,7 @@ public class StorageService implements IStorageService {
                     .localFilePath(targetFile.toString())
                     .sha256Hex(sha256Hex)
                     .metadata(new HashMap<>())
-                    .companyId(companyId)
+                    .companyId(resolveCompanyId(companyId))
                     .build();
             entity.setStatus(StatusEnum.ACTIVE);
             return mapper.toObjectResponse(objectRepository.save(entity));
@@ -175,7 +176,7 @@ public class StorageService implements IStorageService {
                 .linkRole(linkRole != null ? linkRole : "DOCUMENT")
                 .displayName(displayName)
                 .documentType(documentType)
-                .companyId(companyId != null ? companyId : object.getCompanyId())
+                .companyId(resolveCompanyId(companyId != null ? companyId : object.getCompanyId()))
                 .build();
         link.setStatus(StatusEnum.ACTIVE);
         link = linkRepository.save(link);
@@ -215,10 +216,11 @@ public class StorageService implements IStorageService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     @PreAuthorize("hasAuthority('storage:read')")
     public List<StorageObjectLinkResponseDto> listByEntity(String entityType, UUID entityId) {
         attachmentAccessGuard.assertCanList(entityType);
+        claimLinksForActiveBranch(entityType, entityId);
         return listByEntityInternal(entityType, entityId);
     }
 
@@ -299,6 +301,22 @@ public class StorageService implements IStorageService {
         return objectRepository
                 .findByIdAndStatusNot(objectId, StatusEnum.DELETED)
                 .orElseThrow(StorageException::notFound);
+    }
+
+    private void claimLinksForActiveBranch(String entityType, UUID entityId) {
+        if (BranchContextHolder.getOptional().isEmpty() || BranchContextHolder.isUnscoped()) {
+            return;
+        }
+        UUID branchId = BranchContextHolder.require();
+        linkRepository.claimObjectsWithoutBranch(branchId, entityType, entityId);
+        linkRepository.claimLinksWithoutBranch(branchId, entityType, entityId);
+    }
+
+    private static UUID resolveCompanyId(UUID companyId) {
+        if (companyId != null) {
+            return companyId;
+        }
+        return BranchContextHolder.getOptional().orElse(null);
     }
 
     private static String sanitizeFilename(String original) {

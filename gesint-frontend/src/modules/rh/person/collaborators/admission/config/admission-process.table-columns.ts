@@ -5,6 +5,14 @@ import { type TableColumnConfig, TableDataType } from "@/shared/types/table.type
 export const ADMISSION_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {
+        id: "collaboratorAccessCode",
+        columnName: "Cod. Colab.",
+        fieldValue: "collaboratorAccessCode",
+        dataType: TableDataType.STRING,
+        className: "tabular-nums",
+        headerClassName: "whitespace-nowrap",
+    },
+    {
         id: "fullName",
         columnName: "Colaborador",
         fieldValue: "fullName",

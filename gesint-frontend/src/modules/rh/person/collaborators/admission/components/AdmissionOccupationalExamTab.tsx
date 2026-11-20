@@ -1,8 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { Plus, Stethoscope } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Stethoscope, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { OccupationalExamFormModal } from "@/modules/dp/occupational-exam/components/OccupationalExamFormModal";
 import { OCCUPATIONAL_EXAM_TABLE_COLUMNS } from "@/modules/dp/occupational-exam/config/occupational-exam.table-columns";
@@ -15,7 +16,9 @@ import { ADMISSION_CLIENT_MESSAGES } from "@/modules/rh/person/collaborators/adm
 import { admissionprocessService } from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
 import { useHasPermission } from "@/shared/auth/permissions";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
+import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { Button } from "@/shared/components/ui/Button";
+import { SystemAlert } from "@/shared/system-alert";
 import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { DataTable } from "@/shared/components/ui/DataTable";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -40,7 +43,9 @@ function EmptyAdmissionState() {
 
 export function AdmissionOccupationalExamTab() {
     const { editingId } = useCrudScreen();
+    const queryClient = useQueryClient();
     const canWrite = useHasPermission("occupationalexam:write");
+    const canDelete = useHasPermission("occupationalexam:delete");
     const [modalOpen, setModalOpen] = useState(false);
     const [editingExamId, setEditingExamId] = useState<string | null>(null);
 
@@ -72,6 +77,31 @@ export function AdmissionOccupationalExamTab() {
     const openEdit = (row: OccupationalExam) => {
         setEditingExamId(row.id);
         setModalOpen(true);
+    };
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => occupationalExamService.remove(id),
+        onSuccess: async () => {
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: occupationalExamKeys.all }),
+                queryClient.invalidateQueries({ queryKey: admissionprocessKeys.all }),
+            ]);
+            toast.success("Exame ocupacional excluído");
+        },
+        onError: (err: unknown) =>
+            ExceptionCapture.handle(err, {
+                fallbackMessage: OCCUPATIONAL_EXAM_CLIENT_MESSAGES.DELETE_FAILED,
+            }),
+    });
+
+    const handleDelete = async (row: OccupationalExam) => {
+        if (row.lifecycleStatus === "ARQUIVADO") return;
+        if (!(await SystemAlert.confirmDelete(
+            "Excluir este exame? Sem outro ASO registrado, a admissão deixa de ficar aprovada.",
+        ))) {
+            return;
+        }
+        deleteMutation.mutate(row.id);
     };
 
     if (!editingId) {
@@ -148,6 +178,27 @@ export function AdmissionOccupationalExamTab() {
                         emptyMessage="Nenhum exame cadastrado para este colaborador."
                         rowActivateOn="doubleclick"
                         onRowActivate={canWrite ? openEdit : undefined}
+                        renderActions={
+                            canDelete
+                                ? (row) => (
+                                      <TableActionButton
+                                          actionVariant="delete"
+                                          aria-label="Excluir"
+                                          title={
+                                              row.lifecycleStatus === "ARQUIVADO"
+                                                  ? "Exame arquivado não pode ser excluído"
+                                                  : "Excluir"
+                                          }
+                                          disabled={row.lifecycleStatus === "ARQUIVADO"}
+                                          loading={
+                                              deleteMutation.isPending && deleteMutation.variables === row.id
+                                          }
+                                          leftIcon={<Trash2 className="size-3.5" />}
+                                          onClick={() => void handleDelete(row)}
+                                      />
+                                  )
+                                : undefined
+                        }
                     />
                 </section>
             )}

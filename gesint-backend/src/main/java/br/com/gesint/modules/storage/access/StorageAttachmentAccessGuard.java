@@ -8,7 +8,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import br.com.gesint.core.branch.BranchContextHolder;
 import br.com.gesint.core.entity.StatusEnum;
 import br.com.gesint.core.security.AuthorityWildcards;
 import br.com.gesint.modules.cfg.settings.documenttype.entity.DocumentDataClassEnum;
@@ -36,7 +35,6 @@ public class StorageAttachmentAccessGuard {
 
     /** Lista anexos de uma entidade: exige {@code :read} do módulo dono. */
     public void assertCanList(String entityType) {
-        requireActiveBranch();
         OwnerAuthorities owner = StorageOwnerAccess.resolve(entityType)
                 .orElseThrow(StorageException::accessDenied);
         requireAuthority(owner.read());
@@ -52,7 +50,6 @@ public class StorageAttachmentAccessGuard {
      * @return a classe restrita mais alta entre os vínculos, se houver
      */
     public Optional<RestrictedAttachment> assertCanDownload(UUID storageObjectId) {
-        requireActiveBranch();
         List<StorageObjectLink> links =
                 linkRepository.findAllByStorageObjectIdAndStatusNot(storageObjectId, StatusEnum.DELETED);
         if (links.isEmpty()) {
@@ -104,12 +101,6 @@ public class StorageAttachmentAccessGuard {
                 .findByTypeCodeIgnoreCaseAndStatusNot(documentTypeCode.trim(), StatusEnum.DELETED)
                 .map(DocumentType::getDataClass)
                 .orElse(DocumentDataClassEnum.COMUM);
-    }
-
-    private static void requireActiveBranch() {
-        if (BranchContextHolder.getOptional().isEmpty()) {
-            throw StorageException.branchRequired();
-        }
     }
 
     private static void requireAuthority(String authority) {

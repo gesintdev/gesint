@@ -45,6 +45,8 @@ import br.com.gesint.modules.rh.person.collaborators.admission.pipeline.entity.E
 import br.com.gesint.modules.rh.person.collaborators.admission.pipeline.repository.AdmissionStepRepository;
 import br.com.gesint.modules.rh.person.collaborators.admission.pipeline.repository.EsocialEventRepository;
 import br.com.gesint.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
+import br.com.gesint.modules.rh.person.collaborators.admission.service.AdmissionClockAccessService;
+import br.com.gesint.modules.rh.person.collaborators.people.service.CollaboratorProfileService;
 import br.com.gesint.modules.dp.occupationalexam.exam.entity.OccupationalExam;
 import br.com.gesint.modules.dp.occupationalexam.exam.entity.OccupationalExamLifecycleStatusEnum;
 import br.com.gesint.modules.dp.occupationalexam.exam.entity.OccupationalExamResultEnum;
@@ -80,6 +82,8 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
     private final OccupationalExamRepository occupationalExamRepository;
     private final StorageObjectLinkRepository storageObjectLinkRepository;
     private final DepartmentRepository departmentRepository;
+    private final AdmissionClockAccessService clockAccessService;
+    private final CollaboratorProfileService collaboratorProfileService;
 
     public AdmissionPipelineService(
             AdmissionProcessRepository admissionRepository,
@@ -87,13 +91,17 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             EsocialEventRepository esocialEventRepository,
             OccupationalExamRepository occupationalExamRepository,
             StorageObjectLinkRepository storageObjectLinkRepository,
-            DepartmentRepository departmentRepository) {
+            DepartmentRepository departmentRepository,
+            AdmissionClockAccessService clockAccessService,
+            CollaboratorProfileService collaboratorProfileService) {
         this.admissionRepository = admissionRepository;
         this.stepRepository = stepRepository;
         this.esocialEventRepository = esocialEventRepository;
         this.occupationalExamRepository = occupationalExamRepository;
         this.storageObjectLinkRepository = storageObjectLinkRepository;
         this.departmentRepository = departmentRepository;
+        this.clockAccessService = clockAccessService;
+        this.collaboratorProfileService = collaboratorProfileService;
     }
 
     @Override
@@ -185,6 +193,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             admission.setCompletedAt(LocalDate.now(BUSINESS_ZONE));
         }
         admissionRepository.save(admission);
+        clockAccessService.issue(admission);
     }
 
     private List<AdmissionPipelineRowDto> buildPipeline(LocalDate today) {
@@ -236,6 +245,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                                 AdmissionPipelineService::preferClosedExam));
 
         Map<UUID, String> departmentNames = loadDepartmentNames(admissions);
+        Map<UUID, String> accessCodes = new HashMap<>(collaboratorProfileService.accessCodesById(collaboratorIds));
 
         List<AdmissionStep> toPersist = new ArrayList<>();
         List<AdmissionPipelineRowDto> rows = new ArrayList<>();
@@ -257,6 +267,15 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
 
             AdmissionPipelineRowDto row = buildRow(
                     admission, departmentNames, documents, exam, event, statuses, dueDates, persisted, today);
+            if (isClockEligible(admission, row)) {
+                String issued = clockAccessService.issue(admission);
+                if (issued != null && admission.getCollaboratorId() != null) {
+                    accessCodes.put(admission.getCollaboratorId(), issued);
+                }
+            }
+            if (admission.getCollaboratorId() != null) {
+                row.setCollaboratorAccessCode(accessCodes.get(admission.getCollaboratorId()));
+            }
             if (belongsToPipeline(row, statuses, event != null, today)) {
                 rows.add(row);
             }
@@ -590,6 +609,16 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             return false;
         }
         return AdmissionPipelineRules.isOverdue(dueDate, today);
+    }
+
+    /**
+     * Codigo de ponto: aprovacao manual, admissao concluida pelo cadastro ou esteira pronta
+     * pelos parametros do sistema.
+     */
+    private static boolean isClockEligible(AdmissionProcess admission, AdmissionPipelineRowDto row) {
+        return admission.getManuallyApprovedAt() != null
+                || admission.getAdmissionStatus() == AdmissionStatusEnum.COMPLETED
+                || row.getSignal() == AdmissionPipelineSignalEnum.PRONTO;
     }
 
     private static boolean isStartDatePassed(AdmissionProcess admission, LocalDate today) {

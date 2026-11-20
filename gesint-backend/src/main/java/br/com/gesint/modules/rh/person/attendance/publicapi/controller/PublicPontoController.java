@@ -4,14 +4,17 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.com.gesint.core.tenant.TenantContextHolder;
 import br.com.gesint.modules.rh.person.attendance.publicapi.dto.PublicPontoClockRequestDto;
 import br.com.gesint.modules.rh.person.attendance.publicapi.dto.PublicPontoClockResponseDto;
+import br.com.gesint.modules.rh.person.attendance.publicapi.dto.PublicPontoContextDto;
 import br.com.gesint.modules.rh.person.attendance.publicapi.service.PublicPontoService;
 
 @RestController
@@ -22,6 +25,16 @@ public class PublicPontoController {
 
     public PublicPontoController(PublicPontoService publicPontoService) {
         this.publicPontoService = publicPontoService;
+    }
+
+    /**
+     * O filtro de tenant responde 404 antes deste metodo quando o slug nao existe.
+     * Se a requisicao chega aqui, o ambiente e valido (ou o multi-tenant esta desligado).
+     */
+    @GetMapping("/context")
+    public ResponseEntity<PublicPontoContextDto> context() {
+        String slug = TenantContextHolder.getOptional().map(context -> context.slug()).orElse(null);
+        return ResponseEntity.ok(PublicPontoContextDto.builder().slug(slug).build());
     }
 
     @PostMapping(value = "/clock", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

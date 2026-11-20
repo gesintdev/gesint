@@ -25,6 +25,8 @@ public class AdmissionProcessResponseDto {
     private final StatusEnum status;
     private final UUID collaboratorId;
     private final StatusEnum collaboratorStatus;
+    /** Codigo para bater ponto no link publico. Ausente ate a admissao ser aprovada ou ficar apta. */
+    private final String collaboratorAccessCode;
     private final UUID photoObjectId;
     private final AdmissionStatusEnum admissionStatus;
     private final boolean inVacation;

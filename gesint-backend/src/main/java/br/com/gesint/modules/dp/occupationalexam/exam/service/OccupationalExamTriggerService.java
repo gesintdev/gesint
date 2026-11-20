@@ -82,9 +82,27 @@ public class OccupationalExamTriggerService {
                         OccupationalExamResultEnum.FIT,
                         StatusEnum.DELETED)
                 .stream()
-                .anyMatch(exam -> exam.getLifecycleStatus() == OccupationalExamLifecycleStatusEnum.REGISTRADO
-                        || exam.getLifecycleStatus() == OccupationalExamLifecycleStatusEnum.TRANSMITIDO
-                        || exam.getLifecycleStatus() == OccupationalExamLifecycleStatusEnum.ARQUIVADO);
+                .anyMatch(this::isClosedAdmissionalLifecycle);
+    }
+
+    /** ASO admissional ja encerrado no ciclo, mesmo quando o resultado ainda nao foi persistido. */
+    @Transactional(readOnly = true)
+    public boolean hasRegisteredAdmissional(UUID collaboratorId) {
+        if (collaboratorId == null) {
+            return false;
+        }
+        return occupationalExamRepository
+                .findByCollaboratorIdAndExamTypeAndStatusNot(
+                        collaboratorId, OccupationalExamTypeEnum.ADMISSIONAL, StatusEnum.DELETED)
+                .stream()
+                .anyMatch(this::isClosedAdmissionalLifecycle);
+    }
+
+    private boolean isClosedAdmissionalLifecycle(OccupationalExam exam) {
+        OccupationalExamLifecycleStatusEnum lifecycle = exam.getLifecycleStatus();
+        return lifecycle == OccupationalExamLifecycleStatusEnum.REGISTRADO
+                || lifecycle == OccupationalExamLifecycleStatusEnum.TRANSMITIDO
+                || lifecycle == OccupationalExamLifecycleStatusEnum.ARQUIVADO;
     }
 
     @Transactional

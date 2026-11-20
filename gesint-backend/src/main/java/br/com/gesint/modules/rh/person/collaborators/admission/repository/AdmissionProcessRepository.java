@@ -26,6 +26,8 @@ public interface AdmissionProcessRepository extends IBaseRepository<AdmissionPro
 
     Optional<AdmissionProcess> findByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
 
+    List<AdmissionProcess> findAllByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
+
     Optional<AdmissionProcess> findByPreAdmissionTokenAndStatusNot(String preAdmissionToken, StatusEnum status);
 
     Optional<AdmissionProcess> findFirstBySourceCandidateIdAndStatusNotOrderByCreatedAtDesc(

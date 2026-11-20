@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { type KeyboardEvent, type MouseEvent } from "react";
 import { toast } from "sonner";
 
+import { GenerateAdmissionAccessCodeButton } from "@/modules/rh/person/collaborators/admission/components/GenerateAdmissionAccessCodeButton";
 import type {
     AdmissionPipelineRow,
     AdmissionPipelineStep,
@@ -121,6 +122,17 @@ function PipelineRow({
                 <div className="min-w-0">
                     <div className="truncate text-[12.5px] font-semibold text-base-content">{row.fullName}</div>
                     <div className="mt-0.5 truncate text-[10.5px] text-base-content/45">{rowSubtitle(row)}</div>
+                    {row.collaboratorAccessCode ? (
+                        <div className="mt-0.5 truncate text-[11px] tabular-nums text-base-content/70">
+                            Cod. Colab. {row.collaboratorAccessCode}
+                        </div>
+                    ) : (
+                        <GenerateAdmissionAccessCodeButton
+                            admissionId={row.admissionId}
+                            stopPropagation
+                            className="mt-1"
+                        />
+                    )}
                 </div>
             </div>
 

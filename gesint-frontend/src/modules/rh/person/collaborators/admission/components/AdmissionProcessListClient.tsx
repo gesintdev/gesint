@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { EntityImportLockNotice } from "@/modules/cfg/settings/dataimport/components/EntityImportLockNotice";
 import { useEntityImportLock } from "@/modules/cfg/settings/dataimport/hooks/useEntityImportLock";
 import { admissionprocessKeys } from "@/modules/rh/person/collaborators/admission/admission.query";
+import { GenerateAdmissionAccessCodeButton } from "@/modules/rh/person/collaborators/admission/components/GenerateAdmissionAccessCodeButton";
 import { AdmissionDetailModal } from "@/modules/rh/person/collaborators/admission/components/AdmissionDetailModal";
 import { ADMISSION_TABLE_COLUMNS } from "@/modules/rh/person/collaborators/admission/config/admission-process.table-columns";
 import type { AdmissionProcess } from "@/modules/rh/person/collaborators/admission/dto/admission-process.dto";
@@ -134,6 +135,13 @@ export function AdmissionProcessListClient() {
                     onRowActivate={(row) => startEdit(row.id, row)}
                     renderActions={(row) => (
                         <>
+                            {!row.collaboratorAccessCode ? (
+                                <GenerateAdmissionAccessCodeButton
+                                    admissionId={row.id}
+                                    stopPropagation
+                                    className="admission-access-code-button"
+                                />
+                            ) : null}
                             <TableActionButton
                                 actionVariant="open"
                                 aria-label="Visualizar detalhes da admissão"

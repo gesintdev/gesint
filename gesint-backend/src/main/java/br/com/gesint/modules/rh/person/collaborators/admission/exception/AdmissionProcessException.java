@@ -41,4 +41,11 @@ public final class AdmissionProcessException {
                 AdmissionProcessExceptions.ADMISSIONAL_EXAM_REQUIRED_MSG,
                 HttpStatus.BAD_REQUEST);
     }
+
+    public static BusinessException clockAccessIdentityRequired() {
+        return new BusinessException(
+                AdmissionProcessExceptions.CLOCK_ACCESS_IDENTITY_REQUIRED_CODE,
+                AdmissionProcessExceptions.CLOCK_ACCESS_IDENTITY_REQUIRED_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }
