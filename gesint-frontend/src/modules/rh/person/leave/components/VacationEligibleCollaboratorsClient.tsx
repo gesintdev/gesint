@@ -52,7 +52,7 @@ export function VacationEligibleCollaboratorsClient() {
                     type="button"
                     size="sm"
                     variant="primary"
-                    className="!h-7 !min-h-7 !px-2.5"
+                    className="!px-2.5"
                     leftIcon={<CalendarPlus className="size-3.5" strokeWidth={2} />}
                     onClick={() => handleRequest(row)}
                 >

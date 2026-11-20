@@ -405,11 +405,9 @@ export function ExperienceEvaluationFormClient() {
                                     <label
                                         key={action}
                                         className={clsx(
-                                            "flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-sm",
-                                            decisionAction === action
-                                                ? "border-primary/40 bg-primary/5"
-                                                : "border-base-content/10",
-                                            disabled && "cursor-not-allowed opacity-50",
+                                            "gesint-choice-option gesint-choice-option--multiline gesint-choice-option--outlined",
+                                            decisionAction === action && "gesint-choice-option--active",
+                                            disabled && "gesint-choice-option--disabled cursor-not-allowed opacity-50",
                                         )}
                                     >
                                         <input

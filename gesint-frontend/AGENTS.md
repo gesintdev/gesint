@@ -17,11 +17,13 @@ Antes de alterar qualquer tela, componente ou CSS deste app, leia:
 Resumo do que não pode ser quebrado (detalhes no `gesint-ui-system.mdc`):
 
 - Estilos por token e classe semântica em `src/app/globals.css`; nada de hex em `.tsx`.
-- Peso de fonte via `font-weight`; nunca `font-variation-settings: "wght"` em `body`/containers. `body` com `line-height: 1.5`.
-- Raios: badge 5px · aba 6px · botão/input 7px · card 8px · modal 12px.
+- Escala fixa do ClickUp (`gesint-ui-system.mdc` §13.1): fonte `"Segoe UI Variable Text"` (via `@font-face local()`), controles 28px, texto do input 13px, label 11px/400, subabas 32px, stepper com pílulas 24px, linha de tabela 36px. Sem `zoom`/`transform: scale`.
+- Peso de fonte via `font-weight` (400 texto · 450 botão/destaque · 550 título/aba ativa); nunca `font-variation-settings: "wght"`. `body` com `line-height: 1.5`.
+- Raios: badge 4px · aba 4px · botão/input 5px · card 6px · modal 8px.
 - Rail de sistemas mais escuro que a sidebar (claro e escuro).
 - Botão primário sólido, sem gradiente/glow. Item ativo da sidebar: fundo `primary 8%` + barra de 3px à esquerda.
 - Carregamento: `AppLoadingScreen` (tela/Suspense) ou skeleton (conteúdo). Nunca "Carregando..." solto.
-- Login: `LoginShell` só em `src/app/(auth)/layout.tsx`; páginas de `(auth)` renderizam `LoginHeading` + formulário.
+- Menu da conta na topbar (`HeaderUserMenu`), não na sidebar.
+- Login: `LoginShell` só em `src/app/(auth)/layout.tsx`; páginas de `(auth)` renderizam `LoginHeading` + formulário. Campos e botão 36px.
 - Animações: Framer Motion com `MotionConfig reducedMotion="user"`, curva `[0.22, 1, 0.36, 1]`; nada de `transform` em container com filhos `position: fixed`.
 - Só dados reais em tela; conferir sempre nos temas claro e escuro rodando o app.

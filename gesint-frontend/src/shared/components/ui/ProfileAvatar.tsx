@@ -8,7 +8,7 @@ import { useStorageObjectUrl } from "@/shared/hooks/useStorageObjectUrl";
 type ProfileAvatarProps = {
     name?: string;
     photoObjectId?: string | null;
-    size?: "sm" | "md" | "lg" | "xl";
+    size?: "xs" | "sm" | "md" | "lg" | "xl";
     shape?: "circle" | "squircle" | "rounded";
     /** Sem foto: ícone genérico (padrão) ou as iniciais do nome. */
     fallback?: "icon" | "initials";
@@ -16,12 +16,14 @@ type ProfileAvatarProps = {
 };
 
 const SIZE_CLASS: Record<NonNullable<ProfileAvatarProps["size"]>, string> = {
+    xs: "h-6 w-6",
     sm: "h-[1.75rem] w-[1.75rem]",
     md: "h-9 w-9",
     lg: "h-12 w-12",
     xl: "h-[200px] w-[200px]",
 };
 const ICON_CLASS: Record<NonNullable<ProfileAvatarProps["size"]>, string> = {
+    xs: "size-3",
     sm: "size-3.5",
     md: "size-4",
     lg: "size-6",
@@ -33,6 +35,7 @@ const SHAPE_CLASS: Record<NonNullable<ProfileAvatarProps["shape"]>, string> = {
     rounded: "rounded-2xl",
 };
 const INITIALS_CLASS: Record<NonNullable<ProfileAvatarProps["size"]>, string> = {
+    xs: "text-xs",
     sm: "text-[9px]",
     md: "text-[11px]",
     lg: "text-sm",

@@ -51,7 +51,7 @@ export function HeaderMoreMenu({
     };
 
     return (
-        <div ref={rootRef} className="relative lg:hidden">
+        <div ref={rootRef} className="header-more-menu relative hidden max-lg:block">
             <button
                 type="button"
                 aria-label="Mais ações"
@@ -63,7 +63,7 @@ export function HeaderMoreMenu({
                     open && "bg-base-content/7 text-base-content/80",
                 )}
             >
-                <EllipsisVertical className="size-4" strokeWidth={2}/>
+                <EllipsisVertical className="size-4" strokeWidth={1.5}/>
             </button>
             <AnimatePresence>
                 {open ? (
@@ -82,7 +82,7 @@ export function HeaderMoreMenu({
                             onClick={() => run(onAgenda)}
                             className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start text-[13px] text-base-content/80 transition-colors hover:bg-base-content/6"
                         >
-                            <CalendarDays className="size-4 shrink-0 text-base-content/45" strokeWidth={2}/>
+                            <CalendarDays className="size-4 shrink-0 text-base-content/45" strokeWidth={1.5}/>
                             Agenda
                         </button>
                         <button
@@ -91,7 +91,7 @@ export function HeaderMoreMenu({
                             onClick={() => run(onClock)}
                             className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start text-[13px] text-base-content/80 transition-colors hover:bg-base-content/6"
                         >
-                            <Clock className="size-4 shrink-0 text-base-content/45" strokeWidth={2}/>
+                            <Clock className="size-4 shrink-0 text-base-content/45" strokeWidth={1.5}/>
                             Registro de ponto
                         </button>
                         {showAiAssistant && onAiAssistant ? (
@@ -106,7 +106,7 @@ export function HeaderMoreMenu({
                             >
                                 <Sparkles
                                     className={clsx("size-4 shrink-0", aiAssistantOpen ? "text-primary" : "text-base-content/45")}
-                                    strokeWidth={2}
+                                    strokeWidth={1.5}
                                 />
                                 Assistente IA
                             </button>

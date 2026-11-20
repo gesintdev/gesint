@@ -17,6 +17,7 @@ import {
 import {AppLoadingScreen} from "@/shared/components/layout/AppLoadingScreen";
 import {GesintLogo} from "@/shared/components/layout/GesintLogo";
 import {HeaderBranchSelector} from "@/shared/components/layout/HeaderBranchSelector";
+import {HeaderUserMenu} from "@/shared/components/layout/HeaderUserMenu";
 import {Sidebar} from "@/shared/components/layout/Sidebar";
 import {HeaderNotifications} from "@/shared/components/notifications/HeaderNotifications";
 import {useSessionReady} from "@/shared/components/providers/SessionGate";
@@ -108,7 +109,7 @@ export function SystemShell({
                                     onClick={toggleMobileNav}
                                     className="gesint-btn gesint-btn--ghost gesint-btn--icon-only shrink-0 text-base-content/50 lg:hidden!"
                                 >
-                                    <Menu className="size-4.5" strokeWidth={2}/>
+                                    <Menu className="size-4.5" strokeWidth={1.5}/>
                                 </button>
                                 <div className="flex shrink-0 items-center lg:hidden">
                                     <GesintLogo collapsed/>
@@ -117,29 +118,27 @@ export function SystemShell({
                                     <HeaderReleaseVersion/>
                                 </div>
                                 <div className="min-w-1 flex-1 sm:min-w-2" aria-hidden/>
-                                <div className="flex min-w-0 shrink-0 items-center gap-0.5 sm:gap-1">
+                                <div className="header-toolbar-end">
                                     <HeaderBranchSelector/>
-                                    <div className="mx-0.5 hidden h-4 w-px bg-base-content/10 lg:block"/>
-                                    <div className="hidden items-center gap-0.5 lg:flex">
+                                    <div className="header-actions-trail" role="group" aria-label="Ações rápidas">
                                         <button
                                             type="button"
                                             aria-label="Agenda"
+                                            title="Agenda"
                                             onClick={() => setAgendaModalOpen(true)}
-                                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/55"
+                                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only max-lg:hidden"
                                         >
                                             <CalendarDays className="size-4" strokeWidth={2}/>
                                         </button>
                                         <button
                                             type="button"
                                             aria-label="Registro de ponto"
+                                            title="Registro de ponto"
                                             onClick={() => setClockModalOpen(true)}
-                                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only text-base-content/55"
+                                            className="gesint-btn gesint-btn--ghost gesint-btn--icon-only max-lg:hidden"
                                         >
                                             <Clock className="size-4" strokeWidth={2}/>
                                         </button>
-                                    </div>
-                                    <div className="mx-0.5 hidden h-4 w-px bg-base-content/10 lg:block"/>
-                                    <div className="flex items-center gap-0.5 sm:gap-1">
                                         <HeaderNotifications/>
                                         <GlobalSearchPalette/>
                                         <AssistantHeaderButton/>
@@ -148,6 +147,7 @@ export function SystemShell({
                                             onClock={() => setClockModalOpen(true)}
                                         />
                                     </div>
+                                    <HeaderUserMenu/>
                                 </div>
                             </header>
                         </div>

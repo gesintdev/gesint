@@ -339,7 +339,7 @@ export function AdmissionProcessFormClient() {
                 bodyClassName="!block"
             >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-                    <div className="flex lg:w-60 lg:shrink-0">
+                    <div className="flex lg:w-44 lg:shrink-0 2xl:w-60">
                         <ProfilePhotoField
                             className="w-full flex-1"
                             photoObjectId={form.photoObjectId || undefined}
@@ -349,7 +349,7 @@ export function AdmissionProcessFormClient() {
                             displayName={form.fullName || "Colaborador"}
                         />
                     </div>
-                    <div className="grid min-w-0 flex-1 content-start gap-x-4 gap-y-2.5 sm:grid-cols-12">
+                    <div className="grid min-w-0 flex-1 content-start gap-x-3 gap-y-2.5 2xl:gap-x-4 sm:grid-cols-12">
                         <InputSelect
                             label="Tipo de contrato"
                             items={CONTRACT_TYPE_ITEMS}

@@ -160,7 +160,7 @@ export function FormStepper({
 
     return (
         <div className="form-stepper flex min-h-0 flex-1 flex-col">
-            <div className="form-stepper__toolbar-shell shrink-0">
+            <div className="form-stepper__toolbar-shell hidden shrink-0" hidden aria-hidden>
                 <div
                     className={clsx(
                         "gesint-form-section form-stepper__toolbar",

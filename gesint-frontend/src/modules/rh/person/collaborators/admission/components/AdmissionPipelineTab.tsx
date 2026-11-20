@@ -78,7 +78,7 @@ export function AdmissionPipelineTab() {
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {/* Mesmas classes da toolbar da Listagem para o botão cair na altura do "Novo cadastro". */}
             <div className="crud-list-toolbar flex flex-wrap items-center justify-end gap-2 border-b px-4 py-1.5">
-                <Button size="sm" leftIcon={<Plus className="size-3.5" strokeWidth={2.5} />} onClick={startCreate}>
+                <Button leftIcon={<Plus className="size-4" strokeWidth={2} />} onClick={startCreate}>
                     Nova admissão
                 </Button>
             </div>

@@ -9,14 +9,16 @@ alwaysApply: false
 - DTOs sempre **classes**; `strictPropertyInitialization: false` no tsconfig
 - HTTP: **fetch nativo** (não axios)
 - Dados: importar de `@/shared/components/data/DataPanel` — `DataRequest` (server), `DataResult` (client + `use()`), `QueryPanel` (React Query cache/reload)
-- **Padrão visual completo: `.agents/rules/gesint-ui-system.mdc`** (tokens, tipografia, raios, casca, tabelas, dashboard, login, carregamento, animações). Leitura obrigatória antes de qualquer mudança visual.
+- **Padrão visual completo: `.agents/rules/gesint-ui-system.mdc`** (tokens, tipografia, raios, casca, tabelas, dashboard, login, carregamento, animações, escala ClickUp). Leitura obrigatória antes de qualquer mudança visual.
+- Escala compacta fixa (resumo; detalhes no §13.1 do ui-system): topbar 40px, rail 62px, sidebar 256px, abas do workspace 30px, subabas 32px, toolbar com botões 30px, stepper 38px com pílulas 24px, linha de tabela 36px, controles 30px (texto do input 13px, label 11px), espaço entre campos pelos tokens `--gesint-field-gap-*`; pesos **430 / 480 / 575**. Nada de `zoom`, `transform: scale` ou media query de "escala compacta"; valores em px valem de 1366 a 2560.
 - Tema DaisyUI custom (tokens em `globals.css`); sem outline em focus — só `border`
 - Transições suaves (Framer Motion com `MotionConfig reducedMotion="user"`; curva `[0.22, 1, 0.36, 1]`)
 - Toasts: Sonner
+- Menu da conta na topbar (`HeaderUserMenu`, modelo ClickUp: avatar 24px + seta, dropdown 288px). A sidebar não tem bloco de usuário.
 - Menu lateral: toggle expand/retract; ícones alinhados igual nos dois modos; flyout ao clicar ícone quando retraído
 - Busca de menus na sidebar
 - Definição de rotas: `src/config/routes.ts` (tipado `AppRoute`)
-- Login: 2 colunas (marca | formulário); `LoginShell` montado **só** em `app/(auth)/layout.tsx` (persistente); páginas de `(auth)` renderizam apenas `LoginHeading` + formulário; dark mode toggle global
+- Login: 2 colunas (marca | formulário), na escala compacta (campos e botão 36px, título 24px, label 12px); `LoginShell` montado **só** em `app/(auth)/layout.tsx` (persistente); páginas de `(auth)` renderizam apenas `LoginHeading` + formulário; dark mode toggle global
 - Carregamento de tela inteira/Suspense: `AppLoadingScreen`; dentro de conteúdo: skeleton. Nunca "Carregando..." solto
 - Performance: evitar animações pesadas; preferir CSS transitions leves
 - Selects: reusar sempre os componentes compartilhados do projeto (`InputSelect`, `InputSelectAutocomplete`, `InputAutocomplete`); evitar `<select>` nativo e novos componentes de seleção quando já existir equivalente no design system

@@ -9,7 +9,7 @@ export const VACATION_ELIGIBLE_TABLE_COLUMNS: TableColumnConfig[] = [
         dataType: TableDataType.AVATAR_PROFILE,
         avatarImageField: "photoObjectId",
         avatarSubtitleField: "cpf",
-        avatarSize: "sm",
+        avatarSize: "xs",
     },
     {
         id: "hireDate",

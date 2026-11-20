@@ -18,7 +18,7 @@ A pasta `.agents/rules/` e a fonte canonica das regras compartilhadas entre agen
 |---------|--------|
 | `.agents/rules/gesint.mdc` | Padroes gerais do monolito |
 | `.agents/rules/gesint-frontend-ui.mdc` | Convencoes tecnicas do frontend |
-| `.agents/rules/gesint-ui-system.mdc` | Design system Stripe/Linear (UI) |
+| `.agents/rules/gesint-ui-system.mdc` | Padrão visual do Client (tokens, escala fixa do ClickUp, casca, login) |
 | `.agents/rules/gesint-payroll-module.mdc` | Folha de Pagamento (CTB) |
 
 Edite `gesint-ui-system.mdc` nesta pasta e sincronize com `.agents/rules/gesint-ui-system.mdc` quando alterar.

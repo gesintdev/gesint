@@ -53,8 +53,8 @@ export type TableColumnConfig = {
     avatarTagLabels?: Record<string, string>;
     /** Classes customizadas para tags de perfil. */
     avatarTagClassNames?: Record<string, string>;
-    /** Tamanho do avatar; listas mais densas podem usar `sm`. */
-    avatarSize?: "sm" | "md" | "lg";
+    /** Tamanho do avatar na célula; padrão da grid é `xs` (24px, linha 36px). */
+    avatarSize?: "xs" | "sm" | "md" | "lg";
     /** Rótulos customizados para células BADGE (sobrescreve o mapa global) */
     badgeLabels?: Record<string, string>;
     /** Classes customizadas por valor em células BADGE (sobrescreve a cor derivada do status). */

@@ -8,24 +8,25 @@ type HeaderAiAssistantProps = {
     onClick?: () => void;
 };
 
-/** Botao pill do assistente de IA no header. */
+/**
+ * Ação do assistente na trilha de ícones da topbar — mesmo peso visual
+ * dos demais botões 24×24 (ClickUp); o rótulo fica no `title`/`aria-label`.
+ */
 export function HeaderAiAssistant({open = false, onClick}: HeaderAiAssistantProps) {
     return (
         <button
             type="button"
             aria-label="Assistente IA"
+            title="Assistente IA"
             aria-expanded={open}
             aria-controls="ai-assistant-panel"
             onClick={onClick}
             className={clsx(
-                "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors",
-                open
-                    ? "bg-primary/12 text-primary"
-                    : "bg-base-200 text-base-content/80 hover:bg-base-300/80 dark:bg-base-300/50 dark:hover:bg-base-300/70",
+                "gesint-btn gesint-btn--ghost gesint-btn--icon-only",
+                open ? "bg-primary/12 text-primary" : "text-base-content/55",
             )}
         >
-            <Sparkles className={clsx("size-3.5", open ? "text-primary" : "text-primary")} strokeWidth={2}/>
-            <span className="hidden sm:inline">Assistente IA</span>
+            <Sparkles className={clsx("size-4", open ? "text-primary" : "text-primary/90")} strokeWidth={2} />
         </button>
     );
 }

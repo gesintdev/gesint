@@ -127,19 +127,19 @@ export function HeaderNotifications() {
     }
 
     return (
-        <div ref={rootRef} className="relative">
+        <div ref={rootRef} className="relative inline-flex items-center">
             <button
                 type="button"
                 aria-label="Notificações"
                 aria-expanded={open}
                 aria-haspopup="menu"
                 className={clsx(
-                    "gesint-btn gesint-btn--ghost gesint-btn--icon-only relative text-base-content/50",
+                    "gesint-btn gesint-btn--ghost gesint-btn--icon-only relative",
                     open && "bg-primary/8 text-primary",
                 )}
                 onClick={() => setOpen((value) => !value)}
             >
-                <motion.span className="relative -m-0.75 flex size-6 items-center justify-center">
+                <motion.span className="relative inline-flex size-4 items-center justify-center">
                     <AnimatePresence>
                         {ringing ? (
                             <>
@@ -149,7 +149,7 @@ export function HeaderNotifications() {
                                     animate={{opacity: [0, 0.65, 0], x: [-2, -6, -9], scale: [0.7, 1, 1.12]}}
                                     exit={{opacity: 0}}
                                     transition={{duration: 0.52, ease: "easeOut"}}
-                                    className="pointer-events-none absolute left-0 top-1.5 h-2.5 w-1.5 rounded-l-full border-y border-l border-current"
+                                    className="pointer-events-none absolute -left-0.5 top-1 h-2 w-1 rounded-l-full border-y border-l border-current"
                                 />
                                 <motion.span
                                     aria-hidden="true"
@@ -157,7 +157,7 @@ export function HeaderNotifications() {
                                     animate={{opacity: [0, 0.65, 0], x: [-2, -6, -9], scale: [0.7, 1, 1.12]}}
                                     exit={{opacity: 0}}
                                     transition={{duration: 0.52, ease: "easeOut", delay: 0.22}}
-                                    className="pointer-events-none absolute left-0 top-1.5 h-2.5 w-1.5 rounded-l-full border-y border-l border-current"
+                                    className="pointer-events-none absolute -left-0.5 top-1 h-2 w-1 rounded-l-full border-y border-l border-current"
                                 />
                                 <motion.span
                                     aria-hidden="true"
@@ -165,7 +165,7 @@ export function HeaderNotifications() {
                                     animate={{opacity: [0, 0.65, 0], x: [2, 6, 9], scale: [0.7, 1, 1.12]}}
                                     exit={{opacity: 0}}
                                     transition={{duration: 0.52, ease: "easeOut"}}
-                                    className="pointer-events-none absolute right-0 top-1.5 h-2.5 w-1.5 rounded-r-full border-y border-r border-current"
+                                    className="pointer-events-none absolute -right-0.5 top-1 h-2 w-1 rounded-r-full border-y border-r border-current"
                                 />
                                 <motion.span
                                     aria-hidden="true"
@@ -173,7 +173,7 @@ export function HeaderNotifications() {
                                     animate={{opacity: [0, 0.65, 0], x: [2, 6, 9], scale: [0.7, 1, 1.12]}}
                                     exit={{opacity: 0}}
                                     transition={{duration: 0.52, ease: "easeOut", delay: 0.22}}
-                                    className="pointer-events-none absolute right-0 top-1.5 h-2.5 w-1.5 rounded-r-full border-y border-r border-current"
+                                    className="pointer-events-none absolute -right-0.5 top-1 h-2 w-1 rounded-r-full border-y border-r border-current"
                                 />
                             </>
                         ) : null}
@@ -188,9 +188,9 @@ export function HeaderNotifications() {
                                 : {rotate: 0, scale: 1}
                         }
                         transition={{duration: 0.78, ease: [0.34, 1.56, 0.64, 1]}}
-                        className="flex origin-center"
+                        className="inline-flex origin-[50%_20%]"
                     >
-                        <Bell className="size-4.25" strokeWidth={2}/>
+                        <Bell className="header-notifications-bell size-4" strokeWidth={2.25} aria-hidden />
                     </motion.span>
                 </motion.span>
                 {unreadCount > 0 ? (
