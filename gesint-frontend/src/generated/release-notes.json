@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.102.1",
+      "hash": "df82f7a3",
+      "date": "2026-11-20T10:50:52-03:00",
+      "type": "fix",
+      "scope": null,
+      "breaking": false,
+      "title": "Next 16.4.6 — desbloqueia build do frontend em produção",
+      "body": "**Commits incluídos**\n\n- fix: atualiza Next.js para corrigir build com next/font/google",
+      "pullRequest": 6
+    },
+    {
       "version": "1.102.0",
       "hash": "7f15911d",
       "date": "2026-11-20T09:30:17-03:00",
