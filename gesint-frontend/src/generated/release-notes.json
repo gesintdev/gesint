@@ -1,6 +1,105 @@
 {
   "releases": [
     {
+      "version": "1.101.0",
+      "hash": "c7cbedcd",
+      "date": "2026-11-18T20:50:28-03:00",
+      "type": "feat",
+      "scope": null,
+      "breaking": false,
+      "title": "Mostra os perfis que dao acesso a cada menu",
+      "body": "**Commits incluídos**\n\n- feat: mostra os perfis que dao acesso a cada menu",
+      "pullRequest": 1
+    },
+    {
+      "version": "1.100.2",
+      "hash": "9a2c3264",
+      "date": "2026-11-18T19:40:16-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (salvamento da admissao)",
+      "body": "**Commits incluídos**\n\n- fix: conclui o salvamento da admissão sem apagar a filial",
+      "pullRequest": null
+    },
+    {
+      "version": "1.100.1",
+      "hash": "b25340e4",
+      "date": "2026-11-18T19:27:00-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (cadastro preservado ao trocar de aba)",
+      "body": "**Commits incluídos**\n\n- fix: mantem o cadastro preenchido ao trocar de aba",
+      "pullRequest": null
+    },
+    {
+      "version": "1.100.0",
+      "hash": "404d4a27",
+      "date": "2026-11-18T12:00:28-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (cadastros alinhados a admissao)",
+      "body": "**Commits incluídos**\n\n- feat: alinha os cadastros ao fluxo da admissão",
+      "pullRequest": null
+    },
+    {
+      "version": "1.99.5",
+      "hash": "aa894473",
+      "date": "2026-11-16T17:40:04-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (experience_status na admissão)",
+      "body": "**Commits incluídos**\n\n- fix: preenche experience_status ao salvar a admissão",
+      "pullRequest": null
+    },
+    {
+      "version": "1.99.4",
+      "hash": "509d37e1",
+      "date": "2026-11-12T22:23:03-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (altura dos botoes)",
+      "body": "**Commits incluídos**\n\n- fix: iguala a altura dos botoes primario e outline",
+      "pullRequest": null
+    },
+    {
+      "version": "1.99.3",
+      "hash": "61891dd6",
+      "date": "2026-11-12T17:16:07-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Origin/main into main (release v1.99.1)",
+      "body": "**Commits incluídos**\n\n- chore(release): v1.99.1",
+      "pullRequest": null
+    },
+    {
+      "version": "1.99.2",
+      "hash": "a9099506",
+      "date": "2026-11-12T17:09:56-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (aba Painel e rodape do usuario)",
+      "body": "**Commits incluídos**\n\n- fix: destaca a aba Painel e alinha o rodape do usuario",
+      "pullRequest": null
+    },
+    {
+      "version": "1.99.1",
+      "hash": "c91ca303",
+      "date": "2026-11-12T08:05:14-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (deploy do Coolify no commit de release)",
+      "body": "**Commits incluídos**\n\n- fix(ci): deixa o commit de release disparar o deploy do Coolify",
+      "pullRequest": null
+    },
+    {
       "version": "1.99.0",
       "hash": "cf8ff790",
       "date": "2026-11-12T07:53:44-03:00",
