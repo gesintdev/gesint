@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.103.0",
+      "hash": "45ebc1c7",
+      "date": "2026-11-20T11:03:37-03:00",
+      "type": "feat",
+      "scope": null,
+      "breaking": false,
+      "title": "Layout compacto em produção",
+      "body": "**Commits incluídos**\n\n- feat: aplica a densidade ClickUp na casca, abas e controles\n- feat: compacta acompanhamento e polimento da casca",
+      "pullRequest": 7
+    },
+    {
       "version": "1.102.1",
       "hash": "df82f7a3",
       "date": "2026-11-20T10:50:52-03:00",
