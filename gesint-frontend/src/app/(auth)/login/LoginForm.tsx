@@ -187,7 +187,7 @@ export function LoginForm() {
                     Esqueceu sua senha?
                 </Link>
             </div>
-            <Button type="submit" size="lg" className="gesint-btn--block login-submit mt-1" loading={loading}>
+            <Button type="submit" className="gesint-btn--block login-submit mt-1" loading={loading}>
                 Entrar
             </Button>
             <div className="login-form__divider" aria-hidden="true">

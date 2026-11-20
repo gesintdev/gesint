@@ -168,7 +168,7 @@ function PasswordSetupForm() {
                 className="gesint-field--login"
                 wrapperClassName="login-field"
             />
-            <Button type="submit" size="lg" className="gesint-btn--block login-submit mt-1" loading={loading}>
+            <Button type="submit" className="gesint-btn--block login-submit mt-1" loading={loading}>
                 Salvar senha
             </Button>
             <p className="mt-3 text-sm text-base-content/60">

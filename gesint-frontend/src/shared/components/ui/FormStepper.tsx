@@ -1,7 +1,9 @@
 "use client";
 
 import clsx from "clsx";
+import { Copy } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { EntityCodeField } from "@/shared/components/crud/EntityCodeField";
 
@@ -160,7 +162,7 @@ export function FormStepper({
 
     return (
         <div className="form-stepper flex min-h-0 flex-1 flex-col">
-            <div className="form-stepper__toolbar-shell shrink-0">
+            <div className="form-stepper__toolbar-shell hidden shrink-0" hidden aria-hidden>
                 <div
                     className={clsx(
                         "gesint-form-section form-stepper__toolbar",
@@ -172,8 +174,22 @@ export function FormStepper({
                             {entityCode != null ? <EntityCodeField code={entityCode} codeOnly /> : null}
                             {accessCode ? (
                                 <span className="form-stepper__access-code" title="Código do colaborador">
-                                    <span className="form-stepper__access-code-label">Cod. Colab.</span>
+                                    <span className="form-stepper__access-code-label">Código</span>
                                     <span className="form-stepper__access-code-value tabular-nums">{accessCode}</span>
+                                    <button
+                                        type="button"
+                                        className="inline-flex size-5 shrink-0 items-center justify-center rounded text-base-content/45 transition-colors hover:bg-base-content/8 hover:text-base-content/75"
+                                        aria-label="Copiar código do colaborador"
+                                        title="Copiar código"
+                                        onClick={() => {
+                                            void navigator.clipboard.writeText(accessCode).then(
+                                                () => toast.success("Código copiado"),
+                                                () => toast.error("Não foi possível copiar o código."),
+                                            );
+                                        }}
+                                    >
+                                        <Copy className="size-3" strokeWidth={2.25} />
+                                    </button>
                                 </span>
                             ) : (
                                 accessCodeAction

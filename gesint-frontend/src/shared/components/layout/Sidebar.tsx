@@ -12,7 +12,6 @@ import {NavRouteContextMenu, type NavRouteContextMenuState} from "@/shared/compo
 import {RouteLinkedProfilesModal} from "@/shared/components/layout/RouteLinkedProfilesModal";
 import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
 import {SidebarFlyout} from "@/shared/components/layout/SidebarFlyout";
-import {SidebarUserMenu} from "@/shared/components/layout/SidebarUserMenu";
 import {SystemRail} from "@/shared/components/layout/SystemRail";
 import {useAppBootstrap} from "@/shared/components/providers/AppBootstrapProvider";
 import {FieldClearButton} from "@/shared/components/ui/input/FieldClearButton";
@@ -111,6 +110,8 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     const navHighlightRouteId = highlightRouteId ?? pathnameRouteId;
     const [query, setQuery] = useState("");
     const [openIds, setOpenIds] = useState<Set<string>>(new Set());
+    /** Fase 1 do collapse: fecha listas e esconde a trilha expandir/retrair antes de estreitar. */
+    const [collapsePrep, setCollapsePrep] = useState(false);
     const [flyout, setFlyout] = useState<{ route: AppRoute; top: number } | null>(null);
     const [navContextMenu, setNavContextMenu] = useState<NavRouteContextMenuState | null>(null);
     const [linkedProfilesRoute, setLinkedProfilesRoute] = useState<AppRoute | null>(null);
@@ -123,6 +124,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     const flat = useMemo(() => flattenRoutes(activeSystemRoutes), [activeSystemRoutes]);
     const isSearching = query.trim().length > 0;
     const panelCollapsed = collapsed && !mobileOpen;
+    const groupActionsHidden = panelCollapsed || collapsePrep;
 
     const clearFlyoutOpenTimer = useCallback(() => {
         if (flyoutOpenTimerRef.current != null) {
@@ -199,9 +201,8 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     };
 
     /**
-     * Collapse: 1) fecha grupos → 2) estreita sidebar.
-     * Se não há grupo/busca aberta, pula o step 1 e o delay do step 2 — colapsa na hora.
-     * Expand: 1) alarga sidebar → 2) reabre grupos que estavam abertos.
+     * Collapse: 1) fecha grupos + esconde trilha (0.14s) → 2) estreita.
+     * Expand: 1) alarga (trilha ainda oculta) → 2) mostra trilha + reabre grupos.
      */
     const handleCollapsedToggle = useCallback(async () => {
         if (!onCollapsedToggle || toggleLockedRef.current) return;
@@ -209,22 +210,21 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         try {
             if (!collapsed) {
                 savedOpenIdsRef.current = new Set(openIds);
-                const hadOpenGroups = openIds.size > 0 || query.trim().length > 0;
+                setCollapsePrep(true);
                 setQuery("");
                 setOpenIds(new Set());
                 closeFlyout();
-                if (hadOpenGroups) {
-                    await wait(SUBMENU_CLOSE_MS);
-                    onCollapsedToggle();
-                    await wait(SIDEBAR_WIDTH_MS);
-                } else {
-                    onCollapsedToggle();
-                }
+                await wait(SUBMENU_CLOSE_MS);
+                onCollapsedToggle();
+                await wait(SIDEBAR_WIDTH_MS);
                 return;
             }
 
+            // Mantém collapsePrep até o fim da largura — senão a trilha aparece no meio do grow.
+            setCollapsePrep(true);
             onCollapsedToggle();
             await wait(SIDEBAR_WIDTH_MS);
+            setCollapsePrep(false);
             const restoreIds = savedOpenIdsRef.current;
             if (restoreIds.size > 0) {
                 setOpenIds(new Set(restoreIds));
@@ -232,7 +232,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         } finally {
             toggleLockedRef.current = false;
         }
-    }, [closeFlyout, collapsed, onCollapsedToggle, openIds, query]);
+    }, [closeFlyout, collapsed, onCollapsedToggle, openIds]);
     const filteredSections = useMemo(() => {
         if (!isSearching) return navSections;
         const q = query.toLowerCase();
@@ -345,7 +345,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             >
                 <Icon
                     className={clsx(
-                        "size-4.25 shrink-0 transition-colors duration-150",
+                        "size-4 shrink-0 transition-colors duration-150",
                         active
                             ? "text-primary"
                             : menuOpen
@@ -418,27 +418,19 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                 >
                     <Icon
                         className={clsx(
-                            "size-4.25 shrink-0",
+                            "size-4 shrink-0",
                             active && panelCollapsed ? "text-primary" : "text-base-content/38",
                         )}
                         strokeWidth={2}
                     />
-                    {panelCollapsed ? (
-                        <ChevronRight
-                            className="size-3 shrink-0 text-base-content/40"
-                            strokeWidth={2.5}
-                        />
-                    ) : (
-                        <span className="sidebar-copy truncate text-left">{route.label}</span>
-                    )}
-                    {!panelCollapsed ? (
-                        <ChevronRight
-                            className={clsx(
-                                "sidebar-copy size-3.5 shrink-0 text-base-content/30 transition-transform duration-200",
-                                expanded && "rotate-90",
-                            )}
-                        />
-                    ) : null}
+                    {/* Colapsado: só o ícone (sem chevron) — centro óptico da coluna */}
+                    <span className="sidebar-copy truncate text-left">{route.label}</span>
+                    <ChevronRight
+                        className={clsx(
+                            "sidebar-copy size-3.5 shrink-0 text-base-content/30 transition-transform duration-200",
+                            expanded && "rotate-90",
+                        )}
+                    />
                 </button>
                 <div
                     aria-hidden={!expanded}
@@ -475,37 +467,39 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             <div
                 className={clsx(
                     "sidebar-group-actions",
-                    panelCollapsed && "sidebar-group-actions--collapsed",
+                    groupActionsHidden && "sidebar-group-actions--collapsed",
                 )}
-                aria-hidden={panelCollapsed}
+                aria-hidden={groupActionsHidden}
             >
-                <button
-                    type="button"
-                    title="Expandir todos"
-                    aria-label="Expandir todos"
-                    disabled={
-                        panelCollapsed
-                        || isSearching
-                        || expandableGroupIds.length === 0
-                        || expandableGroupIds.every((id) => openIds.has(id))
-                    }
-                    tabIndex={panelCollapsed ? -1 : undefined}
-                    onClick={expandAllGroups}
-                    className="sidebar-group-actions__btn"
-                >
-                    <CopyPlus className="size-4 shrink-0" strokeWidth={2}/>
-                </button>
-                <button
-                    type="button"
-                    title="Recolher todos"
-                    aria-label="Recolher todos"
-                    disabled={panelCollapsed || isSearching || openIds.size === 0}
-                    tabIndex={panelCollapsed ? -1 : undefined}
-                    onClick={collapseAllGroups}
-                    className="sidebar-group-actions__btn"
-                >
-                    <CopyMinus className="size-4 shrink-0" strokeWidth={2}/>
-                </button>
+                <div className="sidebar-group-actions__track">
+                    <button
+                        type="button"
+                        title="Expandir todos"
+                        aria-label="Expandir todos"
+                        disabled={
+                            groupActionsHidden
+                            || isSearching
+                            || expandableGroupIds.length === 0
+                            || expandableGroupIds.every((id) => openIds.has(id))
+                        }
+                        tabIndex={groupActionsHidden ? -1 : undefined}
+                        onClick={expandAllGroups}
+                        className="sidebar-group-actions__btn"
+                    >
+                        <CopyPlus className="size-4 shrink-0" strokeWidth={2}/>
+                    </button>
+                    <button
+                        type="button"
+                        title="Recolher todos"
+                        aria-label="Recolher todos"
+                        disabled={groupActionsHidden || isSearching || openIds.size === 0}
+                        tabIndex={groupActionsHidden ? -1 : undefined}
+                        onClick={collapseAllGroups}
+                        className="sidebar-group-actions__btn"
+                    >
+                        <CopyMinus className="size-4 shrink-0" strokeWidth={2}/>
+                    </button>
+                </div>
             </div>
             {/* Nav */}
             <div className="sidebar-nav-wrap min-h-0 flex-1">
@@ -527,10 +521,6 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
                     ))}
                 </nav>
             </div>
-            <SidebarUserMenu
-                collapsed={panelCollapsed}
-                onNavigate={onMobileCloseAction}
-            />
         </>
     );
     const sidebarShell = (opts: { desktop: boolean }) => (

@@ -222,14 +222,13 @@ export function DocumentTypeFormClient() {
                                     onCheckedChange={(next) => toggleContext(item.value, next)}
                                     label={item.label}
                                     className={clsx(
-                                        "min-h-9 rounded-lg border px-3 py-2 transition-colors",
-                                        checked
-                                            ? "border-primary/35 bg-primary/8 text-primary"
-                                            : "border-base-300/50 bg-base-200/20 text-base-content/85 hover:bg-base-200/40",
+                                        "gesint-choice-option gesint-choice-option--outlined",
+                                        checked && "gesint-choice-option--active text-primary",
+                                        !checked && "text-base-content/85",
                                     )}
                                     labelClassName={clsx(
-                                        "text-sm",
-                                        checked ? "font-medium text-primary" : "text-base-content/75",
+                                        "gesint-choice-option__label",
+                                        checked ? "text-primary" : "text-base-content/75",
                                     )}
                                 />
                             );

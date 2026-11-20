@@ -68,49 +68,39 @@ function renderCellContent(
         const photoObjectId = col.avatarImageField ? (get(row, col.avatarImageField) as string | undefined) : undefined;
         const subtitle = col.avatarSubtitleField ? get(row, col.avatarSubtitleField) : undefined;
         const tags = col.avatarTagsField ? normalizeProfileTags(get(row, col.avatarTagsField)) : [];
-        const avatarSize = col.avatarSize ?? "lg";
-        const denseProfile = avatarSize === "sm";
+        const avatarSize = col.avatarSize ?? "xs";
+        const subtitleText =
+            subtitle != null && subtitle !== "" ? formatCellValue(subtitle, TableDataType.CPF) : null;
         return (
-            <div className={clsx("flex items-center", denseProfile ? "gap-2" : "gap-2.5")}>
+            <div className="gesint-table-avatar-profile">
                 <ProfileAvatar name={name} photoObjectId={photoObjectId} size={avatarSize} shape="squircle" />
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <div className="min-w-0">
-                        <span
-                            className={clsx(
-                                "block truncate text-base-content",
-                                denseProfile ? "text-sm font-medium" : "font-semibold",
-                            )}
-                        >
-                            {name}
-                        </span>
-                        {subtitle != null && subtitle !== "" ? (
-                            <div
-                                className={clsx(
-                                    "truncate opacity-50 tabular-nums",
-                                    denseProfile ? "text-xs" : "text-sm",
-                                )}
-                            >
-                                {formatCellValue(subtitle, TableDataType.CPF)}
-                            </div>
-                        ) : null}
-                    </div>
-                    {tags.length > 0 ? (
-                        <span className="flex shrink-0 items-center gap-1.5">
-                            {tags.map((tag) => (
-                                <span
-                                    key={tag}
-                                    className={clsx(
-                                        "inline-flex h-5 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none",
-                                        col.avatarTagClassNames?.[tag] ??
-                                            "border-base-content/10 bg-base-content/5 text-base-content/55",
-                                    )}
-                                >
-                                    {col.avatarTagLabels?.[tag] ?? tag}
-                                </span>
-                            ))}
-                        </span>
+                <div className="gesint-table-avatar-profile__text">
+                    <span className="gesint-table-avatar-profile__name">{name}</span>
+                    {subtitleText ? (
+                        <>
+                            <span className="gesint-table-avatar-profile__sep" aria-hidden>
+                                ·
+                            </span>
+                            <span className="gesint-table-avatar-profile__subtitle tabular-nums">{subtitleText}</span>
+                        </>
                     ) : null}
                 </div>
+                {tags.length > 0 ? (
+                    <span className="gesint-table-avatar-profile__tags">
+                        {tags.map((tag) => (
+                            <span
+                                key={tag}
+                                className={clsx(
+                                    "gesint-table-avatar-profile__tag",
+                                    col.avatarTagClassNames?.[tag] ??
+                                        "border-base-content/10 bg-base-content/5 text-base-content/55",
+                                )}
+                            >
+                                {col.avatarTagLabels?.[tag] ?? tag}
+                            </span>
+                        ))}
+                    </span>
+                ) : null}
             </div>
         );
     }
@@ -168,7 +158,8 @@ function renderCellContent(
         dataType === TableDataType.CNPJ ||
         dataType === TableDataType.CEP ||
         dataType === TableDataType.PHONE;
-    return <span className={clsx("text-[0.78125rem]", isNumeric && "tabular-nums")}>{formatted}</span>;
+    // Tamanho herdado da tabela (14px, igual às células do ClickUp).
+    return <span className={clsx(isNumeric && "tabular-nums")}>{formatted}</span>;
 }
 
 export function DataTable<T extends object>({

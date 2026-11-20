@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 type FormSectionProps = {
     id?: string;
     title?: string;
+    /** Reservado — descrição da sessão está oculta por enquanto. */
     description?: string;
     /** Conteúdo à direita do título no header (ex.: botão +). */
     headerActions?: ReactNode;
@@ -19,7 +20,7 @@ type FormSectionProps = {
 export function FormSection({
     id,
     title,
-    description,
+    description: _description,
     headerActions,
     disabled = false,
     children,
@@ -40,7 +41,6 @@ export function FormSection({
                 <header className="gesint-form-section__header">
                     <div className="gesint-form-section__header-main">
                         <h3 className="gesint-form-section__title">{title}</h3>
-                        {description ? <p className="gesint-form-section__description">{description}</p> : null}
                     </div>
                     {headerActions && !disabled ? (
                         <div className="gesint-form-section__header-actions">{headerActions}</div>

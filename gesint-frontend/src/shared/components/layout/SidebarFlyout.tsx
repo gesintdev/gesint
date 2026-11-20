@@ -90,7 +90,7 @@ export function SidebarFlyout({
                                 >
                                     <ChildIcon
                                         className={clsx(
-                                            "size-4.25 shrink-0 transition-colors duration-150",
+                                            "size-4 shrink-0 transition-colors duration-150",
                                             active
                                                 ? "text-primary"
                                                 : menuOpen

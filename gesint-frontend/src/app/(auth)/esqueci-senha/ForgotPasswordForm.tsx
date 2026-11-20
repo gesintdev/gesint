@@ -67,7 +67,7 @@ export function ForgotPasswordForm() {
                 />
             )}
             {!submitted ? (
-                <Button type="submit" size="lg" className="gesint-btn--block login-submit mt-1" loading={loading}>
+                <Button type="submit" className="gesint-btn--block login-submit mt-1" loading={loading}>
                     Enviar instruções
                 </Button>
             ) : null}

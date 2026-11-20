@@ -2,9 +2,50 @@
 
 @plugin "daisyui";
 
+/* ──────────────────────────────────────────────
+   Fonte do ClickUp — "Segoe UI Variable Text" (Windows 11, variável 300–700).
+   Cópia das @font-face do ClickUp: só fontes locais (local()), nada é baixado.
+   Na variável, o peso 500 existe de verdade (na Segoe UI estática ele vira
+   400/600 e o texto fica "pesado"). macOS cai em -apple-system (SF).
+────────────────────────────────────────────── */
+@font-face {
+    font-family: "Segoe UI Variable Text";
+    font-style: normal;
+    font-weight: 300 700;
+    src: local("Segoe UI Variable Text"), local("Segoe UI Variable Text Regular");
+}
+
+@font-face {
+    font-family: "Segoe UI Variable Text";
+    font-style: normal;
+    font-weight: 900;
+    src: local("Segoe UI Black"), local("SegoeUI-Black");
+}
+
+@font-face {
+    font-family: "Segoe UI Variable Text";
+    font-style: italic;
+    font-weight: 400;
+    src: local("Segoe UI Italic"), local("SegoeUI-Italic");
+}
+
+@font-face {
+    font-family: "Segoe UI Variable Text";
+    font-style: italic;
+    font-weight: 550;
+    src: local("Segoe UI Semibold Italic"), local("SegoeUI-SemiboldItalic");
+}
+
+@font-face {
+    font-family: "Segoe UI Variable Text";
+    font-style: italic;
+    font-weight: 650;
+    src: local("Segoe UI Bold Italic"), local("SegoeUI-BoldItalic");
+}
+
 /* ================================================================
    GESINT DESIGN SYSTEM — globals.css
-   Font: Inter · Brand azul (#007BFF) · Tokens em :root (troque só aqui)
+   Font: system UI (Segoe UI/SF, igual ClickUp) · Brand azul (#007BFF) · Tokens em :root (troque só aqui)
 ================================================================ */
 
 /* ──────────────────────────────────────────────
@@ -92,7 +133,8 @@
 }
 
 @theme inline {
-    --font-sans: var(--font-inter, Inter), var(--font-jakarta, "Plus Jakarta Sans"), system-ui, sans-serif;
+    /* Mesma pilha do ClickUp: Segoe UI no Windows, SF Pro no macOS. */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", roboto, "Helvetica Neue", helvetica, arial, sans-serif;
 
     /* Escala brand (alias legacy digital-blue → primary) */
     --color-digital-blue-50: var(--gesint-primary-50);
@@ -193,36 +235,70 @@
    Layout tokens
 ────────────────────────────────────────────── */
 :root {
-    --sidebar-width: 14rem;
+    /*
+      Escala ClickUp — medidas tiradas do ClickUp em 1366x768 (mesmo viewport útil).
+      Fixas em px como no ClickUp: não encolhem em 1366 nem crescem acima de 1920.
+      Casca: topbar 40 · rail 62 (cápsula inset) · sidebar 256 · abas 40 · subabas 36 · toolbar 40.
+    */
+    --sidebar-width: 16rem; /* 256px */
     --sidebar-collapsed: 3.875rem;
-    --system-rail-width: 3.5rem;
+    --system-rail-width: 3.875rem; /* 62px — coluna externa (inset + cápsula + gap) */
+    --system-rail-pad: 0.375rem; /* 6px — folga inferior/esquerda da cápsula */
+    /* Topo alinhado à toolbar do menu (busca): mesmo pad-y da search */
+    --system-rail-pad-top: var(--sidebar-toolbar-pad-y);
+    --system-rail-gap: 0.125rem; /* 2px — espaço entre cápsula e barra de menus */
+    --system-rail-radius: var(--radius-gesint-card); /* 6px — padrão de card do sistema */
+    /* Centro da cápsula (não da coluna) — alinha o G do header com os ícones do rail */
+    --system-rail-track-center-x: calc(
+        var(--system-rail-pad) + (var(--system-rail-width) - var(--system-rail-pad) - var(--system-rail-gap)) / 2
+    );
     --sidebar-routes-current: var(--sidebar-width);
     --layout-offset: calc(var(--system-rail-width) + var(--sidebar-width));
     --workspace-content-padding: 0.5rem; /* p-2 */
-    --header-pad-y: 0.5rem; /* p-2 */
-    --header-content-h: 1.75rem; /* avatar sm */
-    --header-height: calc(var(--header-pad-y) * 2 + var(--header-content-h));
+    --header-pad-y: 0.375rem;
+    --header-content-h: 1.75rem; /* 28px — botões da topbar */
+    --header-height: calc(var(--header-pad-y) * 2 + var(--header-content-h)); /* 40px */
     --sidebar-transition-duration: 280ms;
 
     /* Controles — aba 6px; botões/inputs 7px */
-    --gesint-tab-radius: 6px;
-    --gesint-control-h: 36px;
+    --gesint-tab-radius: 4px;
+    --gesint-control-h-base: 1.875rem; /* 30px — input, botão, nav-item e aba (mesma escala) */
+    --gesint-control-h: var(--gesint-control-h-base);
+    --gesint-control-font-size-base: 14px;
+    /* Toolbar da listagem — chips/botões do ClickUp (faixa de 40px) */
+    --gesint-toolbar-control-h: 24px; /* ClickUp: chips e "Add Tarefa" 24px, 12/500 */
+    --gesint-toolbar-font-size: 0.75rem; /* 12px */
     /* Rodapé de ações do cadastro e rodapé do usuário na sidebar — mesma caixa (borda inclusa). */
-    --gesint-shell-footer-pad-y: 0.625rem;
+    --gesint-shell-footer-pad-y: 0.5rem;
     --gesint-shell-footer-h: calc(var(--gesint-control-h) + (var(--gesint-shell-footer-pad-y) * 2) + 1px);
-    --gesint-control-px: 12px;
-    --gesint-control-font-size: 12.25px;
-    --gesint-control-radius: 7px;
+    --gesint-control-px: 7px; /* ClickUp: padding 0 7px */
+    /* Tipografia da casca — ClickUp (corpo 14, menus 14, subabas 12, labels 11) */
+    --gesint-font-weight-regular: 430; /* texto corrente — um degrau acima do 400 */
+    --gesint-font-weight-medium: 480; /* botões, destaques, font-medium */
+    --gesint-font-weight-strong: 575; /* títulos, aba ativa, font-bold */
+    --gesint-control-font-size: var(--gesint-control-font-size-base);
+    --gesint-font-menu: 0.875rem; /* 14px */
+    --gesint-font-tab: 0.875rem; /* 14px */
+    --gesint-font-subtab: 0.75rem; /* 12px — abas de visualização */
+    --gesint-font-label: 0.6875rem; /* 11px */
+    --gesint-field-font-size: 0.8125rem; /* 13px — texto dentro dos inputs */
+    --gesint-field-gap-y: 0.375rem; /* 6px entre linhas de campos */
+    --gesint-field-gap-x: 0.625rem; /* 10px entre colunas de campos */
+    --gesint-font-section: 0.875rem; /* 14px */
+    --gesint-font-page-title: 1.5rem; /* 24px — título de página */
+    --gesint-font-step: 0.75rem; /* 12px */
+    --gesint-font-helper: 0.75rem; /* 12px */
+    --gesint-control-radius: 5px;
     --gesint-autofill-bg: var(--color-base-100);
 
-    /* Escala de raio: badge 5 · aba 6 · controle 7 · card 8 · modal 12 */
+    /* Escala de raio: badge 4 · aba 4 · controle 5 · card 6 · modal 8 */
     --gesint-radius: var(--gesint-tab-radius);
     --gesint-radius-xs: var(--gesint-tab-radius);
-    --gesint-radius-badge: 5px;
+    --gesint-radius-badge: 4px;
     --radius-gesint-control: var(--gesint-control-radius);
-    --radius-gesint-card: 8px;
-    --radius-gesint-card-lg: 8px;
-    --radius-gesint-modal: 12px;
+    --radius-gesint-card: 6px;
+    --radius-gesint-card-lg: 6px;
+    --radius-gesint-modal: 8px;
 
     /* Sidebar */
     --sidebar-bg: var(--color-base-100);
@@ -239,28 +315,39 @@
     --system-rail-active-bg: color-mix(in srgb, var(--color-base-content) 10%, var(--color-base-100));
     --system-rail-active-fg: color-mix(in srgb, var(--color-base-content) 88%, transparent);
 
-    /* Altura dos itens do menu lateral — toolbar do sidebar + busca global */
-    --sidebar-nav-item-h: 2rem;
+    /* Altura dos itens do menu lateral — igual aos controles (--gesint-control-h) */
+    --sidebar-nav-item-h: var(--gesint-control-h-base);
     --sidebar-nav-section-h: 1.25rem;
-    /* Toolbar search/collapse e tabbar do workspace compartilham padding e altura */
-    --sidebar-toolbar-pad-y: 0.5rem;
+    /* Toolbar search/collapse e tabbar do workspace compartilham padding e altura (30 + 5*2 = 40px) */
+    --sidebar-toolbar-pad-y: 0.3125rem;
     --workspace-toolbar-pad-x: 0.375rem;
     --sidebar-toolbar-h: calc(var(--sidebar-nav-item-h) + (var(--sidebar-toolbar-pad-y) * 2));
-    --gesint-tab-height: var(--sidebar-nav-item-h);
-    /* Inset do ícone: centro alinha com o toggle no collapse (painel = --sidebar-collapsed) */
+    --gesint-tab-height: 1.75rem; /* 28px — botões do header do ClickUp */
+    /* Inset do ícone: centro = meio do painel colapsado (borda 1px inclusa) */
     --sidebar-nav-pad-x: 2px; /* .sidebar-nav padding-inline */
-    --sidebar-nav-list-pad-x: 0.375rem; /* ul px-1.5 */
+    --sidebar-nav-list-pad-x: 0.375rem; /* ul px-(--sidebar-nav-list-pad-x) */
     --sidebar-nav-outer-x: calc(var(--sidebar-nav-pad-x) + var(--sidebar-nav-list-pad-x));
-    --sidebar-nav-icon-col: 1rem;
+    --sidebar-nav-icon-col: 1rem; /* 16px — igual ao size-4 dos ícones */
+    --sidebar-nav-item-border: 1px;
     --sidebar-nav-item-pl: calc(
-        (var(--sidebar-collapsed) / 2) - var(--sidebar-nav-outer-x) - (var(--sidebar-nav-icon-col) / 2)
+        (var(--sidebar-collapsed) / 2) - var(--sidebar-nav-outer-x) - var(--sidebar-nav-item-border) -
+            (var(--sidebar-nav-icon-col) / 2)
     );
+    /* Eixo vertical do ícone (relativo ao .nav-item / ul), para a guia da árvore */
+    --sidebar-nav-icon-center-x: calc(
+        var(--sidebar-nav-item-border) + var(--sidebar-nav-item-pl) + (var(--sidebar-nav-icon-col) / 2)
+    );
+    --sidebar-nav-guide-x: calc(var(--sidebar-nav-icon-center-x) - 0.5px);
+    --sidebar-nav-tree-gap: 0.5rem; /* do fio até o filho */
 
     /* Tabelas de listagem — densidade (referência: collaborator/history) */
-    --gesint-table-cell-py: 0.5rem;
+    --gesint-table-cell-py: 0.375rem;
     --gesint-table-cell-px: 0.625rem;
     --gesint-table-header-py: 0.625rem;
     --gesint-table-action-size: 1rem;
+    /* Linha de 36px como no ClickUp (--cu-data-table-row-height): botão 24 + 6*2 */
+    --gesint-table-action-button-size: 1.5rem;
+    --gesint-table-action-button-padding: 0.3125rem; /* ícone 14px */
 }
 
 [data-theme="dark"] {
@@ -292,10 +379,10 @@ body {
     font-family: var(--font-sans), system-ui, sans-serif;
     font-size: 14px;
     line-height: 1.5;
-    letter-spacing: -0.003em;
+    letter-spacing: normal;
+    font-weight: var(--gesint-font-weight-regular);
     /* Peso via font-weight (Tailwind font-medium/semibold passam a valer). */
     font-variation-settings: normal;
-    font-feature-settings: "cv11", "calt";
     background: var(--color-page);
     color: var(--color-base-content);
 }
@@ -309,29 +396,29 @@ body {
 .gesint-markdown .tiptap,
 .gesint-markdown .ProseMirror {
     font-weight: 400;
-    font-variation-settings: "wght" 400;
+    font-weight: 400;
 }
 
 .gesint-markdown strong,
 .gesint-markdown b {
-    font-weight: 700;
-    font-variation-settings: "wght" 700;
+    font-weight: 650;
+    font-weight: 650;
 }
 
 .gesint-markdown em,
 .gesint-markdown i {
     font-style: italic;
-    font-variation-settings: "wght" 400;
+    font-weight: 400;
 }
 
 .gesint-markdown h2 {
-    font-weight: 700;
-    font-variation-settings: "wght" 700;
+    font-weight: 650;
+    font-weight: 650;
 }
 
 .gesint-markdown h3 {
-    font-weight: 600;
-    font-variation-settings: "wght" 600;
+    font-weight: 550;
+    font-weight: 550;
 }
 
 /* ──────────────────────────────────────────────
@@ -488,14 +575,14 @@ body {
 }
 
 /*
- * Expanded: centro da coluna do rail.
+ * Expanded: centro da cápsula do rail (pad/gap inclusos) — mesmo eixo dos ícones CTB/DP/RH.
  * Collapsed: centro FINAL da faixa (rail + collapsed) — mesmo destino o tempo todo,
  * para o ícone caminhar até lá no mesmo ritmo do width da sidebar (sem “adiantar”).
  */
 .gesint-logo--shell .gesint-logo__icon-slot {
     position: absolute;
     top: 50%;
-    left: calc(var(--system-rail-width) / 2);
+    left: var(--system-rail-track-center-x);
     z-index: 1;
     width: auto;
     transform: translate(-50%, -50%);
@@ -564,10 +651,11 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-family: var(--font-outfit), var(--font-jakarta), system-ui, sans-serif;
-    font-size: 1.0625rem;
-    font-weight: 600;
-    letter-spacing: -0.025em;
+    /* Nome do workspace do ClickUp: 14px / 600, fonte do sistema */
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 550;
+    letter-spacing: normal;
     line-height: 1.1;
     color: var(--color-base-content);
 }
@@ -602,12 +690,23 @@ body {
     background: var(--color-base-100);
     font-family: inherit;
     font-size: var(--gesint-control-font-size);
-    font-variation-settings: "wght" 500;
+    font-weight: var(--gesint-font-weight-regular);
     color: var(--color-base-content);
     transition:
         border-color 0.15s ease,
         box-shadow 0.15s ease,
         background 0.15s ease;
+}
+
+/* Texto dentro dos campos (inputs/selects): menor que o dos botões */
+.gesint-field {
+    font-size: var(--gesint-field-font-size);
+}
+
+/* Grades de campos dentro das seções do formulário seguem o mesmo espaçamento */
+.gesint-form-section__body .grid {
+    column-gap: var(--gesint-field-gap-x);
+    row-gap: var(--gesint-field-gap-y);
 }
 
 .gesint-control:not(.sidebar-shell-control),
@@ -662,7 +761,7 @@ body {
 
 .gesint-field__restricted-label {
     font-size: var(--gesint-control-font-size);
-    font-variation-settings: "wght" 550;
+    font-weight: 500;
     letter-spacing: 0.01em;
     color: inherit;
     user-select: none;
@@ -704,7 +803,7 @@ body {
     border: none;
     background: transparent;
     font: inherit;
-    font-variation-settings: "wght" 500;
+    font-weight: 400;
     color: inherit;
     line-height: normal;
     outline: none;
@@ -715,7 +814,7 @@ body {
 .gesint-field input::placeholder,
 .gesint-control input::placeholder {
     color: color-mix(in srgb, var(--color-base-content) 36%, transparent);
-    font-variation-settings: "wght" 400;
+    font-weight: 350;
 }
 
 .gesint-field input[type="search"]::-webkit-search-cancel-button,
@@ -771,7 +870,7 @@ body {
 .gesint-field--placeholder,
 .gesint-select-trigger--placeholder {
     color: color-mix(in srgb, var(--color-base-content) 42%, transparent) !important;
-    font-variation-settings: "wght" 450;
+    font-weight: 350;
 }
 
 [data-theme="dark"] .gesint-field--placeholder,
@@ -807,10 +906,10 @@ body {
 ────────────────────────────────────────────── */
 .gesint-label {
     display: block;
-    margin-bottom: 0.25rem;
-    font-size: 0.75rem;
-    line-height: 1.25;
-    font-variation-settings: "wght" 600;
+    margin-bottom: 0.1875rem;
+    font-size: var(--gesint-font-label);
+    line-height: 1.35;
+    font-weight: var(--gesint-font-weight-regular);
     letter-spacing: 0;
     color: color-mix(in srgb, var(--color-base-content) 65%, transparent);
 }
@@ -818,12 +917,12 @@ body {
 .gesint-label--required::after {
     content: " *";
     color: var(--color-error);
-    font-variation-settings: "wght" 500;
+    font-weight: var(--gesint-font-weight-medium);
 }
 
 .gesint-hint {
     margin-top: 0.25rem;
-    font-size: 0.75rem;
+    font-size: var(--gesint-font-helper);
     line-height: 1.45;
     color: color-mix(in srgb, var(--color-base-content) 48%, transparent);
 }
@@ -832,8 +931,67 @@ body {
     margin-top: 0.25rem;
     font-size: 0.75rem;
     line-height: 1.45;
-    font-variation-settings: "wght" 550;
+    font-weight: 500;
     color: var(--color-error);
+}
+
+/* Choice option row — radio/checkbox selectable surface (escala do controle) */
+.gesint-choice-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-sizing: border-box;
+    height: var(--gesint-control-h);
+    min-height: var(--gesint-control-h);
+    padding: 0 var(--gesint-control-px);
+    border: 1px solid transparent;
+    border-radius: var(--gesint-control-radius);
+    font-size: var(--gesint-field-font-size);
+    line-height: var(--gesint-field-line-height, 1.35);
+    font-weight: var(--gesint-font-weight-regular);
+    color: var(--color-base-content);
+    transition: background-color 120ms ease, border-color 120ms ease;
+    cursor: pointer;
+}
+
+.gesint-choice-option:hover:not(.gesint-choice-option--disabled) {
+    background: color-mix(in srgb, var(--color-base-200) 50%, transparent);
+}
+
+.gesint-choice-option--active {
+    border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.gesint-choice-option--active:hover:not(.gesint-choice-option--disabled) {
+    background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.gesint-choice-option--outlined:not(.gesint-choice-option--active) {
+    border-color: color-mix(in srgb, var(--color-base-300) 50%, transparent);
+    background: color-mix(in srgb, var(--color-base-200) 20%, transparent);
+}
+
+.gesint-choice-option--multiline {
+    height: auto;
+    align-items: flex-start;
+    padding-block: 0.375rem;
+}
+
+.gesint-choice-option--disabled {
+    cursor: default;
+}
+
+.gesint-choice-option .radio {
+    flex-shrink: 0;
+    width: 0.875rem;
+    height: 0.875rem;
+    min-height: 0.875rem;
+}
+
+.gesint-choice-option__label {
+    font-weight: var(--gesint-font-weight-medium);
+    color: var(--color-base-content);
 }
 
 /* ──────────────────────────────────────────────
@@ -875,7 +1033,7 @@ body {
     border: 1px solid transparent;
     font-family: inherit;
     font-size: var(--gesint-control-font-size);
-    font-variation-settings: "wght" 500;
+    font-weight: var(--gesint-font-weight-medium);
     line-height: 1;
     white-space: nowrap;
     cursor: pointer;
@@ -1024,7 +1182,7 @@ body {
 .gesint-btn--sm {
     padding: 0 var(--gesint-control-px);
     font-size: var(--gesint-control-font-size);
-    font-variation-settings: "wght" 500;
+    font-weight: 450;
 }
 
 /* ─── Icon-only ─── */
@@ -1097,12 +1255,12 @@ body {
     margin: 0;
     padding-left: 0.5rem; /* p-2 */
     padding-right: 0.5rem;
-    font-size: 0.65625rem;
-    font-variation-settings: "wght" 600;
-    letter-spacing: 0.08em;
-    line-height: 1;
-    text-transform: uppercase;
-    color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
+    /* ClickUp: 12px / 500, caixa normal (o rótulo já vem escrito com acentos). */
+    font-size: 0.75rem;
+    font-weight: 450;
+    letter-spacing: 0;
+    line-height: 1.25;
+    color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
 }
 
 /* Seção: só fade de opacidade (sem translate do .sidebar-copy). */
@@ -1113,7 +1271,8 @@ body {
 .nav-section-abbr {
     position: absolute;
     top: 0;
-    left: 0;
+    /* Compensa o pad do .sidebar-nav pra centrar no mesmo eixo dos ícones */
+    left: calc(-1 * var(--sidebar-nav-pad-x));
     z-index: 2;
     box-sizing: border-box;
     display: flex;
@@ -1124,7 +1283,7 @@ body {
     margin: 0;
     padding: 0;
     font-size: 0.625rem;
-    font-variation-settings: "wght" 620;
+    font-weight: 490;
     letter-spacing: 0.1em;
     line-height: 1;
     text-transform: uppercase;
@@ -1154,15 +1313,17 @@ aside[data-collapsed="true"] .nav-section-abbr,
     grid-template-columns: var(--sidebar-nav-icon-col) minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.375rem 0.625rem 0.375rem var(--sidebar-nav-item-pl);
-    border: 1px solid transparent;
+    /* Pad vertical 0: altura fixa + align-items centra ícone/texto/chevron */
+    padding: 0 0.625rem 0 var(--sidebar-nav-item-pl);
+    border: var(--sidebar-nav-item-border) solid transparent;
     margin: 0;
     appearance: none;
     background: transparent;
     border-radius: var(--gesint-control-radius);
     font: inherit;
-    font-size: 0.8125rem;
-    font-variation-settings: "wght" 460;
+    font-size: var(--gesint-font-menu);
+    font-weight: var(--gesint-font-weight-regular);
+    /* ≥1.25: overflow do label não corta g/ç/y (line-height 1 clipava) */
     line-height: 1.25;
     text-align: left;
     color: color-mix(in srgb, var(--color-base-content) 68%, transparent);
@@ -1171,6 +1332,14 @@ aside[data-collapsed="true"] .nav-section-abbr,
         background 0.13s ease,
         color 0.13s ease,
         border-color 0.13s ease;
+}
+
+/* SVGs sem baseline — tamanho vem do Tailwind (ícone size-4 = coluna) */
+.nav-item > svg,
+.nav-item__main > svg {
+    display: block;
+    flex-shrink: 0;
+    overflow: visible;
 }
 
 /*
@@ -1184,6 +1353,7 @@ aside[data-collapsed="true"] .nav-section-abbr,
     opacity: 1;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.25;
     transition:
         opacity 0.2s ease,
         transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1238,10 +1408,13 @@ aside[data-collapsed="true"] .sidebar-copy,
 }
 
 .sidebar-toolbar--collapsed,
-aside[data-collapsed="true"] .sidebar-toolbar {
+aside[data-collapsed="true"] .sidebar-toolbar,
+.sidebar-routes-panel--collapsed .sidebar-toolbar {
     width: var(--sidebar-collapsed);
     justify-content: center;
     gap: 0;
+    /* Sem pad lateral: o > fica no centro real da coluna (borda inclusa) */
+    padding-inline: 0;
 }
 
 .sidebar-toolbar--collapsed .sidebar-toolbar-search,
@@ -1254,14 +1427,26 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
     pointer-events: none;
 }
 
-/* Expandir / Recolher todos — icones a direita, estilo VS Code Explorer */
+/* Expandir / Recolher todos — some na fase 1 do collapse (0.14s, igual ao submenu). */
 .sidebar-group-actions {
-    display: flex;
+    display: grid;
     flex-shrink: 0;
+    grid-template-rows: 1fr;
+    padding: 0 0.5rem 0.25rem;
+    opacity: 1;
+    transition:
+        grid-template-rows 0.14s cubic-bezier(0.22, 1, 0.36, 1),
+        padding 0.14s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.14s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-group-actions__track {
+    display: flex;
+    min-height: 0;
     align-items: center;
     justify-content: flex-end;
     gap: 0.125rem;
-    padding: 0 0.5rem 0.25rem;
+    overflow: hidden;
 }
 
 .sidebar-group-actions__btn {
@@ -1272,7 +1457,7 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
     height: 1.5rem;
     padding: 0;
     border: none;
-    border-radius: 0.375rem;
+    border-radius: var(--gesint-tab-radius);
     background: transparent;
     /* Mesma tonalidade dos icones de menu (.nav-item Icon: text-base-content/38) */
     color: color-mix(in oklab, var(--color-base-content) 38%, transparent);
@@ -1293,13 +1478,17 @@ aside[data-collapsed="true"] .sidebar-toolbar-search {
 
 .sidebar-group-actions--collapsed,
 aside[data-collapsed="true"] .sidebar-group-actions {
-    height: 0;
-    min-height: 0;
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
+    grid-template-rows: 0fr;
+    padding-top: 0;
+    padding-bottom: 0;
     opacity: 0;
     pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-group-actions {
+        transition-duration: 0.01ms;
+    }
 }
 
 .sidebar-routes-content {
@@ -1311,7 +1500,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     flex-direction: column;
 }
 
-/* Rail de domínios (estilo ClickUp — ícone + sigla) */
+/* Rail de domínios — item dentro da cápsula (ClickUp: menor e mais quadrado) */
 .system-rail-item {
     display: flex;
     width: 100%;
@@ -1320,10 +1509,12 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.125rem;
+    gap: 0.25rem;
+    /* 40px — ícone 16 + sigla; mais quadrado que o antigo 52px */
+    min-height: 2.5rem;
+    padding: 0.3125rem 0.125rem;
     border: 1px solid transparent;
-    border-radius: var(--gesint-control-radius);
+    border-radius: var(--system-rail-radius); /* mesmo raio da cápsula do rail */
     background: transparent;
     color: var(--system-rail-fg);
     cursor: pointer;
@@ -1361,16 +1552,16 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 
 .system-rail-item--icon-only {
     gap: 0;
-    min-height: 2.25rem;
-    padding-block: 0.5rem;
+    min-height: 2rem;
+    padding-block: 0.375rem;
 }
 
 .system-rail-acronym {
     max-width: 100%;
     overflow: hidden;
-    font-size: 0.5625rem;
-    font-variation-settings: "wght" 700;
-    letter-spacing: 0.05em;
+    font-size: 0.5625rem; /* 9px */
+    font-weight: var(--gesint-font-weight-strong);
+    letter-spacing: 0.04em;
     line-height: 1;
     text-overflow: ellipsis;
     text-transform: uppercase;
@@ -1430,7 +1621,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     text-align: left;
     font-size: 0.8125rem;
     line-height: 1.3;
-    font-variation-settings: "wght" 460;
+    font-weight: 410;
     color: color-mix(in srgb, var(--color-base-content) 70%, transparent);
     transition:
         background 0.13s ease,
@@ -1445,7 +1636,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 .gesint-listbox-option--active {
     background: color-mix(in srgb, var(--gesint-primary) 8%, var(--color-base-100));
     color: var(--gesint-primary-dark);
-    font-variation-settings: "wght" 560;
+    font-weight: 510;
 }
 
 .gesint-listbox-option--selected {
@@ -1492,15 +1683,93 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
-/* CRUD list toolbar */
+/* CRUD list toolbar — botões/campos na escala padrão, igual ao rodapé do form. */
 .crud-list-toolbar {
+    min-height: calc(var(--gesint-control-h) + 0.75rem);
     border-color: var(--gesint-border-subtle);
     background: var(--color-base-100);
+}
+
+/* Topbar — conteúdo interno 28px; ícones da trilha ficam 24×24 (abaixo). */
+.surface-header {
+    --gesint-control-h: var(--header-content-h);
+}
+
+/* Ícones da topbar: 24x24, raio 5, traço médio (legível no dark) */
+.surface-header .gesint-btn--icon-only {
+    width: 1.5rem;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    min-height: 1.5rem;
+    border-radius: var(--gesint-control-radius);
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+}
+
+.surface-header .gesint-btn--icon-only:hover:not(:disabled) {
+    color: color-mix(in srgb, var(--color-base-content) 78%, transparent);
+}
+
+.surface-header .gesint-btn--icon-only svg,
+.surface-header .header-user-menu__chevron {
+    stroke-width: 2.25;
+}
+
+/* Lucide Bell: mesma caixa 16px; 0.8px para baixo (glifo top-heavy). */
+.surface-header .gesint-btn--icon-only svg.header-notifications-bell {
+    transform: translateY(0.8px);
+}
+
+/* Trilha direita da topbar — ritmo igual ao ClickUp: ícones iguais + avatar no fim */
+.header-toolbar-end {
+    display: flex;
+    min-width: 0;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-actions-trail,
+.header-icon-trail {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem; /* 2px — ícones colados no mesmo “compasso” */
+}
+
+/* Não forçar display nos filhos — senão quebra `hidden` / `lg:hidden` do overflow menu */
+.header-actions-trail > *,
+.header-icon-trail > * {
+    flex-shrink: 0;
+}
+
+.header-toolbar-end .header-user-menu {
+    margin-inline-start: 0.25rem; /* respiro antes do avatar, como no ClickUp */
+}
+
+@media (min-width: 1024px) {
+    .header-more-menu {
+        display: none !important;
+    }
+}
+
+/* Modais e popovers montados dentro da topbar voltam ao controle padrão (30px). */
+.surface-header :is(dialog, [role="dialog"], [role="menu"], [role="listbox"], .surface-popover) {
+    --gesint-control-h: var(--gesint-control-h-base);
+    --gesint-control-font-size: var(--gesint-control-font-size-base);
+    --gesint-control-px: 7px;
 }
 
 [data-theme="dark"] .crud-list-toolbar {
     border-color: var(--gesint-border-subtle);
     background: color-mix(in srgb, var(--color-base-content) 3%, var(--color-base-100));
+}
+
+/* KPIs da esteira (Acompanhamento) — superfície um degrau acima do page, nos dois temas */
+.admission-pipeline-kpi {
+    background: color-mix(in srgb, var(--color-base-content) 4%, var(--color-base-100));
+}
+
+[data-theme="dark"] .admission-pipeline-kpi {
+    background: color-mix(in srgb, var(--color-base-content) 7%, var(--color-base-100));
 }
 
 /* CRUD — abas internas (estilo Linear) */
@@ -1512,8 +1781,8 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     overflow-y: hidden;
     border-bottom: 1px solid var(--gesint-border-subtle);
     background: var(--color-base-100);
-    padding: 0 0.875rem;
-    min-height: 2.625rem;
+    padding: 0 0.5rem;
+    min-height: 2rem; /* 32px — trilha compacta das subabas */
 }
 
 [data-theme="dark"] .gesint-crud-tablist {
@@ -1529,11 +1798,12 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     cursor: pointer;
     border: 0;
     background: transparent;
-    padding: 0.625rem 0.75rem;
+    align-self: stretch; /* ocupa a altura da trilha: sublinhado encosta na borda */
+    padding: 0 0.5rem;
     font: inherit;
-    font-size: 0.8125rem;
+    font-size: var(--gesint-font-subtab);
     letter-spacing: 0;
-    font-variation-settings: "wght" 480;
+    font-weight: var(--gesint-font-weight-strong);
     color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
     transition: color 0.15s ease;
 }
@@ -1545,7 +1815,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 .gesint-crud-tab--disabled,
 .gesint-crud-tab:disabled {
     cursor: not-allowed;
-    font-variation-settings: "wght" 400;
+    font-weight: var(--gesint-font-weight-regular);
     color: color-mix(in srgb, var(--color-base-content) 22%, transparent);
     opacity: 1;
 }
@@ -1555,7 +1825,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 .gesint-crud-tab--disabled.gesint-crud-tab--active,
 .gesint-crud-tab:disabled.gesint-crud-tab--active {
     cursor: not-allowed;
-    font-variation-settings: "wght" 400;
+    font-weight: var(--gesint-font-weight-regular);
     color: color-mix(in srgb, var(--color-base-content) 22%, transparent);
 }
 
@@ -1565,7 +1835,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 }
 
 .gesint-crud-tab--active {
-    font-variation-settings: "wght" 580;
+    font-weight: var(--gesint-font-weight-strong);
     color: var(--color-base-content);
 }
 
@@ -1576,7 +1846,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 .gesint-crud-tab--active::after {
     content: "";
     position: absolute;
-    inset-inline: 0.625rem;
+    inset-inline: 0.375rem;
     bottom: -1px;
     height: 2px;
     border-radius: 2px 2px 0 0;
@@ -1607,7 +1877,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     border-radius: 9999px;
     padding: 0 0.3rem;
     font-size: 0.625rem;
-    font-variation-settings: "wght" 540;
+    font-weight: 490;
     line-height: 1.25rem;
     background: color-mix(in srgb, var(--gesint-primary) 14%, transparent);
     color: var(--gesint-primary);
@@ -1620,16 +1890,24 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 
 /* Form stepper (cadastros multi-etapa) */
 .form-stepper__toolbar-shell {
+    display: none !important; /* temporário — conferência visual */
     flex-shrink: 0;
-    padding: 0.5rem 0.5rem 0;
+    padding: 0.25rem 0.5rem 0;
 }
 
+.gesint-form-stepper,
+.form-stepper__toolbar {
+    display: none !important; /* temporário — conferência visual */
+}
+
+/* Faixa dos steps = barra "Grupo / Filtro" do ClickUp: 38px do fim das abas até o
+   fim do card (4px de respiro + card de 34px com pílulas de 24px a 9px das abas). */
 .form-stepper__toolbar {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 0.5rem 0.75rem;
-    padding: 0.5rem;
+    gap: 0.5rem 0.625rem;
+    padding: 0.25rem 0.5rem;
 }
 
 .form-stepper__toolbar--no-code {
@@ -1645,19 +1923,19 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     padding-right: 0.75rem;
     margin-right: 0.125rem;
     border-right: 1px solid color-mix(in srgb, var(--gesint-primary) 14%, var(--gesint-border-subtle));
-    min-height: 1.875rem;
+    min-height: 1.5rem;
 }
 
 .form-stepper__access-code {
     display: inline-flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.35rem;
     min-width: 0;
 }
 
 .form-stepper__access-code-label {
     font-size: 10.5px;
-    font-weight: 600;
+    font-weight: 450;
     letter-spacing: 0;
     text-transform: none;
     line-height: 1.5;
@@ -1665,8 +1943,8 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 }
 
 .form-stepper__access-code-value {
-    font-size: 1.0625rem;
-    font-weight: 600;
+    font-size: 0.875rem;
+    font-weight: 450;
     letter-spacing: 0;
     color: var(--color-base-content);
 }
@@ -1676,8 +1954,8 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 }
 
 .form-stepper__code-value {
-    font-size: 1.0625rem;
-    font-variation-settings: "wght" 650;
+    font-size: 0.875rem;
+    font-weight: 450;
     letter-spacing: 0;
     color: color-mix(in srgb, var(--color-secondary) 88%, var(--color-base-content));
 }
@@ -1758,11 +2036,12 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     min-width: 0;
     flex-direction: row;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.375rem;
     border: 1px solid color-mix(in srgb, var(--color-base-content) 10%, transparent);
     border-radius: 9999px;
     background: color-mix(in srgb, var(--color-base-content) 5%, var(--color-base-100));
-    padding: 0.25rem 0.625rem 0.25rem 0.25rem;
+    min-height: 1.5rem; /* 24px, como os botões da barra do ClickUp */
+    padding: 0.125rem 0.5rem 0.125rem 0.125rem;
     font: inherit;
     cursor: pointer;
     transition:
@@ -1787,13 +2066,13 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 .gesint-form-stepper__badge {
     display: grid;
     place-items: center;
-    width: 1.375rem;
-    height: 1.375rem;
+    width: 1.125rem;
+    height: 1.125rem;
     flex-shrink: 0;
     border-radius: 9999px;
     border: 1.5px solid color-mix(in srgb, var(--color-base-content) 18%, transparent);
     font-size: 0.625rem;
-    font-variation-settings: "wght" 600;
+    font-weight: 470;
     color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
     background: var(--color-base-100);
     transition:
@@ -1823,9 +2102,9 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     min-width: 0;
     max-width: none;
     text-align: left;
-    font-size: 0.6875rem;
-    line-height: 1.2;
-    font-variation-settings: "wght" 500;
+    font-size: var(--gesint-font-step);
+    line-height: 1.25;
+    font-weight: 400;
     color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
     transition: color 0.15s ease;
     white-space: nowrap;
@@ -1839,7 +2118,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 }
 
 .gesint-form-stepper__step--active .gesint-form-stepper__label {
-    font-variation-settings: "wght" 650;
+    font-weight: 490;
     color: var(--gesint-primary);
 }
 
@@ -1886,8 +2165,8 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 }
 
 .form-stepper__panel-title {
-    font-size: 0.9375rem;
-    font-variation-settings: "wght" 650;
+    font-size: 0.875rem;
+    font-weight: 470;
     letter-spacing: 0;
     color: var(--gesint-primary);
 }
@@ -1956,146 +2235,165 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     -ms-overflow-style: none;
 }
 
-/* Conta do usuário — mesma coluna de ícones do nav; altura = rodapé de ações da página. */
-.sidebar-user-menu {
-    --sidebar-user-menu-pad-y: 0.3125rem;
+/* ──────────────────────────────────────────────
+   Menu da conta na topbar (modelo ClickUp — avatar no canto direito)
+   Gatilho: avatar 24px + seta. Dropdown 288px, padding 8px 0,
+   itens 28px 14/400 com ícone 16px, recuo lateral 8px, divisórias 1px.
+────────────────────────────────────────────── */
+.header-user-menu {
     position: relative;
-    z-index: 3;
-    box-sizing: border-box;
     display: flex;
-    width: 100%;
-    /* +2px: a paginação fica acima da borda do card da página e da borda do painel da tabela. */
-    height: calc(var(--gesint-shell-footer-h) + 2px);
-    min-height: calc(var(--gesint-shell-footer-h) + 2px);
-    max-height: calc(var(--gesint-shell-footer-h) + 2px);
     flex-shrink: 0;
     align-items: center;
-    padding-inline: var(--sidebar-nav-pad-x);
-    padding-block: var(--sidebar-user-menu-pad-y);
-    background: var(--sidebar-bg);
 }
 
-.sidebar-user-menu--collapsed {
-    /* Mantém o content de 14rem (como o nav): o painel corta à direita e o avatar não anda. */
-    width: 100%;
-    max-width: none;
-    justify-content: flex-start;
-}
-
-.sidebar-user-menu__card {
-    display: flex;
-    width: 100%;
-    min-width: 0;
-    height: 100%;
-    min-height: 0;
-    max-height: 100%;
-    align-items: center;
-    gap: 0.25rem;
-    margin-inline: var(--sidebar-nav-list-pad-x);
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: var(--gesint-control-radius);
-    background: color-mix(in srgb, var(--color-base-content) 3.5%, transparent);
-    transition:
-        background 0.13s ease,
-        border-color 0.13s ease;
-}
-
-.sidebar-user-menu__card:hover,
-.sidebar-user-menu__card--open {
-    background: color-mix(in srgb, var(--color-base-content) 6%, transparent);
-    border-color: color-mix(in srgb, var(--color-base-content) 8%, transparent);
-}
-
-.sidebar-user-menu__card--collapsed {
-    /* Mesmas medidas do expandido — só o clip do painel muda. */
-    width: 100%;
-    max-width: none;
-    background: transparent;
-    border-color: transparent;
-}
-
-.sidebar-user-menu__card--collapsed:hover,
-.sidebar-user-menu__card--collapsed.sidebar-user-menu__card--open {
-    background: color-mix(in srgb, var(--color-base-content) 6%, transparent);
-    border-color: transparent;
-}
-
-.sidebar-user-menu__main {
-    display: grid;
-    min-width: 0;
-    flex: 1 1 auto;
-    height: 100%;
-    grid-template-columns: var(--sidebar-nav-icon-col) minmax(0, 1fr);
-    align-items: center;
-    gap: 0.75rem;
-    margin: 0;
-    padding: 0.125rem 0.5rem 0.125rem var(--sidebar-nav-item-pl);
-    border: 0;
-    appearance: none;
-    background: transparent;
-    cursor: pointer;
-    text-align: left;
-    color: inherit;
-    font: inherit;
-}
-
-.sidebar-user-menu__avatar-slot {
-    display: flex;
-    width: var(--sidebar-nav-icon-col);
-    height: var(--sidebar-nav-icon-col);
-    align-items: center;
-    justify-content: center;
-    justify-self: center;
-}
-
-.sidebar-user-menu__meta {
-    padding-inline-start: 0.125rem;
-}
-
-.sidebar-user-menu__logout {
+.header-user-menu__trigger {
     display: inline-flex;
-    width: 1.75rem;
+    /* ClickUp: avatar 24 + seta, altura alinhada à trilha de ícones. */
     height: 1.75rem;
-    flex-shrink: 0;
     align-items: center;
-    justify-content: center;
-    margin-inline-end: 0.375rem;
-    border: 1px solid color-mix(in srgb, var(--color-base-content) 12%, transparent);
-    border-radius: 0.45rem;
+    gap: 0.125rem;
+    padding: 0 0.125rem 0 0.0625rem;
+    border: 0;
+    border-radius: 9999px;
     background: transparent;
-    color: color-mix(in srgb, var(--color-base-content) 45%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
     cursor: pointer;
     transition:
-        color 0.13s ease,
         background 0.13s ease,
-        border-color 0.13s ease;
+        color 0.13s ease;
 }
 
-.sidebar-user-menu__logout:hover {
-    color: var(--color-error);
-    border-color: color-mix(in srgb, var(--color-error) 35%, transparent);
-    background: color-mix(in srgb, var(--color-error) 8%, transparent);
+.header-user-menu__trigger:hover,
+.header-user-menu__trigger--open {
+    background: color-mix(in srgb, var(--color-base-content) 7%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 80%, transparent);
 }
 
-.sidebar-user-menu__popover {
-    min-width: 15rem;
-    border-radius: calc(var(--gesint-tab-radius) + 2px);
+.header-user-menu__trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--gesint-primary) 35%, transparent);
 }
 
-.sidebar-user-menu__popover--above::after {
-    content: "";
+/* Avatar ClickUp: placa clara + iniciais escuras (contraste alto nos dois temas). */
+.header-user-menu .header-user-menu__trigger .header-user-menu__avatar {
+    font-size: 0.75rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    color: #1b2430;
+    background: #e8edf2;
+    border-color: transparent;
+}
+
+[data-theme="dark"] .header-user-menu .header-user-menu__trigger .header-user-menu__avatar {
+    color: #f4f7fa;
+    background: color-mix(in srgb, var(--color-base-content) 22%, #3a4554);
+}
+
+.header-user-menu__chevron {
+    width: 0.625rem;
+    height: 0.625rem;
+    transition: transform 0.15s ease;
+}
+
+.header-user-menu__trigger--open .header-user-menu__chevron {
+    transform: rotate(180deg);
+}
+
+.header-user-menu__dropdown {
     position: absolute;
-    left: 1.25rem;
-    bottom: -6px;
-    border-width: 6px 6px 0;
-    border-style: solid;
-    border-color: var(--color-base-100) transparent transparent;
-    filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--color-base-content) 10%, transparent));
+    top: calc(100% + 0.375rem);
+    right: 0;
+    z-index: 60;
+    width: 18rem; /* 288px */
+    max-width: calc(100vw - 1rem);
+    padding: 0.5rem 0;
+    border-radius: var(--radius-gesint-modal);
+    border-top-right-radius: var(--radius-gesint-card);
 }
 
-[data-theme="dark"] .sidebar-user-menu__popover--above::after {
-    border-top-color: color-mix(in srgb, var(--color-base-200) 70%, var(--color-base-300));
+.header-user-menu__profile {
+    display: flex;
+    min-height: 2.75rem; /* 44px */
+    align-items: center;
+    gap: 0.625rem;
+    margin: 0 0.5rem;
+    padding: 0.375rem 0.5rem;
+}
+
+.header-user-menu__name {
+    display: block;
+    overflow: hidden;
+    font-size: 0.875rem;
+    font-weight: 450;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-base-content);
+}
+
+.header-user-menu__email {
+    display: block;
+    overflow: hidden;
+    margin-top: 0.0625rem;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
+}
+
+.header-user-menu__divider {
+    margin: 0.5rem 0;
+    border: 0;
+    border-top: 1px solid var(--gesint-border-subtle);
+}
+
+.header-user-menu__item {
+    display: flex;
+    width: calc(100% - 1rem);
+    height: 1.75rem; /* 28px */
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.125rem 0.5rem 0;
+    padding: 0 0.5rem;
+    border: 0;
+    border-radius: var(--gesint-control-radius);
+    background: transparent;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 400;
+    text-align: left;
+    color: var(--color-base-content);
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+
+.header-user-menu__divider + .header-user-menu__item {
+    margin-top: 0;
+}
+
+.header-user-menu__item:hover,
+.header-user-menu__item:focus-visible {
+    outline: none;
+    background: color-mix(in srgb, var(--color-base-content) 7%, transparent);
+}
+
+.header-user-menu__icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: color-mix(in srgb, var(--color-base-content) 62%, transparent);
+}
+
+.header-user-menu__item--danger,
+.header-user-menu__item--danger .header-user-menu__icon {
+    color: var(--color-error);
+}
+
+.header-user-menu__item--danger:hover,
+.header-user-menu__item--danger:focus-visible {
+    background: color-mix(in srgb, var(--color-error) 9%, transparent);
 }
 
 .sidebar-nav::-webkit-scrollbar {
@@ -2115,7 +2413,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     position: relative;
     background: color-mix(in srgb, var(--gesint-primary) 8%, var(--color-base-100));
     color: var(--gesint-primary);
-    font-variation-settings: "wght" 560;
+    font-weight: 450;
     border-color: transparent;
     box-shadow: none;
     transition:
@@ -2124,16 +2422,18 @@ aside[data-collapsed="true"] .sidebar-group-actions {
         border-color 0s ease;
 }
 
-/* Indicador lateral do item ativo */
+/* Indicador lateral do item ativo — centrado na altura do ícone (16px) */
 .nav-item-active::before {
     content: "";
     position: absolute;
-    top: 0.4375rem;
-    bottom: 0.4375rem;
-    left: -1px;
+    top: 50%;
+    left: calc(-1 * var(--sidebar-nav-item-border));
     width: 3px;
+    height: var(--sidebar-nav-icon-col);
     border-radius: 0 3px 3px 0;
     background: var(--gesint-primary);
+    transform: translateY(-50%);
+    transform-origin: center;
     animation: gesint-nav-indicator 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -2143,11 +2443,11 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 
 @keyframes gesint-nav-indicator {
     from {
-        transform: scaleY(0.2);
+        transform: translateY(-50%) scaleY(0.2);
         opacity: 0;
     }
     to {
-        transform: scaleY(1);
+        transform: translateY(-50%) scaleY(1);
         opacity: 1;
     }
 }
@@ -2226,9 +2526,9 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 }
 
 .nav-group-children {
-    /* Guia no centro do ícone do .nav-item; margin-top = gap-0.5 dos itens */
-    margin: 0.125rem 0 0 calc(var(--sidebar-nav-item-pl) + (var(--sidebar-nav-icon-col) / 2));
-    padding: 0 0 0 0.375rem;
+    /* Fio no eixo do ícone pai (--sidebar-nav-guide-x); filhos à direita */
+    margin: 0.125rem 0 0 var(--sidebar-nav-guide-x);
+    padding: 0 0 0 var(--sidebar-nav-tree-gap);
     border-left: 1px solid var(--gesint-border-subtle);
 }
 
@@ -2243,8 +2543,9 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 }
 
 .nav-item-child {
-    padding-left: 0.875rem;
-    font-size: 0.78125rem;
+    /* Mesma coluna de ícone; indent já vem do tree-gap + fio */
+    padding-left: 0.5rem;
+    font-size: var(--gesint-font-menu); /* ClickUp: subitens no mesmo tamanho do pai */
 }
 
 .nav-route-tree--embedded .nav-section-label {
@@ -2263,8 +2564,8 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 }
 
 .nav-route-tree--embedded .nav-group-children {
-    margin-left: calc(var(--sidebar-nav-item-pl) + (var(--sidebar-nav-icon-col) / 2));
-    padding-left: 0.375rem;
+    margin-left: var(--sidebar-nav-guide-x);
+    padding-left: var(--sidebar-nav-tree-gap);
 }
 
 /*
@@ -2330,7 +2631,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 .nav-item-marked:not(.nav-item-active) {
     background: color-mix(in srgb, var(--gesint-success) 12%, transparent);
     color: color-mix(in srgb, var(--gesint-success) 88%, var(--color-base-content));
-    font-variation-settings: "wght" 560;
+    font-weight: 510;
 }
 
 [data-theme="dark"] .nav-item-marked:not(.nav-item-active) {
@@ -2388,8 +2689,8 @@ div:has(> .skeleton-shimmer):not(:has(> :not(.skeleton-shimmer))) {
     /* separate: com collapse o background do th pinta por cima da borda do container */
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 0.8125rem;
-    line-height: 1.45;
+    font-size: 0.875rem; /* 14px — células do ClickUp */
+    line-height: 1.2;
 }
 
 .gesint-table th,
@@ -2421,21 +2722,20 @@ div:has(> .skeleton-shimmer):not(:has(> :not(.skeleton-shimmer))) {
 .gesint-table .gesint-table-col-title {
     display: block;
     overflow: hidden;
-    font-size: 0.65625rem;
-    font-variation-settings: "wght" 600;
-    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    font-weight: var(--gesint-font-weight-medium);
+    letter-spacing: 0;
     text-overflow: ellipsis;
-    text-transform: uppercase;
     white-space: nowrap;
-    /* altura folgada: overflow hidden não pode cortar acentos das maiúsculas */
+    /* altura folgada: overflow hidden não pode cortar acentos */
     line-height: 1.5;
-    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
 }
 
 /* Host do filtro: isola herança do th e garante escala normal de controle */
 .gesint-table thead th .gesint-column-filter-host {
     font-size: var(--gesint-control-font-size);
-    font-variation-settings: "wght" 500;
+    font-weight: var(--gesint-font-weight-medium);
     letter-spacing: normal;
     text-transform: none;
     line-height: normal;
@@ -2447,7 +2747,7 @@ div:has(> .skeleton-shimmer):not(:has(> :not(.skeleton-shimmer))) {
     height: var(--gesint-control-h) !important;
     min-height: var(--gesint-control-h) !important;
     max-height: none !important;
-    font-size: var(--gesint-control-font-size) !important;
+    font-size: var(--gesint-field-font-size) !important;
     line-height: normal !important;
     letter-spacing: normal !important;
     text-transform: none !important;
@@ -2509,6 +2809,74 @@ div:has(> .skeleton-shimmer):not(:has(> :not(.skeleton-shimmer))) {
 
 .gesint-table td {
     border-bottom: 1px solid var(--gesint-border-subtle);
+}
+
+/* Linha de 36px (--cu-data-table-row-height do ClickUp), com ou sem botões de ação */
+.gesint-table tbody td {
+    height: 2.25rem;
+}
+
+/* Perfil na célula: avatar 24px + nome · subtítulo em uma linha (escala ClickUp) */
+.gesint-table-avatar-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    max-width: 100%;
+    height: 1.5rem;
+}
+
+.gesint-table-avatar-profile__text {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: baseline;
+    gap: 0.3125rem;
+    overflow: hidden;
+    line-height: 1.2;
+}
+
+.gesint-table-avatar-profile__name {
+    overflow: hidden;
+    font-size: 0.875rem; /* 14px — célula ClickUp */
+    font-weight: var(--gesint-font-weight-medium);
+    color: var(--color-base-content);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gesint-table-avatar-profile__sep {
+    flex-shrink: 0;
+    color: color-mix(in srgb, var(--color-base-content) 35%, transparent);
+}
+
+.gesint-table-avatar-profile__subtitle {
+    overflow: hidden;
+    flex-shrink: 1;
+    font-size: 0.75rem; /* 12px */
+    font-weight: var(--gesint-font-weight-regular);
+    color: color-mix(in srgb, var(--color-base-content) 48%, transparent);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gesint-table-avatar-profile__tags {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.gesint-table-avatar-profile__tag {
+    display: inline-flex;
+    height: 1.125rem;
+    align-items: center;
+    border-radius: 9999px;
+    border-width: 1px;
+    padding: 0 0.375rem;
+    font-size: 0.625rem;
+    font-weight: var(--gesint-font-weight-medium);
+    line-height: 1;
 }
 
 .gesint-table .gesint-btn {
@@ -2834,7 +3202,7 @@ div:has(> .skeleton-shimmer):not(:has(> :not(.skeleton-shimmer))) {
     border-radius: var(--gesint-radius-badge);
     padding: 0.1875rem 0.5rem;
     font-size: 0.75rem;
-    font-variation-settings: "wght" 560;
+    font-weight: 510;
     letter-spacing: 0.005em;
     line-height: 1.25;
     white-space: nowrap;
@@ -2910,7 +3278,7 @@ kbd {
     background: color-mix(in srgb, var(--color-base-content) 5%, transparent);
     font-family: inherit;
     font-size: 0.6rem;
-    font-variation-settings: "wght" 550;
+    font-weight: 500;
     color: color-mix(in srgb, var(--color-base-content) 60%, transparent);
     line-height: 1.5;
 }
@@ -3018,7 +3386,7 @@ kbd {
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.875rem 1.25rem 0.875rem 1.5rem;
+    padding: 0.625rem 1rem 0.625rem 1.25rem;
     border-bottom: 1px solid var(--gesint-border-subtle);
     background: color-mix(in srgb, var(--color-base-content) 1.5%, var(--color-base-100));
     border-radius: var(--radius-gesint-card) var(--radius-gesint-card) 0 0;
@@ -3028,8 +3396,8 @@ kbd {
 .gesint-form-section__header::before {
     content: "";
     position: absolute;
-    top: 0.9375rem;
-    bottom: 0.9375rem;
+    top: 0.75rem;
+    bottom: 0.75rem;
     left: 0;
     width: 3px;
     border-radius: 0 3px 3px 0;
@@ -3058,23 +3426,23 @@ kbd {
 }
 
 .gesint-form-section__title {
-    font-size: 0.875rem;
-    font-variation-settings: "wght" 600;
+    font-size: var(--gesint-font-section);
+    font-weight: var(--gesint-font-weight-strong);
     letter-spacing: -0.01em;
     color: var(--color-base-content);
 }
 
 .gesint-form-section__description {
     margin-top: 0.125rem;
-    font-size: 0.75rem;
+    font-size: var(--gesint-font-helper);
     line-height: 1.45;
     color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
 }
 
 .gesint-form-section__body {
     display: grid;
-    gap: 0.875rem 1rem;
-    padding: 1.125rem 1.25rem 1.25rem;
+    gap: var(--gesint-field-gap-y) var(--gesint-field-gap-x);
+    padding: 1rem;
 }
 
 @media (min-width: 640px) {
@@ -3086,7 +3454,7 @@ kbd {
 .gesint-photo-card {
     display: flex;
     height: 100%;
-    min-height: 16.5rem;
+    min-height: 13.5rem;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -3099,8 +3467,10 @@ kbd {
 
 .gesint-photo-card__frame {
     position: relative;
-    width: 200px;
-    height: 200px;
+    /* Acompanha a coluna da foto (176px em notebook, 240px em telas largas). */
+    width: min(168px, 100%);
+    height: auto;
+    aspect-ratio: 1;
     flex-shrink: 0;
 }
 
@@ -3355,9 +3725,117 @@ html.gesint-workspace-active body {
     background: color-mix(in srgb, var(--color-base-content) 8%, transparent);
 }
 
+.workspace-tabbar-scroll-wrap {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: stretch;
+}
+
 .workspace-tabbar-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--color-base-content) 18%, transparent) transparent;
+    min-width: 0;
+    scrollbar-width: none;
+}
+
+.workspace-tabbar-scroll::-webkit-scrollbar {
+    display: none;
+    height: 0;
+}
+
+/* Faixa do botão + degradê indicando abas ocultas atrás. */
+.workspace-tabbar-scroll-edge {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    align-self: stretch;
+    padding-inline: 0.125rem;
+    background: var(--color-page);
+}
+
+.workspace-tabbar-scroll-edge--start {
+    border-right: 1px solid var(--gesint-border-subtle);
+    box-shadow: 4px 0 10px color-mix(in srgb, var(--color-base-content) 10%, transparent);
+}
+
+.workspace-tabbar-scroll-edge--start::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 100%;
+    width: 1.25rem;
+    pointer-events: none;
+    background: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--color-page) 92%, transparent),
+        transparent
+    );
+}
+
+.workspace-tabbar-scroll-edge--end {
+    border-left: 1px solid var(--gesint-border-subtle);
+    box-shadow: -4px 0 10px color-mix(in srgb, var(--color-base-content) 10%, transparent);
+}
+
+.workspace-tabbar-scroll-edge--end::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 100%;
+    width: 1.25rem;
+    pointer-events: none;
+    background: linear-gradient(
+        to left,
+        color-mix(in srgb, var(--color-page) 92%, transparent),
+        transparent
+    );
+}
+
+[data-theme="dark"] .workspace-tabbar-scroll-edge--start {
+    border-right-color: color-mix(in srgb, var(--color-base-content) 10%, transparent);
+    box-shadow: 6px 0 14px color-mix(in srgb, #000 42%, transparent);
+}
+
+[data-theme="dark"] .workspace-tabbar-scroll-edge--end {
+    border-left-color: color-mix(in srgb, var(--color-base-content) 10%, transparent);
+    box-shadow: -6px 0 14px color-mix(in srgb, #000 42%, transparent);
+}
+
+.workspace-tabbar-scroll-btn {
+    display: inline-flex;
+    width: 1.375rem;
+    min-width: 1.375rem;
+    height: 1.375rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: var(--gesint-tab-radius);
+    background: var(--color-base-100);
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    box-shadow: var(--gesint-shadow-xs);
+    cursor: pointer;
+    transition:
+        color 0.12s ease,
+        background 0.12s ease,
+        border-color 0.12s ease,
+        box-shadow 0.12s ease;
+}
+
+.workspace-tabbar-scroll-btn:hover {
+    border-color: var(--gesint-border-strong);
+    background: color-mix(in srgb, var(--color-base-content) 4%, var(--color-base-100));
+    color: color-mix(in srgb, var(--color-base-content) 82%, transparent);
+    box-shadow: var(--gesint-shadow-sm);
+}
+
+[data-theme="dark"] .workspace-tabbar-scroll-btn {
+    border-color: color-mix(in srgb, var(--color-base-content) 12%, transparent);
+    background: color-mix(in srgb, var(--color-base-content) 6%, var(--color-base-100));
 }
 
 .workspace-tabbar-scroll-inner {
@@ -3374,7 +3852,7 @@ html.gesint-workspace-active body {
     user-select: none;
     padding-inline: 0.05rem;
     font-size: 0.6875rem;
-    font-weight: 500;
+    font-weight: 450;
     line-height: 1;
     color: color-mix(in srgb, var(--color-base-content) 28%, transparent);
 }
@@ -3389,7 +3867,7 @@ html.gesint-workspace-active body {
 }
 
 .gesint-workspace-tab--pinned {
-    padding-inline-end: 0.4rem;
+    padding-inline-end: 0.375rem;
 }
 
 /* Placeholder no lugar original (invisível; o visual vai no DragOverlay). */
@@ -3437,7 +3915,15 @@ button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay {
 }
 
 button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay.gesint-workspace-tab--active {
-    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--color-primary) 8%, var(--color-base-100)) 0%,
+        color-mix(in srgb, var(--color-primary) 12%, var(--color-base-100)) 100%
+    );
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 35%, transparent),
+        0 8px 20px color-mix(in srgb, var(--color-base-content) 12%, transparent);
 }
 
 [data-theme="dark"] button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay {
@@ -3449,66 +3935,137 @@ button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay.gesint-workspace-
 }
 
 [data-theme="dark"] button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay.gesint-workspace-tab--active {
-    border-color: var(--color-primary);
-}
-
-.workspace-tabbar-scroll::-webkit-scrollbar {
-    height: 4px;
-}
-
-.workspace-tabbar-scroll::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--color-base-content) 22%, transparent);
+    color: var(--gesint-primary-light);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--color-primary) 14%, var(--color-base-100)) 0%,
+        color-mix(in srgb, var(--color-primary) 20%, var(--color-base-100)) 100%
+    );
 }
 
 .gesint-workspace-tabs {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.75rem; /* 12px — espaço + divisória entre abas */
     box-sizing: border-box;
     height: 100%;
     min-height: 100%;
-    padding: var(--sidebar-toolbar-pad-y) var(--workspace-toolbar-pad-x);
+    /* Mesmo pad vertical da toolbar do sidebar: 5 + 30 + 5 = 40 */
+    padding-block: var(--sidebar-toolbar-pad-y);
+    padding-inline: 0.25rem;
 }
 
 .gesint-workspace-tab {
     position: relative;
     display: inline-flex;
-    height: var(--gesint-tab-height);
-    min-height: var(--gesint-tab-height);
-    max-height: var(--gesint-tab-height);
+    /* Mesma altura do .nav-item (30px) dentro da trilha 40px */
+    width: fit-content;
+    height: var(--sidebar-nav-item-h);
+    min-height: var(--sidebar-nav-item-h);
+    max-height: var(--sidebar-nav-item-h);
     flex-shrink: 0;
     align-items: center;
-    gap: 0.3125rem;
-    padding: 0 0.5rem;
+    gap: 0.375rem;
+    /* Direita mais justa: o X não deixa “buraco” no fim da pílula */
+    padding: 0 0.25rem 0 0.625rem;
     border: 1px solid transparent;
-    border-radius: var(--gesint-tab-radius);
+    border-radius: var(--radius-gesint-card); /* 6px — padrão de card do sistema */
     background: transparent;
-    font-size: 0.8125rem;
+    font-size: var(--gesint-font-tab); /* 14px — contrato de layout */
     letter-spacing: 0;
-    font-variation-settings: "wght" 460;
-    color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
+    line-height: 1.45;
+    font-weight: var(--gesint-font-weight-regular);
+    color: color-mix(in srgb, var(--color-base-content) 48%, transparent);
+    overflow: visible;
     transition:
-        color 0.15s ease,
-        background 0.15s ease,
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
+        color 0.18s ease,
+        background 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+/* Ícone / pin / close na mesma linha óptica */
+.gesint-workspace-tab > svg,
+.gesint-workspace-tab .workspace-tab-home-mark,
+.gesint-workspace-tab .workspace-tab-close {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+/*
+ * Label da aba: ellipsis só no eixo X — overflow-y visible libera g/ç
+ * (Segoe UI Variable estoura o em-box; hidden no Y clipava).
+ * ::after com height 0 reserva a largura do peso medium.
+ */
+.workspace-tab-label {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.45;
+}
+.workspace-tab-label > span {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: visible;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.45;
+}
+.workspace-tab-label::after {
+    content: attr(data-title);
+    font-weight: var(--gesint-font-weight-medium);
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+/* Divisória entre abas (não cola na ativa) */
+.gesint-workspace-tab + .gesint-workspace-tab::before {
+    content: "";
+    position: absolute;
+    top: 20%;
+    left: -0.4375rem; /* metade do gap 12px */
+    width: 1px;
+    height: 60%;
+    background: color-mix(in srgb, var(--color-base-content) 12%, transparent);
+}
+
+.gesint-workspace-tab--active + .gesint-workspace-tab::before {
+    opacity: 0;
 }
 
 .gesint-workspace-tab:hover:not(.gesint-workspace-tab--active) {
-    color: color-mix(in srgb, var(--color-base-content) 78%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 72%, transparent);
     background: color-mix(in srgb, var(--color-base-content) 4%, transparent);
 }
 
 .gesint-workspace-tab--active {
-    border-color: var(--gesint-border);
-    background: var(--color-base-100);
-    color: var(--color-base-content);
-    font-variation-settings: "wght" 580;
-    box-shadow:
-        var(--gesint-shadow-sm),
-        inset 0 -2px 0 var(--gesint-primary);
+    border-color: transparent;
+    color: var(--color-primary);
+    font-weight: var(--gesint-font-weight-medium);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--color-primary) 8%, var(--color-base-100)) 0%,
+        color-mix(in srgb, var(--color-primary) 12%, var(--color-base-100)) 100%
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+/* Home / abas sem botão fechar: padding simétrico */
+.gesint-workspace-tab:not(:has(.workspace-tab-close)) {
+    padding-inline: 0.625rem;
 }
 
 .workspace-tab-system-badge {
@@ -3521,63 +4078,70 @@ button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay.gesint-workspace-
     border-radius: var(--gesint-tab-radius);
     border: 1px solid transparent;
     font-size: 0.5625rem;
-    font-variation-settings: "wght" 700;
-    letter-spacing: 0.05em;
+    font-weight: 450;
+    letter-spacing: 0.04em;
     line-height: 1.1;
     text-transform: uppercase;
 }
 
 .workspace-tab-system-badge--dp {
-    background: color-mix(in srgb, var(--gesint-info) 12%, var(--color-base-100));
-    border-color: color-mix(in srgb, var(--gesint-info) 22%, transparent);
-    color: color-mix(in srgb, var(--gesint-info) 88%, var(--color-base-content));
+    background: color-mix(in srgb, var(--gesint-info) 8%, var(--color-base-100));
+    border-color: color-mix(in srgb, var(--gesint-info) 14%, transparent);
+    color: color-mix(in srgb, var(--gesint-info) 70%, var(--color-base-content));
 }
 
 .workspace-tab-system-badge--rh {
-    background: color-mix(in srgb, var(--gesint-primary) 12%, var(--color-base-100));
-    border-color: color-mix(in srgb, var(--gesint-primary) 22%, transparent);
-    color: var(--gesint-primary);
+    background: color-mix(in srgb, var(--gesint-primary) 8%, var(--color-base-100));
+    border-color: color-mix(in srgb, var(--gesint-primary) 14%, transparent);
+    color: color-mix(in srgb, var(--gesint-primary) 72%, var(--color-base-content));
 }
 
 [data-theme="dark"] .workspace-tab-system-badge--dp {
-    background: color-mix(in srgb, var(--gesint-info) 20%, transparent);
-    color: color-mix(in srgb, var(--gesint-info) 85%, white);
+    background: color-mix(in srgb, var(--gesint-info) 12%, transparent);
+    color: color-mix(in srgb, var(--gesint-info) 70%, white);
 }
 
 [data-theme="dark"] .workspace-tab-system-badge--rh {
-    background: color-mix(in srgb, var(--gesint-primary) 22%, transparent);
-    color: var(--gesint-primary-light);
+    background: color-mix(in srgb, var(--gesint-primary) 12%, transparent);
+    color: color-mix(in srgb, var(--gesint-primary-light) 78%, white);
 }
 
 [data-theme="dark"] .gesint-workspace-tab--active {
-    background: var(--color-base-100);
-    border-color: var(--gesint-border);
-    box-shadow: inset 0 -2px 0 var(--gesint-primary-light);
+    color: var(--gesint-primary-light);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--color-primary) 14%, var(--color-base-100)) 0%,
+        color-mix(in srgb, var(--color-primary) 20%, var(--color-base-100)) 100%
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 32%, transparent);
 }
 
-/* Aba fixa do Painel — âncora permanente, distinta das abas de módulo. */
+[data-theme="dark"] .gesint-workspace-tab + .gesint-workspace-tab::before {
+    background: color-mix(in srgb, var(--color-base-content) 14%, transparent);
+}
+
+/* Aba fixa do Painel — mesma linguagem de pílula; ícone em marca. */
 .gesint-workspace-tab--home {
-    gap: 0.4375rem;
-    padding-inline: 0.4rem 0.7rem;
-    border-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
-    background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-    color: var(--color-primary);
-    font-variation-settings: "wght" 560;
+    gap: 0.375rem;
+    padding-inline: 0.625rem;
+    color: color-mix(in srgb, var(--color-base-content) 48%, transparent);
+    font-weight: var(--gesint-font-weight-regular);
 }
 
 .gesint-workspace-tab--home:hover:not(.gesint-workspace-tab--active) {
-    border-color: color-mix(in srgb, var(--color-primary) 32%, transparent);
-    background: color-mix(in srgb, var(--color-primary) 13%, transparent);
-    color: var(--color-primary);
+    color: color-mix(in srgb, var(--color-base-content) 72%, transparent);
+    background: color-mix(in srgb, var(--color-base-content) 4%, transparent);
 }
 
 .gesint-workspace-tab--home.gesint-workspace-tab--active {
-    border-color: color-mix(in srgb, var(--color-primary) 42%, var(--gesint-border));
-    background: color-mix(in srgb, var(--color-primary) 10%, var(--color-base-100));
     color: var(--color-primary);
-    box-shadow:
-        var(--gesint-shadow-sm),
-        inset 0 -2px 0 var(--color-primary);
+    font-weight: var(--gesint-font-weight-medium);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--color-primary) 8%, var(--color-base-100)) 0%,
+        color-mix(in srgb, var(--color-primary) 12%, var(--color-base-100)) 100%
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 22%, transparent);
 }
 
 .workspace-tab-home-mark {
@@ -3593,27 +4157,18 @@ button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay.gesint-workspace-
 }
 
 .gesint-workspace-tab--home.gesint-workspace-tab--active .workspace-tab-home-mark {
-    background: var(--color-primary);
-    color: var(--color-primary-content);
-}
-
-[data-theme="dark"] .gesint-workspace-tab--home {
-    border-color: color-mix(in srgb, var(--color-primary) 28%, transparent);
-    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
-    color: var(--gesint-primary-light);
-}
-
-[data-theme="dark"] .gesint-workspace-tab--home:hover:not(.gesint-workspace-tab--active) {
-    border-color: color-mix(in srgb, var(--color-primary) 42%, transparent);
-    background: color-mix(in srgb, var(--color-primary) 18%, transparent);
-    color: var(--gesint-primary-light);
+    background: color-mix(in srgb, var(--color-primary) 16%, var(--color-base-100));
+    color: var(--color-primary);
 }
 
 [data-theme="dark"] .gesint-workspace-tab--home.gesint-workspace-tab--active {
-    border-color: color-mix(in srgb, var(--color-primary) 48%, var(--gesint-border));
-    background: color-mix(in srgb, var(--color-primary) 16%, var(--color-base-100));
     color: var(--gesint-primary-light);
-    box-shadow: inset 0 -2px 0 var(--gesint-primary-light);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--color-primary) 14%, var(--color-base-100)) 0%,
+        color-mix(in srgb, var(--color-primary) 20%, var(--color-base-100)) 100%
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 32%, transparent);
 }
 
 [data-theme="dark"] .workspace-tab-home-mark {
@@ -3622,17 +4177,20 @@ button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay.gesint-workspace-
 }
 
 [data-theme="dark"] .gesint-workspace-tab--home.gesint-workspace-tab--active .workspace-tab-home-mark {
-    background: var(--color-primary);
-    color: var(--color-primary-content);
+    background: color-mix(in srgb, var(--color-primary) 28%, transparent);
+    color: var(--gesint-primary-light);
 }
 
 .workspace-tab-close {
+    width: 1.25rem; /* 20px — cabe centrado na aba 30px */
+    height: 1.25rem;
+    border-radius: var(--gesint-control-radius);
     color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
     opacity: 0;
     transition:
-        opacity 0.12s ease,
-        background 0.12s ease,
-        color 0.12s ease;
+        opacity 0.15s ease,
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
 .gesint-workspace-tab:hover .workspace-tab-close,
@@ -3640,9 +4198,18 @@ button.gesint-workspace-tab.gesint-workspace-tab--drag-overlay.gesint-workspace-
     opacity: 1;
 }
 
+.gesint-workspace-tab--active .workspace-tab-close {
+    color: color-mix(in srgb, var(--color-primary) 65%, transparent);
+}
+
 .workspace-tab-close:hover {
-    background: color-mix(in srgb, var(--color-base-content) 8%, transparent);
-    color: var(--color-base-content);
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 78%, transparent);
+}
+
+.gesint-workspace-tab--active .workspace-tab-close:hover {
+    background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+    color: var(--color-primary);
 }
 
 /* Modal de alerta (sem DaisyUI) */
@@ -3776,7 +4343,9 @@ button:disabled,
     z-index: 300;
     margin: auto;
     max-width: calc(100vw - 2rem);
-    padding: 0;
+    /* Pad + overflow visible: borda/anel inferior não é clipado pelo <dialog> */
+    padding: 2px;
+    overflow: visible;
     border: none;
     background: transparent;
     opacity: 0;
@@ -3823,7 +4392,19 @@ button:disabled,
 }
 
 .system-alert-modal[open] .gesint-modal-panel {
-    animation: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+    /* Sem fill "both": transform residual no painel clipava a borda inferior */
+    animation: system-alert-panel-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes system-alert-panel-in {
+    from {
+        opacity: 0;
+        transform: scale(0.965);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 /* Overlay dos modais DaisyUI (picker, busca detalhada, diálogos).
@@ -3949,7 +4530,7 @@ html:has(.login-page) body {
 .login-main__logo-tagline {
     font-family: var(--font-outfit), var(--font-jakarta), system-ui, sans-serif;
     font-size: 1.0625rem;
-    font-weight: 500;
+    font-weight: 450;
     letter-spacing: -0.01em;
 }
 
@@ -3970,7 +4551,7 @@ html:has(.login-page) body {
     border: 1px solid color-mix(in srgb, white 14%, transparent);
     background: color-mix(in srgb, white 6%, transparent);
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 450;
     color: color-mix(in srgb, white 78%, transparent);
 }
 
@@ -3984,9 +4565,9 @@ html:has(.login-page) body {
 }
 
 .login-brand__headline {
-    margin-top: 1.25rem;
-    font-size: clamp(1.75rem, 2.6vw, 2.375rem);
-    font-weight: 600;
+    margin-top: 1rem;
+    font-size: clamp(1.5rem, 2.2vw, 2rem);
+    font-weight: 550;
     letter-spacing: -0.03em;
     line-height: 1.15;
     color: #fff;
@@ -3994,9 +4575,9 @@ html:has(.login-page) body {
 }
 
 .login-brand__lead {
-    margin-top: 0.875rem;
-    font-size: 0.9375rem;
-    line-height: 1.6;
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.55;
     color: color-mix(in srgb, white 64%, transparent);
     text-wrap: pretty;
 }
@@ -4004,15 +4585,15 @@ html:has(.login-page) body {
 .login-brand__modules {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
-    margin-top: 2rem;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
 }
 
 .login-brand__module {
     display: flex;
     align-items: center;
-    gap: 0.875rem;
-    padding: 0.75rem 0.875rem;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
     border-radius: var(--radius-gesint-card-lg);
     border: 1px solid color-mix(in srgb, white 9%, transparent);
     background: color-mix(in srgb, white 4%, transparent);
@@ -4042,8 +4623,8 @@ html:has(.login-page) body {
 
 .login-brand__module-icon {
     display: inline-flex;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
@@ -4056,14 +4637,14 @@ html:has(.login-page) body {
 .login-brand__module-title {
     display: block;
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 500;
     color: #fff;
 }
 
 .login-brand__module-desc {
     display: block;
-    margin-top: 0.125rem;
-    font-size: 0.8125rem;
+    margin-top: 0.0625rem;
+    font-size: 0.75rem;
     color: color-mix(in srgb, white 56%, transparent);
 }
 
@@ -4176,7 +4757,7 @@ html:has(.login-page) body {
 .login-main__inner {
     display: flex;
     width: 100%;
-    max-width: 24rem;
+    max-width: 22rem;
     flex-direction: column;
 }
 
@@ -4203,21 +4784,21 @@ html:has(.login-page) body {
 }
 
 .login-main__header {
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.25rem;
 }
 
 .login-main__title {
-    font-size: 1.625rem;
-    font-weight: 600;
-    letter-spacing: -0.025em;
+    font-size: var(--gesint-font-page-title); /* 24px, como o título das páginas */
+    font-weight: 550;
+    letter-spacing: -0.02em;
     line-height: 1.2;
     color: var(--color-base-content);
 }
 
 .login-main__subtitle {
-    margin-top: 0.5rem;
-    font-size: 0.9375rem;
-    line-height: 1.55;
+    margin-top: 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
     color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
 }
 
@@ -4238,23 +4819,23 @@ html:has(.login-page) body {
     display: flex;
     width: 100%;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
     text-align: left;
 }
 
+/* Escala compacta do app: rótulo 12px, campo e botão 36px, texto 14px. */
 .login-field .gesint-label {
-    margin-bottom: 0.375rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    font-variation-settings: "wght" 500;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 450;
     color: color-mix(in srgb, var(--color-base-content) 78%, transparent);
 }
 
 .gesint-field--login {
-    height: 2.75rem !important;
-    min-height: 2.75rem !important;
+    height: 2.25rem !important;
+    min-height: 2.25rem !important;
     border-radius: var(--gesint-control-radius);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     background: var(--color-base-100);
     box-shadow: var(--gesint-shadow-xs);
 }
@@ -4265,11 +4846,11 @@ html:has(.login-page) body {
 
 .gesint-field--login:focus-within {
     border-color: var(--gesint-primary);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gesint-primary) 14%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gesint-primary) 14%, transparent);
 }
 
 .gesint-field--login input {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
 }
 
 .gesint-field--login .gesint-password-toggle {
@@ -4285,7 +4866,7 @@ html:has(.login-page) body {
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    margin-top: -0.125rem;
+    margin-top: 0;
 }
 
 .login-remember {
@@ -4293,12 +4874,20 @@ html:has(.login-page) body {
 }
 
 .login-remember .text-base-content {
+    font-size: 0.8125rem;
     color: color-mix(in srgb, var(--color-base-content) 70%, transparent);
+}
+
+/* Checkbox do "Lembrar de mim" no tamanho do restante do formulário (16px). */
+.login-remember .checkbox {
+    --size: 1rem;
+    width: 1rem;
+    height: 1rem;
 }
 
 .login-forgot {
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: 450;
     color: var(--gesint-primary);
     text-decoration: none;
     transition: color 0.15s ease;
@@ -4318,12 +4907,11 @@ html:has(.login-page) body {
     color: var(--gesint-primary-200);
 }
 
-.login-submit.gesint-btn {
-    height: 2.75rem;
-    min-height: 2.75rem;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    font-variation-settings: "wght" 600;
+.login-form .login-submit.gesint-btn {
+    height: 2.25rem;
+    min-height: 2.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 .login-form__divider {
@@ -4350,8 +4938,8 @@ html:has(.login-page) body {
 }
 
 .login-dev-hint {
-    margin-top: 0.5rem;
-    padding: 0.5rem 0.75rem;
+    margin-top: 0.25rem;
+    padding: 0.375rem 0.75rem;
     border-radius: var(--gesint-control-radius);
     border: 1px dashed var(--gesint-border);
     text-align: center;
@@ -4380,10 +4968,10 @@ html:has(.login-page) body {
 .gesint-dash__inner {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1rem;
     max-width: 112rem;
     margin: 0 auto;
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
 }
 
 @media (max-width: 640px) {
@@ -4393,8 +4981,8 @@ html:has(.login-page) body {
 }
 
 .gesint-dash-title {
-    font-size: 1.375rem;
-    font-weight: 600;
+    font-size: var(--gesint-font-page-title);
+    font-weight: var(--gesint-font-weight-strong);
     letter-spacing: -0.025em;
     line-height: 1.2;
     color: var(--color-base-content);
@@ -4468,12 +5056,12 @@ html:has(.login-page) body {
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.125rem 1.25rem 0;
+    padding: 1rem 1rem 0;
 }
 
 .gesint-dash-panel__title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--gesint-font-section); /* 14px / 600 */
+    font-weight: 550;
     letter-spacing: -0.015em;
     line-height: 1.35;
     color: var(--color-base-content);
@@ -4481,7 +5069,7 @@ html:has(.login-page) body {
 
 .gesint-dash-panel__subtitle {
     margin-top: 0.125rem;
-    font-size: 12.5px;
+    font-size: 0.75rem;
     color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
 }
 
@@ -4489,7 +5077,7 @@ html:has(.login-page) body {
     display: flex;
     flex: 1;
     flex-direction: column;
-    padding: 1.25rem;
+    padding: 1rem;
 }
 
 .gesint-dash-panel__body > * {
@@ -4503,7 +5091,7 @@ html:has(.login-page) body {
     border-radius: var(--gesint-radius-badge);
     padding: 0.1875rem 0.5rem;
     font-size: 11.5px;
-    font-weight: 600;
+    font-weight: 550;
     color: var(--color-primary);
     background: color-mix(in srgb, var(--color-primary) 11%, transparent);
 }
@@ -4519,7 +5107,7 @@ html:has(.login-page) body {
     --kpi-tone: color-mix(in srgb, var(--color-base-content) 50%, transparent);
     position: relative;
     overflow: hidden;
-    padding: 1.125rem 1.25rem 1.25rem;
+    padding: 1rem;
     border-radius: var(--radius-gesint-card-lg);
     border: 1px solid var(--gesint-border-subtle);
     background: var(--color-base-100);
@@ -4563,7 +5151,7 @@ html:has(.login-page) body {
 .gesint-dash-kpi__label {
     padding-top: 0.25rem;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 450;
     color: color-mix(in srgb, var(--color-base-content) 62%, transparent);
 }
 
@@ -4586,9 +5174,9 @@ html:has(.login-page) body {
 }
 
 .gesint-dash-kpi__value {
-    margin-top: 0.625rem;
-    font-size: 2rem;
-    font-weight: 600;
+    margin-top: 0.5rem;
+    font-size: 1.75rem;
+    font-weight: 550;
     letter-spacing: -0.03em;
     line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -4649,7 +5237,7 @@ html:has(.login-page) body {
     gap: 0.5rem;
     margin-top: 0.25rem;
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 550;
     letter-spacing: -0.02em;
     line-height: 1.2;
     font-variant-numeric: tabular-nums;
@@ -4660,7 +5248,7 @@ html:has(.login-page) body {
     border-radius: var(--gesint-radius-badge);
     padding: 0.0625rem 0.375rem;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 550;
     letter-spacing: 0;
     text-transform: capitalize;
     color: var(--color-primary);
@@ -4789,7 +5377,7 @@ html:has(.login-page) body {
     padding: 0.125rem 0.4375rem;
     border-radius: var(--gesint-tab-radius);
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 550;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     color: var(--color-base-100);
@@ -4814,13 +5402,13 @@ html:has(.login-page) body {
     height: 2rem;
     align-items: center;
     font-size: 11.5px;
-    font-weight: 500;
+    font-weight: 450;
     text-transform: capitalize;
     color: color-mix(in srgb, var(--color-base-content) 45%, transparent);
 }
 
 .gesint-dash-chart__column[data-current] .gesint-dash-chart__label {
-    font-weight: 600;
+    font-weight: 550;
     color: var(--color-base-content);
 }
 
@@ -4866,7 +5454,7 @@ html:has(.login-page) body {
 .gesint-dash-ring__value {
     position: relative;
     font-size: 1.625rem;
-    font-weight: 600;
+    font-weight: 550;
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
     color: var(--color-base-content);
@@ -4875,7 +5463,7 @@ html:has(.login-page) body {
 .gesint-dash-ring__value small {
     margin-left: 1px;
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: 450;
     letter-spacing: 0;
     color: color-mix(in srgb, var(--color-base-content) 45%, transparent);
 }
@@ -4955,7 +5543,7 @@ html:has(.login-page) body {
 
 .gesint-dash-donut__center strong {
     font-size: 1.75rem;
-    font-weight: 600;
+    font-weight: 550;
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
     color: var(--color-base-content);
@@ -5018,7 +5606,7 @@ html:has(.login-page) body {
 }
 
 .gesint-dash-legend__value {
-    font-weight: 600;
+    font-weight: 550;
     font-variant-numeric: tabular-nums;
     color: var(--color-base-content);
 }
@@ -5095,7 +5683,7 @@ html:has(.login-page) body {
 .gesint-dash-hbars__value {
     text-align: right;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 550;
     font-variant-numeric: tabular-nums;
     color: var(--color-base-content);
 }
@@ -5225,7 +5813,7 @@ html:has(.login-page) body {
 
 .app-loading__message {
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 450;
     color: color-mix(in srgb, var(--color-base-content) 62%, transparent);
 }
 
@@ -5406,7 +5994,7 @@ html:has(.login-page) body {
 
 .attendance-sheet__value--credit {
     color: var(--gesint-success);
-    font-variation-settings: "wght" 600;
+    font-weight: 550;
 }
 
 .attendance-sheet__input:focus {
@@ -5522,7 +6110,7 @@ html:has(.login-page) body {
     background: color-mix(in srgb, var(--color-base-200) 80%, var(--color-base-100));
     color: var(--color-base-content);
     font-size: 1.75rem;
-    font-weight: 700;
+    font-weight: 650;
     font-variant-numeric: tabular-nums;
     line-height: 1;
     transition:
@@ -5560,7 +6148,7 @@ html:has(.login-page) body {
     background: transparent;
     color: var(--color-base-content);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 550;
     font-variant-numeric: tabular-nums;
     line-height: 1;
     transform: translate(-50%, -50%);
@@ -5611,7 +6199,7 @@ html:has(.login-page) body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-variation-settings: "wght" 520;
+    font-weight: 470;
 }
 
 .attendance-sheet__status-dot {
@@ -5649,7 +6237,7 @@ html:has(.login-page) body {
     background: var(--color-base-200);
     color: color-mix(in srgb, var(--color-base-content) 70%, transparent);
     font-size: 0.625rem;
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1;
     white-space: nowrap;
 }
@@ -5731,14 +6319,14 @@ html:has(.login-page) body {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--color-base-content) 42%, transparent);
-    font-variation-settings: "wght" 550;
+    font-weight: 500;
 }
 
 .attendance-sheet__footer-value {
     font-size: 0.875rem;
     line-height: 1.2;
     color: var(--color-base-content);
-    font-variation-settings: "wght" 650;
+    font-weight: 600;
 }
 
 .attendance-sheet .gesint-table-actions .gesint-btn.gesint-table-action--edit {
@@ -5843,7 +6431,7 @@ html:has(.login-page) body {
 }
 
 .attendance-sheet__expand-segment--title {
-    font-variation-settings: "wght" 560;
+    font-weight: 510;
     color: var(--color-base-content);
 }
 
@@ -5924,7 +6512,7 @@ html:has(.login-page) body {
     min-width: 0;
     flex: 1;
     font-size: 0.75rem;
-    font-variation-settings: "wght" 560;
+    font-weight: 510;
     letter-spacing: 0.01em;
     color: var(--color-base-content);
     overflow: hidden;
@@ -5941,7 +6529,7 @@ html:has(.login-page) body {
     border-radius: 9999px;
     padding: 0 0.35rem;
     font-size: 0.625rem;
-    font-variation-settings: "wght" 560;
+    font-weight: 510;
     color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
     background: color-mix(in srgb, var(--color-base-content) 6%, transparent);
 }
@@ -5995,7 +6583,7 @@ html:has(.login-page) body {
 .gesint-kanban-card__title {
     margin: 0;
     font-size: 0.8125rem;
-    font-variation-settings: "wght" 540;
+    font-weight: 490;
     color: var(--color-base-content);
     line-height: 1.3;
 }
@@ -6177,7 +6765,7 @@ html:has(.ponto-landing) body {
     background: color-mix(in srgb, var(--gesint-primary-50) 88%, white);
     color: var(--gesint-primary-dark);
     font-size: 0.6875rem;
-    font-weight: 700;
+    font-weight: 650;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
@@ -6185,7 +6773,7 @@ html:has(.ponto-landing) body {
 .ponto-landing__title {
     margin: 0;
     font-size: clamp(1.85rem, 3.8vw, 2.65rem);
-    font-weight: 700;
+    font-weight: 650;
     letter-spacing: -0.025em;
     color: var(--login-brand-ink);
     line-height: 1.12;
@@ -6218,7 +6806,7 @@ html:has(.ponto-landing) body {
     border: 1px solid var(--gesint-border);
     box-shadow: var(--gesint-shadow-xs);
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: 450;
     color: color-mix(in srgb, var(--gesint-content) 78%, transparent);
 }
 
@@ -6253,7 +6841,7 @@ html:has(.ponto-landing) body {
 .ponto-landing__live-time {
     margin: 0;
     font-size: clamp(2.15rem, 4.2vw, 2.9rem);
-    font-weight: 700;
+    font-weight: 650;
     letter-spacing: 0.04em;
     font-variant-numeric: tabular-nums;
     color: var(--login-brand-ink);
@@ -6263,7 +6851,7 @@ html:has(.ponto-landing) body {
 .ponto-landing__live-date {
     margin: 0.45rem 0 0;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 450;
     color: color-mix(in srgb, var(--gesint-content) 68%, transparent);
 }
 
@@ -6338,8 +6926,26 @@ html:has(.ponto-landing) body {
 }
 
 /* ──────────────────────────────────────────────
+   Pesos no conteúdo logado — um degrau acima do ClickUp puro (430/480/575).
+   Com a Segoe UI Variable, o 600 do Tailwind em texto corrido fica pesado.
+────────────────────────────────────────────── */
+html.gesint-workspace-active .font-medium,
+html.gesint-workspace-active .font-semibold {
+    font-weight: var(--gesint-font-weight-medium);
+}
+
+html.gesint-workspace-active .font-bold {
+    font-weight: var(--gesint-font-weight-strong);
+}
+
+/* Abas: letter-spacing normal (ClickUp) */
+.gesint-workspace-tab .workspace-tab-label {
+    letter-spacing: normal;
+}
+
+/* ──────────────────────────────────────────────
    Workspace — mobile / tablet (shell + tabelas)
-   Desktop (≥1024px) permanece inalterado.
+   Abaixo de 1024px o shell vira drawer. De 1024px em diante vale a escala ClickUp (fixa).
 ────────────────────────────────────────────── */
 @media (max-width: 1023px) {
     :root {
@@ -6569,7 +7175,7 @@ html:has(.ponto-landing) body {
 .gesint-hero-page__title {
     color: var(--color-base-content);
     font-size: 1.625rem;
-    font-weight: 600;
+    font-weight: 550;
     letter-spacing: -0.03em;
     line-height: 1.15;
 }
@@ -6661,7 +7267,7 @@ html:has(.ponto-landing) body {
 .gesint-report-catalog__heading h2 {
     color: var(--color-base-content);
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 550;
     line-height: 1.35;
 }
 
@@ -6794,7 +7400,7 @@ html:has(.ponto-landing) body {
     border-radius: var(--gesint-radius-badge);
     padding: 0.1rem 0.35rem;
     font-size: 0.5625rem;
-    font-weight: 600;
+    font-weight: 550;
     line-height: 1.3;
     white-space: nowrap;
 }
@@ -6808,7 +7414,7 @@ html:has(.ponto-landing) body {
     border: 1px solid var(--gesint-border-subtle);
     background: color-mix(in srgb, var(--color-base-content) 3%, transparent);
     color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
-    font-weight: 500;
+    font-weight: 450;
 }
 
 .gesint-report-card__menu {
@@ -6824,7 +7430,7 @@ html:has(.ponto-landing) body {
 .gesint-report-card__title {
     color: var(--color-base-content);
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 550;
     letter-spacing: -0.01em;
     line-height: 1.35;
 }
@@ -6901,7 +7507,7 @@ html:has(.ponto-landing) body {
 
 .gesint-report-tip strong {
     color: var(--color-base-content);
-    font-weight: 600;
+    font-weight: 550;
 }
 
 @media (max-width: 900px) {
@@ -7040,7 +7646,7 @@ html:has(.ponto-landing) body {
 .gesint-import-entity__title {
     color: var(--color-base-content);
     font-size: 0.9375rem;
-    font-weight: 600;
+    font-weight: 550;
     letter-spacing: -0.02em;
     line-height: 1.3;
 }
@@ -7085,7 +7691,7 @@ html:has(.ponto-landing) body {
 .gesint-import-mode__title {
     color: var(--color-base-content);
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 550;
     line-height: 1.35;
 }
 

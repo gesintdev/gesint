@@ -495,9 +495,9 @@ export function JobRequisitionFormClient() {
                             <label
                                 key={value}
                                 className={clsx(
-                                    "flex items-center gap-3 rounded-lg border px-3 py-2 text-sm transition-colors",
-                                    active ? "border-primary/35 bg-primary/8" : "border-transparent",
-                                    !readOnly && "cursor-pointer hover:bg-base-200/50",
+                                    "gesint-choice-option",
+                                    active && "gesint-choice-option--active",
+                                    readOnly && "gesint-choice-option--disabled",
                                 )}
                             >
                                 <input
@@ -508,7 +508,7 @@ export function JobRequisitionFormClient() {
                                     disabled={readOnly}
                                     onChange={() => update("reason", value as JobRequisitionReason)}
                                 />
-                                <span className="font-medium text-base-content">
+                                <span className="gesint-choice-option__label">
                                     {JOB_REQUISITION_REASON_LABELS[value]}
                                 </span>
                             </label>
