@@ -1,6 +1,7 @@
 "use client";
 
 import clsx from "clsx";
+import { Copy } from "lucide-react";
 import { type KeyboardEvent, type MouseEvent } from "react";
 import { toast } from "sonner";
 
@@ -24,6 +25,17 @@ import { Card } from "@/shared/components/ui/Card";
 import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert/system-alert";
+
+async function copyCollaboratorCode(code: string, event?: MouseEvent) {
+    event?.stopPropagation();
+    event?.preventDefault();
+    try {
+        await navigator.clipboard.writeText(code);
+        toast.success("Código copiado");
+    } catch {
+        toast.error("Não foi possível copiar o código.");
+    }
+}
 
 const BAR_CLASS: Record<PipelineTone, string> = {
     neutral: "bg-base-content/12",
@@ -123,8 +135,25 @@ function PipelineRow({
                     <div className="truncate text-[12.5px] font-semibold text-base-content">{row.fullName}</div>
                     <div className="mt-0.5 truncate text-[10.5px] text-base-content/45">{rowSubtitle(row)}</div>
                     {row.collaboratorAccessCode ? (
-                        <div className="mt-0.5 truncate text-[11px] tabular-nums text-base-content/70">
-                            Cod. Colab. {row.collaboratorAccessCode}
+                        <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[11px] text-base-content/70">
+                            <span className="min-w-0 truncate tabular-nums">
+                                <span className="font-medium text-base-content/45">Código</span>{" "}
+                                {row.collaboratorAccessCode}
+                            </span>
+                            <button
+                                type="button"
+                                className="inline-flex size-5 shrink-0 items-center justify-center rounded text-base-content/45 transition-colors hover:bg-base-content/8 hover:text-base-content/75"
+                                aria-label="Copiar código do colaborador"
+                                title="Copiar código"
+                                onClick={(event) => void copyCollaboratorCode(row.collaboratorAccessCode!, event)}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter" || event.key === " ") {
+                                        event.stopPropagation();
+                                    }
+                                }}
+                            >
+                                <Copy className="size-3" strokeWidth={2.25} />
+                            </button>
                         </div>
                     ) : (
                         <GenerateAdmissionAccessCodeButton
@@ -206,36 +235,39 @@ export function AdmissionPipelineTrack({
     return (
         <Card
             animate={false}
-            bodyClassName="!p-0"
-            title="Esteira de admissão"
-            subtitle={`${totalElements} ${totalElements === 1 ? "pessoa" : "pessoas"} · ordenado por urgência`}
+            className="flex min-h-0 flex-1 flex-col"
+            bodyClassName="!flex !min-h-0 !flex-1 !flex-col !p-0"
         >
-            {rows.length === 0 ? (
-                <p className="px-4 py-10 text-center text-sm text-base-content/50">
-                    Nenhuma admissão em andamento.
-                </p>
-            ) : (
-                rows.map((row) => (
-                    <PipelineRow key={row.admissionId} row={row} onOpen={onOpen} onApprove={onApprove} />
-                ))
-            )}
-
-            <div className="flex flex-wrap gap-4 border-t border-(--gesint-border-subtle) px-4 py-3 text-[10.5px] text-base-content/45">
-                <LegendItem className="bg-success" label="Concluída" />
-                <LegendItem className="bg-info" label="Em andamento" />
-                <LegendItem className="bg-error" label="Bloqueada ou vencida" />
-                <LegendItem className="bg-base-content/12" label="Não iniciada" />
+            <div className="min-h-0 flex-1 overflow-y-auto">
+                {rows.length === 0 ? (
+                    <p className="px-4 py-10 text-center text-sm text-base-content/50">
+                        Nenhuma admissão em andamento.
+                    </p>
+                ) : (
+                    rows.map((row) => (
+                        <PipelineRow key={row.admissionId} row={row} onOpen={onOpen} onApprove={onApprove} />
+                    ))
+                )}
             </div>
 
-            <TablePagination
-                page={page}
-                size={size}
-                totalPages={totalPages}
-                totalElements={totalElements}
-                loading={loading}
-                onPageChange={onPageChange}
-                onPageSizeChange={onPageSizeChange}
-            />
+            <div className="shrink-0 border-t border-(--gesint-border-subtle) bg-base-100">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 text-[10.5px] text-base-content/45">
+                    <span className="gesint-badge gesint-badge--neutral shrink-0">ordenado por urgência</span>
+                    <LegendItem className="bg-success" label="Concluída" />
+                    <LegendItem className="bg-info" label="Em andamento" />
+                    <LegendItem className="bg-error" label="Bloqueada ou vencida" />
+                    <LegendItem className="bg-base-content/12" label="Não iniciada" />
+                </div>
+                <TablePagination
+                    page={page}
+                    size={size}
+                    totalPages={totalPages}
+                    totalElements={totalElements}
+                    loading={loading}
+                    onPageChange={onPageChange}
+                    onPageSizeChange={onPageSizeChange}
+                />
+            </div>
         </Card>
     );
 }

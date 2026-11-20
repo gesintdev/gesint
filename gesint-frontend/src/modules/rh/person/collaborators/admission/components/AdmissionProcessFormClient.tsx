@@ -347,6 +347,7 @@ export function AdmissionProcessFormClient() {
                             onCropComplete={handlePhotoCropComplete}
                             onClear={handlePhotoClear}
                             displayName={form.fullName || "Colaborador"}
+                            collaboratorCode={isEditing ? detailQuery.data?.collaboratorAccessCode : undefined}
                         />
                     </div>
                     <div className="grid min-w-0 flex-1 content-start gap-x-3 gap-y-2.5 2xl:gap-x-4 sm:grid-cols-12">

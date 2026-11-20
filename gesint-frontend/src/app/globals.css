@@ -1734,6 +1734,15 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     background: color-mix(in srgb, var(--color-base-content) 3%, var(--color-base-100));
 }
 
+/* KPIs da esteira (Acompanhamento) — superfície um degrau acima do page, nos dois temas */
+.admission-pipeline-kpi {
+    background: color-mix(in srgb, var(--color-base-content) 4%, var(--color-base-100));
+}
+
+[data-theme="dark"] .admission-pipeline-kpi {
+    background: color-mix(in srgb, var(--color-base-content) 7%, var(--color-base-100));
+}
+
 /* CRUD — abas internas (estilo Linear) */
 .gesint-crud-tablist {
     display: flex;
@@ -1890,7 +1899,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 
 .form-stepper__access-code {
     display: inline-flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.35rem;
     min-width: 0;
 }
@@ -4305,7 +4314,9 @@ button:disabled,
     z-index: 300;
     margin: auto;
     max-width: calc(100vw - 2rem);
-    padding: 0;
+    /* Pad + overflow visible: borda/anel inferior não é clipado pelo <dialog> */
+    padding: 2px;
+    overflow: visible;
     border: none;
     background: transparent;
     opacity: 0;
@@ -4352,7 +4363,19 @@ button:disabled,
 }
 
 .system-alert-modal[open] .gesint-modal-panel {
-    animation: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+    /* Sem fill "both": transform residual no painel clipava a borda inferior */
+    animation: system-alert-panel-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes system-alert-panel-in {
+    from {
+        opacity: 0;
+        transform: scale(0.965);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 /* Overlay dos modais DaisyUI (picker, busca detalhada, diálogos).
