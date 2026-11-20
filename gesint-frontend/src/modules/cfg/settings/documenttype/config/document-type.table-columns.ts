@@ -5,15 +5,15 @@ import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types"
 export const DOCUMENT_TYPE_TABLE_COLUMNS: TableColumnConfig[] = [
     ENTITY_CODE_TABLE_COLUMN,
     {
-        id: "typeCode",
-        columnName: "Código",
-        fieldValue: "typeCode",
-        dataType: TableDataType.TEXT,
-    },
-    {
         id: "name",
         columnName: "Nome",
         fieldValue: "name",
+        dataType: TableDataType.TEXT,
+    },
+    {
+        id: "typeCode",
+        columnName: "Código",
+        fieldValue: "typeCode",
         dataType: TableDataType.TEXT,
     },
     {
