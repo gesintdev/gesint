@@ -21,6 +21,7 @@ public class DocumentTypeMapper {
                 .dataClass(dto.getDataClass() != null ? dto.getDataClass() : DocumentDataClassEnum.COMUM)
                 .contexts(normalizeContexts(dto.getContexts()))
                 .systemManaged(false)
+                .requiredForAdmission(Boolean.TRUE.equals(dto.getRequiredForAdmission()))
                 .sortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : 0)
                 .build();
     }
@@ -33,6 +34,7 @@ public class DocumentTypeMapper {
         entity.setDescription(blankToNull(dto.getDescription()));
         entity.setDataClass(dto.getDataClass() != null ? dto.getDataClass() : DocumentDataClassEnum.COMUM);
         entity.setContexts(normalizeContexts(dto.getContexts()));
+        entity.setRequiredForAdmission(Boolean.TRUE.equals(dto.getRequiredForAdmission()));
         if (dto.getSortOrder() != null) {
             entity.setSortOrder(dto.getSortOrder());
         }
@@ -49,6 +51,7 @@ public class DocumentTypeMapper {
                 .dataClass(entity.getDataClass())
                 .contexts(entity.getContexts() == null ? List.of() : List.copyOf(entity.getContexts()))
                 .systemManaged(Boolean.TRUE.equals(entity.getSystemManaged()))
+                .requiredForAdmission(Boolean.TRUE.equals(entity.getRequiredForAdmission()))
                 .sortOrder(entity.getSortOrder())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())

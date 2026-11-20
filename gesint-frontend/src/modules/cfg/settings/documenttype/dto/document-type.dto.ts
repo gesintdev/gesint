@@ -24,6 +24,7 @@ export type DocumentType = {
     dataClass: DocumentDataClass;
     contexts: string[];
     systemManaged?: boolean;
+    requiredForAdmission?: boolean;
     sortOrder?: number;
     createdAt?: string;
     updatedAt?: string;
@@ -35,5 +36,6 @@ export type DocumentTypeRequestDto = {
     description?: string;
     dataClass: DocumentDataClass;
     contexts: string[];
+    requiredForAdmission?: boolean;
     sortOrder?: number;
 };

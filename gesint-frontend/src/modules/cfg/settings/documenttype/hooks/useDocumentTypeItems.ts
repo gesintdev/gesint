@@ -12,6 +12,7 @@ import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 export type DocumentTypeSelectItem = SelectItem & {
     dataClass?: string;
     dataClassLabel?: string;
+    requiredForAdmission?: boolean;
 };
 
 export function useDocumentTypeItems(context: DocumentTypeContext | null | undefined) {
@@ -23,12 +24,18 @@ export function useDocumentTypeItems(context: DocumentTypeContext | null | undef
     });
 
     const items = useMemo<DocumentTypeSelectItem[]>(() => {
-        return (query.data ?? []).map((row) => ({
-            value: row.typeCode,
-            label: row.name,
-            dataClass: row.dataClass,
-            dataClassLabel: DOCUMENT_DATA_CLASS_LABELS[row.dataClass] ?? row.dataClass,
-        }));
+        return (query.data ?? []).map((row) => {
+            const required = Boolean(row.requiredForAdmission);
+            return {
+                value: row.typeCode,
+                label: row.name,
+                dataClass: row.dataClass,
+                dataClassLabel: DOCUMENT_DATA_CLASS_LABELS[row.dataClass] ?? row.dataClass,
+                requiredForAdmission: required,
+                emphasized: required,
+                badge: required ? "Obrigatório" : undefined,
+            };
+        });
     }, [query.data]);
 
     const labelByCode = useMemo(() => {

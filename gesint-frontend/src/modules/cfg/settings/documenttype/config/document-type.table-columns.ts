@@ -24,6 +24,13 @@ export const DOCUMENT_TYPE_TABLE_COLUMNS: TableColumnConfig[] = [
         badgeLabels: DOCUMENT_DATA_CLASS_LABELS,
     },
     {
+        id: "requiredForAdmission",
+        columnName: "Obrig. admissão",
+        fieldValue: "requiredForAdmission",
+        dataType: TableDataType.BOOLEAN,
+        align: "center",
+    },
+    {
         id: "status",
         columnName: "Status",
         fieldValue: "status",
