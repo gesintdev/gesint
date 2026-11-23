@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.105.3",
+      "hash": "4df76508",
+      "date": "2026-11-23T20:55:38-03:00",
+      "type": "fix",
+      "scope": null,
+      "breaking": false,
+      "title": "Motivo da experiência e LineContainer em produção",
+      "body": "**Commits incluídos**\n\n- fix: corrige o motivo da decisão de experiência e agrupa as ações no LineContainer.",
+      "pullRequest": 13
+    },
+    {
       "version": "1.105.2",
       "hash": "4344e0fe",
       "date": "2026-11-23T20:00:41-03:00",
