@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.104.1",
+      "hash": "09c08743",
+      "date": "2026-11-23T15:19:08-03:00",
+      "type": "fix",
+      "scope": null,
+      "breaking": false,
+      "title": "Notificações, busca e modal de perfis em produção",
+      "body": "**Commits incluídos**\n\n- fix: ajusta notificações, busca vazia e modal de perfis",
+      "pullRequest": 9
+    },
+    {
       "version": "1.104.0",
       "hash": "b00e6215",
       "date": "2026-11-23T14:07:44-03:00",
