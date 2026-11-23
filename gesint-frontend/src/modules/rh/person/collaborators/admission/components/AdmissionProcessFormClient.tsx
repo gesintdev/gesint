@@ -282,7 +282,7 @@ export function AdmissionProcessFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={
+            header={
                 <CrudFormFooterActions
                     isSubmitting={saveMutation.isPending}
                     newLabel="Nova admissão"

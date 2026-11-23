@@ -325,7 +325,7 @@ export function AppUserFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={
+            header={
                 <CrudFormFooterActions hideNew isSubmitting={saving} submitLabel="Salvar usuário" />
             }
         >

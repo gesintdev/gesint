@@ -107,7 +107,7 @@ export function PayrollRunFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={
+            header={
                 readOnly ? (
                     <>
                         <Button type="button" variant="ghost" onClick={goToList}>

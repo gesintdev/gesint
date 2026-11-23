@@ -194,7 +194,7 @@ export function LeaveAbsenceFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
+            header={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Afastamento">
                 <div className="sm:col-span-6">

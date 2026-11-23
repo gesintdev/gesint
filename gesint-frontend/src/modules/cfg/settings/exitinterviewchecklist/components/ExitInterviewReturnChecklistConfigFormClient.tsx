@@ -123,7 +123,7 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
+            header={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Item de devolução">
                 <InputString

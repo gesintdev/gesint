@@ -137,7 +137,7 @@ export function DepartmentFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
+            header={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Departamento">
                 <BranchRecordScopeField

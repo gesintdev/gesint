@@ -6,6 +6,7 @@ export type InputFieldChromeProps = {
     error?: string;
     required?: boolean;
     disabled?: boolean;
+    checked?: boolean;
     readOnly?: boolean;
     wrapperClassName?: string;
     id?: string;
@@ -41,6 +42,7 @@ export type InputBaseProps = InputFieldChromeProps & {
     loading?: boolean;
     onBlur?: () => void;
     onFocus?: () => void;
+    onChange?: () => void;
     onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
     "aria-invalid"?: boolean;
 };

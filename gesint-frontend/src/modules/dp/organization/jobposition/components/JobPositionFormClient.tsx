@@ -134,7 +134,7 @@ export function JobPositionFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
+            header={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Cargo">
                 <BranchRecordScopeField

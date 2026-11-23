@@ -294,7 +294,7 @@ export function OffboardingFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={
+            header={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         Cancelar
