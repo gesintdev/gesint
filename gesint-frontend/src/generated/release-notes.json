@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.105.0",
+      "hash": "0af89018",
+      "date": "2026-11-23T16:39:01-03:00",
+      "type": "feat",
+      "scope": null,
+      "breaking": false,
+      "title": "Período de experiência na admissão em produção",
+      "body": "**Commits incluídos**\n\n- Adição de campo para informar período de experiência e atualização da base de conhecimento do assistente.",
+      "pullRequest": 10
+    },
+    {
       "version": "1.104.1",
       "hash": "09c08743",
       "date": "2026-11-23T15:19:08-03:00",
