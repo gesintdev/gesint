@@ -87,7 +87,7 @@ export function PaymentPeriodFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={
+            header={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         {periodId ? "Voltar para lista" : "Cancelar"}

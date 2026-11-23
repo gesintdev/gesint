@@ -127,7 +127,7 @@ export function MedicalClinicFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
+            header={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Dados da clínica" description="Cadastro da clínica credenciada para exames.">
                 <InputString

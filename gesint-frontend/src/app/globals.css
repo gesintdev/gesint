@@ -974,7 +974,7 @@ body {
 
 .gesint-choice-option--multiline {
     height: auto;
-    align-items: flex-start;
+    align-items: center;
     padding-block: 0.375rem;
 }
 
@@ -984,12 +984,18 @@ body {
 
 .gesint-choice-option .radio {
     flex-shrink: 0;
+    align-self: center;
+    margin: 0;
     width: 0.875rem;
     height: 0.875rem;
     min-height: 0.875rem;
 }
 
 .gesint-choice-option__label {
+    display: flex;
+    align-items: center;
+    min-height: 0.875rem;
+    line-height: 1;
     font-weight: var(--gesint-font-weight-medium);
     color: var(--color-base-content);
 }

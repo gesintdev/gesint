@@ -266,7 +266,7 @@ export function DevelopmentPlanFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
+            header={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="geral" title="Dados gerais">
                 <CollaboratorPickerField value={form.collaboratorId ?? ""} onValueChange={handleCollaboratorChange} wrapperClassName="sm:col-span-6" required />

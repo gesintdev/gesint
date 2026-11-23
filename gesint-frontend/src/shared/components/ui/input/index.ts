@@ -41,6 +41,8 @@ export type { CheckboxState, InputCheckboxProps } from "./InputCheckbox";
 export { InputCheckbox, resolveCheckboxState } from "./InputCheckbox";
 export type { InputPasswordProps } from "./InputPassword";
 export { InputPassword } from "./InputPassword";
+export type { InputRadioProps } from "./InputRadio";
+export { InputRadio } from "./InputRadio";
 export type { InputRGProps } from "./InputRG";
 export { InputRG } from "./InputRG";
 export type { InputSelectProps } from "./InputSelect";

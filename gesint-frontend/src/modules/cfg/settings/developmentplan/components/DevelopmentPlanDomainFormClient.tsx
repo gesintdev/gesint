@@ -82,7 +82,7 @@ export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentP
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
+            header={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title={config.title}>
                 {config.fields.map((field) => renderField(field, form[field.name], update))}

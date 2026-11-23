@@ -327,7 +327,7 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={
+            header={
                 <CrudFormFooterActions
                     isSubmitting={saveMutation.isPending}
                     hideNew={isRh}

@@ -140,7 +140,7 @@ export function ActingProfileFormClient() {
         <CrudFormShell
             onSubmit={handleSubmit}
             bodyClassName="!flex !min-h-0 !flex-1 !flex-col !overflow-hidden !p-0"
-            footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
+            header={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection
                 id="atuacao"

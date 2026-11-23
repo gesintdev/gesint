@@ -359,7 +359,7 @@ export function JobRequisitionFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={
+            header={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
                         {readOnly ? "Voltar" : "Cancelar"}

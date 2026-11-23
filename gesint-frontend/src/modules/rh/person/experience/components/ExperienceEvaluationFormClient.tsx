@@ -1,38 +1,41 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import clsx from "clsx";
-import { type SubmitEvent, useEffect, useState } from "react";
-import { toast } from "sonner";
+import {type SubmitEvent, useEffect, useState} from "react";
+import {toast} from "sonner";
 
 import type {
+    ExperienceCompetency,
     ExperienceDecision,
     ExperienceEvaluation,
     ExperiencePeriodStatus,
     ExperienceScoreItem,
 } from "@/modules/rh/person/experience/dto/experience-evaluation.dto";
-import { EXPERIENCE_CLIENT_MESSAGES } from "@/modules/rh/person/experience/exceptions/experience-evaluation.messages";
-import { experienceEvaluationKeys } from "@/modules/rh/person/experience/experience.query";
+import {EXPERIENCE_CLIENT_MESSAGES} from "@/modules/rh/person/experience/exceptions/experience-evaluation.messages";
+import {experienceEvaluationKeys} from "@/modules/rh/person/experience/experience.query";
 import {
     EXPERIENCE_DECISION_LABELS,
     EXPERIENCE_DECISION_REASONS,
     EXPERIENCE_PERIOD_LABELS,
     EXPERIENCE_PERIOD_STATUS_LABELS,
 } from "@/modules/rh/person/experience/lib/experience-evaluation.options";
-import { experienceEvaluationService } from "@/modules/rh/person/experience/services/experience-evaluation.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
-import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { Button } from "@/shared/components/ui/Button";
-import { FormSection } from "@/shared/components/ui/FormSection";
-import { InputSelect } from "@/shared/components/ui/input";
-import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
-import { Modal } from "@/shared/components/ui/Modal";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
-import { ExceptionCapture } from "@/shared/exceptions";
-import { isoToDateBr } from "@/shared/lib/input/date";
-import { SystemAlert } from "@/shared/system-alert";
-import { findRouteById } from "@/shared/workspace/workspace-routes";
-import { useWorkspaceNavigation } from "@/shared/workspace/WorkspaceNavigationProvider";
+import {experienceEvaluationService} from "@/modules/rh/person/experience/services/experience-evaluation.service";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
+import {Button} from "@/shared/components/ui/Button";
+import {FormSection} from "@/shared/components/ui/FormSection";
+import {InputRadio, InputSelect} from "@/shared/components/ui/input";
+import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
+import {PopoverPortalProvider} from "@/shared/components/ui/input/popover-portal";
+import {Modal} from "@/shared/components/ui/Modal";
+import {SkeletonStack} from "@/shared/components/ui/SkeletonStack";
+import {ExceptionCapture} from "@/shared/exceptions";
+import {isoToDateBr} from "@/shared/lib/input/date";
+import {SystemAlert} from "@/shared/system-alert";
+import {findRouteById} from "@/shared/workspace/workspace-routes";
+import {useWorkspaceNavigation} from "@/shared/workspace/WorkspaceNavigationProvider";
+import {LineContainer} from "@/shared/components/ui/line-container/LineContainer";
 
 type ScoreDraft = {
     score: number | null;
@@ -41,10 +44,20 @@ type ScoreDraft = {
 
 const SCORE_LEVELS = [1, 2, 3, 4];
 
-const DECISION_REASON_ITEMS = EXPERIENCE_DECISION_REASONS.map((reason) => ({
-    value: reason,
-    label: reason,
-}));
+/** Motivo da tela 16 (RN-05 / RN-41): vazio até a escolha, e ligado à competência quando o cargo tem scorecard. */
+function decisionReasonItems(competencies: ExperienceCompetency[]) {
+    const names = competencies
+        .map((item) => item.competencyName?.trim())
+        .filter((name): name is string => Boolean(name));
+    const specific = names.map((name) => {
+        const label = `Desempenho abaixo do esperado em ${name}`;
+        return {value: label, label};
+    });
+    const generic = EXPERIENCE_DECISION_REASONS.filter(
+        (reason) => specific.length === 0 || reason !== "Desempenho abaixo do esperado",
+    ).map((reason) => ({value: reason, label: reason}));
+    return [...specific, ...generic];
+}
 
 const DECISION_OPTIONS = [
     ["EFFECTIVE", "Efetivar em prazo indeterminado"],
@@ -83,13 +96,14 @@ function formatDueDate(value?: string | null): string {
 }
 
 export function ExperienceEvaluationFormClient() {
-    const { editingId, goToList, cancelAndClose } = useCrudScreen();
+    const {editingId, goToList, cancelAndClose} = useCrudScreen();
     const queryClient = useQueryClient();
-    const { openRouteRecord } = useWorkspaceNavigation();
+    const {openRouteRecord} = useWorkspaceNavigation();
     const [drafts, setDrafts] = useState<Record<string, ScoreDraft>>({});
     const [decisionOpen, setDecisionOpen] = useState(false);
     const [decisionAction, setDecisionAction] = useState<Exclude<ExperienceDecision, "AUTO_EFFECTIVE">>("EFFECTIVE");
-    const [decisionReason, setDecisionReason] = useState<string>(EXPERIENCE_DECISION_REASONS[0]);
+    const [decisionReason, setDecisionReason] = useState("");
+    const [decisionPortalRoot, setDecisionPortalRoot] = useState<HTMLElement | null>(null);
     const [decisionNotes, setDecisionNotes] = useState("");
 
     const detailQuery = useQuery({
@@ -128,37 +142,37 @@ export function ExperienceEvaluationFormClient() {
     };
 
     const invalidate = async () => {
-        await queryClient.invalidateQueries({ queryKey: experienceEvaluationKeys.all });
+        await queryClient.invalidateQueries({queryKey: experienceEvaluationKeys.all});
         if (editingId) {
-            await queryClient.invalidateQueries({ queryKey: experienceEvaluationKeys.detail(editingId) });
+            await queryClient.invalidateQueries({queryKey: experienceEvaluationKeys.detail(editingId)});
         }
     };
 
     const draftMutation = useMutation({
-        mutationFn: () => experienceEvaluationService.saveScoresDraft(editingId!, { scores: buildPayload() }),
+        mutationFn: () => experienceEvaluationService.saveScoresDraft(editingId!, {scores: buildPayload()}),
         onSuccess: async () => {
             toast.success("Rascunho salvo");
             await invalidate();
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: EXPERIENCE_CLIENT_MESSAGES.EXPERIENCE_SAVE_FAILED }),
+            ExceptionCapture.handle(err, {fallbackMessage: EXPERIENCE_CLIENT_MESSAGES.EXPERIENCE_SAVE_FAILED}),
     });
 
     const submitMutation = useMutation({
-        mutationFn: () => experienceEvaluationService.submitScores(editingId!, { scores: buildPayload() }),
+        mutationFn: () => experienceEvaluationService.submitScores(editingId!, {scores: buildPayload()}),
         onSuccess: async () => {
             toast.success("Avaliação enviada");
             await invalidate();
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: EXPERIENCE_CLIENT_MESSAGES.EXPERIENCE_SAVE_FAILED }),
+            ExceptionCapture.handle(err, {fallbackMessage: EXPERIENCE_CLIENT_MESSAGES.EXPERIENCE_SAVE_FAILED}),
     });
 
     const decideMutation = useMutation({
         mutationFn: () =>
             experienceEvaluationService.decide(editingId!, {
                 action: decisionAction,
-                reason: decisionReason,
+                reason: decisionReason.trim() || undefined,
                 notes: decisionNotes.trim() || undefined,
             }),
         onSuccess: async (result) => {
@@ -175,7 +189,7 @@ export function ExperienceEvaluationFormClient() {
             }
         },
         onError: (err: unknown) =>
-            ExceptionCapture.handle(err, { fallbackMessage: EXPERIENCE_CLIENT_MESSAGES.EXPERIENCE_DECIDE_FAILED }),
+            ExceptionCapture.handle(err, {fallbackMessage: EXPERIENCE_CLIENT_MESSAGES.EXPERIENCE_DECIDE_FAILED}),
     });
 
     const handleSubmitScores = async () => {
@@ -208,8 +222,8 @@ export function ExperienceEvaluationFormClient() {
                 decisionAction === "END"
                     ? "Será aberto um desligamento por término de contrato a termo."
                     : decisionAction === "EXTEND"
-                      ? "A prorrogação só pode ocorrer uma vez e o total não passa de 90 dias."
-                      : "O vínculo passa a prazo indeterminado.",
+                        ? "A prorrogação só pode ocorrer uma vez e o total não passa de 90 dias."
+                        : "O vínculo passa a prazo indeterminado.",
             confirmLabel: "Registrar decisão",
             cancelLabel: "Cancelar",
             variant: "warning",
@@ -237,7 +251,7 @@ export function ExperienceEvaluationFormClient() {
     }
 
     if (detailQuery.isPending) {
-        return <SkeletonStack count={3} padded />;
+        return <SkeletonStack count={3} padded/>;
     }
 
     if (detailQuery.isError || !detail) {
@@ -266,42 +280,46 @@ export function ExperienceEvaluationFormClient() {
 
     return (
         <>
-            <CrudFormShell onSubmit={handleFormSubmit} footer={
-                <>
-                    <Button type="button" variant="ghost" onClick={() => void goToList()}>
-                        Cancelar
-                    </Button>
-                    <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
-                        Cancelar e Fechar
-                    </Button>
-                    {!decided ? (
-                        <Button
-                            type="button"
-                            variant={locked ? "primary" : "outline"}
-                            disabled={busy}
-                            onClick={() => setDecisionOpen(true)}
-                        >
-                            Registrar decisão
-                        </Button>
-                    ) : null}
-                    {!locked ? (
-                        <>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                loading={draftMutation.isPending}
-                                disabled={busy || buildPayload().length === 0}
-                                onClick={() => draftMutation.mutate()}
-                            >
-                                Salvar rascunho
-                            </Button>
-                            <Button type="submit" loading={submitMutation.isPending} disabled={busy}>
-                                Enviar avaliação
-                            </Button>
-                        </>
-                    ) : null}
-                </>
-            }>
+            <CrudFormShell onSubmit={handleFormSubmit} header={
+                                                           <>
+                                                               <Button type="button" variant="ghost"
+                                                                       onClick={() => void goToList()}>
+                                                                   Cancelar
+                                                               </Button>
+                                                               <Button type="button" variant="warning"
+                                                                       onClick={() => void cancelAndClose()}>
+                                                                   Cancelar e Fechar
+                                                               </Button>
+                                                               {!decided ? (
+                                                                   <Button
+                                                                       type="button"
+                                                                       variant={locked ? "primary" : "outline"}
+                                                                       disabled={busy}
+                                                                       onClick={() => setDecisionOpen(true)}
+                                                                   >
+                                                                       Registrar decisão
+                                                                   </Button>
+                                                               ) : null}
+                                                               {!locked ? (
+                                                                   <>
+                                                                       <Button
+                                                                           type="button"
+                                                                           variant="outline"
+                                                                           loading={draftMutation.isPending}
+                                                                           disabled={busy || buildPayload().length === 0}
+                                                                           onClick={() => draftMutation.mutate()}
+                                                                       >
+                                                                           Salvar rascunho
+                                                                       </Button>
+                                                                       <Button type="submit"
+                                                                               loading={submitMutation.isPending}
+                                                                               disabled={busy}>
+                                                                           Enviar avaliação
+                                                                       </Button>
+                                                                   </>
+                                                               ) : null}
+                                                           </>
+                                                       }>
                 <FormSection id="periodo" title="Período" bodyClassName="!block">
                     <div className="flex flex-wrap items-center gap-2">
                         <span className={clsx("gesint-badge", periodBadgeClass(detail.periodStatus))}>
@@ -458,63 +476,56 @@ export function ExperienceEvaluationFormClient() {
                 subtitle={`${detail.collaboratorName ?? "Colaborador"} · ${EXPERIENCE_PERIOD_LABELS[detail.experiencePeriod]} · vence em ${dueLabel}`}
                 size="md"
                 closeDisabled={busy}
+                dialogRef={(node) => {
+                    if (node !== decisionPortalRoot) setDecisionPortalRoot(node);
+                }}
                 footer={
-                    <>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            disabled={busy}
-                            onClick={() => setDecisionOpen(false)}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="button"
-                            loading={decideMutation.isPending}
-                            disabled={busy}
-                            onClick={() => void handleDecide()}
-                        >
-                            Registrar decisão
-                        </Button>
-                    </>
+                    <LineContainer>
+                        <>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                disabled={busy}
+                                onClick={() => setDecisionOpen(false)}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="button"
+                                loading={decideMutation.isPending}
+                                disabled={busy}
+                                onClick={() => void handleDecide()}
+                            >
+                                Registrar decisão
+                            </Button>
+                        </>
+                    </LineContainer>
                 }
             >
+                <PopoverPortalProvider container={decisionPortalRoot}>
                 <div className="grid gap-3">
                     {DECISION_OPTIONS.map(([action, label]) => {
                         const unavailable = action === "EXTEND" && !detail.canExtend;
                         return (
-                            <label
+                            <InputRadio
                                 key={action}
-                                className={clsx(
-                                    "gesint-choice-option gesint-choice-option--multiline gesint-choice-option--outlined",
-                                    decisionAction === action && "gesint-choice-option--active",
-                                    unavailable && "gesint-choice-option--disabled gesint-disabled-surface",
-                                )}
-                            >
-                                <input
-                                    type="radio"
-                                    className="radio radio-sm"
-                                    name="experience-decision"
-                                    disabled={unavailable || busy}
-                                    checked={decisionAction === action}
-                                    onChange={() => setDecisionAction(action)}
-                                />
-                                <span>
-                                    {label}
-                                    {unavailable ? (
-                                        <span className="gesint-hint mt-0 block">
-                                            Indisponível: já prorrogado uma vez ou período sem prorrogação.
-                                        </span>
-                                    ) : null}
-                                </span>
-                            </label>
+                                name="experience-decision"
+                                disabled={unavailable || busy}
+                                checked={decisionAction === action}
+                                onChange={() => setDecisionAction(action)}
+                                isActive={decisionAction === action}
+                                isUnavailable={unavailable}
+                                labelUnvailable="Indisponível: já prorrogado uma vez ou período sem prorrogação."
+                                label={label}
+                            />
                         );
                     })}
                     <InputSelect
-                        label="Motivo"
-                        items={DECISION_REASON_ITEMS}
+                        label="Motivo padronizado"
+                        items={decisionReasonItems(competencies)}
                         value={decisionReason}
-                        onValueChange={(value) => setDecisionReason(value || EXPERIENCE_DECISION_REASONS[0])}
+                        onValueChange={setDecisionReason}
+                        placeholder="Selecione"
                         required={decisionAction === "END"}
                         disabled={busy}
                     />
@@ -535,6 +546,7 @@ export function ExperienceEvaluationFormClient() {
                         Se nada for decidido até o vencimento, o contrato passa a prazo indeterminado.
                     </p>
                 </div>
+                </PopoverPortalProvider>
             </Modal>
         </>
     );

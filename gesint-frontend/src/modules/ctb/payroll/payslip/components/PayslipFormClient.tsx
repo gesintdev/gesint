@@ -126,7 +126,7 @@ export function PayslipFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            footer={
+            header={
                 readOnly ? (
                     <>
                         <Button type="button" variant="ghost" onClick={goToList}>

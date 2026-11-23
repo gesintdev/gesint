@@ -703,7 +703,7 @@ export function ProfileFormClient() {
         <CrudFormShell
             onSubmit={handleSubmit}
             bodyClassName="!flex !min-h-0 !flex-1 !flex-col !overflow-hidden !p-0"
-            footer={
+            header={
                 isSystemAdminProfile ? (
                     <>
                         <Button type="button" variant="ghost" onClick={handleCancel}>
