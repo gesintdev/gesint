@@ -79,12 +79,31 @@
       "routeId": "collaborator-admission",
       "permission": "admission:read",
       "complexity": "GUIDE_ONLY",
-      "keywords": ["admissão", "admissao", "admitir", "contratar", "novo colaborador", "processo admissional"],
+      "keywords": [
+        "admissão",
+        "admissao",
+        "admitir",
+        "contratar",
+        "novo colaborador",
+        "processo admissional",
+        "período de experiência",
+        "periodo de experiencia",
+        "experiência",
+        "experiencia",
+        "30+30",
+        "45+45",
+        "90 dias"
+      ],
+      "guidance": [
+        "No contrato CLT, o período de experiência fica no cadastro, na seção Vínculo previsto, entre o salário e a carga horária. As opções são Sem experiência, 30+30 dias, 45+45 dias e 90 dias.",
+        "Prestador de serviço, intermitente, aprendiz e estágio não têm esse campo."
+      ],
       "steps": [
         "Abra o sistema DP (ou RH, se estiver no menu Pessoas).",
         "Acesse Admissão.",
         "Crie um novo processo ou abra o registro existente na listagem/esteira.",
-        "Preencha os dados e avance as etapas na própria tela — o assistente não cria admissão."
+        "Preencha os dados e avance as etapas na própria tela — o assistente não cria admissão.",
+        "No CLT, informe o período de experiência em Vínculo previsto: Sem experiência, 30+30 dias, 45+45 dias ou 90 dias."
       ]
     },
     {
@@ -270,10 +289,10 @@
       ],
       "guidance": [
         "Essa tela é uma fila de acompanhamento, não um cadastro manual. Por isso não há botão de Novo.",
-        "As pessoas aparecem automaticamente quando a admissão é concluída com período de experiência configurado (por exemplo 45 ou 90 dias).",
-        "Se a lista Em período estiver vazia, o motivo mais comum é não haver ninguém atualmente em período de experiência — ou a admissão não ter definido esse período.",
-        "A aba Decididos mostra quem já foi efetivado, prorrogado ou encerrado.",
-        "Para alguém entrar na fila, revise a Admissão do colaborador e o período de experiência do contrato."
+        "As pessoas entram na fila quando a admissão CLT é salva com período de experiência: 30+30 dias, 45+45 dias ou 90 dias. Sem experiência não entra.",
+        "Esse período é informado no cadastro de Admissão, na seção Vínculo previsto, no campo Período de experiência. Prestador de serviço, intermitente, aprendiz e estágio não têm o campo.",
+        "Se a lista Em período estiver vazia, não há ninguém com um desses períodos em andamento, ou a admissão CLT ficou em Sem experiência.",
+        "A aba Decididos mostra quem já foi efetivado, prorrogado ou encerrado."
       ],
       "steps": [
         "Abra o sistema RH.",

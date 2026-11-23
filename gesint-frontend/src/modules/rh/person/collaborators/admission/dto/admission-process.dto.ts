@@ -6,6 +6,8 @@ export type MaritalStatus = "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "OTH
 
 export type ContractType = "CLT" | "PJ" | "INTERMITTENT" | "APPRENTICE" | "INTERN";
 
+export type AdmissionExperiencePeriod = "NONE" | "DAYS_30_60" | "DAYS_45_45" | "DAYS_90";
+
 export type RecessFinancialMode = "FULLY_PAID" | "UNPAID" | "PROPORTIONAL" | "CUSTOM";
 
 export type AdmissionEmergencyContact = {
@@ -63,6 +65,7 @@ export class AdmissionProcess {
     departmentName?: string;
     jobPositionId?: string;
     contractType!: ContractType;
+    experiencePeriod?: AdmissionExperiencePeriod | null;
     baseSalary?: number;
     workloadSchedule?: string;
     workScheduleId?: string;
@@ -119,6 +122,7 @@ export class AdmissionProcessCreateDto {
     departmentId?: string;
     jobPositionId?: string;
     contractType!: ContractType;
+    experiencePeriod?: AdmissionExperiencePeriod;
     /** Formulário: string (moeda/decimal); API: number */
     baseSalary?: string | number;
     workloadSchedule?: string;

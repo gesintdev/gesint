@@ -5,6 +5,13 @@ type AdmissionFormStep = {
     label: string;
 };
 
+export const ADMISSION_EXPERIENCE_PERIOD_ITEMS: SelectItem[] = [
+    { value: "NONE", label: "Sem experiência" },
+    { value: "DAYS_30_60", label: "30+30 dias" },
+    { value: "DAYS_45_45", label: "45+45 dias" },
+    { value: "DAYS_90", label: "90 dias" },
+];
+
 export const CONTRACT_TYPE_ITEMS: SelectItem[] = [
     { value: "CLT", label: "CLT" },
     { value: "PJ", label: "Prestador de Serviço" },
@@ -48,6 +55,11 @@ export function admissionStatusLabel(value?: string | null): string {
 export function contractTypeLabel(value?: string | null): string {
     if (!value) return "—";
     return CONTRACT_TYPE_LABELS[value] ?? value;
+}
+
+export function experiencePeriodLabel(value?: string | null): string {
+    if (!value) return "—";
+    return ADMISSION_EXPERIENCE_PERIOD_ITEMS.find((item) => item.value === value)?.label ?? value;
 }
 
 export const GENDER_ITEMS: SelectItem[] = [

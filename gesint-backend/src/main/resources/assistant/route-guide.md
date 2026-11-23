@@ -31,6 +31,8 @@ Importante: o domínio ativo vem do rail, não da URL.
 ### Colaboradores (compartilhado com RH)
 
 - Admissão → `/collaborator/admission`
+  - No cadastro CLT, o período de experiência fica em Vínculo previsto: Sem experiência, 30+30 dias, 45+45 dias ou 90 dias
+  - Prestador de serviço, intermitente, aprendiz e estágio não têm esse campo
 - Pessoas → `/collaborator/people`
 
 ### Pagamentos
@@ -44,6 +46,8 @@ Importante: o domínio ativo vem do rail, não da URL.
 ### Colaboradores (compartilhado com DP)
 
 - Admissão → `/collaborator/admission`
+  - No cadastro CLT, o período de experiência fica em Vínculo previsto: Sem experiência, 30+30 dias, 45+45 dias ou 90 dias
+  - Prestador de serviço, intermitente, aprendiz e estágio não têm esse campo
 - Pessoas → `/collaborator/people`
 
 ### Recrutamento
@@ -56,8 +60,9 @@ Importante: o domínio ativo vem do rail, não da URL.
 
 - Avaliação de experiência → `/experience`
   - Fila automática (sem cadastro manual / sem botão Novo)
-  - Pessoas entram pela Admissão quando há período de experiência (45/90 dias)
-  - Lista vazia em "Em período" = ninguém em experiência no momento (ou admissão sem esse período)
+  - O período é escolhido na Admissão, cadastro CLT, seção Vínculo previsto: 30+30 dias, 45+45 dias ou 90 dias. Sem experiência não entra na fila
+  - Prestador de serviço, intermitente, aprendiz e estágio não têm o campo
+  - Lista vazia em "Em período" = ninguém com um desses períodos em andamento
   - Abas: Em período / Decididos
 
 ### Outros
