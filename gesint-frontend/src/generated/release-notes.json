@@ -1,6 +1,39 @@
 {
   "releases": [
     {
+      "version": "1.103.0",
+      "hash": "45ebc1c7",
+      "date": "2026-11-20T11:03:37-03:00",
+      "type": "feat",
+      "scope": null,
+      "breaking": false,
+      "title": "Layout compacto em produção",
+      "body": "**Commits incluídos**\n\n- feat: aplica a densidade ClickUp na casca, abas e controles\n- feat: compacta acompanhamento e polimento da casca",
+      "pullRequest": 7
+    },
+    {
+      "version": "1.102.1",
+      "hash": "df82f7a3",
+      "date": "2026-11-20T10:50:52-03:00",
+      "type": "fix",
+      "scope": null,
+      "breaking": false,
+      "title": "Next 16.4.6 — desbloqueia build do frontend em produção",
+      "body": "**Commits incluídos**\n\n- fix: atualiza Next.js para corrigir build com next/font/google",
+      "pullRequest": 6
+    },
+    {
+      "version": "1.102.0",
+      "hash": "7f15911d",
+      "date": "2026-11-20T09:30:17-03:00",
+      "type": "release",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop para producao",
+      "body": "**Commits incluídos**\n\n- feat: padroniza o cabecalho dos modais e explica o prazo do ASO\n- feat: permite escolher como o assistente abre e reaproveita conversa vazia\n- feat: inicia conversa com a IA a partir do menu\n- feat: unifica os modais de conteudo no componente Modal\n- feat: gera o codigo do colaborador na admissao apta\n- feat: marca tipos de documento obrigatorios na admissao\n- fix: reordena Nome e Codigo na listagem de tipos de documento",
+      "pullRequest": 4
+    },
+    {
       "version": "1.101.0",
       "hash": "c7cbedcd",
       "date": "2026-11-18T20:50:28-03:00",
