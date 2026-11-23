@@ -34,9 +34,8 @@ import {useCrudFormDirty} from "@/shared/components/crud/useCrudFormDirty";
 import {useFormDirtyByComparison} from "@/shared/components/crud/useFormDirtyByComparison";
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {SkeletonStack} from "@/shared/components/ui/SkeletonStack";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputString} from "@/shared/components/ui/input/index";
+import {SkeletonStack} from "@/shared/components/ui/SkeletonStack";
 import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {SystemAlert} from "@/shared/system-alert";
@@ -95,15 +94,10 @@ function roleIdsFromProfilesByBranch(
     return roleIdsByBranch;
 }
 
-const FORM_STEPS: FormStepNavItem[] = [
-    {id: "dados", label: "Dados"},
-    {id: "perfis", label: "Perfis"},
-];
-
 const DELETED_USER_CONFLICT_CODE = "APP_USER_DELETED_EXISTS";
 
 export function AppUserFormClient() {
-    const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
+    const {editingId, isEditing, showSavedRecord} = useCrudScreen();
     const {branches} = useActiveBranch();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AppUserCreateDto>(emptyForm());
@@ -331,10 +325,6 @@ export function AppUserFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                resetKey: editingId ?? "new",
-            }}
             footer={
                 <CrudFormFooterActions hideNew isSubmitting={saving} submitLabel="Salvar usuário" />
             }

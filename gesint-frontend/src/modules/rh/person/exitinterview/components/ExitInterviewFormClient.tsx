@@ -4,9 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { UserRoundCheck } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { useDocumentTypeItems } from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
 import type { ExitInterviewReturnChecklistConfig } from "@/modules/cfg/settings/exitinterviewchecklist/dto/exit-interview-return-checklist-config.dto";
 import { exitInterviewReturnChecklistConfigKeys } from "@/modules/cfg/settings/exitinterviewchecklist/exitinterviewchecklist.query";
 import { exitInterviewReturnChecklistConfigService } from "@/modules/cfg/settings/exitinterviewchecklist/services/exit-interview-return-checklist-config.service";
@@ -40,9 +41,7 @@ import {
     RETURN_STATUS_ITEMS,
     YES_NO_RECOMMEND_ITEMS,
 } from "@/modules/rh/person/exitinterview/lib/exit-interview.options";
-import { useDocumentTypeItems } from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
 import { exitinterviewService } from "@/modules/rh/person/exitinterview/services/exit-interview.service";
-import { storageService } from "@/modules/storage/services/storage.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
@@ -53,27 +52,16 @@ import {
     type PendingAttachment,
 } from "@/shared/components/storage/EntityAttachments";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputAutocomplete, InputCheckbox, InputDate, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import type { SelectItem, SelectSearchResult } from "@/shared/components/ui/input/select-item.types";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-import { sectionHasChanges } from "@/shared/lib/form-step.util";
 import { SystemAlert } from "@/shared/system-alert";
 
 const EXIT_INTERVIEW_ENTITY_TYPE = "exit_interview";
 const USER_AUTOCOMPLETE_PAGE_SIZE = 8;
-const FORM_STEPS: FormStepNavItem[] = [
-    { id: "dados", label: "Dados" },
-    { id: "motivos", label: "Motivos" },
-    { id: "avaliacao", label: "Avaliação" },
-    { id: "perguntas", label: "Perguntas" },
-    { id: "recontratacao", label: "Recontratação" },
-    { id: "devolucoes", label: "Devoluções" },
-    { id: "documentos", label: "Documentos" },
-];
 
 type ExitInterviewFormField = keyof ExitInterviewCreateDto;
 
@@ -257,16 +245,10 @@ export function ExitInterviewFormClient() {
     const [cancelReason, setCancelReason] = useState("");
     const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
     const { items: documentTypeItems } = useDocumentTypeItems("EXIT_INTERVIEW");
-    const emptyDefaults = useMemo(() => emptyExitInterviewForm(), []);
     const detailQuery = useQuery({
         queryKey: exitinterviewKeys.detail(editingId ?? ""),
         queryFn: () => exitinterviewService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
-    });
-    const attachmentsQuery = useQuery({
-        queryKey: ["storage-links", EXIT_INTERVIEW_ENTITY_TYPE, editingId],
-        queryFn: () => storageService.listLinks(EXIT_INTERVIEW_ENTITY_TYPE, editingId!),
-        enabled: Boolean(editingId),
     });
     const returnChecklistConfigQuery = useQuery({
         queryKey: exitInterviewReturnChecklistConfigKeys.all,
@@ -574,33 +556,6 @@ export function ExitInterviewFormClient() {
         setError(null);
         cancelMutation.mutate();
     };
-    const filledStepIds = useMemo(() => {
-        const filled: string[] = [];
-        if (
-            sectionHasChanges(form, emptyDefaults, [
-                "collaboratorId",
-                "interviewDate",
-                "relationshipType",
-                "terminationType",
-                "interviewerName",
-            ])
-        ) {
-            filled.push("dados");
-        }
-        if (sectionHasChanges(form, emptyDefaults, ["mainReason", "secondaryReasons", "departureReason", "detailedReason"])) {
-            filled.push("motivos");
-        }
-        if (form.ratings.some((item) => (item.score ?? 1) !== 1)) filled.push("avaliacao");
-        if (form.openAnswers.some((item) => item.answer?.trim())) filled.push("perguntas");
-        if (sectionHasChanges(form, emptyDefaults, ["wouldReturn", "companyWouldRehire", "rehireNotes"])) {
-            filled.push("recontratacao");
-        }
-        if (form.returnChecklist.some((item) => item.status !== "PENDING" || item.returnedAt || item.notes?.trim())) {
-            filled.push("devolucoes");
-        }
-        if ((attachmentsQuery.data?.length ?? 0) > 0 || pendingAttachments.length > 0) filled.push("documentos");
-        return filled;
-    }, [attachmentsQuery.data, emptyDefaults, form, pendingAttachments.length]);
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -627,12 +582,6 @@ export function ExitInterviewFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                filledStepIds,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>

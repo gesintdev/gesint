@@ -1,25 +1,14 @@
 import clsx from "clsx";
 import type { ReactNode, SubmitEvent } from "react";
 
-import { type FormStepNavItem, FormStepper } from "@/shared/components/ui/FormStepper";
-
-export type CrudFormStepperConfig = {
-    steps: FormStepNavItem[];
-    filledStepIds?: readonly string[];
-    entityCode?: number | null;
-    accessCode?: string | null;
-    accessCodeAction?: ReactNode;
-    resetKey?: string | null;
-};
-
 type CrudFormShellProps = {
     children: ReactNode;
+    /** Ações do cadastro, na mesma faixa da toolbar da listagem. */
     footer: ReactNode;
-    onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
+    onSubmit: (_event: SubmitEvent<HTMLFormElement>) => void;
     className?: string;
     bodyClassName?: string;
     formId?: string;
-    stepper?: CrudFormStepperConfig;
 };
 
 export function CrudFormShell({
@@ -29,31 +18,13 @@ export function CrudFormShell({
     className,
     bodyClassName,
     formId,
-    stepper,
 }: CrudFormShellProps) {
-    const bodyContent = stepper ? (
-        <FormStepper
-            key={stepper.resetKey ?? "new"}
-            steps={stepper.steps}
-            filledStepIds={stepper.filledStepIds}
-            entityCode={stepper.entityCode}
-            accessCode={stepper.accessCode}
-            accessCodeAction={stepper.accessCodeAction}
-        >
-            {children}
-        </FormStepper>
-    ) : (
-        children
-    );
-
     return (
         <form id={formId} onSubmit={onSubmit} className={clsx("crud-form-shell", className)}>
-            <div className={clsx("crud-form-shell__body", stepper && "overflow-hidden! p-0!", bodyClassName)}>
-                {bodyContent}
+            <div className="crud-list-toolbar flex flex-wrap items-center justify-end gap-2 border-b px-4 py-1.5">
+                <div className="flex flex-wrap items-center justify-end gap-2">{footer}</div>
             </div>
-            <div className="crud-form-shell__footer">
-                <div className="crud-form-shell__actions">{footer}</div>
-            </div>
+            <div className={clsx("crud-form-shell__body", bodyClassName)}>{children}</div>
         </form>
     );
 }

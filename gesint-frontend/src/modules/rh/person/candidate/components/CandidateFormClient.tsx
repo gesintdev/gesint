@@ -4,8 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { CandidateExperiencesEditor } from "@/modules/rh/person/candidate/components/CandidateExperiencesEditor";
 import { candidateKeys } from "@/modules/rh/person/candidate/candidate.query";
+import { CandidateExperiencesEditor } from "@/modules/rh/person/candidate/components/CandidateExperiencesEditor";
 import type { CandidateCreateDto } from "@/modules/rh/person/candidate/dto/candidate.dto";
 import { CANDIDATE_CLIENT_MESSAGES } from "@/modules/rh/person/candidate/exceptions/candidate.messages";
 import {
@@ -14,23 +14,16 @@ import {
     emptyCandidateForm,
 } from "@/modules/rh/person/candidate/lib/candidate.mapper";
 import { candidateService } from "@/modules/rh/person/candidate/services/candidate.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { EntityAttachments } from "@/shared/components/storage/EntityAttachments";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCPF, InputDate, InputPhone, InputString } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [
-    { id: "dados", label: "Dados" },
-    { id: "experiencia", label: "Experiência" },
-    { id: "curriculo", label: "Currículo" },
-];
 
 export function CandidateFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -61,7 +54,6 @@ export function CandidateFormClient() {
         toFormDto: candidateToFormDto,
         getEmptyForm: () => emptyCandidateForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: CandidateCreateDto) => {
@@ -120,11 +112,6 @@ export function CandidateFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Dados do candidato">

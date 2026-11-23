@@ -1,15 +1,19 @@
 package br.com.gesint.modules.rh.person.collaborators.people.service;
 
+import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import br.com.gesint.core.base.dto.PageableResponseDto;
 import br.com.gesint.core.base.service.BaseService;
@@ -17,9 +21,11 @@ import br.com.gesint.core.entity.StatusEnum;
 import br.com.gesint.modules.dp.offboarding.repository.OffboardingRepository;
 import br.com.gesint.modules.dp.organization.jobposition.entity.JobPositionNatureEnum;
 import br.com.gesint.modules.dp.organization.jobposition.repository.JobPositionRepository;
+import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gesint.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gesint.modules.rh.person.collaborators.people.dto.CollaboratorAccessCodeResponseDto;
+import br.com.gesint.modules.rh.person.collaborators.people.dto.CollaboratorPickerDiagnosis;
 import br.com.gesint.modules.rh.person.collaborators.people.dto.CollaboratorRequestDto;
 import br.com.gesint.modules.rh.person.collaborators.people.dto.CollaboratorResponseDto;
 import br.com.gesint.modules.rh.person.collaborators.people.entity.Collaborator;
@@ -36,6 +42,10 @@ import br.com.gesint.modules.root.search.service.provider.CollaboratorGlobalSear
 @Service
 public class CollaboratorService extends BaseService<Collaborator, CollaboratorRequestDto, CollaboratorResponseDto>
         implements ICollaboratorService {
+
+    private static final String ATTENDANCE_HREF = "/attendance";
+    private static final String ADMISSION_HREF = "/collaborator/admission";
+    private static final String PEOPLE_HREF = "/collaborator/people";
 
     private final CollaboratorRepository CollaboratorRepository;
     private final CollaboratorMapper CollaboratorMapper;
@@ -153,6 +163,121 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAnyAuthority('collaborator:read', 'collaborator:picker', 'attendance:read')")
+    public CollaboratorPickerDiagnosis explainAttendancePicker(String nameQuery) {
+        String query = nameQuery == null ? "" : nameQuery.trim();
+        if (query.length() < 2) {
+            return pickerDiagnosis(
+                    "Me diga o nome do colaborador que não aparece para lançar ponto.",
+                    "Abrir Ponto",
+                    ATTENDANCE_HREF);
+        }
+        String pattern = "%" + query.toLowerCase(Locale.ROOT) + "%";
+        List<Collaborator> found =
+                CollaboratorRepository.searchForGlobal(StatusEnum.DELETED, pattern, PageRequest.of(0, 8));
+        if (found.isEmpty()) {
+            return pickerDiagnosis(
+                    "Não encontrei colaborador com o nome **" + query + "**.",
+                    "Abrir Colaboradores",
+                    PEOPLE_HREF);
+        }
+        String foldedQuery = foldName(query);
+        List<Collaborator> exact = found.stream()
+                .filter(person -> foldName(person.getFullName()).equals(foldedQuery)
+                        || foldName(person.getSocialName()).equals(foldedQuery))
+                .toList();
+        List<Collaborator> matches = exact.isEmpty() ? found : exact;
+        if (matches.size() > 1) {
+            String names = matches.stream()
+                    .map(Collaborator::getFullName)
+                    .filter(StringUtils::hasText)
+                    .map(name -> "**" + name.trim() + "**")
+                    .reduce((left, right) -> left + ", " + right)
+                    .orElse(query);
+            return pickerDiagnosis(
+                    "Encontrei mais de um cadastro para **" + query + "**: " + names
+                            + ". Me diga o nome completo de quem você quer consultar.",
+                    "Abrir Colaboradores",
+                    PEOPLE_HREF);
+        }
+        return explainAttendanceOne(matches.getFirst());
+    }
+
+    private CollaboratorPickerDiagnosis explainAttendanceOne(Collaborator collaborator) {
+        String name = StringUtils.hasText(collaborator.getFullName())
+                ? collaborator.getFullName().trim()
+                : "Esse colaborador";
+        Set<UUID> hidden = hiddenCollaboratorIds();
+        if (hidden.contains(collaborator.getId())
+                && offboardingRepository
+                        .findOffboardedCollaboratorIds(StatusEnum.DELETED)
+                        .contains(collaborator.getId())) {
+            return pickerDiagnosis(
+                    "**" + name + "** não entra na consulta para lançar ponto porque está desligado.",
+                    "Abrir Colaboradores",
+                    PEOPLE_HREF);
+        }
+        if (hidden.contains(collaborator.getId())) {
+            return pickerDiagnosis(
+                    "**" + name + "** não entra na consulta para lançar ponto porque o cadastro está ligado ao "
+                            + "usuário administrador do sistema.",
+                    "Abrir Colaboradores",
+                    PEOPLE_HREF);
+        }
+        boolean admitted = admissionProcessRepository
+                .findByCollaboratorIdAndAdmissionStatusAndStatusNot(
+                        collaborator.getId(), AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED)
+                .stream()
+                .findAny()
+                .isPresent();
+        if (admitted) {
+            return pickerDiagnosis(
+                    "**" + name + "** aparece na consulta para lançar ponto. "
+                            + "Essa consulta lista quem já concluiu a admissão e não está desligado.",
+                    "Abrir Ponto",
+                    ATTENDANCE_HREF);
+        }
+        String admissionState = admissionState(collaborator.getId());
+        return pickerDiagnosis(
+                "**" + name + "** não entra na consulta para lançar ponto porque " + admissionState
+                        + " A consulta só lista quem já concluiu a admissão.",
+                "Abrir Admissão",
+                ADMISSION_HREF);
+    }
+
+    private String admissionState(UUID collaboratorId) {
+        List<AdmissionProcess> admissions =
+                admissionProcessRepository.findAllByCollaboratorIdAndStatusNot(collaboratorId, StatusEnum.DELETED);
+        if (admissions.isEmpty()) {
+            return "não há admissão para esse cadastro.";
+        }
+        boolean cancelledOnly = admissions.stream()
+                .allMatch(admission -> admission.getAdmissionStatus() == AdmissionStatusEnum.CANCELLED);
+        if (cancelledOnly) {
+            return "a admissão foi cancelada.";
+        }
+        boolean draft = admissions.stream()
+                .anyMatch(admission -> admission.getAdmissionStatus() == AdmissionStatusEnum.DRAFT);
+        if (draft && admissions.stream()
+                .noneMatch(admission -> admission.getAdmissionStatus() == AdmissionStatusEnum.IN_PROGRESS)) {
+            return "a admissão ainda está em rascunho.";
+        }
+        return "a admissão ainda está em andamento.";
+    }
+
+    private static CollaboratorPickerDiagnosis pickerDiagnosis(String text, String linkLabel, String href) {
+        return new CollaboratorPickerDiagnosis(text, linkLabel, href);
+    }
+
+    private static String foldName(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "";
+        }
+        String withoutMarks = Normalizer.normalize(value, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return withoutMarks.toLowerCase(Locale.ROOT).trim();
+    }
 
     @Override
     @Transactional(readOnly = true)

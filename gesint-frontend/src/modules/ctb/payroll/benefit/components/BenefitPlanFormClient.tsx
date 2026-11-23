@@ -9,18 +9,15 @@ import type { BenefitPlanCreateDto } from "@/modules/ctb/payroll/benefit/dto/ben
 import { BENEFIT_CLIENT_MESSAGES } from "@/modules/ctb/payroll/benefit/exceptions/benefit-plan.messages";
 import { benefitplanToFormDto, emptyBenefitPlanForm } from "@/modules/ctb/payroll/benefit/lib/benefit-plan.mapper";
 import { benefitplanService } from "@/modules/ctb/payroll/benefit/services/benefit-plan.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCurrency, InputDate, InputString } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Benefício" }];
 
 export function BenefitPlanFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -52,7 +49,6 @@ export function BenefitPlanFormClient() {
         toFormDto: benefitplanToFormDto,
         getEmptyForm: () => emptyBenefitPlanForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: BenefitPlanCreateDto) => {
@@ -106,11 +102,6 @@ export function BenefitPlanFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Benefício">

@@ -25,4 +25,8 @@ public class AssistantChatRequestDto {
     @Valid
     @Builder.Default
     private List<AssistantChatMessageDto> messages = new ArrayList<>();
+
+    /** Presente quando a conversa foi aberta em um menu. Ausente no chat geral. */
+    @Valid
+    private AssistantMenuFocusDto menuFocus;
 }

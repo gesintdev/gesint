@@ -4,11 +4,11 @@ import clsx from "clsx";
 import {AppWindow, CheckSquare, History, MessageSquarePlus, PanelTop, Sparkles, X} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
 
+import {useAssistantChat} from "@/shared/components/assistant/assistant-chat";
 import {AssistantChatModal} from "@/shared/components/assistant/AssistantChatModal";
 import {AssistantEmptyState} from "@/shared/components/assistant/AssistantEmptyState";
 import {AssistantHistoryList} from "@/shared/components/assistant/AssistantHistoryList";
 import {AssistantTranscript} from "@/shared/components/assistant/AssistantTranscript";
-import {useAssistantChat} from "@/shared/components/assistant/assistant-chat";
 
 type AiAssistantPanelProps = {
     sideOpen: boolean;
@@ -31,6 +31,7 @@ export function AiAssistantPanel({
         activeId,
         activeConversation,
         newSession,
+        chatFocusToken,
         selectionMode,
         selectedCount,
         toggleSelectionMode,
@@ -44,9 +45,9 @@ export function AiAssistantPanel({
     const [shellMounted, setShellMounted] = useState(false);
     const [panelEntered, setPanelEntered] = useState(false);
     const openRef = useRef(sideOpen);
-    openRef.current = sideOpen;
 
     useEffect(() => {
+        openRef.current = sideOpen;
         if (!sideOpen) {
             setPanelEntered(false);
             return;
@@ -79,12 +80,17 @@ export function AiAssistantPanel({
     }, [sideOpen, onSideClose, selectionMode, clearSelection]);
 
     useEffect(() => {
+        if (chatFocusToken === 0) return;
+        setShowHistory(false);
+    }, [chatFocusToken]);
+
+    useEffect(() => {
         if (!sideOpen || showHistory || modalOpen) return;
         const timer = window.setTimeout(() => {
             if (openRef.current) inputRef.current?.focus();
         }, 240);
         return () => window.clearTimeout(timer);
-    }, [sideOpen, showHistory, activeId, modalOpen, newSession]);
+    }, [sideOpen, showHistory, activeId, modalOpen, newSession, chatFocusToken]);
 
     useEffect(() => {
         if (!sideOpen || !showHistory) return;

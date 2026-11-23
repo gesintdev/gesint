@@ -1,11 +1,14 @@
 package br.com.gesint.modules.rh.person.leave.service;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,7 +17,9 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -51,6 +56,7 @@ import br.com.gesint.modules.rh.person.leave.dto.LeaveRequestRequestDto;
 import br.com.gesint.modules.rh.person.leave.dto.LeaveRequestResponseDto;
 import br.com.gesint.modules.rh.person.leave.dto.VacationAbsenceSummaryDto;
 import br.com.gesint.modules.rh.person.leave.dto.VacationEligibleCollaboratorDto;
+import br.com.gesint.modules.rh.person.leave.dto.VacationListingDiagnosis;
 import br.com.gesint.modules.rh.person.leave.dto.VacationReviewRequestDto;
 import br.com.gesint.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gesint.modules.rh.person.leave.entity.LeaveRequest;
@@ -68,6 +74,10 @@ import br.com.gesint.modules.root.repository.AppUserRepository;
 @Service
 public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestRequestDto, LeaveRequestResponseDto>
         implements ILeaveRequestService {
+
+    private static final DateTimeFormatter DATE_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final String VACATION_HREF = "/leave/vacation";
+    private static final String PEOPLE_HREF = "/collaborator/people";
 
     private final LeaveRequestRepository repository;
     private final LeaveRequestMapper mapper;
@@ -224,6 +234,214 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
                         .thenComparing(VacationEligibleCollaboratorDto::getConcessiveEnd)
                         .thenComparing(VacationEligibleCollaboratorDto::getCollaboratorName))
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('leave:read') or hasAuthority('notification:read')")
+    public VacationListingDiagnosis explainVacationListing(String nameQuery) {
+        String query = nameQuery == null ? "" : nameQuery.trim();
+        if (query.length() < 2) {
+            return diagnosis(
+                    "Me diga o nome do colaborador que não aparece na listagem de férias.",
+                    "Abrir Férias",
+                    VACATION_HREF);
+        }
+        String pattern = "%" + query.toLowerCase(Locale.ROOT) + "%";
+        List<Collaborator> found = collaboratorRepository.searchForGlobal(
+                StatusEnum.DELETED, pattern, PageRequest.of(0, 8));
+        if (found.isEmpty()) {
+            return diagnosis(
+                    "Não encontrei colaborador com o nome **"
+                            + query
+                            + "**. Confira a grafia ou busque em Colaboradores.",
+                    "Abrir Colaboradores",
+                    PEOPLE_HREF);
+        }
+        String foldedQuery = fold(query);
+        List<Collaborator> exact = found.stream()
+                .filter(person -> fold(person.getFullName()).equals(foldedQuery)
+                        || fold(person.getSocialName()).equals(foldedQuery))
+                .toList();
+        List<Collaborator> matches = exact.isEmpty() ? found : exact;
+        if (matches.size() > 1) {
+            String names = matches.stream()
+                    .map(Collaborator::getFullName)
+                    .filter(StringUtils::hasText)
+                    .map(name -> "**" + name.trim() + "**")
+                    .reduce((left, right) -> left + ", " + right)
+                    .orElse(query);
+            return diagnosis(
+                    "Encontrei mais de um cadastro para **" + query + "**: " + names
+                            + ". Me diga o nome completo de quem você quer consultar.",
+                    "Abrir Colaboradores",
+                    PEOPLE_HREF);
+        }
+        return explainOne(matches.getFirst(), LocalDate.now(ZoneId.of("America/Sao_Paulo")));
+    }
+
+    private VacationListingDiagnosis explainOne(Collaborator collaborator, LocalDate referenceDate) {
+        String name = StringUtils.hasText(collaborator.getFullName())
+                ? collaborator.getFullName().trim()
+                : "Esse colaborador";
+        if (collaborator.getStatus() != StatusEnum.ACTIVE) {
+            return diagnosis(
+                    "**" + name + "** não entra na listagem de férias porque o cadastro está inativo. "
+                            + "A lista só traz colaboradores ativos.",
+                    "Abrir Colaboradores",
+                    PEOPLE_HREF);
+        }
+        List<EmploymentContract> contracts = employmentContractRepository.findByCollaboratorIdAndStatusNot(
+                collaborator.getId(), StatusEnum.DELETED);
+        AdmissionProcess admission = admissionProcessRepository
+                .findByCollaboratorIdAndAdmissionStatusAndStatusNot(
+                        collaborator.getId(), AdmissionStatusEnum.COMPLETED, StatusEnum.DELETED)
+                .stream()
+                .reduce(LeaveRequestService::latestAdmission)
+                .orElse(null);
+        List<LeaveRequest> leaves = repository.findByCollaboratorIdAndStatusNot(
+                collaborator.getId(), StatusEnum.DELETED);
+        Optional<VacationEligibleCollaboratorDto> eligible = buildEligibleCollaborator(
+                collaborator, contracts, admission, leaves, referenceDate);
+        if (eligible.isPresent()) {
+            return diagnosis(listedText(eligible.get()), "Abrir Férias", VACATION_HREF);
+        }
+        return diagnosis(
+                "**" + name + "** não entra na listagem de férias porque "
+                        + explainIneligible(collaborator, contracts, admission, leaves, referenceDate),
+                "Abrir Férias",
+                VACATION_HREF);
+    }
+
+    private String explainIneligible(
+            Collaborator collaborator,
+            List<EmploymentContract> contracts,
+            AdmissionProcess admission,
+            List<LeaveRequest> leaves,
+            LocalDate referenceDate) {
+        Optional<EmploymentContract> activeContract = contracts.stream()
+                .filter(contract -> contract.getStatus() == StatusEnum.ACTIVE)
+                .filter(contract -> contract.getStartDate() != null && !contract.getStartDate().isAfter(referenceDate))
+                .filter(contract -> contract.getEndDate() == null || !contract.getEndDate().isBefore(referenceDate))
+                .max(Comparator.comparing(EmploymentContract::getStartDate));
+        if (!contracts.isEmpty() && activeContract.isEmpty()) {
+            return "não tem contrato vigente. O contrato cadastrado já terminou ou ainda não começou.";
+        }
+        ContractTypeEnum contractType = activeContract
+                .map(EmploymentContract::getContractType)
+                .orElseGet(() -> admission != null ? admission.getContractType() : null);
+        if (contractType == ContractTypeEnum.PJ && activeContract.isPresent()) {
+            return explainMissingRecess(collaborator, activeContract.get(), referenceDate);
+        }
+        if (contractType == null) {
+            return "não há tipo de contrato definido, nem no contrato vigente nem na admissão concluída.";
+        }
+        if (contractType != ContractTypeEnum.CLT) {
+            return "o contrato é de "
+                    + contractLabel(contractType)
+                    + ". A lista inclui CLT com período aquisitivo já cumprido, ou PJ com recesso contratual habilitado.";
+        }
+        if (activeContract.isEmpty() && !isAdmissionActive(admission, referenceDate)) {
+            return "não tem contrato vigente nem admissão concluída em vigor.";
+        }
+        LocalDate hireDate = admission != null ? admissionDate(admission) : null;
+        if (hireDate == null) {
+            hireDate = activeContract.map(EmploymentContract::getStartDate).orElse(null);
+        }
+        return VacationEligibilityEvaluator.describeWhyAbsent(hireDate, referenceDate, leaves);
+    }
+
+    private String explainMissingRecess(
+            Collaborator collaborator, EmploymentContract contract, LocalDate referenceDate) {
+        ContractRecessPolicy policy = recessPolicyRepository
+                .findEffective(contract.getId(), referenceDate, StatusEnum.DELETED)
+                .filter(ContractRecessPolicy::isEnabled)
+                .orElse(null);
+        if (policy == null) {
+            return "o contrato é PJ e não há recesso contratual habilitado. "
+                    + "PJ só entra na listagem quando essa política está ativa.";
+        }
+        List<ContractRecessPeriod> periods = recessPeriodRepository
+                .findAllByCollaboratorIdAndStatusNotOrderByCycleStartDesc(collaborator.getId(), StatusEnum.DELETED)
+                .stream()
+                .filter(period -> policy.getId() != null && policy.getId().equals(period.getPolicyId()))
+                .toList();
+        if (periods.isEmpty()) {
+            return "o contrato é PJ, com recesso contratual habilitado, mas ainda não existe ciclo de recesso gerado.";
+        }
+        ContractRecessPeriod period = periods.getFirst();
+        int waitMonths = policy.getEligibilityAfterMonths() != null ? policy.getEligibilityAfterMonths() : 0;
+        if (period.getCycleStart() == null) {
+            return "o recesso contratual ainda não está disponível para lançamento.";
+        }
+        LocalDate eligibleOn = period.getCycleStart().plusMonths(waitMonths);
+        if (referenceDate.isBefore(eligibleOn)) {
+            return "o recesso contratual só fica disponível a partir de "
+                    + formatDate(eligibleOn)
+                    + " ("
+                    + waitMonths
+                    + " meses após o início do ciclo em "
+                    + formatDate(period.getCycleStart())
+                    + ").";
+        }
+        if (period.getRemainingDays() <= 0) {
+            return "o saldo de recesso contratual está zerado no ciclo de "
+                    + formatDate(period.getCycleStart())
+                    + " a "
+                    + formatDate(period.getCycleEnd())
+                    + ".";
+        }
+        return "o recesso contratual ainda não está disponível para lançamento.";
+    }
+
+    private static String listedText(VacationEligibleCollaboratorDto row) {
+        String name = StringUtils.hasText(row.getCollaboratorName()) ? row.getCollaboratorName().trim() : "Esse colaborador";
+        if ("CONTRACT_RECESS".equals(row.getPeriodStatus())) {
+            return "**" + name + "** aparece na listagem de férias, pelo recesso contratual. O saldo é de "
+                    + row.getEntitledDays()
+                    + " dias, no ciclo de "
+                    + formatDate(row.getAcquisitionStart())
+                    + " a "
+                    + formatDate(row.getAcquisitionEnd())
+                    + ".";
+        }
+        String period = "O período de gozo vai de "
+                + formatDate(row.getConcessiveStart())
+                + " a "
+                + formatDate(row.getConcessiveEnd())
+                + ", com "
+                + row.getEntitledDays()
+                + " dias.";
+        if ("EXPIRED".equals(row.getPeriodStatus())) {
+            return "**" + name + "** aparece na listagem de férias, com o prazo de gozo já vencido. " + period;
+        }
+        return "**" + name + "** aparece na listagem de férias. " + period;
+    }
+
+    private static VacationListingDiagnosis diagnosis(String text, String linkLabel, String href) {
+        return new VacationListingDiagnosis(text, linkLabel, href);
+    }
+
+    private static String contractLabel(ContractTypeEnum type) {
+        return switch (type) {
+            case CLT -> "CLT";
+            case PJ -> "PJ";
+            case INTERMITTENT -> "intermitente";
+            case APPRENTICE -> "aprendiz";
+            case INTERN -> "estágio";
+        };
+    }
+
+    private static String formatDate(LocalDate date) {
+        return date != null ? DATE_BR.format(date) : "—";
+    }
+
+    private static String fold(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "";
+        }
+        String withoutMarks = Normalizer.normalize(value, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return withoutMarks.toLowerCase(Locale.ROOT).trim();
     }
 
     @Override

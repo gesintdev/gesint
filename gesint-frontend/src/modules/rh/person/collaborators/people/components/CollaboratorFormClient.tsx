@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useEffect, useMemo, useState } from "react";
+import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { collaboratorKeys } from "@/modules/rh/person/collaborators/people/collaborator.query";
@@ -17,13 +17,11 @@ import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCPF, InputDate, InputSelect, InputString, RgIdentityFields } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-import { sectionHasChanges } from "@/shared/lib/form-step.util";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
 const GENDER_ITEMS: SelectItem[] = [
@@ -39,17 +37,12 @@ const MARITAL_ITEMS: SelectItem[] = [
     { value: "WIDOWED", label: "Viúvo(a)" },
     { value: "OTHER", label: "Outro" },
 ];
-const COLLABORATOR_FORM_STEPS: FormStepNavItem[] = [
-    { id: "identificacao", label: "Identificação" },
-    { id: "filiacao", label: "Filiação" },
-];
 
 export function CollaboratorFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord, cancelAndClose } = useCrudScreen();
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CollaboratorCreateDto>(emptyCollaboratorForm);
     const [error, setError] = useState<string | null>(null);
-    const emptyDefaults = useMemo(() => emptyCollaboratorForm(), []);
     const detailQuery = useQuery({
         queryKey: collaboratorKeys.detail(editingId ?? ""),
         queryFn: () => collaboratorService.getById(editingId!),
@@ -77,7 +70,6 @@ export function CollaboratorFormClient() {
         toFormDto: collaboratorToFormDto,
         getEmptyForm: () => emptyCollaboratorForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: CollaboratorCreateDto) => {
@@ -121,30 +113,6 @@ export function CollaboratorFormClient() {
         setError(null);
         saveMutation.mutate(form);
     };
-    const filledStepIds = useMemo(() => {
-        const empty = emptyDefaults;
-        const filled: string[] = [];
-        if (
-            sectionHasChanges(form, empty, [
-                "fullName",
-                "socialName",
-                "cpf",
-                "rg",
-                "rgIssuer",
-                "rgStateCode",
-                "birthDate",
-                "gender",
-                "maritalStatus",
-            ])
-        ) {
-            filled.push("identificacao");
-        }
-
-        if (sectionHasChanges(form, empty, ["nationality", "pisPasep", "motherName", "fatherName"])) {
-            filled.push("filiacao");
-        }
-        return filled;
-    }, [form, emptyDefaults]);
 
     if (!isEditing) {
         return (
@@ -179,12 +147,6 @@ export function CollaboratorFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: COLLABORATOR_FORM_STEPS,
-                filledStepIds,
-                entityCode: detailQuery.data?.code,
-                resetKey: editingId ?? "new",
-            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>

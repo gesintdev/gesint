@@ -9,6 +9,7 @@ import br.com.gesint.modules.rh.person.leave.dto.LeaveRequestRequestDto;
 import br.com.gesint.modules.rh.person.leave.dto.LeaveRequestResponseDto;
 import br.com.gesint.modules.rh.person.leave.dto.VacationAbsenceSummaryDto;
 import br.com.gesint.modules.rh.person.leave.dto.VacationEligibleCollaboratorDto;
+import br.com.gesint.modules.rh.person.leave.dto.VacationListingDiagnosis;
 import br.com.gesint.modules.rh.person.leave.dto.VacationReviewRequestDto;
 
 public interface ILeaveRequestService extends IBaseService<LeaveRequestRequestDto, LeaveRequestResponseDto> {
@@ -16,6 +17,8 @@ public interface ILeaveRequestService extends IBaseService<LeaveRequestRequestDt
     VacationAbsenceSummaryDto absenceSummary(UUID collaboratorId, LocalDate acquisitionStart, LocalDate acquisitionEnd);
 
     List<VacationEligibleCollaboratorDto> findVacationEligibleCollaborators();
+
+    VacationListingDiagnosis explainVacationListing(String nameQuery);
 
     LeaveRequestResponseDto reviewVacation(UUID id, VacationReviewRequestDto request);
 }

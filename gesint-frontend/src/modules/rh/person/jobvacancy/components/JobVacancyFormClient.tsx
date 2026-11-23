@@ -23,7 +23,6 @@ import {
     jobVacancyFormToPayload,
     jobVacancyToFormDto,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.mapper";
-import { slugFromJobTitle } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-slug";
 import {
     JOB_BOARD_OPTIONS,
     JOB_VACANCY_CONTRACT_TYPE_ITEMS,
@@ -31,20 +30,19 @@ import {
     JOB_VACANCY_WORK_MODALITY_ITEMS,
     JOB_VACANCY_WORK_SCHEDULE_ITEMS,
 } from "@/modules/rh/person/jobvacancy/lib/job-vacancy.options";
+import { slugFromJobTitle } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-slug";
 import { jobVacancyService } from "@/modules/rh/person/jobvacancy/services/jobvacancy.service";
 import { CollaboratorMultiPickerField } from "@/shared/components/crud/CollaboratorMultiPickerField";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import {
-    InputCurrency,
     InputCheckbox,
+    InputCurrency,
     InputDate,
     InputMarkdown,
     InputMultiValue,
@@ -53,15 +51,8 @@ import {
     InputString,
 } from "@/shared/components/ui/input/index";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [
-    { id: "dados", label: "Dados" },
-    { id: "detalhes", label: "Detalhes" },
-    { id: "responsaveis", label: "Responsáveis" },
-    { id: "competencias-entrevista", label: "Competências" },
-    { id: "publicacao", label: "Publicação" },
-];
 
 type TextAreaProps = {
     label: string;
@@ -142,7 +133,6 @@ export function JobVacancyFormClient() {
         toFormDto: jobVacancyToFormDto,
         getEmptyForm: () => emptyJobVacancyForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: JobVacancyCreateDto) => {
@@ -290,11 +280,6 @@ export function JobVacancyFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Dados da vaga">

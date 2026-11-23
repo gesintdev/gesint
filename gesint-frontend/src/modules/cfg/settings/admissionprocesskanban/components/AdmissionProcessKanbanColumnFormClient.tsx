@@ -13,14 +13,12 @@ import {
     keyFromColumnName,
 } from "@/modules/cfg/settings/admissionprocesskanban/lib/admission-process-kanban-column.mapper";
 import { admissionProcessKanbanColumnService } from "@/modules/cfg/settings/admissionprocesskanban/services/admission-process-kanban-column.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import {
     InputCheckbox,
     InputColor,
@@ -30,9 +28,9 @@ import {
 } from "@/shared/components/ui/input/index";
 import { InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
 
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Coluna" }];
 const DEFAULT_SLA_BUSINESS_DAYS = 5;
 const MIN_SLA_BUSINESS_DAYS = 1;
 const MAX_SLA_BUSINESS_DAYS = 90;
@@ -156,11 +154,6 @@ export function AdmissionProcessKanbanColumnFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection

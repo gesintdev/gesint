@@ -17,25 +17,18 @@ import {
 import {JobPositionSalaryTableSection} from "@/modules/dp/organization/jobposition/salarytable/components/JobPositionSalaryTableSection";
 import {cboOccupationService} from "@/modules/dp/organization/jobposition/services/cbo-occupation.service";
 import {jobpositionService} from "@/modules/dp/organization/jobposition/services/jobposition.service";
-import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {BranchRecordScopeField} from "@/shared/components/crud/BranchRecordScopeField";
-import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
+import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputSelect, InputSelectAutocomplete, InputString} from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
+import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {useBranchScopedDetailQuery} from "@/shared/hooks/useBranchScopedDetailQuery";
-import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
-
-const FORM_STEPS: FormStepNavItem[] = [
-    {id: "cadastro", label: "Cargo"},
-    {id: "competencias", label: "Competências"},
-    {id: "niveis-faixas", label: "Níveis e faixas"},
-];
 
 export function JobPositionFormClient() {
     const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
@@ -90,7 +83,6 @@ export function JobPositionFormClient() {
         getEmptyForm: () => emptyJobPositionForm(activeBranchId),
     });
 
-
     const saveMutation = useMutation({
         mutationFn: async (dto: JobPositionCreateDto) => {
             if (isEditing && editingId) return jobpositionService.update(editingId, dto);
@@ -142,11 +134,6 @@ export function JobPositionFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Cargo">

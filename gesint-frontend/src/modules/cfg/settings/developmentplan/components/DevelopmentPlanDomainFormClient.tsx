@@ -18,7 +18,6 @@ import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputCheckbox, InputNumber, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
 import {ExceptionCapture} from "@/shared/exceptions";
@@ -29,7 +28,6 @@ export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentP
     const service = useMemo(() => new DevelopmentPlanDomainService(config.endpoint), [config.endpoint]);
     const queryKey = ["development-plan-domain", config.id] as const;
     const detailKey = ["development-plan-domain", config.id, editingId ?? ""] as const;
-    const steps: FormStepNavItem[] = [{id: "cadastro", label: config.title}];
     const [form, setForm] = useState<Record<string, unknown>>(() => emptyForm(config.fields));
     const [error, setError] = useState<string | null>(null);
     const detailQuery = useQuery({
@@ -84,7 +82,6 @@ export function DevelopmentPlanDomainFormClient({config}: { config: DevelopmentP
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{steps, entityCode: isEditing ? detailQuery.data?.code : undefined, resetKey: editingId ?? "new"}}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title={config.title}>

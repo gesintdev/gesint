@@ -5,28 +5,24 @@ import clsx from "clsx";
 import {type SubmitEvent, useEffect, useState} from "react";
 import {toast} from "sonner";
 
+import {documentTypeKeys} from "@/modules/cfg/settings/documenttype/documenttype.query";
 import type {
     DocumentDataClass,
     DocumentType,
     DocumentTypeRequestDto,
 } from "@/modules/cfg/settings/documenttype/dto/document-type.dto";
-import {documentTypeKeys} from "@/modules/cfg/settings/documenttype/documenttype.query";
 import {
     DOCUMENT_DATA_CLASS_ITEMS,
     DOCUMENT_TYPE_CONTEXT_ITEMS,
 } from "@/modules/cfg/settings/documenttype/lib/document-type.options";
 import {documentTypeService} from "@/modules/cfg/settings/documenttype/services/document-type.service";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
-import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
-import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputCheckbox, InputNumber, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import {ExceptionCapture} from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Tipo de documento"}];
 
 function emptyForm(): DocumentTypeRequestDto {
     return {
@@ -148,11 +144,6 @@ export function DocumentTypeFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection

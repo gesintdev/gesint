@@ -14,8 +14,10 @@ import {
 import {
     type AssistantDeepLink,
     type AssistantLlmUsage,
+    type AssistantMenuFocus,
     assistantService,
 } from "@/shared/components/assistant/assistant.service";
+import {ASSISTANT_MENU_OPENING_QUESTION} from "@/shared/components/assistant/assistant-menu-prompt";
 import {ExceptionCapture} from "@/shared/exceptions";
 
 export type ChatMessage = {
@@ -23,6 +25,14 @@ export type ChatMessage = {
     role: "assistant" | "user";
     content: string;
     links?: AssistantDeepLink[];
+    /** Pergunta de abertura do menu: vai para o assistente e não aparece no balão. */
+    hidden?: boolean;
+};
+
+export type ConversationMenuFocus = {
+    routeId: string;
+    label: string;
+    userName?: string;
 };
 
 export type Conversation = {
@@ -30,6 +40,8 @@ export type Conversation = {
     title: string;
     updatedAt: number;
     messages: ChatMessage[];
+    /** Definido quando a conversa nasce do botão direito de um menu. */
+    menuFocus?: ConversationMenuFocus;
 };
 
 const STORAGE_KEY = "gesint-ai-assistant-conversations";
@@ -111,9 +123,19 @@ export function buildUsageFooter(usage: AssistantLlmUsage | null): string | null
     return `Dev · ${parts.join(" · ")}`;
 }
 
+function isGenericWelcome(conversation: Conversation): boolean {
+    return (
+        conversation.messages.length === 1 &&
+        conversation.messages[0]?.role === "assistant" &&
+        conversation.messages[0]?.content === WELCOME.content
+    );
+}
+
 export function isNewSession(conversation: Conversation | null): boolean {
     if (!conversation) return true;
-    return !conversation.messages.some((message) => message.role === "user");
+    if (conversation.menuFocus) return false;
+    if (conversation.messages.some((message) => message.role === "user")) return false;
+    return conversation.messages.length === 0 || isGenericWelcome(conversation);
 }
 
 function findEmptyConversation(conversations: Conversation[]): Conversation | null {
@@ -136,6 +158,8 @@ type AssistantChatContextValue = {
     draft: string;
     setDraft: (value: string) => void;
     sending: boolean;
+    /** Texto curto do que o assistente está fazendo agora, por exemplo "Consultando férias...". */
+    activity: string | null;
     usage: AssistantLlmUsage | null;
     selectionMode: boolean;
     selectedIds: Set<string>;
@@ -145,8 +169,10 @@ type AssistantChatContextValue = {
     setHistoryQuery: (value: string) => void;
     filteredConversations: Conversation[];
     newSession: boolean;
+    /** Sobe a cada início ou abertura de conversa, para a janela do chat receber o foco. */
+    chatFocusToken: number;
     startNewConversation: () => void;
-    startConversationAbout: (prompt: string) => void;
+    startMenuConversation: (focus: ConversationMenuFocus) => void;
     openConversation: (id: string) => void;
     deleteConversation: (id: string) => void;
     toggleSelectionMode: () => void;
@@ -165,6 +191,8 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
     const [historyQuery, setHistoryQuery] = useState("");
     const [draft, setDraft] = useState("");
     const [sending, setSending] = useState(false);
+    const [chatFocusToken, setChatFocusToken] = useState(0);
+    const [activity, setActivity] = useState<string | null>(null);
     const [hydrated, setHydrated] = useState(false);
     const [usage, setUsage] = useState<AssistantLlmUsage | null>(null);
     const [selectionMode, setSelectionMode] = useState(false);
@@ -201,7 +229,10 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
         () => conversations.find((conversation) => conversation.id === activeId) ?? null,
         [activeId, conversations],
     );
-    const messages = activeConversation?.messages ?? [];
+    const messages = useMemo(
+        () => (activeConversation?.messages ?? []).filter((message) => !message.hidden),
+        [activeConversation],
+    );
     const selectedCount = selectedIds.size;
     const allSelectableSelected =
         messages.length > 0 && messages.every((message) => selectedIds.has(message.id));
@@ -221,6 +252,10 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
         setSelectionMode(false);
     }, []);
 
+    const focusConversationWindow = useCallback(() => {
+        setChatFocusToken((value) => value + 1);
+    }, []);
+
     const startNewConversation = useCallback(() => {
         const empty = findEmptyConversation(conversationsRef.current);
         if (empty) {
@@ -231,6 +266,7 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
             }
             setHistoryQuery("");
             clearSelection();
+            focusConversationWindow();
             return;
         }
         const next = createConversation();
@@ -241,7 +277,8 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
         setDraft("");
         setHistoryQuery("");
         clearSelection();
-    }, [clearSelection]);
+        focusConversationWindow();
+    }, [clearSelection, focusConversationWindow]);
 
     const openConversation = useCallback(
         (id: string) => {
@@ -249,8 +286,9 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
             setDraft("");
             setHistoryQuery("");
             clearSelection();
+            focusConversationWindow();
         },
-        [clearSelection],
+        [clearSelection, focusConversationWindow],
     );
 
     const deleteConversation = useCallback(
@@ -341,13 +379,19 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
     }, []);
 
     const deliverMessage = useCallback(
-        async (conversationId: string, priorMessages: ChatMessage[], text: string) => {
+        async (
+            conversationId: string,
+            priorMessages: ChatMessage[],
+            text: string,
+            options?: {hideUser?: boolean; opening?: boolean},
+        ) => {
             if (!text || sendingRef.current) return;
 
             const userMessage: ChatMessage = {
                 id: `user-${Date.now()}`,
                 role: "user",
                 content: text,
+                hidden: options?.hideUser || undefined,
             };
             const historyForApi = [
                 ...priorMessages
@@ -355,14 +399,25 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
                     .map((message) => ({role: message.role, content: message.content})),
                 {role: "user" as const, content: text},
             ];
+            const focus = conversationsRef.current.find((conversation) => conversation.id === conversationId)
+                ?.menuFocus;
+            const menuFocus: AssistantMenuFocus | undefined = focus
+                ? {
+                      routeId: focus.routeId,
+                      label: focus.label,
+                      userName: focus.userName,
+                      opening: options?.opening === true,
+                  }
+                : undefined;
 
             sendingRef.current = true;
             setDraft("");
+            setActivity("Pensando...");
             setSending(true);
-            appendConversationMessage(conversationId, userMessage, true);
+            appendConversationMessage(conversationId, userMessage, !options?.hideUser);
 
             try {
-                const response = await assistantService.chat(historyForApi);
+                const response = await assistantService.chatStream(historyForApi, menuFocus, setActivity);
                 const links = (response.links ?? []).filter(
                     (link): link is AssistantDeepLink =>
                         Boolean(link?.href?.trim()) && Boolean(link?.label?.trim()),
@@ -389,6 +444,7 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
                 }, false);
             } finally {
                 sendingRef.current = false;
+                setActivity(null);
                 setSending(false);
             }
         },
@@ -407,38 +463,35 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
         [deliverMessage, draft],
     );
 
-    const startConversationAbout = useCallback(
-        (prompt: string) => {
-            const text = prompt.trim();
-            if (!text) return;
+    const startMenuConversation = useCallback(
+        (focus: ConversationMenuFocus) => {
+            const routeId = focus.routeId.trim();
+            const label = focus.label.trim();
+            if (!routeId || !label) return;
 
-            const current = conversationsRef.current;
-            const empty = findEmptyConversation(current);
-            let conversationId: string;
-            let prior: ChatMessage[];
-            if (empty) {
-                conversationId = empty.id;
-                prior = empty.messages;
-            } else {
-                const next = createConversation();
-                conversationId = next.id;
-                prior = next.messages;
-                conversationsRef.current = [next, ...current];
-                setConversations((prev) => (findEmptyConversation(prev) ? prev : [next, ...prev]));
-            }
-
-            setActiveId(conversationId);
-            activeIdRef.current = conversationId;
+            const now = Date.now();
+            const menuFocus = {
+                routeId,
+                label,
+                userName: focus.userName?.trim() || undefined,
+            };
+            const empty = findEmptyConversation(conversationsRef.current);
+            const created: Conversation = empty
+                ? {...empty, title: label, updatedAt: now, messages: [], menuFocus}
+                : {id: `conv-${now}`, title: label, updatedAt: now, messages: [], menuFocus};
+            const rest = conversationsRef.current.filter((conversation) => conversation.id !== created.id);
+            const next = [created, ...rest];
+            conversationsRef.current = next;
+            setConversations(next);
+            setActiveId(created.id);
+            activeIdRef.current = created.id;
             setHistoryQuery("");
+            setDraft("");
             clearSelection();
-
-            if (sendingRef.current) {
-                setDraft(text);
-                return;
-            }
-            void deliverMessage(conversationId, prior, text);
+            focusConversationWindow();
+            void deliverMessage(created.id, [], ASSISTANT_MENU_OPENING_QUESTION, {hideUser: true, opening: true});
         },
-        [clearSelection, deliverMessage],
+        [clearSelection, deliverMessage, focusConversationWindow],
     );
 
     const value = useMemo(
@@ -451,6 +504,7 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
             draft,
             setDraft,
             sending,
+            activity,
             usage,
             selectionMode,
             selectedIds,
@@ -460,8 +514,9 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
             setHistoryQuery,
             filteredConversations,
             newSession,
+            chatFocusToken,
             startNewConversation,
-            startConversationAbout,
+            startMenuConversation,
             openConversation,
             deleteConversation,
             toggleSelectionMode,
@@ -474,8 +529,10 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
         [
             activeConversation,
             activeId,
+            activity,
             allSelectableSelected,
             clearSelection,
+            chatFocusToken,
             conversations,
             deleteConversation,
             deleteSelectedMessages,
@@ -491,7 +548,7 @@ export function AssistantChatProvider({children}: {children: ReactNode}) {
             selectionMode,
             sendMessage,
             sending,
-            startConversationAbout,
+            startMenuConversation,
             startNewConversation,
             toggleMessageSelected,
             toggleSelectAllMessages,

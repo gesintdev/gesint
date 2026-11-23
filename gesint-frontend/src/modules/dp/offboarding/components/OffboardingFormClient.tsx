@@ -23,36 +23,23 @@ import {
 } from "@/modules/dp/offboarding/lib/offboarding.options";
 import {offboardingKeys} from "@/modules/dp/offboarding/offboarding.query";
 import {offboardingService} from "@/modules/dp/offboarding/services/offboarding.service";
+import {collaboratorKeys} from "@/modules/rh/person/collaborators/people/collaborator.query";
 import {exitinterviewKeys} from "@/modules/rh/person/exitinterview/exitinterview.query";
 import {exitinterviewService} from "@/modules/rh/person/exitinterview/services/exit-interview.service";
-import {collaboratorKeys} from "@/modules/rh/person/collaborators/people/collaborator.query";
-import {storageService} from "@/modules/storage/services/storage.service";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {EntityAttachments} from "@/shared/components/storage/EntityAttachments";
 import {Button} from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputDate, InputInfo, InputSelect, InputString} from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {useBranchScopedDetailQuery} from "@/shared/hooks/useBranchScopedDetailQuery";
-import {sectionHasChanges} from "@/shared/lib/form-step.util";
 import {SystemAlert} from "@/shared/system-alert";
-import {findRouteById} from "@/shared/workspace/workspace-routes";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
-
-const OFFBOARDING_FORM_STEPS: FormStepNavItem[] = [
-    {id: "desligamento", label: "Desligamento"},
-    {id: "aviso", label: "Aviso prévio"},
-    {id: "exame", label: "Exame demissional"},
-    {id: "checklist", label: "Checklist"},
-    {id: "entrevista", label: "Entrevista"},
-    {id: "contador", label: "Contador"},
-    {id: "documentos", label: "Documentos"},
-];
+import {findRouteById} from "@/shared/workspace/workspace-routes";
 
 export function OffboardingFormClient() {
     const {editingId, isEditing, goToList, startCreate, showSavedRecord, cancelAndClose} = useCrudScreen();
@@ -61,7 +48,6 @@ export function OffboardingFormClient() {
     const [form, setForm] = useState<OffboardingCreateDto>(emptyOffboardingForm);
     const [error, setError] = useState<string | null>(null);
     const [waiverNotes, setWaiverNotes] = useState("");
-    const emptyDefaults = useMemo(() => emptyOffboardingForm(), []);
 
     const detailQuery = useBranchScopedDetailQuery(
         offboardingKeys.detail(editingId ?? ""),
@@ -71,12 +57,6 @@ export function OffboardingFormClient() {
 
     const isCompleted = detailQuery.data?.processStatus === "COMPLETED";
     const readOnly = isCompleted;
-
-    const attachmentsQuery = useQuery({
-        queryKey: ["storage-links", "offboarding", editingId],
-        queryFn: () => storageService.listLinks("offboarding", editingId!),
-        enabled: Boolean(editingId),
-    });
 
     const reasonsQuery = useQuery({
         queryKey: [...offboardingKeys.all, "esocial-reasons"],
@@ -300,41 +280,6 @@ export function OffboardingFormClient() {
         openRouteCreate(route, "Entrev");
     };
 
-    const filledStepIds = useMemo(() => {
-        const empty = emptyDefaults;
-        const filled: string[] = [];
-        if (
-            sectionHasChanges(form, empty, [
-                "collaboratorId",
-                "lastWorkDay",
-                "esocialDismissalReasonCode",
-                "dismissalNotes",
-                "homologationNotes",
-            ])
-        ) {
-            filled.push("desligamento");
-        }
-        if (form.noticeType || form.noticeDays != null) {
-            filled.push("aviso");
-        }
-        if (demissionalQuery.data || form.demissionalWaiverRegistered) {
-            filled.push("exame");
-        }
-        if (form.exitChecklist.some((item) => item.status !== "PENDING" || item.notes?.trim())) {
-            filled.push("checklist");
-        }
-        if (form.exitInterviewId) {
-            filled.push("entrevista");
-        }
-        if (packageQuery.data?.packageStatus && packageQuery.data.packageStatus !== "PENDING") {
-            filled.push("contador");
-        }
-        if ((attachmentsQuery.data?.length ?? 0) > 0) {
-            filled.push("documentos");
-        }
-        return filled;
-    }, [form, emptyDefaults, attachmentsQuery.data, demissionalQuery.data, packageQuery.data]);
-
     if (isEditing && detailQuery.isLoading) {
         return (
             <SkeletonStack count={4} padded />
@@ -349,12 +294,6 @@ export function OffboardingFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: OFFBOARDING_FORM_STEPS,
-                filledStepIds,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>

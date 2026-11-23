@@ -4,8 +4,8 @@ import clsx from "clsx";
 import {Trash2} from "lucide-react";
 import {type Ref, useEffect} from "react";
 
-import {AssistantComposer} from "@/shared/components/assistant/AssistantComposer";
 import {useAssistantChat} from "@/shared/components/assistant/assistant-chat";
+import {AssistantComposer} from "@/shared/components/assistant/AssistantComposer";
 import {MarkdownContent} from "@/shared/components/ui/MarkdownContent";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 
@@ -20,6 +20,7 @@ export function AssistantTranscript({listRef, inputRef, onOpenLink}: AssistantTr
     const {
         messages,
         sending,
+        activity,
         selectionMode,
         selectedIds,
         selectedCount,
@@ -30,10 +31,10 @@ export function AssistantTranscript({listRef, inputRef, onOpenLink}: AssistantTr
     } = useAssistantChat();
 
     useEffect(() => {
-        const el = typeof listRef === "object" && listRef ? listRef.current : null;
-        if (!el) return;
-        el.scrollTop = el.scrollHeight;
-    }, [listRef, messages, sending]);
+        const node = typeof listRef === "object" && listRef ? listRef.current : null;
+        if (!node) return;
+        node.scrollTo({top: node.scrollHeight});
+    }, [activity, listRef, messages, sending]);
 
     return (
         <>
@@ -134,8 +135,12 @@ export function AssistantTranscript({listRef, inputRef, onOpenLink}: AssistantTr
                 })}
                 {sending ? (
                     <div className="mr-3 flex justify-start sm:mr-8">
-                        <div className="rounded-2xl rounded-bl-md bg-base-200 px-3 py-2.5 text-base-content/55">
-                            <span className="loading loading-dots loading-sm" aria-label="Pensando"/>
+                        <div
+                            className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-base-200 px-3 py-2.5 text-sm text-base-content/70"
+                            aria-live="polite"
+                        >
+                            <span className="loading loading-dots loading-sm" aria-hidden/>
+                            <span>{activity || "Pensando..."}</span>
                         </div>
                     </div>
                 ) : null}

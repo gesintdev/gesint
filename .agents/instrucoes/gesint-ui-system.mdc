@@ -88,7 +88,7 @@ Ordem: `--color-primary`, `--color-warning`, `--color-success`, `--color-error`,
 | Labels de campo | `11px` / 400 (`--gesint-font-label`), 3px acima do campo |
 | Controles | botão `14px` / 450; texto do input `13px` / 400 (`--gesint-field-font-size`), placeholder 350 |
 | Botões da toolbar da listagem | `12px` / 450 |
-| Indicadores de etapa | `12px`; pílula 24px (badge 18px), faixa 38px abaixo das abas (= barra Grupo/Filtro do ClickUp) |
+| Ações do cadastro | mesma faixa da listagem, botões 30px à direita |
 | Helper / hint | `12px` |
 | Células de tabela | `14px` / 400 |
 | Título de coluna | `12px` / 450, caixa normal, sem quebra (ellipsis) |
@@ -138,7 +138,7 @@ Exceção: `.crud-page-card` (painel da página CRUD) não tem raio — encosta 
 
 ### Abas internas do CRUD (Listagem / Cadastro …)
 - `.gesint-crud-tablist`: 32px, padding lateral 8px. `.gesint-crud-tab`: 12px, padding `0 8px`, ocupa a altura da trilha (sublinhado encosta na borda), ativa só muda a cor + sublinhado primário de 2px animado (`gesint-tab-underline`).
-- Stepper de cadastro (`.form-stepper__toolbar`): 4px abaixo das abas, card de 34px com pílulas de 24px — faixa total de 38px, pílulas a 9px das abas como no ClickUp.
+- Ações do cadastro: a mesma faixa da listagem (`.crud-list-toolbar`), logo abaixo das abas, com os botões à direita. Sem stepper e sem rodapé de ações.
 
 ### Topbar
 - Fundo `base-100`, borda inferior sutil, ícones outline `size-4`, ações compactas.
@@ -165,7 +165,7 @@ Altura `--gesint-control-h` (**28px**, padding 0 7px). Vale para rodapé do form
 - Labels `.gesint-label`: 11px/400 (`--gesint-font-label`), `margin-bottom` 3px; hint via `--gesint-font-helper`; erro `.gesint-error-text`.
 - Selects/autocomplete: só `InputSelect`, `InputSelectAutocomplete`, `InputAutocomplete`.
 - **Seções** `.gesint-form-section` (via `FormSection`): card `base-100` raio 6px (`--radius-gesint-card`), `shadow-sm`; cabeçalho neutro (`base-content 1.5%`) com **marcador primário de 3px à esquerda**; título `--gesint-font-section` / 550 em `base-content` (não azul); corpo com padding 16px. Espaço entre campos **só pelos tokens** `--gesint-field-gap-y` (6px) e `--gesint-field-gap-x` (10px): a regra `.gesint-form-section__body .grid` sobrepõe os `gap-*` do Tailwind. Seção com foco interno ganha borda primária suave + `shadow-md`.
-- Rodapé fixo do form: `.crud-form-shell__footer`, altura `--gesint-shell-footer-h` (controle + padding da escala). A paginação da listagem usa a mesma altura.
+- Ações do cadastro ficam na faixa superior (`.crud-list-toolbar` dentro de `CrudFormShell`), igual à listagem. A paginação da listagem usa a altura `--gesint-shell-footer-h`.
 
 ---
 
@@ -247,11 +247,10 @@ A casca do Gesint tem as mesmas áreas do ClickUp e usa **as mesmas medidas**, t
 | Sidebar ↔ sidebar | 256px; item 30px | `--sidebar-width`, `--sidebar-nav-item-h` |
 | Abas do workspace ↔ header da página | 40px (aba 28px, 14/400, ativa 600) | `--sidebar-toolbar-h`, `--gesint-tab-height` |
 | Abas internas ↔ barra de visualizações | 32px (mais compacta que o ClickUp, a pedido), 12px | `.gesint-crud-tablist` |
-| Descrição + ações ↔ toolbar | faixa com botões **28px** (igual ao rodapé) | `.crud-list-toolbar` |
+| Descrição + ações da listagem e ações do cadastro ↔ toolbar | faixa com botões **30px** | `.crud-list-toolbar` |
 | Linha de tabela | 36px (`td` height), células 14px | `--gesint-table-cell-py`, `--gesint-table-action-button-size` |
 | Controle (input/botão) | 28px; botão 14px, texto do input 13px, label 11px | `--gesint-control-h` |
 | Card/painel/seção | padding 16px | — |
-| Stepper de cadastro ↔ barra Grupo/Filtro | faixa 38px abaixo das abas, pílulas 24px | `.form-stepper__toolbar` |
 | Menu da conta ↔ avatar do ClickUp | botão 44×32, avatar 24px, dropdown 288px, itens 28px | `HeaderUserMenu` |
 | Login (fora do ClickUp) | campos e botão 36px, título 24px, label 12px | `.gesint-field--login`, `.login-submit` |
 

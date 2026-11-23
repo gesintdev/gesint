@@ -3,7 +3,7 @@ import clsx from "clsx";
 type EntityCodeFieldProps = {
     code?: number | null;
     moduleName?: string;
-    /** Apenas #código, sem nome do módulo (toolbar do stepper). */
+    /** Apenas #código, sem nome do módulo. */
     codeOnly?: boolean;
     className?: string;
 };
@@ -12,7 +12,7 @@ export function EntityCodeField({ code, moduleName, codeOnly = false, className 
     if (code == null) return null;
 
     if (codeOnly) {
-        return <span className={clsx("form-stepper__code-value tabular-nums", className)}>#{code}</span>;
+        return <span className={clsx("text-sm font-medium tabular-nums text-secondary", className)}>#{code}</span>;
     }
 
     return (

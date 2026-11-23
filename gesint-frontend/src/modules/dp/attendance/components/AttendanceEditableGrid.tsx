@@ -25,6 +25,7 @@ import {
 } from "react";
 
 import {AttendanceSheetTimeInput} from "@/modules/dp/attendance/components/AttendanceSheetTimeInput";
+import {AttendanceTimePickerModal} from "@/modules/dp/attendance/components/AttendanceTimePickerModal";
 import type {
     AttendanceCollaboratorSchedule,
     AttendanceRecord,
@@ -205,8 +206,9 @@ export function AttendanceEditableGrid({
     const [draftValue, setDraftValue] = useState("");
     const [draftBaseline, setDraftBaseline] = useState("");
     const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
-    const [openPickerToken, setOpenPickerToken] = useState<number | null>(null);
+    const [timePicker, setTimePicker] = useState<ActiveCell | null>(null);
     const [openDatePickerToken, setOpenDatePickerToken] = useState<number | null>(null);
+    const pickerTimerRef = useRef<number | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const committingRef = useRef(false);
     const rowDraftRef = useRef<RowDraft | null>(null);
@@ -232,10 +234,18 @@ export function AttendanceEditableGrid({
     }, [isDirty, onDirtyChange]);
 
     useEffect(() => {
+        if (timePicker) return;
         if (!activeCell || activeCell.field === "workDate") return;
         inputRef.current?.focus();
         inputRef.current?.select();
-    }, [activeCell]);
+    }, [activeCell, timePicker]);
+
+    useEffect(
+        () => () => {
+            if (pickerTimerRef.current != null) window.clearTimeout(pickerTimerRef.current);
+        },
+        [],
+    );
 
     const clearEditing = useCallback(() => {
         syncRowDraft(null);
@@ -441,6 +451,50 @@ export function AttendanceEditableGrid({
         [activeCell, applyCurrentCellToDraft, beginEdit, moveToField, persistRowDraft, rows],
     );
 
+    const cancelScheduledPicker = useCallback(() => {
+        if (pickerTimerRef.current != null) {
+            window.clearTimeout(pickerTimerRef.current);
+            pickerTimerRef.current = null;
+        }
+    }, []);
+
+    /** Um clique no ícone abre o relógio. O duplo clique da célula cancela esse agendamento. */
+    const scheduleTimePicker = useCallback(
+        (rowId: string, field: AttendanceEditableField) => {
+            cancelScheduledPicker();
+            pickerTimerRef.current = window.setTimeout(() => {
+                pickerTimerRef.current = null;
+                void navigateToCell({rowId, field}).then(() => {
+                    setTimePicker({rowId, field});
+                });
+            }, 250);
+        },
+        [cancelScheduledPicker, navigateToCell],
+    );
+
+    const applyPickedTime = useCallback(
+        (time: string) => {
+            const target = timePicker;
+            setTimePicker(null);
+            if (!target) return;
+            const canonical = parseTimeInputToValue(time);
+            if (!canonical) return;
+            const base =
+                rowDraftRef.current?.rowId === target.rowId
+                    ? rowDraftRef.current
+                    : {rowId: target.rowId, values: {}};
+            const next: RowDraft = {
+                rowId: base.rowId,
+                values: {...base.values, [target.field]: canonical},
+            };
+            syncRowDraft(next);
+            const row = rows.find((item) => item.id === target.rowId);
+            if (row) beginEdit(row, target.field);
+            void persistRowDraft(next);
+        },
+        [beginEdit, persistRowDraft, rows, syncRowDraft, timePicker],
+    );
+
     const onCellKeyDown = async (event: KeyboardEvent<HTMLInputElement>, row: AttendanceRecord) => {
         if (!activeCell) return;
         if (event.key === "Enter") {
@@ -472,8 +526,10 @@ export function AttendanceEditableGrid({
         const target = event.target as HTMLElement | null;
         if (target?.closest("[data-attendance-editable-cell='true']")) return;
         if (target?.closest("[data-attendance-sheet-time-input='true']")) return;
+        if (timePicker) return;
         if (target?.closest(".gesint-hour-picker-panel")) return;
-        if (target?.closest(".gesint-time-picker-modal")) return;
+        if (target?.closest(".gesint-time-picker")) return;
+        if (target?.closest("dialog")) return;
         if (target?.closest(".gesint-date-picker-panel")) return;
         const draft = applyCurrentCellToDraft();
         if (draft) void persistRowDraft(draft);
@@ -508,6 +564,19 @@ export function AttendanceEditableGrid({
 
     const recordCountLabel =
         rows.length === 1 ? "1 registro encontrado" : `${rows.length} registros encontrados`;
+
+    const timePickerValue = (() => {
+        if (!timePicker) return "";
+        if (activeCell?.rowId === timePicker.rowId && activeCell.field === timePicker.field) {
+            const parsed = parseTimeInputToValue(draftValue);
+            if (parsed) return parsed;
+        }
+        const drafted =
+            rowDraft?.rowId === timePicker.rowId ? rowDraft.values[timePicker.field] : undefined;
+        if (drafted) return drafted;
+        const row = rows.find((item) => item.id === timePicker.rowId);
+        return row ? normalizeTime(row[timePicker.field]) : "";
+    })();
 
     return (
         <div className="attendance-sheet-wrap" onMouseDown={onGridMouseDown}>
@@ -756,6 +825,7 @@ export function AttendanceEditableGrid({
                                                 isActive && "attendance-sheet__cell--active",
                                             )}
                                             onDoubleClick={() => {
+                                                cancelScheduledPicker();
                                                 if (activeCell) {
                                                     void navigateToCell({rowId: row.id, field});
                                                 } else {
@@ -773,13 +843,9 @@ export function AttendanceEditableGrid({
                                                     ref={inputRef}
                                                     value={draftValue}
                                                     ariaLabel={FIELD_LABEL[field]}
-                                                    openPickerToken={openPickerToken}
                                                     onValueChange={setDraftValue}
                                                     onKeyDown={(event) => void onCellKeyDown(event, row)}
-                                                    onPick={(canonical) => {
-                                                        setDraftValue(timeToDisplay(canonical));
-                                                        applyCurrentCellToDraft(timeToDisplay(canonical));
-                                                    }}
+                                                    onOpenPicker={() => setTimePicker({rowId: row.id, field})}
                                                 />
                                             ) : (
                                                 <div
@@ -807,9 +873,18 @@ export function AttendanceEditableGrid({
                                                         }}
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            void navigateToCell({rowId: row.id, field}).then(() => {
-                                                                setOpenPickerToken((token) => (token ?? 0) + 1);
-                                                            });
+                                                            if (event.detail > 1) return;
+                                                            scheduleTimePicker(row.id, field);
+                                                        }}
+                                                        onDoubleClick={(event) => {
+                                                            event.preventDefault();
+                                                            event.stopPropagation();
+                                                            cancelScheduledPicker();
+                                                            if (activeCell) {
+                                                                void navigateToCell({rowId: row.id, field});
+                                                            } else {
+                                                                beginEdit(row, field);
+                                                            }
                                                         }}
                                                     >
                                                         <Clock className="size-3.5" strokeWidth={2}/>
@@ -1054,6 +1129,12 @@ export function AttendanceEditableGrid({
                     </div>
                 </footer>
             )}
+            <AttendanceTimePickerModal
+                open={timePicker != null}
+                value={timePickerValue}
+                onApply={applyPickedTime}
+                onClose={() => setTimePicker(null)}
+            />
         </div>
     );
 }

@@ -19,13 +19,10 @@ import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputDate, InputMonth, InputString } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Competência" }];
 
 export function PayrollRunFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord, cancelAndClose } = useCrudScreen();
@@ -58,7 +55,6 @@ export function PayrollRunFormClient() {
         toFormDto: payrollrunToFormDto,
         getEmptyForm: () => emptyPayrollRunForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: PayrollRunCreateDto) => {
@@ -111,11 +107,6 @@ export function PayrollRunFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={
                 readOnly ? (
                     <>

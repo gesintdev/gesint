@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { type SubmitEvent, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { useDocumentTypeItems } from "@/modules/cfg/settings/documenttype/hooks/useDocumentTypeItems";
@@ -12,11 +12,10 @@ import { emptyLeaveRequestForm, leaverequestToFormDto } from "@/modules/rh/perso
 import { ABSENCE_TYPE_ITEMS, LEAVE_ABSENCE_STATUS_ITEMS } from "@/modules/rh/person/leave/lib/leave-types";
 import { leaveAbsenceFormSchema } from "@/modules/rh/person/leave/schemas/leave-absence.schema";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
-import { storageService } from "@/modules/storage/services/storage.service";
 import { useHasPermission } from "@/shared/auth/permissions";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {
@@ -24,14 +23,11 @@ import {
     flushPendingAttachments,
     type PendingAttachment,
 } from "@/shared/components/storage/EntityAttachments";
-import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputDate, InputInfo, InputNumber, InputSelect, InputString } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-import { sectionHasChanges } from "@/shared/lib/form-step.util";
 import { mapZodFieldErrors } from "@/shared/lib/zod-field-errors";
 
 const YES_NO_ITEMS: SelectItem[] = [
@@ -39,12 +35,6 @@ const YES_NO_ITEMS: SelectItem[] = [
     { value: "false", label: "Nao" },
 ];
 const LEAVE_ABSENCE_ENTITY_TYPE = "leave_request";
-const FORM_STEPS: FormStepNavItem[] = [
-    { id: "cadastro", label: "Afastamento" },
-    { id: "atestado", label: "Atestado" },
-    { id: "impactos", label: "Impactos" },
-    { id: "documentos", label: "Documentos" },
-];
 
 type LeaveFormField = keyof LeaveRequestCreateDto | "notes";
 
@@ -74,16 +64,10 @@ export function LeaveAbsenceFormClient() {
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<LeaveFormField, string>>>({});
     const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
     const { items: documentTypeItems } = useDocumentTypeItems("LEAVE");
-    const emptyDefaults = useMemo(() => emptyLeaveAbsenceForm(), []);
     const detailQuery = useQuery({
         queryKey: leaverequestKeys.detail(editingId ?? ""),
         queryFn: () => leaverequestService.getById(editingId!),
         enabled: isEditing && Boolean(editingId),
-    });
-    const attachmentsQuery = useQuery({
-        queryKey: ["storage-links", LEAVE_ABSENCE_ENTITY_TYPE, editingId],
-        queryFn: () => storageService.listLinks(LEAVE_ABSENCE_ENTITY_TYPE, editingId!),
-        enabled: Boolean(editingId),
     });
     const clearPendingAttachments = useCallback(() => {
         setPendingAttachments([]);
@@ -112,7 +96,6 @@ export function LeaveAbsenceFormClient() {
         toFormDto: leaverequestToFormDto,
         getEmptyForm: () => emptyLeaveRequestForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: LeaveRequestCreateDto) => {
@@ -201,38 +184,6 @@ export function LeaveAbsenceFormClient() {
     const relatedDays = form.relatedCertificateDays ?? durationDays ?? 0;
     const needsInssAttention = Boolean(form.requiresInss || (durationDays && durationDays > 15) || relatedDays > 15);
     const isWorkAccident = form.leaveType === "OCCUPATIONAL_ACCIDENT";
-    const filledStepIds = useMemo(() => {
-        const filled: string[] = [];
-        if (
-            sectionHasChanges(form, emptyDefaults, [
-                "collaboratorId",
-                "leaveType",
-                "absenceStatus",
-                "startDate",
-                "endDate",
-                "notes",
-            ])
-        ) {
-            filled.push("cadastro");
-        }
-        if (sectionHasChanges(form, emptyDefaults, ["cid", "physicianName", "physicianCrm", "certificateSource"])) {
-            filled.push("atestado");
-        }
-        if (
-            sectionHasChanges(form, emptyDefaults, [
-                "requiresInss",
-                "inssReferralDate",
-                "returnDate",
-                "workAccidentStability",
-            ])
-        ) {
-            filled.push("impactos");
-        }
-        if ((attachmentsQuery.data?.length ?? 0) > 0 || pendingAttachments.length > 0) {
-            filled.push("documentos");
-        }
-        return filled;
-    }, [attachmentsQuery.data, emptyDefaults, form, pendingAttachments.length]);
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -243,12 +194,6 @@ export function LeaveAbsenceFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                filledStepIds,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Afastamento">

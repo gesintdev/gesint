@@ -15,7 +15,7 @@ type CrudFormFooterActionsProps = {
 };
 
 /**
- * Rodapé padrão dos formulários CRUD:
+ * Ações padrão do cadastro, na faixa superior (mesmo layout da listagem):
  * Cancelar | Cancelar e Fechar | Novo cadastro | Salvar/Cadastrar.
  */
 export function CrudFormFooterActions({

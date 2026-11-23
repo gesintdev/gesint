@@ -40,6 +40,21 @@ public class AssistantContextSelector {
                     + ")");
 
     /**
+     * Pergunta sobre a tela que já é o assunto da conversa (aberta pelo menu).
+     * Não inclui pedido de dado, CPF ou consulta de uma pessoa.
+     */
+    private static final Pattern FOCUSED_MENU_PATTERN = Pattern.compile(
+            "(?i)("
+                    + "(pra|para)\\s+que\\s+serve|"
+                    + "o\\s+que\\s+(é|e|faz|posso|d[aá])\\b|"
+                    + "quando\\s+(uso|usar|devo)|"
+                    + "como\\s+(uso|usar|funciona)|"
+                    + "me\\s+explica|\\bexplica\\b|"
+                    + "serve\\s+para|"
+                    + "\\b(menu|tela)\\b"
+                    + ")");
+
+    /**
      * Dúvida sobre o funcionamento da tela (lista vazia, sem botão Novo, por que não aparece, etc.).
      */
     private static final Pattern MODULE_GUIDANCE_PATTERN = Pattern.compile(
@@ -133,6 +148,23 @@ public class AssistantContextSelector {
             return false;
         }
         return MODULE_GUIDANCE_PATTERN.matcher(normalized).find();
+    }
+
+    /**
+     * A conversa já está num menu. A frase pergunta o que a tela é, para que serve ou como se usa.
+     */
+    public boolean asksAboutFocusedMenu(String latestUserMessage) {
+        if (!StringUtils.hasText(latestUserMessage)) {
+            return false;
+        }
+        String normalized = latestUserMessage.trim().toLowerCase(Locale.ROOT);
+        if (isSmallTalk(normalized) || isDataOrActionRequest(normalized) || looksLikeCpfLookup(normalized)) {
+            return false;
+        }
+        if (needsModuleGuidance(normalized)) {
+            return true;
+        }
+        return FOCUSED_MENU_PATTERN.matcher(normalized).find();
     }
 
     /** Pedido de dado/resumo/lista — deve ir para LLM/skills, não para guia de menu. */

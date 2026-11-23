@@ -10,7 +10,6 @@ import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule
 import {DepartmentPickerField} from "@/modules/dp/organization/department/components/DepartmentPickerField";
 import {JobPositionPickerField} from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
 import {admissionprocessKeys} from "@/modules/rh/person/collaborators/admission/admission.query";
-import {GenerateAdmissionAccessCodeButton} from "@/modules/rh/person/collaborators/admission/components/GenerateAdmissionAccessCodeButton";
 import {
     AdmissionEmergencyContactsField
 } from "@/modules/rh/person/collaborators/admission/components/AdmissionEmergencyContactsField";
@@ -21,7 +20,6 @@ import {
 import {consumeAdmissionCandidatePrefill} from "@/modules/rh/person/collaborators/admission/lib/admission-candidate-prefill";
 import {isAdmissionPj} from "@/modules/rh/person/collaborators/admission/lib/admission-contract.util";
 import {
-    ADMISSION_FORM_STEPS,
     CONTRACT_TYPE_ITEMS,
     GENDER_ITEMS,
     MARITAL_ITEMS,
@@ -34,7 +32,6 @@ import {
     admissionprocessToFormDto,
     emptyAdmissionProcessForm,
 } from "@/modules/rh/person/collaborators/admission/lib/admission-process.mapper";
-import {computeFilledAdmissionSteps} from "@/modules/rh/person/collaborators/admission/lib/admission-status.util";
 import {admissionprocessService} from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
 import {storageService} from "@/modules/storage/services/storage.service";
 import {CrudFormFooterActions} from "@/shared/components/crud/CrudFormFooterActions";
@@ -83,11 +80,6 @@ export function AdmissionProcessFormClient() {
 
     useSyncWorkspaceTabTitle(detailQuery.data ?? null);
 
-    const attachmentsQuery = useQuery({
-        queryKey: ["storage-links", "admission_process", editingId],
-        queryFn: () => storageService.listLinks("admission_process", editingId!),
-        enabled: Boolean(editingId),
-    });
     const workSchedulesQuery = useQuery({
         queryKey: workScheduleKeys.active,
         queryFn: () => workScheduleService.listActive(),
@@ -106,17 +98,6 @@ export function AdmissionProcessFormClient() {
         setPendingDocumentAttachments([]);
         setPendingContractAttachments([]);
     }, []);
-    const stepContext = useMemo(
-        () => ({
-            documentCount:
-                (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "DOCUMENT").length +
-                pendingDocumentAttachments.length,
-            contractDocumentCount:
-                (attachmentsQuery.data ?? []).filter((link) => link.linkRole === "CONTRACT").length +
-                pendingContractAttachments.length,
-        }),
-        [attachmentsQuery.data, pendingContractAttachments.length, pendingDocumentAttachments.length],
-    );
     const clearPendingPhoto = useCallback(() => {
         setPendingPreviewUrl((current) => {
             if (current) URL.revokeObjectURL(current);
@@ -270,19 +251,6 @@ export function AdmissionProcessFormClient() {
         saveMutation.mutate(form);
     };
     const isPj = isAdmissionPj(form.contractType);
-    const admissionFormSteps = useMemo(
-        () =>
-            isPj
-                ? [
-                    ...ADMISSION_FORM_STEPS.slice(0, -1),
-                    {id: "recesso-contratual", label: "Recesso contratual"},
-                    ADMISSION_FORM_STEPS.at(-1)!,
-                ]
-                : ADMISSION_FORM_STEPS,
-        [isPj],
-    );
-    const activeStepIds = useMemo(() => admissionFormSteps.map((step) => step.id), [admissionFormSteps]);
-    const filledStepIds = computeFilledAdmissionSteps(form, stepContext, activeStepIds);
     const {items: admissionDocumentTypeItems} = useDocumentTypeItems("ADMISSION_DOCUMENT");
     const {items: contractDocTypeItems} = useDocumentTypeItems(
         isPj ? "ADMISSION_CONTRACT_PJ" : "ADMISSION_CONTRACT",
@@ -313,17 +281,6 @@ export function AdmissionProcessFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: admissionFormSteps,
-                filledStepIds,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                accessCode: isEditing ? detailQuery.data?.collaboratorAccessCode : undefined,
-                accessCodeAction:
-                    isEditing && editingId && !detailQuery.data?.collaboratorAccessCode ? (
-                        <GenerateAdmissionAccessCodeButton admissionId={editingId} />
-                    ) : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={
                 <CrudFormFooterActions
                     isSubmitting={saveMutation.isPending}

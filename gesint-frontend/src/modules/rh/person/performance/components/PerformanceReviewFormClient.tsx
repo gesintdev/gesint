@@ -14,18 +14,15 @@ import { PERFORMANCE_RATING_ITEMS } from "@/modules/rh/person/performance/lib/pe
 import { performanceReviewKeys } from "@/modules/rh/person/performance/performance.query";
 import { performanceReviewService } from "@/modules/rh/person/performance/services/performance-review.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Avaliação" }];
 
 export function PerformanceReviewFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -57,7 +54,6 @@ export function PerformanceReviewFormClient() {
         toFormDto: performanceReviewToFormDto,
         getEmptyForm: () => emptyPerformanceReviewForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: PerformanceReviewCreateDto) => {
@@ -111,11 +107,6 @@ export function PerformanceReviewFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Avaliação">

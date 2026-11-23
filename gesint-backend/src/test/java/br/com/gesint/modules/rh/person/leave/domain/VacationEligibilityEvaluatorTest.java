@@ -84,6 +84,27 @@ class VacationEligibilityEvaluatorTest {
     }
 
     @Test
+    void explainsThatTheAcquisitionPeriodIsStillOpen() {
+        String reason = VacationEligibilityEvaluator.describeWhyAbsent(
+                LocalDate.of(2025, 6, 18), REFERENCE_DATE, List.of());
+
+        assertThat(reason).contains("período aquisitivo");
+        assertThat(reason).contains("ainda não terminou");
+    }
+
+    @Test
+    void explainsAnOpenVacationRequestWhileTheNextPeriodIsNotAcquired() {
+        LeaveRequest confirmed =
+                vacation(LocalDate.of(2024, 6, 17), LocalDate.of(2025, 7, 1), true, VacationReviewStatusEnum.APPROVED);
+
+        String reason = VacationEligibilityEvaluator.describeWhyAbsent(
+                LocalDate.of(2024, 6, 17), LocalDate.of(2025, 8, 1), List.of(confirmed));
+
+        assertThat(reason).contains("solicitação de férias");
+        assertThat(reason).doesNotContain("siga este caminho");
+    }
+
+    @Test
     void doesNotReturnPeriodStillBeingAcquired() {
         var result = VacationEligibilityEvaluator.findFirstEligiblePeriod(
                 LocalDate.of(2025, 6, 18), REFERENCE_DATE, List.of());

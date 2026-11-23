@@ -1683,7 +1683,7 @@ aside[data-collapsed="true"] .sidebar-group-actions {
     border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
-/* CRUD list toolbar — botões/campos na escala padrão, igual ao rodapé do form. */
+/* CRUD toolbar — listagem e ações do cadastro, botões na escala padrão. */
 .crud-list-toolbar {
     min-height: calc(var(--gesint-control-h) + 0.75rem);
     border-color: var(--gesint-border-subtle);
@@ -1886,311 +1886,6 @@ aside[data-collapsed="true"] .sidebar-group-actions {
 [data-theme="dark"] .gesint-crud-tab-badge {
     background: color-mix(in srgb, var(--color-primary) 18%, transparent);
     color: var(--color-primary);
-}
-
-/* Form stepper (cadastros multi-etapa) */
-.form-stepper__toolbar-shell {
-    display: none !important; /* temporário — conferência visual */
-    flex-shrink: 0;
-    padding: 0.25rem 0.5rem 0;
-}
-
-.gesint-form-stepper,
-.form-stepper__toolbar {
-    display: none !important; /* temporário — conferência visual */
-}
-
-/* Faixa dos steps = barra "Grupo / Filtro" do ClickUp: 38px do fim das abas até o
-   fim do card (4px de respiro + card de 34px com pílulas de 24px a 9px das abas). */
-.form-stepper__toolbar {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 0.5rem 0.625rem;
-    padding: 0.25rem 0.5rem;
-}
-
-.form-stepper__toolbar--no-code {
-    grid-template-columns: minmax(0, 1fr);
-}
-
-.form-stepper__code {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    padding-right: 0.75rem;
-    margin-right: 0.125rem;
-    border-right: 1px solid color-mix(in srgb, var(--gesint-primary) 14%, var(--gesint-border-subtle));
-    min-height: 1.5rem;
-}
-
-.form-stepper__access-code {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    min-width: 0;
-}
-
-.form-stepper__access-code-label {
-    font-size: 10.5px;
-    font-weight: 450;
-    letter-spacing: 0;
-    text-transform: none;
-    line-height: 1.5;
-    color: color-mix(in srgb, var(--color-base-content) 45%, transparent);
-}
-
-.form-stepper__access-code-value {
-    font-size: 0.875rem;
-    font-weight: 450;
-    letter-spacing: 0;
-    color: var(--color-base-content);
-}
-
-[data-theme="dark"] .form-stepper__code {
-    border-right-color: color-mix(in srgb, var(--gesint-primary-light) 16%, transparent);
-}
-
-.form-stepper__code-value {
-    font-size: 0.875rem;
-    font-weight: 450;
-    letter-spacing: 0;
-    color: color-mix(in srgb, var(--color-secondary) 88%, var(--color-base-content));
-}
-
-.gesint-form-stepper {
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    min-width: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-}
-
-[data-theme="dark"] .gesint-form-stepper {
-    background: transparent;
-}
-
-.gesint-form-stepper__list {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0;
-    width: max-content;
-    min-width: min-content;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.gesint-form-stepper__list--spread {
-    justify-content: space-between;
-    width: 100%;
-    min-width: 100%;
-}
-
-.gesint-form-stepper__item {
-    position: relative;
-    display: flex;
-    flex: 0 0 auto;
-    min-width: 0;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
-}
-
-.gesint-form-stepper__list--spread .gesint-form-stepper__item {
-    flex: 1 1 0;
-    min-width: 0;
-}
-
-.gesint-form-stepper__item--has-line {
-    padding-right: 0.5rem;
-}
-
-.gesint-form-stepper__list--spread .gesint-form-stepper__item--has-line {
-    padding-right: 0.5rem;
-}
-
-.gesint-form-stepper__line {
-    position: absolute;
-    top: 50%;
-    left: calc(100% - 0.5rem);
-    right: 0;
-    height: 2px;
-    border-radius: 1px;
-    background: color-mix(in srgb, var(--color-base-content) 12%, transparent);
-    pointer-events: none;
-    transform: translateY(-50%);
-}
-
-.gesint-form-stepper__line--active {
-    background: color-mix(in srgb, var(--gesint-primary) 55%, transparent);
-}
-
-.gesint-form-stepper__step {
-    display: inline-flex;
-    width: 100%;
-    min-width: 0;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.375rem;
-    border: 1px solid color-mix(in srgb, var(--color-base-content) 10%, transparent);
-    border-radius: 9999px;
-    background: color-mix(in srgb, var(--color-base-content) 5%, var(--color-base-100));
-    min-height: 1.5rem; /* 24px, como os botões da barra do ClickUp */
-    padding: 0.125rem 0.5rem 0.125rem 0.125rem;
-    font: inherit;
-    cursor: pointer;
-    transition:
-        opacity 0.15s ease,
-        background 0.15s ease,
-        border-color 0.15s ease;
-}
-
-.gesint-form-stepper__step:not(:disabled):hover {
-    border-color: color-mix(in srgb, var(--color-base-content) 16%, transparent);
-    background: color-mix(in srgb, var(--color-base-content) 8%, var(--color-base-100));
-}
-
-.gesint-form-stepper__step:not(:disabled):hover .gesint-form-stepper__label {
-    color: color-mix(in srgb, var(--color-base-content) 78%, transparent);
-}
-
-.form-stepper__scroll {
-    scroll-behavior: smooth;
-}
-
-.gesint-form-stepper__badge {
-    display: grid;
-    place-items: center;
-    width: 1.125rem;
-    height: 1.125rem;
-    flex-shrink: 0;
-    border-radius: 9999px;
-    border: 1.5px solid color-mix(in srgb, var(--color-base-content) 18%, transparent);
-    font-size: 0.625rem;
-    font-weight: 470;
-    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
-    background: var(--color-base-100);
-    transition:
-        border-color 0.15s ease,
-        color 0.15s ease,
-        background 0.15s ease;
-}
-
-.gesint-form-stepper__step--active .gesint-form-stepper__badge,
-.gesint-form-stepper__step--done .gesint-form-stepper__badge {
-    border-color: var(--gesint-primary);
-    color: var(--color-primary-content);
-    background: var(--gesint-primary);
-}
-
-.gesint-form-stepper__step--active {
-    border-color: color-mix(in srgb, var(--gesint-primary) 35%, transparent);
-    background: color-mix(in srgb, var(--gesint-primary) 12%, var(--color-base-100));
-}
-
-.gesint-form-stepper__step--done {
-    border-color: color-mix(in srgb, var(--gesint-primary) 22%, transparent);
-    background: color-mix(in srgb, var(--gesint-primary) 7%, var(--color-base-100));
-}
-
-.gesint-form-stepper__label {
-    min-width: 0;
-    max-width: none;
-    text-align: left;
-    font-size: var(--gesint-font-step);
-    line-height: 1.25;
-    font-weight: 400;
-    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
-    transition: color 0.15s ease;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.gesint-form-stepper__list--spread .gesint-form-stepper__label {
-    max-width: none;
-    white-space: nowrap;
-}
-
-.gesint-form-stepper__step--active .gesint-form-stepper__label {
-    font-weight: 490;
-    color: var(--gesint-primary);
-}
-
-.gesint-form-stepper__step--done .gesint-form-stepper__label {
-    color: color-mix(in srgb, var(--color-base-content) 72%, transparent);
-}
-
-.gesint-form-stepper__step--filled {
-    border-color: color-mix(in srgb, var(--color-success) 28%, transparent);
-    background: color-mix(in srgb, var(--color-success) 8%, var(--color-base-100));
-}
-
-.gesint-form-stepper__step--filled .gesint-form-stepper__badge {
-    border-color: var(--color-success);
-    color: var(--color-success-content);
-    background: var(--color-success);
-}
-
-.gesint-form-stepper__step--filled .gesint-form-stepper__label {
-    color: color-mix(in srgb, var(--color-success) 88%, var(--color-base-content));
-}
-
-.gesint-form-stepper__step--filled.gesint-form-stepper__step--active {
-    border-color: color-mix(in srgb, var(--gesint-primary) 35%, transparent);
-    background: color-mix(in srgb, var(--gesint-primary) 12%, var(--color-base-100));
-}
-
-.gesint-form-stepper__step--filled.gesint-form-stepper__step--active .gesint-form-stepper__badge {
-    border-color: var(--gesint-primary);
-    color: var(--color-primary-content);
-    background: var(--gesint-primary);
-}
-
-.gesint-form-stepper__step--filled.gesint-form-stepper__step--active .gesint-form-stepper__label {
-    color: var(--gesint-primary);
-}
-
-.gesint-form-stepper__line--filled {
-    background: color-mix(in srgb, var(--color-success) 45%, transparent);
-}
-
-.form-stepper__panel-header {
-    margin-bottom: 0.75rem;
-}
-
-.form-stepper__panel-title {
-    font-size: 0.875rem;
-    font-weight: 470;
-    letter-spacing: 0;
-    color: var(--gesint-primary);
-}
-
-[data-theme="dark"] .form-stepper__panel-title {
-    color: var(--color-primary);
-}
-
-.form-stepper__panel-description {
-    margin-top: 0.25rem;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: color-mix(in srgb, var(--color-base-content) 52%, transparent);
-}
-
-.form-stepper__panel-body {
-    display: grid;
-    gap: 0.625rem;
-}
-
-@media (min-width: 640px) {
-    .form-stepper__panel-body {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
 }
 
 .crud-tablist {
@@ -3513,7 +3208,7 @@ kbd {
     background: color-mix(in srgb, var(--color-base-content) 8%, var(--color-base-100));
 }
 
-/* Formulário CRUD — scroll interno + rodapé fixo */
+/* Formulário CRUD — ações no topo (mesma faixa da listagem) e scroll no corpo */
 .crud-form-shell {
     display: flex;
     min-height: 0;
@@ -3523,53 +3218,17 @@ kbd {
 }
 
 .crud-form-shell__body {
-    min-height: 0;
-    flex: 1;
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-.crud-form-shell__body:has(.form-stepper) {
     display: flex;
     min-height: 0;
     flex: 1;
     flex-direction: column;
-    overflow: hidden;
-}
-
-.crud-form-shell__footer {
-    box-sizing: border-box;
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    min-height: var(--gesint-shell-footer-h);
-    border-top: 1px solid var(--gesint-border-subtle);
-    background: var(--color-base-100);
-    padding: var(--gesint-shell-footer-pad-y) 0.875rem;
-}
-
-@media (min-width: 1024px) {
-    .crud-form-shell__footer {
-        height: var(--gesint-shell-footer-h);
-        max-height: var(--gesint-shell-footer-h);
-    }
-}
-
-[data-theme="dark"] .crud-form-shell__footer {
-    background: var(--color-base-100);
-    border-top-color: var(--gesint-border-subtle);
-}
-
-.crud-form-shell__actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    align-items: center;
     gap: 0.5rem;
-    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0.5rem;
 }
 
-/* Paginação da listagem — mesma faixa do rodapé de ações quando cabe numa linha. */
+/* Paginação da listagem — mesma altura da faixa de ações. */
 .gesint-table-pagination {
     box-sizing: border-box;
     align-items: center;
@@ -6103,16 +5762,18 @@ html:has(.login-page) body {
 }
 
 .gesint-time-picker__segment {
-    min-width: 4.25rem;
-    padding: 0.55rem 0.75rem;
+    min-width: 4.75rem;
+    padding: 0.7rem 1rem;
     border: 0;
-    border-radius: 0.75rem;
-    background: color-mix(in srgb, var(--color-base-200) 80%, var(--color-base-100));
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--color-base-200) 88%, var(--color-base-100));
     color: var(--color-base-content);
-    font-size: 1.75rem;
-    font-weight: 650;
+    font-size: 1.85rem;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
     line-height: 1;
+    letter-spacing: -0.03em;
+    cursor: pointer;
     transition:
         background-color 0.12s ease,
         color 0.12s ease;
@@ -6124,49 +5785,106 @@ html:has(.login-page) body {
 }
 
 .gesint-time-picker__dial {
-    width: 224px;
-    height: 224px;
+    width: 248px;
+    height: 248px;
 }
 
 .gesint-time-picker__face {
-    background: color-mix(in srgb, var(--color-base-200) 70%, var(--color-base-100));
-    box-shadow: inset 0 0 0 1px var(--gesint-border-subtle);
+    background: color-mix(in srgb, var(--color-base-200) 42%, var(--color-base-100));
+    box-shadow:
+        inset 0 0 0 1px var(--gesint-border-subtle),
+        0 12px 28px color-mix(in srgb, var(--color-base-content) 5%, transparent);
 }
 
 .gesint-time-picker__tick {
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
     margin: 0;
     padding: 0;
     border: 0;
     border-radius: 9999px;
     background: transparent;
-    color: var(--color-base-content);
-    font-size: 0.75rem;
-    font-weight: 550;
+    color: color-mix(in srgb, var(--color-base-content) 78%, transparent);
+    font-size: 0.84rem;
+    font-weight: 560;
     font-variant-numeric: tabular-nums;
     line-height: 1;
     transform: translate(-50%, -50%);
     cursor: pointer;
-    transition:
-        background-color 0.12s ease,
-        color 0.12s ease;
+    transition: color 0.12s ease;
 }
 
-.gesint-time-picker__tick:hover:not(.gesint-time-picker__tick--active) {
-    background: color-mix(in srgb, var(--gesint-primary) 10%, transparent);
-}
-
+.gesint-time-picker__tick:hover,
 .gesint-time-picker__tick--active {
-    z-index: 2;
+    color: var(--gesint-primary);
+    font-weight: 700;
+}
+
+.gesint-time-picker__hub {
+    position: absolute;
+    z-index: 3;
+    top: 50%;
+    left: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.85rem;
+    height: 2.85rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
     background: var(--gesint-primary);
     color: var(--color-primary-content);
-    box-shadow: var(--gesint-shadow-sm);
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--gesint-primary) 32%, transparent);
+}
+
+.gesint-time-picker__quick {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--gesint-border-subtle);
+    border-radius: 0.9rem;
+    background: var(--color-base-100);
+}
+
+.gesint-time-picker__quick-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    margin: 0;
+    padding: 0.55rem 0.9rem;
+    border: 0;
+    background: transparent;
+    color: var(--color-base-content);
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.gesint-time-picker__quick-item:hover:not(.gesint-time-picker__quick-item--active) {
+    background: color-mix(in srgb, var(--color-base-200) 65%, transparent);
+}
+
+.gesint-time-picker__quick-item--active {
+    background: color-mix(in srgb, var(--gesint-primary) 14%, transparent);
+    color: var(--gesint-primary);
+    font-weight: 650;
+    box-shadow: inset 3px 0 0 var(--gesint-primary);
 }
 
 .attendance-sheet__row--draft {
@@ -6961,10 +6679,6 @@ html.gesint-workspace-active .font-bold {
         padding: 0.75rem 0.75rem 0.875rem;
     }
 
-    .crud-form-shell__footer {
-        padding: 0.5rem 0.75rem;
-    }
-
     .gesint-kanban-board {
         scroll-snap-type: x proximity;
         padding-inline: 0.5rem;
@@ -7017,43 +6731,6 @@ html.gesint-workspace-active .font-bold {
     .crud-list-toolbar {
         padding-inline: 0.75rem;
         gap: 0.5rem;
-    }
-
-    .crud-form-shell__actions {
-        flex-direction: column-reverse;
-        align-items: stretch;
-    }
-
-    .crud-form-shell__actions .gesint-btn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .form-stepper__toolbar {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 0.375rem;
-        padding: 0.375rem;
-    }
-
-    .form-stepper__code {
-        margin-right: 0;
-        padding-right: 0;
-        padding-bottom: 0.375rem;
-        border-right: none;
-        border-bottom: 1px solid color-mix(in srgb, var(--gesint-primary) 14%, var(--gesint-border-subtle));
-    }
-
-    [data-theme="dark"] .form-stepper__code {
-        border-bottom-color: color-mix(in srgb, var(--gesint-primary-light) 16%, transparent);
-    }
-
-    .gesint-form-stepper__list--spread {
-        width: max-content;
-        min-width: min-content;
-    }
-
-    .gesint-form-stepper__list--spread .gesint-form-stepper__item {
-        flex: 0 0 auto;
     }
 
     .login-page__brand {

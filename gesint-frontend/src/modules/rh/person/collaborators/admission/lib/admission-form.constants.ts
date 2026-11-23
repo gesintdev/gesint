@@ -1,5 +1,9 @@
-import {FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
+
+type AdmissionFormStep = {
+    id: string;
+    label: string;
+};
 
 export const CONTRACT_TYPE_ITEMS: SelectItem[] = [
     { value: "CLT", label: "CLT" },
@@ -73,7 +77,7 @@ export const RECESS_FINANCIAL_ITEMS: SelectItem[] = [
     { value: "CUSTOM", label: "Tratamento contratual específico" },
 ];
 
-export const ADMISSION_FORM_STEPS: FormStepNavItem[] = [
+export const ADMISSION_FORM_STEPS: AdmissionFormStep[] = [
     { id: "dados-basicos", label: "Dados básicos" },
     { id: "contatos-emergencia", label: "Contatos de emergência" },
     { id: "endereco", label: "Endereço" },

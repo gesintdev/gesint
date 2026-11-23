@@ -17,16 +17,13 @@ import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPi
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCurrency } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contracheque" }];
 
 export function PayslipFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord, cancelAndClose } = useCrudScreen();
@@ -129,11 +126,6 @@ export function PayslipFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={
                 readOnly ? (
                     <>
