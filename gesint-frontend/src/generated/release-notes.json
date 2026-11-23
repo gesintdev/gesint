@@ -1,6 +1,28 @@
 {
   "releases": [
     {
+      "version": "1.105.2",
+      "hash": "4344e0fe",
+      "date": "2026-11-23T20:00:41-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Remoção da Contabilidade da tela de login.",
+      "body": "**Commits incluídos**\n\n- Remoção da Contabilidade da tela de login.",
+      "pullRequest": 12
+    },
+    {
+      "version": "1.105.1",
+      "hash": "dc1c67fb",
+      "date": "2026-11-23T17:13:48-03:00",
+      "type": "fix",
+      "scope": null,
+      "breaking": false,
+      "title": "Avaliação de experiência no padrão do cadastro",
+      "body": "**Commits incluídos**\n\n- fix: alinha a avaliação de experiência ao cadastro",
+      "pullRequest": 11
+    },
+    {
       "version": "1.105.0",
       "hash": "0af89018",
       "date": "2026-11-23T16:39:01-03:00",
