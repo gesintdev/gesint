@@ -59,12 +59,15 @@ export function InputAutocomplete({
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const queryRef = useRef("");
     const openRef = useRef(false);
+    const requestRef = useRef(0);
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [items, setItems] = useState<SelectItem[]>([]);
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(false);
+    /** Consulta cuja resposta já chegou. Enquanto for diferente de `query`, a lista ainda não foi buscada. */
+    const [settledQuery, setSettledQuery] = useState<string | null>(null);
     const [selectedLabel, setSelectedLabel] = useState("");
     const displayText = open ? query : selectedLabel;
     const close = useCallback(() => {
@@ -95,20 +98,31 @@ export function InputAutocomplete({
     useClickOutside(rootRef, handleOutside, open);
 
     const runSearch = useCallback(
-        async (q: string, nextPage: number, append: boolean) => {
+        async (q: string, nextPage: number, append: boolean, requestId: number) => {
             if (q.length < minChars) {
+                if (requestId !== requestRef.current) return;
                 setItems([]);
                 setHasMore(false);
+                setLoading(false);
+                setSettledQuery(null);
                 return;
             }
             setLoading(true);
             try {
                 const result = await onSearch(q, nextPage);
+                if (requestId !== requestRef.current) return;
                 setItems((prev) => (append ? [...prev, ...result.items] : result.items));
                 setHasMore(result.hasMore);
                 setPage(result.page);
+            } catch {
+                if (requestId !== requestRef.current) return;
+                if (!append) setItems([]);
+                setHasMore(false);
             } finally {
-                setLoading(false);
+                if (requestId === requestRef.current) {
+                    setLoading(false);
+                    setSettledQuery(q);
+                }
             }
         },
         [minChars, onSearch],
@@ -116,11 +130,23 @@ export function InputAutocomplete({
     const scheduleSearch = useCallback(
         (q: string) => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
+            const requestId = ++requestRef.current;
+            if (q.length < minChars) {
+                setItems([]);
+                setHasMore(false);
+                setLoading(false);
+                setSettledQuery(null);
+                return;
+            }
+            setItems([]);
+            setHasMore(false);
+            setSettledQuery(null);
+            setLoading(true);
             debounceRef.current = setTimeout(() => {
-                void runSearch(q, 0, false);
+                void runSearch(q, 0, false, requestId);
             }, DEBOUNCE_MS);
         },
-        [runSearch],
+        [minChars, runSearch],
     );
 
     useEffect(() => {
@@ -196,7 +222,10 @@ export function InputAutocomplete({
                     className="w-full text-center text-xs font-medium text-primary hover:underline"
                     disabled={loading}
                     onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => void runSearch(query, page + 1, true)}
+                    onClick={() => {
+                        const requestId = ++requestRef.current;
+                        void runSearch(query, page + 1, true, requestId);
+                    }}
                 >
                     {loading ? "Carregando..." : "Carregar mais"}
                 </button>
@@ -248,14 +277,19 @@ export function InputAutocomplete({
                                 onValueChange("");
                                 setSelectedLabel("");
                                 setQuery("");
+                                queryRef.current = "";
                                 setItems([]);
+                                setHasMore(false);
+                                setLoading(false);
+                                setSettledQuery(null);
+                                requestRef.current += 1;
                             }}
                         />
                     ) : null}
                     {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}
                     {trailingAction}
                 </div>
-                {open && (
+                {open && query.length >= minChars && (
                     <InputSelectPanel
                         listId={listId}
                         items={items}
@@ -263,7 +297,9 @@ export function InputAutocomplete({
                         selectedValue={value}
                         onPick={pick}
                         onHighlight={setActiveIndex}
-                        emptyMessage={loading ? "Buscando..." : "Nenhum resultado"}
+                        emptyMessage={
+                            loading || settledQuery !== query ? "Buscando..." : "Nenhum resultado"
+                        }
                         footer={footer}
                     />
                 )}
