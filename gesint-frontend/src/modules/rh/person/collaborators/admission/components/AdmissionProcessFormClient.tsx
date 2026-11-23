@@ -20,6 +20,7 @@ import {
 import {consumeAdmissionCandidatePrefill} from "@/modules/rh/person/collaborators/admission/lib/admission-candidate-prefill";
 import {isAdmissionPj} from "@/modules/rh/person/collaborators/admission/lib/admission-contract.util";
 import {
+    ADMISSION_EXPERIENCE_PERIOD_ITEMS,
     CONTRACT_TYPE_ITEMS,
     GENDER_ITEMS,
     MARITAL_ITEMS,
@@ -54,7 +55,7 @@ import {
     InputPhone,
     InputSelect,
     InputString,
-} from "@/shared/components/ui/input/index";
+} from "@/shared/components/ui/input";
 import {ProfilePhotoField} from "@/shared/components/ui/ProfilePhotoField";
 import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {ExceptionCapture} from "@/shared/exceptions";
@@ -315,23 +316,25 @@ export function AdmissionProcessFormClient() {
                             wrapperClassName="sm:col-span-2"
                             onValueChange={(v) => {
                                 const next = (v || "CLT") as AdmissionProcessCreateDto["contractType"];
-                                setForm((prev) =>
-                                    next === "PJ"
-                                        ? {
-                                              ...prev,
-                                              contractType: next,
-                                              workloadSchedule: "",
-                                              workScheduleId: "",
-                                              pisPasep: "",
-                                          }
-                                        : {
-                                              ...prev,
-                                              contractType: next,
-                                              providerCnpj: "",
-                                              providerLegalName: "",
-                                              providerTradeName: "",
-                                          },
-                                );
+                                setForm((prev) => {
+                                    const cleared =
+                                        next === "PJ"
+                                            ? {
+                                                  ...prev,
+                                                  contractType: next,
+                                                  workloadSchedule: "",
+                                                  workScheduleId: "",
+                                                  pisPasep: "",
+                                              }
+                                            : {
+                                                  ...prev,
+                                                  contractType: next,
+                                                  providerCnpj: "",
+                                                  providerLegalName: "",
+                                                  providerTradeName: "",
+                                              };
+                                    return next === "CLT" ? cleared : {...cleared, experiencePeriod: undefined};
+                                });
                             }}
                             required
                         />
@@ -542,6 +545,21 @@ export function AdmissionProcessFormClient() {
                     emitAsDecimal
                     wrapperClassName="sm:col-span-2"
                 />
+                {form.contractType === "CLT" ? (
+                    <InputSelect
+                        label="Período de experiência"
+                        items={ADMISSION_EXPERIENCE_PERIOD_ITEMS}
+                        value={form.experiencePeriod ?? ""}
+                        onValueChange={(v) =>
+                            update(
+                                "experiencePeriod",
+                                (v || undefined) as AdmissionProcessCreateDto["experiencePeriod"],
+                            )
+                        }
+                        placeholder="Selecione"
+                        wrapperClassName="sm:col-span-2"
+                    />
+                ) : null}
                 {!isPj ? (
                     <>
                         <InputSelect

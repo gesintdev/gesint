@@ -10,6 +10,7 @@ import {
     ADMISSION_FORM_STEPS,
     ADMISSION_STATUS_LABELS,
     contractTypeLabel,
+    experiencePeriodLabel,
 } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
 import { Modal } from "@/shared/components/ui/Modal";
 import { formatCnpj, formatCpf } from "@/shared/lib/table/format-cell-value";
@@ -117,6 +118,12 @@ export function AdmissionDetailModal({ row, open, onClose }: AdmissionDetailModa
                         <DetailField label="Nome" value={row.fullName?.trim()} />
                         <DetailField label="CPF" value={row.cpf?.trim() ? formatCpf(row.cpf) : null} />
                         <DetailField label="Contrato" value={contractTypeLabel(row.contractType)} />
+                        {row.contractType === "CLT" ? (
+                            <DetailField
+                                label="Período de experiência"
+                                value={experiencePeriodLabel(row.experiencePeriod)}
+                            />
+                        ) : null}
                         {isPj ? (
                             <>
                                 <DetailField
