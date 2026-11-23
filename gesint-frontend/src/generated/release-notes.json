@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.104.0",
+      "hash": "b00e6215",
+      "date": "2026-11-23T14:07:44-03:00",
+      "type": "feat",
+      "scope": null,
+      "breaking": false,
+      "title": "Assistente, cadastros e relógio do ponto em produção",
+      "body": "**Commits incluídos**\n\n- feat: consulta real no assistente, ações no topo do cadastro e relógio do ponto",
+      "pullRequest": 8
+    },
+    {
       "version": "1.103.0",
       "hash": "45ebc1c7",
       "date": "2026-11-20T11:03:37-03:00",
