@@ -2,12 +2,15 @@ package br.com.gesint.modules.rh.person.collaborators.people.service;
 
 import br.com.gesint.core.base.service.IBaseService;
 import br.com.gesint.modules.rh.person.collaborators.people.dto.CollaboratorAccessCodeResponseDto;
+import br.com.gesint.modules.rh.person.collaborators.people.dto.CollaboratorPickerDiagnosis;
 import br.com.gesint.modules.rh.person.collaborators.people.dto.CollaboratorRequestDto;
 import br.com.gesint.modules.rh.person.collaborators.people.dto.CollaboratorResponseDto;
 
 public interface ICollaboratorService extends IBaseService<CollaboratorRequestDto, CollaboratorResponseDto> {
 
     java.util.List<CollaboratorResponseDto> findAdmitted();
+
+    CollaboratorPickerDiagnosis explainAttendancePicker(String nameQuery);
 
     java.util.List<CollaboratorResponseDto> findAdmittedManagers();
 

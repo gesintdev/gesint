@@ -17,6 +17,8 @@ import br.com.gesint.modules.rh.person.leave.entity.LeaveTypeEnum;
 @Repository
 public interface LeaveRequestRepository extends IBaseRepository<LeaveRequest> {
 
+    List<LeaveRequest> findByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
+
     @Query(
             """
             SELECT l FROM LeaveRequest l

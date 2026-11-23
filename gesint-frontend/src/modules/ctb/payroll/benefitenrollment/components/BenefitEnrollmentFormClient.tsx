@@ -14,19 +14,16 @@ import {
 } from "@/modules/ctb/payroll/benefitenrollment/lib/benefit-enrollment.mapper";
 import { benefitEnrollmentService } from "@/modules/ctb/payroll/benefitenrollment/services/benefit-enrollment.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
-import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { EntityPickerField } from "@/shared/components/crud/EntityPickerField";
+import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCurrency, InputDate, InputString } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Adesão" }];
 
 export function BenefitEnrollmentFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -125,11 +122,6 @@ export function BenefitEnrollmentFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Adesão">

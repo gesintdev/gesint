@@ -45,9 +45,7 @@ import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import {
     InputCurrency,
     InputDate,
@@ -58,19 +56,13 @@ import {
 } from "@/shared/components/ui/input/index";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { useBranchScopedDetailQuery } from "@/shared/hooks/useBranchScopedDetailQuery";
 import { useBranchScopedQueryKey } from "@/shared/hooks/useBranchScopedQueryKey";
 import { isoToDateBr } from "@/shared/lib/input/date";
 import { SystemAlert } from "@/shared/system-alert";
-
-const FORM_STEPS: FormStepNavItem[] = [
-    { id: "posicao", label: "Posição" },
-    { id: "motivo", label: "Motivo" },
-    { id: "remuneracao", label: "Remuneração" },
-    { id: "aprovacao", label: "Aprovação" },
-];
 
 type TextAreaProps = {
     label: string;
@@ -367,11 +359,6 @@ export function JobRequisitionFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>

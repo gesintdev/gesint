@@ -11,18 +11,15 @@ import { OBLIGATION_TYPE_ITEMS } from "@/modules/ctb/payroll/tax/lib/tax-obligat
 import { taxObligationService } from "@/modules/ctb/payroll/tax/services/tax-obligation.service";
 import { taxObligationKeys } from "@/modules/ctb/payroll/tax/tax.query";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCurrency, InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Obrigação" }];
 
 export function TaxObligationFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -54,7 +51,6 @@ export function TaxObligationFormClient() {
         toFormDto: taxObligationToFormDto,
         getEmptyForm: () => emptyTaxObligationForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: TaxObligationCreateDto) => {
@@ -109,11 +105,6 @@ export function TaxObligationFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Obrigação">

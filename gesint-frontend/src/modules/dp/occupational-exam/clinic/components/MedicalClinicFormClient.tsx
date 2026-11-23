@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import type { MedicalClinicCreateDto } from "@/modules/dp/occupational-exam/clinic/dto/medical-clinic.dto";
@@ -20,17 +20,10 @@ import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrud
 import { AddressFormSection } from "@/shared/components/form/AddressFormSection";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCNPJ, InputDate, InputPhone, InputString } from "@/shared/components/ui/input/index";
 import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-import { isStepFilled } from "@/shared/lib/form-step.util";
 import { isValidCnpj } from "@/shared/lib/input/cnpj";
-
-const FORM_STEPS: FormStepNavItem[] = [
-    { id: "dados", label: "Clínica" },
-    { id: "endereco", label: "Endereço" },
-];
 
 export function MedicalClinicFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -68,7 +61,6 @@ export function MedicalClinicFormClient() {
         toFormDto: medicalClinicToFormDto,
         getEmptyForm: () => emptyMedicalClinicForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: MedicalClinicCreateDto) => {
@@ -109,22 +101,6 @@ export function MedicalClinicFormClient() {
         }
         saveMutation.mutate(form);
     };
-    const filledStepIds = useMemo(() => {
-        const filled: string[] = [];
-        if (isStepFilled([{ value: form.corporateName }, { value: form.cnpj }])) filled.push("dados");
-        if (
-            isStepFilled([
-                { value: form.zipCode },
-                { value: form.stateId },
-                { value: form.street },
-                { value: form.number },
-                { value: form.cityId },
-            ])
-        ) {
-            filled.push("endereco");
-        }
-        return filled;
-    }, [form]);
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -151,12 +127,6 @@ export function MedicalClinicFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                filledStepIds,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Dados da clínica" description="Cadastro da clínica credenciada para exames.">

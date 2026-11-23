@@ -16,14 +16,12 @@ import {
     DIGITAL_CERTIFICATE_PURPOSE_ITEMS,
 } from "@/modules/cfg/settings/digital-certificate/lib/digital-certificate.options";
 import { digitalCertificateService } from "@/modules/cfg/settings/digital-certificate/services/digital-certificate.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import {
     InputCheckbox,
     InputFile,
@@ -32,13 +30,9 @@ import {
     InputSelect,
     InputString,
 } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { digitsOnly } from "@/shared/lib/input/digits";
-
-const FORM_STEPS: FormStepNavItem[] = [
-    { id: "dados", label: "Certificado" },
-    { id: "arquivo", label: "Arquivo A1" },
-];
 
 export function DigitalCertificateFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -73,7 +67,6 @@ export function DigitalCertificateFormClient() {
         toFormDto: digitalCertificateToFormDto,
         getEmptyForm: () => emptyDigitalCertificateForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: DigitalCertificateCreateDto) => {
@@ -176,11 +169,6 @@ export function DigitalCertificateFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection

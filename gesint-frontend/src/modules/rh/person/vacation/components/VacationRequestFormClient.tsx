@@ -37,11 +37,10 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useCrudFormDirty } from "@/shared/components/crud/useCrudFormDirty";
 import { useFormDirtyByComparison } from "@/shared/components/crud/useFormDirtyByComparison";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputSelect, InputString } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { mapZodFieldErrors } from "@/shared/lib/zod-field-errors";
 
@@ -59,13 +58,6 @@ const APPROVAL_ITEMS: SelectItem[] = [
 const PREFILL_STORAGE_KEY = "gesint-vacation-request-prefill";
 
 type FormField = keyof VacationFormState | "periods";
-
-function formSteps(mode: VacationFormMode): FormStepNavItem[] {
-    return [
-        { id: "periodos", label: "Períodos" },
-        { id: "registro", label: mode === "rh" ? "Solicitação" : "Registro" },
-    ];
-}
 
 export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormClientProps) {
     const isRh = mode === "rh";
@@ -335,11 +327,6 @@ export function VacationRequestFormClient({ mode = "dp" }: VacationRequestFormCl
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: formSteps(mode),
-                entityCode: !isRh && isEditing ? detailQuery.data?.code : undefined,
-                resetKey: isRh ? "new" : (editingId ?? "new"),
-            }}
             footer={
                 <CrudFormFooterActions
                     isSubmitting={saveMutation.isPending}

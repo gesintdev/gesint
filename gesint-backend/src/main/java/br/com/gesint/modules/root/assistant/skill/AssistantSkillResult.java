@@ -25,4 +25,7 @@ public class AssistantSkillResult {
     private List<AssistantDeepLinkDto> links = new ArrayList<>();
 
     private boolean success;
+
+    /** Quando verdadeiro, o texto já é a resposta ao usuário e não volta para o modelo. */
+    private boolean directReply;
 }

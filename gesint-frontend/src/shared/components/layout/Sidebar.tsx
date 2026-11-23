@@ -2,12 +2,13 @@ import clsx from "clsx";
 import {AnimatePresence, motion} from "framer-motion";
 import {ChevronRight, CopyMinus, CopyPlus, Search} from "lucide-react";
 import {usePathname} from "next/navigation";
+import {useSession} from "next-auth/react";
 import {type MouseEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 import {type AppRoute, flattenRoutes} from "@/config/routes";
 import {useAssistantChat} from "@/shared/components/assistant/assistant-chat";
 import {useAssistantLaunch} from "@/shared/components/assistant/assistant-launch";
-import {buildAssistantMenuPrompt} from "@/shared/components/assistant/assistant-menu-prompt";
+import {assistantUserLabel} from "@/shared/components/assistant/assistant-menu-prompt";
 import {NavRouteContextMenu, type NavRouteContextMenuState} from "@/shared/components/layout/NavRouteContextMenu";
 import {RouteLinkedProfilesModal} from "@/shared/components/layout/RouteLinkedProfilesModal";
 import {SidebarCollapseTrigger} from "@/shared/components/layout/SidebarCollapseTrigger";
@@ -100,8 +101,9 @@ function SidebarToolbar({
 export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMobileCloseAction}: SidebarProps) {
     const pathname = usePathname();
     const {assistantEnabled} = useAppBootstrap();
+    const {data: session} = useSession();
     const {open: openAssistant} = useAssistantLaunch();
-    const {startConversationAbout} = useAssistantChat();
+    const {startMenuConversation} = useAssistantChat();
     const {navSections} = useActiveSystem();
     const activeSystemRoutes = useActiveSystemRoutes();
     const {openRouteModule} = useWorkspaceNavigation();
@@ -179,10 +181,14 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
         (route: AppRoute) => {
             closeFlyout();
             onMobileCloseAction?.();
-            startConversationAbout(buildAssistantMenuPrompt(route));
+            startMenuConversation({
+                routeId: route.id,
+                label: route.label,
+                userName: assistantUserLabel(session?.user?.name, session?.user?.username),
+            });
             openAssistant();
         },
-        [closeFlyout, onMobileCloseAction, openAssistant, startConversationAbout],
+        [closeFlyout, onMobileCloseAction, openAssistant, session?.user?.name, session?.user?.username, startMenuConversation],
     );
 
     useEffect(() => {

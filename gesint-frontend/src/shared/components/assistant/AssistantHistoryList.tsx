@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import {MessageSquarePlus, Search, Trash2, X} from "lucide-react";
-import {type Ref} from "react";
+import {type Ref, useEffect, useRef} from "react";
 
 import {formatConversationDate, useAssistantChat} from "@/shared/components/assistant/assistant-chat";
 
@@ -16,6 +16,7 @@ type AssistantHistoryListProps = {
 export function AssistantHistoryList({searchRef, compact = false, onPicked}: AssistantHistoryListProps) {
     const {
         activeId,
+        chatFocusToken,
         historyQuery,
         setHistoryQuery,
         filteredConversations,
@@ -23,6 +24,20 @@ export function AssistantHistoryList({searchRef, compact = false, onPicked}: Ass
         openConversation,
         deleteConversation,
     } = useAssistantChat();
+    const scrollerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const scroller = scrollerRef.current;
+        if (!scroller) return;
+        const active = scroller.querySelector<HTMLElement>("[data-active='true']");
+        if (!active) return;
+        const delta = active.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+        const hiddenAbove = delta < 0;
+        const hiddenBelow = delta + active.offsetHeight > scroller.clientHeight;
+        if (hiddenAbove || hiddenBelow) {
+            scroller.scrollTop += delta;
+        }
+    }, [activeId, chatFocusToken]);
 
     return (
         <div className="flex min-h-0 flex-1 flex-col">
@@ -66,7 +81,10 @@ export function AssistantHistoryList({searchRef, compact = false, onPicked}: Ass
                     </button>
                 </label>
             </div>
-            <div className={clsx("min-h-0 flex-1 overflow-y-auto px-2 py-2", compact ? "" : "sm:px-3")}>
+            <div
+                ref={scrollerRef}
+                className={clsx("min-h-0 flex-1 overflow-y-auto px-2 py-2", compact ? "" : "sm:px-3")}
+            >
                 <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-base-content/40">
                     Conversas
                     {historyQuery.trim() ? ` · ${filteredConversations.length}` : ""}
@@ -80,7 +98,7 @@ export function AssistantHistoryList({searchRef, compact = false, onPicked}: Ass
                         {filteredConversations.map((conversation) => {
                             const active = conversation.id === activeId;
                             return (
-                                <li key={conversation.id}>
+                                <li key={conversation.id} data-active={active ? "true" : undefined}>
                                     <div
                                         className={clsx(
                                             "group flex items-start gap-1 rounded-lg px-2 py-2 transition-colors",

@@ -14,19 +14,16 @@ import {
 } from "@/modules/ctb/payroll/payroll-event/lib/payroll-event.mapper";
 import { payrollEventKeys } from "@/modules/ctb/payroll/payroll-event/payroll-event.query";
 import { payrollEventService } from "@/modules/ctb/payroll/payroll-event/services/payroll-event.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputSelect, InputString } from "@/shared/components/ui/input/index";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Evento" }];
 
 function boolToSelect(value?: boolean): string {
     return value ? "true" : "false";
@@ -92,7 +89,6 @@ export function PayrollEventFormClient() {
         getEmptyForm: () => emptyPayrollEventForm(),
     });
 
-
     const saveMutation = useMutation({
         mutationFn: async (dto: PayrollEventCreateDto) => {
             if (isEditing && editingId) return payrollEventService.update(editingId, dto);
@@ -145,11 +141,6 @@ export function PayrollEventFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Evento de folha">

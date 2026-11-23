@@ -2,35 +2,26 @@
 
 import {Clock} from "lucide-react";
 import {
-    forwardRef,
     type ChangeEvent,
     type ForwardedRef,
+    forwardRef,
     type KeyboardEvent,
     type MutableRefObject,
     useCallback,
-    useEffect,
     useId,
     useLayoutEffect,
     useRef,
-    useState,
 } from "react";
 
-import {AttendanceTimePickerModal} from "@/modules/dp/attendance/components/AttendanceTimePickerModal";
-import {
-    maskTimeInputWithCaret,
-    parseTimeInputToValue,
-    timeToDisplay,
-} from "@/shared/lib/input/time";
+import {maskTimeInputWithCaret} from "@/shared/lib/input/time";
 
 type AttendanceSheetTimeInputProps = {
     value: string;
     ariaLabel: string;
     onValueChange: (display: string) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
-    /** Seleção completa via painel (valor canônico HH:mm). */
-    onPick?: (canonical: string) => void;
-    /** Abre o modal de horário ao montar / quando o token muda (ícone do campo inativo). */
-    openPickerToken?: number | null;
+    /** Clique no ícone do relógio. O modal fica na grade, para o duplo clique da célula não abri-lo. */
+    onOpenPicker?: () => void;
 };
 
 function assignInputRef(
@@ -45,15 +36,12 @@ function assignInputRef(
 
 export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceSheetTimeInputProps>(
     function AttendanceSheetTimeInput(
-        {value, ariaLabel, onValueChange, onKeyDown, onPick, openPickerToken},
+        {value, ariaLabel, onValueChange, onKeyDown, onOpenPicker},
         ref,
     ) {
         const autoId = useId();
-        const rootRef = useRef<HTMLDivElement>(null);
         const inputRef = useRef<HTMLInputElement | null>(null);
         const pendingCaretRef = useRef<number | null>(null);
-        const lastOpenTokenRef = useRef<number | undefined>(undefined);
-        const [open, setOpen] = useState(false);
 
         useLayoutEffect(() => {
             const caret = pendingCaretRef.current;
@@ -63,25 +51,6 @@ export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceS
             el.setSelectionRange(caret, caret);
             pendingCaretRef.current = null;
         });
-
-        useEffect(() => {
-            if (openPickerToken == null) return;
-            if (lastOpenTokenRef.current === openPickerToken) return;
-            lastOpenTokenRef.current = openPickerToken;
-            setOpen(true);
-        }, [openPickerToken]);
-
-        const canonicalForPanel = parseTimeInputToValue(value) || "";
-
-        const handlePick = useCallback(
-            (time: string) => {
-                const display = timeToDisplay(time);
-                onValueChange(display);
-                setOpen(false);
-                onPick?.(time);
-            },
-            [onPick, onValueChange],
-        );
 
         const handleChange = useCallback(
             (event: ChangeEvent<HTMLInputElement>) => {
@@ -97,7 +66,6 @@ export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceS
 
         return (
             <div
-                ref={rootRef}
                 className="attendance-sheet__time-input rounded-[var(--gesint-control-radius)]"
                 data-attendance-sheet-time-input="true"
             >
@@ -118,7 +86,6 @@ export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceS
                     type="button"
                     className="attendance-sheet__time-clock"
                     aria-label="Abrir seletor de hora"
-                    aria-expanded={open}
                     tabIndex={-1}
                     onMouseDown={(event) => {
                         event.preventDefault();
@@ -126,17 +93,11 @@ export const AttendanceSheetTimeInput = forwardRef<HTMLInputElement, AttendanceS
                     }}
                     onClick={(event) => {
                         event.stopPropagation();
-                        setOpen(true);
+                        onOpenPicker?.();
                     }}
                 >
                     <Clock className="size-3.5"/>
                 </button>
-                <AttendanceTimePickerModal
-                    open={open}
-                    value={canonicalForPanel}
-                    onApply={handlePick}
-                    onClose={() => setOpen(false)}
-                />
             </div>
         );
     },

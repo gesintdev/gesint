@@ -1,13 +1,13 @@
 "use client";
 
+import clsx from "clsx";
 import {CheckSquare, Sparkles, X} from "lucide-react";
 import {useEffect, useRef} from "react";
-import clsx from "clsx";
 
+import {useAssistantChat} from "@/shared/components/assistant/assistant-chat";
 import {AssistantEmptyState} from "@/shared/components/assistant/AssistantEmptyState";
 import {AssistantHistoryList} from "@/shared/components/assistant/AssistantHistoryList";
 import {AssistantTranscript} from "@/shared/components/assistant/AssistantTranscript";
-import {useAssistantChat} from "@/shared/components/assistant/assistant-chat";
 
 type AssistantWorkspaceViewProps = {
     onClose?: () => void;
@@ -16,14 +16,15 @@ type AssistantWorkspaceViewProps = {
 
 /** Layout amplo: histórico à esquerda e conversa no centro, como uma sessão nova do GPT. */
 export function AssistantWorkspaceView({onClose, onOpenLink}: AssistantWorkspaceViewProps) {
-    const {activeConversation, newSession, selectionMode, toggleSelectionMode, clearSelection} = useAssistantChat();
+    const {activeConversation, newSession, chatFocusToken, selectionMode, toggleSelectionMode, clearSelection} =
+        useAssistantChat();
     const listRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         const timer = window.setTimeout(() => inputRef.current?.focus(), 80);
         return () => window.clearTimeout(timer);
-    }, [activeConversation?.id, newSession]);
+    }, [activeConversation?.id, chatFocusToken, newSession]);
 
     return (
         <div className="flex h-full min-h-0 bg-base-100">

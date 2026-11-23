@@ -5,6 +5,13 @@ import {type Ref, useEffect} from "react";
 
 import {buildUsageFooter, useAssistantChat} from "@/shared/components/assistant/assistant-chat";
 
+function resizeComposerField(field: HTMLTextAreaElement) {
+    const maxHeight = 160;
+    field.style.height = "auto";
+    field.style.height = `${Math.min(field.scrollHeight, maxHeight)}px`;
+    field.style.overflowY = field.scrollHeight > maxHeight ? "auto" : "hidden";
+}
+
 type AssistantComposerProps = {
     inputRef?: Ref<HTMLTextAreaElement>;
     autoFocus?: boolean;
@@ -14,17 +21,14 @@ export function AssistantComposer({inputRef, autoFocus = false}: AssistantCompos
     const {draft, setDraft, sending, selectionMode, usage, sendMessage} = useAssistantChat();
 
     useEffect(() => {
-        const el = typeof inputRef === "object" && inputRef ? inputRef.current : null;
-        if (!el) return;
-        el.style.height = "auto";
-        const maxHeight = 160;
-        el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
-        el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
+        const field = typeof inputRef === "object" && inputRef ? inputRef.current : null;
+        if (!field) return;
+        resizeComposerField(field);
     }, [draft, inputRef]);
 
     return (
         <div>
-            <div className="flex items-end gap-2 rounded-2xl border border-base-content/10 bg-base-200/60 p-2">
+            <div className="flex items-start gap-2 rounded-2xl border border-base-content/10 bg-base-200/60 p-2">
                 <textarea
                     ref={inputRef}
                     value={draft}
@@ -46,7 +50,7 @@ export function AssistantComposer({inputRef, autoFocus = false}: AssistantCompos
                     aria-label="Enviar"
                     disabled={!draft.trim() || sending || selectionMode}
                     onClick={() => void sendMessage()}
-                    className="gesint-btn gesint-btn--primary gesint-btn--icon-only shrink-0 disabled:opacity-40"
+                    className="gesint-btn gesint-btn--primary gesint-btn--icon-only shrink-0 self-start disabled:opacity-40"
                 >
                     <SendHorizontal className="size-4" strokeWidth={2}/>
                 </button>

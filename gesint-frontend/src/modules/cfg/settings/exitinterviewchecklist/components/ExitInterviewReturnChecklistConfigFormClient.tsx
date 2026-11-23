@@ -12,18 +12,15 @@ import {
     keyFromDescription,
 } from "@/modules/cfg/settings/exitinterviewchecklist/lib/exit-interview-return-checklist-config.mapper";
 import { exitInterviewReturnChecklistConfigService } from "@/modules/cfg/settings/exitinterviewchecklist/services/exit-interview-return-checklist-config.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputNumber, InputString } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Item" }];
 
 export function ExitInterviewReturnChecklistConfigFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -57,7 +54,6 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
         toFormDto: exitInterviewReturnChecklistConfigToFormDto,
         getEmptyForm: () => emptyExitInterviewReturnChecklistConfigForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: ExitInterviewReturnChecklistConfigCreateDto) => {
@@ -127,11 +123,6 @@ export function ExitInterviewReturnChecklistConfigFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Item de devolução">

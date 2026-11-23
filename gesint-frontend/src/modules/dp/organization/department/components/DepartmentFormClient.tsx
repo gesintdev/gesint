@@ -10,23 +10,20 @@ import type {DepartmentCreateDto} from "@/modules/dp/organization/department/dto
 import {DEPARTMENT_CLIENT_MESSAGES} from "@/modules/dp/organization/department/exceptions/department.messages";
 import {departmentToFormDto, emptyDepartmentForm} from "@/modules/dp/organization/department/lib/department.mapper";
 import {departmentService} from "@/modules/dp/organization/department/services/department.service";
-import {CollaboratorMultiPickerField} from "@/shared/components/crud/CollaboratorMultiPickerField";
 import {BranchRecordScopeField} from "@/shared/components/crud/BranchRecordScopeField";
+import {CollaboratorMultiPickerField} from "@/shared/components/crud/CollaboratorMultiPickerField";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
-import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputCurrency, InputPhone, InputString} from "@/shared/components/ui/input/index";
 import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
+import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {useBranchScopedDetailQuery} from "@/shared/hooks/useBranchScopedDetailQuery";
-import {useActiveBranch} from "@/shared/context/ActiveBranchContext";
-
-const FORM_STEPS: FormStepNavItem[] = [{id: "cadastro", label: "Departamento"}];
 
 type DescriptionTextareaProps = {
     label: string;
@@ -84,7 +81,6 @@ export function DepartmentFormClient() {
         getEmptyForm: () => emptyDepartmentForm(activeBranchId),
     });
 
-
     const saveMutation = useMutation({
         mutationFn: async (dto: DepartmentCreateDto) => {
             if (isEditing && editingId) return departmentService.update(editingId, dto);
@@ -141,11 +137,6 @@ export function DepartmentFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Departamento">

@@ -20,7 +20,6 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputMonth, InputString } from "@/shared/components/ui/input/index";
 import { ExceptionCapture } from "@/shared/exceptions";
 
@@ -36,7 +35,6 @@ export function PaymentPeriodFormClient() {
     });
     const periodId = editingId ?? detailQuery.data?.id;
     const batchUpload = usePaymentBatchUpload(periodId);
-    const formSteps: FormStepNavItem[] = [{ id: "cadastro", label: "Per\u00edodo" }];
 
     useEffect(() => {
         if (!isEditing) {
@@ -56,7 +54,6 @@ export function PaymentPeriodFormClient() {
         toFormDto: paymentPeriodToFormDto,
         getEmptyForm: () => emptyPaymentPeriodForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: PaymentPeriodCreateDto) => {
@@ -90,11 +87,6 @@ export function PaymentPeriodFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: formSteps,
-                resetKey: periodId ?? "new",
-                entityCode: detailQuery.data?.code,
-            }}
             footer={
                 <>
                     <Button type="button" variant="ghost" onClick={goToList}>
@@ -109,7 +101,7 @@ export function PaymentPeriodFormClient() {
                 </>
             }
         >
-            <div className="flex min-h-[70vh] flex-col gap-2 pb-16">
+            <div className="flex min-h-0 flex-col gap-2">
                 {error ? <p className="text-sm text-error">{error}</p> : null}
                 <FormSection id="cadastro" title="Competência de pagamentos" bodyClassName="!grid-cols-1">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end">

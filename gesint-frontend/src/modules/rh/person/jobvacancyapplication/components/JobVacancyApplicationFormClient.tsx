@@ -21,18 +21,15 @@ import {
 } from "@/modules/rh/person/jobvacancyapplication/lib/job-vacancy-application.mapper";
 import { JOB_VACANCY_APPLICATION_STATUS_ITEMS } from "@/modules/rh/person/jobvacancyapplication/lib/job-vacancy-application.options";
 import { jobVacancyApplicationService } from "@/modules/rh/person/jobvacancyapplication/services/job-vacancy-application.service";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputSelect, InputSelectAutocomplete } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "dados", label: "Dados" }];
 
 export function JobVacancyApplicationFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -91,7 +88,6 @@ export function JobVacancyApplicationFormClient() {
         toFormDto: jobVacancyApplicationToFormDto,
         getEmptyForm: () => emptyJobVacancyApplicationForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: JobVacancyApplicationCreateDto) => {
@@ -169,11 +165,6 @@ export function JobVacancyApplicationFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Candidatura">

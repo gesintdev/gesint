@@ -17,6 +17,8 @@ public interface EmploymentContractRepository extends IBaseRepository<Employment
     java.util.Optional<EmploymentContract> findFirstByCollaboratorIdAndStatusNotOrderByStartDateDesc(
             UUID collaboratorId, StatusEnum status);
 
+    List<EmploymentContract> findByCollaboratorIdAndStatusNot(UUID collaboratorId, StatusEnum status);
+
     @Query(
             """
             SELECT c FROM EmploymentContract c

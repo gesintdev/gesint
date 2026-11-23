@@ -19,6 +19,7 @@ import br.com.gesint.core.llm.LlmPurpose;
 import br.com.gesint.core.llm.LlmRequest;
 import br.com.gesint.core.llm.LlmResponse;
 import br.com.gesint.core.llm.LlmTokenUsage;
+import br.com.gesint.core.llm.LlmTool;
 import br.com.gesint.core.llm.LlmToolCall;
 import br.com.gesint.core.llm.LlmUsageSnapshot;
 import br.com.gesint.core.llm.LlmUsageTracker;
@@ -26,11 +27,13 @@ import br.com.gesint.core.tenant.MultiTenantProperties;
 import br.com.gesint.core.tenant.TenantContext;
 import br.com.gesint.core.tenant.TenantContextHolder;
 import br.com.gesint.core.tenant.TenantContractedSystemsLookup;
+import br.com.gesint.modules.root.assistant.activity.AssistantActivity;
 import br.com.gesint.modules.root.assistant.dto.AssistantChatMessageDto;
 import br.com.gesint.modules.root.assistant.dto.AssistantChatRequestDto;
 import br.com.gesint.modules.root.assistant.dto.AssistantChatResponseDto;
 import br.com.gesint.modules.root.assistant.dto.AssistantDeepLinkDto;
 import br.com.gesint.modules.root.assistant.dto.AssistantLlmUsageDto;
+import br.com.gesint.modules.root.assistant.dto.AssistantMenuFocusDto;
 import br.com.gesint.modules.root.assistant.exception.AssistantException;
 import br.com.gesint.modules.root.assistant.guard.AssistantJailbreakDetector;
 import br.com.gesint.modules.root.assistant.knowledge.AssistantCatalogComplexity;
@@ -42,6 +45,10 @@ import br.com.gesint.modules.root.assistant.log.AssistantErrorLogWriter;
 import br.com.gesint.modules.root.assistant.skill.AssistantSkill;
 import br.com.gesint.modules.root.assistant.skill.AssistantSkillRegistry;
 import br.com.gesint.modules.root.assistant.skill.AssistantSkillResult;
+import br.com.gesint.modules.root.assistant.knowledge.AttendanceListingQuestion;
+import br.com.gesint.modules.root.assistant.knowledge.VacationListingQuestion;
+import br.com.gesint.modules.root.assistant.skill.DiagnoseAttendanceListingSkill;
+import br.com.gesint.modules.root.assistant.skill.DiagnoseVacationListingSkill;
 
 @Service
 public class AssistantChatService implements IAssistantChatService {
@@ -61,6 +68,8 @@ public class AssistantChatService implements IAssistantChatService {
     private final TenantContractedSystemsLookup contractedSystemsLookup;
     private final MultiTenantProperties multiTenantProperties;
     private final AdmissionDeadlineAssistant admissionDeadlineAssistant;
+    private final DiagnoseVacationListingSkill diagnoseVacationListingSkill;
+    private final DiagnoseAttendanceListingSkill diagnoseAttendanceListingSkill;
 
     public AssistantChatService(
             LlmClient llmClient,
@@ -73,7 +82,9 @@ public class AssistantChatService implements IAssistantChatService {
             AssistantErrorLogWriter errorLogWriter,
             TenantContractedSystemsLookup contractedSystemsLookup,
             MultiTenantProperties multiTenantProperties,
-            AdmissionDeadlineAssistant admissionDeadlineAssistant) {
+            AdmissionDeadlineAssistant admissionDeadlineAssistant,
+            DiagnoseVacationListingSkill diagnoseVacationListingSkill,
+            DiagnoseAttendanceListingSkill diagnoseAttendanceListingSkill) {
         this.llmClient = llmClient;
         this.knowledgeLoader = knowledgeLoader;
         this.catalogLoader = catalogLoader;
@@ -85,6 +96,8 @@ public class AssistantChatService implements IAssistantChatService {
         this.contractedSystemsLookup = contractedSystemsLookup;
         this.multiTenantProperties = multiTenantProperties;
         this.admissionDeadlineAssistant = admissionDeadlineAssistant;
+        this.diagnoseVacationListingSkill = diagnoseVacationListingSkill;
+        this.diagnoseAttendanceListingSkill = diagnoseAttendanceListingSkill;
     }
 
     @Override
@@ -126,14 +139,36 @@ public class AssistantChatService implements IAssistantChatService {
         boolean specificAdmissionCase = contextSelector.isAdmissionDeadlineQuestion(latestUser)
                 && contextSelector.mentionsAdmissionPerson(latestUser);
 
+        // "Por que fulano não aparece?" consulta a regra da tela em que a conversa está.
+        String menuLabel = request.getMenuFocus() != null ? request.getMenuFocus().getLabel() : null;
+        AssistantChatResponseDto attendanceListing =
+                diagnoseAttendanceListingSkill.tryDirect(latestUser, menuLabel);
+        if (attendanceListing != null) {
+            return attendanceListing;
+        }
+        AssistantChatResponseDto vacationListing = diagnoseVacationListingSkill.tryDirect(latestUser, menuLabel);
+        if (vacationListing != null) {
+            return vacationListing;
+        }
+
+        // Só a abertura do menu é texto do catálogo. A pergunta seguinte vai para a I.A.
+        boolean focusedFollowUp = isFocusedFollowUp(request.getMenuFocus());
+        if (!specificAdmissionCase && !focusedFollowUp) {
+            AssistantChatResponseDto focused = replyForFocusedMenu(request.getMenuFocus());
+            if (focused != null) {
+                return focused;
+            }
+        }
+
         // Orientação de tela pelo catálogo (determinística): navegação ou "por que a tela é assim".
-        if (!specificAdmissionCase && contextSelector.needsRouteGuide(latestUser)) {
+        // Na conversa do menu isso não vale: a pergunta já é sobre a tela escolhida.
+        if (!specificAdmissionCase && !focusedFollowUp && contextSelector.needsRouteGuide(latestUser)) {
             AssistantChatResponseDto catalogGuide = guideFromCatalog(latestUser, true, false);
             if (catalogGuide != null) {
                 return catalogGuide;
             }
         }
-        if (!specificAdmissionCase && contextSelector.needsModuleGuidance(latestUser)) {
+        if (!specificAdmissionCase && !focusedFollowUp && contextSelector.needsModuleGuidance(latestUser)) {
             AssistantChatResponseDto catalogGuide = guideFromCatalog(latestUser, true, true);
             if (catalogGuide != null) {
                 return catalogGuide;
@@ -148,12 +183,13 @@ public class AssistantChatService implements IAssistantChatService {
         try {
             LlmResponse response = null;
             for (int round = 0; round <= MAX_TOOL_ROUNDS; round++) {
+                AssistantActivity.report(round == 0 ? "Pensando..." : "Escrevendo a resposta...");
                 try {
                     response = llmClient.complete(LlmRequest.builder()
                             .purpose(LlmPurpose.SUPPORT_CHAT)
-                            .systemInstruction(knowledgeLoader.systemPrompt())
+                            .systemInstruction(systemInstruction(request.getMenuFocus(), focusedFollowUp))
                             .messages(history)
-                            .tools(skillRegistry.toolDefinitions())
+                            .tools(toolsFor(latestUser, menuLabel, focusedFollowUp))
                             .build());
                 } catch (RuntimeException ex) {
                     if (!linkByHref.isEmpty() || !skillSummaries.isEmpty()) {
@@ -164,10 +200,12 @@ public class AssistantChatService implements IAssistantChatService {
                                 .links(collectedLinks)
                                 .build();
                     }
-                    AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false, false);
-                    if (catalogFallback != null) {
-                        log.warn("Assistant LLM failed; using catalog guide fallback: {}", ex.getMessage());
-                        return catalogFallback;
+                    if (!focusedFollowUp) {
+                        AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false, false);
+                        if (catalogFallback != null) {
+                            log.warn("Assistant LLM failed; using catalog guide fallback: {}", ex.getMessage());
+                            return catalogFallback;
+                        }
                     }
                     throw ex;
                 }
@@ -197,6 +235,14 @@ public class AssistantChatService implements IAssistantChatService {
                     if (StringUtils.hasText(skillResult.getContentForModel())) {
                         skillSummaries.add(skillResult.getContentForModel());
                     }
+                    if (skillResult.isDirectReply()) {
+                        collectedLinks.addAll(linkByHref.values());
+                        String direct = skillResult.getContentForModel();
+                        return AssistantChatResponseDto.builder()
+                                .reply(StringUtils.hasText(direct) ? direct.trim() : "Não consegui concluir a consulta.")
+                                .links(collectedLinks)
+                                .build();
+                    }
                     history.add(LlmMessage.builder()
                             .role("tool")
                             .toolCallId(call.getId())
@@ -225,7 +271,7 @@ public class AssistantChatService implements IAssistantChatService {
                     .links(collectedLinks)
                     .build();
         } catch (BusinessException ex) {
-            if (isAssistantGate(ex)) {
+            if (isAssistantGate(ex) || focusedFollowUp) {
                 throw ex;
             }
             AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false, false);
@@ -236,10 +282,12 @@ public class AssistantChatService implements IAssistantChatService {
             logAndMask(ex);
             throw AssistantException.genericFailure();
         } catch (RuntimeException ex) {
-            AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false, false);
-            if (catalogFallback != null) {
-                log.warn("Assistant runtime failure; using catalog guide fallback: {}", ex.getMessage());
-                return catalogFallback;
+            if (!focusedFollowUp) {
+                AssistantChatResponseDto catalogFallback = guideFromCatalog(latestUser, false, false);
+                if (catalogFallback != null) {
+                    log.warn("Assistant runtime failure; using catalog guide fallback: {}", ex.getMessage());
+                    return catalogFallback;
+                }
             }
             logAndMask(ex);
             throw AssistantException.genericFailure();
@@ -273,6 +321,48 @@ public class AssistantChatService implements IAssistantChatService {
                         .href(href)
                         .build()))
                 .build();
+    }
+
+    /** Abertura pelo menu. As mensagens seguintes não usam o guia fixo de caminho. */
+    private static boolean isFocusedFollowUp(AssistantMenuFocusDto focus) {
+        return focus != null
+                && !focus.isOpening()
+                && (StringUtils.hasText(focus.getRouteId()) || StringUtils.hasText(focus.getLabel()));
+    }
+
+    private String systemInstruction(AssistantMenuFocusDto focus, boolean focusedFollowUp) {
+        if (!focusedFollowUp) {
+            return knowledgeLoader.systemPrompt();
+        }
+        AssistantCatalogItem item = catalogLoader.findForMenu(focus.getRouteId(), focus.getLabel());
+        return knowledgeLoader.systemPrompt()
+                + "\n\n"
+                + AssistantMenuReply.modelContext(item, focus.getLabel());
+    }
+
+    private List<LlmTool> toolsFor(String latestUser, String menuLabel, boolean focusedFollowUp) {
+        boolean vacation = VacationListingQuestion.matches(latestUser, menuLabel);
+        boolean attendance = AttendanceListingQuestion.matches(latestUser, menuLabel);
+        return skillRegistry.toolDefinitions().stream()
+                .filter(tool -> tool != null)
+                .filter(tool -> !focusedFollowUp || !"guide_flow".equals(tool.getName()))
+                .filter(tool -> vacation || !"diagnose_vacation_listing".equals(tool.getName()))
+                .filter(tool -> attendance || !"diagnose_attendance_listing".equals(tool.getName()))
+                .toList();
+    }
+
+    /**
+     * Só a primeira fala do menu. "Pra que serve?" nessa abertura explica a tela, sem o caminho.
+     */
+    private AssistantChatResponseDto replyForFocusedMenu(AssistantMenuFocusDto focus) {
+        if (focus == null || !focus.isOpening()) {
+            return null;
+        }
+        if (!StringUtils.hasText(focus.getRouteId()) && !StringUtils.hasText(focus.getLabel())) {
+            return null;
+        }
+        AssistantCatalogItem item = catalogLoader.findForMenu(focus.getRouteId(), focus.getLabel());
+        return AssistantMenuReply.build(item, focus.getLabel(), focus.getUserName(), true);
     }
 
     /**
@@ -379,6 +469,13 @@ public class AssistantChatService implements IAssistantChatService {
 
     private static String fallbackReplyFromSkills(
             List<String> skillSummaries, Iterable<AssistantDeepLinkDto> links) {
+        if (skillSummaries != null) {
+            for (String summary : skillSummaries) {
+                if (StringUtils.hasText(summary) && !summary.trim().startsWith("{")) {
+                    return summary.trim();
+                }
+            }
+        }
         StringBuilder sb = new StringBuilder();
         sb.append(
                 "Encontrei o fluxo correspondente no Gesint. Use o botão abaixo para abrir a tela "
@@ -417,6 +514,7 @@ public class AssistantChatService implements IAssistantChatService {
                     .contentForModel("{\"error\":\"invalid_tool_call\"}")
                     .build();
         }
+        AssistantActivity.report(activityLabel(call.getName()));
         AssistantSkill skill = skillRegistry.get(call.getName());
         if (skill == null) {
             return AssistantSkillResult.builder()
@@ -435,6 +533,20 @@ public class AssistantChatService implements IAssistantChatService {
                             "{\"error\":\"skill_failed\",\"message\":\"Não foi possível concluir esta ação.\"}")
                     .build();
         }
+    }
+
+    private static String activityLabel(String skillName) {
+        if (skillName == null) {
+            return "Consultando o sistema...";
+        }
+        return switch (skillName) {
+            case "diagnose_vacation_listing" -> "Consultando férias...";
+            case "diagnose_attendance_listing" -> "Consultando ponto...";
+            case "summarize_admission" -> "Consultando admissão...";
+            case "guide_flow" -> "Consultando o guia...";
+            case "create_agenda_event" -> "Registrando na agenda...";
+            default -> "Consultando o sistema...";
+        };
     }
 
     private void logAndMask(Exception ex) {

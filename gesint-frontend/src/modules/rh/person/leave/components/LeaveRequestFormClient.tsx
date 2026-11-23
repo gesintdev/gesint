@@ -12,16 +12,15 @@ import { LEAVE_TYPE_ITEMS } from "@/modules/rh/person/leave/lib/leave-types";
 import { leaveRequestFormSchema } from "@/modules/rh/person/leave/schemas/leave-request.schema";
 import { leaverequestService } from "@/modules/rh/person/leave/services/leave-request.service";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputDate, InputSelect } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { mapZodFieldErrors } from "@/shared/lib/zod-field-errors";
 
@@ -29,7 +28,6 @@ const APPROVAL_ITEMS: SelectItem[] = [
     { value: "true", label: "Aprovado" },
     { value: "false", label: "Pendente" },
 ];
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Afastamento" }];
 
 type LeaveFormField = keyof LeaveRequestCreateDto;
 
@@ -66,7 +64,6 @@ export function LeaveRequestFormClient() {
         toFormDto: leaverequestToFormDto,
         getEmptyForm: () => emptyLeaveRequestForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: LeaveRequestCreateDto) => {
@@ -128,11 +125,6 @@ export function LeaveRequestFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Afastamento">

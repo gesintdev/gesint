@@ -87,6 +87,35 @@ public class AssistantKnowledgeCatalogLoader {
         return scored.stream().limit(Math.max(1, limit)).map(Scored::item).toList();
     }
 
+    /**
+     * Item de orientação do menu clicado. Prefere o guia da tela e ignora skills executáveis.
+     */
+    public AssistantCatalogItem findForMenu(String routeId, String menuLabel) {
+        List<AssistantCatalogItem> visible = visibleForCurrentUser().stream()
+                .filter(item -> item.getComplexity() != AssistantCatalogComplexity.EXECUTABLE)
+                .toList();
+        List<AssistantCatalogItem> byRoute = StringUtils.hasText(routeId)
+                ? visible.stream().filter(item -> routeId.equals(item.getRouteId())).toList()
+                : List.of();
+        if (StringUtils.hasText(menuLabel)) {
+            String wanted = menuLabel.trim();
+            List<AssistantCatalogItem> labeled = byRoute.stream()
+                    .filter(item -> wanted.equalsIgnoreCase(item.getMenu()))
+                    .toList();
+            if (!labeled.isEmpty()) {
+                return labeled.getFirst();
+            }
+            AssistantCatalogItem byLabel = visible.stream()
+                    .filter(item -> wanted.equalsIgnoreCase(item.getMenu()))
+                    .findFirst()
+                    .orElse(null);
+            if (byLabel != null) {
+                return byLabel;
+            }
+        }
+        return byRoute.isEmpty() ? null : byRoute.getFirst();
+    }
+
     public AssistantCatalogItem findById(String id) {
         if (!StringUtils.hasText(id)) {
             return null;

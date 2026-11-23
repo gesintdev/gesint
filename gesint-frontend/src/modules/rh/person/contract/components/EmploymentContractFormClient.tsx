@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { CONTRACT_TYPE_ITEMS } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
 import { employmentcontractKeys } from "@/modules/rh/person/contract/contract.query";
 import type { EmploymentContractCreateDto } from "@/modules/rh/person/contract/dto/employment-contract.dto";
 import { CONTRACT_CLIENT_MESSAGES } from "@/modules/rh/person/contract/exceptions/employment-contract.messages";
@@ -12,20 +13,16 @@ import {
     emptyEmploymentContractForm,
 } from "@/modules/rh/person/contract/lib/employment-contract.mapper";
 import { employmentcontractService } from "@/modules/rh/person/contract/services/employment-contract.service";
-import { CONTRACT_TYPE_ITEMS } from "@/modules/rh/person/collaborators/admission/lib/admission-form.constants";
 import { CollaboratorPickerField } from "@/shared/components/crud/CollaboratorPickerField";
-import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputCurrency, InputDate, InputSelect } from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [{ id: "cadastro", label: "Contrato" }];
 
 export function EmploymentContractFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -57,7 +54,6 @@ export function EmploymentContractFormClient() {
         toFormDto: employmentcontractToFormDto,
         getEmptyForm: () => emptyEmploymentContractForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: EmploymentContractCreateDto) => {
@@ -111,11 +107,6 @@ export function EmploymentContractFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="cadastro" title="Contrato">

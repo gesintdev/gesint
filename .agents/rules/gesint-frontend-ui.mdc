@@ -10,7 +10,7 @@ alwaysApply: false
 - HTTP: **fetch nativo** (não axios)
 - Dados: importar de `@/shared/components/data/DataPanel` — `DataRequest` (server), `DataResult` (client + `use()`), `QueryPanel` (React Query cache/reload)
 - **Padrão visual completo: `.agents/rules/gesint-ui-system.mdc`** (tokens, tipografia, raios, casca, tabelas, dashboard, login, carregamento, animações, escala ClickUp). Leitura obrigatória antes de qualquer mudança visual.
-- Escala compacta fixa (resumo; detalhes no §13.1 do ui-system): topbar 40px, rail 62px, sidebar 256px, abas do workspace 30px, subabas 32px, toolbar com botões 30px, stepper 38px com pílulas 24px, linha de tabela 36px, controles 30px (texto do input 13px, label 11px), espaço entre campos pelos tokens `--gesint-field-gap-*`; pesos **430 / 480 / 575**. Nada de `zoom`, `transform: scale` ou media query de "escala compacta"; valores em px valem de 1366 a 2560.
+- Escala compacta fixa (resumo; detalhes no §13.1 do ui-system): topbar 40px, rail 62px, sidebar 256px, abas do workspace 30px, subabas 32px, toolbar da listagem e do cadastro com botões 30px, linha de tabela 36px, controles 30px (texto do input 13px, label 11px), espaço entre campos pelos tokens `--gesint-field-gap-*`; pesos **430 / 480 / 575**. Nada de `zoom`, `transform: scale` ou media query de "escala compacta"; valores em px valem de 1366 a 2560.
 - Tema DaisyUI custom (tokens em `globals.css`); sem outline em focus — só `border`
 - Transições suaves (Framer Motion com `MotionConfig reducedMotion="user"`; curva `[0.22, 1, 0.36, 1]`)
 - Toasts: Sonner

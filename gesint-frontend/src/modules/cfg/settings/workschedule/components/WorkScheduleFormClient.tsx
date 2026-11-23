@@ -18,21 +18,15 @@ import {
 } from "@/modules/cfg/settings/workschedule/lib/work-schedule.mapper";
 import {workScheduleService} from "@/modules/cfg/settings/workschedule/services/work-schedule.service";
 import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule.query";
+import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
 import {useCrudScreen} from "@/shared/components/crud/CrudScreen";
-import { CrudFormFooterActions } from "@/shared/components/crud/CrudFormFooterActions";
 import {useTrackedCrudFormDirty} from "@/shared/components/crud/useTrackedCrudFormDirty";
 import {Button} from "@/shared/components/ui/Button";
-import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {FormSection} from "@/shared/components/ui/FormSection";
-import {type FormStepNavItem} from "@/shared/components/ui/FormStepper";
 import {InputHour, InputString} from "@/shared/components/ui/input/index";
+import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import {ExceptionCapture} from "@/shared/exceptions";
-
-const FORM_STEPS: FormStepNavItem[] = [
-    {id: "dados", label: "Dados"},
-    {id: "quadro", label: "Quadro de horários"},
-];
 
 type DayTimeField = keyof Pick<
     WorkScheduleDayCreateDto,
@@ -68,7 +62,6 @@ export function WorkScheduleFormClient() {
         toFormDto: workScheduleToFormDto,
         getEmptyForm: () => emptyWorkScheduleForm(),
     });
-
 
     const saveMutation = useMutation({
         mutationFn: async (dto: WorkScheduleCreateDto) => {
@@ -144,11 +137,6 @@ export function WorkScheduleFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection id="dados" title="Dados da escala" description="Identificação da jornada.">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { OCCUPATIONAL_EXAM_CLIENT_MESSAGES } from "@/modules/dp/occupational-exam/exceptions/occupational-exam.messages";
@@ -24,16 +24,9 @@ import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { useTrackedCrudFormDirty } from "@/shared/components/crud/useTrackedCrudFormDirty";
 import { Button } from "@/shared/components/ui/Button";
 import { FormSection } from "@/shared/components/ui/FormSection";
-import { type FormStepNavItem } from "@/shared/components/ui/FormStepper";
 import { InputPhone, InputSelect, InputSelectAutocomplete, InputString } from "@/shared/components/ui/input/index";
 import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
-import { isStepFilled } from "@/shared/lib/form-step.util";
-
-const FORM_STEPS: FormStepNavItem[] = [
-    { id: "dados", label: "Medico" },
-    { id: "clinicas", label: "Clinicas" },
-];
 
 export function OccupationalPhysicianFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord } = useCrudScreen();
@@ -119,21 +112,6 @@ export function OccupationalPhysicianFormClient() {
         }
         saveMutation.mutate(form);
     };
-    const filledStepIds = useMemo(() => {
-        const filled: string[] = [];
-        if (
-            isStepFilled([
-                { value: form.fullName },
-                { value: form.crm },
-                { value: form.crmState },
-                { value: form.role },
-            ])
-        ) {
-            filled.push("dados");
-        }
-        if ((form.clinicIds ?? []).length > 0) filled.push("clinicas");
-        return filled;
-    }, [form]);
 
     if (isEditing && detailQuery.isLoading) {
         return (
@@ -160,12 +138,6 @@ export function OccupationalPhysicianFormClient() {
     return (
         <CrudFormShell
             onSubmit={handleSubmit}
-            stepper={{
-                steps: FORM_STEPS,
-                filledStepIds,
-                entityCode: isEditing ? detailQuery.data?.code : undefined,
-                resetKey: editingId ?? "new",
-            }}
             footer={<CrudFormFooterActions isSubmitting={saveMutation.isPending} />}
         >
             <FormSection
