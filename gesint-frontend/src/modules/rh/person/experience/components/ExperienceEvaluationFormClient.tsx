@@ -2,12 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import { type SubmitEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import type {
     ExperienceDecision,
     ExperienceEvaluation,
+    ExperiencePeriodStatus,
     ExperienceScoreItem,
 } from "@/modules/rh/person/experience/dto/experience-evaluation.dto";
 import { EXPERIENCE_CLIENT_MESSAGES } from "@/modules/rh/person/experience/exceptions/experience-evaluation.messages";
@@ -19,11 +20,16 @@ import {
     EXPERIENCE_PERIOD_STATUS_LABELS,
 } from "@/modules/rh/person/experience/lib/experience-evaluation.options";
 import { experienceEvaluationService } from "@/modules/rh/person/experience/services/experience-evaluation.service";
+import { CrudFormShell } from "@/shared/components/crud/CrudFormShell";
 import { useCrudScreen } from "@/shared/components/crud/CrudScreen";
 import { Button } from "@/shared/components/ui/Button";
-import { fieldClass } from "@/shared/components/ui/input/InputFieldChrome";
+import { FormSection } from "@/shared/components/ui/FormSection";
+import { InputSelect } from "@/shared/components/ui/input";
+import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
+import { Modal } from "@/shared/components/ui/Modal";
 import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
 import { ExceptionCapture } from "@/shared/exceptions";
+import { isoToDateBr } from "@/shared/lib/input/date";
 import { SystemAlert } from "@/shared/system-alert";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
 import { useWorkspaceNavigation } from "@/shared/workspace/WorkspaceNavigationProvider";
@@ -35,6 +41,17 @@ type ScoreDraft = {
 
 const SCORE_LEVELS = [1, 2, 3, 4];
 
+const DECISION_REASON_ITEMS = EXPERIENCE_DECISION_REASONS.map((reason) => ({
+    value: reason,
+    label: reason,
+}));
+
+const DECISION_OPTIONS = [
+    ["EFFECTIVE", "Efetivar em prazo indeterminado"],
+    ["END", "Encerrar ao fim do prazo e abrir o desligamento"],
+    ["EXTEND", "Prorrogar"],
+] as const;
+
 function draftsFromDetail(detail: ExperienceEvaluation | undefined): Record<string, ScoreDraft> {
     const next: Record<string, ScoreDraft> = {};
     for (const competency of detail?.competencies ?? []) {
@@ -45,6 +62,24 @@ function draftsFromDetail(detail: ExperienceEvaluation | undefined): Record<stri
         };
     }
     return next;
+}
+
+function periodBadgeClass(status: ExperiencePeriodStatus): string {
+    switch (status) {
+        case "PENDING_DECISION":
+            return "gesint-badge--warning";
+        case "EFFECTIVE":
+            return "gesint-badge--success";
+        case "ENDED":
+            return "gesint-badge--neutral";
+        default:
+            return "gesint-badge--info";
+    }
+}
+
+function formatDueDate(value?: string | null): string {
+    if (!value) return "—";
+    return isoToDateBr(value.slice(0, 10)) || "—";
 }
 
 export function ExperienceEvaluationFormClient() {
@@ -76,6 +111,7 @@ export function ExperienceEvaluationFormClient() {
     const submitted = detail?.evaluationStatus === "SUBMITTED";
     const decided = Boolean(detail?.decided);
     const competencies = detail?.competencies ?? [];
+    const locked = submitted || decided;
 
     const buildPayload = (): ExperienceScoreItem[] => {
         const items: ExperienceScoreItem[] = [];
@@ -170,7 +206,7 @@ export function ExperienceEvaluationFormClient() {
             title: EXPERIENCE_DECISION_LABELS[decisionAction],
             message:
                 decisionAction === "END"
-                    ? "Será aberto um desligamento (eSocial 09 — término de contrato a termo)."
+                    ? "Será aberto um desligamento por término de contrato a termo."
                     : decisionAction === "EXTEND"
                       ? "A prorrogação só pode ocorrer uma vez e o total não passa de 90 dias."
                       : "O vínculo passa a prazo indeterminado.",
@@ -183,72 +219,75 @@ export function ExperienceEvaluationFormClient() {
         decideMutation.mutate();
     };
 
-    const headerMeta = useMemo(() => {
-        if (!detail) return null;
-        return (
-            <div className="flex flex-wrap gap-2 text-xs text-base-content/60">
-                <span className="badge badge-outline">
-                    {EXPERIENCE_PERIOD_STATUS_LABELS[detail.periodStatus]}
-                </span>
-                <span>{EXPERIENCE_PERIOD_LABELS[detail.experiencePeriod]}</span>
-                <span>Marco: {detail.experienceMilestoneDays} dias</span>
-                <span>Vence: {detail.experienceDueDate}</span>
-                {detail.selectionAverage != null || detail.averageScore != null ? (
-                    <span>
-                        Seleção {detail.selectionAverage ?? "—"} → Exp. {detail.averageScore ?? "—"}
-                    </span>
-                ) : null}
-            </div>
-        );
-    }, [detail]);
+    const openOffboarding = () => {
+        if (!detail?.offboardingId) return;
+        const route = findRouteById("offboarding");
+        if (!route) return;
+        openRouteRecord(route, detail.offboardingId, {
+            titleSuffix: detail.collaboratorName ?? "Desligamento",
+        });
+    };
 
     if (!editingId) {
         return (
-            <p className="text-sm text-base-content/55">
+            <p className="p-5 text-sm text-base-content/55">
                 Selecione um colaborador na fila de experiência para avaliar.
             </p>
         );
     }
 
-    if (detailQuery.isLoading) {
-        return <SkeletonStack count={4} rowClassName="h-14 rounded-lg" />;
+    if (detailQuery.isPending) {
+        return <SkeletonStack count={3} padded />;
     }
 
     if (detailQuery.isError || !detail) {
         return (
-            <p className="text-sm text-error">
-                {ExceptionCapture.displayMessage(
-                    detailQuery.error,
-                    EXPERIENCE_CLIENT_MESSAGES.EXPERIENCE_LOAD_FAILED,
-                )}
-            </p>
+            <div className="p-5">
+                <p className="text-sm font-medium text-error">
+                    {ExceptionCapture.displayMessage(
+                        detailQuery.error,
+                        EXPERIENCE_CLIENT_MESSAGES.EXPERIENCE_LOAD_FAILED,
+                    )}
+                </p>
+                <Button variant="ghost" className="mt-3" onClick={() => void goToList()}>
+                    Voltar
+                </Button>
+            </div>
         );
     }
 
     const busy = draftMutation.isPending || submitMutation.isPending || decideMutation.isPending;
+    const dueLabel = formatDueDate(detail.experienceDueDate);
+
+    const handleFormSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (!locked) void handleSubmitScores();
+    };
 
     return (
-        <div className="grid gap-5">
-            <div className="grid gap-1">
-                <h3 className="text-base font-semibold text-base-content">
-                    {detail.collaboratorName ?? "Colaborador"} · {detail.jobPositionName ?? "Cargo"}
-                </h3>
-                {headerMeta}
-            </div>
-
-            <section className="grid gap-3 rounded-lg border border-base-content/10 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <h4 className="text-sm font-semibold">Avaliação por competências</h4>
-                        <p className="text-xs text-base-content/55">
-                            Mesmas competências do cargo com uso Experiência (escala 1–4).
-                        </p>
-                    </div>
-                    {!decided && !submitted ? (
-                        <div className="flex flex-wrap gap-2">
+        <>
+            <CrudFormShell onSubmit={handleFormSubmit} footer={
+                <>
+                    <Button type="button" variant="ghost" onClick={() => void goToList()}>
+                        Cancelar
+                    </Button>
+                    <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
+                        Cancelar e Fechar
+                    </Button>
+                    {!decided ? (
+                        <Button
+                            type="button"
+                            variant={locked ? "primary" : "outline"}
+                            disabled={busy}
+                            onClick={() => setDecisionOpen(true)}
+                        >
+                            Registrar decisão
+                        </Button>
+                    ) : null}
+                    {!locked ? (
+                        <>
                             <Button
                                 type="button"
-                                size="sm"
                                 variant="outline"
                                 loading={draftMutation.isPending}
                                 disabled={busy || buildPayload().length === 0}
@@ -256,233 +295,247 @@ export function ExperienceEvaluationFormClient() {
                             >
                                 Salvar rascunho
                             </Button>
-                            <Button
-                                type="button"
-                                size="sm"
-                                loading={submitMutation.isPending}
-                                disabled={busy}
-                                onClick={() => void handleSubmitScores()}
-                            >
+                            <Button type="submit" loading={submitMutation.isPending} disabled={busy}>
                                 Enviar avaliação
                             </Button>
-                        </div>
-                    ) : submitted ? (
-                        <span className="rounded-md bg-success/10 px-2 py-1 text-xs font-medium text-success">
-                            Avaliação enviada
-                        </span>
+                        </>
                     ) : null}
-                </div>
-
-                {competencies.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-base-content/15 px-3 py-3 text-xs text-base-content/55">
-                        Configure competências do cargo com uso &quot;Experiência&quot; para habilitar o scorecard.
-                    </p>
-                ) : (
-                    <div className="grid gap-3">
-                        {competencies.map((competency) => {
-                            const draft = drafts[competency.competencyId] ?? {
-                                score: null,
-                                justification: "",
-                            };
-                            return (
-                                <div
-                                    key={competency.competencyId}
-                                    className="rounded-lg border border-base-content/10 px-3 py-3"
-                                >
-                                    <div className="flex flex-wrap items-start justify-between gap-2">
-                                        <p className="text-sm font-semibold text-base-content">
-                                            {competency.competencyName ?? "Competência"}
-                                        </p>
-                                        <div className="flex flex-wrap gap-1">
-                                            {SCORE_LEVELS.map((level) => {
-                                                const active = draft.score === level;
-                                                return (
-                                                    <button
-                                                        key={level}
-                                                        type="button"
-                                                        disabled={submitted || decided || busy}
-                                                        className={clsx(
-                                                            "inline-flex size-8 items-center justify-center rounded-md border text-xs font-semibold transition-colors",
-                                                            active
-                                                                ? "border-primary/40 bg-primary/10 text-primary"
-                                                                : "border-base-content/12 text-base-content/70 hover:bg-base-content/[0.04]",
-                                                            (submitted || decided || busy) && "opacity-60",
-                                                        )}
-                                                        onClick={() =>
-                                                            setDrafts((current) => ({
-                                                                ...current,
-                                                                [competency.competencyId]: {
-                                                                    ...draft,
-                                                                    score: level,
-                                                                },
-                                                            }))
-                                                        }
-                                                    >
-                                                        {level}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                    <textarea
-                                        className={clsx(fieldClass(), "mt-2 min-h-16")}
-                                        placeholder="Evidência observável *"
-                                        disabled={submitted || decided || busy}
-                                        value={draft.justification}
-                                        onChange={(event) =>
-                                            setDrafts((current) => ({
-                                                ...current,
-                                                [competency.competencyId]: {
-                                                    ...draft,
-                                                    justification: event.target.value,
-                                                },
-                                            }))
-                                        }
-                                    />
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </section>
-
-            <section className="grid gap-3 rounded-lg border border-base-content/10 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <h4 className="text-sm font-semibold">Decisão do período</h4>
-                        <p className="text-xs text-base-content/55">
-                            Efetivar, prorrogar (1×) ou encerrar com motivo e autor (RN-05 / RN-13 / RN-41).
-                        </p>
-                    </div>
-                    {!decided ? (
-                        <Button type="button" size="sm" onClick={() => setDecisionOpen(true)} disabled={busy}>
-                            Registrar decisão
-                        </Button>
-                    ) : (
-                        <span className="badge badge-outline">
-                            {detail.decision ? EXPERIENCE_DECISION_LABELS[detail.decision] : "Decidido"}
-                            {detail.decisionReason ? ` · ${detail.decisionReason}` : ""}
+                </>
+            }>
+                <FormSection id="periodo" title="Período" bodyClassName="!block">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className={clsx("gesint-badge", periodBadgeClass(detail.periodStatus))}>
+                            {EXPERIENCE_PERIOD_STATUS_LABELS[detail.periodStatus]}
                         </span>
-                    )}
-                </div>
-                {detail.offboardingId ? (
-                    <p className="text-xs text-base-content/55">
-                        Desligamento aberto: {detail.offboardingId}
+                        {submitted ? (
+                            <span className="gesint-badge gesint-badge--success">Avaliação enviada</span>
+                        ) : null}
+                        {decided && detail.decision ? (
+                            <span className="gesint-badge gesint-badge--neutral">
+                                {EXPERIENCE_DECISION_LABELS[detail.decision]}
+                            </span>
+                        ) : null}
+                    </div>
+                    <p className="mt-2 text-sm text-base-content">
+                        {detail.collaboratorName ?? "Colaborador"}
+                        {detail.jobPositionName ? ` · ${detail.jobPositionName}` : ""}
                     </p>
-                ) : null}
-            </section>
+                    <p className="gesint-hint">
+                        {EXPERIENCE_PERIOD_LABELS[detail.experiencePeriod]}
+                        {" · "}
+                        Marco de {detail.experienceMilestoneDays} dias
+                        {" · "}
+                        Vence em {dueLabel}
+                        {detail.selectionAverage != null || detail.averageScore != null
+                            ? ` · Seleção ${detail.selectionAverage ?? "—"} → Experiência ${detail.averageScore ?? "—"}`
+                            : ""}
+                    </p>
+                </FormSection>
 
-            <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => void goToList()}>
-                    Fechar
-                </Button>
-                <Button type="button" variant="warning" onClick={() => void cancelAndClose()}>
-                    Cancelar e Fechar
-                </Button>
-            </div>
-
-            {decisionOpen ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-base-content/40 p-4">
-                    <div className="w-full max-w-lg rounded-xl border border-base-content/10 bg-base-100 p-4 shadow-xl">
-                        <h4 className="text-base font-semibold">
-                            Fim do período de experiência · {detail.collaboratorName}
-                        </h4>
-                        <p className="mt-1 text-xs text-base-content/55">
-                            Contrato de experiência ({EXPERIENCE_PERIOD_LABELS[detail.experiencePeriod]}). Vence em{" "}
-                            {detail.experienceDueDate}.
+                <FormSection
+                    id="competencias"
+                    title="Avaliação por competências"
+                    bodyClassName="!block"
+                >
+                    {competencies.length === 0 ? (
+                        <p className="text-sm text-base-content/55">
+                            Configure competências do cargo com uso Experiência para habilitar a avaliação.
                         </p>
-
-                        <div className="mt-4 grid gap-2">
-                            {(
-                                [
-                                    ["EFFECTIVE", "Efetivar (prazo indeterminado)"],
-                                    ["END", "Encerrar ao fim do prazo → abre desligamento (RN-21)"],
-                                    ["EXTEND", "Prorrogar"],
-                                ] as const
-                            ).map(([action, label]) => {
-                                const disabled = action === "EXTEND" && !detail.canExtend;
+                    ) : (
+                        <div className="flex flex-col gap-4">
+                            {competencies.map((competency) => {
+                                const draft = drafts[competency.competencyId] ?? {
+                                    score: null,
+                                    justification: "",
+                                };
+                                const fieldId = `experience-evidence-${competency.competencyId}`;
                                 return (
-                                    <label
-                                        key={action}
-                                        className={clsx(
-                                            "gesint-choice-option gesint-choice-option--multiline gesint-choice-option--outlined",
-                                            decisionAction === action && "gesint-choice-option--active",
-                                            disabled && "gesint-choice-option--disabled cursor-not-allowed opacity-50",
-                                        )}
+                                    <div
+                                        key={competency.competencyId}
+                                        className="grid gap-2 border-b border-base-content/8 pb-4 last:border-b-0 last:pb-0"
                                     >
-                                        <input
-                                            type="radio"
-                                            className="radio radio-sm mt-0.5"
-                                            name="experience-decision"
-                                            disabled={disabled || busy}
-                                            checked={decisionAction === action}
-                                            onChange={() => setDecisionAction(action)}
-                                        />
-                                        <span>
-                                            {label}
-                                            {disabled ? (
-                                                <span className="block text-xs text-base-content/45">
-                                                    Indisponível: já prorrogado uma vez ou período sem prorrogação
-                                                </span>
-                                            ) : null}
-                                        </span>
-                                    </label>
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <p className="text-sm font-medium text-base-content">
+                                                {competency.competencyName ?? "Competência"}
+                                            </p>
+                                            <div
+                                                className="flex flex-wrap gap-1"
+                                                role="group"
+                                                aria-label={`Nota de ${competency.competencyName ?? "competência"}`}
+                                            >
+                                                {SCORE_LEVELS.map((level) => {
+                                                    const active = draft.score === level;
+                                                    return (
+                                                        <Button
+                                                            key={level}
+                                                            type="button"
+                                                            variant={active ? "primary" : "outline"}
+                                                            aria-pressed={active}
+                                                            disabled={locked || busy}
+                                                            onClick={() =>
+                                                                setDrafts((current) => ({
+                                                                    ...current,
+                                                                    [competency.competencyId]: {
+                                                                        ...draft,
+                                                                        score: level,
+                                                                    },
+                                                                }))
+                                                            }
+                                                        >
+                                                            {level}
+                                                        </Button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                        <InputFieldChrome
+                                            id={fieldId}
+                                            label="Evidência"
+                                            required
+                                            disabled={locked || busy}
+                                        >
+                                            <textarea
+                                                id={fieldId}
+                                                rows={2}
+                                                className={clsx(
+                                                    "gesint-control inline-block! h-auto! min-h-16! w-full resize-y items-start! py-2!",
+                                                    fieldClass(locked || busy),
+                                                )}
+                                                disabled={locked || busy}
+                                                value={draft.justification}
+                                                onChange={(event) =>
+                                                    setDrafts((current) => ({
+                                                        ...current,
+                                                        [competency.competencyId]: {
+                                                            ...draft,
+                                                            justification: event.target.value,
+                                                        },
+                                                    }))
+                                                }
+                                            />
+                                        </InputFieldChrome>
+                                    </div>
                                 );
                             })}
                         </div>
+                    )}
+                </FormSection>
 
-                        <label className="mt-3 grid gap-1 text-xs text-base-content/60">
-                            Motivo {decisionAction === "END" ? "*" : ""}
-                            <select
-                                className={fieldClass()}
-                                value={decisionReason}
-                                disabled={busy}
-                                onChange={(event) => setDecisionReason(event.target.value)}
+                <FormSection id="decisao" title="Decisão do período" bodyClassName="!block">
+                    {decided ? (
+                        <>
+                            <p className="text-sm text-base-content">
+                                {detail.decision ? EXPERIENCE_DECISION_LABELS[detail.decision] : "Decidido"}
+                                {detail.decisionReason ? ` · ${detail.decisionReason}` : ""}
+                            </p>
+                            {detail.decisionNotes ? <p className="gesint-hint">{detail.decisionNotes}</p> : null}
+                            {detail.decidedByName ? (
+                                <p className="gesint-hint">Registrada por {detail.decidedByName}</p>
+                            ) : null}
+                        </>
+                    ) : (
+                        <p className="text-sm text-base-content/70">
+                            Efetivar em prazo indeterminado, prorrogar uma vez ou encerrar e abrir o desligamento.
+                        </p>
+                    )}
+                    {detail.offboardingId ? (
+                        <Button type="button" variant="outline" className="mt-3" onClick={openOffboarding}>
+                            Abrir desligamento
+                        </Button>
+                    ) : null}
+                    {!decided ? (
+                        <p className="gesint-hint">
+                            Se nada for decidido até o vencimento, o contrato passa a prazo indeterminado.
+                        </p>
+                    ) : null}
+                </FormSection>
+            </CrudFormShell>
+
+            <Modal
+                open={decisionOpen}
+                onClose={() => setDecisionOpen(false)}
+                title="Decisão do período"
+                subtitle={`${detail.collaboratorName ?? "Colaborador"} · ${EXPERIENCE_PERIOD_LABELS[detail.experiencePeriod]} · vence em ${dueLabel}`}
+                size="md"
+                closeDisabled={busy}
+                footer={
+                    <>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            disabled={busy}
+                            onClick={() => setDecisionOpen(false)}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            loading={decideMutation.isPending}
+                            disabled={busy}
+                            onClick={() => void handleDecide()}
+                        >
+                            Registrar decisão
+                        </Button>
+                    </>
+                }
+            >
+                <div className="grid gap-3">
+                    {DECISION_OPTIONS.map(([action, label]) => {
+                        const unavailable = action === "EXTEND" && !detail.canExtend;
+                        return (
+                            <label
+                                key={action}
+                                className={clsx(
+                                    "gesint-choice-option gesint-choice-option--multiline gesint-choice-option--outlined",
+                                    decisionAction === action && "gesint-choice-option--active",
+                                    unavailable && "gesint-choice-option--disabled gesint-disabled-surface",
+                                )}
                             >
-                                {EXPERIENCE_DECISION_REASONS.map((reason) => (
-                                    <option key={reason} value={reason}>
-                                        {reason}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label className="mt-3 grid gap-1 text-xs text-base-content/60">
-                            Observações
-                            <textarea
-                                className={clsx(fieldClass(), "min-h-16")}
-                                value={decisionNotes}
-                                disabled={busy}
-                                onChange={(event) => setDecisionNotes(event.target.value)}
-                            />
-                        </label>
-
-                        <div className="mt-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
-                            Se nada for decidido até o vencimento, o contrato vira prazo indeterminado
-                            automaticamente (CLT arts. 445 e 451).
-                        </div>
-
-                        <div className="mt-4 flex justify-end gap-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                disabled={busy}
-                                onClick={() => setDecisionOpen(false)}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="button"
-                                loading={decideMutation.isPending}
-                                disabled={busy}
-                                onClick={() => void handleDecide()}
-                            >
-                                Registrar decisão
-                            </Button>
-                        </div>
-                    </div>
+                                <input
+                                    type="radio"
+                                    className="radio radio-sm"
+                                    name="experience-decision"
+                                    disabled={unavailable || busy}
+                                    checked={decisionAction === action}
+                                    onChange={() => setDecisionAction(action)}
+                                />
+                                <span>
+                                    {label}
+                                    {unavailable ? (
+                                        <span className="gesint-hint mt-0 block">
+                                            Indisponível: já prorrogado uma vez ou período sem prorrogação.
+                                        </span>
+                                    ) : null}
+                                </span>
+                            </label>
+                        );
+                    })}
+                    <InputSelect
+                        label="Motivo"
+                        items={DECISION_REASON_ITEMS}
+                        value={decisionReason}
+                        onValueChange={(value) => setDecisionReason(value || EXPERIENCE_DECISION_REASONS[0])}
+                        required={decisionAction === "END"}
+                        disabled={busy}
+                    />
+                    <InputFieldChrome id="experience-decision-notes" label="Observações" disabled={busy}>
+                        <textarea
+                            id="experience-decision-notes"
+                            rows={3}
+                            className={clsx(
+                                "gesint-control inline-block! h-auto! min-h-16! w-full resize-y items-start! py-2!",
+                                fieldClass(busy),
+                            )}
+                            disabled={busy}
+                            value={decisionNotes}
+                            onChange={(event) => setDecisionNotes(event.target.value)}
+                        />
+                    </InputFieldChrome>
+                    <p className="gesint-hint">
+                        Se nada for decidido até o vencimento, o contrato passa a prazo indeterminado.
+                    </p>
                 </div>
-            ) : null}
-        </div>
+            </Modal>
+        </>
     );
 }
