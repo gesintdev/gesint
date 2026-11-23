@@ -1,9 +1,9 @@
-import type { LucideIcon } from "lucide-react";
-import { Calculator, FolderOpen, Users } from "lucide-react";
-import type { ReactNode } from "react";
+import type {LucideIcon} from "lucide-react";
+import {FolderOpen, Users} from "lucide-react";
+import type {ReactNode} from "react";
 
-import { LoginStage } from "@/shared/components/auth/LoginStage";
-import { SystemLogo } from "@/shared/components/brand/SystemLogo";
+import {LoginStage} from "@/shared/components/auth/LoginStage";
+import {SystemLogo} from "@/shared/components/brand/SystemLogo";
 
 type LoginShellProps = {
     children: ReactNode;
@@ -26,16 +26,11 @@ const BRAND_MODULES: BrandModule[] = [
         icon: Users,
         title: "Recursos Humanos",
         description: "Recrutamento, experiência, PDI e feedback",
-    },
-    {
-        icon: Calculator,
-        title: "Contabilidade",
-        description: "Folha de pagamento e holerites",
-    },
+    }
 ];
 
 /** Título + subtítulo da coluna do formulário (ex.: "Bem-vindo de volta" no login). */
-export function LoginHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+export function LoginHeading({title, subtitle}: { title: string; subtitle?: string }) {
     return (
         <header className="login-main__header">
             <h1 className="login-main__title">{title}</h1>
@@ -50,35 +45,35 @@ export function LoginHeading({ title, subtitle }: { title: string; subtitle?: st
  * substitui só o conteúdo do formulário (template.tsx anima a entrada), sem recriar a marca.
  * O painel da marca só aparece a partir de 1024px; abaixo disso o logo vai para o topo do formulário.
  */
-export function LoginShell({ children }: LoginShellProps) {
+export function LoginShell({children}: LoginShellProps) {
     const year = new Date().getFullYear();
 
     return (
         <div className="login-page">
             <section className="login-brand" aria-label="Gesint — Gestão Integrada">
-                <LoginStage />
+                <LoginStage/>
                 <div className="login-brand__inner">
                     <div className="login-brand__lockup">
-                        <SystemLogo size="2rem" color="currentColor" />
-                        <span className="login-brand__dot" aria-hidden="true" />
+                        <SystemLogo size="2rem" color="currentColor"/>
+                        <span className="login-brand__dot" aria-hidden="true"/>
                         <span className="login-brand__tagline">Gestão Integrada</span>
                     </div>
 
                     <div className="login-brand__copy">
                         <p className="login-brand__eyebrow">Plataforma de gestão de pessoas</p>
-                        <h2 className="login-brand__headline">DP, RH e Contabilidade em uma só plataforma.</h2>
+                        <h2 className="login-brand__headline">DP e RH em uma só plataforma.</h2>
                         <p className="login-brand__lead">
-                            Da admissão à folha de pagamento, com cada processo no lugar certo.
+                            Cada processo no lugar certo.
                         </p>
                         <ul className="login-brand__modules">
-                            {BRAND_MODULES.map(({ icon: Icon, title, description }, index) => (
+                            {BRAND_MODULES.map(({icon: Icon, title, description}, index) => (
                                 <li
                                     key={title}
                                     className="login-brand__module"
-                                    style={{ animationDelay: `${0.25 + index * 0.08}s` }}
+                                    style={{animationDelay: `${0.25 + index * 0.08}s`}}
                                 >
                                     <span className="login-brand__module-icon">
-                                        <Icon className="size-4" strokeWidth={2} />
+                                        <Icon className="size-4" strokeWidth={2}/>
                                     </span>
                                     <span className="min-w-0">
                                         <span className="login-brand__module-title">{title}</span>
@@ -96,8 +91,8 @@ export function LoginShell({ children }: LoginShellProps) {
             <section className="login-main" aria-label="Autenticação">
                 <div className="login-main__inner">
                     <div className="login-main__logo">
-                        <SystemLogo size="2rem" />
-                        <span className="login-brand__dot" aria-hidden="true" />
+                        <SystemLogo size="2rem"/>
+                        <span className="login-brand__dot" aria-hidden="true"/>
                         <span className="login-main__logo-tagline">Gestão Integrada</span>
                     </div>
                     {children}
