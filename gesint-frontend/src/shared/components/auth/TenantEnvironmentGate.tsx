@@ -11,11 +11,15 @@ import { isProductionHostWithoutTenant, resolveTenantSlugFromHostname } from "@/
 type GateState =
     | { status: "checking" }
     | { status: "ok" }
+    | { status: "missing" }
     | { status: "error"; title: string; message: string; tenantSlug: string | null };
 
 /**
  * Em hosts com subdomínio (ex.: posto-sjb.localhost), confirma que o tenant existe
- * antes de exibir login/definir-senha. Subdomínios desconhecidos não devem parecer um ambiente válido.
+ * antes de exibir login/definir-senha.
+ *
+ * Tenant inexistente não chega aqui: o proxy responde 404 vazio e o navegador
+ * mostra a página nativa. Se esta checagem ainda vir 404, não desenha tela.
  *
  * O estado inicial é sempre "checking" (igual no SSR e no primeiro paint do cliente)
  * para evitar mismatch de hidratação — o host só é lido no useEffect.
@@ -56,14 +60,9 @@ export function TenantEnvironmentGate({ children }: { children: ReactNode }) {
                     return;
                 }
                 const code = error instanceof AppException ? error.code : undefined;
-                if (code === "TENANT_NOT_FOUND") {
-                    setState({
-                        status: "error",
-                        title: "Ambiente não encontrado",
-                        message:
-                            "Não existe cliente configurado para este endereço. Verifique o subdomínio e tente novamente.",
-                        tenantSlug,
-                    });
+                const status = error instanceof AppException ? error.status : undefined;
+                if (status === 404 || code === "TENANT_NOT_FOUND") {
+                    setState({ status: "missing" });
                     return;
                 }
                 if (code === "TENANT_NOT_READY") {
@@ -97,6 +96,10 @@ export function TenantEnvironmentGate({ children }: { children: ReactNode }) {
             cancelled = true;
         };
     }, []);
+
+    if (state.status === "missing") {
+        return null;
+    }
 
     if (state.status === "ok") {
         return children;

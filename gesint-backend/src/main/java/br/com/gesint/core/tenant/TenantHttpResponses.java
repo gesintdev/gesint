@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,12 @@ public class TenantHttpResponses {
 
     public void writeBusinessError(HttpServletRequest request, HttpServletResponse response, BusinessException ex)
             throws IOException {
+        if (TenantExceptions.NOT_FOUND_CODE.equals(ex.getCode())) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            response.setContentLength(0);
+            response.flushBuffer();
+            return;
+        }
         response.setStatus(ex.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         ErrorResponseDto body = ErrorResponseDto.builder()
