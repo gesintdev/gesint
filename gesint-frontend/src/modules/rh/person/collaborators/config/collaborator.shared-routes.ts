@@ -47,9 +47,9 @@ export const collaboratorSharedRouteGroup: AppRoute = routeGroup({
             fieldTabName: "fullName",
             editOnly: true,
             showListToFormButton: false,
-            listToolbar: "Consulte e edite dados pessoais. Novos colaboradores entram somente pela admissão.",
-            formTabLabel: "Dados pessoais",
-            formTabLabelEdit: "Editar pessoa",
+            listToolbar: "Consulte e edite o cadastro do colaborador. Novas pessoas entram somente pela admissão.",
+            formTabLabel: "Cadastro",
+            formTabLabelEdit: "Editar cadastro",
             list: lazyNamed(
                 () => import("@/modules/rh/person/collaborators/people/components/CollaboratorListClient"),
                 "CollaboratorListClient",

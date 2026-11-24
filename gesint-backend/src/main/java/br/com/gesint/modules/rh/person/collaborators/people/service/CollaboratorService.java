@@ -323,7 +323,7 @@ public class CollaboratorService extends BaseService<Collaborator, CollaboratorR
 
     @Override
     @Transactional
-    @PreAuthorize("hasAuthority('collaborator:write')")
+    @PreAuthorize("hasAnyAuthority('collaborator:write', 'admission:write')")
     public CollaboratorResponseDto update(UUID id, CollaboratorRequestDto request) {
         CollaboratorRepository.findByCpfAndStatusNot(request.getCpf(), StatusEnum.DELETED)
                 .filter(existing -> !existing.getId().equals(id))

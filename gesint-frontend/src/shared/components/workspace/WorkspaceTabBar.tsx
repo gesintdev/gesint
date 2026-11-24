@@ -257,7 +257,7 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
     const [activeDragId, setActiveDragId] = useState<string | null>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
-    const { openRouteCreate } = useWorkspaceNavigation();
+    const { openRouteCreate, focusTabById } = useWorkspaceNavigation();
     const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
     const closeUnpinnedTabs = useWorkspaceStore((s) => s.closeUnpinnedTabs);
     const closeOtherTabs = useWorkspaceStore((s) => s.closeOtherTabs);
@@ -375,7 +375,9 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
         if (!(await confirmDiscardUnsavedChanges(tabIds))) return;
         if (pinnedCount > 0) closeUnpinnedTabs();
         else closeAllTabs();
-    }, [closeAllTabs, closeUnpinnedTabs, moduleTabs, pinnedCount]);
+        const nextActiveId = useWorkspaceStore.getState().activeTabId;
+        if (nextActiveId) focusTabById(nextActiveId, "replace");
+    }, [closeAllTabs, closeUnpinnedTabs, focusTabById, moduleTabs, pinnedCount]);
 
     const handleCloseOtherTabs = useCallback(
         async (tab: WorkspaceTab) => {
@@ -383,8 +385,9 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
             if (otherIds.length === 0) return;
             if (!(await confirmDiscardUnsavedChanges(otherIds))) return;
             closeOtherTabs(tab.id);
+            focusTabById(tab.id, "replace");
         },
-        [closeOtherTabs, moduleTabs],
+        [closeOtherTabs, focusTabById, moduleTabs],
     );
 
     const activeModuleTab = moduleTabs.find((tab) => tab.id === activeTabId) ?? null;

@@ -3,7 +3,6 @@
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, CircleHelp, LogOut, User } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 
@@ -14,6 +13,7 @@ import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { showLoggingOutOverlay } from "@/shared/lib/logging-out-overlay";
 import { signOutToTenantLogin } from "@/shared/lib/sign-out.client";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import { commitWorkspaceUrl } from "@/shared/workspace/workspace-location";
 import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
 
 /**
@@ -22,7 +22,6 @@ import { defaultShortLabel } from "@/shared/workspace/workspace-routes";
  */
 export function HeaderUserMenu() {
     const { data: session } = useSession();
-    const router = useRouter();
     const openModuleTab = useWorkspaceStore((s) => s.openModuleTab);
     const [open, setOpen] = useState(false);
     const [helpOpen, setHelpOpen] = useState(false);
@@ -61,7 +60,7 @@ export function HeaderUserMenu() {
             entityKey: "list",
             icon: accountSettingsRoute.icon,
         });
-        router.replace(href);
+        commitWorkspaceUrl(href, "push");
     };
 
     const openHelp = () => {

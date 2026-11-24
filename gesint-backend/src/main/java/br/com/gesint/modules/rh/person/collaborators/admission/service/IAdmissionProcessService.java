@@ -1,5 +1,6 @@
 package br.com.gesint.modules.rh.person.collaborators.admission.service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import br.com.gesint.core.base.service.IBaseService;
@@ -25,4 +26,7 @@ public interface IAdmissionProcessService
      * Gera o codigo de ponto de uma admissao que ainda nao tem, inclusive cadastros antigos ou migrados.
      */
     String issueClockAccess(UUID admissionId);
+
+    /** Admissão vigente da pessoa, para editar o cadastro na aba Pessoas. */
+    Optional<AdmissionProcessResponseDto> findCurrentByCollaborator(UUID collaboratorId);
 }

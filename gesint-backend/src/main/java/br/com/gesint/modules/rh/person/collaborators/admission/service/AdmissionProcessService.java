@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -553,6 +554,20 @@ public class AdmissionProcessService
                 entity.getCollaboratorId() != null
                         && absenceFlags.active().contains(entity.getCollaboratorId()),
                 collaboratorAccessCode(entity, collaborators));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAnyAuthority('admission:read', 'collaborator:read')")
+    public Optional<AdmissionProcessResponseDto> findCurrentByCollaborator(UUID collaboratorId) {
+        if (collaboratorId == null) {
+            return Optional.empty();
+        }
+        return repository.findAllByCollaboratorIdAndStatusNot(collaboratorId, StatusEnum.DELETED).stream()
+                .filter(admission -> admission.getAdmissionStatus() != AdmissionStatusEnum.CANCELLED)
+                .max(Comparator.comparing(
+                        AdmissionProcess::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
+                .map(this::toEnrichedResponse);
     }
 
     @Override

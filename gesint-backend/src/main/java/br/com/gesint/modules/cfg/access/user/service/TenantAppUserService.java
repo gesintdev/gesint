@@ -11,6 +11,7 @@ import br.com.gesint.core.audit.trail.AuditActionEnum;
 import br.com.gesint.core.audit.trail.AuditTrailEntry;
 import br.com.gesint.core.audit.trail.AuditTrailRecorder;
 import br.com.gesint.core.branch.BranchException;
+import br.com.gesint.core.mail.AccountAccessMailer;
 import br.com.gesint.core.entity.StatusEnum;
 import br.com.gesint.modules.cfg.access.actingprofile.entity.ActingProfile;
 import br.com.gesint.modules.cfg.access.actingprofile.repository.ActingProfileRepository;
@@ -45,6 +46,7 @@ public class TenantAppUserService implements ITenantAppUserService {
     private final CompanyRepository companyRepository;
     private final TenantAppUserMapper mapper;
     private final AuditTrailRecorder auditTrail;
+    private final AccountAccessMailer accountAccessMailer;
 
     public TenantAppUserService(
         AppUserRepository appUserRepository,
@@ -55,7 +57,8 @@ public class TenantAppUserService implements ITenantAppUserService {
         UserActingProfileAssignmentRepository actingProfileAssignmentRepository,
         CompanyRepository companyRepository,
         TenantAppUserMapper mapper,
-        AuditTrailRecorder auditTrail) {
+        AuditTrailRecorder auditTrail,
+        AccountAccessMailer accountAccessMailer) {
         this.appUserRepository = appUserRepository;
         this.roleRepository = roleRepository;
         this.actingProfileRepository = actingProfileRepository;
@@ -65,6 +68,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         this.companyRepository = companyRepository;
         this.mapper = mapper;
         this.auditTrail = auditTrail;
+        this.accountAccessMailer = accountAccessMailer;
     }
 
     @Override
@@ -107,6 +111,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         replaceAssignments(saved, request);
         AppUserResponseDto response = toResponse(saved, collaborator);
         response.setAccessToken(plainToken);
+        accountAccessMailer.sendFirstAccess(saved.getEmail(), plainToken);
         return response;
     }
 
@@ -165,6 +170,7 @@ public class TenantAppUserService implements ITenantAppUserService {
         auditTrail.record(AuditTrailEntry.of(AuditActionEnum.PASSWORD_RESET, saved));
         AppUserResponseDto response = toResponse(saved);
         response.setAccessToken(plainToken);
+        accountAccessMailer.sendPasswordReset(saved.getEmail(), plainToken);
         return response;
     }
 

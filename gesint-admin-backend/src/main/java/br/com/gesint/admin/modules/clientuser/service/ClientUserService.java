@@ -22,6 +22,7 @@ import br.com.gesint.admin.modules.clientuser.dto.ClientUserResponseDto;
 import br.com.gesint.admin.modules.clientuser.entity.ClientUser;
 import br.com.gesint.admin.modules.clientuser.exception.ClientUserException;
 import br.com.gesint.admin.modules.clientuser.repository.ClientUserRepository;
+import br.com.gesint.admin.modules.platformemail.service.PlatformOutboundMail;
 import br.com.gesint.admin.modules.root.security.AccessTokenSupport;
 
 @Service
@@ -31,16 +32,19 @@ public class ClientUserService implements IClientUserService {
     private final ClientRepository clientRepository;
     private final ClientEnvironmentConfigRepository environmentConfigRepository;
     private final TenantUserProvisioner tenantUserProvisioner;
+    private final PlatformOutboundMail platformOutboundMail;
 
     public ClientUserService(
             ClientUserRepository clientUserRepository,
             ClientRepository clientRepository,
             ClientEnvironmentConfigRepository environmentConfigRepository,
-            TenantUserProvisioner tenantUserProvisioner) {
+            TenantUserProvisioner tenantUserProvisioner,
+            PlatformOutboundMail platformOutboundMail) {
         this.clientUserRepository = clientUserRepository;
         this.clientRepository = clientRepository;
         this.environmentConfigRepository = environmentConfigRepository;
         this.tenantUserProvisioner = tenantUserProvisioner;
+        this.platformOutboundMail = platformOutboundMail;
     }
 
     @Override
@@ -119,6 +123,7 @@ public class ClientUserService implements IClientUserService {
 
         ClientUserResponseDto response = toResponse(link, client);
         response.setAccessToken(plainToken);
+        platformOutboundMail.sendClientFirstAccess(link.getEmail(), plainToken, client.getSlug());
         return response;
     }
 
@@ -173,6 +178,8 @@ public class ClientUserService implements IClientUserService {
         Client client = clientRepository.findById(link.getClientId()).orElse(null);
         ClientUserResponseDto response = toResponse(link, client);
         response.setAccessToken(plainToken);
+        platformOutboundMail.sendClientFirstAccess(
+                link.getEmail(), plainToken, client != null ? client.getSlug() : null);
         return response;
     }
 

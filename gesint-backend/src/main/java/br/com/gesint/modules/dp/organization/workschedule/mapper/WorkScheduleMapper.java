@@ -143,10 +143,14 @@ public class WorkScheduleMapper {
     }
 
     private static int minutesBetween(LocalTime start, LocalTime end) {
-        if (start == null || end == null || end.isBefore(start)) {
+        if (start == null || end == null) {
             return 0;
         }
-        return (int) Duration.between(start, end).toMinutes();
+        int minutes = (int) Duration.between(start, end).toMinutes();
+        if (minutes < 0) {
+            minutes += 24 * 60;
+        }
+        return minutes;
     }
 
     private static String formatMinutes(int minutes) {

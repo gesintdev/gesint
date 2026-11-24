@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
 import { WorkspaceTabSystemBadge } from "@/shared/components/workspace/WorkspaceTabSystemBadge";
 import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
+import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
 import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
@@ -28,6 +29,7 @@ export function WorkspaceTabOverflowMenu({
 }: WorkspaceTabOverflowMenuProps) {
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
+    const { focusTabById } = useWorkspaceNavigation();
     const closeAllTabs = useWorkspaceStore((s) => s.closeAllTabs);
     const closeUnpinnedTabs = useWorkspaceStore((s) => s.closeUnpinnedTabs);
     const closeTab = useWorkspaceStore((s) => s.closeTab);
@@ -146,6 +148,8 @@ export function WorkspaceTabOverflowMenu({
                                                     );
                                                     if (await confirmCloseDirtyTab(tab.id)) {
                                                         closeTab(tab.id);
+                                                        const nextActiveId = useWorkspaceStore.getState().activeTabId;
+                                                        if (nextActiveId) focusTabById(nextActiveId, "replace");
                                                     }
                                                 })();
                                             }}
@@ -170,6 +174,8 @@ export function WorkspaceTabOverflowMenu({
                                     if (!(await confirmDiscardUnsavedChanges(tabIds))) return;
                                     if (hasPinned) closeUnpinnedTabs();
                                     else closeAllTabs();
+                                    const nextActiveId = useWorkspaceStore.getState().activeTabId;
+                                    if (nextActiveId) focusTabById(nextActiveId, "replace");
                                     setOpen(false);
                                 })();
                             }}

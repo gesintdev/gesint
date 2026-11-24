@@ -8,7 +8,7 @@ public final class CoreExceptions {
     private CoreExceptions() {}
 
     public static final String VALIDATION_ERROR_CODE = "VALIDATION_ERROR";
-    public static final String VALIDATION_ERROR_MSG = "Erro de valida\u00e7\u00e3o";
+    public static final String VALIDATION_ERROR_MSG = "Informa\u00e7\u00f5es incompletas";
 
     public static final String INTERNAL_ERROR_CODE = "INTERNAL_ERROR";
     public static final String INTERNAL_ERROR_MSG = "Ocorreu um erro inesperado";

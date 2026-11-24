@@ -29,6 +29,8 @@ import { Button } from "@/shared/components/ui/Button";
 import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
 import { useOptionalActiveSystem } from "@/shared/context/ActiveSystemContext";
 import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
+import { useWorkspaceHistoryCommit } from "@/shared/workspace/workspace-history";
+import type { WorkspaceHistoryMode } from "@/shared/workspace/workspace-location";
 import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
@@ -92,7 +94,7 @@ type CrudScreenContextValue = {
     startEdit: (
         id: string,
         record?: object,
-        options?: { skipDirtyCheck?: boolean },
+        options?: { skipDirtyCheck?: boolean; history?: WorkspaceHistoryMode },
     ) => void | Promise<void>;
 };
 
@@ -292,14 +294,17 @@ export function CrudScreen({
     }, [activeTab, canWrite, isEditing]);
     const isListInstance = workspaceTabCtx == null || isModuleListTab(workspaceTabCtx.tab.entityKey);
     const syncWorkspace = useCallback(
-        (crud: { editingId?: string | null; isNew?: boolean; titleSuffix?: string | null }) => {
+        (
+            crud: { editingId?: string | null; isNew?: boolean; titleSuffix?: string | null },
+            history: WorkspaceHistoryMode = "push",
+        ) => {
             if (!workspaceEnabled || !workspaceTabCtx) return;
             const tabId = workspaceTabCtx.tab.id;
             if (crud.titleSuffix) setTitleSuffix(tabId, crud.titleSuffix);
             else clearTitleSuffix(tabId);
             // URL so espelha edit/new na aba de listagem do modulo; abas de registro mantem o modelo proprio.
             if (isListInstance) {
-                syncCrudUrl(tabId, { editingId: crud.editingId, isNew: crud.isNew });
+                syncCrudUrl(tabId, { editingId: crud.editingId, isNew: crud.isNew }, history);
             }
         },
         [clearTitleSuffix, isListInstance, setTitleSuffix, syncCrudUrl, workspaceEnabled, workspaceTabCtx],
@@ -364,7 +369,7 @@ export function CrudScreen({
         closeTab(tabId);
         const nextActiveId = useWorkspaceStore.getState().activeTabId;
         if (nextActiveId) {
-            focusTabById(nextActiveId);
+            focusTabById(nextActiveId, "replace");
         }
     }, [closeTab, confirmDiscardFormChanges, focusTabById, goToList, workspaceTabCtx?.tab.id]);
     const goToForm = useCallback(() => setActiveTab(CRUD_TAB_FORM), []);
@@ -377,7 +382,7 @@ export function CrudScreen({
         syncWorkspace({ isNew: true });
     }, [canWrite, confirmDiscardFormChanges, editOnly, formSessionActive, syncWorkspace]);
     const startEdit = useCallback(
-        async (id: string, record?: object, options?: { skipDirtyCheck?: boolean }) => {
+        async (id: string, record?: object, options?: { skipDirtyCheck?: boolean; history?: WorkspaceHistoryMode }) => {
             if (!canWrite) return;
             if (
                 !options?.skipDirtyCheck &&
@@ -392,15 +397,18 @@ export function CrudScreen({
                     : undefined;
             setEditingId(id);
             setActiveTab(CRUD_TAB_FORM);
-            syncWorkspace({
-                editingId: id,
-                titleSuffix: titleSuffix || undefined,
-            });
+            syncWorkspace(
+                {
+                    editingId: id,
+                    titleSuffix: titleSuffix || undefined,
+                },
+                options?.history ?? "push",
+            );
         },
         [canWrite, confirmDiscardFormChanges, crudConfig, editingId, syncWorkspace],
     );
     const showSavedRecord = useCallback(
-        (id: string, record?: object) => startEdit(id, record, { skipDirtyCheck: true }),
+        (id: string, record?: object) => startEdit(id, record, { skipDirtyCheck: true, history: "replace" }),
         [startEdit],
     );
     /**
@@ -411,6 +419,66 @@ export function CrudScreen({
     const goToTab = useCallback(async (tabId: string) => {
         setActiveTab(tabId);
     }, []);
+    const historyCommit = useWorkspaceHistoryCommit();
+    const workspaceActiveTabId = useWorkspaceStore((s) => s.activeTabId);
+    const historyAppliedEpochRef = useRef(0);
+
+    // Voltar/avançar do navegador: a URL da listagem manda no formulário aberto nesta aba.
+    useEffect(() => {
+        if (!workspaceEnabled || !isListInstance || !workspaceTabCtx || !historyCommit) return;
+        if (historyAppliedEpochRef.current === historyCommit.epoch) return;
+        if (workspaceActiveTabId !== workspaceTabCtx.tab.id) return;
+        let url: URL;
+        try {
+            url = new URL(historyCommit.key, "http://local");
+        } catch {
+            return;
+        }
+        if (url.pathname !== workspaceTabCtx.tab.href) return;
+        historyAppliedEpochRef.current = historyCommit.epoch;
+        const edit = url.searchParams.get("edit");
+        const isNew = url.searchParams.has("new");
+        if (edit) {
+            if (editingId === edit && activeTab === CRUD_TAB_FORM) return;
+            void startEdit(edit, undefined, { skipDirtyCheck: true, history: "none" });
+            return;
+        }
+        if (isNew) {
+            if (editingId == null && activeTab === CRUD_TAB_FORM) return;
+            setEditingId(null);
+            setFormEpoch((n) => n + 1);
+            setFormSessionLatched(true);
+            setActiveTab(CRUD_TAB_FORM);
+            return;
+        }
+        if (editingId == null && activeTab !== CRUD_TAB_FORM && !formSessionLatched) return;
+        void (async () => {
+            if (!(await confirmDiscardFormChanges())) {
+                syncWorkspace(
+                    editingId ? { editingId, isNew: false } : { isNew: true },
+                    "push",
+                );
+                return;
+            }
+            setFormSessionLatched(false);
+            setEditingId(null);
+            setActiveTab(CRUD_TAB_LIST);
+            clearTitleSuffix(workspaceTabCtx.tab.id);
+        })();
+    }, [
+        activeTab,
+        clearTitleSuffix,
+        confirmDiscardFormChanges,
+        editingId,
+        formSessionLatched,
+        historyCommit,
+        isListInstance,
+        startEdit,
+        syncWorkspace,
+        workspaceActiveTabId,
+        workspaceEnabled,
+        workspaceTabCtx,
+    ]);
     const prevBranchIdRef = useRef<string | null>(null);
 
     // A aba do modulo (ex.: job-positions::list) permanece montada ao trocar de filial; sem isso o
