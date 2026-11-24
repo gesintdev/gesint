@@ -4,8 +4,9 @@ O sistema tem um rail à esquerda para escolher o domínio ativo:
 
 - DP (Departamento Pessoal)
 - RH (Recursos Humanos)
-- CTB (Contabilidade / Folha)
 - CFG (Configurações) — muda o menu para telas de configuração
+
+Contabilidade (CTB) não entra nesse rail para o usuário: o módulo ainda está em desenvolvimento.
 
 Importante: o domínio ativo vem do rail, não da URL.
 
@@ -76,22 +77,11 @@ Importante: o domínio ativo vem do rail, não da URL.
 
 - Relatórios → `/report`
 
-## CTB — Contabilidade
+## Contabilidade
 
-### Folha
+O módulo de Contabilidade está em desenvolvimento e ainda não faz parte do que o cliente usa.
 
-- Folha de pagamento → `/payroll`
-- Eventos de folha → `/payroll/events`
-- Holerites → `/payroll/payslips`
-
-### Benefícios
-
-- Planos → `/benefit`
-- Vínculos → `/benefit/enrollments`
-
-### Fiscal
-
-- Fiscal → `/tax`
+Se a pergunta for sobre esse módulo, responda só que está em desenvolvimento e que em breve estará no Gesint. Não ofereça caminho de menu, rota ou deep link. Não descreva folha, benefícios ou fiscal como telas disponíveis. Não diga que já dá para contratar ou habilitar.
 
 ## CFG — Configurações
 
@@ -121,6 +111,7 @@ Acesse pelo ícone CFG no rail. Exemplos:
 
 ## Dicas de resposta
 
-- Se perguntarem "onde fica X", indique domínio (DP/RH/CTB/CFG), caminho de menu e a rota quando útil.
+- Se perguntarem "onde fica X", indique domínio (DP/RH/CFG), caminho de menu e a rota quando útil.
+- Pergunta sobre o módulo de Contabilidade não é "onde fica": responda que está em desenvolvimento e em breve entra no Gesint. Não indique domínio, menu nem rota.
 - Se não souber, diga que a base ainda está sendo enriquecida e sugira a busca global do header.
 - Não invente telas que não estejam neste mapa.
