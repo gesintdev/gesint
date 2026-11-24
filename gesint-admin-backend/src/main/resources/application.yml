@@ -55,6 +55,8 @@ gesint-admin:
     secret-encryption-key: ${GESINT_SECRET_ENCRYPTION_KEY:}
   cors:
     allowed-origins: ${ADMIN_CORS_ORIGINS:http://localhost:3001}
+  public-base-url: ${GESINT_ADMIN_PUBLIC_BASE_URL:http://localhost:3001}
+  client-base-domain: ${GESINT_TENANT_BASE_DOMAIN:localhost}
   hr:
     base-url: ${GESINT_HR_BASE_URL:http://localhost:8081}
     internal-event-secret: ${GESINT_INTERNAL_EVENT_SECRET:}

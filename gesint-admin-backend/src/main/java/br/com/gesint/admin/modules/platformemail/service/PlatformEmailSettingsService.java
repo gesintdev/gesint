@@ -111,6 +111,38 @@ public class PlatformEmailSettingsService {
         return toResponse(repository.save(entity));
     }
 
+    /** Disparo interno (recuperação de senha, primeiro acesso). Não exige permissão de tela. */
+    public boolean sendPlain(String to, String subject, String body) {
+        if (to == null || to.isBlank()) {
+            return false;
+        }
+        PlatformEmailSettings entity = repository
+                .findFirstByStatusNotOrderByCreatedAtAsc(StatusEnum.DELETED)
+                .filter(PlatformEmailSettings::isEnabled)
+                .orElse(null);
+        if (entity == null || entity.getHost() == null || entity.getPasswordEncrypted() == null) {
+            log.warn("SMTP da plataforma desligado. E-mail '{}' não enviado para {}.", subject, to);
+            return false;
+        }
+        try {
+            JavaMailSenderImpl sender = buildSender(entity);
+            var message = sender.createMimeMessage();
+            var helper = new MimeMessageHelper(message, false, StandardCharsets.UTF_8.name());
+            helper.setFrom(resolveFrom(entity), entity.getFromName() == null ? "Gesint" : entity.getFromName());
+            if (entity.getReplyTo() != null) {
+                helper.setReplyTo(entity.getReplyTo());
+            }
+            helper.setTo(to.trim());
+            helper.setSubject(subject);
+            helper.setText(body, false);
+            sender.send(message);
+            return true;
+        } catch (Exception ex) {
+            log.warn("Falha ao enviar '{}': {}", subject, describeFailure(ex));
+            return false;
+        }
+    }
+
     private JavaMailSenderImpl buildSender(PlatformEmailSettings entity) {
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
         sender.setHost(entity.getHost());

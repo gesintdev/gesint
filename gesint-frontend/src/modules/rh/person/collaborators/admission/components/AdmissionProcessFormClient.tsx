@@ -34,6 +34,7 @@ import {
     emptyAdmissionProcessForm,
 } from "@/modules/rh/person/collaborators/admission/lib/admission-process.mapper";
 import {admissionprocessService} from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
+import {collaboratorKeys} from "@/modules/rh/person/collaborators/people/collaborator.query";
 import {storageService} from "@/modules/storage/services/storage.service";
 import {CrudFormFooterActions} from "@/shared/components/crud/CrudFormFooterActions";
 import {CrudFormShell} from "@/shared/components/crud/CrudFormShell";
@@ -62,8 +63,16 @@ import {ExceptionCapture} from "@/shared/exceptions";
 import {digitsOnly} from "@/shared/lib/input/digits";
 import {useSyncWorkspaceTabTitle} from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
-export function AdmissionProcessFormClient() {
-    const {editingId, isEditing, goToList, showSavedRecord} = useCrudScreen();
+type AdmissionProcessFormClientProps = {
+    /** Edita esta admissão dentro de outra aba (Pessoas), sem trocar o id do cadastro aberto. */
+    admissionId?: string;
+};
+
+export function AdmissionProcessFormClient({admissionId}: AdmissionProcessFormClientProps = {}) {
+    const crud = useCrudScreen();
+    const editingId = admissionId ?? crud.editingId;
+    const isEditing = admissionId ? true : crud.isEditing;
+    const {goToList, showSavedRecord} = crud;
     const queryClient = useQueryClient();
     const [form, setForm] = useState<AdmissionProcessCreateDto>(emptyAdmissionProcessForm);
     const [error, setError] = useState<string | null>(null);
@@ -219,7 +228,11 @@ export function AdmissionProcessFormClient() {
             await queryClient.invalidateQueries({queryKey: admissionprocessKeys.detail(savedId)});
             await queryClient.invalidateQueries({queryKey: ["storage-links", "admission_process", savedId]});
             toast.success(isEditing ? "Admissão atualizada" : "Admissão registrada");
-            void showSavedRecord(savedId);
+            if (admissionId) {
+                await queryClient.invalidateQueries({queryKey: collaboratorKeys.all});
+            } else {
+                void showSavedRecord(savedId);
+            }
         },
         onError: async (err: unknown) => {
             const partialAdmissionId =
@@ -237,7 +250,9 @@ export function AdmissionProcessFormClient() {
             await queryClient.invalidateQueries({queryKey: admissionprocessKeys.all});
             if (partialAdmissionId) {
                 keepPendingAfterPartialRef.current = true;
-                void showSavedRecord(partialAdmissionId);
+                if (!admissionId) {
+                    void showSavedRecord(partialAdmissionId);
+                }
                 toast.info(ADMISSION_CLIENT_MESSAGES.ADMISSION_PARTIAL_SAVE_HINT);
                 return;
             }

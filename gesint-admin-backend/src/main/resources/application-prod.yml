@@ -8,6 +8,8 @@ spring:
     password: ${DB_PASSWORD}
 
 gesint-admin:
+  public-base-url: ${GESINT_ADMIN_PUBLIC_BASE_URL:https://admin.gesint.com.br}
+  client-base-domain: ${GESINT_TENANT_BASE_DOMAIN:gesint.com.br}
   # Producao: sem UI de ambiente de desenvolvimento e sem espelho em public.app_user.
   dev-environment:
     enabled: false

@@ -96,6 +96,20 @@ export function WorkScheduleFormClient() {
         },
     });
 
+    const applyTwelveThirtySix = (start: string, end: string) => {
+        setForm((prev) => ({
+            ...prev,
+            name: prev.name.trim() ? prev.name : "12x36",
+            days: prev.days.map((day) => ({
+                ...day,
+                period1Start: start,
+                period1End: end,
+                period2Start: "",
+                period2End: "",
+            })),
+        }));
+    };
+
     const updateDay = (dayOfWeek: string, field: DayTimeField, value: string) => {
         setForm((prev) => ({
             ...prev,
@@ -158,9 +172,27 @@ export function WorkScheduleFormClient() {
             <FormSection
                 id="quadro"
                 title="Quadro de horários"
-                description="Defina entrada/saída do primeiro tempo e entrada/encerramento do segundo tempo."
+                description="Um período de 12 horas vale para a escala 12x36, inclusive com saída no dia seguinte (19:00–07:00). Sábado e domingo entram no quadro. Deixe em branco os dias de folga."
                 bodyClassName="!block"
             >
+                <div className="mb-3 flex flex-wrap gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => applyTwelveThirtySix("07:00", "19:00")}
+                    >
+                        12x36 diurna (07:00–19:00)
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => applyTwelveThirtySix("19:00", "07:00")}
+                    >
+                        12x36 noturna (19:00–07:00)
+                    </Button>
+                </div>
                 <div className="overflow-x-auto rounded-lg border border-[var(--gesint-border-subtle)]">
                     <table className="gesint-table w-full min-w-[36rem] sm:min-w-[48rem] lg:min-w-[56rem]">
                         <thead>

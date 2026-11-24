@@ -23,7 +23,7 @@ export function CollaboratorListClient() {
                 <CrudTableActions
                     row={row}
                     onEdit={() => startEdit(row.id, row)}
-                    editAriaLabel="Editar dados pessoais"
+                    editAriaLabel="Editar cadastro"
                 />
             )}
         />

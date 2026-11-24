@@ -29,6 +29,7 @@ import br.com.gesint.core.audit.trail.AuditActionEnum;
 import br.com.gesint.core.audit.trail.AuditTrailEntry;
 import br.com.gesint.core.audit.trail.AuditTrailRecorder;
 import br.com.gesint.core.entity.StatusEnum;
+import br.com.gesint.core.mail.AccountAccessMailer;
 import br.com.gesint.core.security.JwtProperties;
 import br.com.gesint.core.security.JwtService;
 import br.com.gesint.core.tenant.AdminClientLookup;
@@ -104,6 +105,7 @@ public class AuthService implements IAuthService {
     private final AdminClientLookup adminClientLookup;
     private final BranchAccessResolver branchAccessResolver;
     private final AuditTrailRecorder auditTrail;
+    private final AccountAccessMailer accountAccessMailer;
 
     public AuthService(
             AppUserRepository appUserRepository,
@@ -125,7 +127,8 @@ public class AuthService implements IAuthService {
             TenantContractedSystemsLookup tenantContractedSystemsLookup,
             AdminClientLookup adminClientLookup,
             BranchAccessResolver branchAccessResolver,
-            AuditTrailRecorder auditTrail) {
+            AuditTrailRecorder auditTrail,
+            AccountAccessMailer accountAccessMailer) {
         this.appUserRepository = appUserRepository;
         this.permissionRepository = permissionRepository;
         this.collaboratorRepository = collaboratorRepository;
@@ -146,6 +149,7 @@ public class AuthService implements IAuthService {
         this.adminClientLookup = adminClientLookup;
         this.branchAccessResolver = branchAccessResolver;
         this.auditTrail = auditTrail;
+        this.accountAccessMailer = accountAccessMailer;
     }
 
     @Override
@@ -391,7 +395,7 @@ public class AuthService implements IAuthService {
                     user.setPasswordHash(null);
                     user.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
                     appUserRepository.save(user);
-                    // TODO: enviar e-mail com o token/link de redefinição quando o disparo estiver disponível.
+                    accountAccessMailer.sendPasswordReset(user.getEmail(), plainToken);
                 });
     }
 

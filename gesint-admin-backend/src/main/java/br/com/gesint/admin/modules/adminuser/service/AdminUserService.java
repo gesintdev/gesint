@@ -15,6 +15,7 @@ import br.com.gesint.admin.modules.adminuser.entity.AdminUser;
 import br.com.gesint.admin.modules.adminuser.exception.AdminUserException;
 import br.com.gesint.admin.modules.adminuser.mapper.AdminUserMapper;
 import br.com.gesint.admin.modules.adminuser.repository.AdminUserRepository;
+import br.com.gesint.admin.modules.platformemail.service.PlatformOutboundMail;
 import br.com.gesint.admin.modules.root.security.AccessTokenSupport;
 
 @Service
@@ -22,10 +23,13 @@ public class AdminUserService implements IAdminUserService {
 
     private final AdminUserRepository repository;
     private final AdminUserMapper mapper;
+    private final PlatformOutboundMail platformOutboundMail;
 
-    public AdminUserService(AdminUserRepository repository, AdminUserMapper mapper) {
+    public AdminUserService(
+            AdminUserRepository repository, AdminUserMapper mapper, PlatformOutboundMail platformOutboundMail) {
         this.repository = repository;
         this.mapper = mapper;
+        this.platformOutboundMail = platformOutboundMail;
     }
 
     @Override
@@ -85,6 +89,7 @@ public class AdminUserService implements IAdminUserService {
                 .build();
         AdminUserResponseDto response = mapper.toResponse(repository.save(entity));
         response.setAccessToken(plainToken);
+        platformOutboundMail.sendAdminFirstAccess(entity.getEmail(), plainToken);
         return response;
     }
 
@@ -115,6 +120,7 @@ public class AdminUserService implements IAdminUserService {
         entity.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
         AdminUserResponseDto response = mapper.toResponse(repository.save(entity));
         response.setAccessToken(plainToken);
+        platformOutboundMail.sendAdminPasswordReset(entity.getEmail(), plainToken);
         return response;
     }
 

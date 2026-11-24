@@ -34,7 +34,9 @@ export function canWriteRoute(
     if (route.publicAccess === "full") return true;
     if (route.publicAccess === "readonly") return false;
     const write = explicitWritePermission ?? deriveWritePermission(route.permission);
-    return hasPermission(granted, write);
+    if (hasPermission(granted, write)) return true;
+    // O cadastro da pessoa também é gravado pela admissão.
+    return route.permission === "collaborator:read" && hasPermission(granted, "admission:write");
 }
 
 export function canAccessExtraTab(

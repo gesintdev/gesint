@@ -14,7 +14,7 @@ import {
 import { useOptionalAppBootstrap } from "@/shared/components/providers/AppBootstrapProvider";
 import { type Branch, persistActiveBranch, readActiveBranch, subscribeActiveBranch } from "@/shared/lib/branch";
 import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
-import { writeLastWorkspaceInitLocation } from "@/shared/workspace/workspace-location";
+import { commitWorkspaceUrl } from "@/shared/workspace/workspace-location";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 
 type ActiveBranchContextValue = {
@@ -89,8 +89,7 @@ export function ActiveBranchProvider({ children, initialBranchId = null }: Activ
         params.delete("new");
         const qs = params.toString();
         const target = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
-        window.history.replaceState(window.history.state, "", target);
-        writeLastWorkspaceInitLocation(target);
+        commitWorkspaceUrl(target, "replace");
     }, [activeBranchId]);
 
     const selectBranch = useCallback(

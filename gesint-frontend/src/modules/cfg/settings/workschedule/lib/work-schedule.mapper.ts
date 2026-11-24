@@ -15,13 +15,15 @@ export const WEEK_DAY_LABELS: Record<WeekDay, string> = {
     SUNDAY: "Domingo",
 };
 
-/** Dias padrão do quadro (segunda a sexta). */
+/** Quadro da semana inteira. 12x36 e plantão usam sábado e domingo. */
 export const DEFAULT_SCHEDULE_DAYS: WeekDay[] = [
     "MONDAY",
     "TUESDAY",
     "WEDNESDAY",
     "THURSDAY",
     "FRIDAY",
+    "SATURDAY",
+    "SUNDAY",
 ];
 
 export function emptyDay(dayOfWeek: WeekDay): WorkScheduleDayCreateDto {
@@ -66,7 +68,8 @@ function minutesBetween(start?: string, end?: string): number {
     const [eh, em] = end.split(":").map(Number);
     if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return 0;
     const diff = eh * 60 + em - (sh * 60 + sm);
-    return diff > 0 ? diff : 0;
+    if (diff < 0) return diff + 24 * 60;
+    return diff;
 }
 
 export function formatMinutesAsTime(minutes: number): string {

@@ -153,8 +153,8 @@ export function PlatformEmailSettingsModule() {
                             <AdminBadge status={settings.enabled ? "Ativo" : "Inativo"} />
                         </div>
                         <div style={{ fontSize: 12, color: "var(--ga-text-muted)", marginBottom: 18 }}>
-                            Conta SMTP usada por todos os ambientes de clientes para enviar e-mails automáticos
-                            (retorno a candidatos, recibos de pagamento etc.).
+                            Conta SMTP usada pelo Admin e por todos os ambientes de clientes: recuperação de senha,
+                            primeiro acesso, retorno a candidatos e recibos de pagamento.
                         </div>
 
                         <AdminSection title="Servidor">

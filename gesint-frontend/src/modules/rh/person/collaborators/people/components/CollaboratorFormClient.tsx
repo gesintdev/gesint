@@ -1,9 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type SubmitEvent, useEffect, useState } from "react";
+import { type SubmitEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { AdmissionProcessFormClient } from "@/modules/rh/person/collaborators/admission/components/AdmissionProcessFormClient";
+import { admissionprocessKeys } from "@/modules/rh/person/collaborators/admission/admission.query";
+import { admissionprocessService } from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
 import { collaboratorKeys } from "@/modules/rh/person/collaborators/people/collaborator.query";
 import type { CollaboratorCreateDto } from "@/modules/rh/person/collaborators/people/dto/collaborator.dto";
 import { COLLABORATOR_CLIENT_MESSAGES } from "@/modules/rh/person/collaborators/people/exceptions/collaborator.messages";
@@ -21,6 +24,13 @@ import { FormSection } from "@/shared/components/ui/FormSection";
 import { InputCPF, InputDate, InputSelect, InputString, RgIdentityFields } from "@/shared/components/ui/input/index";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { SkeletonStack } from "@/shared/components/ui/SkeletonStack";
+import {
+    hasPermission,
+    permissionsForSystem,
+    useSessionPermissions,
+    useSessionSystemPermissions,
+} from "@/shared/auth/permissions";
+import { useOptionalActiveSystem } from "@/shared/context/ActiveSystemContext";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { useSyncWorkspaceTabTitle } from "@/shared/workspace/useSyncWorkspaceTabTitle";
 
@@ -40,12 +50,35 @@ const MARITAL_ITEMS: SelectItem[] = [
 
 export function CollaboratorFormClient() {
     const { editingId, isEditing, goToList, showSavedRecord, cancelAndClose } = useCrudScreen();
+    const flatPermissions = useSessionPermissions();
+    const systemPermissions = useSessionSystemPermissions();
+    const activeSystemCtx = useOptionalActiveSystem();
+    const canEditAdmission = useMemo(() => {
+        const activeSystem = activeSystemCtx?.activeSystem;
+        const isSettingsMode = Boolean(activeSystemCtx?.isSettingsMode);
+        let granted = flatPermissions;
+        if (systemPermissions && !flatPermissions.includes("*")) {
+            const scopeKey = isSettingsMode ? ("CFG" as const) : activeSystem;
+            if (scopeKey) {
+                const scoped = permissionsForSystem(flatPermissions, systemPermissions, scopeKey);
+                granted = scoped.includes("*")
+                    ? scoped
+                    : Array.from(new Set([...flatPermissions, ...scoped]));
+            }
+        }
+        return hasPermission(granted, "admission:write");
+    }, [activeSystemCtx, flatPermissions, systemPermissions]);
     const queryClient = useQueryClient();
     const [form, setForm] = useState<CollaboratorCreateDto>(emptyCollaboratorForm);
     const [error, setError] = useState<string | null>(null);
     const detailQuery = useQuery({
         queryKey: collaboratorKeys.detail(editingId ?? ""),
         queryFn: () => collaboratorService.getById(editingId!),
+        enabled: isEditing && Boolean(editingId),
+    });
+    const admissionQuery = useQuery({
+        queryKey: [...admissionprocessKeys.all, "by-collaborator", editingId ?? ""],
+        queryFn: () => admissionprocessService.findCurrentByCollaborator(editingId!),
         enabled: isEditing && Boolean(editingId),
     });
 
@@ -117,15 +150,19 @@ export function CollaboratorFormClient() {
     if (!isEditing) {
         return (
             <div className="flex min-h-[12rem] items-center justify-center p-8 text-center text-sm text-base-content/50">
-                Selecione uma pessoa na listagem para editar os dados pessoais.
+                Selecione uma pessoa na listagem para editar o cadastro.
             </div>
         );
     }
 
-    if (detailQuery.isLoading) {
+    if (detailQuery.isLoading || admissionQuery.isLoading) {
         return (
             <SkeletonStack count={6} padded />
         );
+    }
+
+    if (canEditAdmission && admissionQuery.data?.id) {
+        return <AdmissionProcessFormClient admissionId={admissionQuery.data.id} />;
     }
 
     if (detailQuery.isError) {

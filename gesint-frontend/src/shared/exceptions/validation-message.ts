@@ -58,18 +58,34 @@ function formatPart(part: string): string {
     return `${label}: ${translateRule(match[2])}`;
 }
 
-/** Traduz "Erro de validação: campo: regra" para o rótulo do campo. */
-export function formatValidationMessage(apiMessage: string): string {
+const INCOMPLETE_HEADING = "Informações incompletas";
+
+function validationDetail(apiMessage: string): string {
     const trimmed = apiMessage.trim();
-    const marker = ": ";
-    const markerAt = trimmed.indexOf(marker);
-    const detail = markerAt >= 0 ? trimmed.slice(markerAt + marker.length).trim() : trimmed;
+    const lower = trimmed.toLowerCase();
+    const headings = ["informações incompletas", "erro de validação"];
+    for (const heading of headings) {
+        if (lower === heading) return "";
+        const prefix = `${heading}:`;
+        if (lower.startsWith(prefix)) {
+            return trimmed.slice(prefix.length).trim();
+        }
+    }
+    return trimmed;
+}
+
+/** "Informações incompletas: Nome completo: é obrigatório." */
+export function formatValidationMessage(apiMessage: string): string {
+    const detail = validationDetail(apiMessage);
     if (!detail) {
-        return "Erro de validação";
+        return INCOMPLETE_HEADING;
     }
     const formatted = detail
         .split("; ")
         .map((part) => formatPart(part.trim()))
         .filter(Boolean);
-    return formatted.length > 0 ? formatted.join(". ") : trimmed;
+    if (formatted.length === 0) {
+        return INCOMPLETE_HEADING;
+    }
+    return `${INCOMPLETE_HEADING}: ${formatted.join(". ")}`;
 }

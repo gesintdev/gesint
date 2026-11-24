@@ -16,6 +16,7 @@ gesint:
   multi-tenant:
     # Producao: public e apenas template DDL — sem login de negocio.
     public-login-enabled: false
+    base-domain: ${GESINT_TENANT_BASE_DOMAIN:${GESINT_TENANT_PRODUCTION_BASE_DOMAIN:gesint.com.br}}
   # Nao espelha admGesint em public.app_user em producao.
   platform-admin:
     password: ""

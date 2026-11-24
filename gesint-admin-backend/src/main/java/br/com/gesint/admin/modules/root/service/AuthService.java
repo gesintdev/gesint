@@ -32,6 +32,7 @@ import br.com.gesint.admin.modules.root.entity.AdminRefreshTokenBlacklist;
 import br.com.gesint.admin.modules.root.exception.AuthException;
 import br.com.gesint.admin.modules.root.repository.AdminRefreshTokenBlacklistRepository;
 import br.com.gesint.admin.modules.root.repository.AdminRefreshTokenRepository;
+import br.com.gesint.admin.modules.platformemail.service.PlatformOutboundMail;
 import br.com.gesint.admin.modules.root.security.AccessTokenSupport;
 
 @Service
@@ -47,6 +48,7 @@ public class AuthService implements IAuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
+    private final PlatformOutboundMail platformOutboundMail;
 
     public AuthService(
             AdminUserRepository adminUserRepository,
@@ -55,7 +57,8 @@ public class AuthService implements IAuthService {
             PublicPermissionRepository permissionRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            JwtProperties jwtProperties) {
+            JwtProperties jwtProperties,
+            PlatformOutboundMail platformOutboundMail) {
         this.adminUserRepository = adminUserRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.blacklistRepository = blacklistRepository;
@@ -63,6 +66,7 @@ public class AuthService implements IAuthService {
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.jwtProperties = jwtProperties;
+        this.platformOutboundMail = platformOutboundMail;
     }
 
     @Override
@@ -188,7 +192,7 @@ public class AuthService implements IAuthService {
             user.setPasswordHash(null);
             user.setAccessTokenHash(AccessTokenSupport.hashToken(plainToken));
             adminUserRepository.save(user);
-            // TODO: enviar e-mail com o token/link de redefinição quando o disparo estiver disponível.
+            platformOutboundMail.sendAdminPasswordReset(user.getEmail(), plainToken);
         });
     }
 

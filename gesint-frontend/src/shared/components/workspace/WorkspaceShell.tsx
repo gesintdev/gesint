@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 
 import {WorkspaceTabBar} from "@/shared/components/workspace/WorkspaceTabBar";
 import {
@@ -20,20 +20,70 @@ import {
     isDashboardTabId,
     stripDashboardTabs,
 } from "@/shared/workspace/workspace-dashboard";
+import {WorkspaceHistoryCommitProvider, type WorkspaceHistoryCommit} from "@/shared/workspace/workspace-history";
 import {
     buildLocationKey,
+    locationsEqual,
     readBrowserLocationKey,
     readLastWorkspaceInitLocation,
     replaceUrlIfNeeded,
     writeLastWorkspaceInitLocation,
 } from "@/shared/workspace/workspace-location";
 import {getWorkspacePageComponent} from "@/shared/workspace/workspace-page-registry";
-import {findRouteByHref} from "@/shared/workspace/workspace-routes";
+import {defaultShortLabel, findRouteByHref} from "@/shared/workspace/workspace-routes";
 import {buildWorkspaceTabId} from "@/shared/workspace/workspace-tab-id";
 import {WorkspaceTabProvider} from "@/shared/workspace/WorkspaceTabContext";
 
+/** Voltar/avançar: reabre a tela da URL sem empilhar outro passo no histórico. */
+function restoreHistoryLocation(pathname: string, search: string) {
+    const parsed = parseWorkspaceLocation(pathname, search);
+    const route = parsed ? findRouteByHref(parsed.href) : undefined;
+    const store = useWorkspaceStore.getState();
+    if (!parsed || !route?.href) return;
+
+    if (route.id === DASHBOARD_ROUTE_ID) {
+        store.focusTab(DASHBOARD_TAB_ID);
+        return;
+    }
+
+    const listId = buildWorkspaceTabId(route.id, "list");
+    const input = {
+        routeId: route.id,
+        href: route.href,
+        routeLabel: route.label,
+        shortLabel: route.tabShortLabel ?? defaultShortLabel(route.label),
+        icon: route.icon,
+    };
+
+    if (parsed.editingId) {
+        const recordId = buildWorkspaceTabId(route.id, parsed.editingId);
+        if (store.tabs.some((tab) => tab.id === recordId)) {
+            store.focusTab(recordId);
+            return;
+        }
+        if (store.tabs.some((tab) => tab.id === listId)) {
+            store.focusTab(listId);
+            return;
+        }
+        store.openRecordTab({ ...input, entityKey: parsed.editingId });
+        return;
+    }
+
+    if (store.tabs.some((tab) => tab.id === listId)) {
+        store.focusTab(listId);
+        return;
+    }
+
+    if (parsed.isNew) {
+        store.openRecordTab({ ...input, entityKey: "new" });
+        return;
+    }
+
+    store.openModuleTab(input);
+}
+
 export function WorkspaceShell() {
-    const {pathname, searchParams, router} = useWorkspaceLocation();
+    const {pathname, searchParams} = useWorkspaceLocation();
     const tabs = useWorkspaceStore((s) => s.tabs);
     const activeTabId = useWorkspaceStore((s) => s.activeTabId);
     const hasHydrated = useWorkspaceStore((s) => s._hasHydrated);
@@ -44,9 +94,13 @@ export function WorkspaceShell() {
         const { confirmCloseDirtyTab } = await import("@/shared/workspace/dirty-tab-guard");
         if (await confirmCloseDirtyTab(tabId)) {
             closeTab(tabId);
+            const nextActiveId = useWorkspaceStore.getState().activeTabId;
+            if (nextActiveId) focusTabById(nextActiveId, "replace");
         }
     };
     const [mountedTabIds, setMountedTabIds] = useState<Set<string>>(() => new Set());
+    const [historyCommit, setHistoryCommit] = useState<WorkspaceHistoryCommit | null>(null);
+    const didInitRef = useRef(false);
     const dashboardTab = useMemo(() => getDashboardTab(), []);
     const moduleTabs = useMemo(() => stripDashboardTabs(tabs), [tabs]);
     const showDashboard = isDashboardTabId(activeTabId);
@@ -64,51 +118,70 @@ export function WorkspaceShell() {
 
     useEffect(() => {
         if (!hasHydrated) return;
-        // replaceState atualiza o browser antes do usePathname do Next — usar a URL real evita
-        // reabrir a aba de módulo e “piscar” o Painel (ex.: o 100% do anel de progresso).
+        // A URL real fica à frente do usePathname por um instante. Usá-la evita reabrir o
+        // Painel e “piscar” a tela (ex.: o 100% do anel de progresso).
         const browserKey = readBrowserLocationKey();
         const currentKey = browserKey ?? buildLocationKey(pathname, searchParams);
-        if (readLastWorkspaceInitLocation() === currentKey) return;
+        const previousKey = readLastWorkspaceInitLocation();
+        if (previousKey && locationsEqual(previousKey, currentKey)) {
+            didInitRef.current = true;
+            return;
+        }
 
         const locationPath = browserKey ? window.location.pathname : pathname;
         const locationSearch = browserKey ? window.location.search.slice(1) : searchParams.toString();
+
+        if (didInitRef.current) {
+            restoreHistoryLocation(locationPath, locationSearch);
+            writeLastWorkspaceInitLocation(currentKey);
+            setHistoryCommit((current) => ({ key: currentKey, epoch: (current?.epoch ?? 0) + 1 }));
+            return;
+        }
+
+        didInitRef.current = true;
         const state = useWorkspaceStore.getState();
         const parsed = parseWorkspaceLocation(locationPath, locationSearch);
         const route = parsed ? findRouteByHref(parsed.href) : undefined;
         if (parsed && route) {
             if (route.id === DASHBOARD_ROUTE_ID) {
-                focusTabById(DASHBOARD_TAB_ID);
+                focusTabById(DASHBOARD_TAB_ID, "none");
                 writeLastWorkspaceInitLocation(DASHBOARD_HREF);
+                setHistoryCommit({ key: DASHBOARD_HREF, epoch: 1 });
                 return;
             }
 
             if (parsed.editingId) {
                 const targetUrl = workspaceUrlWithCrud(parsed.href, {editingId: parsed.editingId});
-                openRouteRecord(route, parsed.editingId);
+                openRouteRecord(route, parsed.editingId, { history: "none" });
                 writeLastWorkspaceInitLocation(targetUrl);
+                setHistoryCommit({ key: targetUrl, epoch: 1 });
                 return;
             }
 
             if (parsed.isNew) {
                 const targetUrl = workspaceUrlWithCrud(parsed.href, {isNew: true});
-                openRouteCreate(route);
+                openRouteCreate(route, undefined, { history: "none" });
                 writeLastWorkspaceInitLocation(targetUrl);
+                setHistoryCommit({ key: targetUrl, epoch: 1 });
                 return;
             }
             const listTabId = buildWorkspaceTabId(route.id, "list");
             const existingList = state.tabs.find((t) => t.id === listTabId);
             if (existingList) {
-                focusTabById(existingList.id);
+                focusTabById(existingList.id, "none");
                 writeLastWorkspaceInitLocation(currentKey);
+                setHistoryCommit({ key: currentKey, epoch: 1 });
                 return;
             }
-            openFromHref(parsed.href);
+            openFromHref(parsed.href, "none");
             writeLastWorkspaceInitLocation(parsed.href);
+            setHistoryCommit({ key: parsed.href, epoch: 1 });
             return;
         }
 
         if (state.activeTabId && isDashboardTabId(state.activeTabId)) {
             writeLastWorkspaceInitLocation(DASHBOARD_HREF);
+            setHistoryCommit({ key: DASHBOARD_HREF, epoch: 1 });
             return;
         }
 
@@ -116,15 +189,18 @@ export function WorkspaceShell() {
             const active = state.tabs.find((t) => t.id === state.activeTabId);
             if (active) {
                 const targetUrl = workspaceUrlForTab(active.href, active.id);
-                replaceUrlIfNeeded(router, pathname, searchParams, targetUrl);
+                replaceUrlIfNeeded(targetUrl);
                 writeLastWorkspaceInitLocation(targetUrl);
+                setHistoryCommit({ key: targetUrl, epoch: 1 });
                 return;
             }
         }
         writeLastWorkspaceInitLocation(currentKey);
-    }, [focusTabById, hasHydrated, openFromHref, openRouteCreate, openRouteRecord, pathname, router, searchParams]);
+        setHistoryCommit({ key: currentKey, epoch: 1 });
+    }, [focusTabById, hasHydrated, openFromHref, openRouteCreate, openRouteRecord, pathname, searchParams]);
 
     return (
+        <WorkspaceHistoryCommitProvider value={historyCommit}>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {hasHydrated ? (
                 <WorkspaceTabBar
@@ -164,5 +240,6 @@ export function WorkspaceShell() {
                 })}
             </div>
         </div>
+        </WorkspaceHistoryCommitProvider>
     );
 }
