@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.105.5",
+      "hash": "d5a419be",
+      "date": "2026-11-24T09:59:02-03:00",
+      "type": "fix",
+      "scope": null,
+      "breaking": false,
+      "title": "404 de tenant inexistente e colunas do primeiro acesso",
+      "body": "**Commits incluídos**\n\n- fix: responde 404 vazio quando o tenant não está cadastrado.\n- fix: cria as colunas de preferência do usuário nos tenants já provisionados.",
+      "pullRequest": 15
+    },
+    {
       "version": "1.105.4",
       "hash": "5ba6f4e0",
       "date": "2026-11-24T07:51:19-03:00",
