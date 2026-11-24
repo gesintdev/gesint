@@ -28,7 +28,7 @@ public class PublicPontoController {
     }
 
     /**
-     * O filtro de tenant responde 404 antes deste metodo quando o slug nao existe.
+     * O filtro de tenant responde 404 vazio antes deste metodo quando o slug nao existe.
      * Se a requisicao chega aqui, o ambiente e valido (ou o multi-tenant esta desligado).
      */
     @GetMapping("/context")

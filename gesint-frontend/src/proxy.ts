@@ -1,9 +1,10 @@
-import type { NextFetchEvent, NextRequest } from "next/server";
+import { type NextFetchEvent, type NextRequest, NextResponse } from "next/server";
 import type { NextAuthRequest } from "next-auth";
 
 import { auth } from "@/auth";
 import { HR_SESSION_COOKIE_NAME } from "@/auth/cookies";
 import { retargetCanonicalRedirect } from "@/auth/incoming-origin";
+import { unknownTenantResponse } from "@/shared/lib/unknown-tenant";
 
 /**
  * O Auth.js reescreve o cookie de sessão em toda resposta, inclusive aqui. Como o Proxy roda
@@ -18,8 +19,33 @@ import { retargetCanonicalRedirect } from "@/auth/incoming-origin";
 const authorizeRequest = auth((_request: NextAuthRequest, _event: NextFetchEvent) => undefined);
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
+    const missingTenant = await unknownTenantResponse(request);
+    if (missingTenant) {
+        return missingTenant;
+    }
+    if (skipsAuthorization(request.nextUrl.pathname)) {
+        return NextResponse.next();
+    }
     const response = await authorizeRequest(request, event);
     return response instanceof Response ? finalizeProxyResponse(request, response) : response;
+}
+
+/**
+ * Estas rotas ficavam fora do matcher de propósito: o Auth.js não pode reescrever
+ * o cookie de sessão nelas. O tenant inexistente é barrado antes, com 404 vazio.
+ */
+function skipsAuthorization(pathname: string): boolean {
+    return (
+        pathname === "/api" ||
+        pathname.startsWith("/api/") ||
+        pathname.startsWith("/login") ||
+        pathname.startsWith("/definir-senha") ||
+        pathname.startsWith("/esqueci-senha") ||
+        pathname.startsWith("/careers") ||
+        pathname.startsWith("/ponto") ||
+        pathname.startsWith("/brand/") ||
+        pathname === "/favicon.ico"
+    );
 }
 
 function finalizeProxyResponse(request: NextRequest, response: Response): Response {
@@ -60,5 +86,5 @@ function isSessionCookieWrite(cookie: string): boolean {
 }
 
 export const config = {
-    matcher: ["/((?!api|login|definir-senha|esqueci-senha|careers|ponto|_next/static|_next/image|favicon.ico|brand/).*)"],
+    matcher: ["/((?!_next/static|_next/image).*)"],
 };

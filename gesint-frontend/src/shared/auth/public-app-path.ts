@@ -1,6 +1,5 @@
 /**
- * Rotas públicas do Client (sem login). Espelha o `authorized` em auth.ts e o
- * negative lookahead do matcher em proxy.ts — careers e ponto.
+ * Rotas públicas do Client (sem login). Espelha o `authorized` em auth.ts — careers e ponto.
  */
 export function isPublicAppPath(pathname: string | null | undefined): boolean {
     if (!pathname) {
