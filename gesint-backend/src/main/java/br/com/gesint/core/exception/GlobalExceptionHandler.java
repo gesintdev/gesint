@@ -3,6 +3,9 @@ package br.com.gesint.core.exception;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -33,9 +37,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDto> handleValidation(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
-        FieldError fieldError = ex.getBindingResult().getFieldError();
-        String detail = fieldError != null ? fieldError.getField() + ": " + fieldError.getDefaultMessage() : "";
+        List<String> details = new ArrayList<>();
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            details.add(fieldError.getField() + ": " + fieldError.getDefaultMessage());
+        }
+        for (ObjectError objectError : ex.getBindingResult().getGlobalErrors()) {
+            if (objectError.getDefaultMessage() != null) {
+                details.add(objectError.getDefaultMessage());
+            }
+        }
+        String detail = details.stream().collect(Collectors.joining("; "));
         String message = CoreException.validation(detail).getMessage();
+        log.warn(
+                "Validação rejeitada path={} correlationId={} details={}",
+                request.getRequestURI(),
+                CorrelationIdFilter.getCorrelationId(request),
+                detail);
         return ResponseEntity.badRequest().body(error(CoreExceptions.VALIDATION_ERROR_CODE, message, request));
     }
 

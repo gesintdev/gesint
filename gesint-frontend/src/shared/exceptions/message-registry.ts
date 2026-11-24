@@ -68,6 +68,7 @@ import { JOB_VACANCY_APPLICATION_MESSAGES } from "@/modules/rh/person/jobvacancy
 import { LEAVE_CLIENT_MESSAGES, LEAVE_MESSAGES } from "@/modules/rh/person/leave/exceptions/leave-request.messages";
 import { AUTH_CLIENT_MESSAGES, AUTH_MESSAGES } from "@/modules/root/exceptions/auth.messages";
 import { CORE_MESSAGES } from "@/shared/exceptions/core.messages";
+import { formatValidationMessage } from "@/shared/exceptions/validation-message";
 
 const REGISTRY: Record<string, string> = {
     ...CORE_MESSAGES,
@@ -120,6 +121,9 @@ const REGISTRY: Record<string, string> = {
 
 export function resolveMessageByCode(code: string | undefined, fallback: string): string {
     if (!code) return fallback;
+    if (code === "VALIDATION_ERROR") {
+        return formatValidationMessage(fallback);
+    }
     const registered = REGISTRY[code];
     return registered ?? fallback;
 }

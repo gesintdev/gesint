@@ -15,7 +15,7 @@ export class ExceptionCapture {
     private constructor() {}
     static fromUnknown(error: unknown, fallbackMessage?: string): AppException {
         if (error instanceof AppException) {
-            return error.withDisplayMessage(resolveMessageByCode(error.code, error.displayMessage));
+            return error.withDisplayMessage(resolveMessageByCode(error.code, error.message));
         }
 
         if (error instanceof Error) {
