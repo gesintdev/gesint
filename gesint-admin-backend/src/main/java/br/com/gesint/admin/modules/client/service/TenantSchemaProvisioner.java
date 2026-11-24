@@ -67,6 +67,8 @@ public class TenantSchemaProvisioner {
                         access_token_hash       VARCHAR(64),
                         first_access_completed  BOOLEAN NOT NULL DEFAULT false,
                         last_login              TIMESTAMPTZ,
+                        report_pdf_delivery_mode VARCHAR(20) NOT NULL DEFAULT 'DOWNLOAD',
+                        assistant_open_mode     VARCHAR(20) NOT NULL DEFAULT 'SIDE',
                         created_by              UUID,
                         created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
                         updated_by              UUID,
@@ -107,6 +109,7 @@ public class TenantSchemaProvisioner {
                     """
                             .formatted(schema));
         }
+        ensureAppUserPreferenceColumns(schema);
         jdbcTemplate.execute(
                 """
                 CREATE UNIQUE INDEX IF NOT EXISTS %s
@@ -224,6 +227,52 @@ public class TenantSchemaProvisioner {
 
     public static boolean isSafeSchemaName(String schema) {
         return StringUtils.hasText(schema) && SAFE_SCHEMA.matcher(schema.trim()).matches();
+    }
+
+    /**
+     * Colunas que o Client le em todo login e no token de primeiro acesso.
+     * O sync estrutural nao cobre app_user, e a migration que as criou nao roda de novo
+     * em schema provisionado depois.
+     */
+    private void ensureAppUserPreferenceColumns(String schema) {
+        jdbcTemplate.execute(
+                """
+                ALTER TABLE "%s".app_user
+                    ADD COLUMN IF NOT EXISTS report_pdf_delivery_mode VARCHAR(20) NOT NULL DEFAULT 'DOWNLOAD'
+                """
+                        .formatted(schema));
+        jdbcTemplate.execute(
+                """
+                ALTER TABLE "%s".app_user
+                    DROP CONSTRAINT IF EXISTS chk_app_user_report_pdf_delivery_mode
+                """
+                        .formatted(schema));
+        jdbcTemplate.execute(
+                """
+                ALTER TABLE "%s".app_user
+                    ADD CONSTRAINT chk_app_user_report_pdf_delivery_mode
+                    CHECK (report_pdf_delivery_mode IN ('DOWNLOAD', 'NEW_TAB'))
+                """
+                        .formatted(schema));
+        jdbcTemplate.execute(
+                """
+                ALTER TABLE "%s".app_user
+                    ADD COLUMN IF NOT EXISTS assistant_open_mode VARCHAR(20) NOT NULL DEFAULT 'SIDE'
+                """
+                        .formatted(schema));
+        jdbcTemplate.execute(
+                """
+                ALTER TABLE "%s".app_user
+                    DROP CONSTRAINT IF EXISTS chk_app_user_assistant_open_mode
+                """
+                        .formatted(schema));
+        jdbcTemplate.execute(
+                """
+                ALTER TABLE "%s".app_user
+                    ADD CONSTRAINT chk_app_user_assistant_open_mode
+                    CHECK (assistant_open_mode IN ('SIDE', 'MODAL', 'TAB'))
+                """
+                        .formatted(schema));
     }
 
     private boolean tenantTableExists(String schema, String table) {
