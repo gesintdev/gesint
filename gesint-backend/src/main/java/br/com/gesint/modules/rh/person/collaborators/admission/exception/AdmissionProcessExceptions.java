@@ -17,4 +17,9 @@ public final class AdmissionProcessExceptions {
     public static final String CLOCK_ACCESS_IDENTITY_REQUIRED_CODE = "ADMISSION_CLOCK_ACCESS_IDENTITY_REQUIRED";
     public static final String CLOCK_ACCESS_IDENTITY_REQUIRED_MSG =
             "Para gerar o código do colaborador informe nome completo, CPF e data de nascimento.";
+    public static final String INVALID_CPF_CODE = "ADMISSION_INVALID_CPF";
+    public static final String INVALID_CPF_MSG = "CPF invalido";
+    public static final String SALARY_ABOVE_BAND_CODE = "ADMISSION_SALARY_ABOVE_BAND";
+    public static final String SALARY_ABOVE_BAND_MSG =
+            "Salario base acima da faixa salarial vigente do cargo";
 }

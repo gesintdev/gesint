@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Map;
 import java.util.UUID;
 
 import br.com.gesint.modules.rh.person.developmentplan.entity.CompetencyTypeEnum;
@@ -24,5 +25,7 @@ public class InterviewCompetencyDto {
     private String description;
     /** Pergunta-guia sugerida na entrevista. */
     private String interviewGuideQuestion;
+    /** Indicadores por nivel (chave "1".."4"). */
+    private Map<String, String> levelIndicators;
     private String source;
 }

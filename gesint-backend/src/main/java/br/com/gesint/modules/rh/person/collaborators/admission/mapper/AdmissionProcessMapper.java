@@ -1,12 +1,17 @@
 package br.com.gesint.modules.rh.person.collaborators.admission.mapper;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import br.com.gesint.core.entity.StatusEnum;
+import br.com.gesint.modules.rh.person.collaborators.admission.dto.AdmissionDependentDto;
 import br.com.gesint.modules.rh.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
 import br.com.gesint.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gesint.modules.rh.person.collaborators.admission.dto.AdmissionProcessResponseDto;
@@ -55,6 +60,19 @@ public class AdmissionProcessMapper {
                 .workloadSchedule(dto.getWorkloadSchedule())
                 .workScheduleId(dto.getWorkScheduleId())
                 .emergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()))
+                .dependents(copyDependents(dto.getDependents()))
+                .raceColor(dto.getRaceColor())
+                .educationLevel(dto.getEducationLevel())
+                .disabilityInfo(toDisabilityInfo(dto.getDisabilityNotes()))
+                .bankCode(dto.getBankCode())
+                .bankAgency(dto.getBankAgency())
+                .bankAccount(dto.getBankAccount())
+                .bankAccountDigit(dto.getBankAccountDigit())
+                .bankAccountType(dto.getBankAccountType())
+                .pixKey(dto.getPixKey())
+                .pcdSelfDeclared(dto.getPcdSelfDeclared())
+                .pcdSelfDeclaredAt(
+                        Boolean.TRUE.equals(dto.getPcdSelfDeclared()) ? OffsetDateTime.now() : null)
                 .contractStartDate(dto.getContractStartDate())
                 .contractEndDate(dto.getContractEndDate())
                 .experiencePeriod(dto.getExperiencePeriod())
@@ -115,6 +133,17 @@ public class AdmissionProcessMapper {
                 .workloadSchedule(entity.getWorkloadSchedule())
                 .workScheduleId(entity.getWorkScheduleId())
                 .emergencyContacts(copyEmergencyContacts(entity.getEmergencyContacts()))
+                .dependents(copyDependents(entity.getDependents()))
+                .raceColor(entity.getRaceColor())
+                .educationLevel(entity.getEducationLevel())
+                .disabilityNotes(disabilityNotes(entity.getDisabilityInfo()))
+                .bankCode(entity.getBankCode())
+                .bankAgency(entity.getBankAgency())
+                .bankAccount(entity.getBankAccount())
+                .bankAccountDigit(entity.getBankAccountDigit())
+                .bankAccountType(entity.getBankAccountType())
+                .pixKey(entity.getPixKey())
+                .pcdSelfDeclared(entity.getPcdSelfDeclared())
                 .contractStartDate(entity.getContractStartDate())
                 .contractEndDate(entity.getContractEndDate())
                 .experiencePeriod(entity.getExperiencePeriod())
@@ -175,6 +204,25 @@ public class AdmissionProcessMapper {
         entity.setWorkScheduleId(dto.getWorkScheduleId());
         if (dto.getEmergencyContacts() != null) {
             entity.setEmergencyContacts(copyEmergencyContacts(dto.getEmergencyContacts()));
+        }
+        if (dto.getDependents() != null) {
+            entity.setDependents(copyDependents(dto.getDependents()));
+        }
+        entity.setRaceColor(dto.getRaceColor());
+        entity.setEducationLevel(dto.getEducationLevel());
+        entity.setDisabilityInfo(toDisabilityInfo(dto.getDisabilityNotes()));
+        entity.setBankCode(dto.getBankCode());
+        entity.setBankAgency(dto.getBankAgency());
+        entity.setBankAccount(dto.getBankAccount());
+        entity.setBankAccountDigit(dto.getBankAccountDigit());
+        entity.setBankAccountType(dto.getBankAccountType());
+        entity.setPixKey(dto.getPixKey());
+        Boolean previousPcd = entity.getPcdSelfDeclared();
+        entity.setPcdSelfDeclared(dto.getPcdSelfDeclared());
+        if (Boolean.TRUE.equals(dto.getPcdSelfDeclared()) && !Boolean.TRUE.equals(previousPcd)) {
+            entity.setPcdSelfDeclaredAt(OffsetDateTime.now());
+        } else if (!Boolean.TRUE.equals(dto.getPcdSelfDeclared())) {
+            entity.setPcdSelfDeclaredAt(null);
         }
         entity.setContractStartDate(dto.getContractStartDate());
         entity.setContractEndDate(dto.getContractEndDate());
@@ -307,6 +355,17 @@ public class AdmissionProcessMapper {
                 .workloadSchedule(entity.getWorkloadSchedule())
                 .workScheduleId(entity.getWorkScheduleId())
                 .emergencyContacts(copyEmergencyContacts(entity.getEmergencyContacts()))
+                .dependents(copyDependents(entity.getDependents()))
+                .raceColor(entity.getRaceColor())
+                .educationLevel(entity.getEducationLevel())
+                .disabilityNotes(disabilityNotes(entity.getDisabilityInfo()))
+                .bankCode(entity.getBankCode())
+                .bankAgency(entity.getBankAgency())
+                .bankAccount(entity.getBankAccount())
+                .bankAccountDigit(entity.getBankAccountDigit())
+                .bankAccountType(entity.getBankAccountType())
+                .pixKey(entity.getPixKey())
+                .pcdSelfDeclared(entity.getPcdSelfDeclared())
                 .contractStartDate(entity.getContractStartDate())
                 .contractEndDate(entity.getContractEndDate())
                 .experiencePeriod(entity.getExperiencePeriod())
@@ -345,5 +404,36 @@ public class AdmissionProcessMapper {
                         .relationship(contact.getRelationship())
                         .build())
                 .toList();
+    }
+
+    private static List<AdmissionDependentDto> copyDependents(List<AdmissionDependentDto> dependents) {
+        if (CollectionUtils.isEmpty(dependents)) {
+            return new ArrayList<>();
+        }
+        return dependents.stream()
+                .map(dependent -> AdmissionDependentDto.builder()
+                        .fullName(dependent.getFullName())
+                        .birthDate(dependent.getBirthDate())
+                        .relationship(dependent.getRelationship())
+                        .cpf(dependent.getCpf())
+                        .build())
+                .toList();
+    }
+
+    private static Map<String, String> toDisabilityInfo(String notes) {
+        if (!StringUtils.hasText(notes)) {
+            return null;
+        }
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("notes", notes.trim());
+        return map;
+    }
+
+    private static String disabilityNotes(Map<String, String> info) {
+        if (info == null || info.isEmpty()) {
+            return null;
+        }
+        String notes = info.get("notes");
+        return StringUtils.hasText(notes) ? notes : null;
     }
 }

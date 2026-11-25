@@ -38,4 +38,8 @@ public final class JobRequisitionExceptions {
 
     public static final String DELETE_BLOCKED_CODE = "JOB_REQUISITION_DELETE_BLOCKED";
     public static final String DELETE_BLOCKED_MSG = "Requisi\u00e7\u00e3o aprovada n\u00e3o pode ser exclu\u00edda";
+
+    public static final String SALARY_LEVEL_WITHOUT_BAND_CODE = "JOB_REQUISITION_SALARY_LEVEL_WITHOUT_BAND";
+    public static final String SALARY_LEVEL_WITHOUT_BAND_MSG =
+            "O n\u00edvel informado n\u00e3o possui faixa na tabela salarial vigente do cargo";
 }

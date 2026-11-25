@@ -273,8 +273,12 @@ export function InterviewScorecardPanel({
                                 <div className="flex flex-wrap gap-1">
                                     {levels.map((level) => {
                                         const active = draft.score === level.levelOrder;
-                                        const title = level.description?.trim()
-                                            ? `${level.name}: ${level.description}`
+                                        const indicator =
+                                            competency.levelIndicators?.[String(level.levelOrder ?? "")]?.trim() ||
+                                            level.description?.trim() ||
+                                            "";
+                                        const title = indicator
+                                            ? `${level.name}: ${indicator}`
                                             : level.name;
                                         return (
                                             <button
@@ -284,7 +288,7 @@ export function InterviewScorecardPanel({
                                                 title={title}
                                                 aria-label={title}
                                                 className={clsx(
-                                                    "inline-flex size-8 items-center justify-center rounded-md border text-xs font-semibold transition-colors",
+                                                    "inline-flex min-w-8 flex-col items-center justify-center rounded-md border px-1.5 py-1 text-xs font-semibold transition-colors",
                                                     active
                                                         ? "border-primary/40 bg-primary/10 text-primary"
                                                         : "border-base-content/12 text-base-content/70 hover:bg-base-content/[0.04]",
@@ -300,7 +304,12 @@ export function InterviewScorecardPanel({
                                                     }))
                                                 }
                                             >
-                                                {level.levelOrder}
+                                                <span>{level.levelOrder}</span>
+                                                {indicator ? (
+                                                    <span className="mt-0.5 max-w-[5.5rem] truncate text-[0.5625rem] font-normal leading-tight text-base-content/55">
+                                                        {indicator}
+                                                    </span>
+                                                ) : null}
                                             </button>
                                         );
                                     })}

@@ -4,7 +4,9 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,8 +21,9 @@ import br.com.gesint.modules.careers.candidateportal.dto.CandidatePortalPreAdmis
 import br.com.gesint.modules.careers.candidateportal.entity.CandidateAccount;
 import br.com.gesint.modules.careers.candidateportal.exception.CandidatePortalException;
 import br.com.gesint.modules.careers.candidateportal.repository.CandidateAccountRepository;
+import br.com.gesint.modules.cfg.settings.documenttype.entity.DocumentType;
+import br.com.gesint.modules.cfg.settings.documenttype.repository.DocumentTypeRepository;
 import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
-import br.com.gesint.modules.rh.person.collaborators.admission.pipeline.domain.AdmissionPipelineRules;
 import br.com.gesint.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
 import br.com.gesint.modules.rh.person.jobvacancy.entity.JobVacancy;
 import br.com.gesint.modules.rh.person.jobvacancy.repository.JobVacancyRepository;
@@ -38,6 +41,7 @@ public class CandidatePortalPreAdmissionService {
     private final AdmissionProcessRepository admissionProcessRepository;
     private final JobVacancyApplicationRepository applicationRepository;
     private final JobVacancyRepository jobVacancyRepository;
+    private final DocumentTypeRepository documentTypeRepository;
     private final IStorageService storageService;
 
     public CandidatePortalPreAdmissionService(
@@ -45,11 +49,13 @@ public class CandidatePortalPreAdmissionService {
             AdmissionProcessRepository admissionProcessRepository,
             JobVacancyApplicationRepository applicationRepository,
             JobVacancyRepository jobVacancyRepository,
+            DocumentTypeRepository documentTypeRepository,
             IStorageService storageService) {
         this.accountRepository = accountRepository;
         this.admissionProcessRepository = admissionProcessRepository;
         this.applicationRepository = applicationRepository;
         this.jobVacancyRepository = jobVacancyRepository;
+        this.documentTypeRepository = documentTypeRepository;
         this.storageService = storageService;
     }
 
@@ -178,14 +184,22 @@ public class CandidatePortalPreAdmissionService {
                 && hasText(admission.getBankAgency())
                 && hasText(admission.getBankAccount());
         boolean personalDone = admission.getBirthDate() != null && hasText(admission.getPhone());
+        Set<String> requiredTypes = documentTypeRepository
+                .findAllByStatusNotOrderBySortOrderAscNameAsc(StatusEnum.DELETED)
+                .stream()
+                .filter(type -> Boolean.TRUE.equals(type.getRequiredForAdmission()))
+                .map(DocumentType::getTypeCode)
+                .filter(code -> code != null && !code.isBlank())
+                .map(code -> code.trim().toUpperCase(Locale.ROOT))
+                .collect(Collectors.toSet());
         long docsReceived = documents.stream()
                 .map(CandidatePortalPreAdmissionDocumentDto::getDocumentType)
                 .filter(type -> type != null)
                 .map(type -> type.trim().toUpperCase(Locale.ROOT))
-                .filter(AdmissionPipelineRules.REQUIRED_DOCUMENT_TYPES::contains)
+                .filter(requiredTypes::contains)
                 .distinct()
                 .count();
-        boolean docsDone = docsReceived > 0;
+        boolean docsDone = requiredTypes.isEmpty() || docsReceived >= requiredTypes.size();
         boolean affirmative = vacancy != null && Boolean.TRUE.equals(vacancy.getAffirmativePcd());
 
         List<CandidatePortalPreAdmissionItemDto> pending = new ArrayList<>();

@@ -820,18 +820,6 @@ export function ExitInterviewFormClient() {
                     disabled={isFinal}
                 />
                 <InputSelect
-                    label="Empresa recontrataria?"
-                    items={REHIRE_ANSWER_ITEMS}
-                    value={form.companyWouldRehire ?? ""}
-                    onValueChange={(v) =>
-                        update("companyWouldRehire", (v || undefined) as ExitInterviewCreateDto["companyWouldRehire"])
-                    }
-                    wrapperClassName="sm:col-span-3"
-                    placeholder="Selecione"
-                    clearable
-                    disabled={isFinal}
-                />
-                <InputSelect
                     label="Indicaria a empresa?"
                     items={YES_NO_RECOMMEND_ITEMS}
                     value={form.wouldRecommend == null ? "" : String(form.wouldRecommend)}

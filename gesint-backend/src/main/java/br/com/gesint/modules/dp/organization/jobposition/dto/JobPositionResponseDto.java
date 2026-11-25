@@ -19,6 +19,7 @@ public class JobPositionResponseDto {
     private final boolean sharedAcrossBranches;
     private final UUID companyId;
     private final UUID departmentId;
+    private final String departmentName;
     private final String title;
     private final String cboCode;
     private final JobPositionNatureEnum nature;

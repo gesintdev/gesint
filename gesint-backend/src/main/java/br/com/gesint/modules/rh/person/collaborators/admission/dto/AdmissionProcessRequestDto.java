@@ -89,6 +89,37 @@ public class AdmissionProcessRequestDto {
 
     private List<AdmissionEmergencyContactDto> emergencyContacts;
 
+    private List<AdmissionDependentDto> dependents;
+
+    @Size(max = 30)
+    private String raceColor;
+
+    @Size(max = 30)
+    private String educationLevel;
+
+    @Size(max = 2000)
+    private String disabilityNotes;
+
+    @Size(max = 10)
+    private String bankCode;
+
+    @Size(max = 20)
+    private String bankAgency;
+
+    @Size(max = 30)
+    private String bankAccount;
+
+    @Size(max = 5)
+    private String bankAccountDigit;
+
+    @Size(max = 20)
+    private String bankAccountType;
+
+    @Size(max = 120)
+    private String pixKey;
+
+    private Boolean pcdSelfDeclared;
+
     private LocalDate contractStartDate;
     private LocalDate contractEndDate;
 

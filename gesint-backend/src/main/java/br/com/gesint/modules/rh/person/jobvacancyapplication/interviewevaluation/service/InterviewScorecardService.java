@@ -400,6 +400,10 @@ public class InterviewScorecardService {
                     .competencyType(competency.getType())
                     .description(competency.getDescription())
                     .interviewGuideQuestion(competency.getInterviewGuideQuestion())
+                    .levelIndicators(
+                            competency.getLevelIndicators() == null
+                                    ? Map.of()
+                                    : competency.getLevelIndicators())
                     .source(source)
                     .build());
         }
