@@ -29,6 +29,10 @@ public class JobPositionMapper {
     }
 
     public JobPositionResponseDto toResponse(JobPosition entity) {
+        return toResponse(entity, null);
+    }
+
+    public JobPositionResponseDto toResponse(JobPosition entity, String departmentName) {
         return JobPositionResponseDto.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
@@ -36,6 +40,7 @@ public class JobPositionMapper {
                 .sharedAcrossBranches(BranchCatalogScopes.isSharedAcrossBranches(entity))
                 .companyId(entity.getCompanyId())
                 .departmentId(entity.getDepartmentId())
+                .departmentName(departmentName)
                 .title(entity.getTitle())
                 .cboCode(entity.getCboCode())
                 .nature(entity.getNature())

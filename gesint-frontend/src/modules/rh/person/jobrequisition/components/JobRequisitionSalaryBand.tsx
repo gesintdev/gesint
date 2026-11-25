@@ -28,8 +28,8 @@ export function JobRequisitionSalaryBand({ levelLabel, proposed, min, max }: Job
                 <Info className="mt-px size-3.5 shrink-0" strokeWidth={2} />
                 <span>
                     {levelLabel
-                        ? "O cargo não tem tabela salarial vigente para este nível; a alçada segue o fluxo dentro da faixa."
-                        : "Selecione o nível para confrontar o salário com a faixa do cargo."}
+                        ? "O cargo não tem faixa salarial vigente para este nível. Escolha um nível com faixa cadastrada."
+                        : "Selecione um nível com faixa salarial vigente para confrontar o salário."}
                 </span>
             </div>
         );

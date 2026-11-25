@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.gesint.core.base.dto.PageableResponseDto;
 import br.com.gesint.core.entity.StatusEnum;
+import br.com.gesint.modules.cfg.settings.documenttype.entity.DocumentType;
+import br.com.gesint.modules.cfg.settings.documenttype.repository.DocumentTypeRepository;
 import br.com.gesint.modules.dp.organization.department.repository.DepartmentRepository;
 import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
@@ -82,6 +84,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
     private final OccupationalExamRepository occupationalExamRepository;
     private final StorageObjectLinkRepository storageObjectLinkRepository;
     private final DepartmentRepository departmentRepository;
+    private final DocumentTypeRepository documentTypeRepository;
     private final AdmissionClockAccessService clockAccessService;
     private final CollaboratorProfileService collaboratorProfileService;
 
@@ -92,6 +95,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             OccupationalExamRepository occupationalExamRepository,
             StorageObjectLinkRepository storageObjectLinkRepository,
             DepartmentRepository departmentRepository,
+            DocumentTypeRepository documentTypeRepository,
             AdmissionClockAccessService clockAccessService,
             CollaboratorProfileService collaboratorProfileService) {
         this.admissionRepository = admissionRepository;
@@ -100,6 +104,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
         this.occupationalExamRepository = occupationalExamRepository;
         this.storageObjectLinkRepository = storageObjectLinkRepository;
         this.departmentRepository = departmentRepository;
+        this.documentTypeRepository = documentTypeRepository;
         this.clockAccessService = clockAccessService;
         this.collaboratorProfileService = collaboratorProfileService;
     }
@@ -246,6 +251,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
 
         Map<UUID, String> departmentNames = loadDepartmentNames(admissions);
         Map<UUID, String> accessCodes = new HashMap<>(collaboratorProfileService.accessCodesById(collaboratorIds));
+        Set<String> requiredDocumentTypes = loadRequiredDocumentTypes();
 
         List<AdmissionStep> toPersist = new ArrayList<>();
         List<AdmissionPipelineRowDto> rows = new ArrayList<>();
@@ -253,7 +259,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             Map<AdmissionStepKeyEnum, AdmissionStep> persisted =
                     indexSteps(stepsByAdmission.getOrDefault(admission.getId(), List.of()));
             List<StorageObjectLink> links = linksByAdmission.getOrDefault(admission.getId(), List.of());
-            DocumentProgress documents = documentProgress(links);
+            DocumentProgress documents = documentProgress(links, requiredDocumentTypes);
             OccupationalExam exam = admission.getCollaboratorId() == null
                     ? null
                     : examByCollaborator.get(admission.getCollaboratorId());
@@ -310,24 +316,33 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
 
     private record DocumentProgress(long received, long required, long contractDocuments) {}
 
-    private static DocumentProgress documentProgress(List<StorageObjectLink> links) {
+    private Set<String> loadRequiredDocumentTypes() {
+        return documentTypeRepository.findAllByStatusNotOrderBySortOrderAscNameAsc(StatusEnum.DELETED).stream()
+                .filter(type -> Boolean.TRUE.equals(type.getRequiredForAdmission()))
+                .map(DocumentType::getTypeCode)
+                .filter(code -> code != null && !code.isBlank())
+                .map(code -> code.trim().toUpperCase())
+                .collect(Collectors.toSet());
+    }
+
+    private static DocumentProgress documentProgress(List<StorageObjectLink> links, Set<String> requiredTypes) {
+        Set<String> required = requiredTypes == null ? Set.of() : requiredTypes;
         Set<String> receivedTypes = links.stream()
                 .filter(link -> "DOCUMENT".equalsIgnoreCase(link.getLinkRole()))
                 .map(StorageObjectLink::getDocumentType)
                 .filter(java.util.Objects::nonNull)
                 .map(type -> type.trim().toUpperCase())
-                .filter(AdmissionPipelineRules.REQUIRED_DOCUMENT_TYPES::contains)
+                .filter(required::contains)
                 .collect(Collectors.toSet());
         long contracts = links.stream()
                 .filter(link -> "CONTRACT".equalsIgnoreCase(link.getLinkRole()))
                 .count();
-        return new DocumentProgress(
-                receivedTypes.size(), AdmissionPipelineRules.REQUIRED_DOCUMENT_TYPES.size(), contracts);
+        return new DocumentProgress(receivedTypes.size(), required.size(), contracts);
     }
 
     private Map<AdmissionStepKeyEnum, LocalDate> resolveDueDates(AdmissionProcess admission, EsocialEvent event) {
         Map<AdmissionStepKeyEnum, LocalDate> dueDates = new EnumMap<>(AdmissionStepKeyEnum.class);
-        LocalDate start = admission.getExpectedStartDate();
+        LocalDate start = effectiveStartDate(admission);
         dueDates.put(AdmissionStepKeyEnum.EXAME, AdmissionPipelineRules.examDueDate(start));
         dueDates.put(AdmissionStepKeyEnum.REGISTRO, AdmissionPipelineRules.registrationDueDate(start));
         // Sem evento S-2200 (integracao ainda nao gera transmissao), nao expoe prazo na esteira.
@@ -336,6 +351,14 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
         }
         dueDates.put(AdmissionStepKeyEnum.INTEGRACAO, start);
         return dueDates;
+    }
+
+    /** Data efetiva de inicio: contrato quando preenchido, senao vinculo previsto. */
+    private static LocalDate effectiveStartDate(AdmissionProcess admission) {
+        if (admission.getContractStartDate() != null) {
+            return admission.getContractStartDate();
+        }
+        return admission.getExpectedStartDate();
     }
 
     private Map<AdmissionStepKeyEnum, AdmissionStepStatusEnum> resolveStepStatuses(
@@ -361,7 +384,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                 AdmissionStepKeyEnum.REGISTRO,
                 manualStatus(
                         persisted.get(AdmissionStepKeyEnum.REGISTRO),
-                        AdmissionPipelineRules.registrationDueDate(admission.getExpectedStartDate()),
+                        AdmissionPipelineRules.registrationDueDate(effectiveStartDate(admission)),
                         statuses.get(AdmissionStepKeyEnum.CONTRATO) == AdmissionStepStatusEnum.DONE,
                         today));
         statuses.put(
@@ -411,7 +434,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
             return AdmissionStepStatusEnum.DONE;
         }
         boolean startingSoon = AdmissionPipelineRules.isStartingWithin(
-                        admission.getExpectedStartDate(), today, AdmissionPipelineRules.STARTING_SOON_DAYS)
+                        effectiveStartDate(admission), today, AdmissionPipelineRules.STARTING_SOON_DAYS)
                 || isStartDatePassed(admission, today);
         if (startingSoon) {
             return AdmissionStepStatusEnum.BLOCKED;
@@ -445,7 +468,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
         if (!AdmissionPipelineRules.isEsocialS2200Enforced(event != null)) {
             return AdmissionStepStatusEnum.PENDING;
         }
-        LocalDate dueDate = AdmissionPipelineRules.esocialDueDate(admission.getExpectedStartDate());
+        LocalDate dueDate = AdmissionPipelineRules.esocialDueDate(effectiveStartDate(admission));
         if (AdmissionPipelineRules.isOverdue(dueDate, today)) {
             return AdmissionStepStatusEnum.BLOCKED;
         }
@@ -572,9 +595,8 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                 .min(Comparator.comparing(AdmissionPipelineStepDto::getDueDate));
 
         AdmissionPipelineSignalEnum signal = resolveSignal(admission, statuses, steps, event != null, today);
-        Integer daysSinceStart = admission.getExpectedStartDate() == null
-                ? null
-                : (int) ChronoUnit.DAYS.between(admission.getExpectedStartDate(), today);
+        LocalDate start = effectiveStartDate(admission);
+        Integer daysSinceStart = start == null ? null : (int) ChronoUnit.DAYS.between(start, today);
 
         return AdmissionPipelineRowDto.builder()
                 .admissionId(admission.getId())
@@ -583,7 +605,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                 .fullName(displayName(admission))
                 .departmentName(
                         admission.getDepartmentId() == null ? null : departmentNames.get(admission.getDepartmentId()))
-                .expectedStartDate(admission.getExpectedStartDate())
+                .expectedStartDate(start)
                 .steps(steps)
                 .signal(signal)
                 .manuallyApproved(admission.getManuallyApprovedAt() != null)
@@ -621,8 +643,8 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
     }
 
     private static boolean isStartDatePassed(AdmissionProcess admission, LocalDate today) {
-        return admission.getExpectedStartDate() != null
-                && admission.getExpectedStartDate().isBefore(today);
+        LocalDate start = effectiveStartDate(admission);
+        return start != null && start.isBefore(today);
     }
 
     private static boolean isPipelineClosed(
@@ -696,7 +718,7 @@ public class AdmissionPipelineService implements IAdmissionPipelineService {
                         && statuses.get(AdmissionStepKeyEnum.ESOCIAL) == AdmissionStepStatusEnum.BLOCKED);
         if (blocked
                 && AdmissionPipelineRules.isStartingWithin(
-                        admission.getExpectedStartDate(), today, AdmissionPipelineRules.STARTING_SOON_DAYS)) {
+                        effectiveStartDate(admission), today, AdmissionPipelineRules.STARTING_SOON_DAYS)) {
             return 3;
         }
         boolean dueSoon = steps.stream()

@@ -179,6 +179,32 @@ export function JobVacancyFormClient() {
                     slug: autoSlug ? slugFromJobTitle(title) : prev.slug,
                 };
             });
+            // Copia competencias do cargo marcadas para Entrevista para a vaga (quando ja existir id).
+            if (editingId) {
+                const { jobPositionCompetencyService } = await import(
+                    "@/modules/dp/organization/jobposition/competency/services/job-position-competency.service"
+                );
+                const { jobVacancyCompetencyService } = await import(
+                    "@/modules/rh/person/jobvacancy/competency/services/job-vacancy-competency.service"
+                );
+                const positionCompetencies =
+                    await jobPositionCompetencyService.findByJobPositionId(jobPositionId);
+                const interviewCompetencies = positionCompetencies.filter((row) =>
+                    (row.usedIn ?? []).includes("INTERVIEW"),
+                );
+                const existing = await jobVacancyCompetencyService.findByJobVacancyId(editingId);
+                const existingIds = new Set(existing.map((row) => row.competencyId));
+                let order = existing.length;
+                for (const row of interviewCompetencies) {
+                    if (!row.competencyId || existingIds.has(row.competencyId)) continue;
+                    await jobVacancyCompetencyService.create({
+                        jobVacancyId: editingId,
+                        competencyId: row.competencyId,
+                        displayOrder: order++,
+                    });
+                    existingIds.add(row.competencyId);
+                }
+            }
         } catch {
             setForm((prev) => ({ ...prev, jobPositionId }));
         }

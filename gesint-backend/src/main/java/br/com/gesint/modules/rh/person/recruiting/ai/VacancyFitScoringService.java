@@ -20,7 +20,7 @@ import br.com.gesint.modules.rh.person.jobvacancy.entity.JobVacancySeniorityEnum
 public class VacancyFitScoringService {
 
     private static final Pattern NON_ALNUM = Pattern.compile("[^a-z0-9\\s]");
-    private static final String RUBRIC_VERSION = "v1";
+    private static final String RUBRIC_VERSION = "v2";
 
     public ScoreResult score(
             JobVacancy vacancy,
@@ -33,16 +33,6 @@ public class VacancyFitScoringService {
         List<Map<String, Object>> criteria = new ArrayList<>();
 
         criteria.add(criterion(
-                "curriculum",
-                "Currículo anexado",
-                "Anexar currículo demonstra organização do candidato",
-                hasCurriculum
-                        ? "Currículo anexado na candidatura."
-                        : "Sem currículo anexado; análise baseada só em experiências manuais.",
-                hasCurriculum ? 100 : 0,
-                2));
-
-        criteria.add(criterion(
                 "title",
                 "Cargo semelhante",
                 StringUtils.hasText(vacancy.getJobTitle()) ? vacancy.getJobTitle() : "Cargo da vaga",
@@ -50,58 +40,42 @@ public class VacancyFitScoringService {
                 titleScore(experiences, vacancy.getJobTitle()),
                 3));
 
-        criteria.add(criterion(
-                "seniority",
-                "Senioridade",
-                seniorityLabel(vacancy.getSeniorityLevel()),
-                seniorityFound(seniorityGuess, vacancy.getSeniorityLevel()),
-                seniorityScore(seniorityGuess, vacancy.getSeniorityLevel()),
-                2));
+        if (vacancy.getSeniorityLevel() != null) {
+            criteria.add(criterion(
+                    "seniority",
+                    "Senioridade",
+                    seniorityLabel(vacancy.getSeniorityLevel()),
+                    seniorityFound(seniorityGuess, vacancy.getSeniorityLevel()),
+                    seniorityScore(seniorityGuess, vacancy.getSeniorityLevel()),
+                    2));
+        }
 
         List<String> requirements = splitLines(vacancy.getRequirements(), 5);
-        if (requirements.isEmpty()) {
+        int index = 0;
+        for (String requirement : requirements) {
+            int score = keywordOverlapScore(corpus, requirement);
             criteria.add(criterion(
-                    "requirements",
-                    "Requisitos",
-                    "Requisitos da vaga",
-                    "Vaga sem requisitos textuais cadastrados.",
-                    55,
-                    3));
-        } else {
-            int index = 0;
-            for (String requirement : requirements) {
-                int score = keywordOverlapScore(corpus, requirement);
-                criteria.add(criterion(
-                        "req-" + index,
-                        "Requisito " + (index + 1),
-                        requirement,
-                        scoreFound(score, requirement),
-                        score,
-                        2));
-                index++;
-            }
+                    "req-" + index,
+                    "Requisito " + (index + 1),
+                    requirement,
+                    scoreFound(score, requirement),
+                    score,
+                    2));
+            index++;
         }
 
         String activitiesAssignments = joinNonBlank(vacancy.getActivities(), vacancy.getAssignments());
-        criteria.add(criterion(
-                "activities",
-                "Atividades / atribuições",
-                StringUtils.hasText(activitiesAssignments)
-                        ? truncate(activitiesAssignments, 180)
-                        : "Atividades e atribuições da vaga",
-                activitiesFound(corpus, activitiesAssignments),
-                StringUtils.hasText(activitiesAssignments) ? keywordOverlapScore(corpus, activitiesAssignments) : 50,
-                2));
+        if (StringUtils.hasText(activitiesAssignments)) {
+            criteria.add(criterion(
+                    "activities",
+                    "Atividades / atribuições",
+                    truncate(activitiesAssignments, 180),
+                    activitiesFound(corpus, activitiesAssignments),
+                    keywordOverlapScore(corpus, activitiesAssignments),
+                    2));
+        }
 
-        criteria.add(criterion(
-                "salary",
-                "Pretensão salarial",
-                salaryRequired(vacancy),
-                salaryFound(salaryExpectation, vacancy),
-                salaryScore(salaryExpectation, vacancy),
-                1));
-
-        int totalScore = totalFromCriteria(criteria);
+        int totalScore = criteria.isEmpty() ? 0 : totalFromCriteria(criteria);
         String summary = buildSummary(totalScore, hasCurriculum, seniorityGuess);
 
         Map<String, Object> analysis = new LinkedHashMap<>();
@@ -118,327 +92,244 @@ public class VacancyFitScoringService {
     }
 
     private static Map<String, Object> criterion(
-            String id, String label, String required, String found, int score, int weight) {
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("id", id);
-        map.put("label", label);
-        map.put("required", required);
-        map.put("found", found);
-        map.put("score", Math.max(0, Math.min(100, score)));
-        map.put("weight", weight);
-        return map;
+            String key, String label, String expected, String found, int score, int weight) {
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("key", key);
+        item.put("label", label);
+        item.put("expected", expected);
+        item.put("found", found);
+        item.put("score", score);
+        item.put("weight", weight);
+        return item;
     }
 
     private static int totalFromCriteria(List<Map<String, Object>> criteria) {
-        if (criteria.isEmpty()) {
+        int weightedSum = 0;
+        int weightTotal = 0;
+        for (Map<String, Object> item : criteria) {
+            int score = ((Number) item.get("score")).intValue();
+            int weight = ((Number) item.get("weight")).intValue();
+            weightedSum += score * weight;
+            weightTotal += weight;
+        }
+        if (weightTotal == 0) {
             return 0;
         }
-        int sum = 0;
-        for (Map<String, Object> item : criteria) {
-            Object score = item.get("score");
-            sum += score instanceof Number number ? number.intValue() : 0;
+        return Math.round((float) weightedSum / weightTotal);
+    }
+
+    private static String buildSummary(int totalScore, boolean hasCurriculum, String seniorityGuess) {
+        StringBuilder summary = new StringBuilder();
+        summary.append("Compatibilidade estimada de ").append(totalScore).append("%.");
+        if (!hasCurriculum) {
+            summary.append(" Análise baseada apenas em experiências manuais.");
         }
-        return (int) Math.round((sum * 100.0) / (criteria.size() * 100.0));
+        if (StringUtils.hasText(seniorityGuess)) {
+            summary.append(" Senioridade sugerida: ").append(seniorityGuess).append(".");
+        }
+        return summary.toString();
     }
 
     private static String buildCorpus(List<Map<String, String>> experiences, List<String> skills) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
         if (experiences != null) {
-            for (Map<String, String> exp : experiences) {
-                if (exp == null) {
+            for (Map<String, String> experience : experiences) {
+                if (experience == null) {
                     continue;
                 }
-                sb.append(' ').append(nullToEmpty(exp.get("jobTitle")));
-                sb.append(' ').append(nullToEmpty(exp.get("company")));
-                sb.append(' ').append(nullToEmpty(exp.get("description")));
+                experience.values().forEach(value -> {
+                    if (StringUtils.hasText(value)) {
+                        builder.append(' ').append(value);
+                    }
+                });
             }
         }
         if (skills != null) {
             for (String skill : skills) {
-                sb.append(' ').append(nullToEmpty(skill));
+                if (StringUtils.hasText(skill)) {
+                    builder.append(' ').append(skill);
+                }
             }
         }
-        return normalize(sb.toString());
-    }
-
-    private static int titleScore(List<Map<String, String>> experiences, String jobTitle) {
-        if (!StringUtils.hasText(jobTitle) || experiences == null || experiences.isEmpty()) {
-            return 35;
-        }
-        String target = normalize(jobTitle);
-        int best = 0;
-        for (Map<String, String> exp : experiences) {
-            String title = normalize(exp.get("jobTitle"));
-            if (!StringUtils.hasText(title)) {
-                continue;
-            }
-            if (title.equals(target)) {
-                return 100;
-            }
-            if (title.contains(target) || target.contains(title)) {
-                best = Math.max(best, 85);
-                continue;
-            }
-            best = Math.max(best, tokenOverlapPercent(title, target));
-        }
-        return best;
+        return normalize(builder.toString());
     }
 
     private static String titleFound(List<Map<String, String>> experiences, String jobTitle) {
         int score = titleScore(experiences, jobTitle);
-        if (score >= 80) {
-            return "Há cargo(s) semelhantes ao da vaga nas experiências.";
+        if (!StringUtils.hasText(jobTitle)) {
+            return "Vaga sem título para comparação.";
         }
-        if (score >= 50) {
-            return "Há indícios parciais de cargo semelhante.";
-        }
-        return "Pouca similaridade de cargo com a vaga.";
+        return score >= 70 ? "Experiência compatível com o cargo." : "Pouca evidência de cargo semelhante.";
     }
 
-    private static int seniorityScore(String guess, JobVacancySeniorityEnum required) {
-        if (required == null) {
-            return 60;
+    private static int titleScore(List<Map<String, String>> experiences, String jobTitle) {
+        if (!StringUtils.hasText(jobTitle) || experiences == null || experiences.isEmpty()) {
+            return 0;
         }
-        if (!StringUtils.hasText(guess)) {
-            return 40;
+        String expected = normalize(jobTitle);
+        int best = 0;
+        for (Map<String, String> experience : experiences) {
+            if (experience == null) {
+                continue;
+            }
+            String title = experience.get("title");
+            if (!StringUtils.hasText(title)) {
+                title = experience.get("role");
+            }
+            if (!StringUtils.hasText(title)) {
+                continue;
+            }
+            best = Math.max(best, keywordOverlapScore(normalize(title), expected));
         }
-        int g = seniorityRank(guess);
-        int r = seniorityRank(required.name());
-        int diff = Math.abs(g - r);
-        if (diff == 0) {
-            return 100;
-        }
-        if (diff == 1) {
-            return 65;
-        }
-        return 30;
+        return best;
     }
 
-    private static String seniorityFound(String guess, JobVacancySeniorityEnum required) {
+    private static String seniorityLabel(JobVacancySeniorityEnum seniority) {
+        return seniority == null ? "Não informado" : seniority.name();
+    }
+
+    private static String seniorityFound(String seniorityGuess, JobVacancySeniorityEnum required) {
         if (required == null) {
             return "Vaga sem senioridade definida.";
         }
-        if (!StringUtils.hasText(guess)) {
-            return "Senioridade do candidato não identificada com clareza.";
+        if (!StringUtils.hasText(seniorityGuess)) {
+            return "Senioridade do candidato não identificada.";
         }
-        return "Senioridade inferida: " + guess + " (vaga: " + required.name() + ").";
+        return "Senioridade estimada: " + seniorityGuess;
     }
 
-    private static int seniorityRank(String value) {
-        return switch (value) {
-            case "JUNIOR" -> 1;
-            case "PLENO" -> 2;
-            case "SENIOR" -> 3;
-            default -> 0;
-        };
-    }
-
-    private static String seniorityLabel(JobVacancySeniorityEnum value) {
-        return value == null ? "Não informado" : value.name();
-    }
-
-    private static int keywordOverlapScore(String corpus, String target) {
-        if (!StringUtils.hasText(corpus) || !StringUtils.hasText(target)) {
-            return 30;
+    private static int seniorityScore(String seniorityGuess, JobVacancySeniorityEnum required) {
+        if (required == null || !StringUtils.hasText(seniorityGuess)) {
+            return 0;
         }
-        return Math.max(20, tokenOverlapPercent(corpus, normalize(target)));
+        String guess = normalize(seniorityGuess);
+        String expected = normalize(required.name());
+        if (guess.contains(expected) || expected.contains(guess)) {
+            return 100;
+        }
+        return keywordOverlapScore(guess, expected);
     }
 
     private static String scoreFound(int score, String requirement) {
-        if (score >= 75) {
-            return "Evidência encontrada para: \"" + requirement + "\".";
-        }
-        if (score >= 45) {
-            return "Atendimento parcial ao requisito: \"" + requirement + "\".";
-        }
-        return "Não identificado com clareza: \"" + requirement + "\".";
-    }
-
-    private static String activitiesFound(String corpus, String activitiesAssignments) {
-        if (!StringUtils.hasText(activitiesAssignments)) {
-            return "Vaga sem atividades/atribuições textuais.";
-        }
-        int score = keywordOverlapScore(corpus, activitiesAssignments);
         if (score >= 70) {
-            return "Experiências cobrem boa parte das atividades/atribuições.";
+            return "Evidência forte para: " + truncate(requirement, 80);
         }
-        if (score >= 45) {
-            return "Cobertura parcial das atividades/atribuições.";
+        if (score >= 40) {
+            return "Evidência parcial para: " + truncate(requirement, 80);
         }
-        return "Pouca cobertura textual das atividades/atribuições.";
+        return "Pouca evidência para: " + truncate(requirement, 80);
     }
 
-    private static int salaryScore(BigDecimal expectation, JobVacancy vacancy) {
-        if (expectation == null) {
-            return 55;
-        }
-        BigDecimal min = vacancy.getSalary();
-        BigDecimal max = vacancy.getSalaryMax() != null ? vacancy.getSalaryMax() : vacancy.getSalary();
-        if (min == null && max == null) {
-            return 55;
-        }
-        if (min != null && max != null) {
-            if (expectation.compareTo(min) >= 0 && expectation.compareTo(max) <= 0) {
-                return 100;
-            }
-            if (expectation.compareTo(max) > 0) {
-                BigDecimal over = expectation.subtract(max);
-                BigDecimal tolerance = max.multiply(BigDecimal.valueOf(0.2));
-                return over.compareTo(tolerance) <= 0 ? 70 : 35;
-            }
-            return 80;
-        }
-        BigDecimal ref = min != null ? min : max;
-        BigDecimal delta = expectation.subtract(ref).abs();
-        BigDecimal tolerance = ref.multiply(BigDecimal.valueOf(0.2));
-        return delta.compareTo(tolerance) <= 0 ? 90 : 45;
+    private static String activitiesFound(String corpus, String activities) {
+        int score = keywordOverlapScore(corpus, activities);
+        return scoreFound(score, "atividades/atribuições");
     }
 
-    private static String salaryRequired(JobVacancy vacancy) {
-        if (vacancy.getSalary() == null && vacancy.getSalaryMax() == null) {
-            return "Faixa salarial da vaga não informada";
+    private static int keywordOverlapScore(String corpus, String expected) {
+        if (!StringUtils.hasText(corpus) || !StringUtils.hasText(expected)) {
+            return 0;
         }
-        if (vacancy.getSalary() != null && vacancy.getSalaryMax() != null) {
-            return "Faixa " + vacancy.getSalary() + " – " + vacancy.getSalaryMax();
-        }
-        return "Referência " + (vacancy.getSalary() != null ? vacancy.getSalary() : vacancy.getSalaryMax());
-    }
-
-    private static String salaryFound(BigDecimal expectation, JobVacancy vacancy) {
-        if (expectation == null) {
-            return "Candidato não informou pretensão salarial.";
-        }
-        return "Pretensão informada: " + expectation + ". " + salaryRequired(vacancy) + ".";
-    }
-
-    private static List<String> matchedSkills(List<String> skills, JobVacancy vacancy) {
-        if (skills == null || skills.isEmpty()) {
-            return List.of();
-        }
-        String hay = normalize(joinNonBlank(vacancy.getRequirements(), vacancy.getActivities(), vacancy.getAssignments()));
-        List<String> matched = new ArrayList<>();
-        for (String skill : skills) {
-            if (StringUtils.hasText(skill) && hay.contains(normalize(skill)) && matched.size() < 8) {
-                matched.add(skill.trim());
-            }
-        }
-        return matched;
-    }
-
-    private static List<String> missingSkills(List<String> skills, JobVacancy vacancy) {
-        List<String> reqTokens = significantTokens(normalize(nullToEmpty(vacancy.getRequirements())));
-        List<String> missing = new ArrayList<>();
-        String skillBlob = normalize(String.join(" ", skills == null ? List.of() : skills));
-        for (String token : reqTokens) {
-            if (token.length() < 4) {
+        String normalizedExpected = normalize(expected);
+        String[] tokens = normalizedExpected.split("\\s+");
+        int hits = 0;
+        int considered = 0;
+        for (String token : tokens) {
+            if (token.length() < 3) {
                 continue;
             }
-            if (!skillBlob.contains(token) && missing.size() < 8) {
-                missing.add(token);
-            }
-        }
-        return missing;
-    }
-
-    private static String buildSummary(int totalScore, boolean hasCurriculum, String seniorityGuess) {
-        String base = totalScore >= 80
-                ? "Forte aderência à vaga (" + totalScore + "%)."
-                : totalScore >= 55
-                        ? "Aderência moderada à vaga (" + totalScore + "%)."
-                        : "Baixa aderência aparente (" + totalScore + "%).";
-        if (hasCurriculum) {
-            base += " Currículo anexado.";
-        }
-        if (StringUtils.hasText(seniorityGuess)) {
-            base += " Senioridade inferida: " + seniorityGuess + ".";
-        }
-        return base;
-    }
-
-    private static int tokenOverlapPercent(String left, String right) {
-        List<String> a = significantTokens(left);
-        List<String> b = significantTokens(right);
-        if (a.isEmpty() || b.isEmpty()) {
-            return 25;
-        }
-        int hits = 0;
-        for (String token : a) {
-            if (b.contains(token)) {
+            considered++;
+            if (corpus.contains(token)) {
                 hits++;
             }
         }
-        return (int) Math.round((hits * 100.0) / a.size());
-    }
-
-    private static List<String> significantTokens(String text) {
-        List<String> tokens = new ArrayList<>();
-        if (!StringUtils.hasText(text)) {
-            return tokens;
+        if (considered == 0) {
+            return corpus.contains(normalizedExpected) ? 100 : 0;
         }
-        for (String part : text.split("\\s+")) {
-            if (part.length() < 3) {
-                continue;
-            }
-            if (List.of("para", "com", "uma", "das", "dos", "que", "por", "nao", "the", "and").contains(part)) {
-                continue;
-            }
-            if (!tokens.contains(part)) {
-                tokens.add(part);
-            }
-        }
-        return tokens;
+        return Math.round((hits * 100f) / considered);
     }
 
     private static List<String> splitLines(String value, int limit) {
         if (!StringUtils.hasText(value)) {
             return List.of();
         }
-        List<String> lines = new ArrayList<>();
-        for (String line : value.split("\\R")) {
-            String trimmed = line.trim();
+        String[] lines = value.split("[\\r\\n;•|-]+");
+        List<String> result = new ArrayList<>();
+        for (String line : lines) {
+            String trimmed = line == null ? "" : line.trim();
             if (trimmed.isEmpty()) {
                 continue;
             }
-            lines.add(trimmed);
-            if (lines.size() >= limit) {
+            result.add(trimmed);
+            if (result.size() >= limit) {
                 break;
             }
         }
-        return lines;
+        return result;
     }
 
-    private static String joinNonBlank(String... values) {
-        StringBuilder sb = new StringBuilder();
-        for (String value : values) {
-            if (!StringUtils.hasText(value)) {
+    private static List<String> matchedSkills(List<String> skills, JobVacancy vacancy) {
+        List<String> required = splitLines(vacancy.getRequirements(), 20);
+        List<String> matched = new ArrayList<>();
+        if (skills == null) {
+            return matched;
+        }
+        for (String skill : skills) {
+            if (!StringUtils.hasText(skill)) {
                 continue;
             }
-            if (!sb.isEmpty()) {
-                sb.append('\n');
+            String normalizedSkill = normalize(skill);
+            for (String requirement : required) {
+                if (normalize(requirement).contains(normalizedSkill) || normalizedSkill.contains(normalize(requirement))) {
+                    matched.add(skill);
+                    break;
+                }
             }
-            sb.append(value.trim());
         }
-        return sb.toString();
+        return matched;
     }
 
-    private static String normalize(String value) {
-        if (!StringUtils.hasText(value)) {
-            return "";
+    private static List<String> missingSkills(List<String> skills, JobVacancy vacancy) {
+        List<String> required = splitLines(vacancy.getRequirements(), 8);
+        List<String> missing = new ArrayList<>();
+        String skillCorpus = skills == null ? "" : normalize(String.join(" ", skills));
+        for (String requirement : required) {
+            if (keywordOverlapScore(skillCorpus, requirement) < 40) {
+                missing.add(requirement);
+            }
         }
-        String nfd = Normalizer.normalize(value.toLowerCase(Locale.ROOT), Normalizer.Form.NFD);
-        String noAccents = nfd.replaceAll("\\p{M}+", "");
-        return NON_ALNUM.matcher(noAccents).replaceAll(" ").replaceAll("\\s+", " ").trim();
+        return missing;
+    }
+
+    private static String joinNonBlank(String first, String second) {
+        StringBuilder builder = new StringBuilder();
+        if (StringUtils.hasText(first)) {
+            builder.append(first.trim());
+        }
+        if (StringUtils.hasText(second)) {
+            if (!builder.isEmpty()) {
+                builder.append(' ');
+            }
+            builder.append(second.trim());
+        }
+        return builder.toString();
     }
 
     private static String truncate(String value, int max) {
-        if (value.length() <= max) {
-            return value;
+        if (value == null) {
+            return "";
         }
-        return value.substring(0, max - 1) + "…";
+        String trimmed = value.trim();
+        return trimmed.length() <= max ? trimmed : trimmed.substring(0, max - 1) + "…";
     }
 
-    private static String nullToEmpty(String value) {
-        return value == null ? "" : value;
+    private static String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .toLowerCase(Locale.ROOT);
+        return NON_ALNUM.matcher(normalized).replaceAll(" ").replaceAll("\\s+", " ").trim();
     }
 
     public record ScoreResult(BigDecimal score, Map<String, Object> analysis) {}

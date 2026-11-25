@@ -1,7 +1,11 @@
 package br.com.gesint.modules.dp.organization.jobposition.service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +20,8 @@ import br.com.gesint.core.branch.BranchCatalogScopeApplier;
 import br.com.gesint.core.branch.BranchCatalogScopes;
 import br.com.gesint.core.entity.StatusEnum;
 import br.com.gesint.core.util.TextSearchUtils;
+import br.com.gesint.modules.dp.organization.department.entity.Department;
+import br.com.gesint.modules.dp.organization.department.repository.DepartmentRepository;
 import br.com.gesint.modules.dp.organization.jobposition.dto.JobPositionRequestDto;
 import br.com.gesint.modules.dp.organization.jobposition.dto.JobPositionResponseDto;
 import br.com.gesint.modules.dp.organization.jobposition.entity.JobPosition;
@@ -33,17 +39,20 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
 
     private final JobPositionRepository repository;
     private final JobPositionMapper mapper;
+    private final DepartmentRepository departmentRepository;
     private final ISearchDocumentIndexer searchDocumentIndexer;
     private final BranchCatalogScopeApplier branchCatalogScopeApplier;
 
     public JobPositionService(
             JobPositionRepository repository,
             JobPositionMapper mapper,
+            DepartmentRepository departmentRepository,
             ISearchDocumentIndexer searchDocumentIndexer,
             BranchCatalogScopeApplier branchCatalogScopeApplier) {
         super(repository, mapper::toResponse, mapper::toEntity);
         this.repository = repository;
         this.mapper = mapper;
+        this.departmentRepository = departmentRepository;
         this.searchDocumentIndexer = searchDocumentIndexer;
         this.branchCatalogScopeApplier = branchCatalogScopeApplier;
     }
@@ -52,21 +61,30 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('jobposition:read')")
     public List<JobPositionResponseDto> findAll() {
-        return super.findAll();
+        return toResponses(repository.findAllByStatusOrderByCreatedAtDesc(StatusEnum.ACTIVE));
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('jobposition:read')")
     public JobPositionResponseDto findById(UUID id) {
-        return super.findById(id);
+        return toResponse(findEntity(id));
     }
 
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('jobposition:read')")
     public PageableResponseDto<JobPositionResponseDto> findPage(int page, int size) {
-        return super.findPage(page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<JobPosition> result = repository.findAllByStatus(StatusEnum.ACTIVE, pageable);
+        List<JobPositionResponseDto> content = toResponses(result.getContent());
+        return PageableResponseDto.<JobPositionResponseDto>builder()
+                .content(content)
+                .page(page)
+                .size(size)
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .build();
     }
 
     @Override
@@ -82,8 +100,7 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
                 departmentId,
                 nature,
                 pageable);
-        List<JobPositionResponseDto> content =
-                result.getContent().stream().map(mapper::toResponse).toList();
+        List<JobPositionResponseDto> content = toResponses(result.getContent());
         return PageableResponseDto.<JobPositionResponseDto>builder()
                 .content(content)
                 .page(page)
@@ -101,7 +118,7 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
         entity.setStatus(StatusEnum.ACTIVE);
         branchCatalogScopeApplier.apply(
                 entity, BranchCatalogScopes.resolveCompanyId(request.getCompanyId(), request.getSharedAcrossBranches()));
-        JobPositionResponseDto created = mapper.toResponse(repository.save(entity));
+        JobPositionResponseDto created = toResponse(repository.save(entity));
         indexJobPosition(findEntity(created.getId()));
         return created;
     }
@@ -114,17 +131,17 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
         mapper.updateEntity(entity, request);
         branchCatalogScopeApplier.apply(
                 entity, BranchCatalogScopes.resolveCompanyId(request.getCompanyId(), request.getSharedAcrossBranches()));
-        JobPositionResponseDto updated = mapper.toResponse(repository.save(entity));
+        JobPositionResponseDto updated = toResponse(repository.save(entity));
         indexJobPosition(entity);
         return updated;
     }
 
-    
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('jobposition:read')")
     public List<JobPositionResponseDto> findAll(StatusEnum status) {
-        return super.findAll(status);
+        StatusEnum resolved = status == null ? StatusEnum.ACTIVE : status;
+        return toResponses(repository.findAllByStatusOrderByCreatedAtDesc(resolved));
     }
 
     @Override
@@ -173,5 +190,31 @@ public class JobPositionService extends BaseService<JobPosition, JobPositionRequ
     @Override
     protected void updateEntity(JobPosition entity, JobPositionRequestDto request) {
         mapper.updateEntity(entity, request);
+    }
+
+    private JobPositionResponseDto toResponse(JobPosition entity) {
+        Map<UUID, String> names = loadDepartmentNames(List.of(entity.getDepartmentId()));
+        return mapper.toResponse(
+                entity, entity.getDepartmentId() == null ? null : names.get(entity.getDepartmentId()));
+    }
+
+    private List<JobPositionResponseDto> toResponses(Collection<JobPosition> entities) {
+        Map<UUID, String> names = loadDepartmentNames(
+                entities.stream().map(JobPosition::getDepartmentId).toList());
+        return entities.stream()
+                .map(entity -> mapper.toResponse(
+                        entity,
+                        entity.getDepartmentId() == null ? null : names.get(entity.getDepartmentId())))
+                .toList();
+    }
+
+    private Map<UUID, String> loadDepartmentNames(Collection<UUID> departmentIds) {
+        List<UUID> ids = departmentIds.stream().filter(Objects::nonNull).distinct().toList();
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return departmentRepository.findAllById(ids).stream()
+                .filter(department -> department.getStatus() != StatusEnum.DELETED)
+                .collect(Collectors.toMap(Department::getId, Department::getName, (a, b) -> a));
     }
 }

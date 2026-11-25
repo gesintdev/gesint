@@ -170,6 +170,15 @@ export function JobRequisitionFormClient() {
         queryFn: () => jobPositionSalaryTableService.findCurrentByJobPositionId(form.jobPositionId),
         enabled: Boolean(form.jobPositionId) && !readOnly,
     });
+    const availableSalaryLevelItems = useMemo(() => {
+        const levels = new Set(
+            (salaryTableQuery.data?.items ?? []).map((item) => item.level).filter(Boolean),
+        );
+        if (levels.size === 0) {
+            return [];
+        }
+        return JOB_POSITION_SALARY_LEVEL_ITEMS.filter((item) => levels.has(item.value as JobPositionSalaryLevel));
+    }, [salaryTableQuery.data?.items]);
     const liveBand = salaryTableQuery.data?.items.find((item) => item.level === form.salaryLevel) ?? null;
     const bandMin = readOnly ? requisition?.bandMinSalary : liveBand?.minSalary;
     const bandMax = readOnly ? requisition?.bandMaxSalary : liveBand?.maxSalary;
@@ -278,8 +287,22 @@ export function JobRequisitionFormClient() {
     });
 
     const update = <K extends keyof JobRequisitionFormDto>(field: K, value: JobRequisitionFormDto[K]) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
+        setForm((prev) => {
+            if (field === "jobPositionId") {
+                return { ...prev, jobPositionId: value as string, salaryLevel: undefined };
+            }
+            return { ...prev, [field]: value };
+        });
     };
+
+    useEffect(() => {
+        if (readOnly || !form.salaryLevel) return;
+        if (availableSalaryLevelItems.length === 0) return;
+        const stillValid = availableSalaryLevelItems.some((item) => item.value === form.salaryLevel);
+        if (!stillValid) {
+            setForm((prev) => ({ ...prev, salaryLevel: undefined }));
+        }
+    }, [availableSalaryLevelItems, form.salaryLevel, readOnly]);
 
     const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -420,11 +443,11 @@ export function JobRequisitionFormClient() {
                 />
                 <InputSelect
                     label="Nível"
-                    items={JOB_POSITION_SALARY_LEVEL_ITEMS}
+                    items={availableSalaryLevelItems}
                     value={form.salaryLevel ?? ""}
                     onValueChange={(v) => update("salaryLevel", (v || undefined) as JobPositionSalaryLevel | undefined)}
                     required
-                    disabled={readOnly}
+                    disabled={readOnly || !form.jobPositionId || availableSalaryLevelItems.length === 0}
                     wrapperClassName="sm:col-span-4"
                 />
                 <InputInfo label="Filial" value={branchName} wrapperClassName="sm:col-span-4" />

@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Map;
+
 import br.com.gesint.modules.rh.person.developmentplan.entity.CompetencyTypeEnum;
 
 @Getter
@@ -30,4 +32,6 @@ public class CompetencyRequestDto {
 
     @NotNull
     private CompetencyTypeEnum type;
+
+    private Map<String, String> levelIndicators;
 }

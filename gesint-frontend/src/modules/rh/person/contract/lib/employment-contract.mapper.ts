@@ -9,7 +9,7 @@ export function employmentcontractToFormDto(entity: EmploymentContract): Employm
         contractType: entity.contractType,
         startDate: entity.startDate?.slice(0, 10) ?? "",
         endDate: entity.endDate?.slice(0, 10) ?? "",
-        baseSalary: entity.baseSalary != null ? String(entity.baseSalary) : "",
+        baseSalary: entity.baseSalary != null ? Number(entity.baseSalary).toFixed(2) : "",
     };
 }
 

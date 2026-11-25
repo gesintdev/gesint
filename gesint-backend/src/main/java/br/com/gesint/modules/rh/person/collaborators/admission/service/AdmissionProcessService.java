@@ -21,6 +21,7 @@ import br.com.gesint.core.base.dto.PageableResponseDto;
 import br.com.gesint.core.base.service.BaseService;
 import br.com.gesint.core.branch.BranchContextHolder;
 import br.com.gesint.core.entity.StatusEnum;
+import br.com.gesint.core.util.BrazilianCpfValidator;
 import br.com.gesint.modules.dp.offboarding.repository.OffboardingRepository;
 import br.com.gesint.modules.dp.organization.department.entity.Department;
 import br.com.gesint.modules.dp.organization.department.repository.DepartmentRepository;
@@ -319,7 +320,10 @@ public class AdmissionProcessService
 
     private void normalizeRequest(AdmissionProcessRequestDto request) {
         if (request.getCpf() != null) {
-            request.setCpf(request.getCpf().replaceAll("\\D", ""));
+            request.setCpf(BrazilianCpfValidator.digitsOnly(request.getCpf()));
+            if (StringUtils.hasText(request.getCpf()) && !BrazilianCpfValidator.isValid(request.getCpf())) {
+                throw AdmissionProcessException.invalidCpf();
+            }
         }
         if (request.getPhone() != null) {
             request.setPhone(request.getPhone().replaceAll("\\D", ""));

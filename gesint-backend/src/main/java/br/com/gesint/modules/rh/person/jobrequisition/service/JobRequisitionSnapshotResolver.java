@@ -91,19 +91,28 @@ public class JobRequisitionSnapshotResolver {
     }
 
     private void applySalaryBand(JobRequisition entity) {
-        JobPositionSalaryTableItem band = entity.getSalaryLevel() == null
-                ? null
-                : currentBandItems(entity.getJobPositionId()).stream()
-                        .filter(item -> item.getLevel() == entity.getSalaryLevel())
-                        .findFirst()
-                        .orElse(null);
-        entity.setBandMinSalary(band != null ? band.getMinSalary() : null);
-        entity.setBandReferenceSalary(band != null ? band.getReferenceSalary() : null);
-        entity.setBandMaxSalary(band != null ? band.getMaxSalary() : null);
+        if (entity.getSalaryLevel() == null) {
+            entity.setBandMinSalary(null);
+            entity.setBandReferenceSalary(null);
+            entity.setBandMaxSalary(null);
+            entity.setOutOfBand(false);
+            return;
+        }
+        JobPositionSalaryTableItem band = currentBandItems(entity.getJobPositionId()).stream()
+                .filter(item -> item.getLevel() == entity.getSalaryLevel())
+                .findFirst()
+                .orElse(null);
+        if (band == null) {
+            throw JobRequisitionException.salaryLevelWithoutBand();
+        }
+        entity.setBandMinSalary(band.getMinSalary());
+        entity.setBandReferenceSalary(band.getReferenceSalary());
+        entity.setBandMaxSalary(band.getMaxSalary());
         BigDecimal proposed = entity.getProposedSalary();
-        entity.setOutOfBand(band != null
-                && proposed != null
-                && (proposed.compareTo(band.getMinSalary()) < 0 || proposed.compareTo(band.getMaxSalary()) > 0));
+        entity.setOutOfBand(
+                proposed != null
+                        && (proposed.compareTo(band.getMinSalary()) < 0
+                                || proposed.compareTo(band.getMaxSalary()) > 0));
     }
 
     private List<JobPositionSalaryTableItem> currentBandItems(UUID jobPositionId) {

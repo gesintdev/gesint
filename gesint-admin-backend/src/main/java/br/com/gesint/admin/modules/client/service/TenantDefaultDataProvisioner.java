@@ -99,26 +99,29 @@ public class TenantDefaultDataProvisioner {
         jdbcTemplate.update(
                 """
                 INSERT INTO "%s".admission_process_kanban_column (
-                    id, code, status, column_key, name, display_order, created_at
+                    id, code, status, column_key, name, display_order,
+                    interview_column, column_action, created_at
                 )
                 SELECT
                     gen_random_uuid(),
                     ROW_NUMBER() OVER (ORDER BY d.display_order),
-                    'ACTIVE',
+                    d.status,
                     d.column_key,
                     d.name,
                     d.display_order,
+                    d.interview_column,
+                    d.column_action,
                     now()
                 FROM (
                     VALUES
-                        ('resume_analysis', 'Análise de Currículo', 10),
-                        ('cultural_fit', 'Fit Cultural', 20),
-                        ('behavioral_assessment', 'Avaliação Comportamental', 30),
-                        ('initial_interview', 'Entrevista Inicial', 40),
-                        ('manager_interview', 'Entrevista Com Gestor', 50),
-                        ('pre_approval', 'Pré-aprovação', 60),
-                        ('hiring', 'Contratação', 70)
-                ) AS d(column_key, name, display_order)
+                        ('resume_analysis', 'Análise de Currículo', 10, 'ACTIVE', false, 'NONE'),
+                        ('cultural_fit', 'Fit Cultural', 20, 'ACTIVE', false, 'NONE'),
+                        ('behavioral_assessment', 'Avaliação Comportamental', 30, 'INACTIVE', false, 'NONE'),
+                        ('initial_interview', 'Entrevista Inicial', 40, 'ACTIVE', true, 'NONE'),
+                        ('manager_interview', 'Entrevista Com Gestor', 50, 'ACTIVE', true, 'NONE'),
+                        ('pre_approval', 'Pré-aprovação', 60, 'ACTIVE', false, 'NONE'),
+                        ('hiring', 'Contratação', 70, 'ACTIVE', false, 'CREATE_ADMISSION')
+                ) AS d(column_key, name, display_order, status, interview_column, column_action)
                 """
                         .formatted(schema));
     }

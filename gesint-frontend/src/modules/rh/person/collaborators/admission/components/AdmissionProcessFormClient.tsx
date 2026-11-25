@@ -10,6 +10,7 @@ import {workScheduleKeys} from "@/modules/cfg/settings/workschedule/workschedule
 import {DepartmentPickerField} from "@/modules/dp/organization/department/components/DepartmentPickerField";
 import {JobPositionPickerField} from "@/modules/dp/organization/jobposition/components/JobPositionPickerField";
 import {admissionprocessKeys} from "@/modules/rh/person/collaborators/admission/admission.query";
+import { AdmissionDependentsField } from "@/modules/rh/person/collaborators/admission/components/AdmissionDependentsField";
 import {
     AdmissionEmergencyContactsField
 } from "@/modules/rh/person/collaborators/admission/components/AdmissionEmergencyContactsField";
@@ -49,6 +50,7 @@ import {
 import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {
+    InputCheckbox,
     InputCNPJ,
     InputCPF,
     InputCurrency,
@@ -124,7 +126,10 @@ export function AdmissionProcessFormClient({admissionId}: AdmissionProcessFormCl
         setForm((prev) => ({
             ...prev,
             expectedStartDate: value,
-            contractStartDate: prev.contractStartDate || value,
+            contractStartDate:
+                !prev.contractStartDate || prev.contractStartDate === prev.expectedStartDate
+                    ? value
+                    : prev.contractStartDate,
         }));
     };
     useEffect(() => {
@@ -504,6 +509,103 @@ export function AdmissionProcessFormClient({admissionId}: AdmissionProcessFormCl
                 <AdmissionEmergencyContactsField
                     contacts={form.emergencyContacts ?? []}
                     onChange={(emergencyContacts) => update("emergencyContacts", emergencyContacts)}
+                />
+            </FormSection>
+            <FormSection id="dados-complementares" title="Dados complementares">
+                <InputSelect
+                    label="Raça/cor"
+                    items={[
+                        { value: "BRANCA", label: "Branca" },
+                        { value: "PRETA", label: "Preta" },
+                        { value: "PARDA", label: "Parda" },
+                        { value: "AMARELA", label: "Amarela" },
+                        { value: "INDIGENA", label: "Indígena" },
+                        { value: "NAO_INFORMADO", label: "Não informado" },
+                    ]}
+                    value={form.raceColor ?? ""}
+                    onValueChange={(v) => update("raceColor", v)}
+                    clearable
+                    wrapperClassName="sm:col-span-3"
+                />
+                <InputSelect
+                    label="Grau de instrução"
+                    items={[
+                        { value: "ANALFABETO", label: "Analfabeto" },
+                        { value: "FUNDAMENTAL_INCOMPLETO", label: "Fundamental incompleto" },
+                        { value: "FUNDAMENTAL_COMPLETO", label: "Fundamental completo" },
+                        { value: "MEDIO_INCOMPLETO", label: "Médio incompleto" },
+                        { value: "MEDIO_COMPLETO", label: "Médio completo" },
+                        { value: "SUPERIOR_INCOMPLETO", label: "Superior incompleto" },
+                        { value: "SUPERIOR_COMPLETO", label: "Superior completo" },
+                        { value: "POS_GRADUACAO", label: "Pós-graduação" },
+                    ]}
+                    value={form.educationLevel ?? ""}
+                    onValueChange={(v) => update("educationLevel", v)}
+                    clearable
+                    wrapperClassName="sm:col-span-3"
+                />
+                <div className="sm:col-span-3 flex items-end pb-1">
+                    <InputCheckbox
+                        label="Autodeclaração PCD"
+                        checked={Boolean(form.pcdSelfDeclared)}
+                        onCheckedChange={(checked) => update("pcdSelfDeclared", checked)}
+                    />
+                </div>
+                <InputString
+                    label="Informações PCD / deficiência"
+                    value={form.disabilityNotes ?? ""}
+                    onValueChange={(v) => update("disabilityNotes", v)}
+                    wrapperClassName="sm:col-span-12"
+                />
+            </FormSection>
+            <FormSection id="dados-bancarios" title="Dados bancários">
+                <InputString
+                    label="Banco"
+                    value={form.bankCode ?? ""}
+                    onValueChange={(v) => update("bankCode", v)}
+                    wrapperClassName="sm:col-span-2"
+                />
+                <InputString
+                    label="Agência"
+                    value={form.bankAgency ?? ""}
+                    onValueChange={(v) => update("bankAgency", v)}
+                    wrapperClassName="sm:col-span-2"
+                />
+                <InputString
+                    label="Conta"
+                    value={form.bankAccount ?? ""}
+                    onValueChange={(v) => update("bankAccount", v)}
+                    wrapperClassName="sm:col-span-2"
+                />
+                <InputString
+                    label="Dígito"
+                    value={form.bankAccountDigit ?? ""}
+                    onValueChange={(v) => update("bankAccountDigit", v)}
+                    wrapperClassName="sm:col-span-1"
+                />
+                <InputSelect
+                    label="Tipo de conta"
+                    items={[
+                        { value: "CHECKING", label: "Corrente" },
+                        { value: "SAVINGS", label: "Poupança" },
+                        { value: "SALARY", label: "Salário" },
+                    ]}
+                    value={form.bankAccountType ?? ""}
+                    onValueChange={(v) => update("bankAccountType", v)}
+                    clearable
+                    wrapperClassName="sm:col-span-2"
+                />
+                <InputString
+                    label="Chave Pix"
+                    value={form.pixKey ?? ""}
+                    onValueChange={(v) => update("pixKey", v)}
+                    wrapperClassName="sm:col-span-3"
+                />
+            </FormSection>
+            <FormSection id="dependentes" title="Dependentes">
+                <AdmissionDependentsField
+                    dependents={form.dependents ?? []}
+                    onChange={(dependents) => update("dependents", dependents)}
                 />
             </FormSection>
             <AddressFormSection

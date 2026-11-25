@@ -1,5 +1,8 @@
 package br.com.gesint.modules.rh.person.developmentplan.competency.mapper;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.springframework.stereotype.Component;
 
 import br.com.gesint.modules.rh.person.developmentplan.competency.dto.CompetencyRequestDto;
@@ -15,6 +18,7 @@ public class CompetencyMapper {
                 .description(dto.getDescription())
                 .interviewGuideQuestion(dto.getInterviewGuideQuestion())
                 .type(dto.getType())
+                .levelIndicators(copyIndicators(dto.getLevelIndicators()))
                 .build();
     }
 
@@ -23,6 +27,9 @@ public class CompetencyMapper {
         entity.setDescription(dto.getDescription());
         entity.setInterviewGuideQuestion(dto.getInterviewGuideQuestion());
         entity.setType(dto.getType());
+        if (dto.getLevelIndicators() != null) {
+            entity.setLevelIndicators(copyIndicators(dto.getLevelIndicators()));
+        }
     }
 
     public CompetencyResponseDto toResponse(Competency entity) {
@@ -34,8 +41,13 @@ public class CompetencyMapper {
                 .description(entity.getDescription())
                 .interviewGuideQuestion(entity.getInterviewGuideQuestion())
                 .type(entity.getType())
+                .levelIndicators(copyIndicators(entity.getLevelIndicators()))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
+    }
+
+    private static Map<String, String> copyIndicators(Map<String, String> source) {
+        return source == null ? new LinkedHashMap<>() : new LinkedHashMap<>(source);
     }
 }

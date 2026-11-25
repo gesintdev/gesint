@@ -1,5 +1,6 @@
 package br.com.gesint.admin.modules.clientuser.service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ import br.com.gesint.admin.modules.client.entity.Client;
 import br.com.gesint.admin.modules.client.entity.TenantProvisioningStatusEnum;
 import br.com.gesint.admin.modules.client.repository.ClientRepository;
 import br.com.gesint.admin.modules.client.service.TenantUserProvisioner;
+import br.com.gesint.admin.modules.clientcontractedsystem.dto.ClientContractedSystemResponseDto;
+import br.com.gesint.admin.modules.clientcontractedsystem.service.IClientContractedSystemService;
 import br.com.gesint.admin.modules.clientenvironmentconfig.entity.ClientEnvironmentConfig;
 import br.com.gesint.admin.modules.clientenvironmentconfig.repository.ClientEnvironmentConfigRepository;
 import br.com.gesint.admin.modules.clientuser.dto.ClientUserRequestDto;
@@ -22,16 +25,20 @@ import br.com.gesint.admin.modules.clientuser.dto.ClientUserResponseDto;
 import br.com.gesint.admin.modules.clientuser.entity.ClientUser;
 import br.com.gesint.admin.modules.clientuser.exception.ClientUserException;
 import br.com.gesint.admin.modules.clientuser.repository.ClientUserRepository;
+import br.com.gesint.admin.modules.platformemail.service.ClientFirstAccessMailContext;
 import br.com.gesint.admin.modules.platformemail.service.PlatformOutboundMail;
 import br.com.gesint.admin.modules.root.security.AccessTokenSupport;
 
 @Service
 public class ClientUserService implements IClientUserService {
 
+    private static final DateTimeFormatter MAIL_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     private final ClientUserRepository clientUserRepository;
     private final ClientRepository clientRepository;
     private final ClientEnvironmentConfigRepository environmentConfigRepository;
     private final TenantUserProvisioner tenantUserProvisioner;
+    private final IClientContractedSystemService contractedSystemService;
     private final PlatformOutboundMail platformOutboundMail;
 
     public ClientUserService(
@@ -39,11 +46,13 @@ public class ClientUserService implements IClientUserService {
             ClientRepository clientRepository,
             ClientEnvironmentConfigRepository environmentConfigRepository,
             TenantUserProvisioner tenantUserProvisioner,
+            IClientContractedSystemService contractedSystemService,
             PlatformOutboundMail platformOutboundMail) {
         this.clientUserRepository = clientUserRepository;
         this.clientRepository = clientRepository;
         this.environmentConfigRepository = environmentConfigRepository;
         this.tenantUserProvisioner = tenantUserProvisioner;
+        this.contractedSystemService = contractedSystemService;
         this.platformOutboundMail = platformOutboundMail;
     }
 
@@ -123,7 +132,8 @@ public class ClientUserService implements IClientUserService {
 
         ClientUserResponseDto response = toResponse(link, client);
         response.setAccessToken(plainToken);
-        platformOutboundMail.sendClientFirstAccess(link.getEmail(), plainToken, client.getSlug());
+        platformOutboundMail.sendClientFirstAccess(
+                link.getEmail(), plainToken, client.getSlug(), buildFirstAccessMailContext(link, client));
         return response;
     }
 
@@ -179,7 +189,10 @@ public class ClientUserService implements IClientUserService {
         ClientUserResponseDto response = toResponse(link, client);
         response.setAccessToken(plainToken);
         platformOutboundMail.sendClientFirstAccess(
-                link.getEmail(), plainToken, client != null ? client.getSlug() : null);
+                link.getEmail(),
+                plainToken,
+                client != null ? client.getSlug() : null,
+                client == null ? null : buildFirstAccessMailContext(link, client));
         return response;
     }
 
@@ -227,6 +240,36 @@ public class ClientUserService implements IClientUserService {
     private ClientUserResponseDto toResponse(ClientUser link) {
         Client client = clientRepository.findById(link.getClientId()).orElse(null);
         return toResponse(link, client);
+    }
+
+    private ClientFirstAccessMailContext buildFirstAccessMailContext(ClientUser link, Client client) {
+        List<ClientContractedSystemResponseDto> systems =
+                contractedSystemService.findAllByClientId(client.getId());
+        return ClientFirstAccessMailContext.builder()
+                .clientName(client.getName())
+                .clientLegalName(client.getLegalName())
+                .slug(client.getSlug())
+                .displayName(link.getDisplayName())
+                .username(link.getUsername())
+                .email(link.getEmail())
+                .systems(systems.stream()
+                        .map(system -> ClientFirstAccessMailContext.ContractedSystemLine.builder()
+                                .name(system.getName() != null ? system.getName() : system.getModuleName())
+                                .moduleKey(system.getProductSystemKey())
+                                .contractType(system.getContractType())
+                                .contractDate(
+                                        system.getContractDate() == null
+                                                ? null
+                                                : MAIL_DATE.format(system.getContractDate()))
+                                .endDate(
+                                        system.getEndDate() == null
+                                                ? null
+                                                : MAIL_DATE.format(system.getEndDate()))
+                                .withAi(system.isWithAi())
+                                .operationalStatus(system.getOperationalStatus())
+                                .build())
+                        .toList())
+                .build();
     }
 
     private ClientUserResponseDto toResponse(ClientUser link, Client client) {

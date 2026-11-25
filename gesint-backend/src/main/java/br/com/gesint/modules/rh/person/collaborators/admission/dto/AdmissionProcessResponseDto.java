@@ -75,6 +75,17 @@ public class AdmissionProcessResponseDto {
     private final String workloadSchedule;
     private final UUID workScheduleId;
     private final List<AdmissionEmergencyContactDto> emergencyContacts;
+    private final List<AdmissionDependentDto> dependents;
+    private final String raceColor;
+    private final String educationLevel;
+    private final String disabilityNotes;
+    private final String bankCode;
+    private final String bankAgency;
+    private final String bankAccount;
+    private final String bankAccountDigit;
+    private final String bankAccountType;
+    private final String pixKey;
+    private final Boolean pcdSelfDeclared;
     private final LocalDate contractStartDate;
     private final LocalDate contractEndDate;
     private final String experiencePeriod;

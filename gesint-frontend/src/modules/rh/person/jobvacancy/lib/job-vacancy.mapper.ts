@@ -2,7 +2,7 @@ import type { JobVacancy, JobVacancyCreateDto } from "@/modules/rh/person/jobvac
 import { slugFromJobTitle } from "@/modules/rh/person/jobvacancy/lib/job-vacancy-slug";
 
 function moneyToForm(value?: number | null): string {
-    return value != null ? String(value) : "";
+    return value != null ? Number(value).toFixed(2) : "";
 }
 
 function moneyToPayload(value?: string | number): number | undefined {

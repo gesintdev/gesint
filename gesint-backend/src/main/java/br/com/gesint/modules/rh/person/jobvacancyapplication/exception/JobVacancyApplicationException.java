@@ -119,6 +119,20 @@ public final class JobVacancyApplicationException {
                 HttpStatus.BAD_REQUEST);
     }
 
+    public static BusinessException kanbanColumnNotFound() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.KANBAN_COLUMN_NOT_FOUND_CODE,
+                JobVacancyApplicationExceptions.KANBAN_COLUMN_NOT_FOUND_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException interviewRequiredBeforeHire() {
+        return new BusinessException(
+                JobVacancyApplicationExceptions.INTERVIEW_REQUIRED_BEFORE_HIRE_CODE,
+                JobVacancyApplicationExceptions.INTERVIEW_REQUIRED_BEFORE_HIRE_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
     public static BusinessException interviewColumnRequired() {
         return new BusinessException(
                 JobVacancyApplicationExceptions.INTERVIEW_COLUMN_REQUIRED_CODE,

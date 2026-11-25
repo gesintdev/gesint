@@ -146,4 +146,14 @@ public final class JobVacancyApplicationExceptions {
             "JOB_VACANCY_APPLICATION_PORTAL_ACCEPTANCE_REQUIRED";
     public static final String PORTAL_ACCEPTANCE_REQUIRED_MSG =
             "Aguarde o aceite do candidato no portal antes de confirmar a contrata\u00e7\u00e3o com canal PORTAL";
+
+    public static final String KANBAN_COLUMN_NOT_FOUND_CODE =
+            "JOB_VACANCY_APPLICATION_KANBAN_COLUMN_NOT_FOUND";
+    public static final String KANBAN_COLUMN_NOT_FOUND_MSG =
+            "Coluna de kanban de destino nao encontrada";
+
+    public static final String INTERVIEW_REQUIRED_BEFORE_HIRE_CODE =
+            "JOB_VACANCY_APPLICATION_INTERVIEW_REQUIRED_BEFORE_HIRE";
+    public static final String INTERVIEW_REQUIRED_BEFORE_HIRE_MSG =
+            "Nao e permitido mover para Contratacao sem registro de entrevista no scorecard";
 }

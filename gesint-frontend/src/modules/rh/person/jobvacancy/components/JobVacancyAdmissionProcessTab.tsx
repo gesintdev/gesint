@@ -12,7 +12,6 @@ import {
     CandidateMatchScoreDetailModal,
     type CandidateMatchScoreDetailTarget,
 } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreDetailModal";
-import { CandidateMatchScoreTag } from "@/modules/rh/person/jobvacancy/components/CandidateMatchScoreTag";
 import { HireProposalModal } from "@/modules/rh/person/jobvacancy/components/HireProposalModal";
 import { JobVacancyApplicationKanbanDetailModal } from "@/modules/rh/person/jobvacancy/components/JobVacancyApplicationKanbanDetailModal";
 import { JobVacancyApplicationRejectModal } from "@/modules/rh/person/jobvacancy/components/JobVacancyApplicationRejectModal";
@@ -211,11 +210,13 @@ export function JobVacancyAdmissionProcessTab() {
         [hireColumn?.columnKey],
     );
 
-    const handleHireColumnDrop = useCallback((item?: AdmissionKanbanCard) => {
-        if (!item?.applicationId) return;
-        // Arrastar para Contratação abre o modal do candidato; a proposta sai de "Criar Admissão".
-        setDetailApplicationId(item.applicationId);
-    }, []);
+    const handleHireColumnDrop = useCallback(
+        (item?: AdmissionKanbanCard) => {
+            if (!item?.applicationId) return;
+            openHireProposal(item.applicationId);
+        },
+        [openHireProposal],
+    );
 
     const openScoreDetail = useCallback((row: {
         applicationId: string;
@@ -246,8 +247,13 @@ export function JobVacancyAdmissionProcessTab() {
                 const columnKey = row.kanbanColumnKey?.trim() ?? "";
                 const hired =
                     row.applicationStatus === "HIRED" || Boolean(row.admissionProcessId);
+                const isHireColumnCard =
+                    sortedColumns.find((column) => column.columnKey === columnKey)?.columnAction ===
+                    "CREATE_ADMISSION";
                 const averages =
-                    columnKey && interviewColumnKeys.has(columnKey) ? (row.interviewAverages ?? []) : [];
+                    columnKey && (interviewColumnKeys.has(columnKey) || isHireColumnCard)
+                        ? (row.interviewAverages ?? [])
+                        : [];
                 const averagesMeta =
                     averages.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
@@ -329,20 +335,6 @@ export function JobVacancyAdmissionProcessTab() {
                                 : null}
                         </div>
                     ),
-                    badge: (
-                        <CandidateMatchScoreTag
-                            score={score < 0 ? null : score}
-                            pending={pending}
-                            supportLabel
-                            onClick={() =>
-                                openScoreDetail({
-                                    applicationId: row.id,
-                                    candidateId: row.candidateId,
-                                    candidateName: row.candidateFullName,
-                                })
-                            }
-                        />
-                    ),
                     score,
                     hasCurriculum: Boolean(row.aiAnalysis?.hasCurriculum),
                     hired,
@@ -368,7 +360,7 @@ export function JobVacancyAdmissionProcessTab() {
                 onDrop: isHireColumn ? handleHireColumnDrop : undefined,
             };
         });
-    }, [applicationsQuery.data, handleHireColumnDrop, openScoreDetail, sortedColumns]);
+    }, [applicationsQuery.data, handleHireColumnDrop, sortedColumns]);
 
     const markPending = (itemId: string, pending: boolean) => {
         setPendingItemIds((current) => {
@@ -431,6 +423,22 @@ export function JobVacancyAdmissionProcessTab() {
         if (targetColumn?.columnKey === CLOSED_KANBAN_COLUMN_KEY) {
             if (event.fromColumnId !== event.toColumnId) setRejectApplicationId(event.itemId);
             return;
+        }
+        const interviewColumns = sortedColumns.filter((column) => column.interviewColumn);
+        if (
+            targetColumn?.columnAction === "CREATE_ADMISSION" &&
+            interviewColumns.length > 0
+        ) {
+            const application = (applicationsQuery.data ?? []).find((row) => row.id === event.itemId);
+            const hasInterviewScore =
+                (application?.interviewAverages?.length ?? 0) > 0 ||
+                interviewColumns.some((column) => application?.kanbanColumnKey === column.columnKey);
+            if (!hasInterviewScore) {
+                toast.error(
+                    "Não é permitido mover para Contratação sem passar por entrevista / scorecard.",
+                );
+                return;
+            }
         }
         moveMutation.mutate(event);
     };
