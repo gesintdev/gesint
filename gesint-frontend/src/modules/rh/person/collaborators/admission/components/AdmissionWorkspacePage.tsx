@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 
 import { admissionprocessKeys } from "@/modules/rh/person/collaborators/admission/admission.query";
 import { admissionprocessService } from "@/modules/rh/person/collaborators/admission/services/admission-process.service";
@@ -52,6 +52,15 @@ const Pipeline = lazy(() =>
 function AdmissionHistoryExtraTabsController() {
     const { editingId } = useCrudScreen();
     const { activeSystem } = useActiveSystem();
+    // Se a aba de Admissao foi montada no DP, Acompanhamento permanece ao trocar o rail para RH.
+    const [pipelineUnlocked, setPipelineUnlocked] = useState(
+        () => activeSystem === SystemEnum.DP,
+    );
+    useEffect(() => {
+        if (activeSystem === SystemEnum.DP) {
+            setPipelineUnlocked(true);
+        }
+    }, [activeSystem]);
 
     const admissionQuery = useBranchScopedDetailQuery(
         admissionprocessKeys.detail(editingId ?? ""),
@@ -76,8 +85,8 @@ function AdmissionHistoryExtraTabsController() {
     const extraTabs = useMemo((): CrudExtraTab[] => {
         const tabs: CrudExtraTab[] = [];
 
-        // Acompanhamento e exclusivo do DP: no RH o menu de Admissao e o mesmo, mas a esteira nao.
-        if (activeSystem === SystemEnum.DP) {
+        // Acompanhamento e tipicamente do DP; se a aba foi aberta no DP, permanece ao trocar para RH.
+        if (pipelineUnlocked) {
             tabs.push({
                 id: "pipeline",
                 label: "Acompanhamento",
@@ -138,7 +147,7 @@ function AdmissionHistoryExtraTabsController() {
             });
         }
         return tabs;
-    }, [activeSystem, collaboratorId, editingId, historyPresenceQuery.data]);
+    }, [pipelineUnlocked, collaboratorId, editingId, historyPresenceQuery.data]);
 
     useCrudExtraTabs(extraTabs);
     return null;

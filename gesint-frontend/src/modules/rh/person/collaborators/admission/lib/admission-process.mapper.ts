@@ -1,4 +1,5 @@
 import type {
+    AdmissionDependent,
     AdmissionEmergencyContact,
     AdmissionProcess,
     AdmissionProcessCreateDto,
@@ -54,10 +55,21 @@ export function admissionprocessToFormDto(entity: AdmissionProcess): AdmissionPr
         jobPositionId: entity.jobPositionId ?? "",
         contractType: entity.contractType ?? "CLT",
         experiencePeriod: entity.experiencePeriod ?? undefined,
-        baseSalary: entity.baseSalary != null ? String(entity.baseSalary) : "",
+        baseSalary: entity.baseSalary != null ? Number(entity.baseSalary).toFixed(2) : "",
         workloadSchedule: entity.workloadSchedule ?? "",
         workScheduleId: entity.workScheduleId ?? "",
         emergencyContacts: normalizeEmergencyContacts(entity.emergencyContacts),
+        dependents: entity.dependents ?? [],
+        raceColor: entity.raceColor ?? "",
+        educationLevel: entity.educationLevel ?? "",
+        disabilityNotes: entity.disabilityNotes ?? "",
+        bankCode: entity.bankCode ?? "",
+        bankAgency: entity.bankAgency ?? "",
+        bankAccount: entity.bankAccount ?? "",
+        bankAccountDigit: entity.bankAccountDigit ?? "",
+        bankAccountType: entity.bankAccountType ?? "",
+        pixKey: entity.pixKey ?? "",
+        pcdSelfDeclared: entity.pcdSelfDeclared ?? false,
         contractStartDate: toDateInput(entity.contractStartDate),
         contractEndDate: toDateInput(entity.contractEndDate),
         providerCnpj: entity.providerCnpj ?? "",
@@ -99,6 +111,17 @@ export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
     workloadSchedule: "",
     workScheduleId: "",
     emergencyContacts: normalizeEmergencyContacts(),
+    dependents: [],
+    raceColor: "",
+    educationLevel: "",
+    disabilityNotes: "",
+    bankCode: "",
+    bankAgency: "",
+    bankAccount: "",
+    bankAccountDigit: "",
+    bankAccountType: "",
+    pixKey: "",
+    pcdSelfDeclared: false,
     contractStartDate: "",
     contractEndDate: "",
     providerCnpj: "",
@@ -118,12 +141,24 @@ export const emptyAdmissionProcessForm = (): AdmissionProcessCreateDto => ({
 
 export function admissionFormToPayload(form: AdmissionProcessCreateDto): AdmissionProcessCreateDto {
     const emergencyContacts = sanitizeEmergencyContacts(form.emergencyContacts);
+    const dependents = sanitizeDependents(form.dependents);
     return {
         ...form,
         cpf: digitsOnly(form.cpf),
         phone: form.phone ? digitsOnly(form.phone) : undefined,
         zipCode: form.zipCode ? digitsOnly(form.zipCode) : undefined,
         emergencyContacts,
+        dependents,
+        raceColor: form.raceColor?.trim() || undefined,
+        educationLevel: form.educationLevel?.trim() || undefined,
+        disabilityNotes: form.disabilityNotes?.trim() || undefined,
+        bankCode: form.bankCode?.trim() || undefined,
+        bankAgency: form.bankAgency?.trim() || undefined,
+        bankAccount: form.bankAccount?.trim() || undefined,
+        bankAccountDigit: form.bankAccountDigit?.trim() || undefined,
+        bankAccountType: form.bankAccountType?.trim() || undefined,
+        pixKey: form.pixKey?.trim() || undefined,
+        pcdSelfDeclared: form.pcdSelfDeclared ?? false,
         cityId: form.cityId?.trim() || undefined,
         stateId: form.stateId?.trim() || undefined,
         companyId: form.companyId?.trim() || undefined,
@@ -171,6 +206,20 @@ function sanitizeEmergencyContacts(contacts?: AdmissionEmergencyContact[]): Admi
             relationship: contact.relationship?.trim() || undefined,
         }))
         .filter((contact) => contact.name || contact.phone || contact.relationship);
+}
+
+function sanitizeDependents(dependents?: AdmissionDependent[]): AdmissionDependent[] {
+    return (dependents ?? [])
+        .map((dependent) => ({
+            fullName: dependent.fullName?.trim() ?? "",
+            birthDate: dependent.birthDate?.trim() || undefined,
+            relationship: dependent.relationship?.trim() || undefined,
+            cpf: dependent.cpf ? digitsOnly(dependent.cpf) : undefined,
+        }))
+        .filter(
+            (dependent) =>
+                dependent.fullName || dependent.birthDate || dependent.relationship || dependent.cpf,
+        );
 }
 
 export { ADMISSION_STEP_IDS };

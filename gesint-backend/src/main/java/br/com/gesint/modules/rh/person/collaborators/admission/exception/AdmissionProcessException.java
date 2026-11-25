@@ -14,6 +14,20 @@ public final class AdmissionProcessException {
                 HttpStatus.NOT_FOUND);
     }
 
+    public static BusinessException invalidCpf() {
+        return new BusinessException(
+                AdmissionProcessExceptions.INVALID_CPF_CODE,
+                AdmissionProcessExceptions.INVALID_CPF_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public static BusinessException salaryAboveBand() {
+        return new BusinessException(
+                AdmissionProcessExceptions.SALARY_ABOVE_BAND_CODE,
+                AdmissionProcessExceptions.SALARY_ABOVE_BAND_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
+
     public static BusinessException cpfAlreadyExists() {
         return new BusinessException(
                 AdmissionProcessExceptions.CPF_ALREADY_EXISTS_CODE,

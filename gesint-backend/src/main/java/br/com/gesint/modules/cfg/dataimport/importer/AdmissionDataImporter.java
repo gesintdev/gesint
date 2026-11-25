@@ -1,15 +1,22 @@
 package br.com.gesint.modules.cfg.dataimport.importer;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import br.com.gesint.core.entity.StatusEnum;
+import br.com.gesint.core.util.BrazilianCpfValidator;
 import br.com.gesint.modules.cfg.dataimport.entity.DataImportEntityType;
 import br.com.gesint.modules.cfg.dataimport.entity.DataImportMode;
 import br.com.gesint.modules.cfg.dataimport.excel.ExcelValueParser;
 import br.com.gesint.modules.cfg.dataimport.exception.DataImportException;
+import br.com.gesint.modules.dp.organization.jobpositionsalarytable.entity.JobPositionSalaryTable;
+import br.com.gesint.modules.dp.organization.jobpositionsalarytable.entity.JobPositionSalaryTableItem;
+import br.com.gesint.modules.dp.organization.jobpositionsalarytable.repository.JobPositionSalaryTableRepository;
 import br.com.gesint.modules.rh.person.collaborators.admission.dto.AdmissionProcessRequestDto;
 import br.com.gesint.modules.rh.person.collaborators.admission.dto.AdmissionProcessResponseDto;
 import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
@@ -24,14 +31,17 @@ public class AdmissionDataImporter implements DataImporter {
 
     private final IAdmissionProcessService admissionProcessService;
     private final AdmissionProcessRepository admissionProcessRepository;
+    private final JobPositionSalaryTableRepository salaryTableRepository;
     private final DataImportLookupHelper lookupHelper;
 
     public AdmissionDataImporter(
             IAdmissionProcessService admissionProcessService,
             AdmissionProcessRepository admissionProcessRepository,
+            JobPositionSalaryTableRepository salaryTableRepository,
             DataImportLookupHelper lookupHelper) {
         this.admissionProcessService = admissionProcessService;
         this.admissionProcessRepository = admissionProcessRepository;
+        this.salaryTableRepository = salaryTableRepository;
         this.lookupHelper = lookupHelper;
     }
 
@@ -82,6 +92,13 @@ public class AdmissionDataImporter implements DataImporter {
         if (mode == DataImportMode.INSERT && !StringUtils.hasText(cpf)) {
             throw DataImportException.rowError("Campo obrigatorio ausente: cpf");
         }
+        if (StringUtils.hasText(cpf) && !BrazilianCpfValidator.isValid(cpf)) {
+            throw DataImportException.rowError("CPF invalido: " + cpf);
+        }
+
+        UUID jobPositionId = lookupHelper.jobPositionIdByCode(jobPositionCode);
+        BigDecimal baseSalary = ExcelValueParser.decimal(row, "salario_base");
+        assertSalaryWithinBand(jobPositionId, baseSalary);
 
         return AdmissionProcessRequestDto.builder()
                 .cpf(cpf)
@@ -116,13 +133,13 @@ public class AdmissionDataImporter implements DataImporter {
                                 : ExcelValueParser.date(row, "data_prevista_inicio"))
                 .companyId(lookupHelper.companyIdByCode(companyCode))
                 .departmentId(lookupHelper.departmentIdByCode(departmentCode))
-                .jobPositionId(lookupHelper.jobPositionIdByCode(jobPositionCode))
+                .jobPositionId(jobPositionId)
                 .contractType(
                         mode == DataImportMode.INSERT
                                 ? ExcelValueParser.requiredEnum(row, "tipo_contrato", ContractTypeEnum.class)
                                 : ExcelValueParser.enumValue(row, "tipo_contrato", ContractTypeEnum.class))
                 .workScheduleId(lookupHelper.workScheduleIdByCode(scheduleCode))
-                .baseSalary(ExcelValueParser.decimal(row, "salario_base"))
+                .baseSalary(baseSalary)
                 .workloadSchedule(ExcelValueParser.text(row, "jornada"))
                 .contractStartDate(ExcelValueParser.date(row, "data_inicio_contrato"))
                 .contractEndDate(ExcelValueParser.date(row, "data_fim_contrato"))
@@ -262,6 +279,29 @@ public class AdmissionDataImporter implements DataImporter {
         request.setAdmissionStatus(existing.getAdmissionStatus());
         request.setStartedAt(existing.getStartedAt());
         request.setPhotoObjectId(existing.getPhotoObjectId());
+    }
+
+    private void assertSalaryWithinBand(UUID jobPositionId, BigDecimal baseSalary) {
+        if (jobPositionId == null || baseSalary == null) {
+            return;
+        }
+        JobPositionSalaryTable table = salaryTableRepository
+                .findCurrentByJobPositionIdWithItems(jobPositionId, StatusEnum.DELETED)
+                .stream()
+                .findFirst()
+                .orElse(null);
+        if (table == null || table.getItems() == null || table.getItems().isEmpty()) {
+            return;
+        }
+        BigDecimal maxBand = table.getItems().stream()
+                .map(JobPositionSalaryTableItem::getMaxSalary)
+                .filter(value -> value != null)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+        if (maxBand != null && baseSalary.compareTo(maxBand) > 0) {
+            throw DataImportException.rowError(
+                    "Salario base acima da faixa salarial vigente do cargo (maximo " + maxBand + ")");
+        }
     }
 
     private static String matchKey(String cpf, String cnpj) {

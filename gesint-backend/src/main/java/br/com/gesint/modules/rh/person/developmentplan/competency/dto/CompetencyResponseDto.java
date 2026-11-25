@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import br.com.gesint.core.entity.StatusEnum;
@@ -19,6 +20,7 @@ public class CompetencyResponseDto {
     private final String description;
     private final String interviewGuideQuestion;
     private final CompetencyTypeEnum type;
+    private final Map<String, String> levelIndicators;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }

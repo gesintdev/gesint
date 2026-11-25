@@ -6,15 +6,21 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import br.com.gesint.core.entity.AuditEntity;
 import br.com.gesint.modules.rh.person.developmentplan.entity.CompetencyTypeEnum;
 
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.envers.Audited;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Audited
@@ -39,4 +45,10 @@ public class Competency extends AuditEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private CompetencyTypeEnum type;
+
+    /** Indicadores observaveis por nivel (chave = "1".."4"). */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "level_indicators", columnDefinition = "jsonb", nullable = false)
+    @Builder.Default
+    private Map<String, String> levelIndicators = new LinkedHashMap<>();
 }

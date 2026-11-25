@@ -25,6 +25,7 @@ import br.com.gesint.core.base.service.BaseService;
 import br.com.gesint.core.entity.StatusEnum;
 import br.com.gesint.modules.cfg.access.security.AccessScopePolicy;
 import br.com.gesint.modules.rh.person.admissionprocess.kanbancolumn.entity.AdmissionProcessKanbanColumn;
+import br.com.gesint.modules.rh.person.admissionprocess.kanbancolumn.entity.KanbanColumnActionEnum;
 import br.com.gesint.modules.rh.person.admissionprocess.kanbancolumn.repository.AdmissionProcessKanbanColumnRepository;
 import br.com.gesint.modules.rh.person.candidate.entity.Candidate;
 import br.com.gesint.modules.rh.person.candidate.repository.CandidateRepository;
@@ -44,6 +45,8 @@ import br.com.gesint.modules.rh.person.jobvacancyapplication.entity.JobVacancyAp
 import br.com.gesint.modules.rh.person.jobvacancyapplication.entity.RejectionFeedbackStatusEnum;
 import br.com.gesint.modules.rh.person.jobvacancyapplication.exception.JobVacancyApplicationException;
 import br.com.gesint.modules.rh.person.jobvacancyapplication.interviewevaluation.dto.InterviewCompetencyAverageDto;
+import br.com.gesint.modules.rh.person.jobvacancyapplication.interviewevaluation.entity.InterviewEvaluationStatusEnum;
+import br.com.gesint.modules.rh.person.jobvacancyapplication.interviewevaluation.repository.JobApplicationInterviewEvaluationRepository;
 import br.com.gesint.modules.rh.person.jobvacancyapplication.interviewevaluation.service.InterviewScorecardService;
 import br.com.gesint.modules.rh.person.jobvacancyapplication.mapper.JobVacancyApplicationMapper;
 import br.com.gesint.modules.rh.person.jobvacancyapplication.repository.JobVacancyApplicationRepository;
@@ -65,6 +68,7 @@ public class JobVacancyApplicationService
     private final JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService;
     private final JobVacancyRequirementOptionsService requirementOptionsService;
     private final InterviewScorecardService interviewScorecardService;
+    private final JobApplicationInterviewEvaluationRepository interviewEvaluationRepository;
     private final AccessScopePolicy accessScopePolicy;
 
     public JobVacancyApplicationService(
@@ -78,6 +82,7 @@ public class JobVacancyApplicationService
             JobVacancyApplicationRejectionFeedbackService rejectionFeedbackService,
             JobVacancyRequirementOptionsService requirementOptionsService,
             InterviewScorecardService interviewScorecardService,
+            JobApplicationInterviewEvaluationRepository interviewEvaluationRepository,
             AccessScopePolicy accessScopePolicy) {
         super(repository, entity -> mapper.toResponse(entity, null, null), mapper::toEntity);
         this.repository = repository;
@@ -90,6 +95,7 @@ public class JobVacancyApplicationService
         this.rejectionFeedbackService = rejectionFeedbackService;
         this.requirementOptionsService = requirementOptionsService;
         this.interviewScorecardService = interviewScorecardService;
+        this.interviewEvaluationRepository = interviewEvaluationRepository;
         this.accessScopePolicy = accessScopePolicy;
     }
 
@@ -184,9 +190,38 @@ public class JobVacancyApplicationService
             }
             throw JobVacancyApplicationException.rejectionReasonRequired();
         }
+        AdmissionProcessKanbanColumn target = kanbanColumnRepository
+                .findAllByStatusNotOrderByDisplayOrderAscNameAsc(StatusEnum.DELETED)
+                .stream()
+                .filter(column -> key != null && key.equals(column.getColumnKey()))
+                .findFirst()
+                .orElseThrow(JobVacancyApplicationException::kanbanColumnNotFound);
+        assertHireTransitionAllowed(entity, target);
         reopenIfRejected(entity);
         assignKanbanColumn(entity, key);
         return enrich(repository.save(entity));
+    }
+
+    private void assertHireTransitionAllowed(JobVacancyApplication entity, AdmissionProcessKanbanColumn target) {
+        if (target.getColumnAction() != KanbanColumnActionEnum.CREATE_ADMISSION) {
+            return;
+        }
+        List<AdmissionProcessKanbanColumn> interviewColumns = kanbanColumnRepository
+                .findAllByStatusNotOrderByDisplayOrderAscNameAsc(StatusEnum.DELETED)
+                .stream()
+                .filter(AdmissionProcessKanbanColumn::isInterviewColumn)
+                .filter(column -> column.getStatus() == StatusEnum.ACTIVE)
+                .toList();
+        if (interviewColumns.isEmpty()) {
+            return;
+        }
+        boolean hasSubmittedInterview = !interviewEvaluationRepository
+                .findByJobVacancyApplicationIdInAndEvaluationStatusAndStatusNot(
+                        List.of(entity.getId()), InterviewEvaluationStatusEnum.SUBMITTED, StatusEnum.DELETED)
+                .isEmpty();
+        if (!hasSubmittedInterview) {
+            throw JobVacancyApplicationException.interviewRequiredBeforeHire();
+        }
     }
 
     @Override

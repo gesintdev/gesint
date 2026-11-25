@@ -1,7 +1,6 @@
 package br.com.gesint.modules.rh.person.collaborators.admission.pipeline.domain;
 
 import java.time.LocalDate;
-import java.util.Set;
 
 import br.com.gesint.core.util.BrazilianBusinessCalendar;
 
@@ -25,20 +24,6 @@ public final class AdmissionPipelineRules {
 
     /** Horizonte do painel lateral de prazos legais. */
     public static final int DEADLINE_PANEL_DAYS = 30;
-
-    /**
-     * Documentos que fecham a etapa 1, espelhando o catalogo ja usado no formulario de admissao
-     * (OUTRO fica de fora por nao ser exigivel). Vira checklist configuravel por tenant quando o
-     * modelo do Checklist de devolucoes for estendido a admissao.
-     */
-    public static final Set<String> REQUIRED_DOCUMENT_TYPES = Set.of(
-            "RG",
-            "CPF",
-            "COMPROVANTE_ENDERECO",
-            "CTPS",
-            "TITULO_ELEITOR",
-            "CERTIDAO_NASCIMENTO",
-            "COMPROVANTE_ESCOLARIDADE");
 
     private AdmissionPipelineRules() {}
 

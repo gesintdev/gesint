@@ -16,6 +16,13 @@ export type AdmissionEmergencyContact = {
     relationship?: string;
 };
 
+export type AdmissionDependent = {
+    fullName: string;
+    birthDate?: string;
+    relationship?: string;
+    cpf?: string;
+};
+
 export class AdmissionProcess {
     id!: string;
     code!: number;
@@ -70,6 +77,17 @@ export class AdmissionProcess {
     workloadSchedule?: string;
     workScheduleId?: string;
     emergencyContacts?: AdmissionEmergencyContact[];
+    dependents?: AdmissionDependent[];
+    raceColor?: string;
+    educationLevel?: string;
+    disabilityNotes?: string;
+    bankCode?: string;
+    bankAgency?: string;
+    bankAccount?: string;
+    bankAccountDigit?: string;
+    bankAccountType?: string;
+    pixKey?: string;
+    pcdSelfDeclared?: boolean;
     contractStartDate?: string;
     contractEndDate?: string;
     providerCnpj?: string;
@@ -128,6 +146,17 @@ export class AdmissionProcessCreateDto {
     workloadSchedule?: string;
     workScheduleId?: string;
     emergencyContacts?: AdmissionEmergencyContact[];
+    dependents?: AdmissionDependent[];
+    raceColor?: string;
+    educationLevel?: string;
+    disabilityNotes?: string;
+    bankCode?: string;
+    bankAgency?: string;
+    bankAccount?: string;
+    bankAccountDigit?: string;
+    bankAccountType?: string;
+    pixKey?: string;
+    pcdSelfDeclared?: boolean;
     contractStartDate?: string;
     contractEndDate?: string;
     providerCnpj?: string;

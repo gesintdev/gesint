@@ -14,6 +14,7 @@ export type InterviewCompetency = {
     competencyType?: string | null;
     description?: string | null;
     interviewGuideQuestion?: string | null;
+    levelIndicators?: Record<string, string> | null;
     source?: string | null;
 };
 

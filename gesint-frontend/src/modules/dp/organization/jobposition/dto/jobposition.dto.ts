@@ -9,6 +9,7 @@ export class JobPosition {
     title!: string;
     cboCode!: string;
     departmentId!: string;
+    departmentName?: string;
     nature?: JobPositionNature;
     description?: string;
     createdAt?: string;

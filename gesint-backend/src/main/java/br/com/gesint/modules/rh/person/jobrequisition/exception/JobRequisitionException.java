@@ -83,4 +83,11 @@ public final class JobRequisitionException {
                 JobRequisitionExceptions.DELETE_BLOCKED_MSG,
                 HttpStatus.CONFLICT);
     }
+
+    public static BusinessException salaryLevelWithoutBand() {
+        return new BusinessException(
+                JobRequisitionExceptions.SALARY_LEVEL_WITHOUT_BAND_CODE,
+                JobRequisitionExceptions.SALARY_LEVEL_WITHOUT_BAND_MSG,
+                HttpStatus.BAD_REQUEST);
+    }
 }

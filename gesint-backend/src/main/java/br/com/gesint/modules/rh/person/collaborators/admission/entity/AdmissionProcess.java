@@ -31,6 +31,7 @@ import org.hibernate.type.SqlTypes;
 import br.com.gesint.core.branch.BranchScopedEntity;
 import br.com.gesint.modules.rh.person.collaborators.address.entity.City;
 import br.com.gesint.modules.rh.person.collaborators.address.entity.State;
+import br.com.gesint.modules.rh.person.collaborators.admission.dto.AdmissionDependentDto;
 import br.com.gesint.modules.rh.person.collaborators.admission.dto.AdmissionEmergencyContactDto;
 import br.com.gesint.modules.rh.person.collaborators.people.entity.GenderEnum;
 import br.com.gesint.modules.rh.person.collaborators.people.entity.MaritalStatusEnum;
@@ -182,6 +183,22 @@ public class AdmissionProcess extends BranchScopedEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "emergency_contacts", columnDefinition = "jsonb", nullable = false)
     private List<AdmissionEmergencyContactDto> emergencyContacts = new ArrayList<>();
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "dependents", columnDefinition = "jsonb", nullable = false)
+    @Builder.Default
+    private List<AdmissionDependentDto> dependents = new ArrayList<>();
+
+    @Column(name = "race_color", length = 30)
+    private String raceColor;
+
+    @Column(name = "education_level", length = 30)
+    private String educationLevel;
+
+    /** Texto livre / observacoes PCD (persistido em jsonb). */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "disability_info", columnDefinition = "jsonb")
+    private java.util.Map<String, String> disabilityInfo;
 
     @Column(name = "contract_start_date")
     private LocalDate contractStartDate;

@@ -30,10 +30,10 @@ export const JOBPOSITION_TABLE_COLUMNS: TableColumnConfig[] = [
         badgeLabels: JOB_POSITION_NATURE_LABELS,
     },
     {
-        id: "departmentId",
+        id: "departmentName",
         columnName: "Departamento",
-        fieldValue: "departmentId",
-        dataType: TableDataType.UUID,
+        fieldValue: "departmentName",
+        dataType: TableDataType.TEXT,
     },
     {
         id: "status",
