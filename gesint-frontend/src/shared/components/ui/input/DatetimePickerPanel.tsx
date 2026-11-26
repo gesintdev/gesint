@@ -6,6 +6,7 @@ import { DayPicker } from "react-day-picker";
 import { ptBR } from "react-day-picker/locale";
 import { createPortal } from "react-dom";
 
+import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import { dateToIso, joinDatetime, joinTime, parseIsoToDate, splitDatetime, splitTime } from "@/shared/lib/input/date";
 import { DATETIME_HOUR_ITEMS, DATETIME_MINUTE_ITEMS } from "@/shared/lib/input/datetime-options";
 
@@ -21,6 +22,7 @@ export const DatetimePickerPanel = forwardRef<HTMLDivElement, DatetimePickerPane
     { value, min, max, onChange, anchorRef },
     ref,
 ) {
+    const portalRoot = usePopoverPortalRoot();
     const [position, setPosition] = useState({ top: 0, left: 0, width: 320 });
     const { date, time } = splitDatetime(value);
     const parsed = splitTime(time);
@@ -64,7 +66,7 @@ export const DatetimePickerPanel = forwardRef<HTMLDivElement, DatetimePickerPane
             window.removeEventListener("scroll", updatePosition, true);
         };
     }, [updatePosition]);
-    if (typeof document === "undefined") return null;
+    if (!portalRoot) return null;
     const selected = parseIsoToDate(draftDate);
     const fromDate = parseIsoToDate(min ?? "");
     const toDate = parseIsoToDate(max ?? "");
@@ -117,7 +119,7 @@ export const DatetimePickerPanel = forwardRef<HTMLDivElement, DatetimePickerPane
                 />
             </div>
         </div>,
-        document.body,
+        portalRoot,
     );
 });
 

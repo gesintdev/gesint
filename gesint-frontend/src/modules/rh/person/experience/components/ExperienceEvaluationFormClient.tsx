@@ -27,7 +27,7 @@ import {Button} from "@/shared/components/ui/Button";
 import {FormSection} from "@/shared/components/ui/FormSection";
 import {InputRadio, InputSelect} from "@/shared/components/ui/input";
 import {fieldClass, InputFieldChrome} from "@/shared/components/ui/input/InputFieldChrome";
-import {PopoverPortalProvider} from "@/shared/components/ui/input/popover-portal";
+import {LineContainer} from "@/shared/components/ui/line-container/LineContainer";
 import {Modal} from "@/shared/components/ui/Modal";
 import {SkeletonStack} from "@/shared/components/ui/SkeletonStack";
 import {ExceptionCapture} from "@/shared/exceptions";
@@ -35,7 +35,6 @@ import {isoToDateBr} from "@/shared/lib/input/date";
 import {SystemAlert} from "@/shared/system-alert";
 import {findRouteById} from "@/shared/workspace/workspace-routes";
 import {useWorkspaceNavigation} from "@/shared/workspace/WorkspaceNavigationProvider";
-import {LineContainer} from "@/shared/components/ui/line-container/LineContainer";
 
 type ScoreDraft = {
     score: number | null;
@@ -103,7 +102,6 @@ export function ExperienceEvaluationFormClient() {
     const [decisionOpen, setDecisionOpen] = useState(false);
     const [decisionAction, setDecisionAction] = useState<Exclude<ExperienceDecision, "AUTO_EFFECTIVE">>("EFFECTIVE");
     const [decisionReason, setDecisionReason] = useState("");
-    const [decisionPortalRoot, setDecisionPortalRoot] = useState<HTMLElement | null>(null);
     const [decisionNotes, setDecisionNotes] = useState("");
 
     const detailQuery = useQuery({
@@ -476,9 +474,6 @@ export function ExperienceEvaluationFormClient() {
                 subtitle={`${detail.collaboratorName ?? "Colaborador"} · ${EXPERIENCE_PERIOD_LABELS[detail.experiencePeriod]} · vence em ${dueLabel}`}
                 size="md"
                 closeDisabled={busy}
-                dialogRef={(node) => {
-                    if (node !== decisionPortalRoot) setDecisionPortalRoot(node);
-                }}
                 footer={
                     <LineContainer>
                         <>
@@ -502,7 +497,6 @@ export function ExperienceEvaluationFormClient() {
                     </LineContainer>
                 }
             >
-                <PopoverPortalProvider container={decisionPortalRoot}>
                 <div className="grid gap-3">
                     {DECISION_OPTIONS.map(([action, label]) => {
                         const unavailable = action === "EXTEND" && !detail.canExtend;
@@ -546,7 +540,6 @@ export function ExperienceEvaluationFormClient() {
                         Se nada for decidido até o vencimento, o contrato passa a prazo indeterminado.
                     </p>
                 </div>
-                </PopoverPortalProvider>
             </Modal>
         </>
     );

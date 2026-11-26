@@ -116,7 +116,7 @@ Novos módulos devem seguir o mesmo caminho do menu lateral. Exemplo: se a sideb
 - Inputs com foco por borda/ring suave; sem outline bruto.
 - Perguntar antes de adicionar dependência Maven/NPM não prevista.
 - Tudo que aparece mais de uma vez vira componente dedicado. Proibido copiar casca, botão, campo, cabeçalho ou diálogo.
-- Modal de conteúdo é `Modal` (`shared/components/ui/Modal.tsx`): ele abre o `dialog`, desenha título e Fechar (`ModalHeader`) e o rodapé com `Button`. Não monte outro `<dialog className="modal">` nem outro X. `SystemAlertHost` não é esse modal.
+- Modal de conteúdo é `Modal` (`shared/components/ui/Modal.tsx`): ele abre o `dialog`, desenha título e Fechar (`ModalHeader`) e o rodapé com `Button`. Não monte outro `<dialog className="modal">` nem outro X. `SystemAlertHost` não é esse modal. O `Modal` já coloca select, data e mês na camada do dialog. Não envolva o conteúdo com `PopoverPortalProvider` de novo.
 - Botão é `Button`. Campo é um input de `@/shared/components/ui/input`. Seleção é `InputSelect`, `InputSelectAutocomplete` ou `InputAutocomplete`.
 - Casca do Client: `SystemRail`, `Sidebar`, `WorkspaceShell` / `WorkspaceTabBar`, `HeaderUserMenu`. Listagem é `QueryTablePanel`/`DataTable`. Formulário é `CrudFormShell` + `FormSection`. Carregamento de tela é `AppLoadingScreen`.
 

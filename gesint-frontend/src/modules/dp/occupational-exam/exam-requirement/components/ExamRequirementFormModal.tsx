@@ -16,7 +16,6 @@ import { examRequirementService } from "@/modules/dp/occupational-exam/exam-requ
 import { OCCUPATIONAL_EXAM_CLIENT_MESSAGES } from "@/modules/dp/occupational-exam/exceptions/occupational-exam.messages";
 import { useFormDirtyByComparison } from "@/shared/components/crud/useFormDirtyByComparison";
 import { Button } from "@/shared/components/ui/Button";
-import { PopoverPortalProvider } from "@/shared/components/ui/input/popover-portal";
 import { Modal } from "@/shared/components/ui/Modal";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
@@ -36,7 +35,6 @@ export function ExamRequirementFormModal({
     requirementId,
     onSaved,
 }: ExamRequirementFormModalProps) {
-    const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
     const formId = useId();
     const queryClient = useQueryClient();
     const isEditing = Boolean(requirementId);
@@ -150,9 +148,6 @@ export function ExamRequirementFormModal({
             title={isEditing ? "Editar matriz de exames" : "Nova matriz de exames"}
             subtitle="Cargo herdado do cadastro selecionado."
             size="screen"
-            dialogRef={(node) => {
-                if (node !== portalRoot) setPortalRoot(node);
-            }}
             footer={
                 <div className="flex items-center justify-end gap-2">
                     <Button type="button" variant="ghost" onClick={() => void requestClose()}>
@@ -164,8 +159,7 @@ export function ExamRequirementFormModal({
                 </div>
             }
         >
-            <PopoverPortalProvider container={portalRoot}>
-                <form id={formId} onSubmit={handleSubmit}>
+            <form id={formId} onSubmit={handleSubmit}>
                     {isEditing && detailQuery.isLoading ? (
                         <div className="grid gap-2">
                             {Array.from({ length: 4 }).map((_, i) => (
@@ -184,7 +178,6 @@ export function ExamRequirementFormModal({
                         </div>
                     )}
                 </form>
-            </PopoverPortalProvider>
         </Modal>
     );
 }

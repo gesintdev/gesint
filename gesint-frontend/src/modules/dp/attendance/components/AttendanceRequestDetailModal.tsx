@@ -8,7 +8,6 @@ import type {
 } from "@/modules/dp/attendance/dto/attendance-record.dto";
 import {Button} from "@/shared/components/ui/Button";
 import {InputSelect} from "@/shared/components/ui/input/InputSelect";
-import {PopoverPortalProvider} from "@/shared/components/ui/input/popover-portal";
 import {Modal} from "@/shared/components/ui/Modal";
 
 const REQUEST_TYPE_LABEL: Record<string, string> = {
@@ -71,7 +70,6 @@ export function AttendanceRequestDetailModal({
                                                  onApprove,
                                                  onReject,
                                              }: AttendanceRequestDetailModalProps) {
-    const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
     const [rejectMode, setRejectMode] = useState(false);
     const [reason, setReason] = useState("");
     const [compensationType, setCompensationType] = useState<AttendanceCompensationType | "">("");
@@ -130,9 +128,6 @@ export function AttendanceRequestDetailModal({
                 </span>
             }
             size="2xl"
-            dialogRef={(node) => {
-                if (node !== portalRoot) setPortalRoot(node);
-            }}
             footer={
                 <div className="flex flex-wrap items-center justify-end gap-2">
                     <Button type="button" variant="ghost" onClick={onClose}>
@@ -183,8 +178,7 @@ export function AttendanceRequestDetailModal({
                 </div>
             }
         >
-            <PopoverPortalProvider container={portalRoot}>
-                        <div className="overflow-hidden rounded-xl border border-base-300">
+            <div className="overflow-hidden rounded-xl border border-base-300">
                             <table className="table table-sm">
                                 <thead>
                                 <tr className="bg-base-200/60">
@@ -285,7 +279,6 @@ export function AttendanceRequestDetailModal({
                                 />
                             </div>
                         ) : null}
-            </PopoverPortalProvider>
         </Modal>
     );
 }

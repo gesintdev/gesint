@@ -27,7 +27,6 @@ import { jobPositionSalaryTableService } from "@/modules/dp/organization/jobposi
 import { useFormDirtyByComparison } from "@/shared/components/crud/useFormDirtyByComparison";
 import { Button } from "@/shared/components/ui/Button";
 import { InputCurrency, InputDate, InputSelect, InputString } from "@/shared/components/ui/input/index";
-import { PopoverPortalProvider } from "@/shared/components/ui/input/popover-portal";
 import { Modal } from "@/shared/components/ui/Modal";
 import { ExceptionCapture } from "@/shared/exceptions";
 import { SystemAlert } from "@/shared/system-alert";
@@ -47,7 +46,6 @@ export function JobPositionSalaryTableFormModal({
     tableId,
     onSaved,
 }: JobPositionSalaryTableFormModalProps) {
-    const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
     const formId = useId();
     const queryClient = useQueryClient();
     const isEditing = Boolean(tableId);
@@ -218,9 +216,6 @@ export function JobPositionSalaryTableFormModal({
             title={isEditing ? "Nova versão da tabela salarial" : "Nova tabela salarial"}
             subtitle={subtitle}
             layoutClassName="max-h-[90vh] w-[min(44rem,92vw)] max-w-[min(44rem,92vw)]"
-            dialogRef={(node) => {
-                if (node !== portalRoot) setPortalRoot(node);
-            }}
             footer={
                 <div className="flex items-center justify-end gap-2">
                     <Button type="button" variant="ghost" onClick={() => void requestClose()}>
@@ -232,8 +227,7 @@ export function JobPositionSalaryTableFormModal({
                 </div>
             }
         >
-            <PopoverPortalProvider container={portalRoot}>
-                <form id={formId} onSubmit={handleSubmit}>
+            <form id={formId} onSubmit={handleSubmit}>
                     {isEditing && detailQuery.isLoading ? (
                                 <div className="grid gap-2">
                                     {Array.from({ length: 4 }).map((_, i) => (
@@ -327,7 +321,6 @@ export function JobPositionSalaryTableFormModal({
                                 </div>
                             )}
                 </form>
-            </PopoverPortalProvider>
         </Modal>
     );
 }
