@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* Tokens extraídos do Figma "Gesint — Home institucional". */
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-logo: var(--font-outfit), var(--font-inter), sans-serif;
+
+  --color-ink: #111d27;
+  --color-muted: #596771;
+  --color-line: #dce4e8;
+  --color-surface: #f3f7f8;
+  --color-brand: #007bff;
+  --color-brand-hover: #006ae0;
+  --color-brand-soft: #e7f0fb;
+
+  --color-success-bg: #eaf4ee;
+  --color-success-fg: #28734a;
+  --color-warning-bg: #fff5df;
+  --color-warning-fg: #845b08;
+  --color-info-bg: #eaf2ff;
+  --color-info-fg: #075eb9;
+}
+
+/* Altura animada de <details> (FAQ) onde o navegador suporta. */
+:root {
+  interpolate-size: allow-keywords;
+}
+
+/* Lenis cuida da rolagem macia; sem ele (movimento reduzido) a rolagem é nativa. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+details[name="faq"]::details-content {
+  height: 0;
+  overflow: clip;
+  transition:
+    height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    content-visibility 0.5s allow-discrete;
+}
+
+details[name="faq"][open]::details-content {
+  height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after,
+  details[name="faq"]::details-content {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.4;
+}
+
+summary {
+  list-style: none;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
