@@ -16,7 +16,7 @@ A pasta `.agents/rules/` e a fonte canonica das regras compartilhadas entre agen
 
 | Arquivo | Escopo |
 |---------|--------|
-| `.agents/rules/gesint.mdc` | Padroes gerais do monolito |
+| `.agents/rules/gesint.mdc` | Padroes gerais do monolito, mapa das regras e site institucional (app separado) |
 | `.agents/rules/gesint-frontend-ui.mdc` | Convencoes tecnicas do frontend |
 | `.agents/rules/gesint-ui-system.mdc` | Padrão visual do Client (tokens, escala fixa do ClickUp, casca, login) |
 | `.agents/rules/gesint-payroll-module.mdc` | Folha de Pagamento (CTB) |

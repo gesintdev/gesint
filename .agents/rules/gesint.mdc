@@ -7,6 +7,22 @@ alwaysApply: true
 
 Monorepo ERP com sistemas DP/RH/CTB/CFG e painel Admin. Dois lados da plataforma: **Admin** (operação Gesint) e **Client** (app do tenant). Arquitetura atual: monólito modular preparado para separação futura. Regra máxima: seguir padrões existentes; não criar novo padrão sem justificativa explícita.
 
+## Mapa das regras — leitura obrigatória
+
+Estes arquivos são a fonte das regras. O nome certo é `.agents/rules/*.mdc` para o que o agente executa, e `docs/` para o detalhe de negócio. Antes de alterar uma camada, abrir o arquivo dela mesmo que ele não tenha sido anexado automaticamente. Se o código divergir do arquivo, o código implementado manda e o arquivo se corrige na mesma entrega.
+
+| Arquivo | O que manda | Quando ler |
+|---|---|---|
+| `.agents/rules/gesint.mdc` | Arquitetura, Admin/Client, backend, multi-tenant, site, auditoria | Sempre |
+| `.agents/rules/gesint-ui-system.mdc` | Layout e componentes visuais do **Client** (tokens, casca, botão, input, tabela, modal, login, dashboard) | Qualquer tela, CSS ou componente do `gesint-frontend` |
+| `.agents/rules/gesint-frontend-ui.mdc` | Frontend do Client: dados, filial, workspace, React Query | Qualquer `.tsx`/`.css` do `gesint-frontend` |
+| `.agents/rules/gesint-payroll-module.mdc` | Folha de pagamento (CTB) | Qualquer alteração de folha |
+| `docs/modulos/` | Regras de negócio do módulo (férias, folha, recesso, permissões) | Antes de mudar a regra daquele módulo |
+| `docs/arquitetura/multi-tenant.md` | DNS, tenant, control plane / data plane | Host, login, schema de cliente |
+| `docs/ops/producao-gesint.md` | Hosts de produção e boot | Deploy, DNS, Coolify |
+
+Não criar um segundo design system, um segundo modal, um segundo select nem uma regra de negócio paralela à que já está nesses arquivos.
+
 ## Repositórios
 
 - Client Frontend: `gesint-frontend/` (Next.js App Router, `src/`, porta `3000`)
@@ -102,6 +118,17 @@ Novos módulos devem seguir o mesmo caminho do menu lateral. Exemplo: se a sideb
 - Tudo que aparece mais de uma vez vira componente dedicado. Proibido copiar casca, botão, campo, cabeçalho ou diálogo.
 - Modal de conteúdo é `Modal` (`shared/components/ui/Modal.tsx`): ele abre o `dialog`, desenha título e Fechar (`ModalHeader`) e o rodapé com `Button`. Não monte outro `<dialog className="modal">` nem outro X. `SystemAlertHost` não é esse modal.
 - Botão é `Button`. Campo é um input de `@/shared/components/ui/input`. Seleção é `InputSelect`, `InputSelectAutocomplete` ou `InputAutocomplete`.
+- Casca do Client: `SystemRail`, `Sidebar`, `WorkspaceShell` / `WorkspaceTabBar`, `HeaderUserMenu`. Listagem é `QueryTablePanel`/`DataTable`. Formulário é `CrudFormShell` + `FormSection`. Carregamento de tela é `AppLoadingScreen`.
+
+### Admin — componentes próprios
+
+O Admin não usa a casca do Client. Telas novas copiam um módulo que já existe (`ClientsModule`, `AdminUsersModule`) e reutilizam o kit em `gesint-admin-frontend/src/shared/components`:
+
+- Casca: `AdminHeader`, `AdminSidebar`, `AdminBreadcrumb`
+- Listagem: `AdminModuleToolbar`, `AdminSearchBar`, `AdminDataGrid`, `AdminTabBar`, `AdminBadge`
+- Formulário: `FormSection`, `AdminField`, inputs de `shared/components/ui/input`
+- Ação: `Button` ou `AdminBtn`. Modal: `AdminModal`. Ajuda: `AdminHelpTip`
+- Proibido importar `CrudFormShell`, `QueryTablePanel`, `SystemRail`, `WorkspaceShell` ou `Modal` do Client no Admin, e proibido levar `Admin*` para o Client.
 
 ## Sistema ativo (rail) — regra absoluta
 
@@ -137,8 +164,21 @@ MVP usa schema dedicado por cliente (ex.: `tenant_*` ou slug livre como `posto_s
 
 Endereços em produção:
 
-- `gesint.com.br` (domínio cru, sem subdomínio) é o site da Gesint. Não é tenant e não abre o ERP.
+- `www.gesint.com.br` e `gesint.com.br` (domínio cru, sem subdomínio) são o site da Gesint. Não são tenant e não abrem o ERP.
 - O endereço de cada cliente é `https://{slug}.gesint.com.br`.
+- Slugs que nunca identificam cliente: `www`, `api`, `admin`, `app`, `ponto`.
+
+## Site institucional — regra absoluta
+
+O site da Gesint é um aplicativo separado. Não entra no `gesint-frontend`.
+
+1. Quando for construído, nasce no monorepo no mesmo modelo do `gesint-admin-frontend`: pasta própria (prevista `gesint-site/`), Dockerfile próprio, porta própria e uma Application própria no Coolify.
+2. Os únicos hosts desse app são `https://www.gesint.com.br` e `https://gesint.com.br`.
+3. O `gesint-frontend` continua sendo só o ERP: `https://app.gesint.com.br` e `https://{slug}.gesint.com.br`.
+4. Login, carreiras e ponto público permanecem no Client, no host do cliente. Essas páginas não são o site institucional.
+5. É proibido criar landing, home institucional ou página de marketing dentro de `gesint-frontend`, `gesint-admin-frontend` ou de qualquer backend.
+6. Enquanto `gesint-site` não existir, `www.gesint.com.br` e `gesint.com.br` respondem 404 com `noindex` pelo Worker `gesint-site-placeholder` na Cloudflare. Esses hosts não apontam para o container do ERP.
+7. O wildcard `*.gesint.com.br` no Coolify do `gesint-frontend` não recebe `www` nem o apex. O registro DNS de `www` é específico e fica na frente do wildcard.
 
 Ao criar tabela/entidade de negócio:
 
@@ -211,6 +251,22 @@ Regra prática atual:
 | BE service | `CollaboratorService.java` / `ICollaboratorService.java` |
 | BE DTO | `CollaboratorRequestDto.java` / `CollaboratorResponseDto.java` |
 | BE mapper | `CollaboratorMapper.java` |
+
+## Regras de negócio
+
+A regra de um módulo está no código do service/domain e, quando existe, no documento abaixo. Antes de alterar o comportamento, ler o documento e a implementação semelhante. Não inventar entidade, status ou fluxo com outro nome.
+
+| Módulo | Documento |
+|---|---|
+| Folha (CTB) | `docs/modulos/folha-de-pagamento.md` e `.agents/rules/gesint-payroll-module.mdc` |
+| Férias | `docs/modulos/ferias.md` |
+| Recesso contratual PJ | `docs/modulos/recesso-contratual-pj.md` |
+| Autorização (RN-03) | `docs/modulos/permissoes/gesint-RN-03-autorizacao.md` |
+| Ordem das regras (RN-00 em diante) | `docs/modulos/permissoes/gesint-ordem-regras-de-negocio.md` |
+| Tenant, DNS, site | `docs/arquitetura/multi-tenant.md` e a seção "Site institucional" deste arquivo |
+| Produção | `docs/ops/producao-gesint.md` |
+
+`docs/analise/` guarda planos e roteiros. Não é regra vigente. A regra vigente é o código mais o documento da tabela.
 
 ## Folha de Pagamento
 

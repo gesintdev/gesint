@@ -24,7 +24,7 @@ O domínio ativo no frontend vem do rail esquerdo, não da URL. Trocar abas no w
 
 ## Arquitetura multi-tenant
 
-O Gesint usa control plane + data plane. Em produção, `gesint.com.br` é o site da Gesint; o ERP de cada cliente fica em `https://{slug}.gesint.com.br`.
+O Gesint usa control plane + data plane. Em produção, `www.gesint.com.br` e `gesint.com.br` são o site da Gesint (app separado, `gesint-site`); o ERP de cada cliente fica em `https://{slug}.gesint.com.br`.
 
 | Documento | Conteúdo |
 |---|---|
