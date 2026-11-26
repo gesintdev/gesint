@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.109.22",
+      "hash": "968a3dd1",
+      "date": "2026-11-26T13:43:00-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (dropdown do modal na camada do dialog)",
+      "body": "**Commits incluídos**\n\n- fix: abre select e data na camada do modal.",
+      "pullRequest": null
+    },
+    {
       "version": "1.109.21",
       "hash": "433df616",
       "date": "2026-11-26T10:58:12-03:00",
