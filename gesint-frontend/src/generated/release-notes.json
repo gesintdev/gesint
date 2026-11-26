@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.109.23",
+      "hash": "91787f55",
+      "date": "2026-11-26T15:42:59-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (dropdown abre para cima)",
+      "body": "**Commits incluídos**\n\n- fix: abre o dropdown para cima quando nao cabe na tela.",
+      "pullRequest": null
+    },
+    {
       "version": "1.109.22",
       "hash": "968a3dd1",
       "date": "2026-11-26T13:43:00-03:00",
