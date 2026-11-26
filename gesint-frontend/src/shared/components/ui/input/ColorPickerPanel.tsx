@@ -11,6 +11,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { placeAnchoredPanel } from "@/shared/components/ui/input/popover-placement";
 import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 
 type Hsv = { h: number; s: number; v: number };
@@ -93,20 +94,16 @@ const PANEL_WIDTH = 240;
 /** Altura aproximada do painel (SV + hue + preview + swatches + padding). */
 const PANEL_HEIGHT_FALLBACK = 292;
 const PANEL_GAP = 6;
-const PANEL_EDGE = 8;
 
 function readAnchorPosition(anchor: HTMLElement | null, panelHeight = PANEL_HEIGHT_FALLBACK) {
     if (!anchor || typeof window === "undefined") return { top: 0, left: 0 };
-    const rect = anchor.getBoundingClientRect();
-    const height = Math.max(panelHeight, 1);
-    const left = clamp(rect.left, PANEL_EDGE, window.innerWidth - PANEL_WIDTH - PANEL_EDGE);
-    const spaceBelow = window.innerHeight - rect.bottom - PANEL_EDGE;
-    const spaceAbove = rect.top - PANEL_EDGE;
-    const openUp = spaceBelow < height && spaceAbove > spaceBelow;
-    const top = openUp
-        ? clamp(rect.top - PANEL_GAP - height, PANEL_EDGE, window.innerHeight - height - PANEL_EDGE)
-        : clamp(rect.bottom + PANEL_GAP, PANEL_EDGE, window.innerHeight - height - PANEL_EDGE);
-    return { top, left };
+    const placed = placeAnchoredPanel({
+        anchor: anchor.getBoundingClientRect(),
+        panelWidth: PANEL_WIDTH,
+        panelHeight,
+        gap: PANEL_GAP,
+    });
+    return { top: placed.top, left: placed.left };
 }
 
 const SWATCHES = [

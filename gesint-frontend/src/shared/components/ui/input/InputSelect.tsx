@@ -2,13 +2,14 @@
 
 import clsx from "clsx";
 import { ChevronDown } from "lucide-react";
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
+import { useAnchoredPanelPosition } from "@/shared/components/ui/input/popover-placement";
 import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { useClickOutside, useListboxKeyboard } from "@/shared/components/ui/input/use-listbox-keyboard";
@@ -46,35 +47,9 @@ export function InputSelect({
     const panelRef = useRef<HTMLDivElement>(null);
     const portalRoot = usePopoverPortalRoot();
     const [open, setOpen] = useState(false);
-    const [panelPosition, setPanelPosition] = useState({ top: 0, left: 0, width: 0 });
+    const panelBox = useAnchoredPanelPosition(open, rootRef, panelRef, { gap: 4, fallbackHeight: 240 });
     const selected = useMemo(() => items.find((i) => i.value === value), [items, value]);
     const close = useCallback(() => setOpen(false), []);
-    const updatePanelPosition = useCallback(() => {
-        const anchor = rootRef.current;
-        if (!anchor) return;
-        const rect = anchor.getBoundingClientRect();
-        setPanelPosition({
-            top: rect.bottom + 4,
-            left: rect.left,
-            width: rect.width,
-        });
-    }, []);
-
-    useLayoutEffect(() => {
-        if (!open) return;
-        updatePanelPosition();
-    }, [open, updatePanelPosition]);
-
-    useEffect(() => {
-        if (!open) return;
-        updatePanelPosition();
-        window.addEventListener("resize", updatePanelPosition);
-        window.addEventListener("scroll", updatePanelPosition, true);
-        return () => {
-            window.removeEventListener("resize", updatePanelPosition);
-            window.removeEventListener("scroll", updatePanelPosition, true);
-        };
-    }, [open, updatePanelPosition]);
 
     useClickOutside([rootRef, panelRef], close, open);
 
@@ -145,10 +120,14 @@ export function InputSelect({
                               onHighlight={setActiveIndex}
                               className="fixed z-[200]"
                               style={{
-                                  top: panelPosition.top,
-                                  left: panelPosition.left,
-                                  width: panelPosition.width,
-                                  minWidth: panelPosition.width,
+                                  position: "fixed",
+                                  top: panelBox.top,
+                                  left: panelBox.left,
+                                  width: panelBox.width,
+                                  minWidth: panelBox.width,
+                                  margin: 0,
+                                  maxHeight: panelBox.maxHeight ?? undefined,
+                                  overflowY: panelBox.maxHeight != null ? "auto" : undefined,
                               }}
                           />,
                           portalRoot,

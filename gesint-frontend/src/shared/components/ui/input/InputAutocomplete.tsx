@@ -1,11 +1,14 @@
 import clsx from "clsx";
 import { Loader2, Search } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
+import { useAnchoredPanelPosition } from "@/shared/components/ui/input/popover-placement";
+import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import type { SelectItem, SelectSearchFn } from "@/shared/components/ui/input/select-item.types";
 import { useClickOutside, useListboxKeyboard } from "@/shared/components/ui/input/use-listbox-keyboard";
 
@@ -56,11 +59,14 @@ export function InputAutocomplete({
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const listId = `${id}-listbox`;
     const rootRef = useRef<HTMLDivElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const portalRoot = usePopoverPortalRoot();
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const queryRef = useRef("");
     const openRef = useRef(false);
     const requestRef = useRef(0);
     const [open, setOpen] = useState(false);
+    const panelBox = useAnchoredPanelPosition(open, rootRef, panelRef, { gap: 4, fallbackHeight: 240 });
     const [query, setQuery] = useState("");
     const [items, setItems] = useState<SelectItem[]>([]);
     const [page, setPage] = useState(0);
@@ -95,7 +101,7 @@ export function InputAutocomplete({
         close();
     }, [allowCustomValue, close, commitCustomValue]);
 
-    useClickOutside(rootRef, handleOutside, open);
+    useClickOutside([rootRef, panelRef], handleOutside, open);
 
     const runSearch = useCallback(
         async (q: string, nextPage: number, append: boolean, requestId: number) => {
@@ -289,20 +295,35 @@ export function InputAutocomplete({
                     {loading && <Loader2 className="size-4 shrink-0 animate-spin text-base-content/35" />}
                     {trailingAction}
                 </div>
-                {open && query.length >= minChars && (
-                    <InputSelectPanel
-                        listId={listId}
-                        items={items}
-                        activeIndex={activeIndex}
-                        selectedValue={value}
-                        onPick={pick}
-                        onHighlight={setActiveIndex}
-                        emptyMessage={
-                            loading || settledQuery !== query ? "Buscando..." : "Nenhum resultado"
-                        }
-                        footer={footer}
-                    />
-                )}
+                {open && query.length >= minChars && portalRoot
+                    ? createPortal(
+                          <InputSelectPanel
+                              ref={panelRef}
+                              listId={listId}
+                              items={items}
+                              activeIndex={activeIndex}
+                              selectedValue={value}
+                              onPick={pick}
+                              onHighlight={setActiveIndex}
+                              emptyMessage={
+                                  loading || settledQuery !== query ? "Buscando..." : "Nenhum resultado"
+                              }
+                              footer={footer}
+                              className="fixed z-[200]"
+                              style={{
+                                  position: "fixed",
+                                  top: panelBox.top,
+                                  left: panelBox.left,
+                                  width: panelBox.width,
+                                  minWidth: panelBox.width,
+                                  margin: 0,
+                                  maxHeight: panelBox.maxHeight ?? undefined,
+                                  overflowY: panelBox.maxHeight != null ? "auto" : undefined,
+                              }}
+                          />,
+                          portalRoot,
+                      )
+                    : null}
             </div>
         </InputFieldChrome>
     );
