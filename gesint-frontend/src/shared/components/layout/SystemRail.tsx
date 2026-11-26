@@ -18,8 +18,8 @@ function canAccessAnySettingsRoute(permissions: readonly string[]): boolean {
 }
 
 /**
- * Rail de domínios (CTB / DP / RH / CFG) — cápsula arredondada espaçada do menu,
- * no modelo ClickUp: ícones menores e mais quadrados.
+ * Rail de domínios na ordem do registry de SystemEnum. CFG fica sempre por último.
+ * Cápsula no modelo ClickUp: ícones menores e mais quadrados.
  */
 export function SystemRail() {
     const [mounted, setMounted] = useState(false);
@@ -58,7 +58,7 @@ export function SystemRail() {
                             aria-current={selected ? "true" : undefined}
                             onClick={() => handleSelect(system.id)}
                             className={clsx(
-                                "system-rail-item rounded-[length:var(--system-rail-radius)]",
+                                "system-rail-item rounded-(--system-rail-radius)",
                                 selected && "system-rail-item--active",
                             )}
                         >
@@ -81,7 +81,7 @@ export function SystemRail() {
                             aria-current={settingsSelected ? "true" : undefined}
                             onClick={handleOpenSettings}
                             className={clsx(
-                                "system-rail-item rounded-[length:var(--system-rail-radius)]",
+                                "system-rail-item rounded-(--system-rail-radius)",
                                 settingsSelected && "system-rail-item--active",
                             )}
                         >

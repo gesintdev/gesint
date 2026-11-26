@@ -63,7 +63,7 @@ export function filterDashboardSummaryForSystem(data: DashboardSummary, system: 
 }
 
 export function dashboardTitleForSystem(system: DashboardSystemId): string {
-    if (system === "dp") return "Painel DP";
+    if (system === "dp") return "Painel Departamento Pessoal";
     if (system === "contabilidade") return "Painel Contabilidade";
-    return "Painel RH";
+    return "Painel Recursos Humanos";
 }
