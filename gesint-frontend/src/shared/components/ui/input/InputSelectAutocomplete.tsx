@@ -3,11 +3,14 @@
 import clsx from "clsx";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { canClearOptionalField, FieldClearButton } from "@/shared/components/ui/input/FieldClearButton";
 import type { InputFieldChromeProps } from "@/shared/components/ui/input/input-field.types";
 import { fieldClass, InputFieldChrome } from "@/shared/components/ui/input/InputFieldChrome";
 import { InputSelectPanel } from "@/shared/components/ui/input/InputSelectPanel";
+import { useAnchoredPanelPosition } from "@/shared/components/ui/input/popover-placement";
+import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import type { SelectItem, SelectSearchFn } from "@/shared/components/ui/input/select-item.types";
 import { useClickOutside, useListboxKeyboard } from "@/shared/components/ui/input/use-listbox-keyboard";
 
@@ -82,9 +85,12 @@ export function InputSelectAutocomplete({
     const id = idProp ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
     const listId = `${id}-listbox`;
     const rootRef = useRef<HTMLDivElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [open, setOpen] = useState(false);
+    const portalRoot = usePopoverPortalRoot();
+    const panelBox = useAnchoredPanelPosition(open, rootRef, panelRef, { gap: 4, fallbackHeight: 240 });
     const [query, setQuery] = useState("");
     const [remoteItems, setRemoteItems] = useState<SelectItem[]>([]);
     const [pickedItem, setPickedItem] = useState<SelectItem | undefined>();
@@ -113,7 +119,7 @@ export function InputSelectAutocomplete({
         setQuery("");
     }, []);
 
-    useClickOutside(rootRef, close, open);
+    useClickOutside([rootRef, panelRef], close, open);
 
     const runRemoteSearch = useCallback(
         async (q: string, nextPage: number, append: boolean) => {
@@ -268,18 +274,33 @@ export function InputSelectAutocomplete({
                         <ChevronDown className={clsx("size-4 transition-transform", open && "rotate-180")} />
                     </button>
                 </div>
-                {open && (
-                    <InputSelectPanel
-                        listId={listId}
-                        items={visibleItems}
-                        activeIndex={activeIndex}
-                        selectedValue={value}
-                        onPick={pick}
-                        onHighlight={setActiveIndex}
-                        emptyMessage={loading ? "Buscando..." : "Nenhum item"}
-                        footer={footer}
-                    />
-                )}
+                {open && portalRoot
+                    ? createPortal(
+                          <InputSelectPanel
+                              ref={panelRef}
+                              listId={listId}
+                              items={visibleItems}
+                              activeIndex={activeIndex}
+                              selectedValue={value}
+                              onPick={pick}
+                              onHighlight={setActiveIndex}
+                              emptyMessage={loading ? "Buscando..." : "Nenhum item"}
+                              footer={footer}
+                              className="fixed z-[200]"
+                              style={{
+                                  position: "fixed",
+                                  top: panelBox.top,
+                                  left: panelBox.left,
+                                  width: panelBox.width,
+                                  minWidth: panelBox.width,
+                                  margin: 0,
+                                  maxHeight: panelBox.maxHeight ?? undefined,
+                                  overflowY: panelBox.maxHeight != null ? "auto" : undefined,
+                              }}
+                          />,
+                          portalRoot,
+                      )
+                    : null}
             </div>
         </InputFieldChrome>
     );

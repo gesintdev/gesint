@@ -1,12 +1,13 @@
 "use client";
 
 import clsx from "clsx";
-import { forwardRef, useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { useAnchoredPanelPosition } from "@/shared/components/ui/input/popover-placement";
+import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import { joinTime, splitTime } from "@/shared/lib/input/date";
 import { HOUR_ITEMS, MINUTE_ITEMS } from "@/shared/lib/input/time";
-import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 
 type HourPickerPanelProps = {
     value: string;
@@ -26,41 +27,26 @@ export const HourPickerPanel = forwardRef<HTMLDivElement, HourPickerPanelProps>(
     const parsed = splitTime(value);
     const [draftHour, setDraftHour] = useState(parsed.hour || "08");
     const [draftMinute, setDraftMinute] = useState(parsed.minute || "00");
-    const [position, setPosition] = useState({ top: 0, left: 0, width: 220 });
     const portalRoot = usePopoverPortalRoot();
+    const panelRef = useRef<HTMLDivElement>(null);
+    const box = useAnchoredPanelPosition(true, anchorRef, panelRef, {
+        gap: 6,
+        align,
+        width: "anchor",
+        minWidth: 220,
+        fallbackHeight: 280,
+    });
+    const setRef = (node: HTMLDivElement | null) => {
+        panelRef.current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) ref.current = node;
+    };
 
     useEffect(() => {
         const { hour, minute } = splitTime(value);
         setDraftHour(hour || "08");
         setDraftMinute(minute || "00");
     }, [value]);
-
-    const updatePosition = useCallback(() => {
-        const anchor = anchorRef.current;
-        if (!anchor) return;
-        const rect = anchor.getBoundingClientRect();
-        const width = Math.max(rect.width, 220);
-        const left = align === "end" ? rect.right - width : rect.left;
-        setPosition({
-            top: rect.bottom + 6,
-            left,
-            width,
-        });
-    }, [align, anchorRef]);
-
-    useLayoutEffect(() => {
-        updatePosition();
-    }, [updatePosition]);
-
-    useEffect(() => {
-        updatePosition();
-        window.addEventListener("resize", updatePosition);
-        window.addEventListener("scroll", updatePosition, true);
-        return () => {
-            window.removeEventListener("resize", updatePosition);
-            window.removeEventListener("scroll", updatePosition, true);
-        };
-    }, [updatePosition]);
 
     if (!portalRoot) return null;
 
@@ -71,12 +57,15 @@ export const HourPickerPanel = forwardRef<HTMLDivElement, HourPickerPanelProps>(
 
     return createPortal(
         <div
-            ref={ref}
+            ref={setRef}
             className="gesint-hour-picker-panel surface-popover fixed z-200 overflow-hidden"
             style={{
-                top: position.top,
-                left: position.left,
-                width: position.width,
+                position: "fixed",
+                top: box.top,
+                left: box.left,
+                width: box.width,
+                maxHeight: box.maxHeight ?? undefined,
+                overflowY: box.maxHeight != null ? "auto" : undefined,
             }}
             role="dialog"
             aria-label="Selecionar hora"

@@ -1,10 +1,11 @@
 "use client";
 
-import { forwardRef, useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { forwardRef, useRef } from "react";
 import { DayPicker } from "react-day-picker";
 import { ptBR } from "react-day-picker/locale";
 import { createPortal } from "react-dom";
 
+import { useAnchoredPanelPosition } from "@/shared/components/ui/input/popover-placement";
 import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import { dateToIso, parseIsoToDate } from "@/shared/lib/input/date";
 
@@ -21,40 +22,32 @@ export const DatePickerPanel = forwardRef<HTMLDivElement, DatePickerPanelProps>(
     ref,
 ) {
     const portalRoot = usePopoverPortalRoot();
-    const [position, setPosition] = useState({ top: 0, left: 0 });
-    const updatePosition = useCallback(() => {
-        const anchor = anchorRef.current;
-        if (!anchor) return;
-        const rect = anchor.getBoundingClientRect();
-        setPosition({
-            top: rect.bottom + 6,
-            left: rect.left,
-        });
-    }, [anchorRef]);
-    useLayoutEffect(() => {
-        updatePosition();
-    }, [updatePosition]);
-    useEffect(() => {
-        updatePosition();
-        window.addEventListener("resize", updatePosition);
-        window.addEventListener("scroll", updatePosition, true);
-        return () => {
-            window.removeEventListener("resize", updatePosition);
-            window.removeEventListener("scroll", updatePosition, true);
-        };
-    }, [updatePosition]);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const box = useAnchoredPanelPosition(true, anchorRef, panelRef, {
+        gap: 6,
+        width: "content",
+        fallbackHeight: 320,
+    });
+    const setRef = (node: HTMLDivElement | null) => {
+        panelRef.current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) ref.current = node;
+    };
     if (!portalRoot) return null;
     const selected = parseIsoToDate(value);
     const fromDate = parseIsoToDate(min ?? "");
     const toDate = parseIsoToDate(max ?? "");
     return createPortal(
         <div
-            ref={ref}
+            ref={setRef}
             className="gesint-date-picker-panel surface-popover fixed z-200 p-2"
             style={{
-                top: position.top,
-                left: position.left,
+                position: "fixed",
+                top: box.top,
+                left: box.left,
                 width: "max-content",
+                maxHeight: box.maxHeight ?? undefined,
+                overflowY: box.maxHeight != null ? "auto" : undefined,
             }}
             role="dialog"
             aria-label="Calendário"

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { type ReactNode,useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+
+import { placeAnchoredPanel } from "@/shared/components/ui/input/popover-placement";
 
 export type ContextMenuItem = {
     id: string;
@@ -41,11 +43,13 @@ export function ContextMenu({ x, y, ariaLabel, entries, onClose }: ContextMenuPr
     useLayoutEffect(() => {
         if (!menuRef.current) return;
         const rect = menuRef.current.getBoundingClientRect();
-        const pad = 8;
-        setPos({
-            left: Math.min(x, window.innerWidth - rect.width - pad),
-            top: Math.min(y, window.innerHeight - rect.height - pad),
+        const placed = placeAnchoredPanel({
+            anchor: new DOMRect(x, y, 0, 0),
+            panelWidth: Math.max(rect.width, MENU_MIN_WIDTH),
+            panelHeight: rect.height,
+            gap: 0,
         });
+        setPos({ left: placed.left, top: placed.top });
     }, [x, y]);
 
     useEffect(() => {
@@ -86,7 +90,7 @@ export function ContextMenu({ x, y, ariaLabel, entries, onClose }: ContextMenuPr
             role="menu"
             aria-label={ariaLabel}
             className="surface-card fixed z-[80] min-w-[11rem] border border-base-content/10 p-1 shadow-lg"
-            style={{ left: pos.left, top: pos.top, minWidth: MENU_MIN_WIDTH }}
+            style={{ position: "fixed", left: pos.left, top: pos.top, minWidth: MENU_MIN_WIDTH }}
         >
             {entries.map((entry, index) => {
                 if (entry.type === "separator") {

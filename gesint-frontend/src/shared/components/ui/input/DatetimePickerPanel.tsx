@@ -1,11 +1,12 @@
 "use client";
 
 import clsx from "clsx";
-import { forwardRef, useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { ptBR } from "react-day-picker/locale";
 import { createPortal } from "react-dom";
 
+import { useAnchoredPanelPosition } from "@/shared/components/ui/input/popover-placement";
 import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import { dateToIso, joinDatetime, joinTime, parseIsoToDate, splitDatetime, splitTime } from "@/shared/lib/input/date";
 import { DATETIME_HOUR_ITEMS, DATETIME_MINUTE_ITEMS } from "@/shared/lib/input/datetime-options";
@@ -23,7 +24,18 @@ export const DatetimePickerPanel = forwardRef<HTMLDivElement, DatetimePickerPane
     ref,
 ) {
     const portalRoot = usePopoverPortalRoot();
-    const [position, setPosition] = useState({ top: 0, left: 0, width: 320 });
+    const panelRef = useRef<HTMLDivElement>(null);
+    const box = useAnchoredPanelPosition(true, anchorRef, panelRef, {
+        gap: 6,
+        width: "anchor",
+        minWidth: 320,
+        fallbackHeight: 360,
+    });
+    const setRef = (node: HTMLDivElement | null) => {
+        panelRef.current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) ref.current = node;
+    };
     const { date, time } = splitDatetime(value);
     const parsed = splitTime(time);
     const [draftDate, setDraftDate] = useState(date);
@@ -44,40 +56,21 @@ export const DatetimePickerPanel = forwardRef<HTMLDivElement, DatetimePickerPane
         const nextTime = joinTime(nextHour, nextMinute);
         onChange(joinDatetime(nextDate, nextTime));
     };
-    const updatePosition = useCallback(() => {
-        const anchor = anchorRef.current;
-        if (!anchor) return;
-        const rect = anchor.getBoundingClientRect();
-        setPosition({
-            top: rect.bottom + 6,
-            left: rect.left,
-            width: Math.max(rect.width, 320),
-        });
-    }, [anchorRef]);
-    useLayoutEffect(() => {
-        updatePosition();
-    }, [updatePosition]);
-    useEffect(() => {
-        updatePosition();
-        window.addEventListener("resize", updatePosition);
-        window.addEventListener("scroll", updatePosition, true);
-        return () => {
-            window.removeEventListener("resize", updatePosition);
-            window.removeEventListener("scroll", updatePosition, true);
-        };
-    }, [updatePosition]);
     if (!portalRoot) return null;
     const selected = parseIsoToDate(draftDate);
     const fromDate = parseIsoToDate(min ?? "");
     const toDate = parseIsoToDate(max ?? "");
     return createPortal(
         <div
-            ref={ref}
+            ref={setRef}
             className="gesint-datetime-picker-panel surface-popover fixed z-[200] overflow-hidden"
             style={{
-                top: position.top,
-                left: position.left,
-                width: position.width,
+                position: "fixed",
+                top: box.top,
+                left: box.left,
+                width: box.width,
+                maxHeight: box.maxHeight ?? undefined,
+                overflowY: box.maxHeight != null ? "auto" : undefined,
             }}
             role="dialog"
             aria-label="Data e hora"
