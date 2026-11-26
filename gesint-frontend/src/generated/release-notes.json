@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.109.21",
+      "hash": "433df616",
+      "date": "2026-11-26T10:58:12-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (site separado do ERP)",
+      "body": "**Commits incluídos**\n\n- docs: separa o site institucional do ERP e aponta as regras por camada.",
+      "pullRequest": null
+    },
+    {
       "version": "1.109.20",
       "hash": "fe58fe84",
       "date": "2026-11-26T10:31:55-03:00",
