@@ -90,7 +90,7 @@ function SidebarToolbar({
                         tabIndex={panelCollapsed ? -1 : undefined}
                         className="pe-2 placeholder:text-base-content/32"
                     />
-                    {query.trim() ? <FieldClearButton onClick={() => onQueryChange("")} /> : null}
+                    {query.trim() ? <FieldClearButton onClick={() => onQueryChange("")}/> : null}
                 </label>
             </div>
             <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle}/>

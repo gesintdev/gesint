@@ -24,6 +24,12 @@ export type TSystemModuleGroup = {
 };
 
 const registry: Record<SystemEnum, TSystemInfos> = {
+    [SystemEnum.CONTABILIDADE]: {
+        id: SystemEnum.CONTABILIDADE,
+        name: "Contabilidade",
+        acronym: "CTB",
+        icon: Calculator,
+    },
     [SystemEnum.DP]: {
         id: SystemEnum.DP,
         name: "Departamento Pessoal",
@@ -35,12 +41,6 @@ const registry: Record<SystemEnum, TSystemInfos> = {
         name: "Recursos Humanos",
         acronym: "RH",
         icon: Users,
-    },
-    [SystemEnum.CONTABILIDADE]: {
-        id: SystemEnum.CONTABILIDADE,
-        name: "Contabilidade",
-        acronym: "CTB",
-        icon: Calculator,
     },
 };
 const STORAGE_KEY = "gesint-active-system";
@@ -65,11 +65,9 @@ export class SystemEnumHelper {
         return Object.values(SystemEnum).includes(value as SystemEnum);
     }
 
-    /** Ordem alfabética pela sigla — primeiro é o padrão na inicialização. */
+    /** Ordem de declaração do registry. CFG não entra aqui: o SystemRail o coloca por último. */
     static getSortedSystems(): SystemEnum[] {
-        return (Object.values(SystemEnum) as SystemEnum[])
-            .filter((system) => isCommercialSystemEnabled(system))
-            .sort((a, b) => registry[a].acronym.localeCompare(registry[b].acronym, "pt-BR"));
+        return (Object.keys(registry) as SystemEnum[]).filter((system) => isCommercialSystemEnabled(system));
     }
 
     static getDefaultSystem(): SystemEnum {

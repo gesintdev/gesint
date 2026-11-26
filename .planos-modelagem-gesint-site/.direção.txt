@@ -1,0 +1,22 @@
+Antes de começar: tudo o que está na worktree referente ao gesint-site deve ser jogado pra develop. Depois, uma branch nova será criada para a tarefa a seguir.
+
+No arquivo DESIGN.md tem o prompt do modelo: https://styles.refero.design/style/75fdb89f-ca64-41b3-af36-7a78bd09448e
+theme -> desiognt tokens em JSON
+tokens -> tailwind
+
+-->> no Chrome estão logados styles.refero.design e localhost do gesint frontend.
+PROJETO ALVO: gesint-site
+PROJETO GESINT: gesint-frontend
+
+Objetivos: Remodelar todo o site com base no modelo Steep linkado e descrito nos arquivos. As cores irão sempre ser com base nas cores do sistema Gesint.
+Quero que passe por todo o sistema Gesint, DP (Departamento Pessoal) e RH (Recursos Humanos). Os cards que o Steep tem serão substituidos por cads que nosso sistema tem.
+A tela inicial que o Steep monta vai ser a nossa tela inicial mas com dados 100% fictícios. Pode ser a tela inicial (Pinel) do DP. Fica de fora da apresentação o módulo Contabilidade pois ainda não esta disponível.
+Durante o scroll do site, quero que apresente coisas que nosso sistma tem como I.A. integrada, por exemplo. Faça um apanhado de tudo o que encontrar durante sua navegação.
+Muito cuidado com exposição de dados sensíveis.
+Gesint Site também vai ter login. Por hora, crie todo o visual, navegações e afins. Nada de integração com API nem logins de fato. Somente a casca do site.
+Voce vai ver que ja temos o logo do Gesint em G e escrita nas pastas do sistema frontend.
+Está permitido você usar um pouco de opinião própria se for pra acrescentar. Ou seja, se for pra deixar melhor o visual.
+Todo o site tem que ser em Portugues.
+Responsividade sempre. Mobile First. Animações que não fizerem sentido existir em modelo mobile, remova. Deixe apenas em PC.
+Pode criar outras rotas / páginas que julgar pertinentes. Por hora, ao navegar pra elas, mostre que estão em desenvolvimento com uma mensagem amigável, imagem ou emojis.
+Tudo o que for identificado como utilizado mais de uma vez no site (botão, card, etc.) ou então tudo o que demadar um código grande, tem que obrigatoriamente virar componente e isso é inegociável.
