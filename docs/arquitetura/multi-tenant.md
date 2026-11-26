@@ -18,9 +18,12 @@ A **Gesint** vende licen?as de ERP de RH. Cada **cliente comprador** (tenant) op
 
 | Ator | Sistema | URL (exemplo) |
 |------|---------|---------------|
+| Visitante | Site da Gesint | `https://gesint.com.br` |
 | Equipe Gesint (vendas, suporte) | Admin | `https://admin.gesint.com.br` |
 | Cliente Empresa A (s?cios, RH, DP) | ERP HR | `https://empresa-a.gesint.com.br` |
 | Cliente Empresa B | ERP HR | `https://empresa-b.gesint.com.br` |
+
+**Regra de endereço:** o domínio cru `gesint.com.br` (sem subdomínio) é o site da Gesint. Não resolve tenant e não abre o ERP. O endereço de cada cliente é o subdomínio da licença (`https://{slug}.gesint.com.br`).
 
 O usu?rio do cliente **n?o escolhe empresa** ao usar folha, admiss?o ou departamentos. Ele j? est? no contexto da licen?a que comprou. A empresa do cadastro comercial (`admin.client`) coincide com o empregador legal (`company` no schema do tenant), criada no provisionamento.
 
@@ -223,6 +226,7 @@ sincronizacao, para alcancar os tenants ja provisionados.
 
 | Registro DNS | Destino |
 |--------------|---------|
+| `gesint.com.br` (domínio cru) | Site da Gesint. Não é tenant e não abre o ERP |
 | `admin.gesint.com.br` | `gesint-admin-frontend` |
 | `admin-api.gesint.com.br` | `gesint-admin-backend` |
 | `*.gesint.com.br` | `gesint-frontend` (wildcard) |
