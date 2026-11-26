@@ -135,6 +135,11 @@ Regras:
 
 MVP usa schema dedicado por cliente (ex.: `tenant_*` ou slug livre como `posto_sjb`), não coluna `tenant_id`.
 
+Endereços em produção:
+
+- `gesint.com.br` (domínio cru, sem subdomínio) é o site da Gesint. Não é tenant e não abre o ERP.
+- O endereço de cada cliente é `https://{slug}.gesint.com.br`.
+
 Ao criar tabela/entidade de negócio:
 
 1. Criar migration Flyway em `gesint-backend`.

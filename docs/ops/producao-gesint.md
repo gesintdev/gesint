@@ -2,14 +2,19 @@
 
 ## Domínios
 
+Regra de endereço:
+
+- `gesint.com.br` (domínio cru, sem subdomínio) é o site da Gesint. Não é tenant e não abre o ERP.
+- O endereço de cada cliente é o subdomínio da licença: `https://{slug}.gesint.com.br`.
+
 | Host | Serviço |
 |------|---------|
+| `gesint.com.br` | Site da Gesint |
 | `app.gesint.com.br` | Client frontend |
-| `*.gesint.com.br` | Tenants Client (wildcard DNS obrigatório) |
+| `{slug}.gesint.com.br` | ERP do cliente (wildcard DNS `*.gesint.com.br`) |
 | `admin.gesint.com.br` | Admin frontend |
 | `api.gesint.com.br` | Client backend |
 | `admin-api.gesint.com.br` | Admin backend |
-| `gesint.com.br` (apex) | Fora do ERP (marketing depois) |
 
 ## Ordem de boot
 
