@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { usePopoverPortalRoot } from "@/shared/components/ui/input/popover-portal";
 import { normalizeMonthIso } from "@/shared/lib/input/date";
 
 const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -23,6 +24,7 @@ export const MonthPickerPanel = forwardRef<HTMLDivElement, MonthPickerPanelProps
 ) {
     const selectedYear = value ? Number(value.slice(0, 4)) : new Date().getFullYear();
     const selectedMonth = value ? Number(value.slice(5, 7)) : new Date().getMonth() + 1;
+    const portalRoot = usePopoverPortalRoot();
     const [year, setYear] = useState(selectedYear);
     const [position, setPosition] = useState({ top: 0, left: 0 });
     const updatePosition = useCallback(() => {
@@ -49,7 +51,7 @@ export const MonthPickerPanel = forwardRef<HTMLDivElement, MonthPickerPanelProps
     useEffect(() => {
         setYear(selectedYear);
     }, [selectedYear]);
-    if (typeof document === "undefined") return null;
+    if (!portalRoot) return null;
     const isDisabled = (month: number) => {
         const iso = normalizeMonthIso(`${year}-${String(month).padStart(2, "0")}-01`);
         if (min && iso < min) return true;
@@ -106,6 +108,6 @@ export const MonthPickerPanel = forwardRef<HTMLDivElement, MonthPickerPanelProps
                 })}
             </div>
         </div>,
-        document.body,
+        portalRoot,
     );
 });

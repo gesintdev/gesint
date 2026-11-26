@@ -15,7 +15,6 @@ import {
 } from "@/modules/dp/attendance/lib/attendance-clock.util";
 import {attendancerecordService} from "@/modules/dp/attendance/services/attendance-record.service";
 import {InputHour, InputSelect, InputString} from "@/shared/components/ui/input/index";
-import {PopoverPortalProvider} from "@/shared/components/ui/input/popover-portal";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 import {Modal} from "@/shared/components/ui/Modal";
 import {ExceptionCapture} from "@/shared/exceptions";
@@ -122,7 +121,6 @@ export function AttendanceAdjustmentRequestModal({
                                                      onClose,
                                                  }: AttendanceAdjustmentRequestModalProps) {
     const queryClient = useQueryClient();
-    const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
     const [draftPunches, setDraftPunches] = useState<PunchValues | null>(null);
     const [formSession, setFormSession] = useState("closed");
     const [reason, setReason] = useState("");
@@ -213,9 +211,6 @@ export function AttendanceAdjustmentRequestModal({
             }
             size="lg"
             closeDisabled={submitMutation.isPending}
-            dialogRef={(node) => {
-                if (node !== portalRoot) setPortalRoot(node);
-            }}
             actions={[
                 {
                     title: "Cancelar",
@@ -231,8 +226,7 @@ export function AttendanceAdjustmentRequestModal({
                 },
             ]}
         >
-            <PopoverPortalProvider container={portalRoot}>
-                <div
+            <div
                     key={formSessionKey}
                     className="grid grid-cols-1 gap-3 sm:grid-cols-2"
                 >
@@ -276,7 +270,6 @@ export function AttendanceAdjustmentRequestModal({
                         />
                         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
                     </div>
-            </PopoverPortalProvider>
         </Modal>
     );
 }

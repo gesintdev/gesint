@@ -5,6 +5,7 @@ import {type ReactNode, type Ref, type SyntheticEvent, useEffect, useId, useRef,
 import {createPortal} from "react-dom";
 
 import {Button, type ButtonProps} from "@/shared/components/ui/Button";
+import {PopoverPortalProvider} from "@/shared/components/ui/input/popover-portal";
 import {ModalHeader} from "@/shared/components/ui/ModalHeader";
 
 export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "full" | "screen";
@@ -89,6 +90,7 @@ export function Modal({
     const internalRef = useRef<HTMLDialogElement>(null);
     const titleId = useId();
     const [mounted, setMounted] = useState(false);
+    const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -123,11 +125,13 @@ export function Modal({
             ref={(node) => {
                 internalRef.current = node;
                 assignDialogRef(dialogRef, node);
+                setDialogNode((current) => (current === node ? current : node));
             }}
             className="modal"
             aria-labelledby={title != null ? titleId : undefined}
             onCancel={handleCancel}
         >
+            <PopoverPortalProvider container={dialogNode}>
             <div
                 className={clsx(
                     "modal-box flex flex-col gap-0 overflow-hidden p-0",
@@ -178,6 +182,7 @@ export function Modal({
                     </div>
                 ) : null}
             </div>
+            </PopoverPortalProvider>
             <button type="button" className="modal-backdrop" aria-label="Fechar" onClick={requestClose}/>
         </dialog>
     );

@@ -32,7 +32,6 @@ import {
     InputDate,
     InputSelect,
 } from "@/shared/components/ui/input/index";
-import { PopoverPortalProvider } from "@/shared/components/ui/input/popover-portal";
 import type { SelectItem } from "@/shared/components/ui/input/select-item.types";
 import { Modal } from "@/shared/components/ui/Modal";
 import { ExceptionCapture } from "@/shared/exceptions";
@@ -61,7 +60,6 @@ export function JobPositionCompetencyFormModal({
     requirementId,
     onSaved,
 }: JobPositionCompetencyFormModalProps) {
-    const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
     const formId = useId();
     const queryClient = useQueryClient();
     const isEditing = Boolean(requirementId);
@@ -219,9 +217,6 @@ export function JobPositionCompetencyFormModal({
                     : "Vinda do catálogo. O nível esperado orienta seleção, experiência e desempenho."
             }
             layoutClassName="max-h-[90vh] w-[min(48rem,92vw)] max-w-[min(48rem,92vw)]"
-            dialogRef={(node) => {
-                if (node !== portalRoot) setPortalRoot(node);
-            }}
             footer={
                 <div className="flex items-center justify-end gap-2">
                     <Button type="button" variant="ghost" onClick={() => void requestClose()}>
@@ -233,8 +228,7 @@ export function JobPositionCompetencyFormModal({
                 </div>
             }
         >
-            <PopoverPortalProvider container={portalRoot}>
-                <form id={formId} onSubmit={handleSubmit}>
+            <form id={formId} onSubmit={handleSubmit}>
                     {isEditing && detailQuery.isLoading ? (
                                 <div className="grid gap-2">
                                     {Array.from({ length: 4 }).map((_, i) => (
@@ -317,7 +311,6 @@ export function JobPositionCompetencyFormModal({
                                 </div>
                             )}
                 </form>
-            </PopoverPortalProvider>
         </Modal>
     );
 }
