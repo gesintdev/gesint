@@ -4,12 +4,14 @@
 
 Regra de endereço:
 
-- `gesint.com.br` (domínio cru, sem subdomínio) é o site da Gesint. Não é tenant e não abre o ERP.
+- `www.gesint.com.br` e `gesint.com.br` (domínio cru) são o site da Gesint. Não são tenant e não abrem o ERP.
+- O site é um app separado (`gesint-site/`, Application própria no Coolify). Não faz parte do `gesint-frontend`.
 - O endereço de cada cliente é o subdomínio da licença: `https://{slug}.gesint.com.br`.
+- Enquanto `gesint-site` não existir, `www` e o apex respondem 404 com `noindex` (Worker `gesint-site-placeholder` na Cloudflare). O registro de `www` é específico e fica na frente do wildcard.
 
 | Host | Serviço |
 |------|---------|
-| `gesint.com.br` | Site da Gesint |
+| `www.gesint.com.br` e `gesint.com.br` | Site da Gesint (`gesint-site`, ainda não publicado) |
 | `app.gesint.com.br` | Client frontend |
 | `{slug}.gesint.com.br` | ERP do cliente (wildcard DNS `*.gesint.com.br`) |
 | `admin.gesint.com.br` | Admin frontend |
