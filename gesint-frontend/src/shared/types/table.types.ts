@@ -25,6 +25,10 @@ export enum TableDataType {
     BADGE = "BADGE",
     /** Avatar + nome (estilo DaisyUI) */
     AVATAR_PROFILE = "AVATAR_PROFILE",
+    /** Duração em minutos inteiros, exibida como 08h23. */
+    DURATION = "DURATION",
+    /** Saldo em minutos com sinal: +08h23 em verde, -08h23 em vermelho. */
+    BALANCE = "BALANCE",
     /** Swatch de cor (#RRGGBB). */
     COLOR = "COLOR",
 }
@@ -57,7 +61,10 @@ export type TableColumnConfig = {
     avatarSize?: "xs" | "sm" | "md" | "lg";
     /** Rótulos customizados para células BADGE (sobrescreve o mapa global) */
     badgeLabels?: Record<string, string>;
-    /** Classes customizadas por valor em células BADGE (sobrescreve a cor derivada do status). */
+    /**
+     * Classes customizadas por valor em células BADGE (sobrescreve a cor derivada do status).
+     * A chave "*" vale para os demais valores.
+     */
     badgeClassNames?: Record<string, string>;
     /**
      * Quando true, a coluna não exibe filtro.

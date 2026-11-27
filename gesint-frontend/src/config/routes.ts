@@ -2,6 +2,7 @@ import { settingsModule, settingsModules } from "@/modules/cfg/settings/settings
 import { payrollModule } from "@/modules/ctb/payroll/payroll.module";
 import { organizationModule } from "@/modules/dp/organization/organization.module";
 import { paymentsModule } from "@/modules/dp/payment/payment.module";
+import { timeManagementModule, timeReportsModule, timeSettingsModule } from "@/modules/gp/gp.module";
 import { dashboardModule } from "@/modules/rh/dashboard/dashboard.module";
 import { personModule } from "@/modules/rh/person/person.module";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
@@ -20,7 +21,7 @@ import { isCtbSystemEnabled } from "@/shared/lib/system-availability";
  *   1. config/<name>.routes.ts — UNICO arquivo: menu + tela (tabbedCrudRoute / customWorkspaceRoute)
  *   2. <name>.module.ts — infos + routes
  *   3. ModuleEnum + registry
- *   4. Inclua em `systemModuleGroups` no domínio correto (DP / RH)
+ *   4. Inclua em `systemModuleGroups` no domínio correto (DP / RH / CTB / GP)
  */
 // Re-exporta tipos centrais (mantem compatibilidade com imports existentes)
 export type { AppRoute, NavSection, TModule, TModuleInfos } from "@/modules/root/enum/ModuleEnum";
@@ -37,6 +38,10 @@ export const systemModuleGroups: TSystemModuleGroup[] = [
         system: SystemEnum.RH,
         /** Painel é aba fixa do workspace (não entra no menu lateral). */
         modules: [personModule, rhReportsModule],
+    },
+    {
+        system: SystemEnum.PONTO,
+        modules: [timeManagementModule, timeReportsModule, timeSettingsModule],
     },
     ...(isCtbSystemEnabled()
         ? [

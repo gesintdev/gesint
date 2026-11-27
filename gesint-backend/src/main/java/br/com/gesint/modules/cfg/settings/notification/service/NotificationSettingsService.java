@@ -31,7 +31,7 @@ public class NotificationSettingsService {
     }
 
     @Transactional
-    @PreAuthorize("hasAuthority('notification:write')")
+    @PreAuthorize("hasAuthority('notification:write') and @systemNotificationService.isHrInboxReader()")
     public NotificationSettingsResponseDto updateSettings(NotificationSettingsRequestDto request) {
         SystemSetting setting = repository
                 .findBySettingKeyAndStatusNot(VACATION_DUE_NOTICE_DAYS, StatusEnum.DELETED)

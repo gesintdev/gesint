@@ -28,6 +28,10 @@ class SystemNotificationService {
         return apiFetch<NotificationSummary>(this.basePath);
     }
 
+    markAllAsRead(): Promise<NotificationSummary> {
+        return apiFetch<NotificationSummary>(`${this.basePath}/read-all`, {method: "POST"});
+    }
+
     markAsRead(id: string): Promise<SystemNotification> {
         return apiFetch<SystemNotification>(`${this.basePath}/${id}/read`, {
             method: "POST",

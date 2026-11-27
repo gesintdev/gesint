@@ -1,5 +1,5 @@
-import { Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Settings } from "lucide-react";
 
 import { getNavSectionsForSystem, SETTINGS_NAV_SECTIONS } from "@/config/routes";
 import type { AppRoute, NavSection } from "@/modules/root/enum/ModuleEnum";
@@ -18,6 +18,9 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
     offboarding: "offboarding",
     "exit-interview": "exitinterview",
     attendance: "attendance",
+    "attendance-requests": "attendance",
+    "hour-bank": "hourbank",
+    timesheets: "timesheet",
     leave: "leave",
     "leave-absence": "leave",
     "leave-vacation": "leave",
@@ -126,7 +129,7 @@ function findParentIds(routes: AppRoute[], routeId: string, ancestors: string[])
     return null;
 }
 
-export type SystemScope = "CFG" | "DP" | "RH" | "CONTABILIDADE";
+export type SystemScope = "CFG" | "DP" | "RH" | "CONTABILIDADE" | "PONTO";
 
 export type SystemScopeInfos = {
     name: string;
@@ -139,6 +142,7 @@ const SYSTEM_SCOPE_LABELS: Record<SystemScope, string> = {
     DP: "Departamento Pessoal (DP)",
     RH: "Recursos Humanos (RH)",
     CONTABILIDADE: "Contabilidade (CTB)",
+    PONTO: "Gestão de Ponto (GP)",
 };
 
 const SYSTEM_SCOPE_SHORT_LABELS: Record<SystemScope, string> = {
@@ -146,17 +150,20 @@ const SYSTEM_SCOPE_SHORT_LABELS: Record<SystemScope, string> = {
     DP: "DP",
     RH: "RH",
     CONTABILIDADE: "CTB",
+    PONTO: "GP",
 };
 
 export function systemScopeFromEnum(system: SystemEnum): SystemScope {
     if (system === SystemEnum.DP) return "DP";
     if (system === SystemEnum.CONTABILIDADE) return "CONTABILIDADE";
+    if (system === SystemEnum.PONTO) return "PONTO";
     return "RH";
 }
 
 export function systemEnumFromScope(scope: SystemScope): SystemEnum {
     if (scope === "DP") return SystemEnum.DP;
     if (scope === "CONTABILIDADE") return SystemEnum.CONTABILIDADE;
+    if (scope === "PONTO") return SystemEnum.PONTO;
     return SystemEnum.RH;
 }
 

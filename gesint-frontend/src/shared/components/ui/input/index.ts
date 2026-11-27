@@ -54,3 +54,5 @@ export { InputString } from "./InputString";
 export type { RgIdentityFieldsProps } from "./RgIdentityFields";
 export { RgIdentityFields } from "./RgIdentityFields";
 export type { SelectItem, SelectSearchFn, SelectSearchResult } from "./select-item.types";
+export type { InputToggleProps } from "./InputToggle";
+export { InputToggle } from "./InputToggle";

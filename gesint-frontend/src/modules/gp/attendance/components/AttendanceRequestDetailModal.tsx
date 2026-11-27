@@ -1,0 +1,284 @@
+"use client";
+
+import {useEffect, useState} from "react";
+
+import type {
+    AttendanceCompensationType,
+    AttendanceRequest,
+} from "@/modules/gp/attendance/dto/attendance-record.dto";
+import {Button} from "@/shared/components/ui/Button";
+import {InputSelect} from "@/shared/components/ui/input/InputSelect";
+import {Modal} from "@/shared/components/ui/Modal";
+
+const REQUEST_TYPE_LABEL: Record<string, string> = {
+    TIME_ADJUSTMENT: "Ajuste de ponto",
+    DAY_ABSENCE_EXCUSE: "Abono de dia",
+    MEDICAL_CERTIFICATE: "Atestado médico",
+    LEAVE_ABSENCE: "Afastamento",
+    HOUR_BANK: "Banco de horas",
+    OUTSIDE_SCHEDULE: "Fora da escala",
+    OTHER: "Outro",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+    PENDING: "Pendente",
+    APPROVED: "Aprovada",
+    REJECTED: "Reprovada",
+};
+
+const COMPENSATION_ITEMS = [
+    {value: "HOUR_BANK", label: "Banco de horas"},
+    {value: "OVERTIME", label: "Hora extra"},
+];
+
+const COMPENSATION_LABEL: Record<string, string> = {
+    HOUR_BANK: "Banco de horas",
+    OVERTIME: "Hora extra",
+};
+
+function formatTime(value?: string | null) {
+    return value ? value.slice(0, 5) : "—";
+}
+
+function formatDate(value?: string | null) {
+    if (!value) return "—";
+    const [year, month, day] = value.split("-");
+    if (!year || !month || !day) return value;
+    return `${day}/${month}/${year}`;
+}
+
+type CompareRow = {
+    label: string;
+    original?: string | null;
+    requested?: string | null;
+};
+
+type AttendanceRequestDetailModalProps = {
+    request: AttendanceRequest | null;
+    open: boolean;
+    reviewing?: boolean;
+    onClose: () => void;
+    onApprove?: (_compensationType?: AttendanceCompensationType) => void;
+    onReject?: (_reason: string) => void;
+};
+
+export function AttendanceRequestDetailModal({
+                                                 request,
+                                                 open,
+                                                 reviewing = false,
+                                                 onClose,
+                                                 onApprove,
+                                                 onReject,
+                                             }: AttendanceRequestDetailModalProps) {
+    const [rejectMode, setRejectMode] = useState(false);
+    const [reason, setReason] = useState("");
+    const [compensationType, setCompensationType] = useState<AttendanceCompensationType | "">("");
+    const [compensationError, setCompensationError] = useState<string | undefined>();
+
+    useEffect(() => {
+        if (!open) {
+            setRejectMode(false);
+            setReason("");
+            setCompensationType("");
+            setCompensationError(undefined);
+        }
+    }, [open]);
+
+    if (!request) {
+        return null;
+    }
+
+    const rows: CompareRow[] = [
+        {label: "Entrada", original: request.originalClockIn, requested: request.clockIn},
+        {label: "Saída almoço", original: request.originalBreakStart, requested: request.breakStart},
+        {label: "Retorno almoço", original: request.originalBreakEnd, requested: request.breakEnd},
+        {label: "Saída", original: request.originalClockOut, requested: request.clockOut},
+        {label: "Justificativa", original: request.originalNotes, requested: request.notes},
+    ];
+
+    const isPending = request.requestStatus === "PENDING";
+    const requiresCompensation = request.requestType === "OUTSIDE_SCHEDULE";
+
+    const handleApprove = () => {
+        if (requiresCompensation) {
+            if (!compensationType) {
+                setCompensationError("Selecione banco de horas ou hora extra.");
+                return;
+            }
+            onApprove?.(compensationType);
+            return;
+        }
+        onApprove?.();
+    };
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={`Solicitação #${request.code}`}
+            subtitle={
+                <span className="grid gap-1.5">
+                    <span className="text-sm text-base-content/65">
+                        {request.collaboratorName ?? "Colaborador"} · {formatDate(request.workDate)} ·{" "}
+                        {REQUEST_TYPE_LABEL[request.requestType] ?? request.requestType}
+                    </span>
+                    <span className="badge badge-ghost w-fit">
+                        {STATUS_LABEL[request.requestStatus] ?? request.requestStatus}
+                    </span>
+                </span>
+            }
+            size="2xl"
+            footer={
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Button type="button" variant="ghost" onClick={onClose}>
+                        Fechar
+                    </Button>
+                    {isPending && !rejectMode ? (
+                        <>
+                            <Button
+                                type="button"
+                                variant="danger"
+                                onClick={() => setRejectMode(true)}
+                                disabled={reviewing}
+                            >
+                                Reprovar
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="success"
+                                loading={reviewing}
+                                onClick={handleApprove}
+                            >
+                                Aprovar
+                            </Button>
+                        </>
+                    ) : null}
+                    {isPending && rejectMode ? (
+                        <>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => {
+                                    setRejectMode(false);
+                                    setReason("");
+                                }}
+                            >
+                                Voltar
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="danger"
+                                loading={reviewing}
+                                onClick={() => onReject?.(reason)}
+                            >
+                                Confirmar reprovação
+                            </Button>
+                        </>
+                    ) : null}
+                </div>
+            }
+        >
+            <div className="overflow-hidden rounded-xl border border-base-300">
+                            <table className="table table-sm">
+                                <thead>
+                                <tr className="bg-base-200/60">
+                                    <th className="w-40">Campo</th>
+                                    <th>Original</th>
+                                    <th>Solicitado</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {rows.map((row) => {
+                                    const changed =
+                                        (row.original ?? "") !== (row.requested ?? "") &&
+                                        (row.requested != null && row.requested !== "");
+                                    return (
+                                        <tr key={row.label} className={changed ? "bg-warning/10" : undefined}>
+                                            <td className="font-medium">{row.label}</td>
+                                            <td className="whitespace-pre-wrap text-base-content/70">
+                                                {row.label === "Justificativa"
+                                                    ? row.original || "—"
+                                                    : formatTime(row.original)}
+                                            </td>
+                                            <td
+                                                className={
+                                                    changed
+                                                        ? "whitespace-pre-wrap font-medium text-base-content"
+                                                        : "whitespace-pre-wrap text-base-content/70"
+                                                }
+                                            >
+                                                {row.label === "Justificativa"
+                                                    ? row.requested || "—"
+                                                    : formatTime(row.requested)}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {isPending && requiresCompensation && !rejectMode ? (
+                            <div className="mt-4 rounded-xl border border-info/25 bg-info/8 px-4 py-3">
+                                <p className="text-sm font-medium text-base-content">
+                                    Compensação do ponto fora da escala
+                                </p>
+                                <p className="mt-1 text-sm text-base-content/60">
+                                    Escolha se as horas deste registro entrarão como banco de horas ou hora
+                                    extra.
+                                </p>
+                                <div className="mt-3 max-w-sm">
+                                    <InputSelect
+                                        label="Tipo de compensação"
+                                        required
+                                        items={COMPENSATION_ITEMS}
+                                        value={compensationType}
+                                        onValueChange={(value) => {
+                                            setCompensationType((value || "") as AttendanceCompensationType | "");
+                                            setCompensationError(undefined);
+                                        }}
+                                        placeholder="Selecione..."
+                                        error={compensationError}
+                                    />
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {!isPending && (request.reviewReason || request.reviewedAt || request.compensationType) ? (
+                            <div className="mt-4 rounded-xl border border-base-300 bg-base-200/40 px-4 py-3 text-sm">
+                                <p className="font-medium text-base-content">Revisão</p>
+                                {request.reviewedAt ? (
+                                    <p className="mt-1 text-base-content/65">
+                                        Em {new Date(request.reviewedAt).toLocaleString("pt-BR")}
+                                    </p>
+                                ) : null}
+                                {request.compensationType ? (
+                                    <p className="mt-1 text-base-content/80">
+                                        Compensação:{" "}
+                                        {COMPENSATION_LABEL[request.compensationType] ?? request.compensationType}
+                                    </p>
+                                ) : null}
+                                {request.reviewReason ? (
+                                    <p className="mt-2 whitespace-pre-wrap text-base-content/80">
+                                        {request.reviewReason}
+                                    </p>
+                                ) : null}
+                            </div>
+                        ) : null}
+
+                        {isPending && rejectMode ? (
+                            <div className="mt-4">
+                                <label className="text-sm font-medium text-base-content">
+                                    Motivo da reprovação
+                                </label>
+                                <textarea
+                                    className="textarea textarea-bordered mt-2 min-h-28 w-full rounded-lg"
+                                    value={reason}
+                                    onChange={(event) => setReason(event.target.value)}
+                                    placeholder="Informe o motivo para manter histórico de auditoria"
+                                />
+                            </div>
+                        ) : null}
+        </Modal>
+    );
+}

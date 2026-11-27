@@ -1,0 +1,107 @@
+import type {
+    AttendanceClockPayload,
+    AttendanceCollaboratorSchedule,
+    AttendanceCompensationType,
+    AttendanceMobileContext,
+    AttendancePresenceRow,
+    AttendanceRecord,
+    AttendanceRecordCreateDto,
+    AttendanceRequest,
+    AttendanceReviewAction,
+    AttendanceScheduleDay,
+    AttendanceSettings,
+    AttendanceSubmissionPayload,
+} from "@/modules/gp/attendance/dto/attendance-record.dto";
+import {BaseService} from "@/modules/root/services/base.service";
+import type {PageableResponseDto} from "@/shared/dto/pageable.dto";
+import {apiFetch} from "@/shared/lib/api.client";
+
+class AttendanceRecordService extends BaseService<
+    AttendanceRecord,
+    AttendanceRecordCreateDto,
+    AttendanceRecordCreateDto
+> {
+    constructor() {
+        super("/api/v1/attendance-records");
+    }
+
+    listPresence(from: string, to: string) {
+        const params = new URLSearchParams({from, to});
+        return apiFetch<AttendancePresenceRow[]>(`${this.basePath}/presence?${params.toString()}`);
+    }
+
+    scheduleDay(collaboratorId: string, date: string) {
+        const params = new URLSearchParams({date});
+        return apiFetch<AttendanceScheduleDay>(
+            `${this.basePath}/collaborators/${collaboratorId}/schedule-day?${params.toString()}`,
+        );
+    }
+
+    collaboratorSchedule(collaboratorId: string) {
+        return apiFetch<AttendanceCollaboratorSchedule>(
+            `${this.basePath}/collaborators/${collaboratorId}/schedule`,
+        );
+    }
+
+    listCollaboratorHistory(
+        collaboratorId: string,
+        page = 0,
+        size = 20,
+        from?: string,
+        to?: string,
+    ) {
+        const params = new URLSearchParams({page: String(page), size: String(size)});
+        if (from) params.set("from", from);
+        if (to) params.set("to", to);
+        return apiFetch<PageableResponseDto<AttendanceRecord>>(
+            `${this.basePath}/collaborators/${collaboratorId}/history?${params.toString()}`,
+        );
+    }
+
+    listRequests() {
+        return apiFetch<AttendanceRequest[]>(`${this.basePath}/requests`);
+    }
+
+    review(id: string, action: AttendanceReviewAction, reason?: string, compensationType?: AttendanceCompensationType) {
+        return apiFetch<AttendanceRequest>(`${this.basePath}/requests/${id}/review`, {
+            method: "POST",
+            body: {action, reason, compensationType},
+        });
+    }
+
+    getSettings() {
+        return apiFetch<AttendanceSettings>(`${this.basePath}/settings`);
+    }
+
+    updateSettings(settings: Partial<AttendanceSettings>) {
+        return apiFetch<AttendanceSettings>(`${this.basePath}/settings`, {
+            method: "PUT",
+            body: settings,
+        });
+    }
+
+    getMobileContext() {
+        return apiFetch<AttendanceMobileContext>(`${this.basePath}/mobile/context`);
+    }
+
+    listMobileRecords(from: string, to: string) {
+        const params = new URLSearchParams({from, to});
+        return apiFetch<AttendanceRecord[]>(`${this.basePath}/mobile/records?${params.toString()}`);
+    }
+
+    submit(payload: AttendanceSubmissionPayload) {
+        return apiFetch<AttendanceRequest>(`${this.basePath}/submissions`, {
+            method: "POST",
+            body: payload,
+        });
+    }
+
+    clock(payload: AttendanceClockPayload) {
+        return apiFetch<AttendanceRecord>(`${this.basePath}/clock`, {
+            method: "POST",
+            body: payload,
+        });
+    }
+}
+
+export const attendancerecordService = new AttendanceRecordService();

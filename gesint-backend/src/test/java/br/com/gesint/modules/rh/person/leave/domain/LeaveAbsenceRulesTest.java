@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.gesint.modules.rh.person.attendance.entity.AttendanceOccurrenceTypeEnum;
+import br.com.gesint.modules.gp.attendance.entity.AttendanceOccurrenceTypeEnum;
 import br.com.gesint.modules.rh.person.leave.entity.LeaveAbsenceStatusEnum;
 import br.com.gesint.modules.rh.person.leave.entity.LeaveTypeEnum;
 

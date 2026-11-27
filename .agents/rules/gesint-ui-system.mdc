@@ -118,7 +118,7 @@ Exceção: `.crud-page-card` (painel da página CRUD) não tem raio — encosta 
 
 ## 4. Casca (shell)
 
-### Rail de sistemas (CTB / DP / RH / CFG)
+### Rail de sistemas (CTB / DP / GP / RH / CFG)
 - Coluna `.system-rail` (`--system-rail-width` **62px**) com fundo da sidebar; **cápsula** `.system-rail__track` com `--system-rail-bg`, raio `--system-rail-radius` (= `--radius-gesint-card` **6px**), gap `--system-rail-gap` (**2px**) até o menu; topo externo `--system-rail-pad-top` (= pad da toolbar) alinha o **topo da cápsula** com o input “Buscar no menu…”; padding interno da track `pt-1` / `pb-1.5`.
 - Ícones **16px** (`size-4`); item ≈40px com o **mesmo raio da cápsula** (`--system-rail-radius`); sigla 9px / strong.
 - Item ativo `.system-rail-item--active`: cartão (`base-100` no claro / primário 16% no escuro), borda primária suave, ícone + sigla em `primary`.
@@ -181,6 +181,9 @@ Altura `--gesint-control-h` (**30px**, mesma do `.nav-item`/aba; padding 0 7px).
 - Hover de linha: `primary 3.5%`. Última linha sem borda inferior.
 - Ações de linha: botões quadrados 24px (`--gesint-table-action-button-size`, ícone 14px) com tom semântico (abrir = info, editar = primary, excluir = error, baixar = success).
 
+- Duração e saldo de horas: colunas `TableDataType.DURATION` (minutos → `08h23`) e `TableDataType.BALANCE` (`+08h23` em `success`, `-08h23` em `error`, classe `.gesint-balance`). Não formatar hora em decimal na grid.
+- Abas internas de uma tela (filas, visões): `CrudTabList` (`shared/components/ui/CrudTabList.tsx`); não repetir o markup de `.gesint-crud-tablist`.
+
 ## 8. Badges de status
 
 `.gesint-badge--success|warning|error|info|neutral`: fundo do tom 12%, texto no tom, **ponto de status** (`::before`, 6px, `currentColor`) e contorno interno `currentColor 16%`. Raio 4px (`--gesint-radius-badge`), `white-space: nowrap`.
@@ -200,6 +203,15 @@ Um único `DashboardView` atende DP, RH e CTB (filtro em `dashboard-system.util.
 - Estado vazio `.gesint-dash-empty` (ícone em círculo + texto). Legendas longas (> 6 categorias) mostram só itens com valor + "+N sem registros".
 - Layout: KPIs → linha `xl:grid-cols-12` (8 + 4) → linha de 3 colunas (`lg:2`, `2xl:3`).
 
+- Blocos do dashboard são componentes de `shared/components/dashboard/` (`DashboardHeader`, `DashboardKpiCard`, `DashboardPanel`, `DashboardStats`, `DashboardEmptyState`, `AnimatedNumber`). Painel de outro sistema (ex.: Gestão de Ponto) monta com eles; não copiar.
+- KPI e número da faixa de resumo podem ser clicáveis (`onClick`): o número abre a lista de quem está por trás dele.
+- Estado vazio distingue "está em dia" (`tone="success"`) de "ainda não há dados".
+
+### Calendário e preferências
+
+- Calendário mensal: `MonthCalendar` (`shared/components/ui/MonthCalendar.tsx`): grade de 7 colunas no desktop e agenda em lista abaixo de 640px; eventos com tom semântico e marcadores (feriado).
+- Opção liga/desliga: `InputToggle` (`@/shared/components/ui/input`), sempre com a frase da consequência em `description`. Não usar `toggle` do DaisyUI solto.
+
 ## 10. Login e telas de autenticação
 
 Arquivos: `app/(auth)/layout.tsx`, `app/(auth)/template.tsx`, `shared/components/auth/LoginShell.tsx`, `LoginStage.tsx`.
@@ -207,7 +219,7 @@ Arquivos: `app/(auth)/layout.tsx`, `app/(auth)/template.tsx`, `shared/components
 - **Estrutura obrigatória**: o `LoginShell` é montado **uma vez no `layout.tsx` do grupo `(auth)`**, que persiste entre navegações. As páginas (`login`, `esqueci-senha`, `definir-senha`) renderizam **só o conteúdo**: `LoginHeading` + formulário. **Nunca** envolva uma página em `<LoginShell>` — isso recria o painel da marca a cada clique.
 - `template.tsx` (remonta a cada navegação) aplica o fade só no conteúdo do formulário.
 - **Layout**: duas colunas `marca | formulário` (≥1024px: 46fr / 54fr). Abaixo de 1024px o painel da marca some e o logo vai ao topo do formulário.
-- **Painel da marca** `.login-brand`: azul-marinho fixo (`--gesint-primary-950`) nos dois temas; logo branco + "Gestão Integrada"; eyebrow, headline, lead e cartões dos três sistemas (DP, RH, Contabilidade) com entrada escalonada; camada `LoginStage` (grade pontilhada, dois brilhos difusos animados, "G" metálico translúcido flutuando). Só CSS, respeita `prefers-reduced-motion`.
+- **Painel da marca** `.login-brand`: azul-marinho fixo (`--gesint-primary-950`) nos dois temas; logo branco + "Gestão Integrada"; eyebrow, headline, lead e cartões dos sistemas disponíveis (DP, Gestão de Ponto, RH; CTB fica de fora até estar disponível) com entrada escalonada; camada `LoginStage` (grade pontilhada, dois brilhos difusos animados, "G" metálico translúcido flutuando). Só CSS, respeita `prefers-reduced-motion`.
 - **Coluna do formulário** `.login-main`: `base-100`, conteúdo com `max-width 22rem`; título com `LoginHeading` (24px/550, token `--gesint-font-page-title`) e subtítulo 14px — use-o também nos formulários de senha. Escala compacta do app: rótulos 12px, campos 36px com texto 14px (`.gesint-field--login`), botão de envio 36px 14/500 (`.login-submit`, tamanho padrão do `Button`, sem `size="lg"`), checkbox "Lembrar de mim" 16px com texto 13px, gap 12px entre os campos; divisor "ou" + "Primeiro acesso? Definir senha".
 
 ## 11. Telas de carregamento

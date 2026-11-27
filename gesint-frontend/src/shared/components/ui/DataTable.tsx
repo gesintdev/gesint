@@ -2,9 +2,10 @@ import clsx from "clsx";
 import get from "lodash/get";
 import type { MouseEvent, ReactNode } from "react";
 
-import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { GESINT_SECONDARY_COLOR } from "@/shared/components/ui/input/InputColor";
+import { ProfileAvatar } from "@/shared/components/ui/ProfileAvatar";
 import { badgeClassForStatus, formatBadgeCellValue, formatCellValue } from "@/shared/lib/table/format-cell-value";
+import { balanceTone } from "@/shared/lib/time/duration-format";
 import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
 
 export type DataTableRowActivateOn = "click" | "doubleclick";
@@ -119,7 +120,7 @@ function renderCellContent(
             <span
                 className={clsx(
                     "gesint-badge",
-                    col.badgeClassNames?.[String(value)] ?? badgeClassForStatus(value, col.badgeLabels),
+                    col.badgeClassNames?.[String(value)] ?? col.badgeClassNames?.["*"] ?? badgeClassForStatus(value, col.badgeLabels),
                 )}
             >
                 {formatBadgeCellValue(value, col.badgeLabels)}
@@ -146,8 +147,17 @@ function renderCellContent(
         );
     }
 
+    if (dataType === TableDataType.BALANCE) {
+        return (
+            <span className={clsx("gesint-balance", `gesint-balance--${balanceTone(Number(value))}`)}>
+                {formatCellValue(value, dataType)}
+            </span>
+        );
+    }
+
     const formatted = formatCellValue(value, dataType);
     const isNumeric =
+        dataType === TableDataType.DURATION ||
         dataType === TableDataType.INTEGER ||
         dataType === TableDataType.DECIMAL ||
         dataType === TableDataType.FLOAT ||

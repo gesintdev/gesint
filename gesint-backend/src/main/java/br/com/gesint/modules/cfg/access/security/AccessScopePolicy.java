@@ -35,6 +35,7 @@ public class AccessScopePolicy {
         PRODUCT_KEY_BY_SYSTEM.put(SystemScopeEnum.DP, "DP");
         PRODUCT_KEY_BY_SYSTEM.put(SystemScopeEnum.RH, "RH");
         PRODUCT_KEY_BY_SYSTEM.put(SystemScopeEnum.CONTABILIDADE, "CTB");
+        PRODUCT_KEY_BY_SYSTEM.put(SystemScopeEnum.PONTO, "GP");
     }
 
     private final MultiTenantProperties multiTenantProperties;
@@ -119,6 +120,9 @@ public class AccessScopePolicy {
         }
         if (keys.contains("CONTABILIDADE")) {
             keys.add("CTB");
+        }
+        if (keys.contains("PONTO")) {
+            keys.add("GP");
         }
         return keys;
     }

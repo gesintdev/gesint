@@ -70,6 +70,9 @@ export enum ModuleEnum {
     SETTINGS_DP = "settings-dp",
     SETTINGS_RH = "settings-rh",
     SETTINGS_IMPORT = "settings-import",
+    TIME_MANAGEMENT = "time-management",
+    REPORTS_GP = "reports-gp",
+    SETTINGS_GP = "settings-gp",
 }
 
 export interface IModuleHelper {
@@ -168,6 +171,24 @@ export class ModuleEnumHelper implements IModuleHelper {
             name: "Recursos Humanos",
             shortName: "RH",
             order: 3,
+        },
+        [ModuleEnum.TIME_MANAGEMENT]: {
+            id: "time-management",
+            name: "Gestão de ponto",
+            shortName: "PNT",
+            order: 1,
+        },
+        [ModuleEnum.REPORTS_GP]: {
+            id: "reports-gp",
+            name: "Relatórios",
+            shortName: "REL",
+            order: 6,
+        },
+        [ModuleEnum.SETTINGS_GP]: {
+            id: "settings-gp",
+            name: "Configurações",
+            shortName: "CFG",
+            order: 7,
         },
         [ModuleEnum.SETTINGS_IMPORT]: {
             id: "settings-import",

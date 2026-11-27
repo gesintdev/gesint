@@ -1,3 +1,4 @@
+import { formatBalance, formatDuration } from "@/shared/lib/time/duration-format";
 import { TableDataType } from "@/shared/types/table.types";
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
@@ -96,6 +97,10 @@ export function formatCellValue(value: unknown, dataType: TableDataType = TableD
             return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(num);
         }
 
+        case TableDataType.DURATION:
+            return formatDuration(Number(value));
+        case TableDataType.BALANCE:
+            return formatBalance(Number(value));
         case TableDataType.PERCENT: {
             const num = Number(value);
             if (Number.isNaN(num)) return String(value);

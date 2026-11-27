@@ -3,7 +3,7 @@ import {SolutionDeck} from "@/components/home/SolutionDeck";
 import {Reveal} from "@/components/motion";
 import {links} from "@/lib/links";
 
-/** Ordem de exibição: Departamento pessoal à esquerda, Gestão integrada no meio, Recursos humanos à direita. */
+/** Ordem de exibição: Departamento pessoal, Gestão de ponto, Recursos humanos e, por fim, a Gestão integrada que liga os três. */
 const solutions = [
     {
         title: "Departamento pessoal",
@@ -11,14 +11,19 @@ const solutions = [
         items: ["Admissões e documentos", "Férias e afastamentos", "Rotinas do colaborador"],
     },
     {
-        title: "Gestão integrada",
-        description: ["Informações conectadas.", "Decisões com mais contexto."],
-        items: ["Visão centralizada da operação", "Acompanhamento de pendências", "Histórico fácil de consultar"],
+        title: "Gestão de ponto",
+        description: ["A jornada acompanhada de perto,", "antes de virar passivo."],
+        items: ["Banco de horas e espelho de ponto", "Limites da CLT em tempo real", "Avisos ao colaborador e ao RH"],
     },
     {
         title: "Recursos humanos",
         description: ["Mais proximidade com as pessoas.", "Mais espaço para o seu time."],
         items: ["Informações dos colaboradores", "Jornada na empresa", "Comunicação com as pessoas"],
+    },
+    {
+        title: "Gestão integrada",
+        description: ["Informações conectadas.", "Decisões com mais contexto."],
+        items: ["Visão centralizada da operação", "Acompanhamento de pendências", "Histórico fácil de consultar"],
     },
 ];
 
@@ -45,7 +50,7 @@ export function Solutions() {
                         </p>
                     </Reveal>
 
-                    <SolutionDeck className="mt-10 grid gap-4 md:grid-cols-2 lg:mt-[60px] lg:grid-cols-3 lg:gap-5">
+                    <SolutionDeck className="mt-10 grid gap-4 md:grid-cols-2 lg:mt-[60px] lg:gap-5 xl:grid-cols-4">
                         {solutions.map((solution, index) => (
                             <a
                                 key={solution.title}

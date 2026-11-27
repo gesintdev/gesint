@@ -24,7 +24,6 @@ public final class PermissionModuleCatalog {
                         "admission",
                         "exitinterview",
                         "developmentplanconfig",
-                        "attendance",
                         "notification",
                         "careerspage",
                         "audit"));
@@ -45,7 +44,6 @@ public final class PermissionModuleCatalog {
                         "occupationalexam",
                         "notification",
                         "agenda",
-                        "attendance",
                         "leave",
                         "storage"));
         MODULES_BY_SYSTEM.put(
@@ -57,6 +55,16 @@ public final class PermissionModuleCatalog {
                         "benefit",
                         "benefitenrollment",
                         "tax",
+                        "notification",
+                        "agenda",
+                        "storage"));
+        // Gestao de Ponto: le colaborador (DP/RH) e escala (CFG), mas nao os edita.
+        MODULES_BY_SYSTEM.put(
+                SystemScopeEnum.PONTO,
+                Set.of(
+                        "attendance",
+                        "hourbank",
+                        "timesheet",
                         "notification",
                         "agenda",
                         "storage"));
@@ -113,9 +121,11 @@ public final class PermissionModuleCatalog {
                 || "agenda".equals(module)
                 || "storage".equals(module)
                 || "workschedule".equals(module)
-                || "exitinterview".equals(module)
-                || "attendance".equals(module)) {
+                || "exitinterview".equals(module)) {
             return null;
+        }
+        if (exclusiveTo(SystemScopeEnum.PONTO, module)) {
+            return SystemScopeEnum.PONTO;
         }
         if (MODULES_BY_SYSTEM.get(SystemScopeEnum.CFG).contains(module)
                 && !MODULES_BY_SYSTEM.get(SystemScopeEnum.DP).contains(module)
@@ -142,5 +152,17 @@ public final class PermissionModuleCatalog {
             return SystemScopeEnum.RH;
         }
         return null;
+    }
+
+    private static boolean exclusiveTo(SystemScopeEnum system, String module) {
+        if (!MODULES_BY_SYSTEM.get(system).contains(module)) {
+            return false;
+        }
+        for (Map.Entry<SystemScopeEnum, Set<String>> entry : MODULES_BY_SYSTEM.entrySet()) {
+            if (entry.getKey() != system && entry.getValue().contains(module)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -2945,6 +2945,25 @@ div:has(> .skeleton-shimmer):not(:has(> :not(.skeleton-shimmer))) {
     color: color-mix(in srgb, var(--color-base-content) 65%, transparent);
 }
 
+/* Saldo de horas (banco de horas, saldo do dia): +08h23 em verde, -08h23 em vermelho. */
+.gesint-balance {
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--gesint-font-weight-medium);
+    white-space: nowrap;
+}
+
+.gesint-balance--positive {
+    color: var(--color-success);
+}
+
+.gesint-balance--negative {
+    color: var(--color-error);
+}
+
+.gesint-balance--zero {
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+}
+
 [data-theme="dark"] .border-digital-blue-100\/70,
 [data-theme="dark"] .border-digital-blue-100\/60,
 [data-theme="dark"] .border-digital-blue-100\/50,
@@ -4873,7 +4892,7 @@ html:has(.login-page) body {
 /* Faixa de resumo (movimentação) */
 .gesint-dash-stats {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--stats-cols, 4), minmax(0, 1fr));
     overflow: hidden;
     border-radius: var(--radius-gesint-card);
     border: 1px solid var(--gesint-border-subtle);
@@ -7428,5 +7447,560 @@ html.gesint-workspace-active .font-bold {
 @media (max-width: 900px) {
     .gesint-import-entity__modes {
         grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ==========================================================================
+   Gestão de Ponto (GP): KPI clicável, opção liga/desliga, calendário, listas
+   do painel e tabela de dias. Só tokens; funciona nos temas claro e escuro.
+   ========================================================================== */
+
+/* KPI do painel que abre a lista de quem está por trás do número */
+.gesint-dash-kpi[data-interactive] {
+    padding: 0;
+}
+
+.gesint-dash-kpi__button {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    text-align: left;
+    color: inherit;
+    background: transparent;
+    border-radius: inherit;
+    cursor: pointer;
+}
+
+.gesint-dash-kpi__button:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+/* Número da faixa de resumo que abre a lista */
+.gesint-dash-stats__item--button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+}
+
+.gesint-dash-stats__item--button:hover {
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.gesint-dash-stats__item--button:hover .gesint-dash-stats__label {
+    color: var(--color-primary);
+}
+
+.gesint-dash-stats__item--button:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+.gesint-time-stats-wrap .gesint-dash-stats {
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+
+/* Opção liga/desliga com a consequência escrita (InputToggle) */
+.gesint-toggle-row {
+    border-radius: var(--radius-gesint-card);
+    border: 1px solid var(--gesint-border-subtle);
+    background: var(--color-base-100);
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.gesint-toggle-row[data-checked] {
+    border-color: color-mix(in srgb, var(--color-primary) 28%, var(--gesint-border-subtle));
+    background: color-mix(in srgb, var(--color-primary) 3%, var(--color-base-100));
+}
+
+.gesint-toggle-row__main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0.875rem;
+    cursor: pointer;
+}
+
+.gesint-toggle-row__text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.gesint-toggle-row__label {
+    font-size: 13px;
+    font-weight: var(--gesint-font-weight-medium);
+    color: var(--color-base-content);
+}
+
+.gesint-toggle-row__description {
+    font-size: 12px;
+    line-height: 1.45;
+    color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
+}
+
+.gesint-toggle-row__extra {
+    border-top: 1px dashed var(--gesint-border-subtle);
+    padding: 0.75rem 0.875rem;
+}
+
+.gesint-toggle {
+    position: relative;
+    flex-shrink: 0;
+    width: 2.125rem;
+    height: 1.25rem;
+    margin-top: 0.0625rem;
+    appearance: none;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--color-base-content) 18%, transparent);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.gesint-toggle::after {
+    content: "";
+    position: absolute;
+    top: 0.1875rem;
+    left: 0.1875rem;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 9999px;
+    background: var(--color-base-100);
+    box-shadow: var(--gesint-shadow-xs);
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gesint-toggle:checked {
+    background: var(--color-primary);
+}
+
+.gesint-toggle:checked::after {
+    transform: translateX(0.875rem);
+}
+
+.gesint-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+/* Frase de ajuda em linha */
+.gesint-time-help {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 12px;
+    line-height: 1.45;
+    color: color-mix(in srgb, var(--color-base-content) 58%, transparent);
+}
+
+/* Listas do painel (ajustes pendentes, quem pede atenção) */
+.gesint-time-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.gesint-time-list__item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-radius: var(--gesint-tab-radius);
+    padding: 0.5rem 0.625rem;
+    border: 1px solid transparent;
+    background: color-mix(in srgb, var(--color-base-content) 2%, transparent);
+}
+
+.gesint-time-list__item--button {
+    cursor: pointer;
+    color: inherit;
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.gesint-time-list__item--button:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 22%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.gesint-time-list__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: var(--gesint-font-weight-medium);
+    line-height: 1.5;
+    color: var(--color-base-content);
+}
+
+.gesint-time-list__meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+}
+
+/* Saldo do banco de horas no painel */
+.gesint-time-balance-tile {
+    border-radius: var(--radius-gesint-card);
+    border: 1px solid var(--gesint-border-subtle);
+    padding: 0.75rem;
+    background: color-mix(in srgb, var(--color-base-content) 1.5%, transparent);
+}
+
+.gesint-time-balance-tile[data-tone="positive"] {
+    box-shadow: inset 3px 0 0 var(--color-success);
+}
+
+.gesint-time-balance-tile[data-tone="negative"] {
+    box-shadow: inset 3px 0 0 var(--color-error);
+}
+
+.gesint-time-balance-tile__label,
+.gesint-time-balance-tile__hint {
+    font-size: 12px;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+}
+
+.gesint-time-balance-tile__value {
+    display: block;
+    margin: 0.25rem 0 0.125rem;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+}
+
+/* Gráfico de jornada: barra trabalhada + marca da jornada prevista */
+.gesint-time-chart .gesint-dash-chart__track {
+    position: relative;
+}
+
+.gesint-time-chart .gesint-dash-chart__bar[data-over] {
+    background: linear-gradient(
+        180deg,
+        var(--color-warning) 0%,
+        color-mix(in srgb, var(--color-warning) 70%, var(--color-base-100)) 100%
+    );
+}
+
+.gesint-time-chart__expected {
+    position: absolute;
+    left: 50%;
+    z-index: 1;
+    width: 72%;
+    max-width: 3.25rem;
+    height: 2px;
+    border-radius: 1px;
+    transform: translate(-50%, 1px);
+    background: color-mix(in srgb, var(--color-base-content) 45%, transparent);
+    pointer-events: none;
+}
+
+/* Linha de folga/feriado/férias na tabela de dias */
+.gesint-table tbody tr.gesint-time-row--rest > td {
+    background: color-mix(in srgb, var(--color-base-content) 2.5%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 62%, transparent);
+}
+
+/* Calendário mensal (MonthCalendar) */
+.gesint-calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.gesint-calendar__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.gesint-calendar__title {
+    margin: 0 0.5rem;
+    font-size: var(--gesint-font-section);
+    font-weight: var(--gesint-font-weight-strong);
+    color: var(--color-base-content);
+}
+
+.gesint-calendar__grid {
+    overflow: hidden;
+    border-radius: var(--radius-gesint-card);
+    border: 1px solid var(--gesint-border-subtle);
+    background: var(--color-base-100);
+}
+
+.gesint-calendar__weekdays,
+.gesint-calendar__week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.gesint-calendar__weekday {
+    padding: 0.5rem 0.625rem;
+    font-size: 12px;
+    font-weight: var(--gesint-font-weight-medium);
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    background: color-mix(in srgb, var(--color-base-content) 2.5%, transparent);
+    border-bottom: 1px solid var(--gesint-border-subtle);
+}
+
+.gesint-calendar__day {
+    display: flex;
+    min-width: 0;
+    min-height: 6.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.375rem 0 0.5rem;
+    border-right: 1px solid var(--gesint-border-subtle);
+    border-bottom: 1px solid var(--gesint-border-subtle);
+}
+
+.gesint-calendar__week > .gesint-calendar__day:last-child {
+    border-right: 0;
+}
+
+.gesint-calendar__week:last-child > .gesint-calendar__day {
+    border-bottom: 0;
+}
+
+.gesint-calendar__day--weekend {
+    background: color-mix(in srgb, var(--color-base-content) 1.5%, transparent);
+}
+
+.gesint-calendar__day--outside .gesint-calendar__day-number {
+    color: color-mix(in srgb, var(--color-base-content) 28%, transparent);
+}
+
+.gesint-calendar__day--outside .gesint-calendar__event {
+    opacity: 0.45;
+}
+
+.gesint-calendar__day-head {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0 0.5rem;
+}
+
+.gesint-calendar__day-number {
+    display: inline-flex;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: var(--gesint-font-weight-medium);
+    font-variant-numeric: tabular-nums;
+    color: color-mix(in srgb, var(--color-base-content) 75%, transparent);
+}
+
+.gesint-calendar__day[aria-current="date"] .gesint-calendar__day-number {
+    color: var(--color-primary-content);
+    background: var(--color-primary);
+}
+
+.gesint-calendar__marker {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: var(--gesint-radius-badge);
+    padding: 0 0.375rem;
+    font-size: 10.5px;
+    font-weight: var(--gesint-font-weight-medium);
+    line-height: 1.6;
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.gesint-calendar__events {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.1875rem;
+}
+
+.gesint-calendar__event {
+    --event-tone: var(--color-primary);
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    margin: 0 0.375rem;
+    border-radius: var(--gesint-radius-badge);
+    padding: 0 0.375rem;
+    font-size: 11.5px;
+    font-weight: var(--gesint-font-weight-medium);
+    line-height: 1.6;
+    text-align: left;
+    color: var(--event-tone);
+    background: color-mix(in srgb, var(--event-tone) 13%, transparent);
+    box-shadow: inset 2px 0 0 var(--event-tone);
+}
+
+button.gesint-calendar__event {
+    cursor: pointer;
+}
+
+button.gesint-calendar__event:hover {
+    background: color-mix(in srgb, var(--event-tone) 20%, transparent);
+}
+
+/* Evento que atravessa dias: encosta na borda do dia e some o filete do meio */
+.gesint-calendar__event--continues-left {
+    margin-left: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    box-shadow: none;
+}
+
+.gesint-calendar__event--continues-right {
+    margin-right: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.gesint-calendar__event--continues-left .gesint-calendar__event-label {
+    opacity: 0.55;
+}
+
+.gesint-calendar__event-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gesint-calendar__event--primary {
+    --event-tone: var(--color-primary);
+}
+
+.gesint-calendar__event--info {
+    --event-tone: var(--color-info);
+}
+
+.gesint-calendar__event--success {
+    --event-tone: var(--color-success);
+}
+
+.gesint-calendar__event--warning {
+    --event-tone: var(--color-warning);
+}
+
+.gesint-calendar__event--error {
+    --event-tone: var(--color-error);
+}
+
+.gesint-calendar__event--neutral {
+    --event-tone: color-mix(in srgb, var(--color-base-content) 60%, transparent);
+}
+
+.gesint-calendar__more {
+    margin: 0 0.5rem;
+    font-size: 11px;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    cursor: default;
+}
+
+.gesint-calendar__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+}
+
+.gesint-calendar__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 12px;
+    color: color-mix(in srgb, var(--color-base-content) 62%, transparent);
+}
+
+.gesint-calendar__legend-dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    margin: 0;
+    padding: 0;
+    border-radius: 2px;
+    background: var(--event-tone);
+    box-shadow: none;
+}
+
+/* Agenda em lista: só no celular */
+.gesint-calendar__agenda {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.gesint-calendar__agenda-day {
+    border-radius: var(--radius-gesint-card);
+    border: 1px solid var(--gesint-border-subtle);
+    padding: 0.625rem 0.75rem;
+    background: var(--color-base-100);
+}
+
+.gesint-calendar__agenda-day[aria-current="date"] {
+    border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.gesint-calendar__agenda-date {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 0.375rem;
+    font-size: 12px;
+    font-weight: var(--gesint-font-weight-medium);
+    text-transform: capitalize;
+    color: color-mix(in srgb, var(--color-base-content) 70%, transparent);
+}
+
+.gesint-calendar__agenda-events {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.gesint-calendar__agenda-events .gesint-calendar__event {
+    margin: 0;
+}
+
+.gesint-calendar__agenda-empty {
+    padding: 1.5rem 0;
+    text-align: center;
+    font-size: 13px;
+    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
+}
+
+@media (max-width: 640px) {
+    .gesint-calendar__grid {
+        display: none;
+    }
+
+    .gesint-calendar__agenda {
+        display: flex;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gesint-toggle,
+    .gesint-toggle::after,
+    .gesint-toggle-row,
+    .gesint-time-list__item--button,
+    .gesint-dash-stats__item--button {
+        transition: none;
     }
 }

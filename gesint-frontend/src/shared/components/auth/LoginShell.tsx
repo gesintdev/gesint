@@ -1,5 +1,5 @@
 import type {LucideIcon} from "lucide-react";
-import {FolderOpen, Users} from "lucide-react";
+import {Fingerprint, FolderOpen, Users} from "lucide-react";
 import type {ReactNode} from "react";
 
 import {LoginStage} from "@/shared/components/auth/LoginStage";
@@ -15,12 +15,17 @@ type BrandModule = {
     description: string;
 };
 
-/** Sistemas do produto (rail: DP / RH / CTB) — texto do painel da marca. */
+/** Sistemas do produto (rail: DP / GP / RH) — texto do painel da marca. CTB fica de fora até estar disponível. */
 const BRAND_MODULES: BrandModule[] = [
     {
         icon: FolderOpen,
         title: "Departamento Pessoal",
-        description: "Admissões, ponto, férias, afastamentos e desligamentos",
+        description: "Admissões, férias, afastamentos e desligamentos",
+    },
+    {
+        icon: Fingerprint,
+        title: "Gestão de Ponto",
+        description: "Jornada, banco de horas, espelho de ponto e alertas da CLT",
     },
     {
         icon: Users,

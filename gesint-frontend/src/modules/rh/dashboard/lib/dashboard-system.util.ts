@@ -1,11 +1,11 @@
 import type { DashboardSummary } from "@/modules/rh/dashboard/dto/dashboard.dto";
 /** Valores alinhados a SystemEnum, sem importar o enum (evita lucide no middleware). */
-export type DashboardSystemId = "dp" | "rh" | "contabilidade";
+export type DashboardSystemId = "dp" | "rh" | "contabilidade" | "ponto";
 
 const RH_METRIC_KEYS = new Set(["collaborators", "contracts", "leave"]);
 const DP_METRIC_KEYS = new Set(["payment"]);
 const CONTABILIDADE_METRIC_KEYS = new Set(["payroll"]);
-const RH_MODULE_KEYS = new Set(["collaborator", "admission", "contract", "leave", "attendance"]);
+const RH_MODULE_KEYS = new Set(["collaborator", "admission", "contract", "leave"]);
 const DP_MODULE_KEYS = new Set([
     "payment",
     "company",
@@ -65,5 +65,6 @@ export function filterDashboardSummaryForSystem(data: DashboardSummary, system: 
 export function dashboardTitleForSystem(system: DashboardSystemId): string {
     if (system === "dp") return "Painel Departamento Pessoal";
     if (system === "contabilidade") return "Painel Contabilidade";
+    if (system === "ponto") return "Painel Gestão de Ponto";
     return "Painel Recursos Humanos";
 }

@@ -3,7 +3,7 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import clsx from "clsx";
 import {AnimatePresence, motion} from "framer-motion";
-import {Bell, Check, Clock} from "lucide-react";
+import {ArrowUpRight, Bell, Check, CheckCheck, Clock} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
 
 import type {SystemNotification} from "@/modules/cfg/settings/notification/dto/notification.dto";
@@ -12,6 +12,24 @@ import {systemNotificationService} from "@/modules/cfg/settings/notification/ser
 import {useHasPermission} from "@/shared/auth/permissions";
 import {Button} from "@/shared/components/ui/Button";
 import {ExceptionCapture} from "@/shared/exceptions";
+import {useWorkspaceLink} from "@/shared/workspace/WorkspaceLink";
+
+/** Tela que resolve cada tipo de aviso (o clique abre direto no workspace). */
+const NOTIFICATION_TARGET: Record<string, string> = {
+    VACATION_DUE: "/leave",
+    ATTENDANCE_ADJUSTMENT_REQUEST: "/attendance/requests",
+    ATTENDANCE_HEALTH_SUMMARY: "/attendance/status",
+};
+
+/** Avisos de ponto guardam o dia de referência (não um vencimento). */
+const DAY_REFERENCE_TYPES = new Set([
+    "ATTENDANCE_ADJUSTMENT_REQUEST",
+    "ATTENDANCE_REQUEST_REVIEWED",
+    "ATTENDANCE_HEALTH_DAY",
+    "ATTENDANCE_HEALTH_SUMMARY",
+    "ATTENDANCE_NEAR_10_HOURS",
+    "ATTENDANCE_NEAR_6_HOURS_NO_BREAK",
+]);
 
 function formatDueDate(value?: string) {
     if (!value) return null;
@@ -23,10 +41,12 @@ function formatDueDate(value?: string) {
 function NotificationRow({
                              notification,
                              onRead,
+                             onOpen,
                              loading,
                          }: {
     notification: SystemNotification;
     onRead: (_id: string) => void;
+    onOpen?: () => void;
     loading: boolean;
 }) {
     const dueDate = formatDueDate(notification.referenceDueDate);
@@ -39,18 +59,35 @@ function NotificationRow({
                     className={clsx("mt-1 size-2 shrink-0 rounded-full", unread ? "bg-error" : "bg-base-content/18")}
                 />
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-semibold text-base-content">{notification.title}</p>
+                    <p className="flex items-center gap-1.5 text-[13px] font-semibold text-base-content">
+                        <span className="truncate">{notification.title}</span>
+                        {notification.personal ? (
+                            <span className="gesint-badge gesint-badge--info shrink-0 !py-0 text-[10.5px]">Para você</span>
+                        ) : null}
+                    </p>
                     <p className="mt-0.5 text-xs leading-5 text-base-content/58">{notification.message}</p>
                     {dueDate ? (
                         <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-base-content/45">
                             <Clock className="size-3" strokeWidth={2}/>
-                            Vencimento em {dueDate}
+                            {DAY_REFERENCE_TYPES.has(notification.notificationType) ? "Referente a" : "Vencimento em"} {dueDate}
                         </span>
                     ) : null}
                 </div>
             </div>
-            {unread ? (
-                <div className="flex justify-end">
+            {unread || onOpen ? (
+                <div className="flex justify-end gap-1">
+                    {onOpen ? (
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            leftIcon={<ArrowUpRight className="size-3.5" strokeWidth={2}/>}
+                            onClick={onOpen}
+                        >
+                            Abrir
+                        </Button>
+                    ) : null}
+                    {unread ? (
                     <Button
                         type="button"
                         size="sm"
@@ -61,6 +98,7 @@ function NotificationRow({
                     >
                         Marcar como lida
                     </Button>
+                    ) : null}
                 </div>
             ) : null}
         </div>
@@ -82,6 +120,16 @@ export function HeaderNotifications() {
     });
     const unreadCount = summaryQuery.data?.unreadCount ?? 0;
     const notifications = summaryQuery.data?.notifications ?? [];
+    const {navigate} = useWorkspaceLink();
+    const markAllMutation = useMutation({
+        mutationFn: () => systemNotificationService.markAllAsRead(),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({queryKey: notificationKeys.summary});
+        },
+        onError: (err: unknown) => {
+            ExceptionCapture.handle(err, {fallbackMessage: "Não foi possível marcar as notificações como lidas."});
+        },
+    });
     const markReadMutation = useMutation({
         mutationFn: (id: string) => systemNotificationService.markAsRead(id),
         onSuccess: async () => {
@@ -220,6 +268,18 @@ export function HeaderNotifications() {
                                         : "Tudo em dia"}
                                 </p>
                             </div>
+                            {unreadCount > 0 ? (
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    loading={markAllMutation.isPending}
+                                    leftIcon={<CheckCheck className="size-3.5" strokeWidth={2}/>}
+                                    onClick={() => markAllMutation.mutate()}
+                                >
+                                    Marcar todas
+                                </Button>
+                            ) : null}
                         </div>
                         <div className="h-px bg-base-content/8"/>
                         <div className="min-h-0 overflow-auto py-1">
@@ -236,6 +296,15 @@ export function HeaderNotifications() {
                                         notification={notification}
                                         loading={markReadMutation.isPending}
                                         onRead={(id) => markReadMutation.mutate(id)}
+                                        onOpen={
+                                            !notification.personal && NOTIFICATION_TARGET[notification.notificationType]
+                                                ? () => {
+                                                    if (!notification.readAt) markReadMutation.mutate(notification.id);
+                                                    setOpen(false);
+                                                    navigate(NOTIFICATION_TARGET[notification.notificationType]);
+                                                }
+                                                : undefined
+                                        }
                                     />
                                 ))
                             ) : (

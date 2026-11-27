@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { PontoLandingClient } from "@/modules/dp/attendance/components/PontoLandingClient";
+import { PontoLandingClient } from "@/modules/gp/attendance/components/PontoLandingClient";
 
 export const metadata: Metadata = {
     title: "Registro de Ponto | Gesint",

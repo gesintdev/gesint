@@ -18,6 +18,7 @@ Produção (domínios, secrets, boot): [`docs/ops/producao-gesint.md`](docs/ops/
 | DP | Departamento Pessoal: Organizacao, Ferias, Afastamento, Desligamento e Pagamentos |
 | RH | Pessoas, solicitacoes de ferias, entrevista de desligamento, performance, insights |
 | CTB | Contabilidade: Folha de Pagamento |
+| GP | Gestão de Ponto: painel de jornada e limites da CLT, controle de ponto, ajustes, banco de horas, espelho de ponto e alertas |
 | CFG | Configurações: perfis e usuários |
 
 O domínio ativo no frontend vem do rail esquerdo, não da URL. Trocar abas no workspace não deve recalcular o menu lateral.

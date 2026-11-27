@@ -77,26 +77,6 @@ export const organizationRoutes: AppRoute[] = [
     }),
     collaboratorSharedRouteGroup,
     tabbedCrudRoute({
-        id: "attendance",
-        href: "/attendance",
-        label: "Ponto",
-        icon: CalendarDays,
-        permission: "attendance:read",
-        routeId: "attendance",
-        tabShortLabel: "Ponto",
-        formTabLabel: "Histórico de ponto",
-        formTabLabelEdit: "Histórico de ponto",
-        listToFormLabel: "Histórico de ponto",
-        list: lazyNamed(
-            () => import("@/modules/dp/attendance/components/AttendanceRecordListClient"),
-            "AttendanceRecordListClient",
-        ),
-        form: lazyNamed(
-            () => import("@/modules/dp/attendance/components/AttendanceRecordFormClient"),
-            "AttendanceRecordFormClient",
-        ),
-    }),
-    tabbedCrudRoute({
         id: "leave",
         href: "/leave",
         label: "Férias",

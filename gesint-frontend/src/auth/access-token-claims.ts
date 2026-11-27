@@ -19,7 +19,7 @@ export function readPermissionsFromAccessToken(accessToken: unknown): string[] {
 }
 
 /**
- * Mapa sistema do perfil -> authorities (`DP` / `RH` / `CONTABILIDADE` / `CFG`).
+ * Mapa sistema do perfil -> authorities (`DP` / `RH` / `CONTABILIDADE` / `PONTO` / `CFG`).
  * Ausente em tokens antigos: o consumidor deve cair no flat `permissions`.
  */
 export function readSystemPermissionsFromAccessToken(
