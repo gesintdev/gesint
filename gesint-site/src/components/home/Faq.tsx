@@ -24,6 +24,11 @@ const questions = [
             "Sim. Departamento pessoal e recursos humanos ficam conectados na mesma experiência, com as informações organizadas em um só lugar.",
     },
     {
+        question: "A Gesint também faz a gestão de ponto?",
+        answer:
+            "Sim. A Gestão de Ponto usa o mesmo cadastro de colaboradores e as escalas que você já configurou: mostra quem está trabalhando, calcula o banco de horas, fecha o espelho de ponto e avisa sobre os limites da CLT.",
+    },
+    {
         question: "Como funciona o primeiro contato?",
         answer:
             "Começa com uma conversa. Nossa equipe conhece o seu cenário, esclarece as dúvidas e alinha com você os próximos passos.",
