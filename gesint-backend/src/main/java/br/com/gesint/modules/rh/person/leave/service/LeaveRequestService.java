@@ -622,11 +622,16 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         return entities.stream()
                 .map(entity -> mapper.toResponse(
                         entity,
-                        collaboratorNames.get(entity.getCollaboratorId()),
-                        userNames.get(entity.getReviewedBy()),
-                        userNames.get(entity.getCreatedBy()),
+                        nameOf(collaboratorNames, entity.getCollaboratorId()),
+                        nameOf(userNames, entity.getReviewedBy()),
+                        nameOf(userNames, entity.getCreatedBy()),
                         includeSensitive))
                 .toList();
+    }
+
+    /** Map.of() lanca NPE em get(null); ids opcionais (revisor, criador) podem ser nulos. */
+    private static String nameOf(Map<UUID, String> names, UUID id) {
+        return id == null ? null : names.get(id);
     }
 
     private LeaveRequestResponseDto mapResponse(LeaveRequest entity) {
