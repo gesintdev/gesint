@@ -49,7 +49,7 @@ export function Solutions() {
                         {solutions.map((solution, index) => (
                             <a
                                 key={solution.title}
-                                href={links.contact}
+                                href={links.features}
                                 className={`group flex h-full flex-col rounded-md bg-white px-6 pt-[21px] pb-[31px] transition-[translate,box-shadow] ${SMOOTH} hover:-translate-y-1 hover:shadow-[0_18px_40px_-18px_rgba(17,29,39,0.22)] md:px-7`}
                             >
                                 <div className="flex h-[35px] items-start justify-between">

@@ -1,4 +1,4 @@
-import {Br, Container, Eyebrow, SectionTitle} from "@/components/ui";
+import {ArrowLink, Br, Container, Eyebrow, SectionTitle} from "@/components/ui";
 import {Reveal} from "@/components/motion";
 import {links} from "@/lib/links";
 
@@ -24,6 +24,26 @@ const questions = [
             "Sim. Departamento pessoal e recursos humanos ficam conectados na mesma experiência, com as informações organizadas em um só lugar.",
     },
     {
+        question: "O assistente de I.A. altera os meus dados?",
+        answer:
+            "Não. Ele consulta, explica, resume e leva você até a tela certa. Aprovações e alterações continuam nas mãos do seu time.",
+    },
+    {
+        question: "Consigo trazer os dados que já tenho em planilhas?",
+        answer:
+            "Sim. A Gesint tem planilhas-modelo para importar departamentos, cargos e admissões, tanto para cadastrar quanto para atualizar.",
+    },
+    {
+        question: "Como os dados da minha empresa ficam protegidos?",
+        answer:
+            "Cada empresa tem um ambiente próprio, os acessos são definidos por perfil e toda alteração fica registrada numa trilha de auditoria que não pode ser editada.",
+    },
+    {
+        question: "Os colaboradores também usam o sistema?",
+        answer:
+            "Usam o que é deles: registram o ponto pelo celular com foto e, na admissão, enviam documentos pelo portal, sem papel e sem e-mail.",
+    },
+    {
         question: "Como funciona o primeiro contato?",
         answer:
             "Começa com uma conversa. Nossa equipe conhece o seu cenário, esclarece as dúvidas e alinha com você os próximos passos.",
@@ -46,9 +66,9 @@ export function Faq() {
                             Ainda tem alguma dúvida?
                             <Br/> A gente conversa sobre ela.
                         </p>
-                        <a href={links.contact} className="mt-6 inline-block text-[15px] font-medium text-brand hover:text-brand-hover md:mt-8">
-                            Fale com a Gesint ↗
-                        </a>
+                        <ArrowLink href={links.contact} className="mt-6 md:mt-8">
+                            Fale com a Gesint
+                        </ArrowLink>
                     </Reveal>
 
                     <Reveal delay={0.1} className="border-t border-line lg:mt-[5px]">

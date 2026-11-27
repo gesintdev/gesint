@@ -1,8 +1,10 @@
 "use client";
 
 import {
+    animate,
     MotionConfig,
     motion,
+    useInView,
     useMotionValueEvent,
     useReducedMotion,
     useScroll,
@@ -163,5 +165,97 @@ export function StickyHeader({children}: {children: ReactNode}) {
             {children}
             <motion.div aria-hidden className="absolute inset-x-0 bottom-0 h-[2px] origin-left bg-brand" style={{scaleX: progress}}/>
         </motion.header>
+    );
+}
+
+/** Número que conta do zero até o valor quando entra na tela. */
+export function CountUp({value, className}: {value: number; className?: string}) {
+    const ref = useRef<HTMLSpanElement>(null);
+    const inView = useInView(ref, {once: true, amount: 0.6});
+    const reduce = useReducedMotion();
+    const [shown, setShown] = useState(0);
+
+    useEffect(() => {
+        if (!inView || reduce) return;
+        const controls = animate(0, value, {duration: 1.4, ease: EASE, onUpdate: (latest) => setShown(Math.round(latest))});
+        return () => controls.stop();
+    }, [inView, reduce, value]);
+
+    return (
+        <span ref={ref} className={`tabular-nums ${className ?? ""}`}>
+            {(reduce ? value : shown).toLocaleString("pt-BR")}
+        </span>
+    );
+}
+
+/**
+ * Linha que se preenche conforme o bloco atravessa a tela (linha do tempo da admissão).
+ * `axis="x"` no desktop, `"y"` na versão vertical do celular. Quem usa posiciona (ex.: `absolute`).
+ */
+export function ScrollLine({className, axis = "x"}: {className?: string; axis?: "x" | "y"}) {
+    const ref = useRef<HTMLDivElement>(null);
+    const {scrollYProgress} = useScroll({target: ref, offset: ["start 85%", "end 45%"]});
+    const progress = useSpring(scrollYProgress, {stiffness: 120, damping: 30, restDelta: 0.001});
+    return (
+        <div ref={ref} aria-hidden className={`overflow-hidden bg-line ${className ?? ""}`}>
+            <motion.span
+                className={`absolute inset-0 bg-brand ${axis === "x" ? "origin-left" : "origin-top"}`}
+                style={axis === "x" ? {scaleX: progress} : {scaleY: progress}}
+            />
+        </div>
+    );
+}
+
+/**
+ * Texto que se digita sozinho quando entra na tela e avisa quando termina (`onDone`).
+ * Com "reduzir movimento" o texto aparece inteiro de uma vez.
+ */
+export function Typewriter({text, className, delay = 0, speed = 28, onDone}: {text: string; className?: string; delay?: number; speed?: number; onDone?: () => void}) {
+    const ref = useRef<HTMLSpanElement>(null);
+    const inView = useInView(ref, {once: true, amount: 0.8});
+    const reduce = useReducedMotion();
+    const [count, setCount] = useState(0);
+    const done = useRef(onDone);
+
+    useEffect(() => {
+        done.current = onDone;
+    }, [onDone]);
+
+    useEffect(() => {
+        if (!inView) return;
+        if (reduce) {
+            done.current?.();
+            return;
+        }
+        let index = 0;
+        let interval: ReturnType<typeof setInterval> | undefined;
+        const start = setTimeout(() => {
+            interval = setInterval(() => {
+                index += 1;
+                setCount(index);
+                if (index >= text.length) {
+                    clearInterval(interval);
+                    done.current?.();
+                }
+            }, speed);
+        }, delay * 1000);
+        return () => {
+            clearTimeout(start);
+            clearInterval(interval);
+        };
+    }, [inView, reduce, text, delay, speed]);
+
+    const visible = reduce ? text : text.slice(0, count);
+    const typing = !reduce && inView && count < text.length;
+
+    return (
+        <span ref={ref} className={className}>
+            {/* O texto inteiro fica para leitores de tela; o digitado é só visual. */}
+            <span className="sr-only">{text}</span>
+            <span aria-hidden>
+                {visible}
+                {typing && <span className="ml-px inline-block h-[1em] w-px translate-y-[2px] animate-pulse bg-current"/>}
+            </span>
+        </span>
     );
 }
