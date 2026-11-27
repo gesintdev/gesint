@@ -4,5 +4,6 @@ public enum SystemScopeEnum {
     CFG,
     DP,
     RH,
-    CONTABILIDADE
+    CONTABILIDADE,
+    PONTO
 }

@@ -19,10 +19,10 @@ import {DESKTOP_QUERY, useMediaQuery} from "@/lib/use-media-query";
 
 const SOURCE = "/brand/logo-metalic.avif";
 /** Altura (px) em que a imagem é amostrada; define a densidade de pontos. */
-const SAMPLE_HEIGHT = 240;
-const MAX_PARTICLES = 5500;
+const SAMPLE_HEIGHT = 340;
+const MAX_PARTICLES = 12000;
 /** Máquina com poucos núcleos (≤ 4): começa com menos pontos. */
-const MAX_PARTICLES_LOW_END = 3500;
+const MAX_PARTICLES_LOW_END = 7000;
 
 /** Quadro médio (ms) acima do qual o G perde qualidade: ~40 fps. */
 const SLOW_FRAME_MS = 24;
@@ -33,12 +33,12 @@ const QUALITY_COOLDOWN_MS = 2000;
 /** Quantos degraus no máximo: retina desligada + duas reduções de pontos (até ~44% deles). */
 const MAX_QUALITY_STEPS = 3;
 /** Fração extra de poeira solta ao redor do G. */
-const STRAY_RATIO = 0.07;
+const STRAY_RATIO = 0.05;
 /** Intensidade geral: é marca d'água, então bem fraca. */
 const STRENGTH = 0.55;
 
 /** Fração dos pontos do G que passeia um pouco fora do contorno. */
-const WANDERER_RATIO = 0.2;
+const WANDERER_RATIO = 0.1;
 /** Quão longe (fração do G) o andarilho mais distante vai além do contorno. */
 const WANDER_REACH = 0.22;
 
@@ -465,7 +465,7 @@ function makeParticle(u: number, v: number, light: number, stray = false): Parti
     const distance = stray ? 1 : wanderer ? Math.random() ** 2 : 0;
     const angle = Math.random() * Math.PI * 2;
     // Pontos do G ganham só um leve desvio (borda não recortada); andarilhos se afastam pela distância.
-    const offset = wanderer ? 0.02 + distance * WANDER_REACH : Math.random() * 0.012;
+    const offset = wanderer ? 0.02 + distance * WANDER_REACH : Math.random() * 0.007;
     // Peso de cor: parte vem do brilho do metal, parte do acaso; quanto mais longe, mais fraco.
     const alpha = stray ? 0 : clamp(light * 0.55 + Math.random() * 0.55) * (1 - 0.55 * distance);
     // Quanto mais longe da órbita, mais solto e desordenado: oscila mais amplo e mais devagar.
@@ -477,9 +477,9 @@ function makeParticle(u: number, v: number, light: number, stray = false): Parti
         bucket: Math.round(tone * (TONES - 1)) * ALPHAS + Math.round(alpha * (ALPHAS - 1)),
         depth: 0.8 + Math.random() * 0.4,
         phase: Math.random() * Math.PI * 2,
-        // Pontos do G: oscilação bem visível (3 a 9px), mas curta o bastante para o contorno continuar legível.
+        // Pontos do G: oscilação visível (2 a 6px), curta o bastante para o contorno ficar nítido.
         speed: wanderer || stray ? (0.17 - 0.09 * distance) * looseness : 0.3 + Math.random() * 0.45,
-        amp: wanderer || stray ? (5 + 46 * distance) * looseness : 3 + Math.random() * 6,
+        amp: wanderer || stray ? (5 + 46 * distance) * looseness : 2 + Math.random() * 4,
         // Um pouco além das bordas, para a tela inteira ficar coberta mesmo com a flutuação.
         sx: -0.03 + Math.random() * 1.06,
         sy: -0.03 + Math.random() * 1.06,

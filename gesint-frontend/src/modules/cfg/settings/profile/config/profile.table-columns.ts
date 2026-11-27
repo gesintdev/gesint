@@ -19,6 +19,7 @@ export const PROFILE_TABLE_COLUMNS: TableColumnConfig[] = [
             DP: "DP",
             RH: "RH",
             CONTABILIDADE: "CTB",
+            PONTO: "GP",
         },
     },
     {

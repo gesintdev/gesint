@@ -4,7 +4,7 @@ import {Checkbox, SelectField, ShowcaseForm, TextAreaField, TextField} from "@/c
 import {Button} from "@/components/ui";
 
 const teamSizes = ["Até 20 colaboradores", "21 a 50", "51 a 200", "201 a 500", "Mais de 500"];
-const interests = ["Departamento pessoal", "Recursos humanos", "DP e RH", "Ainda estou conhecendo"];
+const interests = ["Departamento pessoal", "Recursos humanos", "Gestão de ponto", "DP e RH", "Ainda estou conhecendo"];
 
 /** Formulário de contato só visual: nada é enviado. */
 export function ContactForm() {

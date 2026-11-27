@@ -30,6 +30,7 @@ public final class TenantSchemaTableCatalog {
             "esocial_event",
             "attendance_record",
             "attendance_request",
+            "attendance_timesheet",
             "benefit_plan",
             "benefit_enrollment",
             "leave_request",

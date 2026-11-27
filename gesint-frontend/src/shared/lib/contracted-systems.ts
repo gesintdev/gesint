@@ -7,6 +7,8 @@ const PRODUCT_KEY_TO_SYSTEM: Record<string, SystemEnum> = {
     RH: SystemEnum.RH,
     CTB: SystemEnum.CONTABILIDADE,
     CONTABILIDADE: SystemEnum.CONTABILIDADE,
+    GP: SystemEnum.PONTO,
+    PONTO: SystemEnum.PONTO,
 };
 
 /**

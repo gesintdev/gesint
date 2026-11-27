@@ -10,7 +10,6 @@ const tabs: FeatureTab[] = [
         summary: "As rotinas que têm prazo, com cada etapa visível e nenhum documento perdido.",
         items: [
             {title: "Admissão digital", description: "Do convite à integração, com documentos, ASO, contrato e eSocial no mesmo fluxo."},
-            {title: "Ponto", description: "Registro com código do colaborador e foto, grade editável e pedidos de ajuste."},
             {title: "Férias", description: "Períodos aquisitivo e concessivo calculados a partir do contrato."},
             {title: "Afastamentos", description: "Licenças e afastamentos por tipo, sem expor dados médicos nos relatórios."},
             {title: "Desligamento", description: "Rescisão acompanhada de ponta a ponta, com checklist de devoluções."},
@@ -32,6 +31,21 @@ const tabs: FeatureTab[] = [
             {title: "Feedback", description: "Avaliações de desempenho registradas e fáceis de retomar."},
             {title: "Entrevista de desligamento", description: "Entenda o porquê de cada saída e acompanhe as devoluções."},
             {title: "Férias do time", description: "Quem está apto, quem pediu e o que já foi enviado ao DP."},
+        ],
+    },
+    {
+        id: "ponto",
+        label: "Gestão de ponto",
+        summary: "A jornada de cada pessoa acompanhada de perto, com os limites da CLT avisados antes de virar problema.",
+        items: [
+            {title: "Painel do dia", description: "Quem está trabalhando, quem atrasou, quem está em hora extra e quem está fora hoje."},
+            {title: "Limites da CLT", description: "Mais de 10 horas no dia, intervalo curto e descanso menor que 11 horas, em números que abrem a lista."},
+            {title: "Banco de horas", description: "Saldo de cada pessoa calculado pela escala, em verde quando sobra e em vermelho quando falta."},
+            {title: "Espelho de ponto", description: "Aberto para ajustes ou fechado com as marcações travadas, com PDF pronto para assinar."},
+            {title: "Pedidos de ajuste", description: "Fila de pendentes, aprovados e reprovados, com o motivo de cada decisão."},
+            {title: "Registro com foto", description: "Pelo celular ou pela página da empresa, com código do colaborador, foto e localização."},
+            {title: "Avisos que previnem", description: "O colaborador é avisado perto de 10 horas e de 6 horas sem pausa, antes da infração."},
+            {title: "Agenda de ausências", description: "Férias, afastamentos e faltas do mês em um calendário, sem cadastro duplicado."},
         ],
     },
     {
@@ -69,7 +83,7 @@ export function Features() {
                             aside={
                                 <>
                                     Um mesmo cadastro de pessoas
-                                    <Br/> para o DP, o RH e a gestão.
+                                    <Br/> para o DP, o RH, o ponto e a gestão.
                                 </>
                             }
                         />

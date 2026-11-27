@@ -48,4 +48,16 @@ class PermissionModuleCatalogTest {
                     .containsAll(PermissionModuleCatalog.modulesFor(system));
         }
     }
+
+    /** Ponto saiu de DP e de CFG: vive so no sistema Gestao de Ponto. */
+    @Test
+    void pontoViveSoNaGestaoDePonto() {
+        assertThat(PermissionModuleCatalog.modulesFor(SystemScopeEnum.PONTO))
+                .contains("attendance", "hourbank", "timesheet");
+        assertThat(PermissionModuleCatalog.modulesFor(SystemScopeEnum.DP)).doesNotContain("attendance");
+        assertThat(PermissionModuleCatalog.modulesFor(SystemScopeEnum.CFG)).doesNotContain("attendance");
+        assertThat(PermissionModuleCatalog.systemForModule("attendance")).isEqualTo(SystemScopeEnum.PONTO);
+        assertThat(PermissionModuleCatalog.systemForModule("hourbank")).isEqualTo(SystemScopeEnum.PONTO);
+        assertThat(PermissionModuleCatalog.systemForModule("timesheet")).isEqualTo(SystemScopeEnum.PONTO);
+    }
 }

@@ -1,4 +1,4 @@
-import {Calculator, type LucideIcon, Users, Wallet} from "lucide-react";
+import {Calculator, Fingerprint, type LucideIcon, Users, Wallet} from "lucide-react";
 
 import type {AppRoute, TModule} from "@/modules/root/enum/ModuleEnum";
 import { isCommercialSystemEnabled } from "@/shared/lib/system-availability";
@@ -7,6 +7,7 @@ export enum SystemEnum {
     DP = "dp",
     RH = "rh",
     CONTABILIDADE = "contabilidade",
+    PONTO = "ponto",
 }
 
 export type TSystemInfos = {
@@ -41,6 +42,12 @@ const registry: Record<SystemEnum, TSystemInfos> = {
         name: "Recursos Humanos",
         acronym: "RH",
         icon: Users,
+    },
+    [SystemEnum.PONTO]: {
+        id: SystemEnum.PONTO,
+        name: "Gestão de Ponto",
+        acronym: "GP",
+        icon: Fingerprint,
     },
 };
 const STORAGE_KEY = "gesint-active-system";

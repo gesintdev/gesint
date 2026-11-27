@@ -169,15 +169,27 @@ public class JobVacancyApplicationKanbanSlaReminderService {
                 + ". "
                 + remainingText;
 
-        notificationRepository.save(SystemNotification.builder()
-                .notificationType(NOTIFICATION_TYPE)
-                .title(title)
-                .message(message)
-                .referenceType(REFERENCE_TYPE)
-                .referenceId(application.getId())
-                .referenceDueDate(slaDueDate)
-                .status(StatusEnum.ACTIVE)
-                .build());
+        // O lembrete se repete todo dia com a mesma chave (tipo, referencia, vencimento): atualiza a
+        // notificacao existente em vez de inserir outra, que violaria uk_system_notification_reference_active
+        // e desfaria a rodada inteira do tenant. A filial vem da candidatura: o job roda sem filial ativa
+        // e, sem company_id, a notificacao nao aparece no sino de ninguem.
+        SystemNotification notification = notificationRepository
+                .findByNotificationTypeAndReferenceTypeAndReferenceIdAndReferenceDueDateAndStatusNot(
+                        NOTIFICATION_TYPE, REFERENCE_TYPE, application.getId(), slaDueDate, StatusEnum.DELETED)
+                .orElseGet(() -> SystemNotification.builder()
+                        .notificationType(NOTIFICATION_TYPE)
+                        .referenceType(REFERENCE_TYPE)
+                        .referenceId(application.getId())
+                        .referenceDueDate(slaDueDate)
+                        .status(StatusEnum.ACTIVE)
+                        .build());
+        if (notification.getCompanyId() == null) {
+            notification.setCompanyId(application.getCompanyId());
+        }
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setReadAt(null);
+        notificationRepository.save(notification);
 
         String organization = TenantContextHolder.getOptional()
                 .map(TenantContext::name)
