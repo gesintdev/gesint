@@ -1,6 +1,17 @@
 {
   "releases": [
     {
+      "version": "1.110.0",
+      "hash": "3a8b1fe7",
+      "date": "2026-11-28T13:11:43-03:00",
+      "type": "merge",
+      "scope": null,
+      "breaking": false,
+      "title": "Develop into main (Gestao de Ponto e abas agrupadas por sistema)",
+      "body": "**Commits incluídos**\n\n- feat: cria o app do site institucional gesint-site.\n- feat: amplia o site com novas secoes, login, contato e animacoes.\n- fix: ordena o trilho pela declaracao do registry e deixa o CFG por ultimo.\n- docs: guarda o plano de remodelagem do site.\n- feat: cria o sistema Gestao de Ponto (GP) com apuracao, banco de horas, espelho e alertas.\n- feat: adiciona a Gestao de Ponto ao site e mostra as solucoes como um sistema.\n- fix: evita NPE na listagem de ferias quando revisor ou criador sao nulos.\n- docs: registra o armazenamento em disco local e o Cloudflare R2 como nuvem futura.\n- feat: ajusta o Controle de ponto, o Espelho e o Banco de horas.\n- feat: agrupa as abas por sistema e ajusta a casca do workspace.",
+      "pullRequest": null
+    },
+    {
       "version": "1.109.23",
       "hash": "91787f55",
       "date": "2026-11-26T15:42:59-03:00",
