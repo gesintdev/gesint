@@ -11,7 +11,9 @@ import {buildAttendanceTableColumns} from "@/modules/gp/attendance/config/attend
 import type {AttendancePresenceRow} from "@/modules/gp/attendance/dto/attendance-record.dto";
 import {ATTENDANCE_CLIENT_MESSAGES} from "@/modules/gp/attendance/exceptions/attendance-record.messages";
 import {
+    ATTENDANCE_OPEN_HISTORY_EVENT,
     clearAttendanceCollaboratorFocus,
+    consumeAttendanceHistoryOpen,
     writeAttendanceCollaboratorFocus,
 } from "@/modules/gp/attendance/lib/attendance-collaborator-focus";
 import {
@@ -25,6 +27,8 @@ import {
     paginatePresenceRows,
 } from "@/modules/gp/attendance/lib/attendance-presence.filters";
 import {attendancerecordService} from "@/modules/gp/attendance/services/attendance-record.service";
+import {useAdmissionLinkColumn} from "@/modules/gp/shared/hooks/useAdmissionLinkColumn";
+import {invalidateTimeQueries} from "@/modules/gp/shared/lib/invalidate-time-queries";
 import {useCrudListToolbar, useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {CrudTableActions} from "@/shared/components/crud/CrudTableActions";
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";
@@ -80,10 +84,11 @@ export function AttendanceRecordListClient() {
     });
     const overtimeEnabled = settingsQuery.data?.overtimeEnabled ?? false;
     const hourBankEnabled = settingsQuery.data?.hourBankEnabled ?? true;
-    const columns = useMemo(
-        () => buildAttendanceTableColumns({overtimeEnabled, hourBankEnabled}),
-        [overtimeEnabled, hourBankEnabled],
-    );
+    const admissionColumn = useAdmissionLinkColumn();
+    const columns = useMemo(() => {
+        const base = buildAttendanceTableColumns({overtimeEnabled, hourBankEnabled});
+        return admissionColumn ? [admissionColumn, ...base] : base;
+    }, [admissionColumn, overtimeEnabled, hourBankEnabled]);
 
     useEffect(() => {
         writeAttendanceListPeriod(period);
@@ -102,6 +107,24 @@ export function AttendanceRecordListClient() {
     );
     useCrudListToolbar(periodFilters);
 
+    // Espelho, banco de horas e painel pedem o Histórico de ponto de um colaborador.
+    useEffect(() => {
+        const openRequestedHistory = () => {
+            const request = consumeAttendanceHistoryOpen();
+            if (!request) return;
+            if (request.period) {
+                // A listagem acompanha o período de quem pediu, e o histórico abre nele.
+                setDateFrom(request.period.from);
+                setDateTo(request.period.to);
+                writeAttendanceListPeriod(request.period);
+            }
+            void startCreate();
+        };
+        openRequestedHistory();
+        window.addEventListener(ATTENDANCE_OPEN_HISTORY_EVENT, openRequestedHistory);
+        return () => window.removeEventListener(ATTENDANCE_OPEN_HISTORY_EVENT, openRequestedHistory);
+    }, [startCreate]);
+
     useEffect(() => {
         const tabId = workspaceTab?.tab.id;
         if (!tabId) return;
@@ -113,7 +136,7 @@ export function AttendanceRecordListClient() {
     const deleteMutation = useMutation({
         mutationFn: (id: string) => attendancerecordService.remove(id),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
+            await invalidateTimeQueries(queryClient);
             toast.success("Registro de ponto excluído(a)");
         },
         onError: (err: unknown) =>
@@ -136,7 +159,7 @@ export function AttendanceRecordListClient() {
 
     return (
         <QueryPagedTablePanel<AttendancePresenceListingRow>
-            key={`${period.from}-${period.to}-${overtimeEnabled}-${hourBankEnabled}`}
+            key={`${period.from}-${period.to}-${overtimeEnabled}-${hourBankEnabled}-${admissionColumn ? "adm" : ""}`}
             queryKey={[...attendancerecordKeys.all, "presence", "schedule", period.from, period.to]}
             paginationMode="load-more"
             request={async (page, size, filters) => {

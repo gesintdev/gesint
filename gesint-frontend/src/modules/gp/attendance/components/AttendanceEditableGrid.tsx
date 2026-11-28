@@ -41,7 +41,12 @@ import {
     mergeAttendancePunches,
 } from "@/modules/gp/attendance/lib/attendance-hours.util";
 import {attendancerecordToFormDto} from "@/modules/gp/attendance/lib/attendance-record.mapper";
+import {
+    type AttendancePeriodWeek,
+    findAttendancePeriodWeek,
+} from "@/modules/gp/attendance/lib/attendance-week-sections.util";
 import {TableActionButton} from "@/shared/components/crud/TableActionButton";
+import {ColumnFilterControl} from "@/shared/components/data/ColumnFilterControl";
 import {InputDate} from "@/shared/components/ui/input/InputDate";
 import {
     isoToDateBr,
@@ -50,6 +55,7 @@ import {
     parseIsoToDate,
 } from "@/shared/lib/input/date";
 import {parseTimeInputToValue, timeToDisplay} from "@/shared/lib/input/time";
+import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types";
 
 export type AttendanceEditableField = "workDate" | "clockIn" | "breakStart" | "breakEnd" | "clockOut";
 
@@ -80,9 +86,39 @@ export function isAttendanceDraftId(id: string) {
     return id.startsWith("draft:");
 }
 
+const REQUEST_ONLY_ID_PREFIX = "request:";
+
+/**
+ * Linha de um dia sem marcação que tem solicitação de ajuste (ex.: sábado trabalhado).
+ * Sem ela a solicitação ficava invisível no histórico, embora o colaborador aparecesse
+ * com "Ajuste pendente" na listagem. Editar a linha lança o ponto do dia.
+ */
+export function attendanceRequestOnlyRow(collaboratorId: string, workDate: string): AttendanceRecord {
+    return {
+        id: `${REQUEST_ONLY_ID_PREFIX}${workDate}`,
+        code: 0,
+        status: "ACTIVE",
+        collaboratorId,
+        workDate,
+        occurrenceType: "NORMAL_WORK",
+        occurrenceOrigin: "MANUAL",
+        impactsHourBank: true,
+        impactsPayroll: true,
+    };
+}
+
+export function isAttendanceRequestOnlyId(id: string) {
+    return id.startsWith(REQUEST_ONLY_ID_PREFIX);
+}
+
+/** Linha ainda sem registro no banco: salvar cria o ponto. */
+export function isAttendanceUnsavedId(id: string) {
+    return isAttendanceDraftId(id) || isAttendanceRequestOnlyId(id);
+}
+
 /** Ponto criado/alterado no backoffice (não veio intacto do mobile). */
 export function isAttendanceEdited(row: AttendanceRecord) {
-    if (isAttendanceDraftId(row.id)) return false;
+    if (isAttendanceUnsavedId(row.id)) return false;
     return row.occurrenceOrigin === "MANUAL" || row.occurrenceType === "TIME_ADJUSTMENT";
 }
 
@@ -113,7 +149,23 @@ type AttendanceEditableGridProps = {
     onDirtyChange?: (dirty: boolean) => void;
     /** Mensagem exibida quando a grade nao tem linhas. */
     emptyMessage?: string;
+    /** Semanas do período: as linhas são agrupadas sob o cabeçalho da semana. */
+    weeks?: AttendancePeriodWeek[];
+    /** Semana escolhida nos atalhos: cabeçalho e linhas dela ganham contorno. */
+    highlightedWeekKey?: string | null;
+    /** Filtro da coluna Data (ISO). Sem `onDateFilterChange`, a coluna não mostra filtro. */
+    dateFilter?: string;
+    onDateFilterChange?: (isoDate: string) => void;
 };
+
+const DATE_FILTER_COLUMN: TableColumnConfig = {
+    id: "workDate",
+    columnName: "Data",
+    fieldValue: "workDate",
+    dataType: TableDataType.DATE,
+};
+
+const NO_FILTER_OPTIONS: string[] = [];
 
 function rowFieldCanonical(row: AttendanceRecord, field: AttendanceEditableField): string {
     if (field === "workDate") return row.workDate?.slice(0, 10) ?? "";
@@ -201,6 +253,10 @@ export function AttendanceEditableGrid({
                                            onDetailRequest,
                                            onDirtyChange,
                                            emptyMessage = "Nenhum ponto encontrado para este colaborador.",
+                                           weeks,
+                                           highlightedWeekKey = null,
+                                           dateFilter = "",
+                                           onDateFilterChange,
                                        }: AttendanceEditableGridProps) {
     const [activeCell, setActiveCell] = useState<ActiveCell | null>(null);
     const [draftValue, setDraftValue] = useState("");
@@ -565,6 +621,29 @@ export function AttendanceEditableGrid({
     const recordCountLabel =
         rows.length === 1 ? "1 registro encontrado" : `${rows.length} registros encontrados`;
 
+    const rowWeek = (row: AttendanceRecord) =>
+        weeks && weeks.length > 0 ? findAttendancePeriodWeek(weeks, row.workDate) : undefined;
+
+    const weekRowCounts = useMemo(() => {
+        const counts = new Map<string, number>();
+        if (!weeks || weeks.length === 0) return counts;
+        for (const row of rows) {
+            const week = findAttendancePeriodWeek(weeks, row.workDate);
+            if (week) counts.set(week.key, (counts.get(week.key) ?? 0) + 1);
+        }
+        return counts;
+    }, [rows, weeks]);
+
+    /** Última linha da semana destacada: é onde o contorno fecha embaixo. */
+    const highlightedWeekLastRowId = useMemo(() => {
+        if (!highlightedWeekKey || !weeks || weeks.length === 0) return null;
+        let lastId: string | null = null;
+        for (const row of rows) {
+            if (findAttendancePeriodWeek(weeks, row.workDate)?.key === highlightedWeekKey) lastId = row.id;
+        }
+        return lastId;
+    }, [highlightedWeekKey, rows, weeks]);
+
     const timePickerValue = (() => {
         if (!timePicker) return "";
         if (activeCell?.rowId === timePicker.rowId && activeCell.field === timePicker.field) {
@@ -595,7 +674,21 @@ export function AttendanceEditableGrid({
                 <thead>
                 <tr>
                     <th>
-                        <span className="gesint-table-col-title">Data</span>
+                        {onDateFilterChange ? (
+                            <div className="flex min-w-0 flex-col gap-1.5">
+                                <span className="gesint-table-col-title">Data</span>
+                                <div className="gesint-column-filter-host">
+                                    <ColumnFilterControl
+                                        column={DATE_FILTER_COLUMN}
+                                        options={NO_FILTER_OPTIONS}
+                                        value={dateFilter ? [dateFilter] : NO_FILTER_OPTIONS}
+                                        onChange={(next) => onDateFilterChange(next[0] ?? "")}
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <span className="gesint-table-col-title">Data</span>
+                        )}
                     </th>
                     <th>
                         <span className="gesint-table-col-title">Entrada</span>
@@ -624,7 +717,12 @@ export function AttendanceEditableGrid({
                 </tr>
                 </thead>
                 <tbody>
-                {rows.map((row) => {
+                {rows.map((row, rowIndex) => {
+                    const week = rowWeek(row);
+                    const previousWeek = rowIndex > 0 ? rowWeek(rows[rowIndex - 1]!) : undefined;
+                    const startsWeek = week != null && week.key !== previousWeek?.key;
+                    const weekRowCount = week ? (weekRowCounts.get(week.key) ?? 0) : 0;
+                    const requestOnly = isAttendanceRequestOnlyId(row.id);
                     const draftForRow = rowDraft?.rowId === row.id ? rowDraft.values : undefined;
                     const punches = mergeAttendancePunches(row, draftForRow);
                     const dayKey = punches.workDate?.slice(0, 10) ?? "";
@@ -648,14 +746,40 @@ export function AttendanceEditableGrid({
                         numericHoursDelta(expectedDisplay, workedDisplay, "credit") > 0;
                     const edited = isAttendanceEdited(row);
                     const draftRow = isAttendanceDraftId(row.id);
+                    const inHighlightedWeek = week != null && week.key === highlightedWeekKey;
+                    const closesHighlight = inHighlightedWeek && highlightedWeekLastRowId === row.id;
+                    // Accordion aberto na última linha: o contorno fecha embaixo dele.
+                    const closesOnExpand = closesHighlight && hasAdjustment && expanded;
 
                     return (
                         <Fragment key={row.id}>
+                            {startsWeek && week ? (
+                                <tr
+                                    className={clsx(
+                                        "attendance-sheet__week",
+                                        inHighlightedWeek &&
+                                            "attendance-sheet__week-ring attendance-sheet__week-ring--top attendance-sheet__week--selected",
+                                    )}
+                                    data-attendance-week={week.key}
+                                >
+                                    <td colSpan={9}>
+                                        <div className="attendance-sheet__week-label">
+                                            <span className="attendance-sheet__week-title">{week.label}</span>
+                                            <span className="attendance-sheet__week-range">{week.rangeLabel}</span>
+                                            <span className="attendance-sheet__week-count">
+                                                {weekRowCount === 1 ? "1 registro" : `${weekRowCount} registros`}
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : null}
                             <tr
                                 className={clsx(
                                     hasPendingAdjustment && "attendance-sheet__row--adjustment",
                                     draftRow && "attendance-sheet__row--draft",
                                     saving && "attendance-sheet__row--saving",
+                                    inHighlightedWeek && "attendance-sheet__week-ring",
+                                    closesHighlight && !closesOnExpand && "attendance-sheet__week-ring--bottom",
                                 )}
                             >
                                 <td
@@ -952,23 +1076,29 @@ export function AttendanceEditableGrid({
                                                 void navigateToCell({rowId: row.id, field: "clockIn"});
                                             }}
                                         />
-                                        <TableActionButton
-                                            actionVariant="delete"
-                                            aria-label="Excluir ponto"
-                                            title="Excluir ponto"
-                                            loading={deletingRowId === row.id}
-                                            leftIcon={<Trash2 className="size-3.5"/>}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                onDeleteRow(row);
-                                            }}
-                                        />
+                                        {requestOnly ? null : (
+                                            <TableActionButton
+                                                actionVariant="delete"
+                                                aria-label="Excluir ponto"
+                                                title="Excluir ponto"
+                                                loading={deletingRowId === row.id}
+                                                leftIcon={<Trash2 className="size-3.5"/>}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    onDeleteRow(row);
+                                                }}
+                                            />
+                                        )}
                                     </div>
                                 </td>
                             </tr>
                             {hasAdjustment ? (
                                 <tr
-                                    className="attendance-sheet__expand"
+                                    className={clsx(
+                                        "attendance-sheet__expand",
+                                        inHighlightedWeek && "attendance-sheet__week-ring",
+                                        closesOnExpand && "attendance-sheet__week-ring--bottom",
+                                    )}
                                     data-open={expanded ? "true" : "false"}
                                     aria-hidden={!expanded}
                                 >

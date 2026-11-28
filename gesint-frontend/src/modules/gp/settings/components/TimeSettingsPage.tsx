@@ -5,11 +5,11 @@ import { BellRing, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { attendancerecordKeys,attendanceSettingsKeys } from "@/modules/gp/attendance/attendance.query";
+import { attendanceSettingsKeys } from "@/modules/gp/attendance/attendance.query";
 import type { AttendanceSettings } from "@/modules/gp/attendance/dto/attendance-record.dto";
 import { attendancerecordService } from "@/modules/gp/attendance/services/attendance-record.service";
+import { invalidateTimeQueries } from "@/modules/gp/shared/lib/invalidate-time-queries";
 import { timeManagementService } from "@/modules/gp/shared/services/time-management.service";
-import { timeManagementKeys } from "@/modules/gp/shared/time-management.query";
 import { useHasPermission } from "@/shared/auth/permissions";
 import { WorkspacePage } from "@/shared/components/layout/WorkspacePage";
 import { Button } from "@/shared/components/ui/Button";
@@ -56,8 +56,7 @@ export function TimeSettingsPage() {
         mutationFn: () => attendancerecordService.updateSettings(form),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: attendanceSettingsKeys.all });
-            await queryClient.invalidateQueries({ queryKey: attendancerecordKeys.all });
-            await queryClient.invalidateQueries({ queryKey: timeManagementKeys.all });
+            await invalidateTimeQueries(queryClient);
             toast.success("Preferências de ponto salvas");
         },
         onError: (error: unknown) =>

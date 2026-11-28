@@ -1,26 +1,26 @@
 "use client";
 
-import { Info } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {Info} from "lucide-react";
+import {useEffect, useMemo, useState} from "react";
 
-import { AttendancePeriodDateFilters } from "@/modules/gp/attendance/components/AttendancePeriodDateFilters";
-import { currentMonthBounds, normalizePeriod } from "@/modules/gp/attendance/lib/attendance-period.util";
-import { durationColumn, GP_COLLABORATOR_COLUMN } from "@/modules/gp/shared/config/time-table-columns";
-import type { TimeStatusMetric, TimeStatusRow } from "@/modules/gp/shared/dto/time-management.dto";
-import { PERIOD_METRICS, STATUS_METRICS, TODAY_METRICS } from "@/modules/gp/shared/lib/time-labels";
+import {AttendancePeriodDateFilters} from "@/modules/gp/attendance/components/AttendancePeriodDateFilters";
+import {currentMonthBounds, normalizePeriod} from "@/modules/gp/attendance/lib/attendance-period.util";
+import {durationColumn, GP_COLLABORATOR_COLUMN} from "@/modules/gp/shared/config/time-table-columns";
+import type {TimeStatusMetric, TimeStatusRow} from "@/modules/gp/shared/dto/time-management.dto";
+import {PERIOD_METRICS, STATUS_METRICS, TODAY_METRICS} from "@/modules/gp/shared/lib/time-labels";
 import {
     takeTimeStatusFocus,
     TIME_STATUS_FOCUS_EVENT,
     type TimeStatusFocus,
 } from "@/modules/gp/shared/lib/time-status-focus";
-import { timeManagementService } from "@/modules/gp/shared/services/time-management.service";
-import { timeManagementKeys } from "@/modules/gp/shared/time-management.query";
-import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
-import { WorkspacePage } from "@/shared/components/layout/WorkspacePage";
-import { CrudTabList } from "@/shared/components/ui/CrudTabList";
-import { InputSelect } from "@/shared/components/ui/input";
-import { paginateCatalogRows } from "@/shared/lib/table/paginate-catalog-rows";
-import { type TableColumnConfig, TableDataType } from "@/shared/types/table.types";
+import {timeManagementService} from "@/modules/gp/shared/services/time-management.service";
+import {timeManagementKeys} from "@/modules/gp/shared/time-management.query";
+import {QueryPagedTablePanel} from "@/shared/components/data/DataPanel";
+import {WorkspacePage} from "@/shared/components/layout/WorkspacePage";
+import {CrudTabList} from "@/shared/components/ui/CrudTabList";
+import {InputSelect} from "@/shared/components/ui/input";
+import {paginateCatalogRows} from "@/shared/lib/table/paginate-catalog-rows";
+import {type TableColumnConfig, TableDataType} from "@/shared/types/table.types";
 
 type View = "TODAY" | "PERIOD";
 
@@ -36,7 +36,12 @@ function columnsFor(metric: TimeStatusMetric): TableColumnConfig[] {
     if (info.grain === "COLLABORATOR") {
         return [
             GP_COLLABORATOR_COLUMN,
-            { id: "departmentName", columnName: "Departamento", fieldValue: "departmentName", dataType: TableDataType.TEXT },
+            {
+                id: "departmentName",
+                columnName: "Departamento",
+                fieldValue: "departmentName",
+                dataType: TableDataType.TEXT
+            },
             ...value,
             durationColumn("expectedMinutes", "Jornada prevista"),
             {
@@ -48,30 +53,48 @@ function columnsFor(metric: TimeStatusMetric): TableColumnConfig[] {
             },
             ...(metric === "ABSENTEEISM"
                 ? [
-                      {
-                          id: "percentValue",
-                          columnName: "Absenteísmo",
-                          fieldValue: "percentValue",
-                          dataType: TableDataType.PERCENT,
-                          notFilterable: true,
-                      } satisfies TableColumnConfig,
-                  ]
+                    {
+                        id: "percentValue",
+                        columnName: "Absenteísmo",
+                        fieldValue: "percentValue",
+                        dataType: TableDataType.PERCENT,
+                        notFilterable: true,
+                    } satisfies TableColumnConfig,
+                ]
                 : []),
         ];
     }
     return [
         GP_COLLABORATOR_COLUMN,
         ...(info.view === "PERIOD"
-            ? [{ id: "date", columnName: "Dia", fieldValue: "date", dataType: TableDataType.DATE, notFilterable: true } satisfies TableColumnConfig]
+            ? [{
+                id: "date",
+                columnName: "Dia",
+                fieldValue: "date",
+                dataType: TableDataType.DATE,
+                notFilterable: true
+            } satisfies TableColumnConfig]
             : []),
-        { id: "clockInText", columnName: "Entrada", fieldValue: "clockInText", dataType: TableDataType.TEXT, notFilterable: true },
-        { id: "clockOutText", columnName: "Saída", fieldValue: "clockOutText", dataType: TableDataType.TEXT, notFilterable: true },
+        {
+            id: "clockInText",
+            columnName: "Entrada",
+            fieldValue: "clockInText",
+            dataType: TableDataType.TEXT,
+            notFilterable: true
+        },
+        {
+            id: "clockOutText",
+            columnName: "Saída",
+            fieldValue: "clockOutText",
+            dataType: TableDataType.TEXT,
+            notFilterable: true
+        },
         ...value,
     ];
 }
 
 const metricItems = (metrics: TimeStatusMetric[]) =>
-    metrics.map((metric) => ({ value: metric, label: STATUS_METRICS[metric].label }));
+    metrics.map((metric) => ({value: metric, label: STATUS_METRICS[metric].label}));
 
 /** Relatório "Status dos colaboradores": cada número do painel vira a lista de quem está por trás. */
 export function TimeStatusReportPage() {
@@ -113,17 +136,18 @@ export function TimeStatusReportPage() {
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                 <div className="px-1.5">
                     <CrudTabList<View>
-                        className="!px-1"
+                        className="px-1!"
                         ariaLabel="Visão do relatório"
                         value={view}
                         onChange={setView}
                         items={[
-                            { value: "TODAY", label: "Hoje", help: "Situação de agora." },
-                            { value: "PERIOD", label: "Período", help: "Limites da CLT e faltas no período escolhido." },
+                            {value: "TODAY", label: "Hoje", help: "Situação de agora."},
+                            {value: "PERIOD", label: "Período", help: "Limites da CLT e faltas no período escolhido."},
                         ]}
                     />
                 </div>
-                <div className="grid shrink-0 grid-cols-1 items-end gap-3 border-b border-(--gesint-border-subtle) px-4 py-3 md:grid-cols-[minmax(14rem,20rem)_1fr_auto]">
+                <div
+                    className="grid shrink-0 grid-cols-1 items-end gap-3 border-b border-(--gesint-border-subtle) px-4 py-3 md:grid-cols-[minmax(14rem,20rem)_1fr_auto]">
                     <InputSelect
                         label="Status"
                         items={metricItems(view === "TODAY" ? TODAY_METRICS : PERIOD_METRICS)}
@@ -134,8 +158,8 @@ export function TimeStatusReportPage() {
                                 : setPeriodMetric((value || "ABSENTEEISM") as TimeStatusMetric)
                         }
                     />
-                    <p className="gesint-time-help">
-                        <Info className="size-4 shrink-0 text-primary" />
+                    <p className="gesint-time-help h-(--gesint-control-h)">
+                        <Info className="size-4 shrink-0 text-primary"/>
                         <span>{info.help}</span>
                     </p>
                     {view === "PERIOD" ? (

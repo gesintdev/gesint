@@ -17,6 +17,7 @@ import {
 import { TabbedCrudPage } from "@/shared/components/layout/TabbedCrudPage";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
 import { useBranchScopedDetailQuery } from "@/shared/hooks/useBranchScopedDetailQuery";
+import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
 
 const List = lazy(() =>
     import("@/modules/rh/person/collaborators/admission/components/AdmissionProcessListClient").then((m) => ({
@@ -52,15 +53,16 @@ const Pipeline = lazy(() =>
 function AdmissionHistoryExtraTabsController() {
     const { editingId } = useCrudScreen();
     const { activeSystem } = useActiveSystem();
+    // Aba do DP: aberta com o rail no DP ou de outra tela já como DP (ex.: Admissão a partir do GP).
+    const tabSystem = useWorkspaceTabOptional()?.tab.system;
+    const openedInDp = activeSystem === SystemEnum.DP || tabSystem === SystemEnum.DP;
     // Se a aba de Admissao foi montada no DP, Acompanhamento permanece ao trocar o rail para RH.
-    const [pipelineUnlocked, setPipelineUnlocked] = useState(
-        () => activeSystem === SystemEnum.DP,
-    );
+    const [pipelineUnlocked, setPipelineUnlocked] = useState(() => openedInDp);
     useEffect(() => {
-        if (activeSystem === SystemEnum.DP) {
+        if (openedInDp) {
             setPipelineUnlocked(true);
         }
-    }, [activeSystem]);
+    }, [openedInDp]);
 
     const admissionQuery = useBranchScopedDetailQuery(
         admissionprocessKeys.detail(editingId ?? ""),

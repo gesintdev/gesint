@@ -11,6 +11,8 @@ type AttendancePeriodDateFiltersProps = {
     dateTo: string;
     onDateFromChange: (value: string) => void;
     onDateToChange: (value: string) => void;
+    /** Campos de 144px (em vez de 160px) quando a linha divide espaço com outros controles. */
+    compact?: boolean;
 };
 
 /** Filtros de período (data inicial / final) sem labels — mesmo padrão da Listagem. */
@@ -19,7 +21,11 @@ export function AttendancePeriodDateFilters({
     dateTo,
     onDateFromChange,
     onDateToChange,
+    compact = false,
 }: AttendancePeriodDateFiltersProps) {
+    const fieldClassName = compact
+        ? "min-w-[8.25rem] flex-1 sm:min-w-0 sm:w-36 sm:flex-none"
+        : "min-w-[8.25rem] flex-1 sm:min-w-0 sm:w-40 sm:flex-none";
     const shiftMonth = (deltaMonths: number) => {
         const next = shiftPeriodMonth(dateFrom, deltaMonths);
         onDateFromChange(next.from);
@@ -27,7 +33,9 @@ export function AttendancePeriodDateFilters({
     };
 
     return (
-        <div className="flex flex-wrap items-center gap-2">
+        // Celular: uma linha só; os campos dividem a largura, com no mínimo 132px (a data inteira, sem corte).
+        // A partir de 640px, campos de 160px (144px no compacto).
+        <div className="flex w-full min-w-0 items-center gap-1.5 sm:w-auto sm:gap-2">
             <Button
                 type="button"
                 variant="ghost"
@@ -36,7 +44,7 @@ export function AttendancePeriodDateFilters({
                 aria-label="Mês anterior"
                 onClick={() => shiftMonth(-1)}
             />
-            <div className="w-40">
+            <div className={fieldClassName}>
                 <InputDate
                     value={dateFrom}
                     max={dateTo || undefined}
@@ -44,7 +52,7 @@ export function AttendancePeriodDateFilters({
                     aria-label="Data inicial"
                 />
             </div>
-            <div className="w-40">
+            <div className={fieldClassName}>
                 <InputDate
                     value={dateTo}
                     min={dateFrom || undefined}

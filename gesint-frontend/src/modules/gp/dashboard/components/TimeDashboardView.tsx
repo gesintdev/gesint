@@ -17,8 +17,8 @@ import {
 import { useMemo, useState } from "react";
 
 import { AttendancePeriodDateFilters } from "@/modules/gp/attendance/components/AttendancePeriodDateFilters";
-import { writeAttendanceCollaboratorFocus } from "@/modules/gp/attendance/lib/attendance-collaborator-focus";
 import { currentMonthBounds, normalizePeriod } from "@/modules/gp/attendance/lib/attendance-period.util";
+import { useOpenAttendanceHistory } from "@/modules/gp/attendance/lib/useOpenAttendanceHistory";
 import { AbsenceCalendarBoard } from "@/modules/gp/calendar/components/AbsenceCalendarBoard";
 import type { TimeDashboard, TimeStatusMetric } from "@/modules/gp/shared/dto/time-management.dto";
 import { REQUEST_TYPE_LABELS, STATUS_METRICS } from "@/modules/gp/shared/lib/time-labels";
@@ -153,10 +153,9 @@ export function TimeDashboardView() {
         navigate("/attendance/status");
     };
 
-    const openCollaborator = (collaboratorId: string, collaboratorName: string) => {
-        writeAttendanceCollaboratorFocus({ collaboratorId, collaboratorName });
-        navigate("/attendance", { isNew: true });
-    };
+    const openAttendanceHistory = useOpenAttendanceHistory();
+    const openCollaborator = (collaboratorId: string, collaboratorName: string) =>
+        openAttendanceHistory({ collaboratorId, collaboratorName });
 
     return (
         <CrudPageLayout>

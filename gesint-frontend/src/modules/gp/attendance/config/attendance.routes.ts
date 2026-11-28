@@ -16,6 +16,12 @@ export const timeManagementRoutes: AppRoute[] = [
         formTabLabel: "Histórico de ponto",
         formTabLabelEdit: "Histórico de ponto",
         listToFormLabel: "Histórico de ponto",
+        // Botão próprio: o padrão reabriria o histórico com o colaborador da última linha aberta.
+        showListToFormButton: false,
+        listPrimaryAction: lazyNamed(
+            () => import("@/modules/gp/attendance/components/AttendanceHistoryPrimaryAction"),
+            "AttendanceHistoryPrimaryAction",
+        ),
         listToolbar:
             "Resumo do período por colaborador. Banco de horas em verde quando positivo e em vermelho quando negativo.",
         list: lazyNamed(

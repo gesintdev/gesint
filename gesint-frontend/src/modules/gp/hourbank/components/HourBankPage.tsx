@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Eye, Info } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { AttendanceHistoryLinkButton } from "@/modules/gp/attendance/components/AttendanceHistoryLinkButton";
 import { AttendancePeriodDateFilters } from "@/modules/gp/attendance/components/AttendancePeriodDateFilters";
 import { currentMonthBounds, normalizePeriod } from "@/modules/gp/attendance/lib/attendance-period.util";
 import {
@@ -13,8 +14,10 @@ import {
     GP_COLLABORATOR_COLUMN,
 } from "@/modules/gp/shared/config/time-table-columns";
 import type { HourBankRow } from "@/modules/gp/shared/dto/time-management.dto";
+import { useAdmissionLinkColumn } from "@/modules/gp/shared/hooks/useAdmissionLinkColumn";
 import { timeManagementService } from "@/modules/gp/shared/services/time-management.service";
 import { timeManagementKeys } from "@/modules/gp/shared/time-management.query";
+import { useHasPermission } from "@/shared/auth/permissions";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
 import { WorkspacePage } from "@/shared/components/layout/WorkspacePage";
@@ -43,6 +46,10 @@ const COLUMNS: TableColumnConfig[] = [
     balanceColumn("totalBalanceMinutes", "Banco de horas"),
 ];
 
+/** Mesma altura do modal do Espelho de ponto (`size="full"`), na largura do extrato. */
+const STATEMENT_MODAL_LAYOUT =
+    "h-[92dvh] max-h-[92dvh] w-[min(100vw-1rem,56rem)] max-w-4xl sm:h-[92vh] sm:max-h-[92vh]";
+
 const STATEMENT_COLUMNS: TableColumnConfig[] = [
     { id: "date", columnName: "Dia", fieldValue: "date", dataType: TableDataType.DATE, notFilterable: true },
     dayStatusColumn(),
@@ -70,11 +77,13 @@ function StatementModal({
         enabled: row != null,
     });
     const statement = query.data;
+    const canEditAttendance = useHasPermission("attendance:write");
     return (
         <Modal
             open={row != null}
             onClose={onClose}
-            size="3xl"
+            layoutClassName={STATEMENT_MODAL_LAYOUT}
+            bodyClassName="flex flex-col"
             title={row ? `Extrato do banco de horas · ${row.collaboratorName}` : "Extrato"}
             subtitle={`${formatIsoDate(from)} a ${formatIsoDate(to)}`}
         >
@@ -84,7 +93,7 @@ function StatementModal({
                     <div className="skeleton-shimmer h-48 w-full" />
                 </div>
             ) : statement ? (
-                <div className="flex flex-col gap-3">
+                <div className="flex min-h-0 flex-1 flex-col gap-3">
                     <div className="gesint-dash-stats !grid-cols-2">
                         <div className="gesint-dash-stats__item">
                             <p className="gesint-dash-stats__label">Saldo antes do período</p>
@@ -99,8 +108,25 @@ function StatementModal({
                             </p>
                         </div>
                     </div>
-                    <div className="max-h-[55vh] overflow-auto rounded-xl border border-(--gesint-border-subtle)">
-                        <DataTable data={statement.lines} columns={STATEMENT_COLUMNS} rowKey="date" />
+                    <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-(--gesint-border-subtle)">
+                        <DataTable
+                            data={statement.lines}
+                            columns={STATEMENT_COLUMNS}
+                            rowKey="date"
+                            renderActions={
+                                canEditAttendance && row
+                                    ? () => (
+                                          <AttendanceHistoryLinkButton
+                                              collaboratorId={row.collaboratorId}
+                                              collaboratorName={row.collaboratorName}
+                                              from={from}
+                                              to={to}
+                                              onOpened={onClose}
+                                          />
+                                      )
+                                    : undefined
+                            }
+                        />
                     </div>
                 </div>
             ) : null}
@@ -115,6 +141,7 @@ export function HourBankPage() {
     const [dateTo, setDateTo] = useState(() => currentMonthBounds().to);
     const period = useMemo(() => normalizePeriod(dateFrom, dateTo), [dateFrom, dateTo]);
     const [selected, setSelected] = useState<HourBankRow | null>(null);
+    const admissionColumn = useAdmissionLinkColumn();
     const [accrualStart, setAccrualStart] = useState<string | null>(null);
     const [enabled, setEnabled] = useState(true);
 
@@ -152,7 +179,7 @@ export function HourBankPage() {
                 ) : (
                     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                         <QueryPagedTablePanel<HourBankRow>
-                            key={`${period.from}-${period.to}`}
+                            key={`${period.from}-${period.to}-${admissionColumn ? "adm" : ""}`}
                             queryKey={[...timeManagementKeys.hourBank, period.from, period.to]}
                             request={async (page, size, filters) => {
                                 const result = await timeManagementService.hourBank(period.from, period.to);
@@ -160,7 +187,7 @@ export function HourBankPage() {
                                 setEnabled(result.enabled);
                                 return paginateCatalogRows(result.rows, page, size, filters);
                             }}
-                            columns={COLUMNS}
+                            columns={admissionColumn ? [admissionColumn, ...COLUMNS] : COLUMNS}
                             rowKey="id"
                             emptyMessage="Nenhum colaborador no quadro."
                             onRowActivate={setSelected}

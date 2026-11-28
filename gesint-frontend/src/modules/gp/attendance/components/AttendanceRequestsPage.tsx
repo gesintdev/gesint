@@ -13,8 +13,8 @@ import type {
     AttendanceRequestStatus,
 } from "@/modules/gp/attendance/dto/attendance-record.dto";
 import { attendancerecordService } from "@/modules/gp/attendance/services/attendance-record.service";
+import { invalidateTimeQueries } from "@/modules/gp/shared/lib/invalidate-time-queries";
 import { REQUEST_TYPE_LABELS } from "@/modules/gp/shared/lib/time-labels";
-import { timeManagementKeys } from "@/modules/gp/shared/time-management.query";
 import { useHasPermission } from "@/shared/auth/permissions";
 import { TableActionButton } from "@/shared/components/crud/TableActionButton";
 import { QueryPagedTablePanel } from "@/shared/components/data/DataPanel";
@@ -92,8 +92,7 @@ export function AttendanceRequestsPage() {
             compensationType?: AttendanceCompensationType;
         }) => attendancerecordService.review(input.id, input.action, input.reason, input.compensationType),
         onSuccess: async (_result, input) => {
-            await queryClient.invalidateQueries({ queryKey: attendancerecordKeys.all });
-            await queryClient.invalidateQueries({ queryKey: timeManagementKeys.all });
+            await invalidateTimeQueries(queryClient);
             toast.success(input.action === "APPROVE" ? "Ajuste aprovado e aplicado ao ponto" : "Ajuste recusado");
             setSelected(null);
         },

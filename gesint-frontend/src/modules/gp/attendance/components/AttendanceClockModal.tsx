@@ -14,6 +14,7 @@ import {
     nextPunchLabel,
 } from "@/modules/gp/attendance/lib/attendance-clock.util";
 import {attendancerecordService} from "@/modules/gp/attendance/services/attendance-record.service";
+import {invalidateTimeQueries} from "@/modules/gp/shared/lib/invalidate-time-queries";
 import {storageService} from "@/modules/storage/services/storage.service";
 import {Modal} from "@/shared/components/ui/Modal";
 import {AppException, ExceptionCapture} from "@/shared/exceptions";
@@ -243,10 +244,7 @@ export function AttendanceClockModal({open, onClose}: AttendanceClockModalProps)
             });
         },
         onSuccess: async (record) => {
-            await Promise.all([
-                queryClient.invalidateQueries({queryKey: ["attendance", "mobile-context"]}),
-                queryClient.invalidateQueries({queryKey: ["attendance", "mobile-records"]}),
-            ]);
+            await invalidateTimeQueries(queryClient);
             toast.success(
                 record.pendingOutsideScheduleApproval
                     ? "Ponto registrado e enviado para aprovação como banco de horas / hora extra"

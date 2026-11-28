@@ -14,6 +14,7 @@ import {
     formatAttendancePunch,
 } from "@/modules/gp/attendance/lib/attendance-clock.util";
 import {attendancerecordService} from "@/modules/gp/attendance/services/attendance-record.service";
+import {invalidateTimeQueries} from "@/modules/gp/shared/lib/invalidate-time-queries";
 import {InputHour, InputSelect, InputString} from "@/shared/components/ui/input/index";
 import type {SelectItem} from "@/shared/components/ui/input/select-item.types";
 import {Modal} from "@/shared/components/ui/Modal";
@@ -149,7 +150,7 @@ export function AttendanceAdjustmentRequestModal({
     const submitMutation = useMutation({
         mutationFn: (payload: AttendanceSubmissionPayload) => attendancerecordService.submit(payload),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({queryKey: ["attendance", "mobile-records"]});
+            await invalidateTimeQueries(queryClient);
             toast.success("Solicitação de ajuste enviada");
             onClose();
         },

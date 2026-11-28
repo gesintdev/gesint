@@ -6,12 +6,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useAccountPreferences } from "@/modules/cfg/account/hooks/useAccountPreferences";
+import { AttendanceHistoryLinkButton } from "@/modules/gp/attendance/components/AttendanceHistoryLinkButton";
 import {
     balanceColumn,
     dayStatusColumn,
     durationColumn,
 } from "@/modules/gp/shared/config/time-table-columns";
 import type { AttendanceDay, TimesheetDetail } from "@/modules/gp/shared/dto/time-management.dto";
+import { invalidateTimeQueries } from "@/modules/gp/shared/lib/invalidate-time-queries";
 import { ALERT_LABELS } from "@/modules/gp/shared/lib/time-labels";
 import { timeManagementService, timesheetPdfFilename } from "@/modules/gp/shared/services/time-management.service";
 import { timeManagementKeys } from "@/modules/gp/shared/time-management.query";
@@ -108,7 +110,7 @@ export function TimesheetDetailModal({
     const detail = query.data;
 
     const refresh = async () => {
-        await queryClient.invalidateQueries({ queryKey: timeManagementKeys.all });
+        await invalidateTimeQueries(queryClient);
     };
 
     const closeMutation = useMutation({
@@ -232,7 +234,7 @@ export function TimesheetDetailModal({
                         <div className="skeleton-shimmer h-72 w-full" />
                     </div>
                 ) : (
-                    <TimesheetDetailBody detail={detail} />
+                    <TimesheetDetailBody detail={detail} from={from} to={to} onOpenHistory={onClose} />
                 )}
             </Modal>
             <Modal
@@ -271,7 +273,18 @@ export function TimesheetDetailModal({
     );
 }
 
-function TimesheetDetailBody({ detail }: { detail: TimesheetDetail }) {
+function TimesheetDetailBody({
+    detail,
+    from,
+    to,
+    onOpenHistory,
+}: {
+    detail: TimesheetDetail;
+    from: string;
+    to: string;
+    onOpenHistory: () => void;
+}) {
+    const canEditAttendance = useHasPermission("attendance:write");
     const rows = detail.days.filter((day) => day.status !== "NOT_EMPLOYED").map(toDayRow);
     const stats = [
         { label: "Jornada prevista", value: detail.expectedMinutes, format: formatDuration },
@@ -301,6 +314,15 @@ function TimesheetDetailBody({ detail }: { detail: TimesheetDetail }) {
                     getRowClassName={(row) =>
                         ["DAY_OFF", "HOLIDAY", "VACATION", "LEAVE"].includes(row.status) ? "gesint-time-row--rest" : undefined
                     }
+                    renderActions={canEditAttendance ? () => (
+                        <AttendanceHistoryLinkButton
+                            collaboratorId={detail.collaboratorId}
+                            collaboratorName={detail.collaboratorName}
+                            from={from}
+                            to={to}
+                            onOpened={onOpenHistory}
+                        />
+                    ) : undefined}
                 />
             </div>
         </div>

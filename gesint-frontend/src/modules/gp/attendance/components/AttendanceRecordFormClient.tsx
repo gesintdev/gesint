@@ -2,15 +2,21 @@
 
 import {useInfiniteQuery, useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Plus} from "lucide-react";
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {toast} from "sonner";
 
-import {notificationKeys} from "@/modules/cfg/settings/notification/notification.query";
 import {attendancerecordKeys} from "@/modules/gp/attendance/attendance.query";
-import {AttendanceEditableGrid, isAttendanceDraftId,} from "@/modules/gp/attendance/components/AttendanceEditableGrid";
+import {
+    AttendanceEditableGrid,
+    attendanceRequestOnlyRow,
+    isAttendanceDraftId,
+    isAttendanceRequestOnlyId,
+    isAttendanceUnsavedId,
+} from "@/modules/gp/attendance/components/AttendanceEditableGrid";
 import {AttendancePeriodDateFilters} from "@/modules/gp/attendance/components/AttendancePeriodDateFilters";
 import {AttendanceRequestDetailModal} from "@/modules/gp/attendance/components/AttendanceRequestDetailModal";
 import {AttendanceRequestRejectDialog} from "@/modules/gp/attendance/components/AttendanceRequestRejectDialog";
+import {AttendanceWeekNavigator} from "@/modules/gp/attendance/components/AttendanceWeekNavigator";
 import type {
     AttendanceCompensationType,
     AttendanceRecord,
@@ -35,7 +41,13 @@ import {
     attendancerecordToFormDto,
     emptyAttendanceRecordForm,
 } from "@/modules/gp/attendance/lib/attendance-record.mapper";
+import {
+    attendancePeriodWeeks,
+    attendanceWeekRowSelector,
+    findAttendancePeriodWeek,
+} from "@/modules/gp/attendance/lib/attendance-week-sections.util";
 import {attendancerecordService} from "@/modules/gp/attendance/services/attendance-record.service";
+import {invalidateTimeQueries} from "@/modules/gp/shared/lib/invalidate-time-queries";
 import {CollaboratorPickerField} from "@/shared/components/crud/CollaboratorPickerField";
 import {CRUD_TAB_FORM, useCrudScreen} from "@/shared/components/crud/CrudScreen";
 import {useCrudFormDirty} from "@/shared/components/crud/useCrudFormDirty";
@@ -44,7 +56,8 @@ import {SkeletonStack} from "@/shared/components/ui/SkeletonStack";
 import {ExceptionCapture} from "@/shared/exceptions";
 import {SystemAlert} from "@/shared/system-alert";
 
-const PAGE_SIZE = 20;
+/** Cobre alguns meses de uma vez: semanas e filtro de data trabalham sobre o período carregado. */
+const PAGE_SIZE = 100;
 
 function todayIso() {
     const now = new Date();
@@ -74,8 +87,63 @@ function hasDuplicateWorkDate(
     const dayKey = workDate.slice(0, 10);
     if (!dayKey) return false;
     return rows.some(
-        (item) => item.id !== rowId && item.workDate?.slice(0, 10) === dayKey,
+        (item) =>
+            item.id !== rowId &&
+            !isAttendanceRequestOnlyId(item.id) &&
+            item.workDate?.slice(0, 10) === dayKey,
     );
+}
+
+/** Mais recente primeiro; rascunho sem data fica no topo. */
+function compareByWorkDateDesc(a: AttendanceRecord, b: AttendanceRecord): number {
+    const left = a.workDate?.slice(0, 10) ?? "";
+    const right = b.workDate?.slice(0, 10) ?? "";
+    if (!left || !right) return left ? 1 : right ? -1 : 0;
+    return right.localeCompare(left);
+}
+
+/** Linha de cabeçalho da semana fica logo abaixo do cabeçalho fixo da tabela. */
+function scrollToWeekRow(container: HTMLElement | null, weekKey: string) {
+    const target = container?.querySelector<HTMLElement>(attendanceWeekRowSelector(weekKey));
+    const scroller = target?.closest<HTMLElement>(".attendance-sheet-wrap");
+    if (!target || !scroller) return;
+    const headHeight = scroller.querySelector("thead")?.getBoundingClientRect().height ?? 0;
+    const top =
+        target.getBoundingClientRect().top -
+        scroller.getBoundingClientRect().top +
+        scroller.scrollTop -
+        headHeight;
+    scroller.scrollTo({top: Math.max(0, top), behavior: "smooth"});
+}
+
+/** Alguma linha da semana (cabeçalho ou dias) está na área visível do grid, abaixo do cabeçalho fixo. */
+function isWeekRowVisible(scroller: HTMLElement, weekKey: string): boolean {
+    const header = scroller.querySelector<HTMLElement>(attendanceWeekRowSelector(weekKey));
+    if (!header) return false;
+    const headHeight = scroller.querySelector("thead")?.getBoundingClientRect().height ?? 0;
+    const box = scroller.getBoundingClientRect();
+    const viewTop = box.top + headHeight;
+    // A semana vai do cabeçalho dela até o cabeçalho da próxima (ou o fim da tabela).
+    let next: Element | null = header.nextElementSibling;
+    while (next && !next.matches("tr[data-attendance-week]")) next = next.nextElementSibling;
+    const weekTop = header.getBoundingClientRect().top;
+    const weekBottom = next
+        ? next.getBoundingClientRect().top
+        : (header.closest("tbody")?.getBoundingClientRect().bottom ?? weekTop);
+    return weekBottom > viewTop + 4 && weekTop < box.bottom - 4;
+}
+
+/** Semana cujo cabeçalho já passou do topo visível do grid. */
+function visibleWeekKey(scroller: HTMLElement): string | null {
+    const headHeight = scroller.querySelector("thead")?.getBoundingClientRect().height ?? 0;
+    const limit = scroller.getBoundingClientRect().top + headHeight + 4;
+    let current: string | null = null;
+    for (const row of scroller.querySelectorAll<HTMLElement>("tr[data-attendance-week]")) {
+        if (row.getBoundingClientRect().top > limit) break;
+        current = row.dataset.attendanceWeek ?? null;
+    }
+    if (current) return current;
+    return scroller.querySelector<HTMLElement>("tr[data-attendance-week]")?.dataset.attendanceWeek ?? null;
 }
 
 async function confirmOutsideScheduleLaunch(
@@ -129,16 +197,46 @@ export function AttendanceRecordFormClient() {
     const [deletingRowId, setDeletingRowId] = useState<string | null>(null);
     const [selectedRequest, setSelectedRequest] = useState<AttendanceRequest | null>(null);
     const [rejectTarget, setRejectTarget] = useState<AttendanceRequest | null>(null);
+    /** Filtro da coluna Data: um dia do período (ISO); vazio mostra todos. */
+    const [dateFilter, setDateFilter] = useState("");
+    const [activeWeekKey, setActiveWeekKey] = useState<string | null>(null);
+    /** Semana clicada nos atalhos: ganha contorno no grid até o usuário rolar para outra semana. */
+    const [highlightedWeekKey, setHighlightedWeekKey] = useState<string | null>(null);
+    const gridHostRef = useRef<HTMLDivElement>(null);
+    /** Durante a rolagem disparada pelo atalho, a semana marcada não acompanha a rolagem. */
+    const weekScrollLockRef = useRef(0);
     const hasCollaborator = Boolean(focus?.collaboratorId);
+
+    const resetGridView = () => {
+        setDateFilter("");
+        setActiveWeekKey(null);
+        setHighlightedWeekKey(null);
+    };
+
+    const changeDateFrom = (value: string) => {
+        setDateFrom(value);
+        resetGridView();
+    };
+
+    const changeDateTo = (value: string) => {
+        setDateTo(value);
+        resetGridView();
+    };
 
     useEffect(() => {
         if (activeTab !== CRUD_TAB_FORM) return;
-        const storedPeriod = peekAttendanceListPeriod();
-        if (storedPeriod) {
-            setDateFrom(storedPeriod.from);
-            setDateTo(storedPeriod.to);
-        }
+        const applyStoredPeriod = () => {
+            const storedPeriod = peekAttendanceListPeriod();
+            if (storedPeriod) {
+                setDateFrom(storedPeriod.from);
+                setDateTo(storedPeriod.to);
+            }
+        };
+        applyStoredPeriod();
         const apply = (next: AttendanceCollaboratorFocus | null) => {
+            setDateFilter("");
+            setActiveWeekKey(null);
+            setHighlightedWeekKey(null);
             if (!next?.collaboratorId) {
                 setFocus(null);
                 setDraftRows([]);
@@ -152,6 +250,8 @@ export function AttendanceRecordFormClient() {
         apply(peekAttendanceCollaboratorFocus());
         const onFocus = (event: Event) => {
             const detail = (event as CustomEvent<AttendanceCollaboratorFocus | null>).detail;
+            // Quem abre o histórico de outra tela (espelho, banco de horas) grava o período antes.
+            applyStoredPeriod();
             apply(detail === undefined ? peekAttendanceCollaboratorFocus() : detail);
         };
         window.addEventListener(ATTENDANCE_COLLABORATOR_FOCUS_EVENT, onFocus);
@@ -161,6 +261,7 @@ export function AttendanceRecordFormClient() {
     useCrudFormDirty(dirty || draftRows.length > 0);
 
     const selectCollaborator = (collaboratorId: string) => {
+        resetGridView();
         if (!collaboratorId) {
             clearAttendanceCollaboratorFocus();
             setFocus(null);
@@ -259,18 +360,85 @@ export function AttendanceRecordFormClient() {
         return map;
     }, [requestsQuery.data, period.from, period.to]);
 
-    const invalidateHistory = async () => {
-        await queryClient.invalidateQueries({
-            queryKey: [
-                ...attendancerecordKeys.all,
-                "collaborator-history",
-                focus?.collaboratorId,
-                period.from,
-                period.to,
-            ],
+    const collaboratorId = focus?.collaboratorId;
+    /** Dias com solicitação e sem marcação ganham linha própria para o ajuste aparecer no grid. */
+    const requestOnlyRows = useMemo(() => {
+        if (!collaboratorId) return [];
+        const recordedDays = new Set(rows.map((row) => row.workDate?.slice(0, 10) ?? ""));
+        return [...requestsByDate.keys()]
+            .filter((day) => !recordedDays.has(day))
+            .map((day) => attendanceRequestOnlyRow(collaboratorId, day));
+    }, [collaboratorId, requestsByDate, rows]);
+
+    const sortedRows = useMemo(
+        () => [...rows, ...requestOnlyRows].sort(compareByWorkDateDesc),
+        [requestOnlyRows, rows],
+    );
+
+    const gridRows = useMemo(() => {
+        if (!dateFilter) return sortedRows;
+        // Rascunho sem data continua visível para não sumir enquanto é preenchido.
+        return sortedRows.filter((row) => {
+            const day = row.workDate?.slice(0, 10) ?? "";
+            return day === dateFilter || (isAttendanceDraftId(row.id) && !day);
         });
-        await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
+    }, [dateFilter, sortedRows]);
+
+    const weeks = useMemo(() => attendancePeriodWeeks(period.from, period.to), [period.from, period.to]);
+
+    const weeksWithRows = useMemo(() => {
+        const keys = new Set<string>();
+        for (const row of gridRows) {
+            const week = findAttendancePeriodWeek(weeks, row.workDate);
+            if (week) keys.add(week.key);
+        }
+        return keys;
+    }, [gridRows, weeks]);
+
+    const highlightedWeekRef = useRef<string | null>(null);
+    useEffect(() => {
+        highlightedWeekRef.current = highlightedWeekKey;
+    }, [highlightedWeekKey]);
+
+    const selectWeek = (weekKey: string) => {
+        setActiveWeekKey(weekKey);
+        setHighlightedWeekKey(weekKey);
+        // Trava até a rolagem suave terminar (`scrollend`), com teto para navegador sem o evento.
+        weekScrollLockRef.current = Date.now() + 1200;
+        scrollToWeekRow(gridHostRef.current, weekKey);
     };
+
+    // A semana marcada acompanha a rolagem do grid; o contorno sai quando a semana destacada sai de vista.
+    const gridReady = hasCollaborator && historyQuery.isSuccess;
+    useEffect(() => {
+        if (!gridReady) return;
+        const scroller = gridHostRef.current?.querySelector<HTMLElement>(".attendance-sheet-wrap");
+        if (!scroller) return;
+        let frame = 0;
+        const sync = () => {
+            const highlighted = highlightedWeekRef.current;
+            if (highlighted && isWeekRowVisible(scroller, highlighted)) return;
+            setHighlightedWeekKey(null);
+            setActiveWeekKey(visibleWeekKey(scroller));
+        };
+        const onScroll = () => {
+            if (Date.now() < weekScrollLockRef.current) return;
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(sync);
+        };
+        const onScrollEnd = () => {
+            weekScrollLockRef.current = 0;
+        };
+        scroller.addEventListener("scroll", onScroll, {passive: true});
+        scroller.addEventListener("scrollend", onScrollEnd);
+        return () => {
+            cancelAnimationFrame(frame);
+            scroller.removeEventListener("scroll", onScroll);
+            scroller.removeEventListener("scrollend", onScrollEnd);
+        };
+    }, [gridReady]);
+
+    const invalidateHistory = () => invalidateTimeQueries(queryClient);
 
     const saveMutation = useMutation({
         mutationFn: async (payload: { row: AttendanceRecord; patch: Partial<AttendanceRecordCreateDto> }) => {
@@ -278,7 +446,7 @@ export function AttendanceRecordFormClient() {
                 ...attendancerecordToFormDto(payload.row),
                 ...payload.patch,
             };
-            if (isAttendanceDraftId(payload.row.id)) {
+            if (isAttendanceUnsavedId(payload.row.id)) {
                 if (!dto.workDate) {
                     throw new Error("Informe a data do ponto antes de salvar.");
                 }
@@ -305,7 +473,7 @@ export function AttendanceRecordFormClient() {
                 setFocusCell(null);
             }
             await invalidateHistory();
-            toast.success(isAttendanceDraftId(variables.row.id) ? "Ponto lançado" : "Ponto atualizado");
+            toast.success(isAttendanceUnsavedId(variables.row.id) ? "Ponto lançado" : "Ponto atualizado");
         },
         onError: (err: unknown) => {
             ExceptionCapture.handle(err, {fallbackMessage: ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_LOAD_FAILED});
@@ -369,7 +537,7 @@ export function AttendanceRecordFormClient() {
             throw new Error(ATTENDANCE_CLIENT_MESSAGES.ATTENDANCE_DUPLICATE_WORK_DATE);
         }
 
-        if (isAttendanceDraftId(row.id)) {
+        if (isAttendanceUnsavedId(row.id)) {
             const merged: AttendanceRecord = {
                 ...row,
                 ...patch,
@@ -419,8 +587,7 @@ export function AttendanceRecordFormClient() {
                 payload.compensationType,
             ),
         onSuccess: async (_data, variables) => {
-            await queryClient.invalidateQueries({queryKey: attendancerecordKeys.all});
-            await queryClient.invalidateQueries({queryKey: notificationKeys.summary});
+            await invalidateTimeQueries(queryClient);
             toast.success(variables.action === "APPROVE" ? "Solicitação aprovada" : "Solicitação reprovada");
             setSelectedRequest(null);
             setRejectTarget(null);
@@ -433,8 +600,9 @@ export function AttendanceRecordFormClient() {
     return (
         <div className="flex min-h-0 flex-1 flex-col">
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-(--gesint-border-subtle) px-4 py-1.5">
-                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-                    <div className="w-full min-w-[14rem] max-w-sm sm:w-72">
+                <div className="flex min-w-0 flex-[1_1_auto] flex-wrap items-center gap-2">
+                    {/* Mais estreito até 2xl: sobra espaço para a faixa de semanas na mesma linha. */}
+                    <div className="w-full min-w-[14rem] max-w-sm sm:w-56 2xl:w-72">
                         <CollaboratorPickerField
                             label=""
                             hint=""
@@ -445,9 +613,18 @@ export function AttendanceRecordFormClient() {
                     <AttendancePeriodDateFilters
                         dateFrom={dateFrom}
                         dateTo={dateTo}
-                        onDateFromChange={setDateFrom}
-                        onDateToChange={setDateTo}
+                        onDateFromChange={changeDateFrom}
+                        onDateToChange={changeDateTo}
+                        compact
                     />
+                    {gridReady ? (
+                        <AttendanceWeekNavigator
+                            weeks={weeks}
+                            availableKeys={weeksWithRows}
+                            value={activeWeekKey}
+                            onSelect={(week) => selectWeek(week.key)}
+                        />
+                    ) : null}
                 </div>
                 <Button
                     type="button"
@@ -484,10 +661,23 @@ export function AttendanceRecordFormClient() {
                     </p>
                 </div>
             ) : (
-                <>
+                <div ref={gridHostRef} className="flex min-h-0 flex-1 flex-col">
                     <AttendanceEditableGrid
-                        rows={rows}
+                        rows={gridRows}
                         requestsByDate={requestsByDate}
+                        weeks={weeks}
+                        highlightedWeekKey={highlightedWeekKey}
+                        dateFilter={dateFilter}
+                        onDateFilterChange={(isoDate) => {
+                            setDateFilter(isoDate);
+                            setActiveWeekKey(null);
+                            setHighlightedWeekKey(null);
+                        }}
+                        emptyMessage={
+                            dateFilter
+                                ? "Nenhum ponto nesta data."
+                                : "Nenhum ponto encontrado para este colaborador."
+                        }
                         collaboratorSchedule={scheduleQuery.data}
                         savingRowId={savingRowId}
                         deletingRowId={deletingRowId}
@@ -518,7 +708,7 @@ export function AttendanceRecordFormClient() {
                             </Button>
                         </div>
                     ) : null}
-                </>
+                </div>
             )}
 
             <AttendanceRequestDetailModal

@@ -63,6 +63,12 @@ Fonte única: `AttendanceDayEvaluator` (lógica pura, testada em `AttendanceDayE
    jornada anterior (art. 66); atraso; saída antecipada; ajuste aguardando decisão.
 7. **Pendência** = incompleto, sem registro ou ajuste aguardando decisão. É o número da coluna Pendências.
 
+No **Histórico de ponto** (Controle de ponto › colaborador) as linhas ficam agrupadas por semana do
+período selecionado: blocos de 7 dias a partir da data inicial, e a última semana fica com os dias que sobram (novembro:
+1–7, 8–14, 15–21, 22–28 e 29–30). Um dia sem marcação que tem solicitação de ajuste (ex.: sábado fora da escala)
+aparece como linha própria, com o ajuste no accordion; é o que explica a tag "Ajuste pendente" da listagem. Espelho de
+ponto e Banco de horas levam ao Histórico pelo botão "Ir para o Histórico de ponto" da linha, que é onde a marcação se corrige.
+
 ## Banco de horas
 
 Saldo derivado, sem lançamento editável: soma dos saldos diários desde o **início da apuração** (Preferências; padrão
