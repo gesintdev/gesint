@@ -12,7 +12,12 @@ import {
     useSensor,
     useSensors,
 } from "@dnd-kit/core";
-import { horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
+import {
+    horizontalListSortingStrategy,
+    SortableContext,
+    type SortingStrategy,
+    useSortable,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
@@ -28,14 +33,17 @@ import {
     useState,
 } from "react";
 
-import { Button } from "@/shared/components/ui/Button";
+import { type SystemEnum, SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 import {
     WorkspaceTabContextMenu,
     type WorkspaceTabContextMenuState,
+    WorkspaceTabGroupContextMenu,
 } from "@/shared/components/workspace/WorkspaceTabContextMenu";
 import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
 import { WorkspaceTabOverflowMenu } from "@/shared/components/workspace/WorkspaceTabOverflowMenu";
+import { useOptionalActiveSystem } from "@/shared/context/ActiveSystemContext";
 import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
+import { requestSidebarReveal } from "@/shared/workspace/sidebar-reveal";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
@@ -43,6 +51,11 @@ import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
 import { isDashboardTabId } from "@/shared/workspace/workspace-dashboard";
 import { findRouteGroupShortLabel } from "@/shared/workspace/workspace-routes";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
+import {
+    computeWorkspaceTabGroups,
+    WORKSPACE_TAB_GROUP_TONE,
+    workspaceTabSystem,
+} from "@/shared/workspace/workspace-tab-groups";
 
 type WorkspaceTabBarProps = {
     dashboardTab: WorkspaceTab;
@@ -228,6 +241,84 @@ function SortableWorkspaceTab({
     );
 }
 
+/** Chip do grupo (sigla do sistema). Clique recolhe/expande o grupo, como no navegador. */
+/** Id do chip no `SortableContext` (convive com os ids das abas). */
+const GROUP_DRAG_PREFIX = "group:";
+
+function groupDragId(system: SystemEnum): string {
+    return `${GROUP_DRAG_PREFIX}${system}`;
+}
+
+function systemFromGroupDragId(id: string): SystemEnum | null {
+    return id.startsWith(GROUP_DRAG_PREFIX) ? (id.slice(GROUP_DRAG_PREFIX.length) as SystemEnum) : null;
+}
+
+type WorkspaceTabGroupChipProps = {
+    system: SystemEnum;
+    count: number;
+    collapsed: boolean;
+    onToggle?: () => void;
+    onContextMenu?: (event: MouseEvent) => void;
+    className?: string;
+    style?: CSSProperties;
+    buttonRef?: (node: HTMLButtonElement | null) => void;
+} & Record<string, unknown>;
+
+/** Chip do grupo (sigla do sistema): clique recolhe/expande, botão direito abre as ações do grupo. */
+function WorkspaceTabGroupChip({
+    system,
+    count,
+    collapsed,
+    onToggle,
+    onContextMenu,
+    className,
+    style,
+    buttonRef,
+    ...rest
+}: WorkspaceTabGroupChipProps) {
+    const { acronym, name } = SystemEnumHelper.getById(system);
+    const label = `${name}: ${count} ${count === 1 ? "aba" : "abas"}`;
+    return (
+        <button
+            ref={buttonRef}
+            type="button"
+            className={clsx("workspace-tab-group-chip", className)}
+            style={style}
+            aria-expanded={!collapsed}
+            aria-label={`${collapsed ? "Expandir" : "Recolher"} grupo ${label}`}
+            title={`${label} · clique para ${collapsed ? "expandir" : "recolher"}, arraste para reordenar`}
+            onClick={onToggle}
+            onContextMenu={onContextMenu}
+            {...rest}
+        >
+            <span>{acronym}</span>
+            {collapsed ? <span className="workspace-tab-group-chip__count">{count}</span> : null}
+        </button>
+    );
+}
+
+/** Chip arrastável: arrastar o chip move o grupo inteiro de lugar na trilha. */
+function SortableWorkspaceTabGroupChip(props: {
+    system: SystemEnum;
+    count: number;
+    collapsed: boolean;
+    onToggle: () => void;
+    onContextMenu: (event: MouseEvent) => void;
+}) {
+    const { attributes, listeners, setNodeRef, isDragging } = useSortable({ id: groupDragId(props.system) });
+    return (
+        <WorkspaceTabGroupChip
+            {...props}
+            buttonRef={setNodeRef}
+            // O visual do arraste vai no DragOverlay; o chip original fica no lugar, apagado.
+            style={{ opacity: isDragging ? 0.35 : undefined }}
+            className="touch-none"
+            {...attributes}
+            {...listeners}
+        />
+    );
+}
+
 function DashboardTabButton({
     tab,
     active,
@@ -250,8 +341,41 @@ function DashboardTabButton({
     );
 }
 
-export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelect, onClose }: WorkspaceTabBarProps) {
+export function WorkspaceTabBar({
+    dashboardTab: baseDashboardTab,
+    moduleTabs,
+    activeTabId,
+    onSelect,
+    onClose,
+}: WorkspaceTabBarProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
+    const activeSystemCtx = useOptionalActiveSystem();
+    const activeSystem = activeSystemCtx?.activeSystem ?? null;
+    // Painel + sigla do sistema do rail ("Painel GP"): o conteúdo do Painel é do sistema ativo.
+    const dashboardTab = useMemo<WorkspaceTab>(() => {
+        const acronym = activeSystemCtx?.isSettingsMode
+            ? "CFG"
+            : activeSystem
+              ? SystemEnumHelper.getById(activeSystem).acronym
+              : null;
+        if (!acronym) return baseDashboardTab;
+        const label = `${baseDashboardTab.routeLabel} ${acronym}`;
+        return { ...baseDashboardTab, routeLabel: label, shortLabel: label };
+    }, [activeSystem, activeSystemCtx?.isSettingsMode, baseDashboardTab]);
+    const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<SystemEnum>>(() => new Set());
+    /*
+     * Grupos por sistema, como grupos de abas do navegador. Com uma aba só não há grupo; fixadas
+     * ficam fora. A ordem já vem agrupada da store (`arrangeWorkspaceTabs`).
+     */
+    const tabGroups = useMemo(() => computeWorkspaceTabGroups(moduleTabs), [moduleTabs]);
+    const toggleGroup = useCallback((system: SystemEnum) => {
+        setCollapsedGroups((current) => {
+            const next = new Set(current);
+            if (next.has(system)) next.delete(system);
+            else next.add(system);
+            return next;
+        });
+    }, []);
     const dashboardActive = isDashboardTabId(activeTabId);
     const [contextMenu, setContextMenu] = useState<WorkspaceTabContextMenuState | null>(null);
     const [activeDragId, setActiveDragId] = useState<string | null>(null);
@@ -264,7 +388,22 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
     const togglePinTab = useWorkspaceStore((s) => s.togglePinTab);
     const reorderTabs = useWorkspaceStore((s) => s.reorderTabs);
 
-    const tabIds = useMemo(() => moduleTabs.map((tab) => tab.id), [moduleTabs]);
+    // Ordem dos itens arrastáveis como aparecem na trilha: chip de cada grupo antes das abas dele.
+    const sortableIds = useMemo(() => {
+        const ids: string[] = [];
+        for (const tab of moduleTabs) {
+            const group = tabGroups.info.get(tab.id);
+            if (group?.system && group.start) ids.push(groupDragId(group.system));
+            ids.push(tab.id);
+        }
+        return ids;
+    }, [moduleTabs, tabGroups]);
+    const draggingGroup = activeDragId ? systemFromGroupDragId(activeDragId) : null;
+    // Arrastando um grupo, as abas não se deslocam: o grupo inteiro muda de lugar ao soltar.
+    const sortingStrategy = useCallback<SortingStrategy>(
+        (args) => (draggingGroup ? null : horizontalListSortingStrategy(args)),
+        [draggingGroup],
+    );
     const activeDragTab = useMemo(
         () => (activeDragId ? moduleTabs.find((tab) => tab.id === activeDragId) ?? null : null),
         [activeDragId, moduleTabs],
@@ -350,19 +489,47 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
             setActiveDragId(null);
             const { active, over } = event;
             if (!over || active.id === over.id) return;
+            const activeGroup = systemFromGroupDragId(String(active.id));
+            if (activeGroup) {
+                const overId = String(over.id);
+                const overSystem =
+                    systemFromGroupDragId(overId) ?? tabGroups.info.get(overId)?.system ?? null;
+                if (!overSystem || overSystem === activeGroup) return;
+                const order: SystemEnum[] = [];
+                for (const tab of moduleTabs) {
+                    const system = tabGroups.info.get(tab.id)?.system;
+                    if (system && !order.includes(system)) order.push(system);
+                }
+                const from = order.indexOf(activeGroup);
+                const to = order.indexOf(overSystem);
+                order.splice(from, 1);
+                order.splice(to, 0, activeGroup);
+                const ungrouped = moduleTabs.filter((tab) => !tabGroups.info.get(tab.id)?.system);
+                const grouped = order.flatMap((system) =>
+                    moduleTabs.filter((tab) => tabGroups.info.get(tab.id)?.system === system),
+                );
+                reorderTabs([...ungrouped, ...grouped].map((tab) => tab.id));
+                return;
+            }
             const oldIndex = moduleTabs.findIndex((tab) => tab.id === active.id);
-            const newIndex = moduleTabs.findIndex((tab) => tab.id === over.id);
+            // Aba solta sobre o chip do próprio grupo vai para o início do grupo.
+            const overGroup = systemFromGroupDragId(String(over.id));
+            const newIndex = overGroup
+                ? moduleTabs.findIndex((tab) => tabGroups.info.get(tab.id)?.system === overGroup)
+                : moduleTabs.findIndex((tab) => tab.id === over.id);
             if (oldIndex < 0 || newIndex < 0) return;
             const activeTab = moduleTabs[oldIndex];
             const overTab = moduleTabs[newIndex];
             if (Boolean(activeTab.pinned) !== Boolean(overTab.pinned)) return;
+            // Reordena só dentro do grupo do sistema (a store também mantém o agrupamento).
+            if (!activeTab.pinned && workspaceTabSystem(activeTab) !== workspaceTabSystem(overTab)) return;
 
             const next = [...moduleTabs];
             const [moved] = next.splice(oldIndex, 1);
             next.splice(newIndex, 0, moved);
             reorderTabs(next.map((tab) => tab.id));
         },
-        [moduleTabs, reorderTabs],
+        [moduleTabs, reorderTabs, tabGroups],
     );
 
     const pinnedCount = moduleTabs.filter((tab) => tab.pinned).length;
@@ -389,6 +556,64 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
         },
         [closeOtherTabs, focusTabById, moduleTabs],
     );
+
+    /** "Ir para Menu": troca o rail para o sistema da aba, se preciso, e mostra o item no menu. */
+    const handleRevealInMenu = useCallback(
+        (tab: WorkspaceTab) => {
+            const system = workspaceTabSystem(tab);
+            if (system && activeSystemCtx && !activeSystemCtx.isSettingsMode && system !== activeSystem) {
+                activeSystemCtx.selectSystem(system);
+            }
+            requestSidebarReveal(tab.routeId);
+        },
+        [activeSystem, activeSystemCtx],
+    );
+
+    /** Fecha todas as abas dos grupos informados (confirma se houver alteração não salva). */
+    const closeGroups = useCallback(
+        async (systems: readonly SystemEnum[]) => {
+            if (systems.length === 0) return;
+            const groupIds = moduleTabs
+                .filter((item) => {
+                    const system = tabGroups.info.get(item.id)?.system;
+                    return system != null && systems.includes(system);
+                })
+                .map((item) => item.id);
+            if (groupIds.length === 0) return;
+            if (!(await confirmDiscardUnsavedChanges(groupIds))) return;
+            const { closeTab } = useWorkspaceStore.getState();
+            groupIds.forEach((id) => closeTab(id));
+            setCollapsedGroups((current) => {
+                if (!systems.some((system) => current.has(system))) return current;
+                const next = new Set(current);
+                systems.forEach((system) => next.delete(system));
+                return next;
+            });
+            const nextActiveId = useWorkspaceStore.getState().activeTabId;
+            if (nextActiveId) focusTabById(nextActiveId, "replace");
+        },
+        [focusTabById, moduleTabs, tabGroups],
+    );
+
+    const handleCloseGroup = useCallback(
+        async (tab: WorkspaceTab) => {
+            const system = tabGroups.info.get(tab.id)?.system;
+            if (system) await closeGroups([system]);
+        },
+        [closeGroups, tabGroups],
+    );
+
+    /* Botão direito no chip do grupo. */
+    const [groupMenu, setGroupMenu] = useState<{ system: SystemEnum; x: number; y: number } | null>(null);
+    const openGroupMenu = useCallback((system: SystemEnum, event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setContextMenu(null);
+        setGroupMenu({ system, x: event.clientX, y: event.clientY });
+    }, []);
+    const groupSystems = useMemo(() => [...tabGroups.counts.keys()], [tabGroups]);
+
+    const contextGroupSystem = contextMenu ? (tabGroups.info.get(contextMenu.tab.id)?.system ?? null) : null;
 
     const activeModuleTab = moduleTabs.find((tab) => tab.id === activeTabId) ?? null;
     const mobileActiveTab = activeModuleTab ?? (dashboardActive ? dashboardTab : null);
@@ -431,20 +656,87 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                                     className="workspace-tabbar-scroll flex min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden"
                                     aria-label="Módulos abertos"
                                 >
-                                    <SortableContext items={tabIds} strategy={horizontalListSortingStrategy}>
+                                    <SortableContext items={sortableIds} strategy={sortingStrategy}>
                                         <div
                                             role="tablist"
                                             className="workspace-tabbar-scroll-inner relative"
                                         >
                                             {/* popLayout: abas que saem saem do fluxo na hora; as que ficam deslizam com layout. */}
                                             <AnimatePresence initial={false} mode="popLayout">
-                                                {moduleTabs.map((tab, index) => {
+                                                {moduleTabs.flatMap((tab, index) => {
                                                     const active = tab.id === activeTabId;
                                                     const showPinDivider =
                                                         pinnedCount > 0 &&
                                                         pinnedCount < moduleTabs.length &&
                                                         index === pinnedCount;
-                                                    return (
+                                                    const group = tabGroups.info.get(tab.id);
+                                                    const system = group?.system ?? null;
+                                                    const groupCollapsed = system != null && collapsedGroups.has(system);
+                                                    // Grupo recolhido: some, menos a aba ativa.
+                                                    const hiddenInGroup = groupCollapsed && !active;
+                                                    const tone = system ? WORKSPACE_TAB_GROUP_TONE[system] : undefined;
+                                                    // Grupo: "DP ┃ aba | aba ┃ RH ┃ aba ┃" — barras grossas e altas no tom do grupo
+                                                    // depois do chip e no fim do grupo; entre abas, a divisória "|" de sempre.
+                                                    const visibleGroupTabIds = system
+                                                        ? moduleTabs
+                                                              .filter(
+                                                                  (item) =>
+                                                                      tabGroups.info.get(item.id)?.system === system &&
+                                                                      (!groupCollapsed || item.id === activeTabId),
+                                                              )
+                                                              .map((item) => item.id)
+                                                        : [];
+                                                    const closesGroup =
+                                                        visibleGroupTabIds[visibleGroupTabIds.length - 1] === tab.id;
+                                                    const opensGroupRun = visibleGroupTabIds[0] === tab.id;
+                                                    const groupDivider = (
+                                                        <span className="workspace-tab-group-divider" aria-hidden />
+                                                    );
+                                                    const items = [];
+                                                    // Primeiro grupo logo após as fixadas: a divisória de fixadas vem antes do chip.
+                                                    const pinDividerBeforeChip = showPinDivider && system != null && Boolean(group?.start);
+                                                    if (pinDividerBeforeChip) {
+                                                        items.push(
+                                                            <motion.span
+                                                                key="pin-divider"
+                                                                layout={activeDragId ? false : "position"}
+                                                                className="workspace-tabbar-pin-divider"
+                                                                aria-hidden
+                                                            />,
+                                                        );
+                                                    }
+                                                    if (system && group?.start) {
+                                                        items.push(
+                                                            <motion.div
+                                                                key={`group:${system}`}
+                                                                layout={activeDragId ? false : "position"}
+                                                                initial={{ opacity: 0, scale: 0.94 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.18 } }}
+                                                                transition={TAB_MOUNT_TRANSITION}
+                                                                className={clsx(
+                                                                    "workspace-tab-group-item inline-flex shrink-0 items-center gap-1",
+                                                                    index > 0 && !pinDividerBeforeChip && "workspace-tab-group-item--gap",
+                                                                )}
+                                                                data-tone={tone}
+                                                            >
+                                                                <SortableWorkspaceTabGroupChip
+                                                                    system={system}
+                                                                    count={tabGroups.counts.get(system) ?? 1}
+                                                                    collapsed={groupCollapsed}
+                                                                    onToggle={() => toggleGroup(system)}
+                                                                    onContextMenu={(event) => openGroupMenu(system, event)}
+                                                                />
+                                                                {groupDivider}
+                                                            </motion.div>,
+                                                        );
+                                                    }
+                                                    if (hiddenInGroup) return items;
+                                                    // Divisória "|" de sempre antes da aba: entre abas do mesmo grupo, ou fora de grupo (fixadas / aba única).
+                                                    const showLeadingSeparator = system
+                                                        ? !opensGroupRun
+                                                        : index > 0 && !showPinDivider;
+                                                    items.push(
                                                         <motion.div
                                                             key={tab.id}
                                                             layout={activeDragId ? false : "position"}
@@ -457,15 +749,17 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                                                                 transition: { duration: 0.2, ease: "easeOut" },
                                                             }}
                                                             transition={TAB_MOUNT_TRANSITION}
-                                                            className="inline-flex shrink-0 items-center gap-1"
+                                                            className={clsx(
+                                                                "inline-flex shrink-0 items-center gap-1",
+                                                                system && "workspace-tab-group-item",
+                                                            )}
+                                                            data-tone={tone}
                                                             style={{ transformOrigin: "left center" }}
                                                         >
-                                                            {index > 0 && !showPinDivider ? (
-                                                                <span className="workspace-tabbar-sep" aria-hidden>
-                                                                    |
-                                                                </span>
+                                                            {showLeadingSeparator ? (
+                                                                <span className="workspace-tabbar-sep" aria-hidden />
                                                             ) : null}
-                                                            {showPinDivider ? (
+                                                            {showPinDivider && !pinDividerBeforeChip ? (
                                                                 <span
                                                                     className="workspace-tabbar-pin-divider"
                                                                     aria-hidden
@@ -480,8 +774,10 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                                                                     openContextMenu(tab, event)
                                                                 }
                                                             />
-                                                        </motion.div>
+                                                            {system && closesGroup ? groupDivider : null}
+                                                        </motion.div>,
                                                     );
+                                                    return items;
                                                 })}
                                             </AnimatePresence>
                                         </div>
@@ -501,7 +797,18 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                                 ) : null}
                             </div>
                             <DragOverlay dropAnimation={TAB_DROP_ANIMATION} zIndex={300}>
-                                {activeDragTab ? (
+                                {draggingGroup ? (
+                                    <div
+                                        className="workspace-tab-drag-overlay-wrap workspace-tab-group-item"
+                                        data-tone={WORKSPACE_TAB_GROUP_TONE[draggingGroup]}
+                                    >
+                                        <WorkspaceTabGroupChip
+                                            system={draggingGroup}
+                                            count={tabGroups.counts.get(draggingGroup) ?? 1}
+                                            collapsed
+                                        />
+                                    </div>
+                                ) : activeDragTab ? (
                                     <div className="workspace-tab-drag-overlay-wrap">
                                         <WorkspaceTabFace
                                             tab={activeDragTab}
@@ -538,6 +845,42 @@ export function WorkspaceTabBar({ dashboardTab, moduleTabs, activeTabId, onSelec
                     void handleCloseBulkTabs();
                 }}
                 closeAllLabel={pinnedCount > 0 ? "Fechar não fixadas" : "Fechar todas"}
+                onRevealInMenu={handleRevealInMenu}
+                onCloseGroup={
+                    contextGroupSystem
+                        ? (tab) => {
+                              void handleCloseGroup(tab);
+                          }
+                        : undefined
+                }
+                groupLabel={contextGroupSystem ? SystemEnumHelper.getById(contextGroupSystem).acronym : undefined}
+            />
+            <WorkspaceTabGroupContextMenu
+                state={
+                    groupMenu
+                        ? {
+                              acronym: SystemEnumHelper.getById(groupMenu.system).acronym,
+                              name: SystemEnumHelper.getById(groupMenu.system).name,
+                              x: groupMenu.x,
+                              y: groupMenu.y,
+                              collapsed: collapsedGroups.has(groupMenu.system),
+                          }
+                        : null
+                }
+                onClose={() => setGroupMenu(null)}
+                onToggleCollapsed={() => {
+                    if (groupMenu) toggleGroup(groupMenu.system);
+                }}
+                onOpenSystemMenu={() => {
+                    if (groupMenu && activeSystemCtx) activeSystemCtx.selectSystem(groupMenu.system);
+                }}
+                onCloseOtherGroups={() => {
+                    if (groupMenu) void closeGroups(groupSystems.filter((system) => system !== groupMenu.system));
+                }}
+                onCloseGroup={() => {
+                    if (groupMenu) void closeGroups([groupMenu.system]);
+                }}
+                canCloseOtherGroups={groupSystems.length > 1}
             />
         </div>
     );

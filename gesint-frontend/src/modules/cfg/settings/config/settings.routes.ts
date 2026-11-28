@@ -106,7 +106,7 @@ const dpRoutes: AppRoute[] = [
         href: "/settings/preferences",
         label: "Preferências",
         icon: Settings2,
-        permissionsAny: ["attendance:read", "notification:write"],
+        permission: "notification:write",
         load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
     }),
     tabbedCrudRoute({
@@ -389,14 +389,14 @@ export const settingsImportRoutes = importRoutes;
 /** Lista plana de todas as rotas de configurações (rail, permissões, workspace). */
 export const settingsRoutes: AppRoute[] = [...accessRoutes, ...dpRoutes, ...rhRoutes, ...importRoutes];
 
-/** @deprecated Mantido para abas antigas apontando para /settings/attendance */
+/** @deprecated Abas antigas em /settings/attendance: preferências de ponto agora estão no GP. */
 export const settingsAttendanceLegacyRoute = customWorkspaceRoute({
     id: "settings-attendance",
     href: "/settings/attendance",
-    label: "Preferências",
+    label: "Preferências de ponto",
     icon: Settings2,
-    permissionsAny: ["attendance:read", "notification:write"],
-    load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
+    permission: "attendance:read",
+    load: () => import("@/modules/gp/settings/components/TimeSettingsPage"),
 });
 
 /** @deprecated Mantido para abas antigas apontando para /settings/notifications */
@@ -405,6 +405,6 @@ export const settingsNotificationsLegacyRoute = customWorkspaceRoute({
     href: "/settings/notifications",
     label: "Preferências",
     icon: Settings2,
-    permissionsAny: ["attendance:read", "notification:write"],
+    permission: "notification:write",
     load: () => import("@/modules/cfg/settings/preferences/components/OperationalPreferencesPage"),
 });

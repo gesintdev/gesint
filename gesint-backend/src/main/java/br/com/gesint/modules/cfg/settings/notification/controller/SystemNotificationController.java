@@ -32,6 +32,11 @@ public class SystemNotificationController {
         return service.getMobileSummary();
     }
 
+    @PostMapping("/read-all")
+    public NotificationSummaryResponseDto markAllAsRead() {
+        return service.markAllAsRead();
+    }
+
     @PostMapping("/{id}/read")
     public SystemNotificationResponseDto markAsRead(@PathVariable UUID id) {
         return service.markAsRead(id);

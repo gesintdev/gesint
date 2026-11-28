@@ -20,4 +20,6 @@ public class SystemNotificationResponseDto {
     private final LocalDate referenceDueDate;
     private final OffsetDateTime readAt;
     private final OffsetDateTime createdAt;
+    /** Notificacao pessoal (para o proprio usuario), e nao da caixa do RH. */
+    private final boolean personal;
 }

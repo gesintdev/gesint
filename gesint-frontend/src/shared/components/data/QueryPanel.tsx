@@ -215,7 +215,14 @@ function ColumnHeaderWithFilter({
     onChange: (_value: string[]) => void;
 }) {
     return (
-        <div className="flex min-w-[5.5rem] flex-col gap-1.5 sm:min-w-[7.5rem]">
+        <div
+            className={
+                // A largura mínima é a do campo de filtro; coluna sem filtro fica com a largura do conteúdo.
+                !isColumnFilterable(column)
+                    ? "flex flex-col gap-1.5"
+                    : "flex min-w-[5.5rem] flex-col gap-1.5 sm:min-w-[7.5rem]"
+            }
+        >
             <span className="gesint-table-col-title">{column.columnName}</span>
             {isColumnFilterable(column) ? (
                 <div

@@ -13,7 +13,6 @@ const MODULES_BY_SYSTEM: Record<string, ReadonlySet<string>> = {
         "admission",
         "exitinterview",
         "developmentplanconfig",
-        "attendance",
         "notification",
         "careerspage",
         "audit",
@@ -30,7 +29,6 @@ const MODULES_BY_SYSTEM: Record<string, ReadonlySet<string>> = {
         "occupationalexam",
         "notification",
         "agenda",
-        "attendance",
         "leave",
         "storage",
     ]),
@@ -45,6 +43,8 @@ const MODULES_BY_SYSTEM: Record<string, ReadonlySet<string>> = {
         "agenda",
         "storage",
     ]),
+    /** Gestão de Ponto: lê colaborador (DP/RH) e escala (CFG), sem editá-los. */
+    PONTO: new Set(["attendance", "hourbank", "timesheet", "notification", "agenda", "storage"]),
     RH: new Set([
         "collaborator",
         "admission",

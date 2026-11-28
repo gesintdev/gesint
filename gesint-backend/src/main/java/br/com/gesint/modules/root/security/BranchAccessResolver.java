@@ -44,9 +44,13 @@ import br.com.gesint.modules.root.repository.UserRoleAssignmentRepository;
 @Component
 public class BranchAccessResolver {
 
-    /** Servicos pessoais do header: valem em qualquer filial para qualquer usuario autenticado. */
+    /**
+     * Servicos pessoais do header: valem em qualquer filial para qualquer usuario autenticado.
+     * O registro do proprio ponto (clock/submissions) exige so autenticacao; attendance:write e do
+     * gestor (editar ponto, aprovar ajuste, preferencias) e vem do perfil.
+     */
     private static final List<String> PERSONAL_AUTHORITIES =
-            List.of("agenda:read", "agenda:write", "agenda:delete", "attendance:write", "storage:read", "storage:write");
+            List.of("agenda:read", "agenda:write", "agenda:delete", "storage:read", "storage:write");
 
     private static final List<String> COLLABORATOR_AUTHORITIES = List.of("notification:read", "notification:write");
 

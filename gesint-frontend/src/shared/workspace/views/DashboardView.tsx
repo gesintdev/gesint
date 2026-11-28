@@ -2,36 +2,30 @@
 
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { animate, motion, MotionConfig, useReducedMotion } from "framer-motion";
+import { motion, MotionConfig } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
-    Activity,
     ArrowUpRight,
     BarChart3,
     Briefcase,
     Building2,
-    CircleAlert,
     CircleCheck,
     ClipboardList,
     Clock,
     FileText,
     Gift,
-    Inbox,
     LayoutDashboard,
     Network,
     Palmtree,
     Receipt,
-    RefreshCw,
-    TrendingUp,
     TriangleAlert,
     UserMinus,
     UserPlus,
     Users,
     Wallet,
 } from "lucide-react";
-import type { ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
 
+import { TimeDashboardView } from "@/modules/gp/dashboard/components/TimeDashboardView";
 import { dashboardKeys } from "@/modules/rh/dashboard/dashboard.query";
 import type {
     DashboardDistributionItem,
@@ -47,6 +41,13 @@ import {
     filterDashboardSummaryForSystem,
 } from "@/modules/rh/dashboard/lib/dashboard-system.util";
 import { dashboardService } from "@/modules/rh/dashboard/services/dashboard.service";
+import { SystemEnum } from "@/modules/root/enum/SystemEnum";
+import { AnimatedNumber } from "@/shared/components/dashboard/AnimatedNumber";
+import { DashboardEmptyState } from "@/shared/components/dashboard/DashboardEmptyState";
+import { DashboardHeader } from "@/shared/components/dashboard/DashboardHeader";
+import { DashboardKpiCard } from "@/shared/components/dashboard/DashboardKpiCard";
+import { DashboardPanel } from "@/shared/components/dashboard/DashboardPanel";
+import { DashboardStats } from "@/shared/components/dashboard/DashboardStats";
 import { CrudPageCard, CrudPageLayout } from "@/shared/components/layout/CrudPageLayout";
 import { Button } from "@/shared/components/ui/Button";
 import { useActiveSystem } from "@/shared/context/ActiveSystemContext";
@@ -73,11 +74,6 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
     jobposition: Briefcase,
     offboarding: UserMinus,
 };
-const TONE_ICONS: Record<DashboardMetricTone, LucideIcon> = {
-    success: TrendingUp,
-    warning: CircleAlert,
-    neutral: Activity,
-};
 /** Paleta categorica das distribuicoes — somente tokens do design system. */
 const DISTRIBUTION_COLORS = [
     "var(--color-primary)",
@@ -94,7 +90,6 @@ const LEGEND_FULL_LIMIT = 6;
 const numberFormatter = new Intl.NumberFormat("pt-BR");
 const decimalFormatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 const percentFormatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
-const timeFormatter = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
 type KpiTile = {
     key: string;
@@ -140,73 +135,6 @@ function kpiTiles(data: DashboardSummary): KpiTile[] {
     }));
 }
 
-function AnimatedNumber({ value, format = formatNumber }: { value: number; format?: (_value: number) => string }) {
-    const reduceMotion = useReducedMotion();
-    const [display, setDisplay] = useState(0);
-    const current = useRef(0);
-
-    useEffect(() => {
-        if (reduceMotion) return;
-        const controls = animate(current.current, value, {
-            duration: 1,
-            ease: EASE_OUT,
-            onUpdate: (latest) => {
-                current.current = latest;
-                setDisplay(latest);
-            },
-        });
-        return () => controls.stop();
-    }, [value, reduceMotion]);
-
-    const shown = reduceMotion ? value : display;
-    return <>{format(Number.isInteger(value) ? Math.round(shown) : shown)}</>;
-}
-
-function Panel({
-    index,
-    title,
-    subtitle,
-    action,
-    className,
-    children,
-}: {
-    index: number;
-    title: string;
-    subtitle?: string;
-    action?: ReactNode;
-    className?: string;
-    children: ReactNode;
-}) {
-    return (
-        <motion.section
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.08 + index * 0.07, ease: EASE_OUT }}
-            className={clsx("gesint-dash-panel", className)}
-        >
-            <header className="gesint-dash-panel__head">
-                <div className="min-w-0">
-                    <h2 className="gesint-dash-panel__title">{title}</h2>
-                    {subtitle ? <p className="gesint-dash-panel__subtitle">{subtitle}</p> : null}
-                </div>
-                {action ? <div className="shrink-0">{action}</div> : null}
-            </header>
-            <div className="gesint-dash-panel__body">{children}</div>
-        </motion.section>
-    );
-}
-
-function EmptyState({ icon: Icon = Inbox, message }: { icon?: LucideIcon; message: string }) {
-    return (
-        <div className="gesint-dash-empty">
-            <span className="gesint-dash-empty__icon">
-                <Icon className="size-4" strokeWidth={2} />
-            </span>
-            <p>{message}</p>
-        </div>
-    );
-}
-
 function DashboardSkeleton() {
     return (
         <div className="space-y-5">
@@ -244,90 +172,6 @@ function DashboardSkeleton() {
     );
 }
 
-function DashboardHeader({
-    title,
-    updatedAt,
-    moduleCount,
-    isFetching,
-    onRefresh,
-}: {
-    title: string;
-    updatedAt: number;
-    moduleCount: number | null;
-    isFetching: boolean;
-    onRefresh: () => void;
-}) {
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: EASE_OUT }}
-            className="flex flex-wrap items-center justify-between gap-4"
-        >
-            <div className="min-w-0">
-                <h1 className="gesint-dash-title">{title}</h1>
-                <p className="gesint-dash-subtitle">
-                    {updatedAt > 0 ? (
-                        <span className="inline-flex items-center gap-1.5">
-                            <span className={clsx("gesint-dash-live", isFetching && "gesint-dash-live--busy")} />
-                            Atualizado às {timeFormatter.format(updatedAt)}
-                        </span>
-                    ) : (
-                        "Carregando indicadores"
-                    )}
-                    {moduleCount !== null ? (
-                        <>
-                            <span className="text-base-content/25">·</span>
-                            {moduleCount} {moduleCount === 1 ? "módulo acompanhado" : "módulos acompanhados"}
-                        </>
-                    ) : null}
-                </p>
-            </div>
-            <Button
-                variant="primary"
-                size="sm"
-                aria-label="Atualizar dashboard"
-                leftIcon={<RefreshCw className={clsx("size-3.5", isFetching && "animate-spin")} strokeWidth={2.25} />}
-                disabled={isFetching}
-                onClick={onRefresh}
-            >
-                Atualizar
-            </Button>
-        </motion.div>
-    );
-}
-
-function KpiCard({ tile, index }: { tile: KpiTile; index: number }) {
-    const Icon = tile.icon;
-    const ToneIcon = TONE_ICONS[tile.tone];
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.06, ease: EASE_OUT }}
-            className="gesint-dash-kpi"
-            data-tone={tile.tone}
-        >
-            <div className="flex items-start justify-between gap-3">
-                <p className="gesint-dash-kpi__label">{tile.label}</p>
-                <span className="gesint-dash-kpi__icon">
-                    <Icon className="size-4" strokeWidth={2} />
-                </span>
-            </div>
-            <p className="gesint-dash-kpi__value">
-                <AnimatedNumber value={tile.value} />
-            </p>
-            <p className="gesint-dash-kpi__hint">
-                <span className="gesint-dash-kpi__tone">
-                    <ToneIcon className="size-3" strokeWidth={2.5} />
-                </span>
-                <span className="truncate">{tile.hint}</span>
-            </p>
-        </motion.div>
-    );
-}
-
 function MovementStats({ points }: { points: DashboardMovementPoint[] }) {
     const total = points.reduce((sum, point) => sum + point.total, 0);
     const peak = points.reduce<DashboardMovementPoint | null>(
@@ -335,30 +179,24 @@ function MovementStats({ points }: { points: DashboardMovementPoint[] }) {
         null,
     );
     const today = points.at(-1)?.total ?? 0;
-    const stats = [
-        { label: "Total no período", value: total, format: formatNumber },
-        { label: "Média por dia", value: points.length ? total / points.length : 0, format: decimalFormatter.format },
-        {
-            label: "Dia de pico",
-            value: peak?.total ?? 0,
-            format: formatNumber,
-            suffix: peak && peak.total > 0 ? peak.label : null,
-        },
-        { label: "Hoje", value: today, format: formatNumber },
-    ];
-
     return (
-        <div className="gesint-dash-stats">
-            {stats.map((stat) => (
-                <div key={stat.label} className="gesint-dash-stats__item">
-                    <p className="gesint-dash-stats__label">{stat.label}</p>
-                    <p className="gesint-dash-stats__value">
-                        <AnimatedNumber value={stat.value} format={stat.format} />
-                        {stat.suffix ? <span className="gesint-dash-stats__suffix">{stat.suffix}</span> : null}
-                    </p>
-                </div>
-            ))}
-        </div>
+        <DashboardStats
+            stats={[
+                { label: "Total no período", value: total, format: formatNumber },
+                {
+                    label: "Média por dia",
+                    value: points.length ? total / points.length : 0,
+                    format: decimalFormatter.format,
+                },
+                {
+                    label: "Dia de pico",
+                    value: peak?.total ?? 0,
+                    format: formatNumber,
+                    suffix: peak && peak.total > 0 ? peak.label : null,
+                },
+                { label: "Hoje", value: today, format: formatNumber },
+            ]}
+        />
     );
 }
 
@@ -386,7 +224,7 @@ function MovementChart({ points }: { points: DashboardMovementPoint[] }) {
                 </div>
                 {peak === 0 ? (
                     <div className="gesint-dash-chart__empty">
-                        <EmptyState icon={BarChart3} message="Nenhum registro novo nos últimos 7 dias" />
+                        <DashboardEmptyState icon={BarChart3} message="Nenhum registro novo nos últimos 7 dias" />
                     </div>
                 ) : null}
                 <div className="gesint-dash-chart__columns">
@@ -459,7 +297,7 @@ function ModuleHealthPanel({ moduleHealth, index }: { moduleHealth: DashboardSum
     const inactive = moduleHealth.totalModules - moduleHealth.activeModules;
 
     return (
-        <Panel
+        <DashboardPanel
             index={index}
             title="Saúde do sistema"
             subtitle="Módulos com dados"
@@ -533,7 +371,7 @@ function ModuleHealthPanel({ moduleHealth, index }: { moduleHealth: DashboardSum
                     </div>
                 </div>
             </div>
-        </Panel>
+        </DashboardPanel>
     );
 }
 
@@ -553,14 +391,14 @@ function ModuleRecordsPanel({
     const total = sorted.reduce((sum, module) => sum + module.records, 0);
 
     return (
-        <Panel
+        <DashboardPanel
             index={index}
             title="Registros por módulo"
             subtitle={`${formatNumber(total)} registros no total`}
             className={className}
         >
             {total === 0 ? (
-                <EmptyState message="Nenhum registro cadastrado nos módulos." />
+                <DashboardEmptyState message="Nenhum registro cadastrado nos módulos." />
             ) : (
                 <ul className={clsx("gesint-dash-hbars", wide && "gesint-dash-hbars--wide")}>
                     {sorted.map((module, moduleIndex) => {
@@ -584,7 +422,7 @@ function ModuleRecordsPanel({
                     })}
                 </ul>
             )}
-        </Panel>
+        </DashboardPanel>
     );
 }
 
@@ -651,9 +489,9 @@ function StackedDistributionPanel({
     const { visible, hiddenCount } = legendItems(items);
 
     return (
-        <Panel index={index} title={title} subtitle={`${subtitle} · ${formatNumber(total)} ${unit}`}>
+        <DashboardPanel index={index} title={title} subtitle={`${subtitle} · ${formatNumber(total)} ${unit}`}>
             {total === 0 ? (
-                <EmptyState message={emptyMessage} />
+                <DashboardEmptyState message={emptyMessage} />
             ) : (
                 <div className="space-y-5">
                     <div className="gesint-dash-stack" aria-hidden>
@@ -677,7 +515,7 @@ function StackedDistributionPanel({
                     />
                 </div>
             )}
-        </Panel>
+        </DashboardPanel>
     );
 }
 
@@ -714,9 +552,9 @@ function DonutDistributionPanel({
     });
 
     return (
-        <Panel index={index} title={title} subtitle={subtitle}>
+        <DashboardPanel index={index} title={title} subtitle={subtitle}>
             {total === 0 ? (
-                <EmptyState message={emptyMessage} />
+                <DashboardEmptyState message={emptyMessage} />
             ) : (
                 <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
                     <div className="gesint-dash-donut">
@@ -756,7 +594,7 @@ function DonutDistributionPanel({
                     </div>
                 </div>
             )}
-        </Panel>
+        </DashboardPanel>
     );
 }
 
@@ -768,12 +606,20 @@ function DashboardContent({ data, showPeopleCharts }: { data: DashboardSummary; 
             {tiles.length > 0 ? (
                 <div className="gesint-dash-kpis">
                     {tiles.map((tile, index) => (
-                        <KpiCard key={tile.key} tile={tile} index={index} />
+                        <DashboardKpiCard
+                            key={tile.key}
+                            label={tile.label}
+                            value={tile.value}
+                            hint={tile.hint}
+                            tone={tile.tone}
+                            icon={tile.icon}
+                            index={index}
+                        />
                     ))}
                 </div>
             ) : null}
             <div className="grid gap-4 xl:grid-cols-12">
-                <Panel
+                <DashboardPanel
                     index={1}
                     title="Movimentação"
                     subtitle="Novos registros nos últimos 7 dias"
@@ -789,7 +635,7 @@ function DashboardContent({ data, showPeopleCharts }: { data: DashboardSummary; 
                         <MovementStats points={data.movementLast7Days} />
                         <MovementChart points={data.movementLast7Days} />
                     </div>
-                </Panel>
+                </DashboardPanel>
                 <ModuleHealthPanel moduleHealth={data.moduleHealth} index={2} />
             </div>
             {showPeopleCharts ? (
@@ -828,7 +674,12 @@ export function DashboardView() {
     const summaryQuery = useQuery({
         queryKey: dashboardKeys.summary(activeSystem),
         queryFn: () => dashboardService.getSummary(),
+        // Gestão de Ponto tem painel próprio (situação do dia e limites da CLT).
+        enabled: activeSystem !== SystemEnum.PONTO,
     });
+    if (activeSystem === SystemEnum.PONTO) {
+        return <TimeDashboardView />;
+    }
     const dashboardData = summaryQuery.data
         ? filterDashboardSummaryForSystem(summaryQuery.data, activeSystem as DashboardSystemId)
         : null;
@@ -842,7 +693,11 @@ export function DashboardView() {
                             <DashboardHeader
                                 title={dashboardTitleForSystem(activeSystem)}
                                 updatedAt={summaryQuery.dataUpdatedAt}
-                                moduleCount={dashboardData ? dashboardData.moduleHealth.totalModules : null}
+                                meta={
+                                    dashboardData
+                                        ? `${dashboardData.moduleHealth.totalModules} ${dashboardData.moduleHealth.totalModules === 1 ? "módulo acompanhado" : "módulos acompanhados"}`
+                                        : null
+                                }
                                 isFetching={summaryQuery.isFetching}
                                 onRefresh={() => summaryQuery.refetch()}
                             />

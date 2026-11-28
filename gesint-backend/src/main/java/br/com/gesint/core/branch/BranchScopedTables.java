@@ -19,6 +19,7 @@ public final class BranchScopedTables {
             "agenda_event",
             "attendance_record",
             "attendance_request",
+            "attendance_timesheet",
             "benefit_enrollment",
             "candidate",
             "collaborator",

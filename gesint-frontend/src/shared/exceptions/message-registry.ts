@@ -18,7 +18,7 @@ import { PAYSLIP_CLIENT_MESSAGES, PAYSLIP_MESSAGES } from "@/modules/ctb/payroll
 import {
     ATTENDANCE_CLIENT_MESSAGES,
     ATTENDANCE_MESSAGES,
-} from "@/modules/dp/attendance/exceptions/attendance-record.messages";
+} from "@/modules/gp/attendance/exceptions/attendance-record.messages";
 import {
     OFFBOARDING_CLIENT_MESSAGES,
     OFFBOARDING_MESSAGES,

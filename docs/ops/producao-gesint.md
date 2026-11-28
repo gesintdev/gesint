@@ -48,3 +48,7 @@ Edição exclusiva: Admin → Configurações → **Ambiente de desenvolvimento*
 2. Config. do Ambiente → provisionar schema `tenant_{slug}`.
 3. Aba Usuários → criar usuário com token de primeiro acesso.
 4. CEO define senha em `https://{slug}.gesint.com.br/definir-senha`.
+
+## Arquivos
+
+Uploads ficam no volume do Client backend (`STORAGE_LOCAL_PATH=/data/storage`). A integração futura com object storage usa Cloudflare R2, não Amazon S3. Ver `docs/arquitetura/armazenamento.md`.

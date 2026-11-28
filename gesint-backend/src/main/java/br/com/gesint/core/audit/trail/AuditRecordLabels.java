@@ -21,6 +21,7 @@ public final class AuditRecordLabels {
             Map.entry("AppUser", "Usuário"),
             Map.entry("AttendanceRecord", "Registro de ponto"),
             Map.entry("AttendanceRequest", "Solicitação de ponto"),
+            Map.entry("AttendanceTimesheet", "Espelho de ponto"),
             Map.entry("BenefitEnrollment", "Vínculo de benefício"),
             Map.entry("BenefitPlan", "Plano de benefício"),
             Map.entry("Candidate", "Candidato"),

@@ -19,6 +19,7 @@ Estes arquivos são a fonte das regras. O nome certo é `.agents/rules/*.mdc` pa
 | `.agents/rules/gesint-payroll-module.mdc` | Folha de pagamento (CTB) | Qualquer alteração de folha |
 | `docs/modulos/` | Regras de negócio do módulo (férias, folha, recesso, permissões) | Antes de mudar a regra daquele módulo |
 | `docs/arquitetura/multi-tenant.md` | DNS, tenant, control plane / data plane | Host, login, schema de cliente |
+| `docs/arquitetura/armazenamento.md` | Disco local hoje; nuvem futura é Cloudflare R2 | Upload, anexo, object storage |
 | `docs/ops/producao-gesint.md` | Hosts de produção e boot | Deploy, DNS, Coolify |
 
 Não criar um segundo design system, um segundo modal, um segundo select nem uma regra de negócio paralela à que já está nesses arquivos.
@@ -49,12 +50,15 @@ O sistema ativo vem do rail esquerdo e não da URL.
 
 | Sistema | Papel | Módulos atuais no frontend |
 |---|---|---|
-| DP | Departamento Pessoal | Organização (incl. Clínicas/Médicos e Matriz no Cargo), Pagamentos, Ponto, Férias, Afastamento, Desligamento; Exames na Admissão |
+| DP | Departamento Pessoal | Organização (incl. Clínicas/Médicos e Matriz no Cargo), Pagamentos, Férias, Afastamento, Desligamento; Exames na Admissão |
 | RH | Recursos Humanos | Dashboard, Pessoas/RH, Insights |
 | CTB | Contabilidade | Folha de Pagamento |
+| GP | Gestão de Ponto | Painel (situação de agora e limites da CLT), Controle de ponto, Solicitações de ajuste, Banco de horas, Espelho de ponto, Agenda de ausências, Status dos colaboradores, Preferências de ponto |
 | CFG | Configurações | Perfis, usuários e configurações |
 
 Folha de Pagamento foi movida de DP para CTB. O módulo Pagamentos permanece em DP.
+
+Ponto saiu de DP e é o sistema Gestão de Ponto (GP). O GP lê colaboradores (DP/RH), escalas (CFG) e férias/afastamentos (RH/DP); não edita nenhum deles. Escala continua sendo cadastrada só em CFG. Regra de negócio: `docs/modulos/gestao-de-ponto.md`.
 
 ## Organização de módulos
 
@@ -73,9 +77,10 @@ ctb/payroll/payslip
 
 Os agrupamentos funcionais atuais são:
 
-- DP: `dp/organization`, `dp/payment`, `dp/occupational-exam`, `dp/attendance`, `dp/offboarding`
+- DP: `dp/organization`, `dp/payment`, `dp/occupational-exam`, `dp/offboarding`
 - RH: `rh/dashboard`, `rh/person` e `rh/insights`
 - CTB: `ctb/payroll`
+- GP: `gp/attendance`, `gp/dashboard`, `gp/hourbank`, `gp/timesheet`, `gp/calendar`, `gp/report`, `gp/settings`, `gp/notification` (backend `br.com.gesint.modules.gp.*`)
 - CFG: `cfg/access` no backend e `cfg/settings` no frontend
 
 Novos módulos devem seguir o mesmo caminho do menu lateral. Exemplo: se a sidebar mostra `DP > Organização > Departamentos`, os arquivos devem ficar em `dp/organization/department` no frontend e em `br.com.gesint.modules.dp.organization.department` no backend.
@@ -132,14 +137,15 @@ O Admin não usa a casca do Client. Telas novas copiam um módulo que já existe
 
 ## Sistema ativo (rail) — regra absoluta
 
-- O domínio ativo (DP/RH/CTB/CFG) vem somente da seleção no rail esquerdo.
+- O domínio ativo (DP/RH/CTB/GP/CFG) vem somente da seleção no rail esquerdo.
 - Persistência: `gesint-active-system` e `gesint-settings-mode`.
 - Nunca derivar domínio ou menu lateral da URL, aba focada ou `href` aberto.
 - Trocar aba no workspace não recalcula menu lateral.
-- `isSettingsMode` muda apenas ao clicar CFG (`openSettings`) ou DP/RH/CTB (`selectSystem`).
+- `isSettingsMode` muda apenas ao clicar CFG (`openSettings`) ou DP/RH/CTB/GP (`selectSystem`).
 - É proibido usar `useEffect` em `pathname` para alternar domínio ativo.
 - Clicar em CFG troca o menu para configurações; não abre rota automaticamente.
-- Clicar em DP/RH/CTB persiste sistema, desliga CFG e foca dashboard.
+- Clicar em DP/RH/CTB/GP persiste sistema, desliga CFG e foca dashboard.
+- Sistema novo: valor em `SystemEnum` (FE), `SystemScopeEnum` + `gesint_types.system_scope_enum` (BE), chave comercial em `admin.product_system` e `AccessScopePolicy.PRODUCT_KEY_BY_SYSTEM`, módulos em `PermissionModuleCatalog` (Java e `permission-module-catalog.ts`), perfil ADMIN do sistema, `SystemScope` em `access-menu-catalog.ts` e `systemModuleGroups` em `routes.ts`. GP: `PONTO` / `ponto` / chave `GP`.
 
 ## Migrations por schema
 
@@ -167,6 +173,12 @@ Endereços em produção:
 - `www.gesint.com.br` e `gesint.com.br` (domínio cru, sem subdomínio) são o site da Gesint. Não são tenant e não abrem o ERP.
 - O endereço de cada cliente é `https://{slug}.gesint.com.br`.
 - Slugs que nunca identificam cliente: `www`, `api`, `admin`, `app`, `ponto`.
+
+## Armazenamento de arquivos
+
+O blob fica no disco do Client backend (`STORAGE_LOCAL_PATH`; em produção, volume `/data/storage`). Metadados em `storage_object`. O contrato dos módulos é `IStorageService`.
+
+Na integração com object storage, o provedor é Cloudflare R2. Amazon S3 não é o padrão. Detalhe: `docs/arquitetura/armazenamento.md`.
 
 ## Site institucional — regra absoluta
 
@@ -261,9 +273,11 @@ A regra de um módulo está no código do service/domain e, quando existe, no do
 | Folha (CTB) | `docs/modulos/folha-de-pagamento.md` e `.agents/rules/gesint-payroll-module.mdc` |
 | Férias | `docs/modulos/ferias.md` |
 | Recesso contratual PJ | `docs/modulos/recesso-contratual-pj.md` |
+| Gestão de Ponto (apuração, banco de horas, espelho, alertas) | `docs/modulos/gestao-de-ponto.md` |
 | Autorização (RN-03) | `docs/modulos/permissoes/gesint-RN-03-autorizacao.md` |
 | Ordem das regras (RN-00 em diante) | `docs/modulos/permissoes/gesint-ordem-regras-de-negocio.md` |
 | Tenant, DNS, site | `docs/arquitetura/multi-tenant.md` e a seção "Site institucional" deste arquivo |
+| Arquivos (storage) | `docs/arquitetura/armazenamento.md` |
 | Produção | `docs/ops/producao-gesint.md` |
 
 `docs/analise/` guarda planos e roteiros. Não é regra vigente. A regra vigente é o código mais o documento da tabela.

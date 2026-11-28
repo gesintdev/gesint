@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export enum TableDataType {
     /** Texto livre (alias legado de STRING). */
     TEXT = "TEXT",
@@ -25,6 +27,10 @@ export enum TableDataType {
     BADGE = "BADGE",
     /** Avatar + nome (estilo DaisyUI) */
     AVATAR_PROFILE = "AVATAR_PROFILE",
+    /** Duração em minutos inteiros, exibida como 08h23. */
+    DURATION = "DURATION",
+    /** Saldo em minutos com sinal: +08h23 em verde, -08h23 em vermelho. */
+    BALANCE = "BALANCE",
     /** Swatch de cor (#RRGGBB). */
     COLOR = "COLOR",
 }
@@ -57,13 +63,22 @@ export type TableColumnConfig = {
     avatarSize?: "xs" | "sm" | "md" | "lg";
     /** Rótulos customizados para células BADGE (sobrescreve o mapa global) */
     badgeLabels?: Record<string, string>;
-    /** Classes customizadas por valor em células BADGE (sobrescreve a cor derivada do status). */
+    /**
+     * Classes customizadas por valor em células BADGE (sobrescreve a cor derivada do status).
+     * A chave "*" vale para os demais valores.
+     */
     badgeClassNames?: Record<string, string>;
     /**
      * Quando true, a coluna não exibe filtro.
      * Por padrão todas as colunas são filtráveis.
      */
     notFilterable?: boolean;
+    /**
+     * Conteúdo próprio da célula (ex.: botão que leva a outra tela). Substitui a formatação
+     * por `dataType`; a coluna fica fora da exportação e deve vir com `notFilterable`.
+     * O clique dentro da célula não ativa a linha.
+     */
+    renderCell?: (_row: object) => ReactNode;
 };
 
 /** Coluna filtrável por padrão, salvo `notFilterable`. */

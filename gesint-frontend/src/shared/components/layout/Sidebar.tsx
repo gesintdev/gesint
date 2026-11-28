@@ -5,7 +5,7 @@ import {usePathname} from "next/navigation";
 import {useSession} from "next-auth/react";
 import {type MouseEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 
-import {type AppRoute, flattenRoutes} from "@/config/routes";
+import {type AppRoute, flattenRoutes, type NavSection} from "@/config/routes";
 import {useAssistantChat} from "@/shared/components/assistant/assistant-chat";
 import {useAssistantLaunch} from "@/shared/components/assistant/assistant-launch";
 import {assistantUserLabel} from "@/shared/components/assistant/assistant-menu-prompt";
@@ -17,6 +17,7 @@ import {SystemRail} from "@/shared/components/layout/SystemRail";
 import {useAppBootstrap} from "@/shared/components/providers/AppBootstrapProvider";
 import {FieldClearButton} from "@/shared/components/ui/input/FieldClearButton";
 import {useActiveSystem, useActiveSystemRoutes} from "@/shared/context/ActiveSystemContext";
+import {SIDEBAR_REVEAL_ROUTE_EVENT, type SidebarRevealRouteDetail} from "@/shared/workspace/sidebar-reveal";
 import {useWorkspaceNavigation} from "@/shared/workspace/useWorkspaceNavigation";
 import {findRouteByHref} from "@/shared/workspace/workspace-routes";
 
@@ -37,6 +38,25 @@ function wait(ms: number) {
     return new Promise<void>((resolve) => {
         window.setTimeout(resolve, ms);
     });
+}
+
+/** Ids dos grupos de menu acima da rota (vazio se ela está na raiz); `null` se não está no menu. */
+function findRouteAncestorIds(sections: NavSection[], routeId: string): string[] | null {
+    const walk = (routes: AppRoute[], trail: string[]): string[] | null => {
+        for (const route of routes) {
+            if (route.id === routeId) return trail;
+            if (route.children?.length) {
+                const found = walk(route.children, [...trail, route.id]);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+    for (const section of sections) {
+        const found = walk(section.routes, []);
+        if (found) return found;
+    }
+    return null;
 }
 
 function routeIsActive(route: AppRoute, highlightRouteId: string | null): boolean {
@@ -90,7 +110,7 @@ function SidebarToolbar({
                         tabIndex={panelCollapsed ? -1 : undefined}
                         className="pe-2 placeholder:text-base-content/32"
                     />
-                    {query.trim() ? <FieldClearButton onClick={() => onQueryChange("")} /> : null}
+                    {query.trim() ? <FieldClearButton onClick={() => onQueryChange("")}/> : null}
                 </label>
             </div>
             <SidebarCollapseControl desktop={desktop} collapsed={collapsed} onToggle={onCollapsedToggle}/>
@@ -107,9 +127,15 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
     const {navSections} = useActiveSystem();
     const activeSystemRoutes = useActiveSystemRoutes();
     const {openRouteModule} = useWorkspaceNavigation();
-    const [highlightRouteId, setHighlightRouteId] = useState<string | null>(null);
-    const pathnameRouteId = useMemo(() => findRouteByHref(pathname)?.id ?? null, [pathname]);
-    const navHighlightRouteId = highlightRouteId ?? pathnameRouteId;
+    /*
+     * Item destacado no menu: o da URL só ao carregar; depois, só muda por clique no menu ou por
+     * "Ir para Menu" na aba. Trocar de aba não mexe no menu lateral (antes, enquanto nenhum item
+     * tinha sido clicado, o destaque seguia a URL e acompanhava cada aba).
+     */
+    const [highlightRouteId, setHighlightRouteId] = useState<string | null>(
+        () => findRouteByHref(pathname)?.id ?? null,
+    );
+    const navHighlightRouteId = highlightRouteId;
     const [query, setQuery] = useState("");
     const [openIds, setOpenIds] = useState<Set<string>>(new Set());
     /** Fase 1 do collapse: fecha listas e esconde a trilha expandir/retrair antes de estreitar. */
@@ -239,6 +265,61 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             toggleLockedRef.current = false;
         }
     }, [closeFlyout, collapsed, onCollapsedToggle, openIds]);
+    /* "Ir para Menu" (ações da aba): abre os grupos até o item, rola até ele e destaca. */
+    const [revealRequest, setRevealRequest] = useState<{ routeId: string; nonce: number } | null>(null);
+    const revealTimersRef = useRef<number[]>([]);
+    useEffect(() => {
+        const onReveal = (event: Event) => {
+            const {routeId} = (event as CustomEvent<SidebarRevealRouteDetail>).detail;
+            const nonce = Date.now();
+            setRevealRequest({routeId, nonce});
+            // Rota fora do menu (ex.: sem permissão no sistema): o pedido expira em vez de ficar pendente.
+            revealTimersRef.current.push(
+                window.setTimeout(
+                    () => setRevealRequest((current) => (current?.nonce === nonce ? null : current)),
+                    3000,
+                ),
+            );
+        };
+        window.addEventListener(SIDEBAR_REVEAL_ROUTE_EVENT, onReveal);
+        return () => {
+            window.removeEventListener(SIDEBAR_REVEAL_ROUTE_EVENT, onReveal);
+            revealTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+        };
+    }, []);
+    useEffect(() => {
+        if (!revealRequest) return;
+        // Ao trocar de sistema junto, espera o menu do sistema novo chegar.
+        const ancestors = findRouteAncestorIds(navSections, revealRequest.routeId);
+        if (!ancestors) return;
+        const {routeId} = revealRequest;
+        setRevealRequest(null);
+        setQuery("");
+        setHighlightRouteId(routeId);
+        if (collapsed) {
+            // A sidebar retraída reabre os grupos guardados ao expandir: inclui os do item.
+            savedOpenIdsRef.current = new Set([...savedOpenIdsRef.current, ...ancestors]);
+            void handleCollapsedToggle();
+        } else {
+            setOpenIds((prev) => new Set([...prev, ...ancestors]));
+        }
+        const settleMs = collapsed ? SIDEBAR_WIDTH_MS + 120 : 240;
+        revealTimersRef.current.push(
+            window.setTimeout(() => {
+                const item = document.querySelector<HTMLElement>(`[data-nav-route-id="${routeId}"]`);
+                if (!item) return;
+                item.scrollIntoView({block: "nearest", behavior: "smooth"});
+                item.focus({preventScroll: true});
+                item.classList.remove("nav-item--reveal");
+                void item.offsetWidth;
+                item.classList.add("nav-item--reveal");
+                revealTimersRef.current.push(
+                    window.setTimeout(() => item.classList.remove("nav-item--reveal"), 1600),
+                );
+            }, settleMs),
+        );
+    }, [collapsed, handleCollapsedToggle, navSections, revealRequest]);
+
     const filteredSections = useMemo(() => {
         if (!isSearching) return navSections;
         const q = query.toLowerCase();
@@ -322,6 +403,7 @@ export function Sidebar({collapsed, onCollapsedToggle, mobileOpen = false, onMob
             <button
                 type="button"
                 title={route.label}
+                data-nav-route-id={route.id}
                 onMouseDown={notePointerButton}
                 onClick={(event) => {
                     if (isSecondaryActivation(event)) {

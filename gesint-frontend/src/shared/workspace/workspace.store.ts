@@ -12,6 +12,7 @@ import {
     stripDashboardTabs,
 } from "@/shared/workspace/workspace-dashboard";
 import { defaultShortLabel, findRouteById } from "@/shared/workspace/workspace-routes";
+import { arrangeWorkspaceTabs, resolveWorkspaceTabSystem } from "@/shared/workspace/workspace-tab-groups";
 import { buildWorkspaceTabId, parseWorkspaceTabId } from "@/shared/workspace/workspace-tab-id";
 
 /** Abas de uma filial que nao esta ativa no momento. */
@@ -84,18 +85,13 @@ function buildTab(input: OpenWorkspaceRecordInput, existing?: WorkspaceTab): Wor
         titleSuffix,
         icon: input.icon,
         pinned: existing?.pinned ?? false,
+        system: existing?.system ?? input.system ?? resolveWorkspaceTabSystem(input.href),
     };
 }
 
-/** Fixadas à esquerda, preservando ordem relativa em cada grupo. */
+/** Fixadas à esquerda; as demais agrupadas por sistema (ver `arrangeWorkspaceTabs`). */
 function partitionPinnedTabs(tabs: WorkspaceTab[]): WorkspaceTab[] {
-    const pinned: WorkspaceTab[] = [];
-    const unpinned: WorkspaceTab[] = [];
-    for (const tab of tabs) {
-        if (tab.pinned) pinned.push(tab);
-        else unpinned.push(tab);
-    }
-    return [...pinned, ...unpinned];
+    return arrangeWorkspaceTabs(tabs);
 }
 
 function upsertTab(tabs: WorkspaceTab[], tab: WorkspaceTab): WorkspaceTab[] {
@@ -158,6 +154,7 @@ function normalizeTabs(tabs: WorkspaceTab[]): WorkspaceTab[] {
                 routeId,
                 entityKey,
                 pinned: Boolean(tab.pinned),
+                system: tab.system ?? resolveWorkspaceTabSystem(route?.href ?? tab.href),
                 href: route?.href ?? tab.href,
                 routeLabel: route?.label ?? tab.routeLabel,
                 shortLabel:
@@ -321,8 +318,9 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     if (Boolean(tab.pinned) !== shouldBePinned) return;
                 }
 
+                // Arrastar não tira a aba do grupo do sistema dela.
                 set({
-                    tabs: orderedIds.map((id) => byId.get(id)!),
+                    tabs: arrangeWorkspaceTabs(orderedIds.map((id) => byId.get(id)!)),
                 });
             },
             retainTabsByRouteIds: (allowedRouteIds) => {

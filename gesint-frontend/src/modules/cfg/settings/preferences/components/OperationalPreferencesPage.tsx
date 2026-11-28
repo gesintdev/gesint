@@ -1,15 +1,13 @@
 "use client";
 
-import { AttendanceSettingsCard } from "@/modules/cfg/settings/attendance/components/AttendanceSettingsCard";
 import { NotificationSettingsCard } from "@/modules/cfg/settings/notification/components/NotificationSettingsCard";
 import { useHasPermission } from "@/shared/auth/permissions";
 
 /**
- * Página unificada das preferências operacionais (ponto + notificações).
- * Cards empilhados, sem seções FormSection — cada bloco salva de forma independente.
+ * Preferências operacionais do CFG (notificações do sistema). As preferências de ponto foram para
+ * Gestão de Ponto › Configurações › Preferências de ponto.
  */
 export function OperationalPreferencesPage() {
-    const canReadAttendance = useHasPermission("attendance:read");
     const canConfigureNotification = useHasPermission("notification:write");
 
     return (
@@ -18,16 +16,16 @@ export function OperationalPreferencesPage() {
                 <div>
                     <h1 className="text-lg font-semibold tracking-tight text-base-content">Preferências</h1>
                     <p className="mt-1 text-sm text-base-content/55">
-                        Ajustes operacionais de ponto e notificações do sistema.
+                        Notificações do sistema. As regras de ponto ficam em Gestão de Ponto › Preferências de ponto.
                     </p>
                 </div>
-                {canReadAttendance ? <AttendanceSettingsCard /> : null}
-                {canConfigureNotification ? <NotificationSettingsCard /> : null}
-                {!canReadAttendance && !canConfigureNotification ? (
+                {canConfigureNotification ? (
+                    <NotificationSettingsCard />
+                ) : (
                     <p className="text-sm text-base-content/55">
                         Você não tem permissão para visualizar estas preferências.
                     </p>
-                ) : null}
+                )}
             </div>
         </div>
     );

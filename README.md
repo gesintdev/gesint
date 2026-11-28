@@ -18,6 +18,7 @@ Produção (domínios, secrets, boot): [`docs/ops/producao-gesint.md`](docs/ops/
 | DP | Departamento Pessoal: Organizacao, Ferias, Afastamento, Desligamento e Pagamentos |
 | RH | Pessoas, solicitacoes de ferias, entrevista de desligamento, performance, insights |
 | CTB | Contabilidade: Folha de Pagamento |
+| GP | Gestão de Ponto: painel de jornada e limites da CLT, controle de ponto, ajustes, banco de horas, espelho de ponto e alertas |
 | CFG | Configurações: perfis e usuários |
 
 O domínio ativo no frontend vem do rail esquerdo, não da URL. Trocar abas no workspace não deve recalcular o menu lateral.
@@ -33,6 +34,10 @@ O Gesint usa control plane + data plane. Em produção, `www.gesint.com.br` e `g
 | `docs/arquitetura/multi-tenant-implementacao.md` | Plano e etapas de implementação |
 
 MVP multi-tenant: schema dedicado por cliente (`tenant_*`), não `tenant_id` em tabelas de negócio.
+
+## Armazenamento de arquivos
+
+Hoje o arquivo fica no disco do backend (`STORAGE_LOCAL_PATH`). Quando houver integração com nuvem, o provedor é Cloudflare R2. Documento: `docs/arquitetura/armazenamento.md`.
 
 Ao criar tabela de negócio no HR:
 

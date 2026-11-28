@@ -1,6 +1,17 @@
 "use client";
 
-import { CopyPlus, CopyX, Pin, PinOff, X, XCircle } from "lucide-react";
+import {
+    CopyPlus,
+    CopyX,
+    FoldHorizontal,
+    PanelLeft,
+    Pin,
+    PinOff,
+    SquareX,
+    UnfoldHorizontal,
+    X,
+    XCircle,
+} from "lucide-react";
 
 import {
     ContextMenu,
@@ -24,6 +35,12 @@ type WorkspaceTabContextMenuProps = {
     onCloseTab: (tab: WorkspaceTab) => void;
     onCloseOtherTabs: (tab: WorkspaceTab) => void;
     onCloseAll: () => void;
+    /** "Ir para Menu": mostra o item da tela no menu lateral. */
+    onRevealInMenu: (tab: WorkspaceTab) => void;
+    /** "Fechar grupo": só aparece quando a aba está num grupo de sistema. */
+    onCloseGroup?: (tab: WorkspaceTab) => void;
+    /** Rótulo do grupo da aba (ex.: "GP"), exibido em "Fechar grupo". */
+    groupLabel?: string;
     /** Desabilita "Fechar outras abas" quando não há outras. */
     canCloseOtherTabs?: boolean;
     closeAllLabel?: string;
@@ -39,6 +56,9 @@ export function WorkspaceTabContextMenu({
     onCloseTab,
     onCloseOtherTabs,
     onCloseAll,
+    onRevealInMenu,
+    onCloseGroup,
+    groupLabel,
     canCloseOtherTabs = true,
     closeAllLabel = "Fechar todas",
 }: WorkspaceTabContextMenuProps) {
@@ -49,6 +69,16 @@ export function WorkspaceTabContextMenu({
 
     if (!state.isDashboard) {
         entries.push(
+            {
+                type: "item",
+                item: {
+                    id: "reveal-in-menu",
+                    label: "Ir para Menu",
+                    icon: <PanelLeft className={iconClass} strokeWidth={2} />,
+                    onSelect: () => onRevealInMenu(state.tab),
+                },
+            },
+            { type: "separator" },
             {
                 type: "item",
                 item: {
@@ -90,8 +120,19 @@ export function WorkspaceTabContextMenu({
                     onSelect: () => onCloseOtherTabs(state.tab),
                 },
             },
-            { type: "separator" },
         );
+        if (onCloseGroup) {
+            entries.push({
+                type: "item",
+                item: {
+                    id: "close-group",
+                    label: groupLabel ? `Fechar grupo ${groupLabel}` : "Fechar grupo",
+                    icon: <SquareX className={iconClass} strokeWidth={2} />,
+                    onSelect: () => onCloseGroup(state.tab),
+                },
+            });
+        }
+        entries.push({ type: "separator" });
     }
 
     entries.push({
@@ -110,6 +151,96 @@ export function WorkspaceTabContextMenu({
             x={state.x}
             y={state.y}
             ariaLabel="Ações da aba"
+            entries={entries}
+            onClose={onClose}
+        />
+    );
+}
+
+export type WorkspaceTabGroupContextMenuState = {
+    /** Sigla e nome do sistema do grupo. */
+    acronym: string;
+    name: string;
+    x: number;
+    y: number;
+    collapsed: boolean;
+};
+
+type WorkspaceTabGroupContextMenuProps = {
+    state: WorkspaceTabGroupContextMenuState | null;
+    onClose: () => void;
+    onToggleCollapsed: () => void;
+    /** Troca o rail para o sistema do grupo (menu lateral daquele sistema). */
+    onOpenSystemMenu: () => void;
+    onCloseOtherGroups: () => void;
+    onCloseGroup: () => void;
+    /** Desabilita "Fechar outros grupos" quando só há este. */
+    canCloseOtherGroups?: boolean;
+};
+
+/** Botão direito no chip do grupo (sigla do sistema). */
+export function WorkspaceTabGroupContextMenu({
+    state,
+    onClose,
+    onToggleCollapsed,
+    onOpenSystemMenu,
+    onCloseOtherGroups,
+    onCloseGroup,
+    canCloseOtherGroups = true,
+}: WorkspaceTabGroupContextMenuProps) {
+    if (!state) return null;
+
+    const entries: ContextMenuEntry[] = [
+        {
+            type: "item",
+            item: {
+                id: "toggle-group",
+                label: state.collapsed ? "Expandir grupo" : "Recolher grupo",
+                icon: state.collapsed ? (
+                    <UnfoldHorizontal className={iconClass} strokeWidth={2} />
+                ) : (
+                    <FoldHorizontal className={iconClass} strokeWidth={2} />
+                ),
+                onSelect: onToggleCollapsed,
+            },
+        },
+        {
+            type: "item",
+            item: {
+                id: "open-system-menu",
+                label: `Ir para o menu do ${state.acronym}`,
+                icon: <PanelLeft className={iconClass} strokeWidth={2} />,
+                onSelect: onOpenSystemMenu,
+            },
+        },
+        { type: "separator" },
+        {
+            type: "item",
+            item: {
+                id: "close-other-groups",
+                label: "Fechar outros grupos",
+                icon: <CopyX className={iconClass} strokeWidth={2} />,
+                disabled: !canCloseOtherGroups,
+                onSelect: onCloseOtherGroups,
+            },
+        },
+        {
+            type: "item",
+            item: {
+                id: "close-group",
+                label: `Fechar grupo ${state.acronym}`,
+                danger: true,
+                icon: <SquareX className="size-3.5 shrink-0" strokeWidth={2} />,
+                onSelect: onCloseGroup,
+            },
+        },
+    ];
+
+    return (
+        <ContextMenu
+            x={state.x}
+            y={state.y}
+            ariaLabel={`Ações do grupo ${state.name}`}
             entries={entries}
             onClose={onClose}
         />

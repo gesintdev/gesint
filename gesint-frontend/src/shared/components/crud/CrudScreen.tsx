@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
     createContext,
     type ReactNode,
@@ -20,20 +20,22 @@ import {
     useSessionSystemPermissions,
 } from "@/shared/auth/permissions";
 import { canAccessExtraTab, canWriteRoute, type RoutePublicAccess } from "@/shared/auth/route-access";
-import {
-    QueryRefreshHostProvider,
-    useQueryRefresh,
-} from "@/shared/components/data/QueryRefreshContext";
 import { CrudFormDirtyProvider } from "@/shared/components/crud/CrudFormDirtyContext";
+import { QueryRefreshButton } from "@/shared/components/data/QueryRefreshButton";
+import { QueryRefreshHostProvider } from "@/shared/components/data/QueryRefreshContext";
 import { Button } from "@/shared/components/ui/Button";
 import { useActiveBranch } from "@/shared/context/ActiveBranchContext";
 import { useOptionalActiveSystem } from "@/shared/context/ActiveSystemContext";
 import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
-import { useWorkspaceHistoryCommit } from "@/shared/workspace/workspace-history";
-import type { WorkspaceHistoryMode } from "@/shared/workspace/workspace-location";
 import { useTabbedCrudConfigOptional } from "@/shared/workspace/TabbedCrudConfigContext";
 import { useWorkspaceNavigation } from "@/shared/workspace/useWorkspaceNavigation";
 import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
+import { useWorkspaceHistoryCommit } from "@/shared/workspace/workspace-history";
+import {
+    locationsEqual,
+    readBrowserLocationKey,
+    type WorkspaceHistoryMode,
+} from "@/shared/workspace/workspace-location";
 import { findRouteById } from "@/shared/workspace/workspace-routes";
 import { isModuleListTab } from "@/shared/workspace/workspace-tab-id";
 import { useWorkspaceTabOptional } from "@/shared/workspace/WorkspaceTabContext";
@@ -192,23 +194,9 @@ function CrudListToolbarActions({
     listPrimaryAction?: ReactNode;
     onStartCreate: () => void | Promise<void>;
 }) {
-    const queryRefresh = useQueryRefresh();
-
     return (
         <div className="flex shrink-0 items-center gap-2">
-            {queryRefresh ? (
-                <Button
-                    aria-label="Atualizar lista"
-                    disabled={queryRefresh.isFetching}
-                    onClick={() => queryRefresh.refetch()}
-                    leftIcon={
-                        <RefreshCw
-                            className={clsx("size-4", queryRefresh.isFetching && "animate-spin")}
-                            strokeWidth={2}
-                        />
-                    }
-                />
-            ) : null}
+            <QueryRefreshButton />
             {showListToFormButton && canWrite ? (
                 <Button
                     leftIcon={<Plus className="size-4" strokeWidth={2} />}
@@ -436,6 +424,10 @@ export function CrudScreen({
         }
         if (url.pathname !== workspaceTabCtx.tab.href) return;
         historyAppliedEpochRef.current = historyCommit.epoch;
+        // Passo de histórico antigo (a URL já mudou depois dele) não vale para a aba recém-montada:
+        // sem isso, fechar a aba e reabrir pelo menu voltava com o registro que estava em edição.
+        const browserKey = readBrowserLocationKey();
+        if (browserKey && !locationsEqual(browserKey, historyCommit.key)) return;
         const edit = url.searchParams.get("edit");
         const isNew = url.searchParams.has("new");
         if (edit) {
@@ -624,7 +616,7 @@ export function CrudScreen({
                                     )}
                                 >
                                     {listToolbarContent ? (
-                                        <div className="min-w-0 flex-1">{listToolbarContent}</div>
+                                        <div className="min-w-0 flex-[1_1_auto]">{listToolbarContent}</div>
                                     ) : (
                                         <div className="hidden min-w-0 flex-1 text-xs text-base-content/55 lg:block">
                                             {listToolbar ??

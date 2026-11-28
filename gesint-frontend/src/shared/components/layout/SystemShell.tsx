@@ -5,7 +5,7 @@ import {useSession} from "next-auth/react";
 import {type ReactNode, Suspense, useCallback, useEffect, useState} from "react";
 
 import {AgendaModal} from "@/modules/cfg/settings/agenda/components/AgendaModal";
-import {AttendanceClockModal} from "@/modules/dp/attendance/components/AttendanceClockModal";
+import {AttendanceClockModal} from "@/modules/gp/attendance/components/AttendanceClockModal";
 import type {SystemEnum} from "@/modules/root/enum/SystemEnum";
 import {AssistantChatProvider} from "@/shared/components/assistant/assistant-chat";
 import {

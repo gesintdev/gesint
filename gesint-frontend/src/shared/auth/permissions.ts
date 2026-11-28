@@ -1,11 +1,11 @@
 import { useSession } from "next-auth/react";
 
+import { readPermissionsFromAccessToken } from "@/auth/access-token-claims";
 import type { SystemScope } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import { systemScopeFromEnum } from "@/modules/cfg/settings/lib/access-menu-catalog";
 import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
-import { useOptionalAppBootstrap } from "@/shared/components/providers/AppBootstrapProvider";
-import { readPermissionsFromAccessToken } from "@/auth/access-token-claims";
 import { moduleCoveredBySystemAdmin } from "@/shared/auth/permission-module-catalog";
+import { useOptionalAppBootstrap } from "@/shared/components/providers/AppBootstrapProvider";
 
 export function deriveWritePermission(readPermission?: string): string | undefined {
     if (!readPermission) return undefined;

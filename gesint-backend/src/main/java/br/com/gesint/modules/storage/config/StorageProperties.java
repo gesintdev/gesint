@@ -4,6 +4,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 
+/**
+ * Disco local. Integracao com object storage: Cloudflare R2.
+ * Ver docs/arquitetura/armazenamento.md.
+ */
 @ConfigurationProperties(prefix = "gesint.storage")
 public record StorageProperties(String localBasePath, String bucket, DataSize maxFileSize) {
 

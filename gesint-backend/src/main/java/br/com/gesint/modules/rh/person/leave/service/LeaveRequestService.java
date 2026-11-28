@@ -32,9 +32,9 @@ import br.com.gesint.core.base.dto.PageableResponseDto;
 import br.com.gesint.core.base.service.BaseService;
 import br.com.gesint.core.entity.StatusEnum;
 import br.com.gesint.core.security.AuthorityWildcards;
-import br.com.gesint.modules.rh.person.attendance.entity.AttendanceOccurrenceOriginEnum;
-import br.com.gesint.modules.rh.person.attendance.entity.AttendanceRecord;
-import br.com.gesint.modules.rh.person.attendance.repository.AttendanceRecordRepository;
+import br.com.gesint.modules.gp.attendance.entity.AttendanceOccurrenceOriginEnum;
+import br.com.gesint.modules.gp.attendance.entity.AttendanceRecord;
+import br.com.gesint.modules.gp.attendance.repository.AttendanceRecordRepository;
 import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionProcess;
 import br.com.gesint.modules.rh.person.collaborators.admission.entity.AdmissionStatusEnum;
 import br.com.gesint.modules.rh.person.collaborators.admission.repository.AdmissionProcessRepository;
@@ -622,11 +622,16 @@ public class LeaveRequestService extends BaseService<LeaveRequest, LeaveRequestR
         return entities.stream()
                 .map(entity -> mapper.toResponse(
                         entity,
-                        collaboratorNames.get(entity.getCollaboratorId()),
-                        userNames.get(entity.getReviewedBy()),
-                        userNames.get(entity.getCreatedBy()),
+                        nameOf(collaboratorNames, entity.getCollaboratorId()),
+                        nameOf(userNames, entity.getReviewedBy()),
+                        nameOf(userNames, entity.getCreatedBy()),
                         includeSensitive))
                 .toList();
+    }
+
+    /** Map.of() lanca NPE em get(null); ids opcionais (revisor, criador) podem ser nulos. */
+    private static String nameOf(Map<UUID, String> names, UUID id) {
+        return id == null ? null : names.get(id);
     }
 
     private LeaveRequestResponseDto mapResponse(LeaveRequest entity) {

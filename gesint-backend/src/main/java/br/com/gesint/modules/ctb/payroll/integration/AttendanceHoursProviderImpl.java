@@ -11,8 +11,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import br.com.gesint.core.entity.StatusEnum;
-import br.com.gesint.modules.rh.person.attendance.entity.AttendanceRecord;
-import br.com.gesint.modules.rh.person.attendance.repository.AttendanceRecordRepository;
+import br.com.gesint.modules.gp.attendance.entity.AttendanceRecord;
+import br.com.gesint.modules.gp.attendance.repository.AttendanceRecordRepository;
 
 @Component
 public class AttendanceHoursProviderImpl implements AttendanceHoursProvider {
