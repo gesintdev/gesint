@@ -4,6 +4,7 @@ import clsx from "clsx";
 import {useEffect, useMemo, useRef, useState} from "react";
 
 import {WorkspaceTabBar} from "@/shared/components/workspace/WorkspaceTabBar";
+import {useOptionalActiveSystem} from "@/shared/context/ActiveSystemContext";
 import {
     parseWorkspaceLocation,
     useWorkspaceLocation,
@@ -20,7 +21,7 @@ import {
     isDashboardTabId,
     stripDashboardTabs,
 } from "@/shared/workspace/workspace-dashboard";
-import {WorkspaceHistoryCommitProvider, type WorkspaceHistoryCommit} from "@/shared/workspace/workspace-history";
+import {type WorkspaceHistoryCommit,WorkspaceHistoryCommitProvider} from "@/shared/workspace/workspace-history";
 import {
     buildLocationKey,
     locationsEqual,
@@ -104,6 +105,17 @@ export function WorkspaceShell() {
     const dashboardTab = useMemo(() => getDashboardTab(), []);
     const moduleTabs = useMemo(() => stripDashboardTabs(tabs), [tabs]);
     const showDashboard = isDashboardTabId(activeTabId);
+    /*
+     * Painel: o conteúdo depende do sistema do rail (DP, RH, GP...). Fica montado entre idas e
+     * voltas como as outras abas, mas só para o sistema em que foi aberto; trocar de sistema
+     * descarta essa montagem e a próxima abertura monta do zero.
+     */
+    const dashboardSystemKey = useOptionalActiveSystem()?.activeSystem ?? "none";
+    const [dashboardMountedFor, setDashboardMountedFor] = useState<string | null>(null);
+    useEffect(() => {
+        if (showDashboard) setDashboardMountedFor(dashboardSystemKey);
+    }, [dashboardSystemKey, showDashboard]);
+    const renderDashboard = showDashboard || dashboardMountedFor === dashboardSystemKey;
 
     useEffect(() => {
         if (activeTabId && !isDashboardTabId(activeTabId)) {
@@ -212,8 +224,16 @@ export function WorkspaceShell() {
                 />
             ) : null}
             <div className="workspace-content relative min-h-0 flex-1 overflow-hidden">
-                {showDashboard ? (
-                    <div className="workspace-panel absolute inset-0 z-10">
+                {renderDashboard ? (
+                    <div
+                        key={dashboardSystemKey}
+                        className={clsx(
+                            "workspace-panel absolute inset-0",
+                            showDashboard ? "z-10" : "pointer-events-none",
+                        )}
+                        hidden={!showDashboard}
+                        aria-hidden={!showDashboard}
+                    >
                         <DashboardView/>
                     </div>
                 ) : null}

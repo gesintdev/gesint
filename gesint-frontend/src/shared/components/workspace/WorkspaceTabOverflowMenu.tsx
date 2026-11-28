@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import { ChevronDown, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
+import { SystemEnumHelper } from "@/modules/root/enum/SystemEnum";
 import { WorkspaceTabIcon } from "@/shared/components/workspace/WorkspaceTabIcon";
 import { WorkspaceTabSystemBadge } from "@/shared/components/workspace/WorkspaceTabSystemBadge";
 import { confirmDiscardUnsavedChanges } from "@/shared/workspace/dirty-tab-guard";
@@ -10,6 +11,7 @@ import { useWorkspaceStore } from "@/shared/workspace/workspace.store";
 import type { WorkspaceTab } from "@/shared/workspace/workspace.types";
 import { formatWorkspaceTabTitle } from "@/shared/workspace/workspace.types";
 import { findRouteGroupShortLabel } from "@/shared/workspace/workspace-routes";
+import { computeWorkspaceTabGroups, WORKSPACE_TAB_GROUP_TONE } from "@/shared/workspace/workspace-tab-groups";
 
 type WorkspaceTabOverflowMenuProps = {
     dashboardTab: WorkspaceTab;
@@ -34,6 +36,8 @@ export function WorkspaceTabOverflowMenu({
     const closeUnpinnedTabs = useWorkspaceStore((s) => s.closeUnpinnedTabs);
     const closeTab = useWorkspaceStore((s) => s.closeTab);
     const hasPinned = moduleTabs.some((tab) => tab.pinned);
+    // Mesmos grupos da trilha: por sistema, com cabeçalho e marcador no tom do grupo.
+    const tabGroups = useMemo(() => computeWorkspaceTabGroups(moduleTabs), [moduleTabs]);
     const activeTitle = activeDisplayTab
         ? formatWorkspaceTabTitle(activeDisplayTab, findRouteGroupShortLabel(activeDisplayTab.routeId))
         : "Abas abertas";
@@ -113,13 +117,36 @@ export function WorkspaceTabOverflowMenu({
                         {moduleTabs.map((tab) => {
                             const title = formatWorkspaceTabTitle(tab, findRouteGroupShortLabel(tab.routeId));
                             const active = tab.id === activeTabId;
+                            const group = tabGroups.info.get(tab.id);
+                            const system = group?.system ?? null;
+                            const tone = system ? WORKSPACE_TAB_GROUP_TONE[system] : undefined;
+                            const systemInfo = system ? SystemEnumHelper.getById(system) : null;
                             return (
-                                <li key={tab.id} role="none">
+                                <Fragment key={tab.id}>
+                                {group?.start && systemInfo ? (
+                                    <li
+                                        role="presentation"
+                                        className="workspace-tab-group-item workspace-tab-menu-group"
+                                        data-tone={tone}
+                                    >
+                                        <span className="workspace-tab-group-chip workspace-tab-group-chip--static">
+                                            {systemInfo.acronym}
+                                        </span>
+                                        <span className="truncate">{systemInfo.name}</span>
+                                        <span className="workspace-tab-menu-group__count">
+                                            {tabGroups.counts.get(system!) ?? 1}
+                                        </span>
+                                    </li>
+                                ) : null}
+                                <li role="none">
                                     <div
                                         className={clsx(
                                             "flex items-center gap-0.5 pe-1 transition-colors",
-                                            active && "bg-primary/8",
+                                            system && "workspace-tab-group-item workspace-tab-menu-item",
+                                            system && active && "workspace-tab-menu-item--active",
+                                            !system && active && "bg-primary/8",
                                         )}
+                                        data-tone={tone}
                                     >
                                         <button
                                             type="button"
@@ -134,7 +161,7 @@ export function WorkspaceTabOverflowMenu({
                                                 tab={tab}
                                                 className="size-3.5 shrink-0 text-base-content/50"
                                             />
-                                            <WorkspaceTabSystemBadge href={tab.href} />
+                                            {system ? null : <WorkspaceTabSystemBadge href={tab.href} />}
                                             <span className="truncate">{title}</span>
                                         </button>
                                         <button
@@ -158,6 +185,7 @@ export function WorkspaceTabOverflowMenu({
                                         </button>
                                     </div>
                                 </li>
+                                </Fragment>
                             );
                         })}
                     </ul>

@@ -44,10 +44,12 @@ export type ExportTableExcelInput<T extends object> = {
 /** Gera planilha simples (.xls via HTML) com header azul claro — sem dependência NPM. */
 export function exportTableToExcel<T extends object>({
     rows,
-    columns,
+    columns: allColumns,
     fileName = "exportacao",
     sheetTitle = "Dados",
 }: ExportTableExcelInput<T>) {
+    // Coluna com célula própria (botão, link) não tem valor para a planilha.
+    const columns = allColumns.filter((column) => !column.renderCell);
     if (columns.length === 0) return;
 
     const headerCells = columns

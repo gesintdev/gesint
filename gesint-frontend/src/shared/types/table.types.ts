@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export enum TableDataType {
     /** Texto livre (alias legado de STRING). */
     TEXT = "TEXT",
@@ -71,6 +73,12 @@ export type TableColumnConfig = {
      * Por padrão todas as colunas são filtráveis.
      */
     notFilterable?: boolean;
+    /**
+     * Conteúdo próprio da célula (ex.: botão que leva a outra tela). Substitui a formatação
+     * por `dataType`; a coluna fica fora da exportação e deve vir com `notFilterable`.
+     * O clique dentro da célula não ativa a linha.
+     */
+    renderCell?: (_row: object) => ReactNode;
 };
 
 /** Coluna filtrável por padrão, salvo `notFilterable`. */

@@ -288,7 +288,17 @@ export function DataTable<T extends object>({
                                                     col.className,
                                                 )}
                                             >
-                                                {renderCellContent(raw, col.dataType, row, col)}
+                                                {col.renderCell ? (
+                                                    <div
+                                                        className="gesint-table-cell-custom"
+                                                        onClick={stopRowClick}
+                                                        onDoubleClick={stopRowClick}
+                                                    >
+                                                        {col.renderCell(row)}
+                                                    </div>
+                                                ) : (
+                                                    renderCellContent(raw, col.dataType, row, col)
+                                                )}
                                             </td>
                                         );
                                     })}

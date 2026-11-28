@@ -1,10 +1,10 @@
 "use client";
 
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { type ReactNode, useMemo } from "react";
+import {ChevronLeft, ChevronRight} from "lucide-react";
+import {type ReactNode, useMemo} from "react";
 
-import { Button } from "@/shared/components/ui/Button";
+import {Button} from "@/shared/components/ui/Button";
 
 export type CalendarTone = "primary" | "info" | "success" | "warning" | "error" | "neutral";
 
@@ -27,14 +27,15 @@ export type CalendarMarker = {
 };
 
 const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
-const monthFormatter = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
+const monthFormatter = new Intl.DateTimeFormat("pt-BR", {month: "long", year: "numeric"});
 
 /** "novembro de 2026" -> "Novembro de 2026" (só a primeira letra). */
 function monthTitle(date: Date): string {
     const text = monthFormatter.format(date);
     return text.charAt(0).toUpperCase() + text.slice(1);
 }
-const dayFormatter = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+
+const dayFormatter = new Intl.DateTimeFormat("pt-BR", {weekday: "long", day: "2-digit", month: "long"});
 
 function pad(value: number): string {
     return String(value).padStart(2, "0");
@@ -65,7 +66,7 @@ export function currentCalendarMonth(): string {
 export function calendarMonthBounds(month: string): { from: string; to: string } {
     const start = parseMonth(month);
     const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-    return { from: iso(start), to: iso(end) };
+    return {from: iso(start), to: iso(end)};
 }
 
 type DayCell = {
@@ -102,16 +103,16 @@ function buildWeeks(month: string): DayCell[][] {
  * Eventos de vários dias aparecem em cada dia com as pontas indicando início e fim.
  */
 export function MonthCalendar({
-    month,
-    onMonthChange,
-    events,
-    markers = [],
-    maxPerDay = 3,
-    onEventClick,
-    legend,
-    toolbar,
-    emptyMessage = "Nenhum evento neste mês.",
-}: {
+                                  month,
+                                  onMonthChange,
+                                  events,
+                                  markers = [],
+                                  maxPerDay = 3,
+                                  onEventClick,
+                                  legend,
+                                  toolbar,
+                                  emptyMessage = "Nenhum evento neste mês.",
+                              }: {
     month: string;
     onMonthChange: (_month: string) => void;
     events: CalendarEvent[];
@@ -131,6 +132,7 @@ export function MonthCalendar({
         }
         return map;
     }, [markers]);
+
     const eventsByDate = useMemo(() => {
         const map = new Map<string, CalendarEvent[]>();
         const sorted = [...events].sort((a, b) => a.start.localeCompare(b.start) || a.label.localeCompare(b.label, "pt-BR"));
@@ -142,6 +144,7 @@ export function MonthCalendar({
         }
         return map;
     }, [events, weeks]);
+
     const monthDays = weeks.flat().filter((cell) => cell.inMonth);
     const agendaDays = monthDays.filter((cell) => eventsByDate.has(cell.date) || markersByDate.has(cell.date));
 
@@ -185,7 +188,7 @@ export function MonthCalendar({
                         variant="ghost"
                         size="sm"
                         aria-label="Mês anterior"
-                        leftIcon={<ChevronLeft className="size-4" />}
+                        leftIcon={<ChevronLeft className="size-4"/>}
                         onClick={() => onMonthChange(shiftCalendarMonth(month, -1))}
                     />
                     <Button
@@ -193,12 +196,13 @@ export function MonthCalendar({
                         variant="ghost"
                         size="sm"
                         aria-label="Próximo mês"
-                        leftIcon={<ChevronRight className="size-4" />}
+                        leftIcon={<ChevronRight className="size-4"/>}
                         onClick={() => onMonthChange(shiftCalendarMonth(month, 1))}
                     />
                     <h3 className="gesint-calendar__title">{monthTitle(parseMonth(month))}</h3>
                     {month !== currentCalendarMonth() ? (
-                        <Button type="button" variant="outline" size="sm" onClick={() => onMonthChange(currentCalendarMonth())}>
+                        <Button type="button" variant="outline" size="sm"
+                                onClick={() => onMonthChange(currentCalendarMonth())}>
                             Hoje
                         </Button>
                     ) : null}
@@ -235,7 +239,8 @@ export function MonthCalendar({
                                     <div className="gesint-calendar__day-head">
                                         <span className="gesint-calendar__day-number">{pad(cell.day)}</span>
                                         {dayMarkers.map((marker) => (
-                                            <span key={marker.label} className="gesint-calendar__marker" title={marker.label}>
+                                            <span key={marker.label} className="gesint-calendar__marker"
+                                                  title={marker.label}>
                                                 {marker.label}
                                             </span>
                                         ))}
@@ -244,7 +249,7 @@ export function MonthCalendar({
                                         {dayEvents.slice(0, maxPerDay).map((event) => renderEvent(event, cell.date, false))}
                                         {hidden > 0 ? (
                                             <span
-                                                className="gesint-calendar__more"
+                                                className={`gesint-calendar__more`}
                                                 title={dayEvents
                                                     .slice(maxPerDay)
                                                     .map((event) => event.title ?? event.label)
@@ -291,7 +296,8 @@ export function MonthCalendar({
                 <div className="gesint-calendar__legend">
                     {legend.map((item) => (
                         <span key={item.label} className="gesint-calendar__legend-item">
-                            <span className={clsx("gesint-calendar__legend-dot", `gesint-calendar__event--${item.tone}`)} />
+                            <span
+                                className={clsx("gesint-calendar__legend-dot", `gesint-calendar__event--${item.tone}`)}/>
                             {item.label}
                         </span>
                     ))}

@@ -137,7 +137,9 @@ Exceção: `.crud-page-card` (painel da página CRUD) não tem raio — encosta 
 - **Inativa**: transparente, texto `base-content` ~48%; hover fundo suave. Divisória `::before` (1px) entre abas; some após a ativa.
 - **Ativa**: texto/ícone `primary`, peso medium; fundo gradiente primary 8→12%; anel interno primary 22% (`inset box-shadow`). Sem sublinhado. `.workspace-tab-label::after` reserva a largura do medium pra não saltar a trilha.
 - **Fechar** (`.workspace-tab-close`): 20px, raio controle; aparece no hover/ativa; hover com fundo primary suave.
-- **Painel** (`.gesint-workspace-tab--home`): mesma pílula; ícone em marca quadrada.
+- **Grupos por sistema** (como grupos de guias do navegador): cada aba guarda o sistema em que abriu (`WorkspaceTab.system`; rota compartilhada fica com o do rail) e a store mantém as abas juntas por sistema (`arrangeWorkspaceTabs`) — aba nova entra no fim do grupo do sistema dela. Com uma aba só não há grupo; fixadas ficam fora. Desenho "DP ┃ aba | aba ┃ RH ┃ aba ┃": barras grossas e altas no tom do grupo (`.workspace-tab-group-divider`) logo depois do chip e no fim do grupo, iguais; entre abas, a divisória "|" de sempre; chip pequeno da sigla (`.workspace-tab-group-chip`): clique recolhe/expande, botão direito abre as ações do grupo (recolher, ir para o menu do sistema, fechar outros grupos, fechar grupo) e arrastar o chip move o grupo inteiro, aba selecionada no tom do sistema (`.workspace-tab-group-item` + `data-tone`: DP info, RH primary, CTB warning, GP success); sem faixa de fundo, a trilha continua com 40px. O dropdown de abas abertas agrupa igual (cabeçalho por sistema). Arrastar uma aba reordena só dentro do grupo. Divisória entre abas é traço em CSS (`.workspace-tabbar-sep`), não o caractere "|", para ficar centralizada.
+- **Ações da aba** (botão direito): "Ir para Menu" troca o rail para o sistema da aba, abre os grupos do menu até o item e destaca (`requestSidebarReveal`); "Fechar grupo" aparece quando a aba está num grupo. Clicar numa aba não mexe no menu lateral: o item destacado vem da URL só ao carregar e depois muda só por clique no menu ou por "Ir para Menu".
+- **Painel** (`.gesint-workspace-tab--home`): mesma pílula; ícone em marca quadrada. O título leva a sigla do sistema do rail ("Painel GP"). Como as outras abas, fica montado ao sair e voltar; só remonta quando o sistema do rail muda (DP, RH, GP…), porque o conteúdo é do sistema (`WorkspaceShell`, key pelo sistema ativo).
 - Trocar de aba faz fade de opacidade no `.workspace-panel` (só opacidade — ver §12).
 
 ### Abas internas do CRUD (Listagem / Cadastro …)
@@ -182,7 +184,8 @@ Altura `--gesint-control-h` (**30px**, mesma do `.nav-item`/aba; padding 0 7px).
 - Ações de linha: botões quadrados 24px (`--gesint-table-action-button-size`, ícone 14px) com tom semântico (abrir = info, editar = primary, excluir = error, baixar = success).
 
 - Duração e saldo de horas: colunas `TableDataType.DURATION` (minutos → `08h23`) e `TableDataType.BALANCE` (`+08h23` em `success`, `-08h23` em `error`, classe `.gesint-balance`). Não formatar hora em decimal na grid.
-- Abas internas de uma tela (filas, visões): `CrudTabList` (`shared/components/ui/CrudTabList.tsx`); não repetir o markup de `.gesint-crud-tablist`.
+- Abas internas de uma tela (filas, visões): `CrudTabList` (`shared/components/ui/CrudTabList.tsx`); não repetir o markup de `.gesint-crud-tablist`. Recorte que é só filtro de uma coluna (ex.: "com pendências", "fechados") vai no filtro da coluna, não em aba.
+- Botão Atualizar da toolbar: `QueryRefreshButton` dentro de um `QueryRefreshHostProvider` (o `CrudScreen` já traz; tela de workspace avulsa monta o provider).
 
 ## 8. Badges de status
 

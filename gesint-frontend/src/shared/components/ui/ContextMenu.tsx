@@ -114,8 +114,10 @@ export function ContextMenu({ x, y, ariaLabel, entries, onClose }: ContextMenuPr
                             onClose();
                         }}
                     >
-                        {item.icon}
-                        {item.label}
+                        <span className="gesint-context-menu__icon" aria-hidden>
+                            {item.icon}
+                        </span>
+                        <span className="min-w-0">{item.label}</span>
                     </button>
                 );
             })}

@@ -118,7 +118,7 @@ export function InputSelect({
                               selectedValue={value}
                               onPick={pick}
                               onHighlight={setActiveIndex}
-                              className="fixed z-[200]"
+                              className="fixed z-200"
                               style={{
                                   position: "fixed",
                                   top: panelBox.top,

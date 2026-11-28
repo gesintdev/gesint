@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
+import type { SystemEnum } from "@/modules/root/enum/SystemEnum";
 import type { WorkspaceEntityKey } from "@/shared/workspace/workspace-tab-id";
 
 export type WorkspaceTab = {
@@ -13,6 +14,11 @@ export type WorkspaceTab = {
     icon?: LucideIcon;
     /** Abas fixadas ficam à esquerda e só reordenam entre si. */
     pinned?: boolean;
+    /**
+     * Sistema (DP, RH, GP...) em que a aba foi aberta: agrupa as abas na trilha. Rota compartilhada
+     * (ex.: Admissão em DP e RH) fica com o sistema do rail na hora de abrir.
+     */
+    system?: SystemEnum;
 };
 
 export type OpenWorkspaceTabInput = {
@@ -23,6 +29,8 @@ export type OpenWorkspaceTabInput = {
     icon?: LucideIcon;
     titleSuffix?: string;
     entityKey?: string;
+    /** Sistema da aba quando quem abre já sabe (ex.: Admissão aberta no DP a partir do GP, sem trocar o rail). */
+    system?: SystemEnum;
 };
 
 export type OpenWorkspaceRecordInput = OpenWorkspaceTabInput & {

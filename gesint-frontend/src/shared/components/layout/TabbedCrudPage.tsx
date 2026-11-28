@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState } from "react";
 
 import {
     CRUD_TAB_FORM,
@@ -46,6 +46,17 @@ function crudInitialState(
     return { defaultTab: CRUD_TAB_FORM, initialEditingId: entityKey };
 }
 
+/** Aba de listagem do módulo montada com a URL do navegador já em `?edit=` desta tela. */
+function initialStateFromBrowserUrl(
+    href: string,
+    entityKey: WorkspaceEntityKey,
+): { defaultTab: string; initialEditingId: string | null } | null {
+    if (typeof window === "undefined" || !isModuleListTab(entityKey)) return null;
+    if (window.location.pathname !== href) return null;
+    const editingId = new URLSearchParams(window.location.search).get("edit");
+    return editingId ? { defaultTab: CRUD_TAB_FORM, initialEditingId: editingId } : null;
+}
+
 export function TabbedCrudPage<TEntity extends object>({
     routeId,
     href,
@@ -60,9 +71,10 @@ export function TabbedCrudPage<TEntity extends object>({
     ...crudProps
 }: TabbedCrudPageProps<TEntity>) {
     const { tab } = useWorkspaceTab();
-    const { defaultTab, initialEditingId } = useMemo(
-        () => crudInitialState(tab.entityKey, editOnly),
-        [editOnly, tab.entityKey],
+    // Lido só na montagem: aba de listagem criada quando a URL já pede um registro (`?edit=`) nasce
+    // em Editar, sem passar pela Listagem antes (ex.: Admissão aberta pelo chip das grids do GP).
+    const [{ defaultTab, initialEditingId }] = useState(() =>
+        initialStateFromBrowserUrl(href, tab.entityKey) ?? crudInitialState(tab.entityKey, editOnly),
     );
     const config: TabbedCrudConfig = {
         routeId,
