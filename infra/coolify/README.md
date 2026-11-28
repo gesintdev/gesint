@@ -141,6 +141,8 @@ Configuração comum a todas:
 
 Crie um volume persistente no Coolify e monte em `/data/storage`.
 
+Esse volume é o armazenamento vigente. Quando os arquivos forem para nuvem, o provedor previsto é Cloudflare R2 (não Amazon S3). Ver `docs/arquitetura/armazenamento.md`. Até essa integração, o volume continua obrigatório.
+
 ### 4. Domínios (FQDN)
 
 Em cada Application → Domains, use FQDN do Coolify (`*.sslip.io`) ou domínio próprio. HTTPS ligado. URLs **sem barra final**.

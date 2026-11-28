@@ -35,6 +35,10 @@ O Gesint usa control plane + data plane. Em produção, `www.gesint.com.br` e `g
 
 MVP multi-tenant: schema dedicado por cliente (`tenant_*`), não `tenant_id` em tabelas de negócio.
 
+## Armazenamento de arquivos
+
+Hoje o arquivo fica no disco do backend (`STORAGE_LOCAL_PATH`). Quando houver integração com nuvem, o provedor é Cloudflare R2. Documento: `docs/arquitetura/armazenamento.md`.
+
 Ao criar tabela de negócio no HR:
 
 1. Criar migration em `gesint-backend/src/main/resources/db/migration/`.

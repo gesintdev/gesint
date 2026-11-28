@@ -19,6 +19,7 @@ Estes arquivos são a fonte das regras. O nome certo é `.agents/rules/*.mdc` pa
 | `.agents/rules/gesint-payroll-module.mdc` | Folha de pagamento (CTB) | Qualquer alteração de folha |
 | `docs/modulos/` | Regras de negócio do módulo (férias, folha, recesso, permissões) | Antes de mudar a regra daquele módulo |
 | `docs/arquitetura/multi-tenant.md` | DNS, tenant, control plane / data plane | Host, login, schema de cliente |
+| `docs/arquitetura/armazenamento.md` | Disco local hoje; nuvem futura é Cloudflare R2 | Upload, anexo, object storage |
 | `docs/ops/producao-gesint.md` | Hosts de produção e boot | Deploy, DNS, Coolify |
 
 Não criar um segundo design system, um segundo modal, um segundo select nem uma regra de negócio paralela à que já está nesses arquivos.
@@ -173,6 +174,12 @@ Endereços em produção:
 - O endereço de cada cliente é `https://{slug}.gesint.com.br`.
 - Slugs que nunca identificam cliente: `www`, `api`, `admin`, `app`, `ponto`.
 
+## Armazenamento de arquivos
+
+O blob fica no disco do Client backend (`STORAGE_LOCAL_PATH`; em produção, volume `/data/storage`). Metadados em `storage_object`. O contrato dos módulos é `IStorageService`.
+
+Na integração com object storage, o provedor é Cloudflare R2. Amazon S3 não é o padrão. Detalhe: `docs/arquitetura/armazenamento.md`.
+
 ## Site institucional — regra absoluta
 
 O site da Gesint é um aplicativo separado. Não entra no `gesint-frontend`.
@@ -270,6 +277,7 @@ A regra de um módulo está no código do service/domain e, quando existe, no do
 | Autorização (RN-03) | `docs/modulos/permissoes/gesint-RN-03-autorizacao.md` |
 | Ordem das regras (RN-00 em diante) | `docs/modulos/permissoes/gesint-ordem-regras-de-negocio.md` |
 | Tenant, DNS, site | `docs/arquitetura/multi-tenant.md` e a seção "Site institucional" deste arquivo |
+| Arquivos (storage) | `docs/arquitetura/armazenamento.md` |
 | Produção | `docs/ops/producao-gesint.md` |
 
 `docs/analise/` guarda planos e roteiros. Não é regra vigente. A regra vigente é o código mais o documento da tabela.
